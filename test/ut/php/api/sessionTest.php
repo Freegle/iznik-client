@@ -145,6 +145,7 @@ class sessionTest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $group1);
+        $g->setPrivate('welcomemail', 'Test - please ignore');
         $u->addMembership($group1);
 
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));

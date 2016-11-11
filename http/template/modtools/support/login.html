@@ -5,4 +5,19 @@
     <div class="col-md-2">
         <abbr class="timeago" title="{{lastaccess}}"/>
     </div>
+    <% if (obj.type == 'Native') { %>
+    <div class="col-md-5">
+        <div class="input-group">
+            <input type="text" class="form-control js-pw" placeholder="New password" aria-describedby="resetbutt">
+            <span class="input-group-addon clickme js-resetpw" id="resetbutt">
+                <span class="js-text">
+                    Reset Password
+                </span>
+                <span class="js-ok" style="display: none">
+                    <span class="glyphicon glyphicon-ok" />
+                </span>
+            </span>
+        </div>
+    </div>
+    <% } %>
 </div>

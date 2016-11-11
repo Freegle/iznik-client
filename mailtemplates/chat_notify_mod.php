@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function chat_notify_mod($domain, $logo, $fromname, $url, $htmlsummary, $support ) {
+function chat_notify_mod($domain, $logo, $fromname, $url, $htmlsummary, $support, $ismod) {
     $siteurl = "https://$domain";
 
     $html = <<<EOT
@@ -86,11 +86,19 @@ EOT;
                                                                 <tr>
                                                                     <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                                 </tr>
+EOT;
+
+    if ($ismod) {
+        $html .= <<<EOT
                                                                 <tr>
                                                                     <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
-                                                                        <p>If you need help dealing with this query, you can mail <a href="mailto:$support">$support</p>
+                                                                        <p>This message is sent to all volunteers on the group.  If you need help dealing with this query, you can mail <a href="mailto:$support">$support</p>
                                                                     </td>
-                                                                </tr>                                                                
+                                                                </tr>
+EOT;
+    }
+    
+    $html .= <<<EOT
                                                             </table>
                                                         </td>
                                                     </tr>

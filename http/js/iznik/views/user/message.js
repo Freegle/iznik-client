@@ -201,8 +201,9 @@ define([
                     var v = new Iznik.Views.User.Message.Group({
                         model: new Iznik.Model(group)
                     });
-                    v.render();
-                    self.$('.js-groups').append(v.el);
+                    v.render().then(function() {
+                        self.$('.js-groups').append(v.el);
+                    });
                 });
 
                 if (approved || pending) {
@@ -289,7 +290,7 @@ define([
     });
 
     Iznik.Views.User.Message.Group = Iznik.View.Timeago.extend({
-        template: "user_message_group",
+        template: "user_message_group"
     });
 
     Iznik.Views.User.Message.Photo = Iznik.View.extend({
@@ -705,8 +706,6 @@ define([
                             });
                         }
 
-                        console.log("Already a member?", member);
-
                         if (!member) {
                             // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
                             // matter which.
@@ -732,7 +731,6 @@ define([
                                 }
                             })
                         } else {
-                            console.log("We're already a member");
                             self.startChat();
                         }
                     } else {

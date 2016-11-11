@@ -38,6 +38,12 @@ function prepareSession($dbhr, $dbhm) {
             session_start();
         }
 
+        # We might have a partner key which allows us access to the API when not logged in as a user.
+        $_SESSION['partner'] = FALSE;
+        if (pres('partner', $_REQUEST)) {
+            $_SESSION['partner'] = partner($dbhr, $_REQUEST['partner']);
+        }
+
         if (!pres('id', $_SESSION)) {
             $userid = NULL;
 
@@ -203,11 +209,10 @@ class Session {
 
             # Store this away in our PHP session, so that it gets returned the client, and will then work again
             # next time.
-            $thash  = sha1($token);
             $_SESSION['persistent'] = [
                 'id' => $id,
                 'series' => $series,
-                'token' => $thash
+                'token' => $token
             ];
 
             $this->dbhm->preExec("UPDATE sessions SET lastactive = NOW() WHERE  id = ? AND series = ? AND token = ?;", [

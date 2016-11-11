@@ -41,7 +41,6 @@ function message() {
         case 'GET':
         case 'PUT':
         case 'DELETE': {
-            $m = NULL;
             $m = new Message($dbhr, $dbhm, $id);
 
             if ((!$m->getID() && $collection != MessageCollection::DRAFT) || $m->getDeleted()) {
@@ -107,6 +106,11 @@ function message() {
                         if (!$id) {
                             $id = $m->createDraft();
                             $m = new Message($dbhr, $dbhm, $id);
+
+                            # Record the last message we created in our session.  We use this to give access to
+                            # this message even if we're not logged in - for example when setting the FOP after
+                            # message submission.
+                            $_SESSION['lastmessage'] = $id;
                         } else {
                             # The message should be ours.
                             $sql = "SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid IS NOT NULL AND userid = ?);";
@@ -158,22 +162,6 @@ function message() {
                                 'id' => $id
                             ];
                         }
-                    } else {
-                        $role = $m->getRoleForMessage();
-                        if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR) {
-                            $ret = ['ret' => 2, 'status' => 'Permission denied'];
-                        } else {
-                            $subject = presdef('subject', $_REQUEST, NULL);
-                            $textbody = presdef('textbody', $_REQUEST, NULL);
-                            $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
-
-                            $m->edit($subject, $textbody, $htmlbody);
-
-                            $ret = [
-                                'ret' => 0,
-                                'status' => 'Success'
-                            ];
-                        }
                     }
                 } else if ($_REQUEST['type'] == 'DELETE') {
                     $role = $m->getRoleForMessage();
@@ -186,6 +174,34 @@ function message() {
                             'status' => 'Success'
                         ];
                     }
+                }
+            }
+        }
+        break;
+
+        case 'PATCH': {
+            $m = new Message($dbhr, $dbhm, $id);
+            $ret = ['ret' => 3, 'status' => 'Message does not exist'];
+
+            if ($m->getID()) {
+                $role = $m->getRoleForMessage();
+
+                # We might not be logged in - but might still have permissions to modify this message if
+                # we created it.
+                if ($role != User::ROLE_OWNER && $role != User::ROLE_MODERATOR && $id != presdef('lastmessage', $_SESSION, NULL)) {
+                    $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                } else {
+                    $subject = presdef('subject', $_REQUEST, NULL);
+                    $textbody = presdef('textbody', $_REQUEST, NULL);
+                    $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
+                    $fop = presdef('FOP', $_REQUEST, NULL);
+
+                    $m->edit($subject, $textbody, $htmlbody, $fop);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
                 }
             }
         }
@@ -317,8 +333,6 @@ function message() {
                                     $g = Group::get($dbhr, $dbhm, $groupid);
                                     $fromemail = NULL;
 
-                                    error_log("Group on Yahoo? " . $g->getPrivate('onyahoo'));
-
                                     if ($g->getPrivate('onyahoo')) {
                                         # We need to make sure we're a member of the Yahoo group with an email address
                                         # we host (so that replies come back here).
@@ -329,7 +343,6 @@ function message() {
                                             # Not a member yet.  We need to sign them up to the Yahoo group before we
                                             # can send it.  This may result in more applications to Yahoo - but dups are
                                             # ok.
-                                            error_log("Not a member yet");
                                             $ret = [
                                                 'ret' => 0,
                                                 'status' => 'Queued for group membership',
@@ -342,21 +355,17 @@ function message() {
                                             # We're good to go.  Make sure we submit with the email that is a group member
                                             # rather than the one they supplied.
                                             $fromemail = $u->getEmailById($eidforgroup);
-                                            error_log("We're a member using $fromemail");
                                         }
                                     } else {
                                         # This group is hosted here.  There's less to do in that case.
-                                        error_log("Not on Yahoo");
                                         if (!$u->isApprovedMember($groupid)) {
                                             # Join the group.
-                                            error_log("Not approved yet");
                                             $u->addMembership($groupid);
                                         }
 
                                         # We want the message to come from one of our emails rather than theirs, so
                                         # that replies come back to us and privacy is maintained.
                                         $fromemail = $u->inventEmail();
-                                        error_log("User our email $fromemail");
                                     }
 
                                     $m->constructSubject($groupid);

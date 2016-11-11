@@ -380,7 +380,7 @@ define([
                 try {
                     var id = localStorage.getItem('draft');
                     var q = null;
-                    var msg;
+                    var msg = null;
 
                     if (id) {
                         // We have a draft we were in the middle of.
@@ -388,13 +388,13 @@ define([
                             id: id
                         });
 
-                        q = msg.fetch()
+                        q = msg.fetch();
                     } else {
                         q = resolvedPromise(self);
                     }
 
                     q.then(function() {
-                        if (id) {
+                        if (id && msg.get('id') == id && !_.isUndefined(msg.get('location'))) {
                             // We want to use the location from the message we are in the middle of.
                             localStorage.setItem('mylocation', JSON.stringify(msg.get('location')));
                         }

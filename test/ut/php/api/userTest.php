@@ -174,6 +174,33 @@ class userAPITest extends IznikAPITestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testPassword() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create("Test", "User", "Test User");
+        $u->addEmail('test2@test.com');
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid,
+            'password' => 'testtest'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid,
+            'password' => 'testtest'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        assertFalse($u->login('testbad'));
+        assertFalse($u->login('testtest'));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testMail() {
         error_log(__METHOD__);
 
