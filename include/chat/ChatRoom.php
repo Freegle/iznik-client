@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
+require_once(IZNIK_BASE . '/include/session/Facebook.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_notify.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_notify_mod.php');
 require_once(IZNIK_BASE . '/mailtemplates/chat_chaseup_mod.php');
@@ -636,7 +637,7 @@ class ChatRoom extends Entity
         return ($count);
     }
 
-    public function notifyMembers($name, $message)
+    public function notifyMembers($name, $message, $excludeuser = NULL)
     {
         # Notify members of a chat room via:
         # - Facebook
@@ -665,29 +666,33 @@ class ChatRoom extends Entity
         $count = 0;
 
         foreach ($userids as $userid) {
-            #error_log("Poke {$rost['userid']} for {$this->id}");
-            $u = User::get($this->dbhr, $this->dbhm, $userid);
+            if ($userid != $excludeuser) {
+                #error_log("Poke {$rost['userid']} for {$this->id}");
+                $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-            if ($u->notifsOn(User::NOTIFS_FACEBOOK)) {
-                $logins = $u->getLogins();
+                if ($u->notifsOn(User::NOTIFS_FACEBOOK)) {
+                    $logins = $u->getLogins();
 
-                foreach ($logins as $login) {
-                    if ($login['type'] == User::LOGIN_FACEBOOK && is_numeric($login['uid'])) {
-                        $f->notify($login['uid'], $text, $url);
+                    foreach ($logins as $login) {
+                        if ($login['type'] == User::LOGIN_FACEBOOK && is_numeric($login['uid'])) {
+                            $f->notify($login['uid'], $text, $url);
+                        }
                     }
                 }
-            }
 
-            $count++;
+                $count++;
+            }
         }
 
         # Now Push.  No payload.
         $n = new Notifications($this->dbhr, $this->dbhm);
         foreach ($userids as $userid) {
-            $u = User::get($this->dbhr, $this->dbhm, $userid);
+            if ($userid != $excludeuser) {
+                $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-            if ($u->notifsOn(User::NOTIFS_PUSH)) {
-                $n->notify($userid);
+                if ($u->notifsOn(User::NOTIFS_PUSH)) {
+                    $n->notify($userid);
+                }
             }
         }
 
