@@ -50,43 +50,64 @@ define([
 
         askSubscription: function() {
             var self = this;
+            console.log("askSubscription");
 
-            // Don't ask for push notif permissions too often.
-            var lastasked = null;
-            var now = (new Date()).getTime();
-            try {
-                lastasked = localStorage.getItem('lastAskedPush');
-            } catch (e) {}
+            if (window.serviceWorker) {
+                window.serviceWorker.pushManager.permissionState({
+                    userVisibleOnly: true
+                }).then(function(PushMessagingState) {
+                    console.log("Push state", PushMessagingState);
+                    var ask = false;
 
-            //console.log("askSubscription", lastasked, now,now - lastasked, 60 * 60 * 1000);
+                    switch (PushMessagingState) {
+                        case 'granted':
+                            // We want to ask to get the latest subscription.  Because we've been granted permissions
+                            // it won't cause a user popup.
+                            ask = true;
+                            break
+                        case 'denied':
+                            // We don't want to ask again;
+                            ask = false;
+                            break;
+                        case 'prompt':
+                            // Don't ask for push notif permissions too often.
+                            var lastasked = null;
+                            var now = (new Date()).getTime();
+                            try {
+                                lastasked = localStorage.getItem('lastAskedPush');
+                            } catch (e) {}
 
-            if (window.serviceWorker &&
-                (!lastasked || (now - lastasked > 60 * 60 * 1000)))  {
-                // Try to get push notification permissions.
-                try {
-                    try {
-                        localStorage.setItem('lastAskedPush', now);
-                    } catch (e) {}
+                            ask = (!lastasked || (now - lastasked > 60 * 60 * 1000));
+                    }
 
-                    window.serviceWorker.pushManager.getSubscription().then(function (subscription) {
-                        if (!subscription) {
-                            var p = window.serviceWorker.pushManager.subscribe({
-                                userVisibleOnly: true
-                            });
-                            pushManagerPromise = p;
-                            p.then(self.gotSubscription, function (error) {
-                                if (!_.isUndefined(error) && error.indexOf && error.indexOf("permission denied") == -1) {
-                                    // Permission denied is normal.
-                                    console.log("Subscribe error", error);
+                    if (ask)  {
+                        // Try to get push notification permissions.
+                        try {
+                            try {
+                                localStorage.setItem('lastAskedPush', now);
+                            } catch (e) {}
+
+                            window.serviceWorker.pushManager.getSubscription().then(function (subscription) {
+                                if (!subscription) {
+                                    var p = window.serviceWorker.pushManager.subscribe({
+                                        userVisibleOnly: true
+                                    });
+                                    pushManagerPromise = p;
+                                    p.then(self.gotSubscription, function (error) {
+                                        if (!_.isUndefined(error) && error.indexOf && error.indexOf("permission denied") == -1) {
+                                            // Permission denied is normal.
+                                            console.log("Subscribe error", error);
+                                        }
+                                    });
+                                } else {
+                                    self.gotSubscription(subscription);
                                 }
                             });
-                        } else {
-                            self.gotSubscription(subscription);
+                        } catch (e) {
+                            console.log("Can't get sub", e);
                         }
-                    });
-                } catch (e) {
-                    console.log("Can't get sub", e);
-                }
+                    }
+                });
             }
         },
 
