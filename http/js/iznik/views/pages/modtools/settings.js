@@ -1607,7 +1607,8 @@ define([
             'click #js-shade': 'shade',
             'keyup .js-wkt': 'paste',
             'click .js-discard': 'discard',
-            'click .js-postcodetest': 'postcodeTest'
+            'click .js-postcodetest': 'postcodeTest',
+            'click .js-postcodeshow': 'postcodeShow'
         },
 
         discard: function() {
@@ -1617,6 +1618,45 @@ define([
     
         paste: function() {
             this.mapWKT(this.$('.js-wkt').val(), null);
+        },
+
+        postcodeShow: function() {
+            var self = this;
+
+            var circle ={
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: 'red',
+                fillOpacity: .4,
+                scale: 4.5,
+                strokeColor: 'white',
+                strokeWeight: 1
+            };
+
+            self.wait = new Iznik.Views.PleaseWait();
+            self.wait.render();
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: self.$('.js-postcodetoshow').val().trim() + ' ',
+                    limit: 1000
+                }, success: function (ret) {
+                    self.wait.close();
+                    if (ret.ret == 0 && ret.locations.length > 0) {
+                        _.each(ret.locations, function(location) {
+                            new google.maps.Marker({
+                                position: {
+                                    lat: location.lat,
+                                    lng: location.lng
+                                },
+                                icon: circle,
+                                map: self.map
+                            });
+                        })
+                    }
+                }
+            });
         },
 
         postcodeTest: function() {
@@ -1820,16 +1860,14 @@ define([
             }
 
             if (obj && !self.Wkt.isArray(obj) && wkt.type !== 'point' && typeof obj.getPath == 'function') {
-                if (self.options.groupid) {
-                    // New vertex is inserted
-                    google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
+                // New vertex is inserted
+                google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
 
-                    // Existing vertex is removed (insertion is undone)
-                    google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
+                // Existing vertex is removed (insertion is undone)
+                google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
 
-                    // Existing vertex is moved (set elsewhere)
-                    google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
-                }
+                // Existing vertex is moved (set elsewhere)
+                google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
 
                 // Click to show info
                 google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
