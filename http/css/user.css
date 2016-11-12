@@ -23,9 +23,6 @@
     background-color: white;
 }
 
-#mygroupstype {
-    max-width:
-}
 .msgsubj {
     font-size: 20px;
     font-weight: bold;
@@ -574,6 +571,11 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 
 #js-eventcontainer {
     overflow-y: scroll;
+}
+
+.groupdescription {
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 .fadeout {

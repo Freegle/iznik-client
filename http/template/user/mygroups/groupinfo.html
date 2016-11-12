@@ -3,7 +3,7 @@
         <div class="col-xs-12">
             <div class="pull-right margright">
                 <% if (obj.profile) { %>
-                <img src="{{obj.profile}}" class="img-thumbnail img-rounded botspace" />
+                <img src="{{obj.profile}}" class="img-thumbnail img-rounded img-maxthumb botspace" />
                 <br class="clearfix" />
                 <% } %>
                 <div class="btn btn-white pull-right js-leave">
@@ -19,6 +19,11 @@
                 Founded <span class="js-foundeddate" />.
             </span>
                 <span class="js-membercount" /> current freeglers.
+            </div>
+            <div class="js-gotdesc" style="display: none">
+                <hr />
+                <div class="groupdescription js-description" />
+                <br class="clearfix" />
             </div>
         </div>
     </div>

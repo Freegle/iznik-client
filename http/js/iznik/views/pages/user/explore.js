@@ -393,6 +393,17 @@ define([
                         self.$('.js-founded').show();
                     }
 
+                    // Add the description
+                    var desc = self.model.get('description');
+
+                    if (desc) {
+                        self.$('.js-gotdesc').show();
+                        self.$('.js-description').html(desc);
+
+                        // Any links in here are real.
+                        self.$('.js-description a').data('realurl', true);
+                    }
+
                     self.collection = new Iznik.Collections.Message(null, {
                         modtools: false,
                         collection: 'Approved',

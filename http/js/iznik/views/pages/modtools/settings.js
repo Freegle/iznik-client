@@ -10,6 +10,7 @@ define([
     'fileinput',
     'gmaps',
     'maplabel',
+    'tinymce',
     "iznik/modtools",
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages',
@@ -36,7 +37,8 @@ define([
             'click .js-addgroup': 'addGroup',
             'click .js-addlicense': 'addLicense',
             'click .js-hideall': 'hideAll',
-            'click .js-mapsettings': 'mapSettings'
+            'click .js-mapsettings': 'mapSettings',
+            'click .js-editdesc': 'editDesc'
         },
     
         addGroup: function() {
@@ -154,6 +156,10 @@ define([
                     }
                 });
             }
+        },
+
+        updateDescription: function() {
+            this.$('.js-description').val(this.group.get('description'));
         },
     
         settingsGroup: function() {
@@ -564,6 +570,8 @@ define([
 
                         self.groupAppearanceForm.render();
                         $('#groupappearanceform input[name=tagline]').attr('maxlength', 120);
+
+                        self.updateDescription();
 
                         // Add Twitter info.  Won't show for groups it shouldn't.
                         var twitter = self.group.get('twitter');
@@ -991,7 +999,20 @@ define([
         mapSettings: function() {
             Router.navigate('/modtools/settings/' + this.selected + '/map', true);
         },
-    
+
+        editDesc: function() {
+            var self = this;
+            var v = new Iznik.Views.ModTools.Settings.GroupDescription({
+                model: this.group
+            });
+
+            self.listenToOnce(v, 'modalClosed', function() {
+                self.group.fetch().then(_.bind(self.updateDescription, self));
+            });
+
+            v.render();
+        },
+
         render: function() {
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function(self) {
@@ -2222,6 +2243,75 @@ define([
             } else {
                 p = resolvedPromise(this);
             }
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.ModTools.Settings.GroupDescription = Iznik.Views.Modal.extend({
+        template: 'modtools_settings_description',
+
+        events: {
+            'click .js-save': 'save'
+        },
+
+        save: function() {
+            var self = this;
+            var desc = tinyMCE.activeEditor.getContent({format: 'html'});
+
+            $.ajax({
+                url: API + 'group',
+                type: 'PATCH',
+                data: {
+                    id: self.model.get('id'),
+                    description: desc
+                }, success: function() {
+                    self.close();
+                }
+            });
+        },
+
+        removeEditors: function () {
+            function removeTinyMCEInstance(editor) {
+                var oldLength = tinymce.editors.length;
+                tinymce.remove(editor);
+                if (oldLength == tinymce.editors.length) {
+                    tinymce.editors.remove(editor)
+                }
+            }
+
+            for (var i = tinymce.editors.length - 1; i > -1; i--) {
+                removeTinyMCEInstance(tinymce.editors[i]);
+            }
+        },
+
+        render: function() {
+            var self = this;
+            self.removeEditors();
+
+            // Magic from http://stackoverflow.com/questions/18111582/tinymce-4-links-plugin-modal-in-not-editable to
+            // make the links work in modal.
+            $(document).on('focusin', function(e) {
+                if ($(e.target).closest(".mce-window").length || $(e.target).closest(".moxman-window").length) {
+                    e.stopImmediatePropagation();
+                }
+            });
+
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function(self) {
+                self.waitDOM(self, function() {
+                    self.$('#groupdescription').val(self.model.get('description'));
+
+                    tinyMCE.init({
+                        selector: '#groupdescription',
+                        plugins: 'link textcolor code',
+                        height: 300,
+                        menubar: false,
+                        elementpath: false,
+                        toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright |  bullist numlist link | forecolor styleselect formatselect fontselect fontsizeselect | cut copy paste | code'
+                    });
+                });
+            });
 
             return(p);
         }
