@@ -401,7 +401,7 @@ define([
                         self.$('.js-description').html(desc);
 
                         // Any links in here are real.
-                        self.$('.js-description a').data('realurl', true);
+                        self.$('.js-description a').attr('data-realurl', true);
                     }
 
                     self.collection = new Iznik.Collections.Message(null, {
