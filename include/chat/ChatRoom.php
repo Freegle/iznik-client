@@ -1073,7 +1073,7 @@ class ChatRoom extends Entity
 
                             # ModTools users should never get notified.
                             if ($to && strpos($to, MOD_SITE) === FALSE) {
-                                error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject");
+                                error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
                                 try {
                                     #$to = 'log@ehibbert.org.uk';
                                     $message = $this->constructMessage($thisu,
@@ -1103,12 +1103,17 @@ class ChatRoom extends Entity
                 }
             }
 
-            # We have now mailed some more.  Note that this is resilient to new messages arriving while we were
-            # looping above, and we will mail those next time.
-            $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id > ? AND id <= ?;", [
-                $lastmaxmailed,
-                $maxmailednow
-            ]);
+            if ($maxmailednow) {
+                # We have now mailed some more.  Note that this is resilient to new messages arriving while we were
+                # looping above, and we will mail those next time.
+                $lastmaxmailed = $lastmaxmailed ? $lastmaxmailed : 0;
+                error_log("Set mailedto all for $lastmaxmailed to $maxmailednow for {$chat['chatid']}");
+                $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id > ? AND id <= ? AND chatid = ?;", [
+                    $lastmaxmailed,
+                    $maxmailednow,
+                    $chat['chatid']
+                ]);
+            }
         }
 
         return ($notified);
