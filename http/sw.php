@@ -167,20 +167,35 @@ self.addEventListener('push', function(event) {
     // we need to display to the user.  This is why we need our pushsub stored, so that we can authenticate to
     // the server.
     console.log('SW Push message received', event, pushsub);
-    var url = new URL(self.registration.scope + 'api/session');
+    var ammod = self.registration.scope.indexOf('modtools') != -1;
+    var url;
 
-    if (pushsub) {
-        // We add our push subscription as a way of authenticating ourselves to the server, in case we're
-        // not already logged in.  A by product of this will be that it will log us in - but for the user
-        // this is nice behaviour, as it means that if they click on a notification they won't be prompted
-        // to log in.
-        if (url.searchParams) {
-            url.searchParams.append('pushcreds', pushsub);
-            console.log("SW Add pushcreds", pushsub);
-        } else {
-            // Chrome mobile doesn't seem to support searchParams
-            url = url + '?pushcreds=' + encodeURIComponent(pushsub);
-            console.log("SW Add pushcreds into url", url);
+    if (ammod) {
+        url =  new URL(self.registration.scope + 'api/session');
+
+        if (pushsub) {
+            // We add our push subscription as a way of authenticating ourselves to the server, in case we're
+            // not already logged in.  A by product of this will be that it will log us in - but for the user
+            // this is nice behaviour, as it means that if they click on a notification they won't be prompted
+            // to log in.
+            if (url.searchParams) {
+                url.searchParams.append('pushcreds', pushsub);
+                console.log("SW Add pushcreds", pushsub);
+            } else {
+                // Chrome mobile doesn't seem to support searchParams
+                url = url + '?pushcreds=' + encodeURIComponent(pushsub);
+                console.log("SW Add pushcreds into url", url);
+            }
+        }
+    } else {
+        url = new URL(self.registration.scope + 'api/chat/rooms?chattypes%5B%5D=User2User&chattypes%5B%5D=User2Mod');
+
+        if (pushsub) {
+            if (url.searchParams) {
+                url.searchParams.append('pushcreds', pushsub);
+            } else {
+                url = url + '&pushcreds=' + encodeURIComponent(pushsub);
+            }
         }
     }
 
@@ -200,13 +215,11 @@ self.addEventListener('push', function(event) {
                 console.log("SW got session during push", ret);
                 var notifstr = '';
                 var url = '/';
-                var ammod = false
 
                 if (ret.ret == 0) {
                     try {
-                        if (ret.hasOwnProperty('work')) {
+                        if (ammod && ret.hasOwnProperty('work')) {
                             // We are a mod.
-                            ammod = true;
                             url = '/modtools';
                             // Now we can decide what notification to show.
                             var work = ret.work;
@@ -256,47 +269,38 @@ self.addEventListener('push', function(event) {
                             });
                         } else {
                             // We're a user.  Check if we have any chats to notify on.
-                            // TODO Could avoid session call first to reduce server load.
-                            var chaturl = new URL(self.registration.scope + 'api/chat/rooms?chattypes%5B%5D=User2User&chattypes%5B%5D=User2Mod');
+                            console.log("SW got chats", ret);
+                            var notifstr = 'No messages';
 
-                            fetch(chaturl, {
-                                credentials: 'include'
-                            }).then(function(response) {
-                                return response.json().then(function(ret) {
-                                    console.log("SW got chats", ret);
-                                    var notifstr = 'No messages';
+                            if (ret.ret == 0) {
+                                var simple = null;
+                                var aggregate = 0;
 
-                                    if (ret.ret == 0) {
-                                        var simple = null;
-                                        var aggregate = 0;
+                                for (var i = 0; i < ret.chatrooms.length; i++) {
+                                    var chat = ret.chatrooms[i];
+                                    aggregate += chat.unseen;
 
-                                        for (var i = 0; i < ret.chatrooms.length; i++) {
-                                            var chat = ret.chatrooms[i];
-                                            aggregate += chat.unseen;
-
-                                            if (chat.unseen > 0) {
-                                                simple = chat.name + ' wrote: ' + chat.snippet;
-                                            }
-                                        }
-
-                                        if (aggregate > 0) {
-                                            notifstr = (aggregate > 1) ? (aggregate + ' messages') : simple;
-                                        } else {
-                                            setTimeout(closeAll, 2000);
-                                        }
-                                    } else {
-                                        setTimeout(closeAll, 2000);
+                                    if (chat.unseen > 0) {
+                                        simple = chat.name + ' wrote: ' + chat.snippet;
                                     }
+                                }
 
-                                    return self.registration.showNotification("Freegle", {
-                                        body: notifstr,
-                                        icon: '/images/favicon/user/favicon-96x96.png',
-                                        tag: 'work',
-                                        data: {
-                                            'url': url
-                                        }
-                                    });
-                                });
+                                if (aggregate > 0) {
+                                    notifstr = (aggregate > 1) ? (aggregate + ' messages') : simple;
+                                } else {
+                                    setTimeout(closeAll, 2000);
+                                }
+                            } else {
+                                setTimeout(closeAll, 2000);
+                            }
+
+                            return self.registration.showNotification("Freegle", {
+                                body: notifstr,
+                                icon: '/images/favicon/user/favicon-96x96.png',
+                                tag: 'work',
+                                data: {
+                                    'url': url
+                                }
                             });
                         }
                     } catch (e) {
