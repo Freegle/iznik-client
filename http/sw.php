@@ -275,13 +275,19 @@ self.addEventListener('push', function(event) {
                             if (ret.ret == 0) {
                                 var simple = null;
                                 var aggregate = 0;
+                                var myid = Iznik.Session.get('me').id;
 
                                 for (var i = 0; i < ret.chatrooms.length; i++) {
                                     var chat = ret.chatrooms[i];
-                                    aggregate += chat.unseen;
 
-                                    if (chat.unseen > 0) {
-                                        simple = chat.name + ' wrote: ' + chat.snippet;
+                                    // For the user interface we are interested in user chats or our own chats to
+                                    // mods.
+                                    if (chat.type == 'User2User' || (chat.type == 'User2Mod' && chat.user1.id == myid)) {
+                                        aggregate += chat.unseen;
+
+                                        if (chat.unseen > 0) {
+                                            simple = chat.name + ' wrote: ' + chat.snippet;
+                                        }
                                     }
                                 }
 
