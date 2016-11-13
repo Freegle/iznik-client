@@ -44,38 +44,42 @@ function prepareSession($dbhr, $dbhm) {
             $_SESSION['partner'] = partner($dbhr, $_REQUEST['partner']);
         }
 
-        if (!pres('id', $_SESSION)) {
-            $userid = NULL;
+        # Always verify the persistent session if passed.  This guards against
+        # session id collisions, which can happen (albeit quite rarely).
+        $cookie = presdef('persistent', $_REQUEST, NULL);
+        if ($cookie) {
+            # Check our cookie to see if it's a valid session
+            #error_log("Cookie " . var_export($cookie, TRUE));
 
-            # We might be passed a persistent session 'cookie' (not an actual cookie, because we store it ourselves,
-            # but something that allows us to log in).
-            $cookie = presdef('persistent', $_REQUEST, NULL);
-            if ($cookie) {
-                # Check our cookie to see if it's a valid session
-                #error_log("Cookie " . var_export($cookie, TRUE));
+            if ((array_key_exists('id', $cookie)) &&
+                (array_key_exists('series', $cookie)) &&
+                (array_key_exists('token', $cookie))
+            ) {
+                $sesscook = presdef('persistent', $_SESSION, NULL);
+                #error_log("Check vs " . var_export($sesscook, TRUE));
 
-                if ((array_key_exists('id', $cookie)) &&
-                    (array_key_exists('series', $cookie)) &&
-                    (array_key_exists('token', $cookie))
-                ) {
+                if (!presdef('id', $_SESSION, NULL) || $sesscook != $cookie) {
+                    # We are not logged in as the correct user (or at all).  Try to switch to the persistent one.
+                    #error_log("Logged in wrongly as " . var_export($sesscook, TRUE) . " when should be " . var_export($cookie, TRUE));
+                    $_SESSION['id'] = NULL;
                     $s = new Session($dbhr, $dbhm);
-                    $userid = $s->verify($cookie['id'], $cookie['series'], $cookie['token']);
+                    $s->verify($cookie['id'], $cookie['series'], $cookie['token']);
                 }
             }
+        }
 
-            if (!$userid) {
-                # We might not have a cookie, but we might have push credentials.  This happens when we are logged out
-                # on the client but get a notification.  That is sufficient to log us in.
-                $pushcreds = presdef('pushcreds', $_REQUEST, NULL);
-                #error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
-                if ($pushcreds) {
-                    $sql = "SELECT * FROM users_push_notifications WHERE subscription = ?;";
-                    $pushes = $dbhr->preQuery($sql, [$pushcreds]);
-                    foreach ($pushes as $push) {
-                        $s = new Session($dbhr, $dbhm);
-                        #error_log("Log in as {$push['userid']}");
-                        $s->create($push['userid']);
-                    }
+        if (!pres('id', $_SESSION)) {
+            # We might not have a cookie, but we might have push credentials.  This happens when we are logged out
+            # on the client but get a notification.  That is sufficient to log us in.
+            $pushcreds = presdef('pushcreds', $_REQUEST, NULL);
+            #error_log("No session, pushcreds $pushcreds " . var_exporT($_REQUEST, TRUE));
+            if ($pushcreds) {
+                $sql = "SELECT * FROM users_push_notifications WHERE subscription = ?;";
+                $pushes = $dbhr->preQuery($sql, [$pushcreds]);
+                foreach ($pushes as $push) {
+                    $s = new Session($dbhr, $dbhm);
+                    #error_log("Log in as {$push['userid']}");
+                    $s->create($push['userid']);
                 }
             }
         }
