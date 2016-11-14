@@ -27,6 +27,12 @@ class Spam {
     CONST REASON_IP_USED_FOR_DIFFERENT_GROUPS = 'IPUsedForDifferentGroups';
     CONST REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS = 'SubjectUsedForDifferentGroups';
     CONST REASON_SPAMASSASSIN = 'SpamAssassin';
+    CONST REASON_GREETING = 'Greetings spam';
+
+    # A common type of spam involves two lines with greetings.
+    private $greetings = [
+        'hello', 'salutations', 'hey', 'good morning', 'sup', 'hi'
+    ];
 
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
@@ -143,6 +149,36 @@ class Spam {
                         return (array(true, Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS, "Warning - subject $subj recently used on {$count['count']} groups"));
                     }
                 }
+            }
+        }
+
+        # Check if this is a greetings spam.
+        $text = $msg->getTextbody();
+        if (stripos($text, 'http')) {
+            $p = strpos($text, "\n");
+            $q = strpos($text, "\n", $p + 1);
+            $r = strpos($text, "\n", $q + 1);
+
+            if ($p !== FALSE && $q !== FALSE) {
+                $line1 = substr($text, 0, $p);
+                $line3 = substr($text, $q + 1, $r);
+
+                $line1greeting = FALSE;
+                $line3greeting = FALSE;
+
+                foreach ($this->greetings as $greeting) {
+                    if (stripos($line1, $greeting) !== FALSE) {
+                        $line1greeting = TRUE;
+                    }
+
+                    if (stripos($line3, $greeting) !== FALSE) {
+                        $line3greeting = TRUE;
+                    }
+                }
+            }
+
+            if ($line1greeting and $line3greeting) {
+                return (array(true, Spam::REASON_GREETING, "Message looks like a greetings spam"));
             }
         }
 
