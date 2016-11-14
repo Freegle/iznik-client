@@ -463,7 +463,7 @@ class ChatRoom extends Entity
                         $show = $g->getSetting('showchat', TRUE);
                     }
 
-                    if ($show && !$all) {
+                    if ($show && !$all && $room['chattype'] != ChatRoom::TYPE_MOD2MOD) {
                         # Last check - do we have a recent enough message?
                         $msgs = $this->dbhr->preQuery("SELECT MAX(date) AS maxdate FROM chat_messages WHERE chatid = {$room['id']};");
 
