@@ -271,7 +271,12 @@ define([
                 var repost = self.model.get('canrepostat');
 
                 if (repost && self.$('.js-repostat').length > 0) {
-                    self.$('.js-repostat').html((moment(repost).fromNow()));
+                    if (moment().diff(repost) >=  0) {
+                        // Autorepost due.
+                        self.$('.js-repostat').html('soon');
+                    } else {
+                        self.$('.js-repostat').html(moment(repost).fromNow());
+                    }
                 }
 
                 // We want to keep an eye on chat messages, because those which are in conversations referring to our
