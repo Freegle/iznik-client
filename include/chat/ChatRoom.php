@@ -625,9 +625,13 @@ class ChatRoom extends Entity
         #error_log("Chat #{$this->id} Poke mods $mods users " . var_export($userids, TRUE));
 
         foreach ($userids as $userid) {
-            #error_log("Poke {$rost['userid']} for {$this->id}");
-            $n->poke($userid, $data);
-            $count++;
+            # We only want to poke users who have a group membership; if they don't, then we shouldn't annoy them.
+            $pu = User::get($this->dbr, $this->dbh, $userid);
+            if (count($pu->getMemberships())  > 0) {
+                #error_log("Poke {$rost['userid']} for {$this->id}");
+                $n->poke($userid, $data);
+                $count++;
+            }
         }
 
         if ($mods) {
@@ -666,21 +670,25 @@ class ChatRoom extends Entity
         $count = 0;
 
         foreach ($userids as $userid) {
-            if ($userid != $excludeuser) {
-                #error_log("Poke {$rost['userid']} for {$this->id}");
-                $u = User::get($this->dbhr, $this->dbhm, $userid);
+            # We only want to notify users who have a group membership; if they don't, then we shouldn't annoy them.
+            $pu = User::get($this->dbr, $this->dbh, $userid);
+            if (count($pu->getMemberships())  > 0) {
+                if ($userid != $excludeuser) {
+                    #error_log("Poke {$rost['userid']} for {$this->id}");
+                    $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-                if ($u->notifsOn(User::NOTIFS_FACEBOOK)) {
-                    $logins = $u->getLogins();
+                    if ($u->notifsOn(User::NOTIFS_FACEBOOK)) {
+                        $logins = $u->getLogins();
 
-                    foreach ($logins as $login) {
-                        if ($login['type'] == User::LOGIN_FACEBOOK && is_numeric($login['uid'])) {
-                            $f->notify($login['uid'], $text, $url);
+                        foreach ($logins as $login) {
+                            if ($login['type'] == User::LOGIN_FACEBOOK && is_numeric($login['uid'])) {
+                                $f->notify($login['uid'], $text, $url);
+                            }
                         }
                     }
-                }
 
-                $count++;
+                    $count++;
+                }
             }
         }
 
@@ -970,7 +978,9 @@ class ChatRoom extends Entity
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
 
-                if ($thisu->notifsOn(User::NOTIFS_EMAIL)) {
+                # We email them if they have mails turned on, and if they have a membership - if they don't, then we
+                # don't want to annoy them.
+                if ($thisu->notifsOn(User::NOTIFS_EMAIL) && count($thisu->getMemberships()) > 0) {
                     # Now collect a summary of what they've missed.
                     $unmailedmsgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? AND id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                         [
