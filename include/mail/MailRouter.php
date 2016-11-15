@@ -766,6 +766,7 @@ class MailRouter
                     # in subsequent exchanges).
                     $u = User::get($this->dbhr, $this->dbhm);
                     $to = $this->msg->getEnvelopeto();
+                    $to = $to ? $to : $this->msg->getHeader('to');
                     if ($log) { error_log("Look for reply $to"); }
                     $uid = NULL;
                     $ret = MailRouter::DROPPED;
