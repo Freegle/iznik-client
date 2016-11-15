@@ -626,7 +626,7 @@ class ChatRoom extends Entity
 
         foreach ($userids as $userid) {
             # We only want to poke users who have a group membership; if they don't, then we shouldn't annoy them.
-            $pu = User::get($this->dbr, $this->dbh, $userid);
+            $pu = User::get($this->dbhr, $this->dbhm, $userid);
             if (count($pu->getMemberships())  > 0) {
                 #error_log("Poke {$rost['userid']} for {$this->id}");
                 $n->poke($userid, $data);
@@ -671,7 +671,7 @@ class ChatRoom extends Entity
 
         foreach ($userids as $userid) {
             # We only want to notify users who have a group membership; if they don't, then we shouldn't annoy them.
-            $pu = User::get($this->dbr, $this->dbh, $userid);
+            $pu = User::get($this->dbhr, $this->dbhm, $userid);
             if (count($pu->getMemberships())  > 0) {
                 if ($userid != $excludeuser) {
                     #error_log("Poke {$rost['userid']} for {$this->id}");

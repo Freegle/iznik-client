@@ -167,18 +167,18 @@ class Spam {
                 $line3greeting = FALSE;
 
                 foreach ($this->greetings as $greeting) {
-                    if (stripos($line1, $greeting) !== FALSE) {
+                    if (stripos($line1, $greeting) === 0) {
                         $line1greeting = TRUE;
                     }
 
-                    if (stripos($line3, $greeting) !== FALSE) {
+                    if (stripos($line3, $greeting) === 0) {
                         $line3greeting = TRUE;
                     }
                 }
-            }
 
-            if ($line1greeting and $line3greeting) {
-                return (array(true, Spam::REASON_GREETING, "Message looks like a greetings spam"));
+                if ($line1greeting && $line3greeting) {
+                    return (array(true, Spam::REASON_GREETING, "Message looks like a greetings spam"));
+                }
             }
         }
 

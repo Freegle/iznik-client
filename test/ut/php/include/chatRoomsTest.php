@@ -112,9 +112,11 @@ class chatRoomsTest extends IznikTestCase {
         # Set up a chatroom
         $u = User::get($this->dbhr, $this->dbhm);
         $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
         $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);
         $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 

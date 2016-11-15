@@ -48,6 +48,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
 
+        # Recipient must be a member of at least one group
+        $this->user2->addMembership($this->groupid);
+
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         $this->cid = $c->createGroupChat('test', $this->groupid);
     }
@@ -298,6 +301,8 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Now log in as a third user.
         assertTrue($this->user3->login('testpw'));
         $this->user3->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        $this->user2->removeMembership($this->groupid);
 
         # We're a mod, but not on any of the groups that these users are on (because they're not on any).  So we
         # shouldn't see this chat message to review.
