@@ -463,12 +463,16 @@ class MailRouter
                                 error_log("Found them $uid");
                             }
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
-                            $eid = $u->getIdForEmail($to);
-                            $eid = $eid ? $eid['id'] : NULL;
-                            $u->markYahooApproved($gid, $eid);
 
-                            # Dispatch any messages which are queued awaiting this group membership.
-                            $u->submitYahooQueued($gid);
+                            # Membership might have disappeared in the mean time.
+                            if ($u->isPending()) {
+                                $eid = $u->getIdForEmail($to);
+                                $eid = $eid ? $eid['id'] : NULL;
+                                $u->markYahooApproved($gid, $eid);
+
+                                # Dispatch any messages which are queued awaiting this group membership.
+                                $u->submitYahooQueued($gid);
+                            }
                         }
 
                         $ret = MailRouter::TO_SYSTEM;
