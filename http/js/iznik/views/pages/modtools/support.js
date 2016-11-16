@@ -887,7 +887,7 @@ define([
                 url: API + 'user',
                 type: 'PATCH',
                 data: {
-                    id: self.model.get('id'),
+                    id: self.model.get('userid'),
                     password: pw
                 }, success: function(ret) {
                     if (ret.ret == 0) {
