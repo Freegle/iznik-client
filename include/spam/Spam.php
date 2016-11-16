@@ -31,7 +31,7 @@ class Spam {
 
     # A common type of spam involves two lines with greetings.
     private $greetings = [
-        'hello', 'salutations', 'hey', 'good morning', 'sup', 'hi'
+        'hello', 'salutations', 'hey', 'good morning', 'sup', 'hi', 'good evening'
     ];
 
     /** @var  $dbhr LoggedPDO */
@@ -154,7 +154,9 @@ class Spam {
 
         # Check if this is a greetings spam.
         $text = $msg->getTextbody();
+        error_log($text);
         if (stripos($text, 'http')) {
+            error_log("Got http");
             $p = strpos($text, "\n");
             $q = strpos($text, "\n", $p + 1);
             $r = strpos($text, "\n", $q + 1);
@@ -165,8 +167,13 @@ class Spam {
 
                 $line1greeting = FALSE;
                 $line3greeting = FALSE;
+                $subjgreeting = FALSE;
 
                 foreach ($this->greetings as $greeting) {
+                    if (stripos($subj, $greeting) === 0) {
+                        $subjgreeting = TRUE;
+                    }
+
                     if (stripos($line1, $greeting) === 0) {
                         $line1greeting = TRUE;
                     }
@@ -176,7 +183,7 @@ class Spam {
                     }
                 }
 
-                if ($line1greeting && $line3greeting) {
+                if ($subjgreeting && $line1greeting || $line1greeting && $line3greeting) {
                     return (array(true, Spam::REASON_GREETING, "Message looks like a greetings spam"));
                 }
             }
