@@ -753,6 +753,32 @@ class MailRouter
                         if ($this->markApproved()) {
                             $ret = MailRouter::APPROVED;
                         }
+                    } else if ($this->msg->getSource() == Message::EMAIL) {
+                        if ($log) { error_log("Email source"); }
+                        $uid = $this->msg->getFromuser();
+
+                        if ($uid) {
+                            $u = User::get($this->dbhr, $this->dbhm, $uid);
+                            foreach ($groups as $group) {
+                                if ($u->isApprovedMember($group['groupid'])) {
+                                    $ps = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
+                                    $ps = $ps ? $ps : Group::POSTING_MODERATED;
+                                    if ($log) { error_log("Member, Our PS is $ps"); }
+
+                                    if ($ps == Group::POSTING_MODERATED) {
+                                        if ($log) { error_log("Mark as pending"); }
+                                        if ($this->markPending($notspam)) {
+                                            $ret = MailRouter::PENDING;
+                                        }
+                                    } else {
+                                        if ($log) { error_log("Mark as approved"); }
+                                        if ($this->markApproved()) {
+                                            $ret = MailRouter::APPROVED;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     # Check for getting group mails to our individual users, which we want to turn off because

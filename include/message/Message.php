@@ -1086,6 +1086,12 @@ class Message
                 # Check it's to a group (and not the owner).
                 if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches) &&
                     strpos($t['address'], '-owner@') === FALSE) {
+                    # Yahoo group.
+                    $groupname = $matches[1];
+                    #error_log("Got $groupname from {$t['address']}");
+                } else if (preg_match('/(.*)@' . GROUP_DOMAIN . '/', $t['address'], $matches) &&
+                    strpos($t['address'], '-volunteers@') === FALSE) {
+                    # Native group.
                     $groupname = $matches[1];
                     #error_log("Got $groupname from {$t['address']}");
                 }
@@ -2096,6 +2102,9 @@ class Message
                     $collection = MessageCollection::PENDING;
                 } else if ($this->getSource() == Message::YAHOO_APPROVED) {
                     $collection = MessageCollection::APPROVED;
+                } else if ($this->getSource() == Message::EMAIL) {
+                    # All email messages get moderated.
+                    $collection = MessageCollection::PENDING;
                 }
                 #error_log("Not on group, add to $collection");
 

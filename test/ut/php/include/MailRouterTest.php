@@ -1307,8 +1307,10 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testSubUnsub() {
+    public function testSubMailUnsub() {
         error_log(__METHOD__);
+
+        # Subscribe
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -1328,6 +1330,29 @@ class MailRouterTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $membs = $u->getMemberships();
         assertEquals(1, count($membs));
+
+        # Mail - first to pending for new member, noderated by default, then to approved for group settings.
+
+        $msg = $this->unique(file_get_contents('msgs/nativebymail'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        error_log("Mail message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::PENDING, $rc);
+        assertTrue($m->isPending($gid));
+
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $msg = $this->unique(file_get_contents('msgs/nativebymail'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        error_log("Mail message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::APPROVED, $rc);
+        assertTrue($m->isApproved($gid));
+
+        # Unsubscribe
 
         $msg = $this->unique(file_get_contents('msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
