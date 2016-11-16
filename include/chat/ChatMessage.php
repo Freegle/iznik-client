@@ -149,9 +149,11 @@ class ChatMessage extends Entity
                     $userid
                 ]);
 
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-            $r->pokeMembers();
-            $r->notifyMembers($u->getName(), $message, $userid);
+            if (!$spam) {
+                $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+                $r->pokeMembers();
+                $r->notifyMembers($u->getName(), $message, $userid);
+            }
         } catch (Exception $e) {
             error_log("Failed to create chat " . $e->getMessage());
             $id = NULL;
@@ -193,7 +195,7 @@ class ChatMessage extends Entity
         $myid = $me ? $me->getId() : NULL;
 
         # We can only approve if we can see this message for review.
-        $sql = "SELECT chat_messages.id, chat_messages.chatid FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
+        $sql = "SELECT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $myid, $id ]);
 
         foreach ($msgs as $msg) {
@@ -204,7 +206,9 @@ class ChatMessage extends Entity
 
             # This is like a new message now, so alert them.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
+            $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
             $r->pokeMembers();
+            $r->notifyMembers($u->getName(), $msg['message'], $msg['userid']);
         }
     }
 
