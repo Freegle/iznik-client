@@ -262,7 +262,7 @@ class Digest
                     $email = $u->getEmailPreferred();
                     if ($this->errorlog) { error_log("Preferred $email"); }
 
-                    if ($email && $u->sendOurMails($g)) {
+                    if ($email && $email != MODERATOR_EMAIL && $u->sendOurMails($g)) {
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{bounce}}' => "bounce-{$user['userid']}-" . time() . "@" . USER_DOMAIN,
