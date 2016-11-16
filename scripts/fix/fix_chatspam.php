@@ -30,11 +30,11 @@ foreach ($messages as $message) {
     $count++;
 
     if ($message['reviewrejected'] && $u->isModerator()) {
-        error_log("Marked as rejected from mod #{$message['id']} review $gotcha from {$message['fullname']} snippet $snippet;");
+        error_log("Reset marked as rejected from mod #{$message['id']} review $gotcha from {$message['fullname']} snippet $snippet;");
         $dbhm->preExec("UPDATE chat_messages SET reviewrejected = 0, reviewrequired = 0 WHERE id = ?;", [ $message['id']]);
     }
 
-    if ($gotcha && !$message['reviewrejected']) {
+    if ($gotcha && !$message['reviewrejected'] && !$u->isModerator()) {
         error_log("New spam for #{$message['id']} review $gotcha from {$message['fullname']} snippet $snippet");
         $dbhm->preExec("UPDATE chat_messages SET reviewrejected = 1, reviewrequired = 0 WHERE id = ?;", [ $message['id']]);
     }
