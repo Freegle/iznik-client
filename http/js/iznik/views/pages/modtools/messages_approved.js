@@ -169,13 +169,31 @@ define([
             'click .js-viewsource': 'viewSource',
             'click .js-excludelocation': 'excludeLocation',
             'click .js-rarelyused': 'rarelyUsed',
+            'click .js-editnotstd': 'editNotStd',
             'click .js-spam': 'spam'
+        },
+
+        editNotStd: function () {
+            var self = this;
+
+            var v = new Iznik.Views.ModTools.StdMessage.Edit({
+                model: this.model
+            });
+
+            this.listenToOnce(this.model, 'editsucceeded', function () {
+                self.model.fetch().then(function() {
+                    self.render();
+                });
+            });
+
+            v.render();
         },
 
         rendering: null,
 
         render: function () {
             var self = this;
+            console.log("Render in approved");
             self.model.set('mapicon', window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif');
 
             // Get a zoom level for the map.
@@ -204,6 +222,11 @@ define([
 
                         _.each(self.model.get('groups'), function (group) {
                             var mod = new Iznik.Model(group);
+
+                            if (!group.onhere) {
+                                // Native group - can edit.
+                                self.$('.js-editcontainer').show();
+                            }
 
                             // Add in the message, because we need some values from that
                             mod.set('message', self.model.toJSON());
@@ -352,6 +375,13 @@ define([
 
                     resolve();
                     self.rendering = null;
+                });
+            } else {
+                self.rendering.then(function() {
+                    self.rendering = null;
+                    self.render({
+                        model: self.model
+                    });
                 });
             }
 
