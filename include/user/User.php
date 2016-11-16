@@ -2265,10 +2265,10 @@ class User extends Entity
 
         if (!$email) {
             # If they have a Yahoo ID, that'll do nicely - it's public info.  But some Yahoo IDs are actually
-            # email addresses (don't ask) and we don't want those.
+            # email addresses (don't ask) and we don't want those.  And some are stupidly long.
             $yahooid = $this->getPrivate('yahooid');
 
-            if ($yahooid && strpos($yahooid, '@') === FALSE) {
+            if ($yahooid && strpos($yahooid, '@') === FALSE && strlen($yahooid) <= 16) {
                 $email = str_replace(' ', '', $yahooid) . '-' . $this->id . '@' . USER_DOMAIN;
             } else {
                 # Their own email might already be of that nature, which would be lovely.

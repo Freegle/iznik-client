@@ -22,12 +22,10 @@ define([
             self.playBeep = document.hidden;
 
             $(document).on('hide', function () {
-                console.log("Tab Hide");
                 self.playBeep = true;
             });
 
             $(document).on('show', function () {
-                console.log("Tab Show");
                 self.playBeep = false;
 
                 // Check if we're still logged in - this tab might have been hidden for a while.  If we were logged
