@@ -150,7 +150,7 @@ class Alert extends Entity
             case 'newgroups': $from = NEWGROUPS_ADDR; break;
             case 'ro': $from = RO_ADDR; break;
         }
-        # TODO This dom
+
         return($from);
     }
 
@@ -290,7 +290,7 @@ class Alert extends Entity
             }
         }
 
-        if ($g->getPrivate('onyahoo')) {
+        if ($g->getPrivate('onyahoo') || $g->getPrivate('contactmail')) {
             try {
                 # This group is on Yahoo - so mail the owner address too.
                 $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, `type`) VALUES (?,?,?);",

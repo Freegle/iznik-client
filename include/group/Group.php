@@ -17,7 +17,8 @@ class Group extends Entity
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
         'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'lat', 'lng',
-        'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description');
+        'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
+        'contactmail');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -209,7 +210,9 @@ class Group extends Entity
     }
 
     public function getModsEmail() {
-        if ($this->group['onyahoo']) {
+        if ($this->group['contactmail']) {
+            $ret = $this->group['contactmail'];
+        } else if ($this->group['onyahoo']) {
             $ret = $this->group['nameshort'] . "-owner@yahoogroups.com";
         } else {
             $ret = $this->group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
