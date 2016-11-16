@@ -52,7 +52,7 @@ class Alert extends Entity
     }
 
     public function getList() {
-        $sql = "SELECT id FROM alerts ORDER BY id DESC;";
+        $sql = "SELECT id FROM alerts ORDER BY id DESC LIMIT 100;";
         $alerts = $this->dbhr->preQuery($sql);
         $ret = [];
         foreach ($alerts as $alert) {
@@ -61,6 +61,12 @@ class Alert extends Entity
             $thisone['created'] = ISODate($thisone['created']);
             $thisone['complete'] = ISODate($thisone['complete']);
             $thisone['stats'] = $a->getStats();
+
+            if ($thisone['groupid']) {
+                $g = Group::get($this->dbhr, $this->dbhm, $thisone['groupid']);
+                $thisone['group'] = $g->getPublic();
+                unset($thisone['groupid']);
+            }
             $ret[] = $thisone;
         }
 
