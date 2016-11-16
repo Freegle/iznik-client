@@ -465,7 +465,7 @@ class MailRouter
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
 
                             # Membership might have disappeared in the mean time.
-                            if ($u->isPending()) {
+                            if ($u->isPending($gid)) {
                                 $eid = $u->getIdForEmail($to);
                                 $eid = $eid ? $eid['id'] : NULL;
                                 $u->markYahooApproved($gid, $eid);

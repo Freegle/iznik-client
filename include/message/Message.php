@@ -2102,9 +2102,8 @@ class Message
                     $collection = MessageCollection::PENDING;
                 } else if ($this->getSource() == Message::YAHOO_APPROVED) {
                     $collection = MessageCollection::APPROVED;
-                } else if ($this->getSource() == Message::EMAIL) {
-                    # All email messages get moderated.
-                    $collection = MessageCollection::PENDING;
+                } else if ($this->getSource() == Message::EMAIL && $this->groupid) {
+                    $collection = MessageCollection::INCOMING;
                 }
                 #error_log("Not on group, add to $collection");
 
