@@ -197,7 +197,7 @@ class Digest
 
                 foreach ($available as $msg) {
                     $availablehtml .= $msghtml = digest_message($msg, $msg['id']);
-                    $textsumm .= $msg['subject'] . ":\r\https:" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
+                    $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
 
                     if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
