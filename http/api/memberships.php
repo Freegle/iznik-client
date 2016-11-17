@@ -16,6 +16,7 @@ function memberships() {
     $emailfrequency = array_key_exists('emailfrequency', $_REQUEST) ? intval($_REQUEST['emailfrequency']) : NULL;
     $ourpostingstatus = array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL;
     $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
+    $message = presdef('message', $_REQUEST, NULL);
 
     # TODO jQuery won't send an empty array, so we have a hack to ensure we can empty out the pending members.  What's
     # the right way to do this?
@@ -163,9 +164,11 @@ function memberships() {
                     $g = Group::get($dbhr, $dbhm, $groupid);
 
                     if ($userid && $userid != $me->getId()) {
-                        # If this isn't us, we can add them, but not as someone with higher permissions than us.
+                        # If this isn't us, we can add them, but not as someone with higher permissions than us, and
+                        # if we're only a user, we can't add someone else at all.
                         $origrole = $role;
-                        $role = $u->roleMin($role, $me->getRoleForGroup($groupid));
+                        $myrole = $me->getRoleForGroup($groupid);
+                        $role = $myrole == User::ROLE_MEMBER ? User::ROLE_NONMEMBER : $u->roleMin($role, $myrole);
 
                         # ...unless there are no mods at all, in which case this lucky person could become the owner.
                         $role = ($origrole == User::ROLE_OWNER && $role == User::ROLE_MODERATOR && count($g->getMods()) == 0) ? User::ROLE_OWNER : $role;
@@ -179,25 +182,27 @@ function memberships() {
                         $emailid = $u->getAnEmailId();
                     }
 
-                    $u->addMembership($groupid, $role, $emailid);
+                    if ($role != User::ROLE_NONMEMBER) {
+                        $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED, $message);
 
-                    if ($g->onYahoo()) {
-                        # This group is on Yahoo too, so we should trigger a membership application to there if we
-                        # don't already have one of our emails on the group.
-                        #
-                        # TODO Need to handle the case where this application is rejected.  In FDv1-2 this could
-                        # not occur as FBUser members were pre-approved, but it can now.
-                        list ($eid, $alreadymail) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
+                        if ($g->onYahoo()) {
+                            # This group is on Yahoo too, so we should trigger a membership application to there if we
+                            # don't already have one of our emails on the group.
+                            #
+                            # TODO Need to handle the case where this application is rejected.  In FDv1-2 this could
+                            # not occur as FBUser members were pre-approved, but it can now.
+                            list ($eid, $alreadymail) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
 
-                        if (!$eid) {
-                            $u->triggerYahooApplication($groupid);
+                            if (!$eid) {
+                                $u->triggerYahooApplication($groupid);
+                            }
                         }
-                    }
 
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
                 }
 
                 break;

@@ -96,7 +96,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     # We use require on the client, and we want to avoid caching code after it has changed.  Find out when the
     # last change was.
     #
-    $version = file_get_contents('/tmp/iznik.version');
+    $version = @file_get_contents('/tmp/iznik.version');
     $version = $version ? $version : 0;
     echo "<meta name=\"iznikcache\" content=\"$version\" >\n";
     ?>

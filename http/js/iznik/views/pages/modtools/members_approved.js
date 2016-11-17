@@ -25,7 +25,8 @@ define([
             'keyup .js-searchterm': 'keyup',
             'click .js-sync': 'sync',
             'click .js-export': 'export',
-            'click .js-exportyahoo': 'exportYahoo'
+            'click .js-exportyahoo': 'exportYahoo',
+            'click .js-add': 'add'
         },
 
         countsChanged: function() {
@@ -167,6 +168,14 @@ define([
                     }
                 })
             }
+        },
+
+        add: function() {
+            var group = Iznik.Session.getGroup(this.selected);
+            var v = new Iznik.Views.ModTools.Member.Approved.Add({
+                model: group
+            });
+            v.render();
         },
 
         search: function () {
@@ -435,5 +444,92 @@ define([
 
             return (self.rendering);
         }
+    });
+
+    Iznik.Views.ModTools.Member.Approved.Add = Iznik.Views.Modal.extend({
+        template: 'modtools_members_approved_add',
+
+        events: {
+            'click .js-add': 'add'
+        },
+
+        add: function() {
+            var self = this;
+            var email = self.$('.js-email').val();
+            var message = self.$('.js-welcome').val();
+
+            if (!email || email.trim().length == 0) {
+                self.$('.js-email').addClass('error-border');
+            } else {
+                self.$('.js-email').removeClass('error-border');
+                if (!message|| message.trim().length == 0) {
+                    self.$('.js-welcome').addClass('error-border');
+                } else {
+                    self.$('.js-email').removeClass('error-border');
+
+                    // We're good to go.  Try to register the user - if they're new, that will succeed, otherwise
+                    // it will fail.  Either way the user should then exist.
+                    $.ajax({
+                        url: API + 'user',
+                        type: 'PUT',
+                        data: {
+                            email: email
+                        }, success: function(ret) {
+                            if (ret.ret === 0 || ret.ret === 2) {
+                                // Worked or already exists.  Now add the membership.
+                                var userid = ret.id;
+
+                                $.ajax({
+                                    url: API + 'memberships',
+                                    type: 'PUT',
+                                    data: {
+                                        userid: userid,
+                                        groupid: self.model.get('id'),
+                                        message: message
+                                    }, success: function(ret) {
+                                        if (ret.ret === 0) {
+                                            self.close();
+                                            (new Iznik.Views.ModTools.Member.Approved.Added({
+                                                model: new Iznik.Model({
+                                                    id: userid
+                                                })
+                                            })).render();
+                                        } else {
+                                            self.failed(ret);
+                                        }
+                                    }
+                                });
+                            } else {
+                                self.failed(ret);
+                            }
+                        }, error: function() {
+                            self.failed();
+                        }
+                    })
+                }
+            }
+        },
+
+        failed: function(ret) {
+            var msg = ret ? ret.status : 'Something went wrong.';
+            this.$('.js-error').html(msg).fadeIn('slow');
+        },
+
+        render: function () {
+            var self = this;
+
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+            p.then(function(self) {
+                var welcome = self.model.get('welcomemail');
+
+                if (welcome) {
+                    self.$('.js-welcome').val(welcome);
+                }
+            });
+        }
+    });
+
+    Iznik.Views.ModTools.Member.Approved.Added = Iznik.Views.Modal.extend({
+        template: 'modtools_members_approved_added',
     });
 });

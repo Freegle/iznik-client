@@ -76,7 +76,7 @@ function user() {
 
         case 'PUT': {
             $email = presdef('email', $_REQUEST, NULL);
-            $password = presdef('password', $_REQUEST, NULL);
+            $password = presdef('password', $_REQUEST, $u->inventPassword());
             $firstname = presdef('firstname', $_REQUEST, NULL);
             $lastname = presdef('lastname', $_REQUEST, NULL);
 

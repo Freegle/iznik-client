@@ -518,7 +518,7 @@ class User extends Entity
         return($coll);
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED) {
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         Session::clearSessionCache();
@@ -577,17 +577,18 @@ class User extends Entity
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $atts = $g->getPublic();
 
-            if ($atts['welcomemail']) {
+            if ($atts['welcomemail'] || $message) {
                 # We need to send a per-group welcome mail.
                 $to = $this->getEmailPreferred();
-                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($atts['welcomemail']));
+                $welcome = $message ? $message : $atts['welcomemail'];
+                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($welcome));
                 list ($transport, $mailer) = getMailer();
                 $message = Swift_Message::newInstance()
                     ->setSubject("Welcome to " . $atts['namedisplay'])
                     ->setFrom([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
                     ->setTo($to)
                     ->setDate(time())
-                    ->setBody($atts['welcomemail'])
+                    ->setBody($welcome)
                     ->addPart($html, 'text/html');
                 $mailer->send($message);
             }
