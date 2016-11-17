@@ -31,7 +31,7 @@ class Spam {
 
     # A common type of spam involves two lines with greetings.
     private $greetings = [
-        'hello', 'salutations', 'hey', 'good morning', 'sup', 'hi', 'good evening'
+        'hello', 'salutations', 'hey', 'good morning', 'sup', 'hi', 'good evening', 'good afternoon', 'greetings'
     ];
 
     /** @var  $dbhr LoggedPDO */
@@ -161,31 +161,29 @@ class Spam {
             $q = strpos($text, "\n", $p + 1);
             $r = strpos($text, "\n", $q + 1);
 
-            if ($p !== FALSE && $q !== FALSE) {
-                $line1 = substr($text, 0, $p);
-                $line3 = substr($text, $q + 1, $r);
+            $line1 = $p ? substr($text, 0, $p) : '';
+            $line3 = $q ? substr($text, $q + 1, $r) : '';
 
-                $line1greeting = FALSE;
-                $line3greeting = FALSE;
-                $subjgreeting = FALSE;
+            $line1greeting = FALSE;
+            $line3greeting = FALSE;
+            $subjgreeting = FALSE;
 
-                foreach ($this->greetings as $greeting) {
-                    if (stripos($subj, $greeting) === 0) {
-                        $subjgreeting = TRUE;
-                    }
-
-                    if (stripos($line1, $greeting) === 0) {
-                        $line1greeting = TRUE;
-                    }
-
-                    if (stripos($line3, $greeting) === 0) {
-                        $line3greeting = TRUE;
-                    }
+            foreach ($this->greetings as $greeting) {
+                if (stripos($subj, $greeting) === 0) {
+                    $subjgreeting = TRUE;
                 }
 
-                if ($subjgreeting && $line1greeting || $line1greeting && $line3greeting) {
-                    return (array(true, Spam::REASON_GREETING, "Message looks like a greetings spam"));
+                if (stripos($line1, $greeting) === 0) {
+                    $line1greeting = TRUE;
                 }
+
+                if (stripos($line3, $greeting) === 0) {
+                    $line3greeting = TRUE;
+                }
+            }
+
+            if ($subjgreeting && $line1greeting || $line1greeting && $line3greeting) {
+                return (array(true, Spam::REASON_GREETING, "Message looks like a greetings spam"));
             }
         }
 

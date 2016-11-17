@@ -330,6 +330,11 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
+        $msg = file_get_contents('msgs/greetingsspam3');
+        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
         error_log(__METHOD__ . " end");
     }
 
