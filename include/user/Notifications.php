@@ -87,10 +87,11 @@ class Notifications
                     $notif['subscription']
                 ]);
             } else {
+                # Don't log - lots of these.
                 $this->dbhm->preExec("UPDATE users_push_notifications SET lastsent = NOW() WHERE userid = ? AND subscription = ?;", [
                     $userid,
                     $notif['subscription']
-                ]);
+                ], FALSE);
             }
         }
 
