@@ -195,8 +195,15 @@ function message() {
                     $textbody = presdef('textbody', $_REQUEST, NULL);
                     $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
                     $fop = presdef('FOP', $_REQUEST, NULL);
+                    $attachments = presdef('attachments', $_REQUEST, []);
 
-                    $m->edit($subject, $textbody, $htmlbody, $fop);
+                    if ($subject) {
+                        $m->edit($subject, $textbody, $htmlbody, $fop);
+                    }
+
+                    if ($attachments) {
+                        $m->replaceAttachments($attachments);
+                    }
 
                     $ret = [
                         'ret' => 0,

@@ -304,10 +304,55 @@ define([
         events: {
             'click img': 'zoom',
             'click .js-rotateright': 'rotateRight',
-            'click .js-rotateleft': 'rotateLeft'
+            'click .js-rotateleft': 'rotateLeft',
+            'click .js-delete': 'deleteMe'
         },
         
         template: 'user_message_photo',
+
+        deleteMe: function() {
+            var self = this;
+
+            if (self.options.message) {
+                // Get the attachments in the message and remove this one.
+                var atts = self.options.message.get('attachments');
+                var newatts = _.reject(atts, function(att) {
+                    return(att.id == self.model.get('id'));
+                });
+
+                // We need the list of ids.
+                var attids = [];
+                _.each(newatts, function(att) {
+                    attids.push(att.id);
+                });
+
+                // Make the modification.
+                $.ajax({
+                    url: API + 'message',
+                    type: 'PATCH',
+                    data: {
+                        id: self.options.message.get('id'),
+                        attachments: attids
+                    },
+                    success: function(ret) {
+                        if (ret.ret === 0) {
+                            self.$el.fadeOut('slow', function() {
+                                if (self.collection) {
+                                    self.collection.remove(self.model);
+                                }
+                                self.destroyIt();
+                            });
+                        }
+                    }
+                });
+            } else {
+                // No server side message yet.
+                if (self.collection) {
+                    self.collection.remove(self.model);
+                }
+                self.destroyIt();
+            }
+        },
 
         rotateRight: function() {
             this.rotate(-90);
@@ -387,7 +432,9 @@ define([
                     att.set('mine', self.options.message.get('mine'));
 
                     var v = new Iznik.Views.User.Message.Photo({
-                        model: att
+                        model: att,
+                        message: self.options.message,
+                        collection: self.collection
                     });
                     v.render().then(function() {
                         self.$('.js-photos').append(v.$el);
@@ -395,15 +442,19 @@ define([
 
                     self.photos.push(v.$el);
 
-                    if (self.photos.length > 1) {
-                        v.$el.hide();
-                    } else {
-                        self.currentPhoto = v.$el;
+                    if (!self.options.showAll) {
+                        if (self.photos.length > 1) {
+                            v.$el.hide();
+                        } else {
+                            self.currentPhoto = v.$el;
+                        }
                     }
                 });
 
-                if (self.photos.length > 1) {
-                    _.delay(_.bind(self.nextPhoto, self), 10000);
+                if (!self.options.showAll) {
+                    if (self.photos.length > 1) {
+                        _.delay(_.bind(self.nextPhoto, self), 10000);
+                    }
                 }
             });
 

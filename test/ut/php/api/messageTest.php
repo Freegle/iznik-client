@@ -987,7 +987,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,
-            'subject' => 'Test edit'
+            'subject' => 'Test edit',
+            'attachments' => []
         ]);
 
         error_log(var_export($ret, true));

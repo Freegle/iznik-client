@@ -151,7 +151,8 @@ function image() {
                             'ret' => 0,
                             'status' => 'Success',
                             'id' => $id,
-                            'path' => Attachment::getPath($id, $imgtype)
+                            'path' => Attachment::getPath($id, $imgtype),
+                            'paththumb' => Attachment::getPath($id, $imgtype, TRUE)
                         ];
 
                         # Return a new thumbnail (which might be a different orientation).

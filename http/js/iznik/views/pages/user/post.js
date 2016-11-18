@@ -6,7 +6,8 @@ define([
     'fileinput',
     'iznik/models/user/message',
     'iznik/views/group/select',
-    'iznik/models/user/message'
+    'iznik/models/user/message',
+    'iznik/views/user/message'
 ], function ($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.WhatIsIt = Iznik.Views.Page.extend({
         pleaseWait: null,
@@ -204,6 +205,8 @@ define([
                     browseLabel: 'Add photos',
                     browseClass: 'btn btn-primary nowrap',
                     showCaption: false,
+                    showRemove: false,
+                    showUploadedThumbs: false,
                     dropZoneEnabled: false,
                     buttonLabelClass: '',
                     fileActionSettings: {
@@ -215,8 +218,7 @@ define([
                         footer: '<div class="file-thumbnail-footer">\n' +
                         '    {actions}\n' +
                         '</div>'
-                    },
-                    showRemove: false
+                    }
                 });
 
                 // Count how many we will upload.
@@ -227,6 +229,9 @@ define([
                 // Upload as soon as photos have been resized.
                 self.$('#fileupload').on('fileimageresized', function (event) {
                     self.$('#fileupload').fileinput('upload');
+
+                    // We don't seem to be able to hide this control using the options.
+                    self.$('.fileinput-remove').hide();
                 });
 
                 // Watch for all uploaded
@@ -234,10 +239,18 @@ define([
                     // Add the photo to our list
                     var mod = new Iznik.Models.Message.Attachment({
                         id: data.response.id,
-                        src: data.response.paththumb
+                        src: data.response.paththumb,
+                        path: data.response.paththumb,
+                        mine: true
                     });
 
                     self.photos.add(mod);
+
+                    // Show the uploaded thumbnail and hackily remove the one provided for us.
+                    self.draftPhotos.render();
+                    _.delay(function() {
+                        self.$('.file-preview-frame').remove();
+                    }, 500);
 
                     // Add any hints about the item
                     self.$('.js-suggestions').empty();
@@ -276,21 +289,34 @@ define([
                                 msg.stripGumf('textbody');
                                 self.$('.js-description').val(msg.get('textbody'));
 
-                                // We need to add the thumbnail which is normally added by the file upload.
-                                self.$('.js-draftphotos').empty();
-                                _.each(msg.get('attachments'), function (att) {
-                                    self.$('.js-addprompt').addClass('hidden');
-                                    var mod = new Iznik.Models.Message.Attachment({
-                                        id: att.id,
-                                        src: att.paththumb
-                                    });
+                                // Add the thumbnails.
+                                self.photos = new Iznik.Collection(msg.get('attachments'));
+                                msg.set('mine', true);
 
-                                    self.photos.add(mod);
+                                self.draftPhotos = new Iznik.Views.User.Message.Photos({
+                                    collection: self.photos,
+                                    message: msg,
+                                    showAll: true
+                                });
 
-                                    self.$('.js-draftphotos').append('<li><img class="img-thumbnail botspace" /></li>');
-                                    self.$('.js-draftphotos img:last').attr('src', att.paththumb);
+                                self.draftPhotos.render().then(function() {
+                                    self.$('.js-draftphotos').html(self.draftPhotos.el);
                                 });
                             }
+                        });
+                    } else {
+                        // Just set up an empty collection of photos.
+                        // Add the thumbnails.
+                        self.photos = new Iznik.Collection();
+
+                        self.draftPhotos = new Iznik.Views.User.Message.Photos({
+                            collection: self.photos,
+                            message: null,
+                            showAll: true
+                        });
+
+                        self.draftPhotos.render().then(function() {
+                            self.$('.js-draftphotos').html(self.draftPhotos.el);
                         });
                     }
                 } catch (e) {
