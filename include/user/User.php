@@ -552,7 +552,7 @@ class User extends Entity
 
         if ($rc && $emailid) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
-            $rc = $this->dbhm->preExec($sql, [
+            $this->dbhm->preExec($sql, [
                 $membershipid,
                 $role,
                 $emailid,
