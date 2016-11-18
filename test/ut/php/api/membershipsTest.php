@@ -57,6 +57,8 @@ class membershipsAPITest extends IznikAPITestCase {
         error_log(__METHOD__);
 
         # Should be able to add (i.e. join) as a non-member or a member.
+        $_SESSION['id'] = $this->uid2;
+
         $ret = $this->call('memberships', 'PUT', [
             'groupid' => $this->groupid,
             'userid' => $this->uid2,

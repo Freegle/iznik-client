@@ -58,11 +58,6 @@ class userAPITest extends IznikAPITestCase {
 
         # Invalid
         $ret = $this->call('user', 'PUT', [
-            'email' => $email
-        ]);
-        assertEquals(1, $ret['ret']);
-
-        $ret = $this->call('user', 'PUT', [
             'password' => 'wibble'
         ]);
         assertEquals(1, $ret['ret']);

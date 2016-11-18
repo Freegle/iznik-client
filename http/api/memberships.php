@@ -182,7 +182,7 @@ function memberships() {
                         $emailid = $u->getAnEmailId();
                     }
 
-                    if ($role != User::ROLE_NONMEMBER) {
+                    if (!$userid || $role != User::ROLE_NONMEMBER) {
                         $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED, $message);
 
                         if ($g->onYahoo()) {

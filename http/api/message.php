@@ -197,7 +197,7 @@ function message() {
                     $fop = presdef('FOP', $_REQUEST, NULL);
                     $attachments = presdef('attachments', $_REQUEST, []);
 
-                    if ($subject) {
+                    if ($subject || $textbody || $htmlbody) {
                         $m->edit($subject, $textbody, $htmlbody, $fop);
                     }
 

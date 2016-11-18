@@ -19,14 +19,14 @@ function user() {
 
     if (!$id && $yahooUserId) {
         # We don't know our unique ID, but we do know the Yahoo one. Find it.
-        $u = User::get($dbhr, $dbhm);
+        $u = new User($dbhr, $dbhm);
         $id = $u->findByYahooUserId($yahooUserId);
     }
 
     $email = presdef('email', $_REQUEST, NULL);
     if (!$id && $email) {
         # We still don't know our unique ID, but we do know an email.  Find it.
-        $u = User::get($dbhr, $dbhm);
+        $u = new User($dbhr, $dbhm);
         $id = $u->findByEmail($email);
     }
 
@@ -75,6 +75,7 @@ function user() {
         }
 
         case 'PUT': {
+            $u = new User($dbhr, $dbhm);
             $email = presdef('email', $_REQUEST, NULL);
             $password = presdef('password', $_REQUEST, $u->inventPassword());
             $firstname = presdef('firstname', $_REQUEST, NULL);
