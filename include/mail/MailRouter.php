@@ -185,7 +185,7 @@ class MailRouter
 
             # This is a message which is from Yahoo's system, rather than a message for a group.
 
-            if ($log) { error_log("To is $to"); }
+            if ($log) { error_log("To is $to "); }
 
             if (preg_match('/modconfirm-(.*)-(.*)-(.*)@/', $to, $matches) === 1) {
                 # This purports to be a mail to confirm moderation status on Yahoo.
@@ -523,6 +523,7 @@ class MailRouter
             }
         } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches)) {
             # Mail to our owner address.  First check if it's spam.
+            if ($this->log) { error_log("To volunteers"); }
             $rc = $this->spam->check($this->msg);
 
             if (!$rc) {
@@ -531,12 +532,15 @@ class MailRouter
                 # It's not.  Find the group
                 $g = new Group($this->dbhr, $this->dbhm);
                 $gid = $g->findByShortName($matches[1]);
+                if ($this->log) { error_log("Found $gid from {$matches[1]}"); }
 
                 if ($gid) {
                     # It's one of our groups.  Find the user this is from.
                     $envfrom = $this->msg->getEnvelopeFrom();
                     $u = new User($this->dbhr, $this->dbhm);
                     $uid = $u->findByEmail($envfrom);
+
+                    if ($this->log) { error_log("Found $uid from $envfrom"); }
 
                     # We should always find them as Message::parse should create them
                     if ($uid) {

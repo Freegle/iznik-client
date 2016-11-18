@@ -1336,6 +1336,12 @@ class MailRouterTest extends IznikTestCase {
         $membs = $u->getMemberships();
         assertEquals(1, count($membs));
 
+        $this->waitBackground();
+        $_SESSION['id'] = $uid;
+        $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs);
+        assertEquals($gid, $log['group']['id']);
+
         # Mail - first to pending for new member, noderated by default, then to approved for group settings.
 
         $msg = $this->unique(file_get_contents('msgs/nativebymail'));
@@ -1374,6 +1380,12 @@ class MailRouterTest extends IznikTestCase {
         $membs = $u->getMemberships();
         assertEquals(0, count($membs));
 
+        $this->waitBackground();
+        $_SESSION['id'] = $uid;
+        $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_LEFT, $logs);
+        assertEquals($gid, $log['group']['id']);
+
         error_log(__METHOD__ . " end");
     }
 
@@ -1382,7 +1394,7 @@ class MailRouterTest extends IznikTestCase {
 //
 //        $msg = $this->unique(file_get_contents('msgs/special'));
 //        $r = new MailRouter($this->dbhr, $this->dbhm);
-//        $id = $r->received(Message::YAHOO_SYSTEM, 'notify-return-mollydevas-3396869=users.ilovefreegle.org@returns.groups.yahoo.com', "mollydevas-3396869@users.ilovefreegle.org", $msg);
+//        $id = $r->received(Message::EMAIL, 'undelivered-mail+20161118-moderator.forward8492-auto@trashnothing.com ', "EldrickTest-volunteers@groups.ilovefreegle.org", $msg);
 //        assertNotNull($id);
 //        $rc = $r->route();
 //        assertEquals(MailRouter::TO_USER, $rc);

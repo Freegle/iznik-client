@@ -1065,6 +1065,7 @@ class User extends Entity
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
+        $myid = $me ? $me->getId() : NULL;
 
         $atts['displayname'] = $this->getName();
 
@@ -1171,7 +1172,9 @@ class User extends Entity
                             }
                         }
 
-                        if ($g->getId() &&
+                        # We can see logs for ourselves.
+                        if (!($myid != NULL && pres('user', $log) && presdef('id', $log['user'], NULL) == $myid) &&
+                            $g->getId() &&
                             $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
                             $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR
                         ) {
