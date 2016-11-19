@@ -428,8 +428,11 @@ define([
             p.then(function() {
                 self.photos = [];
                 self.collection.each(function(att) {
-                    att.set('subject', self.options.message.get('subject'));
-                    att.set('mine', self.options.message.get('mine'));
+                    if (self.options.message) {
+                        // We might not have one, e.g. when posting.
+                        att.set('subject', self.options.message.get('subject'));
+                        att.set('mine', self.options.message.get('mine'));
+                    }
 
                     var v = new Iznik.Views.User.Message.Photo({
                         model: att,

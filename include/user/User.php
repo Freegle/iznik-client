@@ -202,7 +202,7 @@ class User extends Entity
         $name = strpos($name, '@') !== FALSE ? substr($name, 0, strpos($name, '@')) : $name;
 
         if (strlen(trim($name)) === 0) {
-            $name = 'A freegler';
+            $name = MODTOOLS ? 'Someone' : 'A freegler';
         }
 
         return($name);
@@ -1068,6 +1068,11 @@ class User extends Entity
         $myid = $me ? $me->getId() : NULL;
 
         $atts['displayname'] = $this->getName();
+
+        foreach(['fullname', 'firstname', 'lastname'] as $att) {
+            # Make sure we don't return an email if somehow one has snuck in.
+            $atts[$att] = strpos($atts[$att], '@') !== FALSE ? substr($atts[$att], 0, strpos($atts[$att], '@')) : $atts[$att];
+        }
 
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.

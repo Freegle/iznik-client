@@ -300,7 +300,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr'
     ];
 
     public $memberAtts = [
@@ -308,7 +308,7 @@ class Message
     ];
 
     public $moderatorAtts = [
-        'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
+        'source', 'sourceheader', 'envelopefrom', 'envelopeto', 'messageid', 'tnpostid',
         'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto', 'editedby', 'editedat', 'locationid'
     ];
 
