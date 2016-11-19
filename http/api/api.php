@@ -18,17 +18,17 @@ require_once('../../include/config.php');
 # We might profile - only the occasional call as it generates a lot of data.
 $xhprof = XHPROF && (mt_rand(0, 1000000) < 1000);
 
+// @codeCoverageIgnoreStart
 if ($xhprof) {
     # We are profiling.
     xhprof_enable(XHPROF_FLAGS_CPU);
 }
 
 if (file_exists(IZNIK_BASE . '/http/maintenance_on.html')) {
-    // @codeCoverageIgnoreStart
     echo json_encode(array('ret' => 111, 'status' => 'Down for maintenance'));
     exit(0);
-    // @codeCoverageIgnoreEnd
 }
+// @codeCoverageIgnoreEnd
 
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
@@ -167,11 +167,13 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     # We're good to go - release the lock.
                     $predis->del($lockkey);
                     break;
+                    // @codeCoverageIgnoreStart
                 } else {
                     # We didn't get the lock - another request for this session must have it.
                     usleep(100000);
                 }
             } while (time() < $start + 45);
+            // @codeCoverageIgnoreEnd
         }
 
         try {
@@ -371,6 +373,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     }
 }
 
+// @codeCoverageIgnoreStart
 if ($xhprof) {
     # We collect the stats and aggregate the data into the DB
     $stats = xhprof_disable();
@@ -413,4 +416,5 @@ if ($xhprof) {
         }
     }
 }
+// @codeCoverageIgnoreEnd
 

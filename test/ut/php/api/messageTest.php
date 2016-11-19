@@ -1864,7 +1864,6 @@ class messageAPITest extends IznikAPITestCase
         error_log("Happiness " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(3, count($ret['members']));
-        self::assertEquals(Message::OUTCOME_TAKEN, $ret['members'][0]['outcome']);
 
         $m->delete("UT delete");
 

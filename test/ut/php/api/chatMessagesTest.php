@@ -189,7 +189,8 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test'
+            'message' => 'Test',
+            'refmsgid' => $refmsgid
         ]);
         error_log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
@@ -265,7 +266,8 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test with link http://spam.wherever '
+            'message' => 'Test with link http://spam.wherever ',
+            'refchatid' => $this->cid
         ]);
         error_log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
@@ -337,6 +339,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         error_log("Messages for review " . var_export($ret, TRUE));
         assertEquals(2, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
+        assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
         assertEquals($mid2, $ret['chatmessages'][1]['id']);
 
         # Approve the first

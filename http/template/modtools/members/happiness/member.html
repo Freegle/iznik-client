@@ -1,4 +1,4 @@
-<div class="panel <% if (obj.happiness == 'Fine') { %>panel-default<% } else if (obj.happiness == 'Happy') { %>panel-info<% } else { %>panel-danger<% } %>">
+<div class="panel <% if (!obj.hasOwnProperty('happiness') || obj.happiness == 'Fine') { %>panel-default<% } else if (obj.happiness == 'Happy') { %>panel-info<% } else { %>panel-danger<% } %>">
     <div class="panel-heading">
         <div class="row">
             <div class="col-md-2">
@@ -6,7 +6,7 @@
                 <img src="/images/happy.png" width="30px" />&nbsp;
                 <% } else if (obj.happiness == 'Fine') { %>
                 <img src="/images/neutral.png" width="30px" />&nbsp;
-                <% } else { %>
+                <% } else if (obj.happiness == 'Unhappy') { %>
                 <img src="/images/sad.png" width="30px" />&nbsp;
                 <% } %>
             </div>
