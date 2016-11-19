@@ -505,7 +505,39 @@ class Group extends Entity
 
         return($ret);
     }
-    
+
+    public function getHappinessMembers($groupids, &$ctx) {
+        $ret = [];
+        $groupids = $groupids ? $groupids : ($this->id ? [ $this-> id ] : NULL);
+        $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
+
+        $ctxq = $ctx == NULL ? "" : " messages_outcomes.id < {$ctx['id']} AND ";
+
+        $sql = "SELECT messages_outcomes.*, messages.fromuser, memberships.groupid FROM memberships INNER JOIN messages ON messages.fromuser = memberships.userid INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.groupid = memberships.groupid INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE $ctxq $groupq ORDER BY messages_outcomes.timestamp DESC LIMIT 10;";
+        error_log("Get happiness $sql");
+        $members = $this->dbhr->preQuery($sql);
+
+        foreach ($members as $member) {
+            $ctx = [
+                'id' => $member['id']
+            ];
+
+            $u = User::get($this->dbhr, $this->dbhm, $member['fromuser']);
+            $member['user'] = $u->getPublic();
+            $member['user']['email'] = $u->getEmailPreferred();
+            #unset($member['userid']);
+
+            $m = new Message($this->dbhr, $this->dbhm, $member['msgid']);
+            $member['message'] = $m->getPublic(FALSE, FALSE);
+            unset($member['msgid']);
+
+            $member['timestamp'] = ISODate($member['timestamp']);
+            $ret[] = $member;
+        }
+
+        return($ret);
+    }
+
     private function getYahooRole($memb) {
         $yahoorole = User::ROLE_MEMBER;
         if (pres('yahooModeratorStatus', $memb)) {

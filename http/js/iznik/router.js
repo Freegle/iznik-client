@@ -104,6 +104,7 @@ define([
             "modtools/members/pending(/:search)": "pendingMembers",
             "modtools/members/approved(/:search)": "approvedMembers",
             "modtools/members/spam": "spamMembers",
+            "modtools/members/happiness": "happinessMembers",
             "modtools/events/pending": "pendingEvents",
             "modtools/publicity": "socialActions",
             "modtools/admins": "admins",
@@ -865,6 +866,21 @@ define([
             require(["iznik/views/pages/modtools/members_spam"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.SpamMembers();
+                    self.loadRoute({page: page, modtools: true});
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        happinessMembers: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/members_happiness"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.HappinessMembers();
                     self.loadRoute({page: page, modtools: true});
                 });
 

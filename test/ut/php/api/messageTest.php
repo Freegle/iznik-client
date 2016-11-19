@@ -1849,9 +1849,22 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'Outcome',
             'outcome' => Message::OUTCOME_WITHDRAWN,
             'happiness' => User::FINE,
+            'comment' => "It was fine",
             'userid' => $uid
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Now get the happiness back.
+        $u->setRole(User::ROLE_MODERATOR, $group1);
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => 'Happiness',
+            'groupid' => $group1
+        ]);
+        error_log("Happiness " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(3, count($ret['members']));
+        self::assertEquals(Message::OUTCOME_TAKEN, $ret['members'][0]['outcome']);
 
         $m->delete("UT delete");
 

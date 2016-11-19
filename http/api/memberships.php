@@ -41,6 +41,7 @@ function memberships() {
         case MembershipCollection::PENDING:
         case MembershipCollection::BANNED:
         case MembershipCollection::SPAM:
+        case MembershipCollection::HAPPINESS:
             break;
         default:
             $collection = NULL;
@@ -101,7 +102,12 @@ function memberships() {
                                 'status' => 'Success'
                             ];
                         } else {
-                            $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
+                            if ($collection == MembershipCollection::HAPPINESS) {
+                                # This is handled differently.
+                                $members = $g->getHappinessMembers($groupids, $ctx);
+                            } else {
+                                $members = $g->getMembers($limit, $search, $ctx, $userid, $collection, $groupids, $yps, $ydt, $ops, $filter);
+                            }
 
                             if ($userid) {
                                 $ret = [
