@@ -81,6 +81,13 @@ class imageAPITest extends IznikAPITestCase
 
         $ret = $this->call('image', 'GET', [
             'id' => $img1,
+            'h' => 100
+        ], FALSE);
+
+        assertEquals(2305, strlen($ret));
+
+        $ret = $this->call('image', 'GET', [
+            'id' => $img1,
             'h' => 100,
             'group' => 1
         ], TRUE);
