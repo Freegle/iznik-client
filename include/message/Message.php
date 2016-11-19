@@ -228,8 +228,13 @@ class Message
             $this->setPrivate('suggestedsubject', $subject);
         }
 
-        $this->setPrivate('textbody', $textbody);
-        $this->setPrivate('htmlbody', $htmlbody);
+        if ($textbody) {
+            $this->setPrivate('textbody', $textbody);
+        }
+
+        if ($htmlbody) {
+            $this->setPrivate('htmlbody', $htmlbody);
+        }
 
         $sql = "UPDATE messages SET editedby = ?, editedat = NOW() WHERE id = ?;";
         $this->dbhm->preExec($sql, [

@@ -61,7 +61,7 @@ class userAPITest extends IznikAPITestCase {
     public function testRegister() {
         error_log(__METHOD__);
         
-        $email = 'test2@test.com';
+        $email = 'test3@test.com';
 
         # Invalid
         $ret = $this->call('user', 'PUT', [

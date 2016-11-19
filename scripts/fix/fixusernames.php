@@ -17,7 +17,7 @@ $users = $dbhr->query($sql);
 foreach ($users as $user) {
     $fn = $user['fullname'];
     $fn = strpos($fn, '@') !== FALSE ? substr($fn, 0, strpos($fn, '@')) : $fn;
-    $dbhm->preExec("UPDATE users SET fn = ? WHERE id = ?;", [ $fn, $user['id']], FALSE);
+    $dbhm->preExec("UPDATE users SET fullname = ? WHERE id = ?;", [ $fn, $user['id']], FALSE);
 
     $at++;
 

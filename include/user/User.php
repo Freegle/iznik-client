@@ -188,20 +188,20 @@ class User extends Entity
         return($s->getToken($this->id));
     }
 
-    public function getName() {
+    public function getName($default = TRUE) {
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.
         $name = NULL;
         if ($this->user['fullname']) {
             $name = $this->user['fullname'];
-        } else {
+        } else if ($this->user['firstname'] || $this->user['lastname'] ) {
             $name = $this->user['firstname'] . ' ' . $this->user['lastname'];
         }
 
         # Make sure we don't return an email if somehow one has snuck in.
-        $name = strpos($name, '@') !== FALSE ? substr($name, 0, strpos($name, '@')) : $name;
+        $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
 
-        if (strlen(trim($name)) === 0) {
+        if ($default && strlen(trim($name)) === 0) {
             $name = MODTOOLS ? 'Someone' : 'A freegler';
         }
 

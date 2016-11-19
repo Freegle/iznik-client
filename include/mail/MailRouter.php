@@ -335,12 +335,15 @@ class MailRouter
 
                 if (preg_match('/^Email address\: (.*)($| |=)/im', $all, $matches) && count($matches) == 3) {
                     $email = trim($matches[1]);
+                    if ($log) { error_log("Found email $email"); }
 
                     if (preg_match('/(.*) \<(.*)\>/', $email, $matches) && count($matches) == 3) {
                         $email = $matches[2];
+                        if ($log) { error_log("Found second email $email"); }
 
                         if (strpos($email, '-owner@yahoogroups') === FALSE) {
                             $name = $matches[1];
+                            if ($log) { error_log("Found name $name"); }
                         }
                     }
                 }
@@ -360,6 +363,7 @@ class MailRouter
                         # Check that this user exists.
                         $u = User::get($this->dbhr, $this->dbhm);
                         $uid = $u->findByEmail($email);
+                        if ($log) { error_log("Found #$uid for $email"); }
 
                         if (!$uid) {
                             # We don't know them yet.  Add them.
@@ -369,7 +373,8 @@ class MailRouter
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
                             $emailid = $u->getIdForEmail($email)['id'];
 
-                            if ($u->getName() == 'A freegler' && $name && stripos('FBUser', $name) === FALSE) {
+                            error_log("Consider upgrade " . $u->getName(FALSE) . " vs $name");
+                            if (!$u->getName(FALSE) && $name && stripos('FBUser', $name) === FALSE) {
                                 $u->setPrivate('fullname', $name);
                             }
                         }
