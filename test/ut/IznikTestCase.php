@@ -79,6 +79,11 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
             $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
             $this->dbhm->preExec("DELETE FROM messages WHERE subject = 'OFFER: a thing (Tuvalu)';");
             $this->dbhm->preExec("DELETE FROM communityevents WHERE title = 'Test Event';");
+
+            $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE backwards LIKE 'moctset@%';");
+            foreach ($users as $user) {
+                $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [ $user['userid'] ]);
+            }
             @session_destroy();
         } catch (Exception $e) {
             error_log("Session exception " . $e->getMessage());

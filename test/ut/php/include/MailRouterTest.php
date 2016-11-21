@@ -310,6 +310,34 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testGreetingSpam() {
+        error_log(__METHOD__);
+
+        # Suppress emails
+        $r = $this->getMockBuilder('MailRouter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mail'))
+            ->getMock();
+        $r->method('mail')->willReturn(false);
+
+        $msg = file_get_contents('msgs/greetingsspam');
+        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        $msg = file_get_contents('msgs/greetingsspam2');
+        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        $msg = file_get_contents('msgs/greetingsspam3');
+        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testSpamOverride() {
         error_log(__METHOD__);
 
@@ -1284,8 +1312,10 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testSubUnsub() {
+    public function testSubMailUnsub() {
         error_log(__METHOD__);
+
+        # Subscribe
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
@@ -1306,6 +1336,35 @@ class MailRouterTest extends IznikTestCase {
         $membs = $u->getMemberships();
         assertEquals(1, count($membs));
 
+        $this->waitBackground();
+        $_SESSION['id'] = $uid;
+        $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs);
+        assertEquals($gid, $log['group']['id']);
+
+        # Mail - first to pending for new member, noderated by default, then to approved for group settings.
+
+        $msg = $this->unique(file_get_contents('msgs/nativebymail'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        error_log("Mail message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::PENDING, $rc);
+        assertTrue($m->isPending($gid));
+
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $msg = $this->unique(file_get_contents('msgs/nativebymail'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        error_log("Mail message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::APPROVED, $rc);
+        assertTrue($m->isApproved($gid));
+
+        # Unsubscribe
+
         $msg = $this->unique(file_get_contents('msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1321,6 +1380,12 @@ class MailRouterTest extends IznikTestCase {
         $membs = $u->getMemberships();
         assertEquals(0, count($membs));
 
+        $this->waitBackground();
+        $_SESSION['id'] = $uid;
+        $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_LEFT, $logs);
+        assertEquals($gid, $log['group']['id']);
+
         error_log(__METHOD__ . " end");
     }
 
@@ -1329,7 +1394,7 @@ class MailRouterTest extends IznikTestCase {
 //
 //        $msg = $this->unique(file_get_contents('msgs/special'));
 //        $r = new MailRouter($this->dbhr, $this->dbhm);
-//        $id = $r->received(Message::YAHOO_SYSTEM, 'notify-return-mollydevas-3396869=users.ilovefreegle.org@returns.groups.yahoo.com', "mollydevas-3396869@users.ilovefreegle.org", $msg);
+//        $id = $r->received(Message::EMAIL, 'undelivered-mail+20161118-moderator.forward8492-auto@trashnothing.com ', "EldrickTest-volunteers@groups.ilovefreegle.org", $msg);
 //        assertNotNull($id);
 //        $rc = $r->route();
 //        assertEquals(MailRouter::TO_USER, $rc);

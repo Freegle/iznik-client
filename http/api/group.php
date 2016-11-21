@@ -114,7 +114,7 @@ function group() {
                         }
 
                         # Other settable attributes
-                        foreach (['tagline', 'showonyahoo', 'namefull', 'welcomemail'] as $att) {
+                        foreach (['tagline', 'showonyahoo', 'namefull', 'welcomemail', 'description'] as $att) {
                             $val = presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);

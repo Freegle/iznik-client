@@ -163,4 +163,38 @@ define([
             return(API + 'memberships/' + presdef('groupid', this.options, '') + '?search=' + encodeURIComponent(this.options.search) + '&collection=' + this.options.collection);
         }
     });
+
+    Iznik.Collections.Members.Happiness = Iznik.Collection.extend({
+        model: Iznik.Model,
+
+        ret: null,
+
+        initialize: function (models, options) {
+            this.options = options;
+
+            // Use a comparator to show in most recent first order
+            this.comparator = function(a, b) {
+                var ret = (new Date(b.get('timestamp'))).getTime() - (new Date(a.get('timestamp'))).getTime();
+                return(ret);
+            }
+        },
+
+        url: function() {
+            return (API + 'memberships/' + (this.options.groupid > 0 ? this.options.groupid : '') + '?collection=Happiness')
+        },
+
+        parse: function(ret) {
+            // Save off the return in case we need any info from it, e.g. context for searches.
+            this.ret = ret;
+
+            // Link in the groups.
+            _.each(ret.members, function(member) {
+                if (ret.groups[member.groupid]) {
+                    member.group = ret.groups[member.groupid];
+                }
+            });
+
+            return(ret.members);
+        }
+    });
 });

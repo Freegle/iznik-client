@@ -391,4 +391,8 @@ define([
             return(this.expand());
         }
     });
+
+    Iznik.Views.ModTools.Message.NotOnYahoo = Iznik.Views.Modal.extend({
+        template: 'modtools_messages_pending_notonyahoo'
+    });
 });

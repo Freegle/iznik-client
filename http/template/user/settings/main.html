@@ -104,12 +104,63 @@
             <div class="form-group" data-toggle="tooltip" data-placement="top">
                 <label for="onholiday">Pause mail</label>
                 <span class="help-block">You can pause all mails for a while, for example if you're on holiday.  Click to change.</span>
-                <input type="checkbox" id="onholiday" class="js-switch js-onholiday"/>
+                <input type="checkbox" id="onholiday" class="js-holidayswitch js-onholiday"/>
                 <label for="until" class="js-until" >&nbsp;until&nbsp;</label>
                 <input type="text" id="until" class="js-onholidaytill datepicker js-save" />
             </div>
             <span class="help-block">You can also change how often you receive <em>What's New</em> emails of recent OFFER or WANTED posts.</span>
             <ul class="list-unstyled js-mailgroups" />
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                Your Notification Settings
+            </h4>
+        </div>
+        <div class="panel-body">
+            <p>You can choose how we tell you about messages from other freeglers.  You can always read the messages in Chat on here.</p>
+            <hr />
+            <div class="row">
+                <div class="col-md-6">
+                    <div>
+                        Email doesn't always get through, so check your spam folders, and
+                        check on here occasionally.
+                    </div>
+                </div>
+                <div class="col-md-6 topspace">
+                    <input type="checkbox" class="js-emailswitch js-emailnotifs" />
+                </div>
+            </div>
+            <hr />
+            <div class="row js-pushon" style="display: none">
+                <div class="col-md-6">
+                    <div>
+                        You'll see a popup asking if we can send these.  They appear on your
+                        taskbar, or on mobile at the top.  Also known as "push" notifications.
+                    </div>
+                </div>
+                <div class="col-md-6 topspace">
+                    <input type="checkbox" class="js-pushswitch js-pushnotifs" />
+                </div>
+            </div>
+            <div class="row js-pushon" style="display: none">
+                <hr />
+            </div>
+            <div class="row js-facebookon" style="display: none">
+                <div class="col-md-6">
+                    <div>
+                        This is the red globe icon you know and love.  They don't show on mobile -
+                        Facebook doesn't do that.
+                    </div>
+                </div>
+                <div class="col-md-6 topspace">
+                    <input type="checkbox" class="js-facebookswitch js-facebooknotifs" />
+                </div>
+            </div>
+            <div class="row js-facebookon" style="display: none">
+                <hr />
+            </div>
         </div>
     </div>
 </div>

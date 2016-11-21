@@ -1,10 +1,19 @@
 <div class="col-md-2 js-created" />
 <div class="col-md-2 js-complete" />
-<div class="col-md-6">
+<div class="col-md-2 js-to">
+    {{obj.from}}
+    <% if (obj.group) { %>
+    => {{group.nameshort}}
+    <% } %>
+</div>
+<div class="col-md-4">
     {{subject}}
 </div>
 <div class="col-md-2">
     <div class=" btn btn-white js-showstats">
         Show Stats
+    </div>
+    <div class=" btn btn-white js-showbody">
+        Show Body
     </div>
 </div>

@@ -66,6 +66,8 @@ function stdmsg() {
 
             case 'PUT':
             case 'PATCH': {
+                $_SESSION['configs'] = NULL;
+
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else if (!$s->canModify()) {
@@ -88,6 +90,8 @@ function stdmsg() {
 
             case 'DELETE': {
                 # We can only delete this standard message if we have access to the modconfig which owns it.
+                $_SESSION['configs'] = NULL;
+
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else if (!$s->canModify()) {

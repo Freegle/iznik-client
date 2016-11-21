@@ -39,6 +39,13 @@ class userAPITest extends IznikAPITestCase {
         $this->user->addEmail('test@test.com');
         assertEquals(1, $this->user->addMembership($this->groupid));
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $this->uid2 = $u->create(NULL, NULL, 'Test User');
+        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
+        $this->user2->addEmail('test2@test.com');
+        assertEquals(1, $this->user2->addMembership($this->groupid));
+        assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
         assertTrue($this->user->login('testpw'));
 
         $this->plugin = new Plugin($this->dbhr, $this->dbhm);
@@ -54,14 +61,9 @@ class userAPITest extends IznikAPITestCase {
     public function testRegister() {
         error_log(__METHOD__);
         
-        $email = 'test2@test.com';
+        $email = 'test3@test.com';
 
         # Invalid
-        $ret = $this->call('user', 'PUT', [
-            'email' => $email
-        ]);
-        assertEquals(1, $ret['ret']);
-
         $ret = $this->call('user', 'PUT', [
             'password' => 'wibble'
         ]);
@@ -254,15 +256,46 @@ class userAPITest extends IznikAPITestCase {
             'logs' => TRUE
         ]);
 
-        # Can't see logs when not not a mod on the group
+        # Can't see logs when another user who is not not a mod on the group
+        error_log("Check can't see {$this->uid} as other member {$this->uid2}");
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test2@test.com',
+            'password' => 'testpw'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid,
+            'logs' => TRUE
+        ]);
+
         $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
         assertNull($log);
 
         # Promote.
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test@test.com',
+            'password' => 'testpw'
+        ]);
+        assertEquals(0, $ret['ret']);
 
         # Sleep for background logging
         $this->waitBackground();
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid,
+            'logs' => TRUE
+        ]);
+        $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
+        assertEquals($this->groupid, $log['group']['id']);
+
+        # Can also see as ourselves.
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test@test.com',
+            'password' => 'testpw'
+        ]);
+        assertEquals(0, $ret['ret']);
 
         $ret = $this->call('user', 'GET', [
             'id' => $this->uid,

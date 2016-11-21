@@ -112,9 +112,11 @@ class chatRoomsTest extends IznikTestCase {
         # Set up a chatroom
         $u = User::get($this->dbhr, $this->dbhm);
         $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
         $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);
         $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
@@ -145,6 +147,9 @@ class chatRoomsTest extends IznikTestCase {
 
         assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
 
+        # We will have flagged this message as mailed to all even though we failed.
+        $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 0 WHERE id = ?;", [ $cm ]);
+
         $r = $this->getMockBuilder('ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('mailer'))
@@ -155,6 +160,7 @@ class chatRoomsTest extends IznikTestCase {
         }));
 
         $this->msgsSent = [];
+
         # Notify - will email body.
         assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
         assertEquals('Re: OFFER: Test item (location)', $this->msgsSent[0]['subject']);

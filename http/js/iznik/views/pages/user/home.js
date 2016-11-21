@@ -350,6 +350,20 @@ define([
             } else {
                 this.$('.js-user').removeClass('reallyHide');
             }
+
+            this.defaultText();
+        },
+
+        defaultText: function() {
+            var text;
+
+            switch (this.$('.js-outcome').val()) {
+                case 'Taken': text = 'Thanks, this has now been taken.'; break;
+                case 'Received': text = 'Thanks, this has now been received.'; break;
+                case 'Withdrawn': text = 'Sorry, this is no longer available.'; break;
+            }
+
+            self.$('.js-comment').val(text);
         },
 
         click: function (ev) {
@@ -364,6 +378,8 @@ define([
                 this.$('.js-private').hide();
                 this.$('.js-public').fadeIn('slow');
             }
+
+            this.defaultText();
         },
 
         confirm: function () {

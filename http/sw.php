@@ -167,20 +167,35 @@ self.addEventListener('push', function(event) {
     // we need to display to the user.  This is why we need our pushsub stored, so that we can authenticate to
     // the server.
     console.log('SW Push message received', event, pushsub);
-    var url = new URL(self.registration.scope + 'api/session');
+    var ammod = self.registration.scope.indexOf('modtools') != -1;
+    var url;
 
-    if (pushsub) {
-        // We add our push subscription as a way of authenticating ourselves to the server, in case we're
-        // not already logged in.  A by product of this will be that it will log us in - but for the user
-        // this is nice behaviour, as it means that if they click on a notification they won't be prompted
-        // to log in.
-        if (url.searchParams) {
-            url.searchParams.append('pushcreds', pushsub);
-            console.log("SW Add pushcreds", pushsub);
-        } else {
-            // Chrome mobile doesn't seem to support searchParams
-            url = url + '?pushcreds=' + encodeURIComponent(pushsub);
-            console.log("SW Add pushcreds into url", url);
+    if (ammod) {
+        url =  new URL(self.registration.scope + 'api/session');
+
+        if (pushsub) {
+            // We add our push subscription as a way of authenticating ourselves to the server, in case we're
+            // not already logged in.  A by product of this will be that it will log us in - but for the user
+            // this is nice behaviour, as it means that if they click on a notification they won't be prompted
+            // to log in.
+            if (url.searchParams) {
+                url.searchParams.append('pushcreds', pushsub);
+                console.log("SW Add pushcreds", pushsub);
+            } else {
+                // Chrome mobile doesn't seem to support searchParams
+                url = url + '?pushcreds=' + encodeURIComponent(pushsub);
+                console.log("SW Add pushcreds into url", url);
+            }
+        }
+    } else {
+        url = new URL(self.registration.scope + 'api/chat/rooms?chattypes%5B%5D=User2User&chattypes%5B%5D=User2Mod');
+
+        if (pushsub) {
+            if (url.searchParams) {
+                url.searchParams.append('pushcreds', pushsub);
+            } else {
+                url = url + '&pushcreds=' + encodeURIComponent(pushsub);
+            }
         }
     }
 
@@ -198,12 +213,12 @@ self.addEventListener('push', function(event) {
         }).then(function(response) {
             return response.json().then(function(ret) {
                 console.log("SW got session during push", ret);
-                var workstr = '';
+                var notifstr = '';
                 var url = '/';
 
                 if (ret.ret == 0) {
                     try {
-                        if (ret.hasOwnProperty('work')) {
+                        if (ammod && ret.hasOwnProperty('work')) {
                             // We are a mod.
                             url = '/modtools';
                             // Now we can decide what notification to show.
@@ -215,63 +230,90 @@ self.addEventListener('push', function(event) {
                                 var spam = work.spam + work.spammembers + ((ret.systemrole == 'Admin' || ret.systemrole == 'Support') ? (work.spammerpendingadd + work.spammerpendingremove) : 0);
 
                                 if (spam > 0) {
-                                    workstr += spam + ' spam ' + " \n";
+                                    notifstr += spam + ' spam ' + " \n";
                                     url = '/modtools/messages/spam';
                                 }
 
                                 if (work.pendingmembers > 0) {
-                                    workstr += work.pendingmembers + ' pending member' + ((work.pendingmembers != 1) ? 's' : '') + " \n";
+                                    notifstr += work.pendingmembers + ' pending member' + ((work.pendingmembers != 1) ? 's' : '') + " \n";
                                     url = '/modtools/members/pending';
                                 }
 
                                 if (work.pending > 0) {
-                                    workstr += work.pending + ' pending message' + ((work.pending != 1) ? 's' : '') + " \n";
+                                    notifstr += work.pending + ' pending message' + ((work.pending != 1) ? 's' : '') + " \n";
                                     url = '/modtools/messages/pending';
                                 }
 
                                 // Clear any we have shown so far.
                                 closeAll();
 
-                                if (workstr == '') {
+                                if (notifstr == '') {
                                     // We have to show a popup, otherwise we'll get the "updated in the background" message.  But
                                     // we can start a timer to clear the notifications later.
                                     setTimeout(closeAll, 2000);
                                 }
 
-                                workstr = workstr == '' ? "No tasks outstanding" : workstr;
+                                notifstr = notifstr == '' ? "No tasks outstanding" : notifstr;
                             } else {
-                                workstr = "No tasks outstanding";
+                                notifstr = "No tasks outstanding";
+                                setTimeout(closeAll, 2000);
                             }
+
+                            return self.registration.showNotification("ModTools", {
+                                body: notifstr,
+                                icon: '/images/favicon/modtools/favicon-96x96.png',
+                                tag: 'work',
+                                data: {
+                                    'url': url
+                                }
+                            });
                         } else {
-                            // TODO User notifications.  Also change image and text below.
-                            setTimeout(closeAll, 2000);
+                            // We're a user.  Check if we have any chats to notify on.
+                            console.log("SW got chats", ret);
+                            var notifstr = 'No messages';
+
+                            if (ret.ret == 0) {
+                                var simple = null;
+                                var aggregate = 0;
+                                var myid = Iznik.Session.get('me').id;
+
+                                for (var i = 0; i < ret.chatrooms.length; i++) {
+                                    var chat = ret.chatrooms[i];
+
+                                    // For the user interface we are interested in user chats or our own chats to
+                                    // mods.
+                                    if (chat.type == 'User2User' || (chat.type == 'User2Mod' && chat.user1.id == myid)) {
+                                        aggregate += chat.unseen;
+
+                                        if (chat.unseen > 0) {
+                                            simple = chat.name + ' wrote: ' + chat.snippet;
+                                        }
+                                    }
+                                }
+
+                                if (aggregate > 0) {
+                                    notifstr = (aggregate > 1) ? (aggregate + ' messages') : simple;
+                                } else {
+                                    setTimeout(closeAll, 2000);
+                                }
+                            } else {
+                                setTimeout(closeAll, 2000);
+                            }
+
+                            return self.registration.showNotification("Freegle", {
+                                body: notifstr,
+                                icon: '/images/favicon/user/favicon-96x96.png',
+                                tag: 'work',
+                                data: {
+                                    'url': url
+                                }
+                            });
                         }
                     } catch (e) {
-                        workstr = "Exception " + e.message;
+                        console.error("SW Exception " + e.message);
                     }
                 }
-
-                // Show a notification.  Don't vibrate - that would be too annoying.
-                console.log("SW Return notification", workstr, url);
-                return self.registration.showNotification("ModTools", {
-                    body: workstr,
-                    icon: '/images/favicon/modtools/favicon-96x96.png',
-                    tag: 'work',
-                    data: {
-                        'url': url
-                    }
-                });
             }).catch(function(err) {
-                // TODO retry?
-                workstr = "Network error " + err;
-                return self.registration.showNotification("ModTools", {
-                    body: workstr,
-                    icon: '/images/favicon/modtools/favicon-96x96.png',
-                    tag: 'work',
-                    data: {
-                    'url': url
-                    }
-                });
                 setTimeout(closeAll, 2000);
             });
         })
@@ -316,7 +358,11 @@ function addToCache(cacheKey, request, response) {
     if (response.ok) {
         var copy = response.clone();
         caches.open(cacheKey).then(function (cache) {
-            cache.put(request, copy);
+            try {
+                cache.put(request, copy);
+            } catch (e) {
+                console.error("SW cache error", e.message);
+            }
         });
     }
     return response;

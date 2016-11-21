@@ -11,23 +11,13 @@ $at = 0;
 
 $s = new Spam($dbhr, $dbhm);
 
-$sql = "SELECT id FROM users WHERE fullname LIKE 'FBUser%';";
+$sql = "SELECT id, fullname FROM users WHERE fullname LIKE '%@%';";
 $users = $dbhr->query($sql);
 
 foreach ($users as $user) {
-    $u = User::get($dbhr, $dbhm, $user['id']);
-    $emails = $u->getEmails();
-
-    foreach ($emails as $email) {
-        $themail = $email['email'];
-
-        if (strpos(strtolower($themail), 'fbuser') === FALSE) {
-            $p = strpos($themail, '@');
-            $thename = substr($themail, 0, $p - 1);
-            error_log("Name from $themail is $thename");
-            $u->setPrivate('fullname', $themail);
-        }
-    }
+    $fn = $user['fullname'];
+    $fn = strpos($fn, '@') !== FALSE ? substr($fn, 0, strpos($fn, '@')) : $fn;
+    $dbhm->preExec("UPDATE users SET fullname = ? WHERE id = ?;", [ $fn, $user['id']], FALSE);
 
     $at++;
 

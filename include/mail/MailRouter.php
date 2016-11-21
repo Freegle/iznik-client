@@ -185,7 +185,7 @@ class MailRouter
 
             # This is a message which is from Yahoo's system, rather than a message for a group.
 
-            if ($log) { error_log("To is $to"); }
+            if ($log) { error_log("To is $to "); }
 
             if (preg_match('/modconfirm-(.*)-(.*)-(.*)@/', $to, $matches) === 1) {
                 # This purports to be a mail to confirm moderation status on Yahoo.
@@ -335,12 +335,15 @@ class MailRouter
 
                 if (preg_match('/^Email address\: (.*)($| |=)/im', $all, $matches) && count($matches) == 3) {
                     $email = trim($matches[1]);
+                    if ($log) { error_log("Found email $email"); }
 
                     if (preg_match('/(.*) \<(.*)\>/', $email, $matches) && count($matches) == 3) {
                         $email = $matches[2];
+                        if ($log) { error_log("Found second email $email"); }
 
                         if (strpos($email, '-owner@yahoogroups') === FALSE) {
                             $name = $matches[1];
+                            if ($log) { error_log("Found name $name"); }
                         }
                     }
                 }
@@ -360,6 +363,7 @@ class MailRouter
                         # Check that this user exists.
                         $u = User::get($this->dbhr, $this->dbhm);
                         $uid = $u->findByEmail($email);
+                        if ($log) { error_log("Found #$uid for $email"); }
 
                         if (!$uid) {
                             # We don't know them yet.  Add them.
@@ -369,7 +373,8 @@ class MailRouter
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
                             $emailid = $u->getIdForEmail($email)['id'];
 
-                            if ($u->getName() == 'A freegler' && $name && stripos('FBUser', $name) === FALSE) {
+                            error_log("Consider upgrade " . $u->getName(FALSE) . " vs $name");
+                            if (!$u->getName(FALSE) && $name && stripos('FBUser', $name) === FALSE) {
                                 $u->setPrivate('fullname', $name);
                             }
                         }
@@ -463,12 +468,16 @@ class MailRouter
                                 error_log("Found them $uid");
                             }
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
-                            $eid = $u->getIdForEmail($to);
-                            $eid = $eid ? $eid['id'] : NULL;
-                            $u->markYahooApproved($gid, $eid);
 
-                            # Dispatch any messages which are queued awaiting this group membership.
-                            $u->submitYahooQueued($gid);
+                            # Membership might have disappeared in the mean time.
+                            if ($u->isPending($gid)) {
+                                $eid = $u->getIdForEmail($to);
+                                $eid = $eid ? $eid['id'] : NULL;
+                                $u->markYahooApproved($gid, $eid);
+
+                                # Dispatch any messages which are queued awaiting this group membership.
+                                $u->submitYahooQueued($gid);
+                            }
                         }
 
                         $ret = MailRouter::TO_SYSTEM;
@@ -519,6 +528,7 @@ class MailRouter
             }
         } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches)) {
             # Mail to our owner address.  First check if it's spam.
+            if ($this->log) { error_log("To volunteers"); }
             $rc = $this->spam->check($this->msg);
 
             if (!$rc) {
@@ -527,12 +537,15 @@ class MailRouter
                 # It's not.  Find the group
                 $g = new Group($this->dbhr, $this->dbhm);
                 $gid = $g->findByShortName($matches[1]);
+                if ($this->log) { error_log("Found $gid from {$matches[1]}"); }
 
                 if ($gid) {
                     # It's one of our groups.  Find the user this is from.
                     $envfrom = $this->msg->getEnvelopeFrom();
                     $u = new User($this->dbhr, $this->dbhm);
                     $uid = $u->findByEmail($envfrom);
+
+                    if ($this->log) { error_log("Found $uid from $envfrom"); }
 
                     # We should always find them as Message::parse should create them
                     if ($uid) {
@@ -749,6 +762,32 @@ class MailRouter
                         if ($this->markApproved()) {
                             $ret = MailRouter::APPROVED;
                         }
+                    } else if ($this->msg->getSource() == Message::EMAIL) {
+                        if ($log) { error_log("Email source"); }
+                        $uid = $this->msg->getFromuser();
+
+                        if ($uid) {
+                            $u = User::get($this->dbhr, $this->dbhm, $uid);
+                            foreach ($groups as $group) {
+                                if ($u->isApprovedMember($group['groupid'])) {
+                                    $ps = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
+                                    $ps = $ps ? $ps : Group::POSTING_MODERATED;
+                                    if ($log) { error_log("Member, Our PS is $ps"); }
+
+                                    if ($ps == Group::POSTING_MODERATED) {
+                                        if ($log) { error_log("Mark as pending"); }
+                                        if ($this->markPending($notspam)) {
+                                            $ret = MailRouter::PENDING;
+                                        }
+                                    } else {
+                                        if ($log) { error_log("Mark as approved"); }
+                                        if ($this->markApproved()) {
+                                            $ret = MailRouter::APPROVED;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     # Check for getting group mails to our individual users, which we want to turn off because
@@ -766,41 +805,44 @@ class MailRouter
                     # in subsequent exchanges).
                     $u = User::get($this->dbhr, $this->dbhm);
                     $to = $this->msg->getEnvelopeto();
+                    $to = $to ? $to : $this->msg->getHeader('to');
                     if ($log) { error_log("Look for reply $to"); }
                     $uid = NULL;
                     $ret = MailRouter::DROPPED;
 
                     if (preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
                         # It's a reply to an email notification.
-                        $chatid = intval($matches[1]);
-                        $userid = intval($matches[2]);
-                        $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-                        $u = User::get($this->dbhr, $this->dbhm, $userid);
+                        if (!$this->msg->isBounce()) {
+                            $chatid = intval($matches[1]);
+                            $userid = intval($matches[2]);
+                            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+                            $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-                        if ($r->getId()) {
-                            # It's a valid chat.
-                            if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid || $u->isModerator()) {
-                                # ...and the user we're replying to is part of it or a mod.
-                                #
-                                # The email address that we replied from might not currently be attached to the
-                                # other user, for example if someone has email forwarding set up.  So make sure we
-                                # have it.
-                                $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
-                                    $r->getPrivate('user1');
-                                $otheru = User::get($this->dbhr, $this->dbhm, $other);
-                                $otheru->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
+                            if ($r->getId()) {
+                                # It's a valid chat.
+                                if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid || $u->isModerator()) {
+                                    # ...and the user we're replying to is part of it or a mod.
+                                    #
+                                    # The email address that we replied from might not currently be attached to the
+                                    # other user, for example if someone has email forwarding set up.  So make sure we
+                                    # have it.
+                                    $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
+                                        $r->getPrivate('user1');
+                                    $otheru = User::get($this->dbhr, $this->dbhm, $other);
+                                    $otheru->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
 
-                                # Now add this into the conversation as a message.  This will notify them.
-                                $textbody = $this->msg->stripQuoted();
+                                    # Now add this into the conversation as a message.  This will notify them.
+                                    $textbody = $this->msg->stripQuoted();
 
-                                $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                $mid = $m->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+                                    $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                    $mid = $m->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
 
-                                # The user sending this is up to date with this conversation.  This prevents us
-                                # notifying her about other messages
-                                $r->mailedLastForUser($userid);
+                                    # The user sending this is up to date with this conversation.  This prevents us
+                                    # notifying her about other messages
+                                    $r->mailedLastForUser($userid);
 
-                                $ret = MailRouter::TO_USER;
+                                    $ret = MailRouter::TO_USER;
+                                }
                             }
                         }
                     } else if (preg_match('/notify@yahoogroups.co.*/', $from)) {

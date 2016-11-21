@@ -81,11 +81,11 @@ function image() {
                 $newdata = $i->getData(100);
                 $a->setData($newdata);
 
-                file_put_contents("/tmp/orig.jpg", $data);
-                file_put_contents("/tmp/rotate.jpg", $newdata);
-
                 # Now clear any cached image files.
                 foreach (glob(IZNIK_BASE . "/http/imgcache/img_{$shorttype}_{$id}*") as $filename) {
+                    unlink($filename);
+                }
+                foreach (glob(IZNIK_BASE . "/http/imgcache/timg_{$id}*") as $filename) {
                     unlink($filename);
                 }
 
@@ -151,7 +151,8 @@ function image() {
                             'ret' => 0,
                             'status' => 'Success',
                             'id' => $id,
-                            'path' => Attachment::getPath($id, $imgtype)
+                            'path' => Attachment::getPath($id, $imgtype),
+                            'paththumb' => Attachment::getPath($id, $imgtype, TRUE)
                         ];
 
                         # Return a new thumbnail (which might be a different orientation).

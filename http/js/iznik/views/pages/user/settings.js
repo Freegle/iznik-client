@@ -27,6 +27,9 @@ define([
 
         events: {
             'switchChange.bootstrapSwitch .js-onholiday': 'onholiday',
+            'switchChange.bootstrapSwitch .js-emailswitch': 'notifSwitch',
+            'switchChange.bootstrapSwitch .js-pushswitch': 'notifSwitch',
+            'switchChange.bootstrapSwitch .js-facebookswitch': 'notifSwitch',
             'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
             'click .js-savename': 'nameChange',
@@ -69,7 +72,7 @@ define([
             var me = Iznik.Session.get('me');
             var till = me.onholidaytill ? new Date(me.onholidaytill) : new Date();
             // console.log("On holiday till", till, me);
-            if (this.$('.js-switch').bootstrapSwitch('state')) {
+            if (this.$('.js-holidayswitch').bootstrapSwitch('state')) {
                 this.$('.js-onholidaytill').show();
                 this.$('.js-until').show();
                 this.$('.js-onholidaytill').datepicker('update', till);
@@ -86,6 +89,23 @@ define([
                     patch: true
                 });
             }
+        },
+
+        notifSwitch: function() {
+            var me = Iznik.Session.get('me');
+            var notifs = {};
+            notifs.email = this.$('.js-emailswitch').bootstrapSwitch('state');
+            notifs.push = this.$('.js-pushswitch').bootstrapSwitch('state');
+            notifs.facebook = this.$('.js-facebookswitch').bootstrapSwitch('state');
+
+            me.settings.notifications = notifs;
+
+            Iznik.Session.save({
+                id: me.id,
+                settings: me.settings
+            }, {
+                patch: true
+            });
         },
 
         startSave: function(el) {
@@ -209,12 +229,56 @@ define([
                 self.$('.js-email').val(me.email);
 
                 // console.log("On holiday?", me.onholidaytill, me.onholidaytill != undefined);
-                self.$(".js-switch").bootstrapSwitch({
+                self.$(".js-holidayswitch").bootstrapSwitch({
                     onText: 'Mails Paused',
                     offText: 'Mails On',
                     state: me.onholidaytill != undefined
                 });
                 self.onholiday();
+
+                var me = Iznik.Session.get('me')
+                var notifs = me.settings.notifications;
+
+                if (_.isUndefined(notifs)) {
+                    notifs = {
+                        email: true,
+                        push: true,
+                        facebook: true
+                    }
+                }
+
+                self.$(".js-emailswitch").bootstrapSwitch({
+                    onText: 'Emails On',
+                    offText: 'Emails Off',
+                    state: notifs.hasOwnProperty('email') ? notifs.email : true
+                });
+
+                if (me.hasOwnProperty('notifications') && me.notifications.hasOwnProperty('push')) {
+                    self.$(".js-pushswitch").bootstrapSwitch({
+                        onText: 'Browser Popups On',
+                        offText: 'Browser Popups Off',
+                        state: notifs.hasOwnProperty('push') ? notifs.push: true
+                    });
+
+                    self.$('.js-pushon').show();
+                }
+
+                var facebook = false;
+                _.each(Iznik.Session.get('logins'), function(login) {
+                    if (login.type == 'Facebook') {
+                        facebook = true;
+                    }
+                });
+                
+                if (facebook) {
+                    self.$(".js-facebookswitch").bootstrapSwitch({
+                        onText: 'Facebook Notifications On',
+                        offText: 'Facebook Notifications Off',
+                        state: notifs.hasOwnProperty('facebook') ? notifs.facebook: true
+                    });
+
+                    self.$('.js-facebookon').show();
+                }
 
                 self.groupscoll = Iznik.Session.get('groups');
                 self.collectionView = new Backbone.CollectionView({
