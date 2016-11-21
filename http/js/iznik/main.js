@@ -6,6 +6,7 @@ var isiOS = false; // CC
 var useSwipeRefresh = false;
 var initialURL = false;
 var hammer = false;
+var mobilePushId = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -121,48 +122,48 @@ require([
     'backbone',
     'iznik/router',
     'hammer'   // CC
-], function($, _, Backbone) {
+], function ($, _, Backbone) {
     console.log("starting Backbone");	// CC
-	  if (!Backbone) {
+    if (!Backbone) {
         // Something has gone unpleasantly wrong.
         console.error("Backbone failed to fetch");
         panicReload();
     }
 
-      // http://hammerjs.github.io/getting-started/
+    // http://hammerjs.github.io/getting-started/
 
-	  if (useSwipeRefresh) {
-	      //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
-	      hammer = new Hammer(window);
-	      hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
-	      hammer.on('swipedown', function (ev) {
-	          //console.log(ev);
-	          var posn = $(window).scrollTop();
-	          //console.log("posn=" + posn);
-	          //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
-	          if (posn === 0) {
-	              mobileRefresh();
-	          }
-	      });
-	      //hammer.on('swipeleft swiperight', function (ev) {
-	      //    console.log(ev);
-	      //    $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
-	      //});
-	  }
+    if (useSwipeRefresh) {
+        //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+        hammer = new Hammer(window);
+        hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+        hammer.on('swipedown', function (ev) {
+            //console.log(ev);
+            var posn = $(window).scrollTop();
+            //console.log("posn=" + posn);
+            //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
+            if (posn === 0) {
+                mobileRefresh();
+            }
+        });
+        //hammer.on('swipeleft swiperight', function (ev) {
+        //    console.log(ev);
+        //    $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
+        //});
+    }
 
-      // Catch back button and clear chats
-	  window.addEventListener('popstate', function (e) {    // CC
-	      try {
-	          var ChatHolder = new Iznik.Views.Chat.Holder();
-	          ChatHolder.minimiseall();
-	      } catch (e) { }
-	  });
+    // Catch back button and clear chats
+    window.addEventListener('popstate', function (e) {    // CC
+        try {
+            var ChatHolder = new Iznik.Views.Chat.Holder();
+            ChatHolder.minimiseall();
+        } catch (e) { }
+    });
 
-	  document.addEventListener("offline", function () { isOnline = false; showNetworkStatus() }, false);
-	  document.addEventListener("online", function () { isOnline = true; showNetworkStatus() }, false);
+    document.addEventListener("offline", function () { isOnline = false; showNetworkStatus() }, false);
+    document.addEventListener("online", function () { isOnline = true; showNetworkStatus() }, false);
 
     Backbone.emulateJSON = true;
-    
+
     // We have a busy indicator.
     $(document).ajaxStop(function () {
         $('#spinner').hide();
@@ -181,12 +182,12 @@ require([
     var _ajax = $.ajax;
 
     function sliceArgs() {
-        return(Array.prototype.slice.call(arguments, 0));
+        return (Array.prototype.slice.call(arguments, 0));
     }
 
     function delay(errors) {
         // Exponential backoff upto a limit.
-        return(Math.min(Math.pow(2, errors) * 1000, 30000));
+        return (Math.min(Math.pow(2, errors) * 1000, 30000));
     }
 
     function retryIt(jqXHR) {
@@ -201,10 +202,10 @@ require([
 
     function extendIt(args, options) {
         _.extend(args[0], options && typeof options === 'object' ? options : {}, {
-            error:   function () { retryIt.apply(this, arguments); }
+            error: function () { retryIt.apply(this, arguments); }
         });
     }
-    
+
     $.ajax = function (options) {
         var url = options.url;
 
@@ -226,9 +227,62 @@ require([
 
             return _ajax.apply($, args);
         } else {
-            return(_ajax.apply($, arguments));
+            return (_ajax.apply($, arguments));
         }
     };
+
+    console.log("push init start");
+    if (!PushNotification) {
+        alert("No PN");
+    } else {
+        var push = PushNotification.init({
+            android: {
+                senderID: "845879623324"
+            },
+            ios: {
+                alert: true,
+                badge: true,
+                sound: true
+            }
+        });
+        push.on('registration', function (data) {
+            mobilePushId = data.registrationId;
+            console.log("push registration " + mobilePushId);
+            //$("#registrationId").val(data.registrationId);
+            alert("registration: " + mobilePushId);
+        });
+
+        push.on('notification', function (data) {
+            alert("push notification");
+            alert(JSON.stringify(data));
+            console.log("push notification");
+            console.log(data);
+            console.log(data.title);
+            console.log(data.message);
+            console.log(data.count);
+            console.log(data.sound);
+            console.log(data.image);
+            //console.log(JSON.stringify(data.additionalData));
+            //console.log.text(JSON.stringify(data));
+            /*$('#nTitle').text(data.title);
+            $('#nMessage').text(data.message);
+            $('#nCount').text(data.count);
+            $('#nSound').text(data.sound);
+            $('#nImage').text(data.image);
+            $('#nAdditionalData').text(JSON.stringify(data.additionalData));
+            $('#nData').text(JSON.stringify(data));*/
+
+            push.finish(function () {
+                console.log("push finished");
+                //alert("finished");
+            });
+        });
+
+        push.on('error', function (e) {
+            alert("error: " + e.message);
+        });
+    }
+
 });
 
 }; // CC

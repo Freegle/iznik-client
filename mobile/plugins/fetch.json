@@ -78,5 +78,15 @@
         },
         "is_top_level": true,
         "variables": {}
+    },
+    "phonegap-plugin-push": {
+        "source": {
+            "type": "local",
+            "path": "D:\\XDK\\plugins\\phonegap-plugin-push-1.8.4"
+        },
+        "is_top_level": true,
+        "variables": {
+            "SENDER_ID": "845879623324"
+        }
     }
 }
