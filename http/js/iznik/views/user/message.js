@@ -370,7 +370,8 @@ define([
                 type: 'POST',
                 data: {
                     id: self.model.get('id'),
-                    rotate: deg
+                    rotate: deg,
+                    bust: (new Date()).getTime()
                 },
                 success: function(ret) {
                     var t = (new Date()).getTime();
