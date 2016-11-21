@@ -476,21 +476,19 @@ define([
                             userid: userid
                         }, success: function (ret) {
                             if (ret.ret == 0) {
-                                Iznik.Session.chats.fetch().then(function () {
-                                    var chat = new Iznik.Models.Chat.Room({
-                                        id: ret.id
-                                    });
+                                var chat = new Iznik.Models.Chat.Room({
+                                    id: ret.id
+                                });
 
-                                    chat.fetch().then(function() {
-                                        // Make sure we have this chat in our collection - might not have picked
-                                        // it up yet.
-                                        Iznik.Session.chats.add(chat, { merge: true });
+                                chat.fetch().then(function() {
+                                    // Make sure we have this chat in our collection - might not have picked
+                                    // it up yet.
+                                    Iznik.Session.chats.add(chat, { merge: true });
 
-                                        // View should now be present.
-                                        var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-                                        v.close();
-                                        chatView.restore();
-                                    })
+                                    // View should now be present.
+                                    var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                                    v.close();
+                                    chatView.restore();
                                 });
                             } else {
                                 v.close();
