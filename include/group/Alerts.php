@@ -52,7 +52,7 @@ class Alert extends Entity
     }
 
     public function getList() {
-        $sql = "SELECT id FROM alerts ORDER BY id DESC;";
+        $sql = "SELECT id FROM alerts ORDER BY id DESC LIMIT 100;";
         $alerts = $this->dbhr->preQuery($sql);
         $ret = [];
         foreach ($alerts as $alert) {
@@ -61,6 +61,12 @@ class Alert extends Entity
             $thisone['created'] = ISODate($thisone['created']);
             $thisone['complete'] = ISODate($thisone['complete']);
             $thisone['stats'] = $a->getStats();
+
+            if ($thisone['groupid']) {
+                $g = Group::get($this->dbhr, $this->dbhm, $thisone['groupid']);
+                $thisone['group'] = $g->getPublic();
+                unset($thisone['groupid']);
+            }
             $ret[] = $thisone;
         }
 
@@ -144,7 +150,7 @@ class Alert extends Entity
             case 'newgroups': $from = NEWGROUPS_ADDR; break;
             case 'ro': $from = RO_ADDR; break;
         }
-        # TODO This dom
+
         return($from);
     }
 
@@ -284,7 +290,7 @@ class Alert extends Entity
             }
         }
 
-        if ($g->getPrivate('onyahoo')) {
+        if ($g->getPrivate('onyahoo') || $g->getPrivate('contactmail')) {
             try {
                 # This group is on Yahoo - so mail the owner address too.
                 $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, `type`) VALUES (?,?,?);",

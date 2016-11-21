@@ -8,6 +8,7 @@ sleep 10
 rm -r /archive/mysql
 mkdir /archive/mysql
 cd /archive/backups
+(ls -t|head -n 5;ls)|sort|uniq -u|xargs rm
 back=`ls -1tr *gz | tail -1`
 cd /archive/mysql
 nice tar -xvzf /archive/backups/$back

@@ -198,6 +198,11 @@ define([
                 Iznik.Session.chats.fetch({
                     cached: cb
                 }).then(cb);
+
+                if (Iznik.Session.get('me').bouncing) {
+                    self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
+                    self.$('.js-bouncing').fadeIn('slow');
+                }
             });
 
             return(p);
@@ -350,6 +355,20 @@ define([
             } else {
                 this.$('.js-user').removeClass('reallyHide');
             }
+
+            this.defaultText();
+        },
+
+        defaultText: function() {
+            var text;
+
+            switch (this.$('.js-outcome').val()) {
+                case 'Taken': text = 'Thanks, this has now been taken.'; break;
+                case 'Received': text = 'Thanks, this has now been received.'; break;
+                case 'Withdrawn': text = 'Sorry, this is no longer available.'; break;
+            }
+
+            self.$('.js-comment').val(text);
         },
 
         click: function (ev) {
@@ -364,6 +383,8 @@ define([
                 this.$('.js-private').hide();
                 this.$('.js-public').fadeIn('slow');
             }
+
+            this.defaultText();
         },
 
         confirm: function () {

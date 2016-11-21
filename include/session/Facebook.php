@@ -268,6 +268,6 @@ class Facebook
 
             $result = $fb->post("/$fbid/notifications", $notif);
             #error_log("Notify returned " . var_export($result, TRUE));
-        } catch (Exception $e) {}
+        } catch (Exception $e) { /* error_log("FB notify failed with " . $e->getMessage()); */ }
     }
 }

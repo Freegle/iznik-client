@@ -1,0 +1,21 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title js-modal-title">Add Member to {{nameshort}}</h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <div class="alert alert-info">This will add someone as a Freegle Direct member of your group.  Please be responsible in how you use this feature.</div>
+                <input type="email" class="botspace form-control js-email" placeholder="Enter the user's email address" />
+                <p>If they've not used Freegle before, they will get the standard Freegle welcome mail with an invented password so that they can log in.</p>
+                <p>Please let them know why you've added them to your group:</p>
+                <textarea rows="5" class="form-control js-welcome" />
+                <div class="alert alert-error js-error" style="display:none;" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success js-add">Add</button>
+                <button type="button" class="btn btn-error js-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

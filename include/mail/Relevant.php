@@ -25,7 +25,7 @@ class Relevant {
         $this->log->log([
             'type' => Log::TYPE_USER,
             'subtype' => Log::SUBTYPE_RELEVANTOFF,
-            'userid' => $uid
+            'user' => $uid
         ]);
 
         $email = $u->getEmailPreferred();

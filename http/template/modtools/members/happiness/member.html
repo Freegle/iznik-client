@@ -1,0 +1,57 @@
+<div class="panel <% if (!obj.hasOwnProperty('happiness') || obj.happiness == 'Fine') { %>panel-default<% } else if (obj.happiness == 'Happy') { %>panel-info<% } else { %>panel-danger<% } %>">
+    <div class="panel-heading">
+        <div class="row">
+            <div class="col-md-2">
+                <% if (obj.happiness == 'Happy') { %>
+                <img src="/images/happy.png" width="30px" />&nbsp;
+                <% } else if (obj.happiness == 'Fine') { %>
+                <img src="/images/neutral.png" width="30px" />&nbsp;
+                <% } else if (obj.happiness == 'Unhappy') { %>
+                <img src="/images/sad.png" width="30px" />&nbsp;
+                <% } %>
+            </div>
+            <div class="col-md-4 forcebreak">
+                <b>{{user.email}}</b> (#{{user.id}})
+            </div>
+            <div class="col-md-2">
+                <abbr class="timeago" title="{{timestamp}}" />
+            </div>
+            <div class="col-md-2 js-group">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-4">
+                {{message.subject}}
+            </div>
+            <div class="col-md-2">
+                #{{message.id}}
+            </div>
+            <div class="col-md-1">
+                <% if (outcome == 'Withdrawn') { %>
+                <span class="glyphicon glyphicon-remove error" />
+                <% } else { %>
+                <span class="glyphicon glyphicon-ok success" />
+                <% } %>
+                {{outcome}}
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-10">
+                <% if (obj.comments && obj.comments != 'Thanks, this has now been taken.' && obj.comments != 'Thanks, this has now been received.' && obj.comments != 'Sorry, this is no longer available.') { %>
+                {{comments}}
+                <% } else { %>
+                <em class="text-muted">No comment</em>
+                <% } %>
+            </div>
+            <div class="col-xs-2">
+                <div class="btn btn-white js-chat">
+                    <div class="glyphicons glyphicons-conversation vcenter" />&nbsp;Chat
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

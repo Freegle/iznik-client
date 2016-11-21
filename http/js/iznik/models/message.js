@@ -322,6 +322,7 @@ define([
 
                                     if (!found) {
                                         console.log("Pending message not found");
+                                        (new Iznik.Views.ModTools.Message.NotOnYahoo()).render();
                                         self.trigger('editfailed');
                                     }
                                 }, error: function (request, status, error) {

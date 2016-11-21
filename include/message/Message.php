@@ -30,6 +30,80 @@ class Message
     const OUTCOME_RECEIVED = 'Received';
     const OUTCOME_WITHDRAWN = 'Withdrawn';
 
+    // Bounce checks.
+    private $bounce_subjects = [
+        "Mail delivery failed",
+        "Delivery Status Notification",
+        "Undelivered Mail Returned to Sender",
+        "Local delivery error",
+        "Returned mail",
+        "delivery failure",
+        "Delivery has failed",
+        "Please redirect your e-mail",
+        "Email delivery failure",
+        "Undeliverable",
+        "Auto-response",
+        "Inactive account",
+        "Change of email",
+        "Unable to process your message",
+        "Has decided to leave the company",
+        "No longer a valid",
+        "does not exist",
+        "new email address",
+        "Malformed recipient",
+        "spamarrest.com",
+        "(Automatic Response)",
+        "Automatic reply",
+        "email address closure",
+        "invalid address",
+        "User unknown",
+        'Retiring this e-mail address',
+        "Could not send message",
+        "Unknown user"
+    ];
+    
+    private $bounce_bodies = [
+        "I'm afraid I wasn't able to deliver your message to the following addresses.",
+        "Delivery to the following recipients failed.",
+        "was not delivered to",
+        "550 No such user",
+        "update your records",
+        "has now left",
+        "please note his new address",
+        "Sorry, we were unable to deliver your message"
+    ];
+    
+    // Autoreply checks.
+    private $autoreply_subjects = [
+        "Auto Response",
+        "Autoresponder",
+        "If your enquiry is urgent",
+        "Thankyou for your enquiry",
+        "Thanks for your email",
+        "Thanks for contacting",
+        "Thank you for your enquiry",
+        "Many thanks for your",
+        "Automatic reply",
+        "Mail Receipt",
+        "Automated reply",
+        "Auto-Reply",
+        "Out of Office",
+        "vacation reply"
+    ];
+
+    private $autoreply_bodies = [
+        "I aim to respond within",
+        "reply as soon as possible",
+        'with clients right now',
+        "Automated response",
+        "Please note his new address",
+        "THIS IS AN AUTO-RESPONSE MESSAGE",
+        "out of the office",
+        "Thank you so much for your email enquiry",
+        "I am away",
+        "I am currently away"
+    ];
+    
     static public function checkType($type) {
         switch($type) {
             case Message::TYPE_OFFER:
@@ -79,39 +153,6 @@ class Message
     public function getYahooapprove()
     {
         return $this->yahooapprove;
-    }
-
-    public function isAutoreply() {
-        # There is no foolproof way of doing this, sadly.
-        $subjs = [
-            "Auto Response",
-            "Autoresponder",
-            "If your enquiry is urgent",
-            "Thankyou for your enquiry",
-            "Thanks for your email",
-            "Thanks for contacting",
-            "Thank you for your enquiry",
-            "Many thanks for your",
-            "Could not send message",
-            "Automatic reply",
-            "Mail Receipt",
-            "Automated reply",
-            "Auto-Reply",
-            "Out of Office",
-            "out of the office",
-            "holiday",
-            "vacation reply"
-        ];
-
-        $oof = FALSE;
-
-        foreach ($subjs as $s) {
-            if (stripos($this->subject, $s) !== FALSE) {
-                $oof = TRUE;
-            }
-        }
-
-        return($oof);
     }
 
     public function setYahooPendingId($groupid, $id) {
@@ -187,8 +228,13 @@ class Message
             $this->setPrivate('suggestedsubject', $subject);
         }
 
-        $this->setPrivate('textbody', $textbody);
-        $this->setPrivate('htmlbody', $htmlbody);
+        if ($textbody) {
+            $this->setPrivate('textbody', $textbody);
+        }
+
+        if ($htmlbody) {
+            $this->setPrivate('htmlbody', $htmlbody);
+        }
 
         $sql = "UPDATE messages SET editedby = ?, editedat = NOW() WHERE id = ?;";
         $this->dbhm->preExec($sql, [
@@ -259,7 +305,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr'
     ];
 
     public $memberAtts = [
@@ -267,7 +313,7 @@ class Message
     ];
 
     public $moderatorAtts = [
-        'source', 'sourceheader', 'fromaddr', 'envelopeto', 'envelopefrom', 'messageid', 'tnpostid',
+        'source', 'sourceheader', 'envelopefrom', 'envelopeto', 'messageid', 'tnpostid',
         'fromip', 'fromcountry', 'message', 'spamreason', 'spamtype', 'replyto', 'editedby', 'editedat', 'locationid'
     ];
 
@@ -496,6 +542,9 @@ class Message
                 $ret[$att] = $this->$att;
             }
         }
+
+        # URL people can follow to get to the message on our site.
+        $ret['url'] = 'https://' . USER_SITE . '/message/' . $this->id;
 
         # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
         # we can see the precise location.
@@ -1042,6 +1091,12 @@ class Message
                 # Check it's to a group (and not the owner).
                 if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches) &&
                     strpos($t['address'], '-owner@') === FALSE) {
+                    # Yahoo group.
+                    $groupname = $matches[1];
+                    #error_log("Got $groupname from {$t['address']}");
+                } else if (preg_match('/(.*)@' . GROUP_DOMAIN . '/', $t['address'], $matches) &&
+                    strpos($t['address'], '-volunteers@') === FALSE) {
+                    # Native group.
                     $groupname = $matches[1];
                     #error_log("Got $groupname from {$t['address']}");
                 }
@@ -2052,6 +2107,8 @@ class Message
                     $collection = MessageCollection::PENDING;
                 } else if ($this->getSource() == Message::YAHOO_APPROVED) {
                     $collection = MessageCollection::APPROVED;
+                } else if ($this->getSource() == Message::EMAIL && $this->groupid) {
+                    $collection = MessageCollection::INCOMING;
                 }
                 #error_log("Not on group, add to $collection");
 
@@ -2987,8 +3044,10 @@ class Message
             #
             # The replies part is because we can't really rely on members to let us know what happens to a message,
             # especially if they are not receiving emails reliably.  At least this way it avoids the case where a
-            # message gets resent repeatedly and people keep replying and not getting a response. 
-            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL;";
+            # message gets resent repeatedly and people keep replying and not getting a response.
+            #
+            # The sending user must also still be a member of the group.
+            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL;";
             #error_log("$sql, $mindate, {$group['id']}");
             $messages = $this->dbhr->preQuery($sql, [
                 $mindate,
@@ -3093,5 +3152,47 @@ class Message
         # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
         # near the top, and get mailed out again.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+    }
+
+    public function isBounce()
+    {
+        $bounce = FALSE;
+
+        foreach ($this->bounce_subjects as $subj) {
+            if (stripos($this->subject, $subj) !== FALSE) {
+                $bounce = TRUE;
+            }
+        }
+
+        if (!$bounce) {
+            foreach ($this->bounce_bodies as $body) {
+                if (stripos($this->message, $body) !== FALSE) {
+                    $bounce = TRUE;
+                }
+            }
+        }
+
+        return ($bounce);
+    }
+    
+    public function isAutoreply()
+    {
+        $autoreply = FALSE;
+
+        foreach ($this->autoreply_subjects as $subj) {
+            if (stripos($this->subject, $subj) !== FALSE) {
+                $autoreply = TRUE;
+            }
+        }
+
+        if (!$autoreply) {
+            foreach ($this->autoreply_bodies as $body) {
+                if (stripos($this->message, $body) !== FALSE) {
+                    $autoreply = TRUE;
+                }
+            }
+        }
+
+        return ($autoreply);
     }
 }

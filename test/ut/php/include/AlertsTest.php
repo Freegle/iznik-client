@@ -38,11 +38,14 @@ class AlertTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);
 
-        $a = new Alert($this->dbhr, $this->dbhm);
-        $id = $a->create(NULL, 'UT', Alert::MODS, 'UT - please ignore', 'UT', 'UT', FALSE, FALSE);
+        $g->setPrivate('contactmail', 'test@test.com');
+        $g->setPrivate('onyahoo', 0);
 
-        # Send - no mods to mail.
-        self::assertEquals(0, $a->process($id, Group::GROUP_UT));
+        $a = new Alert($this->dbhr, $this->dbhm);
+        $id = $a->create(NULL, 'geeks', Alert::MODS, 'UT - please ignore', 'UT', 'UT', FALSE, FALSE);
+
+        # Send - one external.
+        self::assertEquals(1, $a->process($id, Group::GROUP_UT));
 
         # Again - should complete as no more UT groups.
         self::assertEquals(0, $a->process($id, Group::GROUP_UT));

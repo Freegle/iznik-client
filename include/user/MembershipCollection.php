@@ -11,4 +11,5 @@ class MembershipCollection
     const PENDING = 'Pending';
     const BANNED = 'Banned';
     const SPAM = 'Spam';
+    const HAPPINESS = 'Happiness';
 }

@@ -2,6 +2,7 @@
 use Pheanstalk\Pheanstalk;
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once IZNIK_BASE . '/include/db.php';
+require_once IZNIK_BASE . '/include/user/User.php';
 
 require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/TestCase.php';
 require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert/Functions.php';
@@ -52,7 +53,6 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
 
         error_reporting(E_ALL);
 
-
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -79,6 +79,11 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
             $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
             $this->dbhm->preExec("DELETE FROM messages WHERE subject = 'OFFER: a thing (Tuvalu)';");
             $this->dbhm->preExec("DELETE FROM communityevents WHERE title = 'Test Event';");
+
+            $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE backwards LIKE 'moctset@%';");
+            foreach ($users as $user) {
+                $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [ $user['userid'] ]);
+            }
             @session_destroy();
         } catch (Exception $e) {
             error_log("Session exception " . $e->getMessage());

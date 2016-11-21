@@ -539,6 +539,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     width:50px !important;
 }
 
+.img-maxthumb {
+    max-width: 300px !important;
+}
+
 @-webkit-keyframes fadein {
     0% {
         opacity: 0;

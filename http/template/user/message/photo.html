@@ -1,16 +1,25 @@
 <div class="img-wrapper">
-    <img class="img img-thumbnail img-rounded" src="{{path}}?w=150" />
+    <img class="clickme img img-thumbnail img-rounded" src="{{path}}?w=150" />
 </div>
 <% if (obj.mine) { %>
-<div class="nomargin nopad row ">
-    <div class="col-sm-6 nopad topspace">
-        <div class="btn btn-xs btn-white pull-left">
-            <span class="glyphicons glyphicons-rotate-left glyphicon-overl js-rotateleft"></span>
-        </div>
-    </div>
-    <div class="col-sm-6 nopad topspace">
-        <div class="btn btn-xs btn-white pull-right">
-            <span class="glyphicons glyphicons-rotate-right glyphicon-overr js-rotateright"></span>
+<div class="nomargin nopad panel panel-default">
+    <div class="panel-body">
+        <div class="row fullholder">
+            <div class="col-xs-4 nopad  nomargin">
+                <div class="btn btn-xs btn-white pull-left">
+                    <span class="glyphicons glyphicons-rotate-left glyphicon-overl js-rotateleft"></span>
+                </div>
+            </div>
+            <div class="col-xs-4 nopad nomargin text-center">
+                <div class="btn btn-xs btn-white">
+                    <span class="glyphicons glyphicons-bin glyphicon-overl js-delete"></span>
+                </div>
+            </div>
+            <div class="col-xs-4 nopad nomargin">
+                <div class="btn btn-xs btn-white pull-right">
+                    <span class="glyphicons glyphicons-rotate-right glyphicon-overr js-rotateright"></span>
+                </div>
+            </div>
         </div>
     </div>
 </div>

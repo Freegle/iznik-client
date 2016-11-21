@@ -64,7 +64,7 @@ class Digest
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_MAILOFF,
-                'userid' => $uid,
+                'user' => $uid,
                 'groupid' => $groupid
             ]);
 
@@ -197,7 +197,7 @@ class Digest
 
                 foreach ($available as $msg) {
                     $availablehtml .= $msghtml = digest_message($msg, $msg['id']);
-                    $textsumm .= $msg['subject'] . ":\r\https:\" . USER_SITE . \"/message/{$msg['id']}\"\r\n\r\n";
+                    $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
 
                     if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
@@ -262,7 +262,7 @@ class Digest
                     $email = $u->getEmailPreferred();
                     if ($this->errorlog) { error_log("Preferred $email"); }
 
-                    if ($email && $u->sendOurMails($g)) {
+                    if ($email && $email != MODERATOR_EMAIL && $u->sendOurMails($g)) {
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{bounce}}' => "bounce-{$user['userid']}-" . time() . "@" . USER_DOMAIN,

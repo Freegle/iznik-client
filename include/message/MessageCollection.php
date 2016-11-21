@@ -166,7 +166,7 @@ class MessageCollection
 
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
-                $role = $m->getRoleForMessage();
+                $role = $m->getRoleForMessage(FALSE);
                 #error_log("Role $role for {$msg['id']}");
 
                 $thisgroups = $m->getGroups();
@@ -184,8 +184,9 @@ class MessageCollection
                         #   - we have publish consent
                         if ($role == User::ROLE_MODERATOR ||
                             $role == User::ROLE_OWNER ||
-                            ($atts['type'] == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
-                              ($publishconsent || $role == User::ROLE_MEMBER))
+                            ($this->collection != MessageCollection::PENDING &&
+                                $atts['type'] == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
+                                ($publishconsent || $role == User::ROLE_MEMBER))
                         ) {
                             $groups[$groupid] = $g->getPublic();
                         }

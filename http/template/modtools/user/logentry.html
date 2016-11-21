@@ -97,6 +97,8 @@
             Triggered application to Yahoo Group {{obj.group.namedisplay}}.
             <% } else if (subtype == 'YahooJoined') { %>
             Yahoo informed ModTools that the member has joined.
+            <% } else if (subtype == 'Bounce') { %>
+            {{text}}
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>

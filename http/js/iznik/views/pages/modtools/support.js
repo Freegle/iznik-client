@@ -158,10 +158,16 @@ define([
             self.$('.js-alertshdr').fadeIn('slow');
             self.$('.js-alerts').show();
 
+            var v = new Iznik.Views.PleaseWait({
+                timeout: 1
+            });
+            v.render();
+
             $.ajax({
                 url: API + 'alert',
                 type: 'GET',
                 success: function(ret) {
+                    v.close();
                     var coll = new Iznik.Collection(ret.alerts);
                     var alerts = new Backbone.CollectionView({
                         el: self.$('.js-alerts'),
@@ -347,7 +353,8 @@ define([
         template: 'modtools_support_alert',
 
         events: {
-            'click .js-showstats': 'showStats'
+            'click .js-showstats': 'showStats',
+            'click .js-showbody': 'showBody'
         },
 
         showStats: function() {
@@ -359,6 +366,20 @@ define([
             });
             mod.fetch().then(function() {
                 var v = new Iznik.Views.ModTools.Alert.Stats({
+                    model: mod
+                });
+                v.render();
+            })
+        },
+
+        showBody: function() {
+            var self = this;
+
+            var mod = new Iznik.Models.Alert({
+                id: this.model.get('id')
+            });
+            mod.fetch().then(function() {
+                var v = new Iznik.Views.ModTools.Alert.Body({
                     model: mod
                 });
                 v.render();
@@ -492,6 +513,10 @@ define([
 
             return(this);
         }
+    });
+
+    Iznik.Views.ModTools.Alert.Body = Iznik.Views.Modal.extend({
+        template: 'modtools_support_alertbody'
     });
 
     // TODO This feels like an abuse of the memberships API just to use the search mechanism.  Should there be a user
@@ -887,7 +912,7 @@ define([
                 url: API + 'user',
                 type: 'PATCH',
                 data: {
-                    id: self.model.get('id'),
+                    id: self.model.get('userid'),
                     password: pw
                 }, success: function(ret) {
                     if (ret.ret == 0) {

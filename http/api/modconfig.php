@@ -59,6 +59,7 @@ function modconfig() {
 
             case 'PATCH': {
                 $_SESSION['configs'] = NULL;
+
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
                 } else if (!$c->canModify()) {

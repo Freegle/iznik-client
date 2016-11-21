@@ -20,6 +20,14 @@
             <label for="js-shade">Shade areas?</label>
             <input id="js-shade" class="form-control" type="checkbox" checked />
         </div>
+        <h3>Show Postcodes</h3>
+        <div class="text-muted">Put a top-level postcode in here, e.g. EH3.  This will show dots for the individual postcodes within that.</div>
+        <div class="input-group">
+            <input class="form-control js-postcodetoshow"  type="text" maxlength="25" placeholder="Enter postcode" aria-describedby="pcshow"/>
+            <span id="pcshow" class="input-group-btn">
+                <button class="btn btn-success js-postcodeshow">Show</button>
+            </span>
+        </div>
         <h3>Postcode Tester</h3>
         <div class="text-muted">You can see which group and area a postcode will map to.  It may take upto 1 hour after changing a polygon before postcodes will map to it.</div>
         <div class="input-group">

@@ -412,7 +412,8 @@ define([
                 type: 'POST',
                 data: {
                     id: self.model.get('id'),
-                    rotate: deg
+                    rotate: deg,
+                    bust: (new Date()).getTime()
                 },
                 success: function(ret) {
                     var t = (new Date()).getTime();
@@ -572,7 +573,7 @@ define([
                 text = text.replace(/\$groupname/g, group.nameshort);
                 text = text.replace(/\$owneremail/g, group.nameshort + "-owner@yahoogroups.com");
                 text = text.replace(/\$groupemail/g, group.nameshort + "@yahoogroups.com");
-                text = text.replace(/\$groupurl/g, "https://groups.yahoo.com/neo/groups/" + group.nameshort + "/info");
+                text = text.replace(/\$groupurl/g, group.url);
                 text = text.replace(/\$myname/g, Iznik.Session.get('me').displayname);
                 text = text.replace(/\$nummembers/g, group.membercount);
                 text = text.replace(/\$nummods/g, group.nummods);

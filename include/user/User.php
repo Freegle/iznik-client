@@ -25,7 +25,7 @@ class User extends Entity
     const CACHE_SIZE = 100;
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent', 'bouncing');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -48,6 +48,10 @@ class User extends Entity
     const LOGIN_GOOGLE = 'Google';
     const LOGIN_NATIVE = 'Native';
     const LOGIN_LINK = 'Link';
+
+    const NOTIFS_EMAIL = 'email';
+    const NOTIFS_PUSH = 'push';
+    const NOTIFS_FACEBOOK = 'facebook';
 
     /** @var  $log Log */
     private $log;
@@ -184,21 +188,21 @@ class User extends Entity
         return($s->getToken($this->id));
     }
 
-    public function getName() {
+    public function getName($default = TRUE) {
         # We may or may not have the knowledge about how the name is split out, depending
         # on the sign-in mechanism.
         $name = NULL;
         if ($this->user['fullname']) {
             $name = $this->user['fullname'];
-        } else {
+        } else if ($this->user['firstname'] || $this->user['lastname'] ) {
             $name = $this->user['firstname'] . ' ' . $this->user['lastname'];
         }
 
         # Make sure we don't return an email if somehow one has snuck in.
-        $name = strpos($name, '@') !== FALSE ? substr($name, 0, strpos($name, '@')) : $name;
+        $name = ($name && strpos($name, '@') !== FALSE) ? substr($name, 0, strpos($name, '@')) : $name;
 
-        if (strlen(trim($name)) === 0) {
-            $name = 'A freegler';
+        if ($default && strlen(trim($name)) === 0) {
+            $name = MODTOOLS ? 'Someone' : 'A freegler';
         }
 
         return($name);
@@ -465,6 +469,10 @@ class User extends Entity
                         $this->id,
                         $rc
                     ]);
+
+                    # If we've set an email we might no longer be bouncing.
+                    $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $rc ]);
+                    $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
                 }
             }
         }
@@ -514,7 +522,7 @@ class User extends Entity
         return($coll);
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED) {
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         Session::clearSessionCache();
@@ -548,7 +556,7 @@ class User extends Entity
 
         if ($rc && $emailid) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
-            $rc = $this->dbhm->preExec($sql, [
+            $this->dbhm->preExec($sql, [
                 $membershipid,
                 $role,
                 $emailid,
@@ -573,17 +581,18 @@ class User extends Entity
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $atts = $g->getPublic();
 
-            if ($atts['welcomemail']) {
+            if ($atts['welcomemail'] || $message) {
                 # We need to send a per-group welcome mail.
                 $to = $this->getEmailPreferred();
-                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($atts['welcomemail']));
+                $welcome = $message ? $message : $atts['welcomemail'];
+                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($welcome));
                 list ($transport, $mailer) = getMailer();
                 $message = Swift_Message::newInstance()
                     ->setSubject("Welcome to " . $atts['namedisplay'])
                     ->setFrom([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
                     ->setTo($to)
                     ->setDate(time())
-                    ->setBody($atts['welcomemail'])
+                    ->setBody($welcome)
                     ->addPart($html, 'text/html');
                 $mailer->send($message);
             }
@@ -1060,8 +1069,14 @@ class User extends Entity
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
+        $myid = $me ? $me->getId() : NULL;
 
         $atts['displayname'] = $this->getName();
+
+        foreach(['fullname', 'firstname', 'lastname'] as $att) {
+            # Make sure we don't return an email if somehow one has snuck in.
+            $atts[$att] = strpos($atts[$att], '@') !== FALSE ? substr($atts[$att], 0, strpos($atts[$att], '@')) : $atts[$att];
+        }
 
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
@@ -1166,7 +1181,9 @@ class User extends Entity
                             }
                         }
 
-                        if ($g->getId() &&
+                        # We can see logs for ourselves.
+                        if (!($myid != NULL && pres('user', $log) && presdef('id', $log['user'], NULL) == $myid) &&
+                            $g->getId() &&
                             $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
                             $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR
                         ) {
@@ -2261,10 +2278,10 @@ class User extends Entity
 
         if (!$email) {
             # If they have a Yahoo ID, that'll do nicely - it's public info.  But some Yahoo IDs are actually
-            # email addresses (don't ask) and we don't want those.
+            # email addresses (don't ask) and we don't want those.  And some are stupidly long.
             $yahooid = $this->getPrivate('yahooid');
 
-            if ($yahooid && strpos($yahooid, '@') === FALSE) {
+            if ($yahooid && strpos($yahooid, '@') === FALSE && strlen($yahooid) <= 16) {
                 $email = str_replace(' ', '', $yahooid) . '-' . $this->id . '@' . USER_DOMAIN;
             } else {
                 # Their own email might already be of that nature, which would be lovely.
@@ -2479,6 +2496,11 @@ class User extends Entity
 
                 $sendit = time() > $till;
             }
+
+            if ($sendit) {
+                # And don't send if we're bouncing.
+                $sendit = !$this->getPrivate('bouncing');
+            }
         }
 
         #error_log("Sendit? $sendit");
@@ -2591,5 +2613,16 @@ class User extends Entity
         User::clearCache($this->id);
         parent::setPrivate($att, $val);
         #error_log("set $att = $val");
+    }
+
+    public function notifsOn($type) {
+        $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
+        $notifs = presdef('notifications', $settings, [
+            'email' => TRUE,
+            'push' => TRUE,
+            'facebook' => TRUE
+        ]);
+
+        return($notifs[$type]);
     }
 }

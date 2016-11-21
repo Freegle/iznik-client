@@ -4,7 +4,7 @@ function digest_message($msg, $msgid) {
     $text = htmlentities($msg['textbody']);
     $text = nl2br($text);
     $date = date("D, jS F g:ia", strtotime($msg['date']));
-    $replyweb = "https:" . USER_SITE . "/message/$msgid";
+    $replyweb = "https://" . USER_SITE . "/message/$msgid";
     $replyemail = "mailto:{$msg['fromaddr']}?subject=" . rawurlencode("Re: " . $msg['subject']);
 
     $html = <<<EOT

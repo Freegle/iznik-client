@@ -48,6 +48,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
 
+        # Recipient must be a member of at least one group
+        $this->user2->addMembership($this->groupid);
+
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         $this->cid = $c->createGroupChat('test', $this->groupid);
     }
@@ -186,7 +189,8 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test'
+            'message' => 'Test',
+            'refmsgid' => $refmsgid
         ]);
         error_log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
@@ -262,7 +266,8 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test with link http://spam.wherever '
+            'message' => 'Test with link http://spam.wherever ',
+            'refchatid' => $this->cid
         ]);
         error_log("Create message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
@@ -299,6 +304,8 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertTrue($this->user3->login('testpw'));
         $this->user3->addMembership($this->groupid, User::ROLE_MODERATOR);
 
+        $this->user2->removeMembership($this->groupid);
+
         # We're a mod, but not on any of the groups that these users are on (because they're not on any).  So we
         # shouldn't see this chat message to review.
         $ret = $this->call('session', 'GET', []);
@@ -332,6 +339,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         error_log("Messages for review " . var_export($ret, TRUE));
         assertEquals(2, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
+        assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
         assertEquals($mid2, $ret['chatmessages'][1]['id']);
 
         # Approve the first

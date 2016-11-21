@@ -25,6 +25,15 @@
     </div>
     <div class="panel-body">
         <div class="completefull nomargin">
+            <% if (obj.bouncing) { %>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="alert alert-danger">
+                        This user is bouncing - see logs for details.
+                    </div>
+                </div>
+            </div>
+            <% } %>
             <% if (obj.spammer) { %>
                 <% if (spammer.collection == 'Spammer') { %>
                 <div class="alert alert-danger">

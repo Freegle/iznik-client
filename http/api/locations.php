@@ -23,11 +23,12 @@ function locations() {
             $nelat = presdef('nelat', $_REQUEST, NULL);
             $nelng = presdef('nelng', $_REQUEST, NULL);
             $typeahead = presdef('typeahead', $_REQUEST, NULL);
+            $limit = intval(presdef('limit', $_REQUEST, 10));
 
             if ($lat && $lng) {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'location' => $l->closestPostcode($lat, $lng) ];
             } else if ($typeahead) {
-                $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->typeahead($typeahead) ];
+                $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->typeahead($typeahead, $limit) ];
             } else if ($swlat || $swlng || $nelat || $nelng) {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->withinBox($swlat, $swlng, $nelat, $nelng) ];
             }
