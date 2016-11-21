@@ -25,7 +25,11 @@ define([
                 this.$('.js-caretup').hide();
             } else {
                 this.$('.js-replycount').removeClass('reallyHide');
-                this.$('.js-unreadcountholder').removeClass('reallyHide');
+
+                if (self.unread > 0) {
+                    this.$('.js-unreadcountholder').removeClass('reallyHide');
+                }
+
                 this.$('.js-promised').removeClass('reallyHide');
                 this.$('.js-caretdown').hide();
                 this.$('.js-caretup').show();
@@ -88,7 +92,7 @@ define([
 
         updateUnread: function() {
             var self = this;
-            var unread = 0;
+            self.unread = 0;
 
             // We might or might not have the chats, depending on whether we're logged in at this point.
             if (Iznik.Session.hasOwnProperty('chats')) {
@@ -101,7 +105,7 @@ define([
                             // This message is referenced in a chat.
                             var thisun = chat.get('unseen');
                             // console.log("Found message", refmsgid, chat.get('id'), chat.get('unseen'));
-                            unread += thisun;
+                            self.unread += thisun;
 
                             if (thisun > 0) {
                                 // This chat might indicate a new replier we've not got listed.  Get the replies
@@ -121,8 +125,8 @@ define([
                 }
             }
 
-            if (unread > 0) {
-                this.$('.js-unreadcount').html(unread);
+            if (self.unread > 0) {
+                this.$('.js-unreadcount').html(self.unread);
                 this.$('.js-unreadcountholder').removeClass('reallyHide');
             } else {
                 this.$('.js-unreadcountholder').addClass('reallyHide');
@@ -149,148 +153,161 @@ define([
         render: function() {
             var self = this;
 
-            var replies = self.model.get('replies');
-            self.replies = new Iznik.Collection(replies);
+            if (!self.rendering) {
+                var replies = self.model.get('replies');
+                self.replies = new Iznik.Collection(replies);
 
-            var outcomes = self.model.get('outcomes');
-            if (outcomes && outcomes.length > 0) {
-                // Hide completed posts by default.
-                // TODO option to show
-                self.$el.hide();
-            }
-
-            // Make safe and decent for display.
-            this.model.stripGumf('textbody');
-            this.model.set('textbody', strip_tags(this.model.get('textbody')));
-
-            // The server will have returned us a snippet.  But if we've stripped out the gumf and we have something
-            // short, use that instead.
-            var tb = this.model.get('textbody');
-            if (tb.length < 60) {
-                this.model.set('snippet', tb);
-            }
-
-            var p = Iznik.View.prototype.render.call(self);
-            p.then(function() {
-                if (self.expanded) {
-                    self.$('.panel-collapse').collapse('show');
-                } else {
-                    self.$('.panel-collapse').collapse('hide');
+                var outcomes = self.model.get('outcomes');
+                if (outcomes && outcomes.length > 0) {
+                    // Hide completed posts by default.
+                    // TODO option to show
+                    self.$el.hide();
                 }
 
-                var groups = self.model.get('groups');
-                self.$('.js-groups').empty();
+                // Make safe and decent for display.
+                this.model.stripGumf('textbody');
+                this.model.set('textbody', strip_tags(this.model.get('textbody')));
 
-                // We want to know whether a message is visible on the group, because this affects which
-                // buttons we should show.
-                var approved = false;
-                var rejected = false;
-                var pending = false;
-
-                _.each(groups, function(group) {
-                    if (group.collection == 'Approved') {
-                        approved = true;
-                    }
-                    if (group.collection == 'Pending') {
-                        pending = true;
-                    }
-                    if (group.collection == 'Rejected') {
-                        rejected = true;
-                    }
-
-                    var v = new Iznik.Views.User.Message.Group({
-                        model: new Iznik.Model(group)
-                    });
-                    v.render().then(function() {
-                        self.$('.js-groups').append(v.el);
-                    });
-                });
-
-                if (approved || pending) {
-                    self.$('.js-taken').show();
-                    self.$('.js-received').show();
+                // The server will have returned us a snippet.  But if we've stripped out the gumf and we have something
+                // short, use that instead.
+                var tb = this.model.get('textbody');
+                if (tb.length < 60) {
+                    this.model.set('snippet', tb);
                 }
 
-                if (rejected) {
-                    self.$('.js-rejected').show();
-                }
+                self.rendering = new Promise(function(resolve, reject) {
+                    Iznik.View.prototype.render.call(self).then(function() {
+                        if (self.expanded) {
+                            self.$('.panel-collapse').collapse('show');
+                        } else {
+                            self.$('.panel-collapse').collapse('hide');
+                        }
 
-                self.$('.js-attlist').empty();
-                var photos = self.model.get('attachments');
+                        var groups = self.model.get('groups');
+                        self.$('.js-groups').empty();
 
-                var v = new Iznik.Views.User.Message.Photos({
-                    collection: new Iznik.Collection(photos),
-                    message: self.model
-                });
-                v.render().then(function() {
-                    self.$('.js-attlist').append(v.el);
-                });
+                        // We want to know whether a message is visible on the group, because this affects which
+                        // buttons we should show.
+                        var approved = false;
+                        var rejected = false;
+                        var pending = false;
+                        self.$('.js-groups').empty();
 
-                if (self.$('.js-replies').length > 0) {
-                    if (replies && replies.length > 0) {
-                        // Show and update the reply details.
-                        if (replies.length > 0) {
-                            self.$('.js-noreplies').hide();
-                            self.$('.js-replies').empty();
+                        _.each(groups, function(group) {
+                            if (group.collection == 'Approved') {
+                                approved = true;
+                            }
+                            if (group.collection == 'Pending') {
+                                pending = true;
+                            }
+                            if (group.collection == 'Rejected') {
+                                rejected = true;
+                            }
 
-                            // If we get new replies, we want to re-render, as we want to show them, update the count
-                            // and so on.
-                            self.listenTo(self.model, 'change:replies', self.render);
-                            self.updateReplies();
-
-                            self.repliesView = new Backbone.CollectionView({
-                                el: self.$('.js-replies'),
-                                modelView: Iznik.Views.User.Message.Reply,
-                                modelViewOptions: {
-                                    collection: self.replies,
-                                    message: self.model,
-                                    offers: self.options.offers
-                                },
-                                collection: self.replies
+                            var v = new Iznik.Views.User.Message.Group({
+                                model: new Iznik.Model(group)
                             });
+                            v.render().then(function() {
+                                self.$('.js-groups').append(v.el);
+                            });
+                        });
 
-                            self.repliesView.render();
+                        if (approved || pending) {
+                            self.$('.js-taken').show();
+                            self.$('.js-received').show();
+                        }
 
-                            // We might have been asked to open up one of these messages because we're showing the corresponding
-                            // chat.
-                            if (self.options.chatid ) {
-                                var model = self.replies.get(self.options.chatid);
-                                if (model) {
-                                    var view = self.repliesView.viewManager.findByModel(model);
-                                    // Slightly hackily jump up to find the owning message and click to expand.
-                                    view.$el.closest('.panel-heading').find('.js-caret').click();
+                        if (rejected) {
+                            self.$('.js-rejected').show();
+                        }
+
+                        self.$('.js-attlist').empty();
+                        var photos = self.model.get('attachments');
+
+                        var v = new Iznik.Views.User.Message.Photos({
+                            collection: new Iznik.Collection(photos),
+                            message: self.model
+                        });
+                        v.render().then(function() {
+                            self.$('.js-attlist').append(v.el);
+                        });
+
+                        if (self.$('.js-replies').length > 0) {
+                            if (replies && replies.length > 0) {
+                                // Show and update the reply details.
+                                if (replies.length > 0) {
+                                    self.$('.js-noreplies').hide();
+                                    self.$('.js-replies').empty();
+
+                                    // If we get new replies, we want to re-render, as we want to show them, update the count
+                                    // and so on.
+                                    self.listenTo(self.model, 'change:replies', self.render);
+                                    self.updateReplies();
+
+                                    self.repliesView = new Backbone.CollectionView({
+                                        el: self.$('.js-replies'),
+                                        modelView: Iznik.Views.User.Message.Reply,
+                                        modelViewOptions: {
+                                            collection: self.replies,
+                                            message: self.model,
+                                            offers: self.options.offers
+                                        },
+                                        collection: self.replies
+                                    });
+
+                                    self.repliesView.render();
+
+                                    // We might have been asked to open up one of these messages because we're showing the corresponding
+                                    // chat.
+                                    if (self.options.chatid ) {
+                                        var model = self.replies.get(self.options.chatid);
+                                        if (model) {
+                                            var view = self.repliesView.viewManager.findByModel(model);
+                                            // Slightly hackily jump up to find the owning message and click to expand.
+                                            view.$el.closest('.panel-heading').find('.js-caret').click();
+                                        }
+                                    }
+                                } else {
+                                    self.$('.js-noreplies').show();
                                 }
                             }
-                        } else {
-                            self.$('.js-noreplies').show();
                         }
-                    }
-                }
 
-                // Repost time.
-                var repost = self.model.get('canrepostat');
+                        // Repost time.
+                        var repost = self.model.get('canrepostat');
 
-                if (repost && self.$('.js-repostat').length > 0) {
-                    if (moment().diff(repost) >=  0) {
-                        // Autorepost due.
-                        self.$('.js-repostat').html('soon');
-                    } else {
-                        self.$('.js-repostat').html(moment(repost).fromNow());
-                    }
-                }
+                        if (repost && self.$('.js-repostat').length > 0) {
+                            if (moment().diff(repost) >=  0) {
+                                // Autorepost due.
+                                self.$('.js-repostat').html('soon');
+                            } else {
+                                self.$('.js-repostat').html(moment(repost).fromNow());
+                            }
+                        }
 
-                // We want to keep an eye on chat messages, because those which are in conversations referring to our
-                // message should affect the counts we display.  This will call updateUnread.
-                self.watchChatRooms();
+                        // We want to keep an eye on chat messages, because those which are in conversations referring to our
+                        // message should affect the counts we display.  This will call updateUnread.
+                        self.watchChatRooms();
 
-                // If the number of promises changes, then we want to update what we display.
-                self.listenTo(self.model, 'change:promisecount', self.render);
+                        // If the number of promises changes, then we want to update what we display.
+                        self.listenTo(self.model, 'change:promisecount', self.render);
 
-                // By adding this at the end we avoid border flicker.
-                self.$el.addClass('panel panel-info');
-            });
+                        // By adding this at the end we avoid border flicker.
+                        self.$el.addClass('panel panel-info');
+                        
+                        resolve();
+                        self.rendering = null;
+                    });
+                });
+            } else {
+                // We're already rendering.  Queue a second render, as it's possible we have fetched new server
+                // data which we would otherwise fail to display.
+                //
+                // Don't tight loop by using then().
+                _.delay(_.bind(self.render, self), 200);
+            }
 
-            return(p);
+            return(self.rendering);
         }
     });
 
@@ -428,6 +445,7 @@ define([
             var p = Iznik.View.prototype.render.call(this);
             p.then(function() {
                 self.photos = [];
+                self.$('.js-photos').empty();
                 self.collection.each(function(att) {
                     if (self.options.message) {
                         // We might not have one, e.g. when posting.
@@ -484,10 +502,8 @@ define([
             var self = this;
             require(['iznik/views/chat/chat'], function(ChatHolder) {
                 var chat = self.model.get('chat');
-                var myid = Iznik.Session.get('me').id;
-                var user = chat.user1.id != myid ? chat.user1.id : chat.user2.id;
-                ChatHolder().openChat(user);
-            })
+                ChatHolder().fetchAndRestore(chat.id);
+            });
         },
 
         chatMods: function(e) {
@@ -701,25 +717,24 @@ define([
                                 message: msg,
                                 refmsgid: self.model.get('id')
                             }, complete: function() {
-                                // Ensure the chat is opened, which shows the user what will happen next.
-                                Iznik.Session.chats.fetch().then(function() {
-                                    self.wait.close();
-                                    self.$('.js-replybox').slideUp();
-                                    var chatmodel = Iznik.Session.chats.get(chatid);
-                                    var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                                    chatView.restore();
+                                self.wait.close();
+                                self.$('.js-replybox').slideUp();
 
-                                    // If we were replying, we might have forced a login and shown the message in
-                                    // isolation, in which case we need to return to where we were.
-                                    try {
-                                        var ret = localStorage.getItem('replyreturn');
-                                        console.log("Return after reply", ret);
-
-                                        if (ret) {
-                                            Router.navigate(ret, true);
-                                        }
-                                    } catch (e) {};
+                                require(['iznik/views/chat/chat'], function(ChatHolder) {
+                                    ChatHolder().fetchAndRestore(chatid);
                                 });
+
+                                // If we were replying, we might have forced a login and shown the message in
+                                // isolation, in which case we need to return to where we were.
+                                try {
+                                    var ret = localStorage.getItem('replyreturn');
+                                    console.log("Return after reply", ret);
+
+                                    if (ret) {
+                                        localStorage.removeItem('replyreturn');
+                                        Router.navigate(ret, true);
+                                    }
+                                } catch (e) {};
                             }
                         });
                     }

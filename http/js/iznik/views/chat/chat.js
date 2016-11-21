@@ -399,6 +399,8 @@ define([
         },
 
         reportPerson: function (groupid, chatid, reason, message) {
+            var self = this;
+
             $.ajax({
                 type: 'PUT',
                 url: API + 'chat/rooms',
@@ -407,20 +409,16 @@ define([
                     groupid: groupid
                 }, success: function (ret) {
                     if (ret.ret == 0) {
-                        Iznik.Session.chats.fetch().then(function () {
-                            // Now create a report message.
-                            var msg = new Iznik.Models.Chat.Message({
-                                roomid: ret.id,
-                                message: message,
-                                reportreason: reason,
-                                refchatid: chatid
-                            });
-                            msg.save().then(function () {
-                                // Now open the chat so that the user sees what's happening.
-                                var chatmodel = Iznik.Session.chats.get(ret.id);
-                                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                                chatView.restore();
-                            });
+                        // Now create a report message.
+                        var msg = new Iznik.Models.Chat.Message({
+                            roomid: ret.id,
+                            message: message,
+                            reportreason: reason,
+                            refchatid: chatid
+                        });
+                        msg.save().then(function () {
+                            // Now open the chat so that the user sees what's happening.
+                            self.fetchAndRestore(ret.id);
                         });
                     }
                 }
@@ -438,20 +436,13 @@ define([
                     groupid: groupid
                 }, success: function (ret) {
                     if (ret.ret == 0) {
-                        Iznik.Session.chats.fetch().then(function () {
-                            // Defer to give the CollectionView time to respond.
-                            _.defer(function () {
-                                var chatmodel = Iznik.Session.chats.get(ret.id);
-                                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                                chatView.restore();
-                            })
-                        });
+                        self.fetchAndRestore(ret.id);
                     }
                 }
             });
         },
 
-        openChat: function (userid) {
+        openChatToUser: function (userid) {
             var self = this;
 
             var v = new Iznik.Views.PleaseWait({
@@ -485,25 +476,10 @@ define([
                             userid: userid
                         }, success: function (ret) {
                             if (ret.ret == 0) {
-                                Iznik.Session.chats.fetch().then(function () {
-                                    var chat = new Iznik.Models.Chat.Room({
-                                        id: ret.id
-                                    });
-
-                                    chat.fetch().then(function() {
-                                        // Make sure we have this chat in our collection - might not have picked
-                                        // it up yet.
-                                        Iznik.Session.chats.add(chat, { merge: true });
-
-                                        // View should now be present.
-                                        var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-                                        v.close();
-                                        chatView.restore();
-                                    })
-                                });
-                            } else {
-                                v.close();
+                                self.fetchAndRestore(ret.id);
                             }
+
+                            v.close();
                         }
                     });
                 }
@@ -614,6 +590,45 @@ define([
             $('.js-search').on('keyup', _.bind(self.searchKey, self));
 
             self.showMin();
+        },
+
+        waitForView: function(chatid) {
+            var self = this;
+            var retry = true;
+            var chat = Iznik.Session.chats.get(chatid);
+
+            if (chat) {
+                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                // console.log("Looked for view", chatid, chatView, chat);
+
+                if (chatView) {
+                    retry = false;
+                    chatView.restore();
+                    chatView.focus();
+                }
+            }
+
+            if (retry) {
+                window.setTimeout(_.bind(self.waitForView, self), 200, chat.get('id'));
+            }
+        },
+
+        fetchAndRestore: function(id) {
+            // Fetch the chat, wait for the corresponding view to be present in the view manager (there might be a lag)
+            // and then restore it.
+            var self = this;
+
+            var chat = new Iznik.Models.Chat.Room({
+                id: id
+            });
+
+            chat.fetch().then(function() {
+                Iznik.Session.chats.add(chat, {
+                    merge: true
+                });
+
+                self.waitForView(id);
+            });
         },
 
         fetchedChats: function () {
@@ -1367,11 +1382,8 @@ define([
         },
 
         openChat: function (chatid) {
-            Iznik.Session.chats.fetch().then(function () {
-                var chatmodel = Iznik.Session.chats.get(chatid);
-                var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                chatView.restore();
-                chatView.focus();
+            require(['iznik/views/chat/chat'], function(ChatHolder) {
+                ChatHolder().fetchAndRestore(chatid);
             });
         },
 
