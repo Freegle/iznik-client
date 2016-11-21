@@ -492,10 +492,8 @@ define([
             var self = this;
             require(['iznik/views/chat/chat'], function(ChatHolder) {
                 var chat = self.model.get('chat');
-                var myid = Iznik.Session.get('me').id;
-                var user = chat.user1.id != myid ? chat.user1.id : chat.user2.id;
-                ChatHolder().openChat(user);
-            })
+                ChatHolder().fetchAndRestore(chat.id);
+            });
         },
 
         chatMods: function(e) {
@@ -709,26 +707,24 @@ define([
                                 message: msg,
                                 refmsgid: self.model.get('id')
                             }, complete: function() {
-                                // Ensure the chat is opened, which shows the user what will happen next.
-                                Iznik.Session.chats.fetch().then(function() {
-                                    self.wait.close();
-                                    self.$('.js-replybox').slideUp();
-                                    var chatmodel = Iznik.Session.chats.get(chatid);
-                                    var chatView = Iznik.activeChats.viewManager.findByModel(chatmodel);
-                                    chatView.restore();
+                                self.wait.close();
+                                self.$('.js-replybox').slideUp();
 
-                                    // If we were replying, we might have forced a login and shown the message in
-                                    // isolation, in which case we need to return to where we were.
-                                    try {
-                                        var ret = localStorage.getItem('replyreturn');
-                                        console.log("Return after reply", ret);
-
-                                        if (ret) {
-                                            localStorage.removeItem('replyreturn');
-                                            Router.navigate(ret, true);
-                                        }
-                                    } catch (e) {};
+                                require(['iznik/views/chat/chat'], function(ChatHolder) {
+                                    ChatHolder().fetchAndRestore(chatid);
                                 });
+
+                                // If we were replying, we might have forced a login and shown the message in
+                                // isolation, in which case we need to return to where we were.
+                                try {
+                                    var ret = localStorage.getItem('replyreturn');
+                                    console.log("Return after reply", ret);
+
+                                    if (ret) {
+                                        localStorage.removeItem('replyreturn');
+                                        Router.navigate(ret, true);
+                                    }
+                                } catch (e) {};
                             }
                         });
                     }
