@@ -60,7 +60,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             ?>
             <title><?php echo $atts['subject']; ?></title>
             <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
-            <meta property="og:description" content="Interested?  Click here to reply."/>
+            <meta property="og:description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
             <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
