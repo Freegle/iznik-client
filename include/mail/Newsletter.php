@@ -67,7 +67,7 @@ class Newsletter extends Entity
         $this->log->log([
             'type' => Log::TYPE_USER,
             'subtype' => Log::SUBTYPE_NEWSLETTERSOFF,
-            'userid' => $uid
+            'user' => $uid
         ]);
 
         $email = $u->getEmailPreferred();

@@ -25,7 +25,7 @@ class User extends Entity
     const CACHE_SIZE = 100;
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent', 'bouncing');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -469,6 +469,10 @@ class User extends Entity
                         $this->id,
                         $rc
                     ]);
+
+                    # If we've set an email we might no longer be bouncing.
+                    $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $rc ]);
+                    $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
                 }
             }
         }
@@ -2491,6 +2495,11 @@ class User extends Entity
                 #error_log("Holiday $till vs " . time());
 
                 $sendit = time() > $till;
+            }
+
+            if ($sendit) {
+                # And don't send if we're bouncing.
+                $sendit = !$this->getPrivate('bouncing');
             }
         }
 

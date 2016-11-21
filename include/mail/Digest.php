@@ -64,7 +64,7 @@ class Digest
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_MAILOFF,
-                'userid' => $uid,
+                'user' => $uid,
                 'groupid' => $groupid
             ]);
 

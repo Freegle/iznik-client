@@ -42,7 +42,7 @@ class EventDigest
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_EVENTSOFF,
-                'userid' => $uid,
+                'user' => $uid,
                 'groupid' => $groupid
             ]);
 
