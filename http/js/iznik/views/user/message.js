@@ -175,126 +175,136 @@ define([
                     this.model.set('snippet', tb);
                 }
 
-                self.rendering = Iznik.View.prototype.render.call(self);
-                self.rendering.then(function() {
-                    if (self.expanded) {
-                        self.$('.panel-collapse').collapse('show');
-                    } else {
-                        self.$('.panel-collapse').collapse('hide');
-                    }
-
-                    var groups = self.model.get('groups');
-                    self.$('.js-groups').empty();
-
-                    // We want to know whether a message is visible on the group, because this affects which
-                    // buttons we should show.
-                    var approved = false;
-                    var rejected = false;
-                    var pending = false;
-                    self.$('.js-groups').empty();
-
-                    _.each(groups, function(group) {
-                        if (group.collection == 'Approved') {
-                            approved = true;
-                        }
-                        if (group.collection == 'Pending') {
-                            pending = true;
-                        }
-                        if (group.collection == 'Rejected') {
-                            rejected = true;
+                self.rendering = new Promise(function(resolve, reject) {
+                    Iznik.View.prototype.render.call(self).then(function() {
+                        if (self.expanded) {
+                            self.$('.panel-collapse').collapse('show');
+                        } else {
+                            self.$('.panel-collapse').collapse('hide');
                         }
 
-                        var v = new Iznik.Views.User.Message.Group({
-                            model: new Iznik.Model(group)
+                        var groups = self.model.get('groups');
+                        self.$('.js-groups').empty();
+
+                        // We want to know whether a message is visible on the group, because this affects which
+                        // buttons we should show.
+                        var approved = false;
+                        var rejected = false;
+                        var pending = false;
+                        self.$('.js-groups').empty();
+
+                        _.each(groups, function(group) {
+                            if (group.collection == 'Approved') {
+                                approved = true;
+                            }
+                            if (group.collection == 'Pending') {
+                                pending = true;
+                            }
+                            if (group.collection == 'Rejected') {
+                                rejected = true;
+                            }
+
+                            var v = new Iznik.Views.User.Message.Group({
+                                model: new Iznik.Model(group)
+                            });
+                            v.render().then(function() {
+                                self.$('.js-groups').append(v.el);
+                            });
+                        });
+
+                        if (approved || pending) {
+                            self.$('.js-taken').show();
+                            self.$('.js-received').show();
+                        }
+
+                        if (rejected) {
+                            self.$('.js-rejected').show();
+                        }
+
+                        self.$('.js-attlist').empty();
+                        var photos = self.model.get('attachments');
+
+                        var v = new Iznik.Views.User.Message.Photos({
+                            collection: new Iznik.Collection(photos),
+                            message: self.model
                         });
                         v.render().then(function() {
-                            self.$('.js-groups').append(v.el);
+                            self.$('.js-attlist').append(v.el);
                         });
-                    });
 
-                    if (approved || pending) {
-                        self.$('.js-taken').show();
-                        self.$('.js-received').show();
-                    }
+                        if (self.$('.js-replies').length > 0) {
+                            if (replies && replies.length > 0) {
+                                // Show and update the reply details.
+                                if (replies.length > 0) {
+                                    self.$('.js-noreplies').hide();
+                                    self.$('.js-replies').empty();
 
-                    if (rejected) {
-                        self.$('.js-rejected').show();
-                    }
+                                    // If we get new replies, we want to re-render, as we want to show them, update the count
+                                    // and so on.
+                                    self.listenTo(self.model, 'change:replies', self.render);
+                                    self.updateReplies();
 
-                    self.$('.js-attlist').empty();
-                    var photos = self.model.get('attachments');
+                                    self.repliesView = new Backbone.CollectionView({
+                                        el: self.$('.js-replies'),
+                                        modelView: Iznik.Views.User.Message.Reply,
+                                        modelViewOptions: {
+                                            collection: self.replies,
+                                            message: self.model,
+                                            offers: self.options.offers
+                                        },
+                                        collection: self.replies
+                                    });
 
-                    var v = new Iznik.Views.User.Message.Photos({
-                        collection: new Iznik.Collection(photos),
-                        message: self.model
-                    });
-                    v.render().then(function() {
-                        self.$('.js-attlist').append(v.el);
-                    });
+                                    self.repliesView.render();
 
-                    if (self.$('.js-replies').length > 0) {
-                        if (replies && replies.length > 0) {
-                            // Show and update the reply details.
-                            if (replies.length > 0) {
-                                self.$('.js-noreplies').hide();
-                                self.$('.js-replies').empty();
-
-                                // If we get new replies, we want to re-render, as we want to show them, update the count
-                                // and so on.
-                                self.listenTo(self.model, 'change:replies', self.render);
-                                self.updateReplies();
-
-                                self.repliesView = new Backbone.CollectionView({
-                                    el: self.$('.js-replies'),
-                                    modelView: Iznik.Views.User.Message.Reply,
-                                    modelViewOptions: {
-                                        collection: self.replies,
-                                        message: self.model,
-                                        offers: self.options.offers
-                                    },
-                                    collection: self.replies
-                                });
-
-                                self.repliesView.render();
-
-                                // We might have been asked to open up one of these messages because we're showing the corresponding
-                                // chat.
-                                if (self.options.chatid ) {
-                                    var model = self.replies.get(self.options.chatid);
-                                    if (model) {
-                                        var view = self.repliesView.viewManager.findByModel(model);
-                                        // Slightly hackily jump up to find the owning message and click to expand.
-                                        view.$el.closest('.panel-heading').find('.js-caret').click();
+                                    // We might have been asked to open up one of these messages because we're showing the corresponding
+                                    // chat.
+                                    if (self.options.chatid ) {
+                                        var model = self.replies.get(self.options.chatid);
+                                        if (model) {
+                                            var view = self.repliesView.viewManager.findByModel(model);
+                                            // Slightly hackily jump up to find the owning message and click to expand.
+                                            view.$el.closest('.panel-heading').find('.js-caret').click();
+                                        }
                                     }
+                                } else {
+                                    self.$('.js-noreplies').show();
                                 }
-                            } else {
-                                self.$('.js-noreplies').show();
                             }
                         }
-                    }
 
-                    // Repost time.
-                    var repost = self.model.get('canrepostat');
+                        // Repost time.
+                        var repost = self.model.get('canrepostat');
 
-                    if (repost && self.$('.js-repostat').length > 0) {
-                        if (moment().diff(repost) >=  0) {
-                            // Autorepost due.
-                            self.$('.js-repostat').html('soon');
-                        } else {
-                            self.$('.js-repostat').html(moment(repost).fromNow());
+                        if (repost && self.$('.js-repostat').length > 0) {
+                            if (moment().diff(repost) >=  0) {
+                                // Autorepost due.
+                                self.$('.js-repostat').html('soon');
+                            } else {
+                                self.$('.js-repostat').html(moment(repost).fromNow());
+                            }
                         }
-                    }
 
-                    // We want to keep an eye on chat messages, because those which are in conversations referring to our
-                    // message should affect the counts we display.  This will call updateUnread.
-                    self.watchChatRooms();
+                        // We want to keep an eye on chat messages, because those which are in conversations referring to our
+                        // message should affect the counts we display.  This will call updateUnread.
+                        self.watchChatRooms();
 
-                    // If the number of promises changes, then we want to update what we display.
-                    self.listenTo(self.model, 'change:promisecount', self.render);
+                        // If the number of promises changes, then we want to update what we display.
+                        self.listenTo(self.model, 'change:promisecount', self.render);
 
-                    // By adding this at the end we avoid border flicker.
-                    self.$el.addClass('panel panel-info');
+                        // By adding this at the end we avoid border flicker.
+                        self.$el.addClass('panel panel-info');
+                        
+                        resolve();
+                        self.rendering = null;
+                    });
                 });
+            } else {
+                // We're already rendering.  Queue a second render, as it's possible we have fetched new server
+                // data which we would otherwise fail to display.
+                //
+                // Don't tight loop by using then().
+                _.delay(_.bind(self.render, self), 200);
             }
 
             return(self.rendering);

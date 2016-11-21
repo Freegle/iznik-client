@@ -27,6 +27,7 @@ define([
 
             // This can be called twice - once with cached data, once with the update.
             if (!self.chatsFetched) {
+                // Set up the whole caboodle.
                 self.chatsFetched = true;
 
                 var v = new Iznik.Views.Help.Box();
@@ -130,6 +131,10 @@ define([
                         limit: 100
                     }
                 }).then(cb);
+            } else {
+                // Rerender the messages in case they have now changed.
+                self.offersView.render();
+                self.wantedsView.render();
             }
 
             // We might have now found out that something which was in our cache is taken/received and should
