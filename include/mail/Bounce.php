@@ -50,7 +50,9 @@ class Bounce
             '550 Requested action not taken: mailbox unavailable',
             'Invalid recipient',
             '550 5.1.1',
-            '550-5.1.1'
+            '550-5.1.1',
+            '550 No Such User Here',
+            'dd This user doesn\'t have'
                  ] as $err) {
             if (stripos($code, $err) !== FALSE) {
                 $ret = TRUE;
