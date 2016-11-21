@@ -1160,6 +1160,14 @@ define([
         getValueFromDOM: function(e) {
             var self = this;
             var val = this.$('.js-action').val();
+
+            // Might want to enable/disable the Edit Text option.
+            if (val == 'Edit') {
+                $('select[name="edittext"]').prop('disabled', null);
+            } else {
+                $('select[name="edittext"]').prop('disabled', true);
+            }
+
             return this.formatter.toRaw(val, this.model);
         },
     
