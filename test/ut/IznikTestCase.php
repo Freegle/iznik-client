@@ -2,6 +2,7 @@
 use Pheanstalk\Pheanstalk;
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once IZNIK_BASE . '/include/db.php';
+require_once IZNIK_BASE . '/include/user/User.php';
 
 require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/TestCase.php';
 require_once IZNIK_BASE . '/composer/vendor/phpunit/phpunit/src/Framework/Assert/Functions.php';
@@ -51,7 +52,6 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         parent::setUp ();
 
         error_reporting(E_ALL);
-
 
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;

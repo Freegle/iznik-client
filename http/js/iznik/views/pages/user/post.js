@@ -330,6 +330,11 @@ define([
         render: function () {
             var self = this;
             self.photos = new Iznik.Collection();
+            self.draftPhotos = new Iznik.Views.User.Message.Photos({
+                collection: self.photos,
+                message: null,
+                showAll: true
+            });
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
                 _.delay(_.bind(self.checkNext, self), 300);
@@ -400,14 +405,6 @@ define([
                     } else {
                         // Just set up an empty collection of photos.
                         // Add the thumbnails.
-                        self.photos = new Iznik.Collection();
-
-                        self.draftPhotos = new Iznik.Views.User.Message.Photos({
-                            collection: self.photos,
-                            message: null,
-                            showAll: true
-                        });
-
                         self.draftPhotos.render().then(function() {
                             self.$('.js-draftphotos').html(self.draftPhotos.el);
                         });

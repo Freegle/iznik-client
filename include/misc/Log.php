@@ -56,6 +56,8 @@ class Log
     const SUBTYPE_EVENTSOFF = 'EventsOff';
     const SUBTYPE_NEWSLETTERSOFF = 'NewslettersOff';
     const SUBTYPE_RELEVANTOFF = 'RelevantOff';
+    const SUBTYPE_BOUNCE = 'Bounce';
+    const SUBTYPE_SUSPEND_MAIL = 'SuspendMail';
 
     function __construct($dbhr, $dbhm)
     {

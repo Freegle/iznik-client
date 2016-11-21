@@ -198,6 +198,11 @@ define([
                 Iznik.Session.chats.fetch({
                     cached: cb
                 }).then(cb);
+
+                if (Iznik.Session.get('me').bouncing) {
+                    self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
+                    self.$('.js-bouncing').fadeIn('slow');
+                }
             });
 
             return(p);

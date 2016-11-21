@@ -146,6 +146,13 @@ define([
                 }
             }).data("dd");
 
+            console.log("Consider autoselect", json, gotselected);
+            if (json.length === (self.options.choose ? 2 : 1) && !gotselected) {
+                // Just one group - select it by default.
+                gotselected = true;
+                self.options.selected = json[self.options.choose ? 1 : 0].value;
+            }
+
             if (gotselected && self.options.hasOwnProperty('selected') && self.options.selected) {
                 self.dropdown.setIndexByValue(self.options.selected);
             } else {

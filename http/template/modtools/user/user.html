@@ -1,4 +1,13 @@
 <div class="topspace js-spammerinfo" />
+<% if (obj.bouncing) { %>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="alert alert-danger">
+            This user is bouncing - see logs for details.
+        </div>
+    </div>
+</div>
+<% } %>
 <div class="panel panel-default marginsmall">
     <div class="panel-body small padtopbotmd">
         <ul class="list-inline usercounts">

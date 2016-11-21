@@ -146,6 +146,7 @@ define([
 
         emailChange: function(e) {
             var self = this;
+            self.$('.js-bouncing').hide();
             self.$('.js-email').removeClass('error-border');
             if (e.type == 'click' || e.which === 13) {
                 self.$('.js-verifyemail').hide();
@@ -227,6 +228,10 @@ define([
                 var me = Iznik.Session.get('me');
                 self.$('.js-name').val(me.displayname);
                 self.$('.js-email').val(me.email);
+
+                if (me.bouncing) {
+                    self.$('.js-bouncing').fadeIn('slow');
+                }
 
                 // console.log("On holiday?", me.onholidaytill, me.onholidaytill != undefined);
                 self.$(".js-holidayswitch").bootstrapSwitch({
