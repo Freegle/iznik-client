@@ -1,4 +1,5 @@
-var API = 'https://www.ilovefreegle.org/api/'; // CC
+//var API = 'https://www.ilovefreegle.org/api/'; // CC
+var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -255,7 +256,7 @@ require([
         });
 
         push.on('notification', function (data) {
-            alert("push notification");
+            //alert("push notification");
             alert(JSON.stringify(data));
             console.log("push notification");
             console.log(data);
