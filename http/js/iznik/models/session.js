@@ -57,14 +57,14 @@ define([
             if (mobilePushId) {
                 var subscription = 'https://android.googleapis.com/gcm/send/' + mobilePushId;
                 console.log(subscription);
-                alert("Subs: "+subscription);
+                //alert("Subs: "+subscription);
                 var me = Iznik.Session.get('me');
                 if (me) {
                     Iznik.Session.save({
                         id: me.id,
                         notifications: {
                             push: {
-                                type: 'Google',
+                                type: 'Android',
                                 subscription: subscription
                             }
                         }

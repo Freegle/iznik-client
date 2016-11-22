@@ -234,12 +234,14 @@ require([
     console.log("push init start");
     if (!PushNotification) {
         alert("No PN");
-    } else {
+    } else if( !mobilePushId) {
         var push = PushNotification.init({
             android: {
-                senderID: "845879623324"
+                senderID: "845879623324",
+                forceShow: true
             },
             ios: {
+                //senderID: "845879623324",
                 alert: true,
                 badge: true,
                 sound: true
@@ -249,7 +251,7 @@ require([
             mobilePushId = data.registrationId;
             console.log("push registration " + mobilePushId);
             //$("#registrationId").val(data.registrationId);
-            alert("registration: " + mobilePushId);
+            //alert("registration: " + mobilePushId);
         });
 
         push.on('notification', function (data) {
@@ -262,6 +264,16 @@ require([
             console.log(data.count);
             console.log(data.sound);
             console.log(data.image);
+
+            if (data.count) {
+                push.setApplicationIconBadgeNumber(function () {
+                    console.log('badge count set OK');
+                }, function () {
+                    console.log('badge count set failed');
+                }, data.count);
+            }
+            // push.clearAllNotifications
+
             //console.log(JSON.stringify(data.additionalData));
             //console.log.text(JSON.stringify(data));
             /*$('#nTitle').text(data.title);
