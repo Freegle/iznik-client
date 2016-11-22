@@ -36,9 +36,12 @@ class Notifications
     }
 
     public function add($userid, $type, $val) {
-        $sql = "INSERT INTO users_push_notifications (`userid`, `type`, `subscription`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE userid = ?;";
-        $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val, $val ]);
-        Session::clearSessionCache();
+        $rc = NULL;
+        if ($userid) {
+            $sql = "INSERT INTO users_push_notifications (`userid`, `type`, `subscription`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE userid = ?, type = ?;";
+            $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val, $userid, $type ]);
+            Session::clearSessionCache();
+        }
         return($rc);
     }
 
@@ -86,14 +89,15 @@ class Notifications
                             ]);
 
                             $u = User::get($this->dbhr, $this->dbhm, $userid);
-                            list ($count, $title, $message) = $u->getNotificationPayload(MODTOOLS);
+                            list ($count, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
 
                             $payload = [
                                 'badge' => $count,
                                 'count' => $count,
                                 'title' => $title,
                                 'message' => $message,
-                                "image" => "www/images/user_logo.png"
+                                'chatids' => $chatids,
+                                'image' => "www/images/user_logo.png"
                             ];
                         }
 
