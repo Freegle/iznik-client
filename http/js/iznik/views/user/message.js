@@ -28,6 +28,8 @@ define([
 
                 if (self.unread > 0) {
                     this.$('.js-unreadcountholder').removeClass('reallyHide');
+                } else {
+                    this.$('.js-unreadcountholder').addClass('reallyHide');
                 }
 
                 this.$('.js-promised').removeClass('reallyHide');
