@@ -34,7 +34,7 @@ function chatrooms() {
                         foreach ($rooms as $room) {
                             $r = new ChatRoom($dbhr, $dbhm, $room);
                             $atts = $r->getPublic();
-                            $atts['unseen'] = $r->unseenForUser($myid);
+                            $atts['unseen'] = $r->unseenCountForUser($myid);
                             $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
                             $ret['chatrooms'][] = $atts;
                         }
@@ -86,7 +86,7 @@ function chatrooms() {
                         $r->updateRoster($myid, $lastmsgseen, $status);
 
                         $ret['roster'] = $r->getRoster();
-                        $ret['unseen'] = $r->unseenForUser($myid);
+                        $ret['unseen'] = $r->unseenCountForUser($myid);
                         $ret['nolog'] = TRUE;
                     }
                 } else {
@@ -98,7 +98,7 @@ function chatrooms() {
                         if ($r->canSee($myid)) {
                             $r->updateRoster($myid, presdef('lastmsgseen', $roster, NULL), $roster['status']);
                             $ret['rosters'][$roster['id']] = $r->getRoster();
-                            $ret['unseen'][$roster['id']] = $r->unseenForUser($myid);
+                            $ret['unseen'][$roster['id']] = $r->unseenCountForUser($myid);
                         }
                     }
                 }

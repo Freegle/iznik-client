@@ -7,6 +7,7 @@ require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
@@ -52,6 +53,7 @@ class User extends Entity
     const NOTIFS_EMAIL = 'email';
     const NOTIFS_PUSH = 'push';
     const NOTIFS_FACEBOOK = 'facebook';
+    const NOTIFS_APP = 'app';
 
     /** @var  $log Log */
     private $log;
@@ -1125,7 +1127,7 @@ class User extends Entity
             # Exclude the logs which are due to standard message syncing.
             $modships = $me ? $me->getModeratorships() : [];
             $modships = count($modships) == 0 ? [0] : $modships;
-            $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')";
+            $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND (TEXT IS NULL OR text NOT IN ('Not present on Yahoo','Received later copy of message with same Message-ID')) AND groupid IN (" . implode(',', $modships) . ")";
             $sql = "SELECT COUNT(*) AS count FROM `logs` WHERE user = ? AND timestamp > ? $modmailq AND groupid IN (" . implode(',', $modships) . ");";
             $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
             $modmails = $this->dbhr->preQuery($sql, [$this->id, $mysqltime]);
@@ -1141,6 +1143,7 @@ class User extends Entity
                 $modq = $modmailsonly ? $modmailq : '';
                 $sql = "SELECT DISTINCT * FROM logs WHERE (user = ? OR byuser = ?) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) AND (text IS NULL OR text NOT IN ('Not present on Yahoo', 'Sync of whole membership list','Received later copy of message with same Message-ID')) $modq ORDER BY id DESC LIMIT 50;";
                 $logs = $this->dbhr->preQuery($sql, [$this->id, $this->id]);
+                #error_log($sql . $this->id);
                 $atts['logs'] = [];
                 $groups = [];
                 $users = [];
@@ -2617,12 +2620,47 @@ class User extends Entity
 
     public function notifsOn($type) {
         $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
-        $notifs = presdef('notifications', $settings, [
+        $notifs = pres('notifications', $settings);
+
+        $defs = [
             'email' => TRUE,
             'push' => TRUE,
-            'facebook' => TRUE
-        ]);
+            'facebook' => TRUE,
+            'app' => TRUE
+        ];
 
-        return($notifs[$type]);
+        error_log("Check for $type in " . var_export($notifs, TRUE));
+        $ret = array_key_exists($type, $notifs) ? $notifs[$type] : $defs[$type];
+        return($ret);
+    }
+
+    public function getNotificationPayload($modtools) {
+        # This gets a notification count/title/message for this user.
+        $count = 0;
+        $title = NULL;
+        $message = NULL;
+
+        if (!$modtools) {
+            # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            $unseen = $r->allUnseenForUser($this->id, [ ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD ]);
+            $count = count($unseen);
+
+            if ($count === 1) {
+                $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
+                $atts = $r->getPublic();
+                $title = $atts['name'];
+                list($msgs, $users) = $r->getMessages(100, 0);
+
+                if (count($msgs) > 0) {
+                    $message = substr($msgs[0]['message'], 0, 256);
+                    $message = strlen($msgs[0]['message']) > 256 ? "$message..." : $message;
+                }
+            } else {
+                $title = "You have $count new messages.";
+            }
+        }
+
+        return([$count, $title, $message]);
     }
 }

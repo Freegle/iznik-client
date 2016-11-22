@@ -267,7 +267,7 @@ class ChatRoom extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        $ret['unseen'] = $this->unseenForUser($myid);
+        $ret['unseen'] = $this->unseenCountForUser($myid);
 
         # The name we return is not the one we created it with, which is internal.
         switch ($this->chatroom['chattype']) {
@@ -336,12 +336,30 @@ class ChatRoom extends Entity
         ]);
     }
 
-    public function unseenForUser($userid)
+    public function unseenCountForUser($userid)
     {
         # Find if we have any unseen messages.  Exclude any pending review.
         $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
         $counts = $this->dbhr->preQuery($sql, [$this->id, $userid, $this->id, $userid]);
         return ($counts[0]['count']);
+    }
+
+    public function allUnseenForUser($userid, $chattypes)
+    {
+        # Get all unseen messages.
+        $chatids = $this->listForUser($userid, $chattypes);
+        $ret = [];
+
+        foreach ($chatids as $chatid) {
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+            if ($r->unseenCountForUser($userid) > 0) {
+                $sql = "SELECT * FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
+                $msgs = $this->dbhr->preQuery($sql, [$chatid, $userid, $chatid, $userid]);
+                $ret = array_merge($ret, $msgs);
+            }
+        }
+
+        return ($ret);
     }
 
     public function listForUser($userid, $chattypes, $search = NULL, $all = FALSE)
@@ -751,9 +769,10 @@ class ChatRoom extends Entity
         return ($ret);
     }
 
-    public function getMessages($limit = 100)
+    public function getMessages($limit = 100, $seenbyall = NULL)
     {
-        $sql = "SELECT id, userid FROM chat_messages WHERE chatid = ? ORDER BY date DESC LIMIT $limit;";
+        $seenfilt = $seenbyall === NULL ? '' : " AND seenbyall = $seenbyall ";
+        $sql = "SELECT id, userid FROM chat_messages WHERE chatid = ? $seenfilt ORDER BY date DESC LIMIT $limit;";
         $msgs = $this->dbhr->preQuery($sql, [$this->id]);
         $msgs = array_reverse($msgs);
         $users = [];

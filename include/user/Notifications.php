@@ -11,6 +11,7 @@ class Notifications
     const PUSH_GOOGLE = 'Google';
     const PUSH_FIREFOX = 'Firefox';
     const PUSH_TEST = 'Test';
+    const PUSH_ANDROID = 'Android';
 
     private $dbhr, $dbhm, $log;
 
@@ -35,8 +36,8 @@ class Notifications
     }
 
     public function add($userid, $type, $val) {
-        $sql = "INSERT IGNORE INTO users_push_notifications (`userid`, `type`, `subscription`) VALUES (?, ?, ?);";
-        $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val ]);
+        $sql = "INSERT INTO users_push_notifications (`userid`, `type`, `subscription`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE userid = ?;";
+        $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val, $val ]);
         Session::clearSessionCache();
         return($rc);
     }
@@ -51,14 +52,18 @@ class Notifications
         # Mocked in UT to force an exception.
     }
 
-    public function notify($userid) {
+    public function notify($userid, $title = NULL, $message = NULL) {
         $count = 0;
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
         $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ?;", [ $userid ]);
 
         foreach ($notifs as $notif) {
             #error_log("Send user $userid {$notif['subscription']}");
             try {
                 $this->uthook();
+                $payload = NULL;
+                $proceed = TRUE;
 
                 switch ($notif['type']) {
                     case Notifications::PUSH_GOOGLE: {
@@ -71,17 +76,44 @@ class Notifications
                         $webPush = new WebPush();
                         break;
                     }
+                    case Notifications::PUSH_ANDROID: {
+                        $proceed = $u->notifsOn(User::NOTIFS_APP);
+
+                        if ($proceed) {
+                            # We send this via GCM, but we need a payload.
+                            $webPush = new WebPush([
+                                'GCM' => GOOGLE_PUSH_KEY
+                            ]);
+
+                            $u = User::get($this->dbhr, $this->dbhm, $userid);
+                            list ($count, $title, $message) = $u->getNotificationPayload(MODTOOLS);
+
+                            $payload = [
+                                'badge' => $count,
+                                'count' => $count,
+                                'title' => $title,
+                                'message' => $message,
+                                "image" => "www/images/user_logo.png"
+                            ];
+                        }
+
+                        break;
+                    }
                 }
 
-                $rc = $webPush->sendNotification($notif['subscription'], null, null, true);
-                #error_log("Returned " . var_export($rc, TRUE));
-                $count++;
+                $rc = TRUE;
+
+                if ($proceed) {
+                    $rc = $webPush->sendNotification($notif['subscription'], $payload, null, true);
+                    #error_log("Returned " . var_export($rc, TRUE) . " for {$notif['subscription']}");
+                    $count++;
+                }
             } catch (Exception $e) {
                 $rc = [ 'exception' => $e->getMessage() ];
             }
 
             if ($rc !== TRUE) {
-                error_log("Push Notification failed with " . var_export($rc, TRUE));
+                error_log("Push Notification to $userid failed with " . var_export($rc, TRUE));
                 $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE userid = ? AND subscription = ?;", [
                     $userid,
                     $notif['subscription']

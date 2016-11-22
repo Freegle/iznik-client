@@ -184,10 +184,15 @@ class WebPush
 
         $subscriptionIds = array();
         /** @var Notification $notification */
+        $data = null;
+
         foreach ($notifications as $notification) {
             // get all subscriptions ids
             $endpointsSections = explode('/', $notification->getEndpoint());
             $subscriptionIds[] = $endpointsSections[count($endpointsSections) - 1];
+
+            # EH get payload in there.  Assumes only one notif.
+            $data = $notification->payload;
         }
 
         // chunk by max number
@@ -197,6 +202,7 @@ class WebPush
         foreach ($batch as $subscriptionIds) {
             $content = json_encode(array(
                 'registration_ids' => $subscriptionIds,
+                'data' => $data
             ));
 
             $headers['Content-Length'] = strlen($content);
@@ -217,6 +223,7 @@ class WebPush
     private function sendRequest($url, array $headers, $content)
     {
         try {
+            error_log("Post to $url, headers " . var_export($headers, TRUE) . " content $content");
             $response = $this->browser->post($url, $headers, $content);
         } catch (RequestException $e) {
             $response = null;

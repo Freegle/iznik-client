@@ -29,6 +29,7 @@ define([
             'switchChange.bootstrapSwitch .js-onholiday': 'onholiday',
             'switchChange.bootstrapSwitch .js-emailswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-pushswitch': 'notifSwitch',
+            'switchChange.bootstrapSwitch .js-appswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-facebookswitch': 'notifSwitch',
             'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
@@ -95,6 +96,7 @@ define([
             var me = Iznik.Session.get('me');
             var notifs = {};
             notifs.email = this.$('.js-emailswitch').bootstrapSwitch('state');
+            notifs.app = this.$('.js-appswitch').bootstrapSwitch('state');
             notifs.push = this.$('.js-pushswitch').bootstrapSwitch('state');
             notifs.facebook = this.$('.js-facebookswitch').bootstrapSwitch('state');
 
@@ -266,6 +268,16 @@ define([
                     });
 
                     self.$('.js-pushon').show();
+                }
+
+                if (me.hasOwnProperty('notifications')) {
+                    self.$(".js-appswitch").bootstrapSwitch({
+                        onText: 'App Notifications On',
+                        offText: 'App Notifications Off',
+                        state: notifs.hasOwnProperty('app') ? notifs.app: true
+                    });
+
+                    self.$('.js-appon').show();
                 }
 
                 var facebook = false;
