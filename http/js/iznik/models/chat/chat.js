@@ -90,6 +90,21 @@ define([
                 options.data = {};
             }
 
+            // This happens on a timer; maybe we've lost our session. So pass the persistent one.
+            try {
+                sess = localStorage.getItem('session');
+                if (sess) {
+                    parsed = JSON.parse(sess);
+                    console.log("Session is", parsed);
+
+                    if (parsed.hasOwnProperty('persistent')) {
+                        options.data.persistent = parsed.persistent;
+                    }
+                }
+            } catch (e) {
+                console.error("testLoggedIn exception", e.message);
+            }
+
             // Which chat types we fetch depends on whether we're in ModTools or the User i/f.
             options.data.chattypes = (Iznik.Session && Iznik.Session.get('modtools')) ? [ 'Mod2Mod', 'User2Mod' ] : [ 'User2User', 'User2Mod' ];
             options.processData = true;
