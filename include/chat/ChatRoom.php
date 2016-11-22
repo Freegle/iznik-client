@@ -791,34 +791,41 @@ class ChatRoom extends Entity
                 $me->moderatorForUser($this->chatroom['user2']);
         }
 
+        $lastmsg = NULL;
+
         foreach ($msgs as $msg) {
             $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
             $atts = $m->getPublic();
 
-            if ($atts['reviewrequired'] && $msg['userid'] != $myid && !$modaccess) {
-                # This message is held for review, and we didn't send it.  So we shouldn't see it.
-            } else if ($atts['reviewrejected']) {
-                # This message was reviewed and deemed unsuitable.  So we shouldn't see it.
-            } else {
-                # We should return this one.
-                unset($atts['reviewrequired']);
-                unset($atts['reviewedby']);
-                unset($atts['reviewrejected']);
-                $atts['date'] = ISODate($atts['date']);
+            # We can get duplicate messages for a variety of reasons; suppress.
+            if (!$lastmsg || $atts['message'] != $lastmsg) {
+                $lastmsg = $atts['message'];
 
-                $atts['sameaslast'] = ($lastuser === $msg['userid']);
+                if ($atts['reviewrequired'] && $msg['userid'] != $myid && !$modaccess) {
+                    # This message is held for review, and we didn't send it.  So we shouldn't see it.
+                } else if ($atts['reviewrejected']) {
+                    # This message was reviewed and deemed unsuitable.  So we shouldn't see it.
+                } else {
+                    # We should return this one.
+                    unset($atts['reviewrequired']);
+                    unset($atts['reviewedby']);
+                    unset($atts['reviewrejected']);
+                    $atts['date'] = ISODate($atts['date']);
 
-                if (count($ret) > 0) {
-                    $ret[count($ret) - 1]['sameasnext'] = ($lastuser === $msg['userid']);
+                    $atts['sameaslast'] = ($lastuser === $msg['userid']);
+
+                    if (count($ret) > 0) {
+                        $ret[count($ret) - 1]['sameasnext'] = ($lastuser === $msg['userid']);
+                    }
+
+                    if (!array_key_exists($msg['userid'], $users)) {
+                        $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
+                        $users[$msg['userid']] = $u->getPublic(NULL, FALSE);
+                    }
+
+                    $ret[] = $atts;
+                    $lastuser = $msg['userid'];
                 }
-
-                if (!array_key_exists($msg['userid'], $users)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
-                    $users[$msg['userid']] = $u->getPublic(NULL, FALSE);
-                }
-
-                $ret[] = $atts;
-                $lastuser = $msg['userid'];
             }
         }
 
@@ -1014,10 +1021,13 @@ class ChatRoom extends Entity
                         $htmlsummary = '';
                         $lastmsgemailed = 0;
                         $lastfrom = 0;
+                        $lastmsg = NULL;
                         foreach ($unmailedmsgs as $unmailedmsg) {
                             $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
 
-                            if (pres('message', $unmailedmsg)) {
+                            # We can get duplicate messages for a variety of reasons.  Suppress them.
+                            if (pres('message', $unmailedmsg) && (!$lastmsg || $lastmsg != $unmailedmsg['message'])) {
+                                $lastmsg = $unmailedmsg['message'];
                                 $thisone = $unmailedmsg['message'];
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
