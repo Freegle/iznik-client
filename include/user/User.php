@@ -2630,7 +2630,7 @@ class User extends Entity
         ];
 
         error_log("Check for $type in " . var_export($notifs, TRUE));
-        $ret = array_key_exists($type, $notifs) ? $notifs[$type] : $defs[$type];
+        $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
         return($ret);
     }
 
@@ -2661,6 +2661,6 @@ class User extends Entity
             }
         }
 
-        return([$count, $title, $message]);
+        return([$count, $title, $message, $unseen]);
     }
 }
