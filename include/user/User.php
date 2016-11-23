@@ -2549,6 +2549,7 @@ class User extends Entity
 
     public function search($search, $ctx)
     {
+        $me = whoAmI($this->dbhr, $this->dbhm);
         $id = presdef('id', $ctx, 0);
         $ctx = $ctx ? $ctx : [];
         $q = $this->dbhr->quote("$search%");
@@ -2592,7 +2593,11 @@ class User extends Entity
             $thisone['membershiphistory'] = $u->getMembershipHistory();
             $thisone['sessions'] = $u->getSessions($this->dbhr, $this->dbhm, $user['userid']);
 
-            $thisone['logins'] = $u->getLogins(FALSE);
+            # Make sure there's a link login as admin/support can use that to impersonate.
+            if (($me->isAdmin() && !$u->isAdmin()) || ($me->isAdminOrSupport() && !$u->isModerator())) {
+                $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/');
+            }
+            $thisone['logins'] = $u->getLogins($me->isAdmin());
 
             # Also return the chats for this user.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
