@@ -547,14 +547,19 @@ class ChatRoom extends Entity
         if ($lastmsgseen) {
             # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
             # windows open.
-            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
-                [
-                    $lastmsgseen,
-                    $this->id,
-                    $userid,
-                    $lastmsgseen
-                ],
-                FALSE);
+            $rc = $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);", [
+                $lastmsgseen,
+                $this->id,
+                $userid,
+                $lastmsgseen
+            ], FALSE);
+
+            if ($rc) {
+                # We have updated our last seen.  Notify ourselves because we might have multiple devices which
+                # have counts/notifications which need updating.
+                $n = new Notifications($this->dbhr, $this->dbhm);
+                $n->notify($userid);
+            }
 
             #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
             # Now we want to check whether to check whether this message has been seen by everyone in this chat.  If it
@@ -710,11 +715,10 @@ class ChatRoom extends Entity
             }
         }
 
-        # Now Push.  No payload.
+        # Now Push.
         $n = new Notifications($this->dbhr, $this->dbhm);
         foreach ($userids as $userid) {
             if ($userid != $excludeuser) {
-                $u = User::get($this->dbhr, $this->dbhm, $userid);
                 $n->notify($userid);
             }
         }

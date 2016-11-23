@@ -2970,6 +2970,7 @@ class Message
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
             if ($g->getPrivate('onyahoo')) {
+                # For Yahoo, we send a TAKEN/RECEIVED message.  Not for native.
                 list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
                 $this->mailer(
                     $u,
@@ -2980,7 +2981,7 @@ class Message
                     $u->getName(),
                     $email,
                     $subj,
-                    $happiness == User::HAPPY || User::FINE ? $comment : ''
+                    ($happiness == User::HAPPY || User::FINE) ? $comment : ''
                 );
             }
         }

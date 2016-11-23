@@ -2666,7 +2666,7 @@ class User extends Entity
                     $message = substr($msgs[0]['message'], 0, 256);
                     $message = strlen($msgs[0]['message']) > 256 ? "$message..." : $message;
                 }
-            } else {
+            } else if ($count > 1) {
                 $title = "You have $count new messages.";
             }
         }
