@@ -1009,7 +1009,7 @@ class ChatRoom extends Entity
                 # don't want to annoy them.
                 if ($thisu->notifsOn(User::NOTIFS_EMAIL) && count($thisu->getMemberships()) > 0) {
                     # Now collect a summary of what they've missed.
-                    $unmailedmsgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? AND id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
+                    $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                         [
                             $chat['chatid'],
                             $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0
@@ -1028,25 +1028,43 @@ class ChatRoom extends Entity
 
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
                             if (pres('message', $unmailedmsg) && (!$lastmsg || $lastmsg != $unmailedmsg['message'])) {
-                                $lastmsg = $unmailedmsg['message'];
-                                $thisone = $unmailedmsg['message'];
+
+                                switch ($unmailedmsg['type']) {
+                                    case ChatMessage::TYPE_COMPLETED: {
+                                        # There's no text stored for this - we invent it on the client.  Do so here
+                                        # too.
+                                        $lastmsg = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, this is no longer available." : "Thanks, this is no longer needed.";
+                                        break;
+                                    }
+
+                                    default: {
+                                        # Use the text in the message.
+                                        $lastmsg = $unmailedmsg['message'];
+                                        break;
+                                    }
+                                }
+
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
-                                $textsummary .= $thisone . "\r\n";
+                                $textsummary .= $lastmsg . "\r\n";
 
-                                # Alternate colours.
                                 #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
-                                if ($lastfrom != $unmailedmsg['userid']) {
-                                    if ($unmailedmsg['userid'] == $thisu->getId()) {
-                                        $htmlsummary .= '<h3>You wrote' . ($chat['chattype'] == ChatRoom::TYPE_USER2USER ? (' to ' . $otheru->getName()) : '') . '</h3><span style="color: black">';
-                                    } else {
-                                        $htmlsummary .= '<h3>' . $fromname . ' wrote:</h3><span style="color: blue">';
+                                if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
+                                    # Only want to say someone wrote it if they did, which they didn't for system-
+                                    # generated messages.
+                                    if ($lastfrom != $unmailedmsg['userid']) {
+                                        # Alternate colours.
+                                        if ($unmailedmsg['userid'] == $thisu->getId()) {
+                                            $htmlsummary .= '<h3>You wrote' . ($chat['chattype'] == ChatRoom::TYPE_USER2USER ? (' to ' . $otheru->getName()) : '') . '</h3><span style="color: black">';
+                                        } else {
+                                            $htmlsummary .= '<h3>' . $fromname . ' wrote:</h3><span style="color: blue">';
+                                        }
                                     }
                                 }
 
                                 $lastfrom = $unmailedmsg['userid'];
 
-                                $htmlsummary .= nl2br($thisone) . "<br>";
+                                $htmlsummary .= nl2br($lastmsg) . "<br>";
                                 $htmlsummary .= '</span>';
 
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);

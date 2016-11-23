@@ -2985,6 +2985,16 @@ class Message
                 );
             }
         }
+
+        # Let anyone who was interested, and who didn't get it, know.
+        $userq = $userid ? " userid != $userid AND " : "";
+        $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 $userq AND userid IS NOT NULL GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
+        $replies = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $r = new ChatMessage($this->dbhr, $this->dbhm);
+
+        foreach ($replies as $reply) {
+            $r->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
+        }
     }
 
     public function withdraw($comment, $happiness) {

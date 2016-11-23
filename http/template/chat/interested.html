@@ -9,7 +9,11 @@
             <div class="panel-heading">
                 <div class="row">
                     <% if (obj.user) { %>
+                        <% if (refmsg.mine) { %>
                         <span class="text-muted padmd">{{user.displayname}} is interested in:</span>
+                        <% } else { %>
+                        <span class="text-muted padmd">You are interested in:</span>
+                        <% } %>
                     <% } %>
                     <% if (refmsg.attachments && refmsg.attachments.length > 0) { %>
                         <div class="col-xs-2 nopad">

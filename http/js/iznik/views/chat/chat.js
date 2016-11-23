@@ -1628,6 +1628,9 @@ define([
                     case 'Interested':
                         tpl = this.model.get('refmsg') ? 'chat_interested' : 'chat_message';
                         break;
+                    case 'Completed':
+                        tpl = 'chat_completed';
+                        break;
                     case 'Promised':
                         tpl = this.model.get('refmsg') ? 'chat_promised' : 'chat_message';
                         break;
