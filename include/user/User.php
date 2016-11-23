@@ -2549,6 +2549,7 @@ class User extends Entity
 
     public function search($search, $ctx)
     {
+        $me = whoAmI($this->dbhr, $this->dbhm);
         $id = presdef('id', $ctx, 0);
         $ctx = $ctx ? $ctx : [];
         $q = $this->dbhr->quote("$search%");
@@ -2592,7 +2593,11 @@ class User extends Entity
             $thisone['membershiphistory'] = $u->getMembershipHistory();
             $thisone['sessions'] = $u->getSessions($this->dbhr, $this->dbhm, $user['userid']);
 
-            $thisone['logins'] = $u->getLogins(FALSE);
+            # Make sure there's a link login as admin/support can use that to impersonate.
+            if (($me->isAdmin() && !$u->isAdmin()) || ($me->isAdminOrSupport() && !$u->isModerator())) {
+                $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/');
+            }
+            $thisone['logins'] = $u->getLogins($me->isAdmin());
 
             # Also return the chats for this user.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
@@ -2629,8 +2634,8 @@ class User extends Entity
             'app' => TRUE
         ];
 
-        error_log("Check for $type in " . var_export($notifs, TRUE));
-        $ret = array_key_exists($type, $notifs) ? $notifs[$type] : $defs[$type];
+        $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
+        #error_log("Notifs on for type $type ? $ret from " . var_export($notifs, TRUE));
         return($ret);
     }
 
@@ -2639,12 +2644,17 @@ class User extends Entity
         $count = 0;
         $title = NULL;
         $message = NULL;
+        $unseen = [];
+        $chatids = [];
 
         if (!$modtools) {
             # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
             $unseen = $r->allUnseenForUser($this->id, [ ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD ]);
             $count = count($unseen);
+            foreach ($unseen as $un) {
+                $chatids[] = $un['chatid'];
+            };
 
             if ($count === 1) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
@@ -2656,11 +2666,11 @@ class User extends Entity
                     $message = substr($msgs[0]['message'], 0, 256);
                     $message = strlen($msgs[0]['message']) > 256 ? "$message..." : $message;
                 }
-            } else {
+            } else if ($count > 1) {
                 $title = "You have $count new messages.";
             }
         }
 
-        return([$count, $title, $message]);
+        return([$count, $title, $message, $chatids]);
     }
 }

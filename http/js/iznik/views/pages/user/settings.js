@@ -260,7 +260,7 @@ define([
                     state: notifs.hasOwnProperty('email') ? notifs.email : true
                 });
 
-                if (me.hasOwnProperty('notifications') && me.notifications.hasOwnProperty('push')) {
+                if (me.hasOwnProperty('notifications')) {
                     self.$(".js-pushswitch").bootstrapSwitch({
                         onText: 'Browser Popups On',
                         offText: 'Browser Popups Off',

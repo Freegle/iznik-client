@@ -19,6 +19,7 @@ class ChatMessage extends Entity
     const TYPE_PROMISED = 'Promised';
     const TYPE_RENEGED = 'Reneged';
     const TYPE_REPORTEDUSER = 'ReportedUser';
+    const TYPE_COMPLETED = 'Completed';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_REJECT = 'Reject';

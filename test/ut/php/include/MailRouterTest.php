@@ -1185,7 +1185,15 @@ class MailRouterTest extends IznikTestCase {
         foreach ($users as $user) {
             assertEquals('Some other replying person', $user['displayname']);
         }
-        
+
+        # Now mark the message as complete - should put a message in the chatroom.
+        error_log("Mark $origid as TAKEN");
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
+        $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, NULL);
+        list($msgs, $users) = $c->getMessages();
+        error_log("Chat messages " . var_export($msgs, TRUE));
+        self::assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
+
         error_log(__METHOD__ . " end");
     }
 

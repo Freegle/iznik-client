@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/session/Session.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 
+use Pheanstalk\Pheanstalk;
 use Facebook\FacebookSession;
 use Facebook\FacebookJavaScriptLoginHelper;
 use Facebook\FacebookCanvasLoginHelper;
@@ -17,6 +18,7 @@ class Facebook
     /** @var LoggedPDO $dbhm */
     private $dbhr;
     private $dbhm;
+    private $pheanstalk = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -252,7 +254,7 @@ class Facebook
         return([$s, $ret]);
     }
 
-    public function notify($fbid, $message, $href) {
+    public function executeNotify($fbid, $message, $href) {
         try {
             $notif = [
                 'template' => $message,
@@ -268,6 +270,35 @@ class Facebook
 
             $result = $fb->post("/$fbid/notifications", $notif);
             #error_log("Notify returned " . var_export($result, TRUE));
-        } catch (Exception $e) { /* error_log("FB notify failed with " . $e->getMessage()); */ }
+        } catch (Exception $e) { error_log("FB notify failed with " . $e->getMessage()); }
+    }
+
+    public function uthook($rc = NULL) {
+        # Mocked in UT to force an exception.
+        return($rc);
+    }
+
+    public function notify($fbid, $message, $href) {
+        try {
+            $this->uthook();
+
+            if (!$this->pheanstalk) {
+                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+            }
+
+            $str = json_encode(array(
+                'type' => 'facebooknotif',
+                'queued' => time(),
+                'fbid' => $fbid,
+                'message' => $message,
+                'href' => $href
+            ));
+
+            $id = $this->pheanstalk->put($str);
+        } catch (Exception $e) {
+            # Try again in case it's a temporary error.
+            error_log("Beanstalk exception " . $e->getMessage());
+            $this->pheanstalk = NULL;
+        }
     }
 }

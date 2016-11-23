@@ -9,7 +9,11 @@
             <div class="panel-heading">
                 <div class="row">
                     <% if (obj.user) { %>
+                        <% if (refmsg.mine) { %>
                         <span class="text-muted padmd">{{user.displayname}} is interested in:</span>
+                        <% } else { %>
+                        <span class="text-muted padmd">You are interested in:</span>
+                        <% } %>
                     <% } %>
                     <% if (refmsg.attachments && refmsg.attachments.length > 0) { %>
                         <div class="col-xs-2 nopad">
@@ -30,7 +34,7 @@
     </div>
 </div>
 <% if (!obj.sameasnext) { %>
-<div class="row-fluid fullholder nopad">
+<div class="row fullholder nopad">
     <div class="col-sm-12 padsmall">
         <abbr class="chat-when botspace  <% if (obj.left) { %>pull-left<% } else { %>pull-right<% } %> text-muted small timeago" title="{{date}}" />
     </div>

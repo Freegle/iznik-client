@@ -1,0 +1,48 @@
+<div class="row nopad nomargin">
+    <% if (obj.left) { %>
+    <div class="col-xs-12 nopad">
+        <% } else { %>
+        <div class="col-xs-2 nopad" />
+        <div class="col-xs-10 nopad">
+            <% } %>
+            <div class="panel panel-success padmd">
+                <div class="panel-heading">
+                    <div class="row">
+                        <% if (refmsg.attachments && refmsg.attachments.length > 0) { %>
+                        <div class="col-xs-2 nopad">
+                            <img class="nomargin thumbnail img-smallerthumbnail" src="{{refmsg.attachments[0].path}}?w=100" />
+                        </div>
+                        <div class="col-xs-10">
+                            <% } else { %>
+                            <div class="col-xs-12 nopadright">
+                                <% } %>
+                                {{refmsg.subject}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="alert alert-info">
+                            <% if (refmsg.mine) { %>
+                                <% if (refmsg.type == 'Offer') { %>
+                                We've let them know this is no longer available.
+                                <% } else { %>
+                                We've let them know this this is no longer needed.
+                                <% } %>
+                            <% } else { %>
+                                <% if (refmsg.type == 'Offer') { %>
+                                Sorry, this is no longer available.  If you didn't get it, why not <a href="/find/whatisit">Post a WANTED</a>?
+                                <% } else { %>
+                                Thanks, but this this is no longer needed.  If you have one space, why not <a href="/give/whatisit">OFFER</a> it?
+                                <% } %>
+                            <% } %>
+                        </div>
+                </div>
+            </div>
+        </div>
+        <% if (!obj.sameasnext) { %>
+        <div class="row fullholder nopad">
+            <div class="col-sm-12 padsmall">
+                <abbr class="chat-when botspace  <% if (obj.left) { %>pull-left<% } else { %>pull-right<% } %> text-muted small timeago" title="{{date}}" />
+            </div>
+        </div>
+        <% } %>

@@ -223,7 +223,7 @@ class WebPush
     private function sendRequest($url, array $headers, $content)
     {
         try {
-            error_log("Post to $url, headers " . var_export($headers, TRUE) . " content $content");
+            #error_log("Post to $url, headers " . var_export($headers, TRUE) . " content $content");
             $response = $this->browser->post($url, $headers, $content);
         } catch (RequestException $e) {
             $response = null;

@@ -29,7 +29,10 @@ define([
 
         allseen: function () {
             Iznik.minimisedChats.viewManager.each(function (chat) {
-                chat.allseen();
+                if (chat.model.get('unseen') > 0) {
+                    chat.allseen();
+                    chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+                }
             });
         },
 
@@ -771,11 +774,15 @@ define([
         updateCount: function () {
             var self = this;
             var unseen = self.model.get('unseen');
+            var current = self.$('.js-count').html();
 
-            if (unseen > 0) {
-                self.$('.js-count').html(unseen).show();
-            } else {
-                self.$('.js-count').html(unseen).hide();
+            // Don't do DOM manipulations unless we need to as that's a performance killer.
+            if (unseen != current) {
+                if (unseen > 0) {
+                    self.$('.js-count').html(unseen).show();
+                } else {
+                    self.$('.js-count').html(unseen).hide();
+                }
             }
 
             self.trigger('countupdated', unseen);
@@ -1630,6 +1637,9 @@ define([
                         break;
                     case 'Interested':
                         tpl = this.model.get('refmsg') ? 'chat_interested' : 'chat_message';
+                        break;
+                    case 'Completed':
+                        tpl = 'chat_completed';
                         break;
                     case 'Promised':
                         tpl = this.model.get('refmsg') ? 'chat_promised' : 'chat_message';
