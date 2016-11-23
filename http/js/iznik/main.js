@@ -1,5 +1,5 @@
-//var API = 'https://www.ilovefreegle.org/api/'; // CC
-var API = 'https://iznik.ilovefreegle.org/api/'; // CC
+var API = 'https://www.ilovefreegle.org/api/'; // CC
+//var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -239,7 +239,9 @@ require([
         var push = PushNotification.init({
             android: {
                 senderID: "845879623324",
-                forceShow: true
+                //iconColor: "#5EcA24",
+                //icon: "icon",
+                //forceShow: true,
             },
             ios: {
                 //senderID: "845879623324",
@@ -265,12 +267,15 @@ require([
             console.log(data.count);
             console.log(data.sound);
             console.log(data.image);
+            var chatids = data.additionalData.chatids;
+            alert(JSON.stringify(chatids));
+
 
             if (data.count) {
                 push.setApplicationIconBadgeNumber(function () {
-                    console.log('badge count set OK');
+                    alert('badge count set to ' + data.count);
                 }, function () {
-                    console.log('badge count set failed');
+                    alert('badge count set failed');
                 }, data.count);
             }
             // push.clearAllNotifications
