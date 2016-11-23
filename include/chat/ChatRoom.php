@@ -715,10 +715,7 @@ class ChatRoom extends Entity
         foreach ($userids as $userid) {
             if ($userid != $excludeuser) {
                 $u = User::get($this->dbhr, $this->dbhm, $userid);
-
-                if ($u->notifsOn(User::NOTIFS_PUSH)) {
-                    $n->notify($userid);
-                }
+                $n->notify($userid);
             }
         }
 

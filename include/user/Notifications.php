@@ -4,7 +4,9 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+
 use Minishlink\WebPush\WebPush;
+use Pheanstalk\Pheanstalk;
 
 class Notifications
 {
@@ -13,7 +15,7 @@ class Notifications
     const PUSH_TEST = 'Test';
     const PUSH_ANDROID = 'Android';
 
-    private $dbhr, $dbhm, $log;
+    private $dbhr, $dbhm, $log, $pheanstalk = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -51,8 +53,57 @@ class Notifications
         return($rc);
     }
 
-    public function uthook() {
+    public function uthook($rc = NULL) {
         # Mocked in UT to force an exception.
+        return($rc);
+    }
+
+    private function queueSend($userid, $params, $endpoint, $payload) {
+        #error_log("queueSend $userid $endpoint params " . var_export($params, TRUE));
+        try {
+            $this->uthook();
+
+            if (!$this->pheanstalk) {
+                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+            }
+
+            $str = json_encode(array(
+                'type' => 'webpush',
+                'queued' => time(),
+                'userid' => $userid,
+                'params' => $params,
+                'endpoint' => $endpoint,
+                'payload' => $payload
+            ));
+
+            error_log("Encoded $str");
+            $id = $this->pheanstalk->put($str);
+        } catch (Exception $e) {
+            # Try again in case it's a temporary error.
+            error_log("Beanstalk exception " . $e->getMessage());
+            $this->pheanstalk = NULL;
+        }
+    }
+
+    public function executeSend($userid, $params, $endpoint, $payload) {
+        try {
+            error_log("Execute send params " . var_export($params, TRUE));
+            $params = $params ? $params : [];
+            $webPush = new WebPush($params);
+            $rc = $webPush->sendNotification($endpoint, $payload, NULL, TRUE);
+            #error_log("Returned " . var_export($rc, TRUE) . " for {$notif['subscription']}");
+            $rc = $this->uthook($rc);
+        } catch (Exception $e) {
+            $rc = [ 'exception' => $e->getMessage() ];
+        }
+
+        if ($rc !== TRUE) {
+            error_log("Push Notification to $userid failed with " . var_export($rc, TRUE));
+            $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE userid = ? AND subscription = ?;", [ $userid, $endpoint ]);
+        } else {
+            # Don't log - lots of these.
+            $this->dbhm->preExec("UPDATE users_push_notifications SET lastsent = NOW() WHERE userid = ? AND subscription = ?;", [ $userid, $endpoint  ], FALSE);
+        }
     }
 
     public function notify($userid, $title = NULL, $message = NULL) {
@@ -62,72 +113,53 @@ class Notifications
         $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ?;", [ $userid ]);
 
         foreach ($notifs as $notif) {
-            #error_log("Send user $userid {$notif['subscription']}");
-            try {
-                $this->uthook();
-                $payload = NULL;
-                $proceed = TRUE;
+            #error_log("Send user $userid {$notif['subscription']} type {$notif['type']}");
+            $payload = NULL;
+            $proceed = TRUE;
+            $params = [];
 
-                switch ($notif['type']) {
-                    case Notifications::PUSH_GOOGLE: {
-                        $webPush = new WebPush([
+            switch ($notif['type']) {
+                case Notifications::PUSH_GOOGLE: {
+                    $proceed = $u->notifsOn(User::NOTIFS_PUSH);
+                    $params = [
+                        'GCM' => GOOGLE_PUSH_KEY
+                    ];
+                    break;
+                }
+                case Notifications::PUSH_FIREFOX: {
+                    $proceed = $u->notifsOn(User::NOTIFS_PUSH);
+                    $params = [];
+                    break;
+                }
+                case Notifications::PUSH_ANDROID: {
+                    $proceed = $u->notifsOn(User::NOTIFS_APP);
+
+                    if ($proceed) {
+                        # We send this via GCM, but we need a payload.
+                        $params = [
                             'GCM' => GOOGLE_PUSH_KEY
-                        ]);
-                        break;
+                        ];
+
+                        $u = User::get($this->dbhr, $this->dbhm, $userid);
+                        list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
+
+                        $payload = [
+                            'badge' => $count,
+                            'count' => $chatcount,
+                            'title' => $title,
+                            'message' => $message,
+                            'chatids' => $chatids,
+                            'image' => "www/images/user_logo.png"
+                        ];
                     }
-                    case Notifications::PUSH_FIREFOX: {
-                        $webPush = new WebPush();
-                        break;
-                    }
-                    case Notifications::PUSH_ANDROID: {
-                        $proceed = $u->notifsOn(User::NOTIFS_APP);
 
-                        if ($proceed) {
-                            # We send this via GCM, but we need a payload.
-                            $webPush = new WebPush([
-                                'GCM' => GOOGLE_PUSH_KEY
-                            ]);
-
-                            $u = User::get($this->dbhr, $this->dbhm, $userid);
-                            list ($count, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
-
-                            $payload = [
-                                'badge' => $count,
-                                'count' => $count,
-                                'title' => $title,
-                                'message' => $message,
-                                'chatids' => $chatids,
-                                'image' => "www/images/user_logo.png"
-                            ];
-                        }
-
-                        break;
-                    }
+                    break;
                 }
-
-                $rc = TRUE;
-
-                if ($proceed) {
-                    $rc = $webPush->sendNotification($notif['subscription'], $payload, null, true);
-                    #error_log("Returned " . var_export($rc, TRUE) . " for {$notif['subscription']}");
-                    $count++;
-                }
-            } catch (Exception $e) {
-                $rc = [ 'exception' => $e->getMessage() ];
             }
 
-            if ($rc !== TRUE) {
-                error_log("Push Notification to $userid failed with " . var_export($rc, TRUE));
-                $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE userid = ? AND subscription = ?;", [
-                    $userid,
-                    $notif['subscription']
-                ]);
-            } else {
-                # Don't log - lots of these.
-                $this->dbhm->preExec("UPDATE users_push_notifications SET lastsent = NOW() WHERE userid = ? AND subscription = ?;", [
-                    $userid,
-                    $notif['subscription']
-                ], FALSE);
+            if ($proceed) {
+                $this->queueSend($userid, $params, $notif['subscription'], $payload);
+                $count++;
             }
         }
 

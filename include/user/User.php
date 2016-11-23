@@ -2629,8 +2629,8 @@ class User extends Entity
             'app' => TRUE
         ];
 
-        error_log("Check for $type in " . var_export($notifs, TRUE));
         $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
+        #error_log("Notifs on for type $type ? $ret from " . var_export($notifs, TRUE));
         return($ret);
     }
 
@@ -2639,12 +2639,17 @@ class User extends Entity
         $count = 0;
         $title = NULL;
         $message = NULL;
+        $unseen = [];
+        $chatids = [];
 
         if (!$modtools) {
             # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
             $unseen = $r->allUnseenForUser($this->id, [ ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD ]);
             $count = count($unseen);
+            foreach ($unseen as $un) {
+                $chatids[] = $un['chatid'];
+            };
 
             if ($count === 1) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
@@ -2661,6 +2666,6 @@ class User extends Entity
             }
         }
 
-        return([$count, $title, $message, $unseen]);
+        return([$count, $title, $message, $chatids]);
     }
 }
