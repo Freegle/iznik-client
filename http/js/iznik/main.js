@@ -254,41 +254,30 @@ require([
             mobilePushId = data.registrationId;
             console.log("push registration " + mobilePushId);
             //$("#registrationId").val(data.registrationId);
-            //alert("registration: " + mobilePushId);
+            if (isiOS) {
+                alert("registration: " + mobilePushId);
+            }
         });
 
         push.on('notification', function (data) {
             //alert("push notification");
-            alert(JSON.stringify(data));
-            console.log("push notification");
-            console.log(data);
-            console.log(data.title);
-            console.log(data.message);
-            console.log(data.count);
-            console.log(data.sound);
-            console.log(data.image);
-            var chatids = data.additionalData.chatids;
-            alert(JSON.stringify(chatids));
-
-
+            push.clearAllNotifications();   // no success and error fns given
             if (data.count) {
-                push.setApplicationIconBadgeNumber(function () {
-                    alert('badge count set to ' + data.count);
-                }, function () {
-                    alert('badge count set failed');
-                }, data.count);
+                push.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
             }
-            // push.clearAllNotifications
+            if (data.count > 0) {
+                alert(JSON.stringify(data));
+                console.log("push notification");
+                console.log(data);
+                var chatids = data.additionalData.chatids;
+                chatids = _.uniq(chatids);
 
-            //console.log(JSON.stringify(data.additionalData));
-            //console.log.text(JSON.stringify(data));
-            /*$('#nTitle').text(data.title);
-            $('#nMessage').text(data.message);
-            $('#nCount').text(data.count);
-            $('#nSound').text(data.sound);
-            $('#nImage').text(data.image);
-            $('#nAdditionalData').text(JSON.stringify(data.additionalData));
-            $('#nData').text(JSON.stringify(data));*/
+                require(['iznik/views/chat/chat'], function (ChatHolder) {
+                    _.each(chatids, function (chatid) {
+                        ChatHolder().fetchAndRestore(chatid);
+                    });
+                });
+            }
 
             push.finish(function () {
                 console.log("push finished");

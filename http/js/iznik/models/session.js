@@ -55,7 +55,7 @@ define([
 
             console.log("askSubscription");
             if (mobilePushId) {
-                var subscription = 'https://android.googleapis.com/gcm/send/' + mobilePushId;
+                var subscription = isiOS ? mobilePushId : 'https://android.googleapis.com/gcm/send/' + mobilePushId;
                 console.log(subscription);
                 //alert("Subs: "+subscription);
                 var me = Iznik.Session.get('me');
@@ -64,7 +64,7 @@ define([
                         id: me.id,
                         notifications: {
                             push: {
-                                type: 'Android',
+                                type: isiOS ? 'IOS' : 'Android',
                                 subscription: subscription
                             }
                         }
