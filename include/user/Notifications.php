@@ -14,6 +14,7 @@ class Notifications
     const PUSH_FIREFOX = 'Firefox';
     const PUSH_TEST = 'Test';
     const PUSH_ANDROID = 'Android';
+    const PUSH_IOS = 'IOS';
 
     private $dbhr, $dbhm, $log, $pheanstalk = NULL;
 
@@ -86,7 +87,7 @@ class Notifications
 
     public function executeSend($userid, $params, $endpoint, $payload) {
         try {
-            error_log("Execute send params " . var_export($params, TRUE));
+            #error_log("Execute send params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE));
             $params = $params ? $params : [];
             $webPush = new WebPush($params);
             $rc = $webPush->sendNotification($endpoint, $payload, NULL, TRUE);
@@ -143,7 +144,7 @@ class Notifications
                         list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
 
                         $payload = [
-                            'badge' => $count,
+                            'badge' => $chatcount,
                             'count' => $chatcount,
                             'title' => $title,
                             'message' => $message,

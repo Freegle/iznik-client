@@ -2658,7 +2658,7 @@ class User extends Entity
 
             if ($count === 1) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
-                $atts = $r->getPublic();
+                $atts = $r->getPublic($this);
                 $title = $atts['name'];
                 list($msgs, $users) = $r->getMessages(100, 0);
 

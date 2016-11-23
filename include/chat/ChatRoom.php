@@ -235,7 +235,7 @@ class ChatRoom extends Entity
         return ($id);
     }
 
-    public function getPublic()
+    public function getPublic($me = NULL)
     {
         $ret = $this->getAtts($this->publicatts);
 
@@ -264,7 +264,7 @@ class ChatRoom extends Entity
             $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
         }
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $ret['unseen'] = $this->unseenCountForUser($myid);
