@@ -1235,6 +1235,19 @@ define([
                     onDragEnd: _.bind(self.panelSize, self)
                 });
             }
+
+            _.delay(_.bind(self.adjustTimer, self), 5000);
+        },
+
+        adjustTimer: function() {
+            // We run this to handle resizing due to onscreen keyboards.
+            var self = this;
+
+            if (!self.minimised) {
+                console.log("Adjust", self);
+                self.adjust();
+                _.delay(_.bind(self.adjustTimer, self), 5000);
+            }
         },
 
         scrollTimer: null,
