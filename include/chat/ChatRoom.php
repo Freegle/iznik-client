@@ -554,7 +554,9 @@ class ChatRoom extends Entity
                 $lastmsgseen
             ], FALSE);
 
-            if ($rc) {
+            #error_log("Update roster $userid {$this->id} $rc last seen $lastmsgseen affected " . $this->dbhm->rowsAffected());
+            #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen))");
+            if ($rc && $this->dbhm->rowsAffected()) {
                 # We have updated our last seen.  Notify ourselves because we might have multiple devices which
                 # have counts/notifications which need updating.
                 $n = new Notifications($this->dbhr, $this->dbhm);

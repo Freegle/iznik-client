@@ -1244,7 +1244,6 @@ define([
             var self = this;
 
             if (!self.minimised) {
-                console.log("Adjust", self);
                 self.adjust();
                 _.delay(_.bind(self.adjustTimer, self), 5000);
             }
