@@ -76,7 +76,6 @@ class Notifications
                 'payload' => $payload
             ));
 
-            error_log("Encoded $str");
             $id = $this->pheanstalk->put($str);
         } catch (Exception $e) {
             # Try again in case it's a temporary error.
