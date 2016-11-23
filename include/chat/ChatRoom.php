@@ -1027,23 +1027,22 @@ class ChatRoom extends Entity
                             $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
 
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
-                            if (pres('message', $unmailedmsg) && (!$lastmsg || $lastmsg != $unmailedmsg['message'])) {
-
-                                switch ($unmailedmsg['type']) {
-                                    case ChatMessage::TYPE_COMPLETED: {
-                                        # There's no text stored for this - we invent it on the client.  Do so here
-                                        # too.
-                                        $lastmsg = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, this is no longer available." : "Thanks, this is no longer needed.";
-                                        break;
-                                    }
-
-                                    default: {
-                                        # Use the text in the message.
-                                        $lastmsg = $unmailedmsg['message'];
-                                        break;
-                                    }
+                            switch ($unmailedmsg['type']) {
+                                case ChatMessage::TYPE_COMPLETED: {
+                                    # There's no text stored for this - we invent it on the client.  Do so here
+                                    # too.
+                                    $lastmsg = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, this is no longer available." : "Thanks, this is no longer needed.";
+                                    break;
                                 }
 
+                                default: {
+                                    # Use the text in the message.
+                                    $lastmsg = $unmailedmsg['message'];
+                                    break;
+                                }
+                            }
+
+                            if (!$lastmsg || $lastmsg != $unmailedmsg['message']) {
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
                                 $textsummary .= $lastmsg . "\r\n";
