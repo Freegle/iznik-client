@@ -433,6 +433,9 @@ define([
                                 } else {
                                     $('#menu-toggle .js-totalcount').empty().hide();
                                 }
+                                if (mobilePush) {
+                                    mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
+                                }
 
                                 if (countschanged) {
                                     Iznik.Session.trigger('countschanged');

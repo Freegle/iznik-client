@@ -398,6 +398,10 @@ define([
                 }
 
                 this.showMin();
+
+                if (mobilePush) {
+                    mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
+                }
             }
         },
 

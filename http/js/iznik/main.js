@@ -8,6 +8,7 @@ var useSwipeRefresh = false;
 var initialURL = false;
 var hammer = false;
 var mobilePushId = false;
+var mobilePush = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -236,7 +237,7 @@ require([
     if (!PushNotification) {
         alert("No PN");
     } else if( !mobilePushId) {
-        var push = PushNotification.init({
+        mobilePush = PushNotification.init({
             android: {
                 senderID: "845879623324",
                 sound: false,
@@ -251,7 +252,7 @@ require([
                 sound: false
             }
         });
-        push.on('registration', function (data) {
+        mobilePush.on('registration', function (data) {
             mobilePushId = data.registrationId;
             console.log("push registration " + mobilePushId);
             //$("#registrationId").val(data.registrationId);
@@ -260,11 +261,11 @@ require([
             }
         });
 
-        push.on('notification', function (data) {
+        mobilePush.on('notification', function (data) {
             //alert("push notification");
-            push.clearAllNotifications();   // no success and error fns given
+            mobilePush.clearAllNotifications();   // no success and error fns given
             if (data.count) {
-                push.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+                mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
             }
             if (data.count > 0) {
                 alert(JSON.stringify(data));
@@ -284,13 +285,13 @@ require([
                 });
             }
 
-            push.finish(function () {
+            mobilePush.finish(function () {
                 console.log("push finished");
                 //alert("finished");
             });
         });
 
-        push.on('error', function (e) {
+        mobilePush.on('error', function (e) {
             alert("error: " + e.message);
         });
     }
