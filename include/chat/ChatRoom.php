@@ -530,6 +530,19 @@ class ChatRoom extends Entity
         return ($cansee);
     }
 
+    public function upToDate($userid) {
+        $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ?;",
+                [
+                    $msg['max'],
+                    $msg['max'],
+                    $this->id,
+                    $userid
+                ]);
+        }
+    }
+
     public function updateRoster($userid, $lastmsgseen, $status)
     {
         # We have a unique key, and an update on current timestamp.

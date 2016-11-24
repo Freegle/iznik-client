@@ -2999,10 +2999,14 @@ class Message
         $userq = $userid ? " AND userid != $userid " : "";
         $sql = "SELECT DISTINCT t.* FROM (SELECT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? WHERE refmsgid = ? AND reviewrejected = 0 $userq AND userid IS NOT NULL GROUP BY userid, chatid) t;";
         $replies = $this->dbhr->preQuery($sql, [ ChatRoom::TYPE_USER2USER, $this->id ]);
-        $r = new ChatMessage($this->dbhr, $this->dbhm);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
         foreach ($replies as $reply) {
-            $r->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
+            $cm->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
+
+            # Make sure this message is highlighted in chat/email.
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);
+            $r->upToDate($userid);
         }
     }
 

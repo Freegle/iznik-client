@@ -155,6 +155,28 @@ class Notifications
 
                     break;
                 }
+                case Notifications::PUSH_IOS: {
+                    $proceed = $u->notifsOn(User::NOTIFS_APP);
+
+                    if ($proceed) {
+                        # We need the payload.
+                        $params = [];
+
+                        $u = User::get($this->dbhr, $this->dbhm, $userid);
+                        list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
+
+                        $payload = [
+                            'badge' => $chatcount,
+                            'count' => $chatcount,
+                            'title' => $title,
+                            'message' => $message,
+                            'chatids' => $chatids,
+                            'image' => "www/images/user_logo.png"
+                        ];
+                    }
+
+                    break;
+                }
             }
 
             if ($proceed) {
