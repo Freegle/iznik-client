@@ -1088,8 +1088,7 @@ define([
                 // On mobile we maximise the chat window, as the whole resizing thing is too fiddly.
                 var height = localStorage.getItem('chat-' + self.model.get('id') + '-height');
                 var width = localStorage.getItem('chat-' + self.model.get('id') + '-width');
-                // console.log("Narrow?", isNarrow(), $(window).innerWidth());
-                if (isNarrow()) {
+                if (isSM()) {
                     // Just maximise it.
                     width = $(window).innerWidth();
                 }
@@ -1493,7 +1492,6 @@ define([
                     // If the unread message count changes, we want to update it.
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
 
-                    var narrow = isNarrow();
                     var minimise = true;
 
                     try {
@@ -1503,7 +1501,7 @@ define([
                         var open = localStorage.getItem(self.lsID() + '-open');
                         open = (open === null) ? open : parseInt(open);
 
-                        if (!open || (open != 2 && narrow)) {
+                        if (!open || (open != 2 && isSM())) {
                             minimise = true;
                         } else {
                             minimise = false;
