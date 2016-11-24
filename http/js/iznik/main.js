@@ -239,6 +239,7 @@ require([
         var push = PushNotification.init({
             android: {
                 senderID: "845879623324",
+                sound: false,
                 //iconColor: "#5EcA24",
                 //icon: "icon",
                 //forceShow: true,
@@ -247,7 +248,7 @@ require([
                 //senderID: "845879623324",
                 alert: true,
                 badge: true,
-                sound: true
+                sound: false
             }
         });
         push.on('registration', function (data) {
@@ -273,9 +274,13 @@ require([
                 chatids = _.uniq(chatids);
 
                 require(['iznik/views/chat/chat'], function (ChatHolder) {
-                    _.each(chatids, function (chatid) {
-                        ChatHolder().fetchAndRestore(chatid);
-                    });
+                    //_.each(chatids, function (chatid) {
+                    //    ChatHolder().fetchAndRestore(chatid);
+                    //});
+                    // Just open first chat
+                    if (chatids.length > 0) {
+                        ChatHolder().fetchAndRestore(chatids[0]);
+                    };
                 });
             }
 
