@@ -1,5 +1,5 @@
-var API = 'https://www.ilovefreegle.org/api/'; // CC
-//var API = 'https://iznik.ilovefreegle.org/api/'; // CC
+//var API = 'https://www.ilovefreegle.org/api/'; // CC
+var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -271,18 +271,21 @@ require([
                 alert(JSON.stringify(data));
                 console.log("push notification");
                 console.log(data);
-                var chatids = data.additionalData.chatids;
-                chatids = _.uniq(chatids);
+                var foreground = data.additionalData.foreground.toString() == 'true';
+                if (!foreground) {
+                    var chatids = data.additionalData.chatids;
+                    chatids = _.uniq(chatids);
 
-                require(['iznik/views/chat/chat'], function (ChatHolder) {
-                    //_.each(chatids, function (chatid) {
-                    //    ChatHolder().fetchAndRestore(chatid);
-                    //});
-                    // Just open first chat
-                    if (chatids.length > 0) {
-                        ChatHolder().fetchAndRestore(chatids[0]);
-                    };
-                });
+                    require(['iznik/views/chat/chat'], function (ChatHolder) {
+                        //_.each(chatids, function (chatid) {
+                        //    ChatHolder().fetchAndRestore(chatid);
+                        //});
+                        // Just open first chat
+                        if (chatids.length > 0) {
+                            ChatHolder().fetchAndRestore(chatids[0]);
+                        };
+                    });
+                }
             }
 
             mobilePush.finish(function () {
