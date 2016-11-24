@@ -198,7 +198,7 @@ class Twitter {
             $status = $m->getSubject();
             $status = substr($status, 0, 80);
 
-            $link = "https://directv2.ilovefreegle.org/mygroups/{$msg['legacyid']}/message/{$msg['yahooapprovedid']}";
+            $link = "https://" . USER_SITE . "/message/{$msg['msgid']}";
 
             $status .= " $link";
             $rc = $this->tweet($status, $media);

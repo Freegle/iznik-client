@@ -1,4 +1,5 @@
 var API = 'https://modtools.org/api/'; // CC
+//var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -6,6 +7,8 @@ var isiOS = false; // CC
 var useSwipeRefresh = false;
 var initialURL = false;
 var hammer = false;
+var mobilePushId = false;
+var mobilePush = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -124,9 +127,9 @@ require([
     'backbone',
     'iznik/router',
     'hammer'   // CC
-], function($, _, Backbone) {
+], function ($, _, Backbone) {
     console.log("starting Backbone");	// CC
-	  if (!Backbone) {
+    if (!Backbone) {
         // Something has gone unpleasantly wrong.
         console.error("Backbone failed to fetch");
         panicReload();
@@ -153,40 +156,40 @@ require([
 	      //oldconsolelog(msg);
 	  }
 
-      // http://hammerjs.github.io/getting-started/
+    // http://hammerjs.github.io/getting-started/
 
-	  if (useSwipeRefresh) {
-	      //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
-	      hammer = new Hammer(window);
-	      hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
-	      hammer.on('swipedown', function (ev) {
-	          //console.log(ev);
-	          var posn = $(window).scrollTop();
-	          //console.log("posn=" + posn);
-	          //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
-	          if (posn === 0) {
-	              mobileRefresh();
-	          }
-	      });
-	      //hammer.on('swipeleft swiperight', function (ev) {
-	      //    console.log(ev);
-	      //    $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
-	      //});
-	  }
+    if (useSwipeRefresh) {
+        //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+        hammer = new Hammer(window);
+        hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+        hammer.on('swipedown', function (ev) {
+            //console.log(ev);
+            var posn = $(window).scrollTop();
+            //console.log("posn=" + posn);
+            //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
+            if (posn === 0) {
+                mobileRefresh();
+            }
+        });
+        //hammer.on('swipeleft swiperight', function (ev) {
+        //    console.log(ev);
+        //    $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
+        //});
+    }
 
-      // Catch back button and clear chats
-	  window.addEventListener('popstate', function (e) {    // CC
-	      try {
-	          var ChatHolder = new Iznik.Views.Chat.Holder();
-	          ChatHolder.minimiseall();
-	      } catch (e) { }
-	  });
+    // Catch back button and clear chats
+    window.addEventListener('popstate', function (e) {    // CC
+        try {
+            var ChatHolder = new Iznik.Views.Chat.Holder();
+            ChatHolder.minimiseall();
+        } catch (e) { }
+    });
 
-	  document.addEventListener("offline", function () { isOnline = false; showNetworkStatus() }, false);
-	  document.addEventListener("online", function () { isOnline = true; showNetworkStatus() }, false);
+    document.addEventListener("offline", function () { isOnline = false; showNetworkStatus() }, false);
+    document.addEventListener("online", function () { isOnline = true; showNetworkStatus() }, false);
 
     Backbone.emulateJSON = true;
-    
+
     // We have a busy indicator.
     $(document).ajaxStop(function () {
         $('#spinner').hide();
@@ -205,12 +208,12 @@ require([
     var _ajax = $.ajax;
 
     function sliceArgs() {
-        return(Array.prototype.slice.call(arguments, 0));
+        return (Array.prototype.slice.call(arguments, 0));
     }
 
     function delay(errors) {
         // Exponential backoff upto a limit.
-        return(Math.min(Math.pow(2, errors) * 1000, 30000));
+        return (Math.min(Math.pow(2, errors) * 1000, 30000));
     }
 
     function retryIt(jqXHR) {
@@ -225,10 +228,10 @@ require([
 
     function extendIt(args, options) {
         _.extend(args[0], options && typeof options === 'object' ? options : {}, {
-            error:   function () { retryIt.apply(this, arguments); }
+            error: function () { retryIt.apply(this, arguments); }
         });
     }
-    
+
     $.ajax = function (options) {
         var url = options.url;
 
@@ -250,9 +253,73 @@ require([
 
             return _ajax.apply($, args);
         } else {
-            return(_ajax.apply($, arguments));
+            return (_ajax.apply($, arguments));
         }
     };
+
+    console.log("push init start");
+    if (!PushNotification) {
+        alert("No PN");
+    } else if( !mobilePushId) {
+        mobilePush = PushNotification.init({
+            android: {
+                senderID: "845879623324",
+                sound: false,
+                //iconColor: "#5EcA24",
+                //icon: "icon",
+                //forceShow: true,
+            },
+            ios: {
+                //senderID: "845879623324",
+                alert: true,
+                badge: true,
+                sound: false
+            }
+        });
+        mobilePush.on('registration', function (data) {
+            mobilePushId = data.registrationId;
+            console.log("push registration " + mobilePushId);
+            //$("#registrationId").val(data.registrationId);
+            if (isiOS) {
+                alert("registration: " + mobilePushId);
+            }
+        });
+
+        mobilePush.on('notification', function (data) {
+            //alert("push notification");
+            mobilePush.clearAllNotifications();   // no success and error fns given
+            if (data.count) {
+                mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+            }
+            if (data.count > 0) {
+                alert(JSON.stringify(data));
+                console.log("push notification");
+                console.log(data);
+                var chatids = data.additionalData.chatids;
+                chatids = _.uniq(chatids);
+
+                require(['iznik/views/chat/chat'], function (ChatHolder) {
+                    //_.each(chatids, function (chatid) {
+                    //    ChatHolder().fetchAndRestore(chatid);
+                    //});
+                    // Just open first chat
+                    if (chatids.length > 0) {
+                        ChatHolder().fetchAndRestore(chatids[0]);
+                    };
+                });
+            }
+
+            mobilePush.finish(function () {
+                console.log("push finished");
+                //alert("finished");
+            });
+        });
+
+        mobilePush.on('error', function (e) {
+            alert("error: " + e.message);
+        });
+    }
+
 });
 
 }; // CC

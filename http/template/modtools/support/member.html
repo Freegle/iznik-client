@@ -55,12 +55,19 @@
             <% } else { %>
             <p>This user isn't on the spammer list.</p>
             <div class="btn btn-white js-spammer">
-                <div class="glyphicon glyphicon-ban-circle" />&nbsp;Report as Spammer
+                <div class="glyphicons glyphicons-ban-circle" />&nbsp;Report as Spammer
             </div>
             <% } %>
             <div class="btn btn-white js-adminonly hidden js-purge">
-                <div class="glyphicon glyphicon-trash" />&nbsp;Purge from DB
+                <div class="glyphicons glyphicons-bin" />&nbsp;Purge from DB
             </div>
+            <% if (obj.loginlink) { %>
+            <a data-realurl="true" target="_blank" href="{{loginlink}}">
+                <div class="btn btn-white">
+                    <span class="glyphicons glyphicons-user" />&nbsp;Impersonate
+                </div>
+            </a>
+            <% } %>
             <h3>Settings</h3>
             <div class="row botspace">
                 <div class="col-md-3 botspace">

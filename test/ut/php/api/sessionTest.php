@@ -204,7 +204,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals('test2@test.com', $ret['me']['email']);
 
         $ret = $this->call('session', 'PATCH', [
-            'settings' => json_encode(['test' => 1]),
+            'settings' => ['test' => 1],
             'displayname' => "Testing User",
             'email' => 'test2@test.com',
             'notifications' => [

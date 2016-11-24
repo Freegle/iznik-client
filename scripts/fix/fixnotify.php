@@ -1,4 +1,5 @@
 <?php
+const MODTOOLS = FALSE;
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
@@ -11,4 +12,4 @@ $g = Group::get($dbhr, $dbhm);
 
 $gid = $g->findByShortName('EdinburghFreegle');
 #$l->notifyGroupMods($gid);
-$l->notify(26069186);
+$l->notify(1093072,"Title", "Message");

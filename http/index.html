@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML>
 <html>
 <head>
-	<meta name="iznik_mobile_version" content="0.0.5, 10 November 2016">
+	<meta name="iznik_mobile_version" content="0.0.5, 24 November 2016">
   <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, -->
   <!-- or help make the code better at https://github.com/Freegle/iznik ?  -->
   <!--meta http-equiv="Content-Security-Policy" content="default-src *; media-src *"-->
@@ -10,6 +10,15 @@
     default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *
     https://www.html5rocks.com/en/tutorials/security/content-security-policy/
     -->
+  <!--
+    Android target SDK has to be 20 so notification icon(s) are correct
+    Use phonegap-plugin-push-1.8.4 as compatible with our Cordova, amended to remove gradle script
+    Generate prod push cert on Mac: http://stackoverflow.com/questions/21250510/generate-pem-file-used-to-setup-apple-push-notification
+    ModTools: Amend inAppBrowser to add getCookies
+     - plugins\cordova-plugin-inappbrowser\www\inappbrowser.js
+     - https://github.com/apache/cordova-plugin-inappbrowser/pull/122
+     - https://github.com/apache/cordova-plugin-inappbrowser/pull/122/commits/32bcda6e69be39e2cbef3f582ac696873bb0b2bf
+  -->
   <meta name="msapplication-tap-highlight" content="no"/>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
   <meta name="viewport"

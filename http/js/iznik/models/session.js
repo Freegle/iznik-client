@@ -53,7 +53,30 @@ define([
         },
 
         askSubscription: function() {
-            var self = this;
+
+            console.log("askSubscription");
+            if (mobilePushId) {
+                var subscription = isiOS ? mobilePushId : 'https://android.googleapis.com/gcm/send/' + mobilePushId;
+                console.log(subscription);
+                //alert("Subs: "+subscription);
+                var me = Iznik.Session.get('me');
+                if (me) {
+                    Iznik.Session.save({
+                        id: me.id,
+                        notifications: {
+                            push: {
+                                type: isiOS ? 'IOS' : 'Android',
+                                subscription: subscription
+                            }
+                        }
+                    }, {
+                        patch: true
+                    });
+                }
+            }
+
+
+            /*var self = this;
             console.log("askSubscription");
 
             if (window.serviceWorker) {
@@ -112,12 +135,13 @@ define([
                         }
                     }
                 });
-            }
+            }*/
         },
 
         gotSubscription: function (sub) {
             console.log('Subscription endpoint:', sub);
-            var subscription = sub.endpoint;
+
+            /*var subscription = sub.endpoint;
 
             try {
                 // Pass the subscription to the service worker, so that it can use it to authenticate to the server if we
@@ -161,7 +185,7 @@ define([
                         patch: true
                     });
                 }
-            }
+            }*/
         },
 
         testLoggedIn: function (forceserver) {
@@ -414,6 +438,9 @@ define([
                                     $('#menu-toggle .js-totalcount').html(total).show();
                                 } else {
                                     $('#menu-toggle .js-totalcount').empty().hide();
+                                }
+                                if (mobilePush) {
+                                    mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
                                 }
 
                                 if (countschanged) {
