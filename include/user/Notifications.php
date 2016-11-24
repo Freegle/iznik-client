@@ -59,7 +59,7 @@ class Notifications
         return($rc);
     }
 
-    private function queueSend($userid, $params, $endpoint, $payload) {
+    private function queueSend($userid, $type, $params, $endpoint, $payload) {
         #error_log("queueSend $userid $endpoint params " . var_export($params, TRUE));
         try {
             $this->uthook();
@@ -70,6 +70,7 @@ class Notifications
 
             $str = json_encode(array(
                 'type' => 'webpush',
+                'notiftype' => $type,
                 'queued' => time(),
                 'userid' => $userid,
                 'params' => $params,
@@ -85,12 +86,61 @@ class Notifications
         }
     }
 
-    public function executeSend($userid, $params, $endpoint, $payload) {
+    public function executeSend($userid, $notiftype, $params, $endpoint, $payload) {
         try {
-            #error_log("Execute send params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE));
-            $params = $params ? $params : [];
-            $webPush = new WebPush($params);
-            $rc = $webPush->sendNotification($endpoint, $payload, NULL, TRUE);
+            #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoing $endpoint");
+            switch ($notiftype) {
+                case Notifications::PUSH_GOOGLE:
+                case Notifications::PUSH_FIREFOX:
+                case Notifications::PUSH_ANDROID:
+                    $params = $params ? $params : [];
+                    $webPush = new WebPush($params);
+                    $rc = $webPush->sendNotification($endpoint, $payload, NULL, TRUE);
+                    break;
+                case Notifications::PUSH_IOS:
+                    $body['aps'] = [
+                        'alert' => [
+                            'title' => $payload['title'],
+                            'body' => $payload['message'] ? $payload['message'] : 'testbody'
+                        ],
+                        'badge' => $payload['badge'],
+                        'sound' => 'default',
+                        'content-available' => "1",
+                        'chatids' => $payload['chatids']
+                    ];
+
+                    try {
+                        $deviceToken = $endpoint;
+                        $ctx = stream_context_create();
+                        $certfile = $payload['modtools'] ? '/etc/modtools_push.pem' : '/etc/user_push.pem';
+                        stream_context_set_option($ctx, 'ssl', 'local_cert', $certfile);
+                        $fp = stream_socket_client(
+                            'ssl://gateway.push.apple.com:2195', $err,
+                            $errstr, 60, STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT, $ctx);
+
+                        if ($fp) {
+                            $body['aps'] = [
+                                'alert' => [
+                                    'body' => $payload['title'] . ($payload['message'] ? ": {$payload['message']}" : '')
+                                ],
+                                'badge' => $payload['badge'],
+                                'sound' => 'default',
+                                'content-available' => "1",
+                                'chatids' => $payload['chatids']
+                            ];
+
+                            $payload = json_encode($body);
+                            $msg = chr(0) . pack('n', 32) . pack('H*', $deviceToken) . pack('n', strlen($payload)) . $payload;
+                            stream_set_blocking($fp, 0);
+                            $result = fwrite($fp, $msg, strlen($msg));
+                            fclose($fp);
+                        }
+                    } catch (Exception $e) { error_log("Exception " . $e->getMessage()); }
+
+                    $rc = TRUE;
+
+                    break;
+            }
             #error_log("Returned " . var_export($rc, TRUE) . " for {$notif['subscription']}");
             $rc = $this->uthook($rc);
         } catch (Exception $e) {
@@ -171,7 +221,7 @@ class Notifications
                             'title' => $title,
                             'message' => $message,
                             'chatids' => $chatids,
-                            'image' => "www/images/user_logo.png"
+                            'modtools' => MODTOOLS
                         ];
                     }
 
@@ -180,7 +230,7 @@ class Notifications
             }
 
             if ($proceed) {
-                $this->queueSend($userid, $params, $notif['subscription'], $payload);
+                $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
                 $count++;
             }
         }

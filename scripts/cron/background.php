@@ -57,7 +57,7 @@ try {
 
                         case 'webpush': {
                             $n = new Notifications($dbhr, $dbhm);
-                            $n->executeSend($data['userid'], $data['params'], $data['endpoint'], $data['payload']);
+                            $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
                             break;
                         }
 
