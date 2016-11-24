@@ -161,7 +161,8 @@ class chatRoomsTest extends IznikTestCase {
 
         $this->msgsSent = [];
 
-        # Notify - will email body.
+        # Notify - will email both.
+        error_log("Will email both");
         assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
         assertEquals('Re: OFFER: Test item (location)', $this->msgsSent[0]['subject']);
 

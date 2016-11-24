@@ -71,14 +71,14 @@ class notificationsTest extends IznikTestCase {
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willReturn(TRUE);
-        $mock->executeSend(0, [], 'test', NULL);
+        $mock->executeSend(0, Notifications::PUSH_GOOGLE, [], 'test', NULL);
 
         $mock = $this->getMockBuilder('Notifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willThrowException(new Exception());
-        $mock->executeSend(0, [], 'test', NULL);
+        $mock->executeSend(0, Notifications::PUSH_GOOGLE, [], 'test', NULL);
 
         error_log(__METHOD__ . " end");
     }

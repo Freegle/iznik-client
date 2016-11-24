@@ -1015,13 +1015,14 @@ class ChatRoom extends Entity
 
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed of the messages in this chat.  Find the other one.
-                #error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
+                error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
 
                 # We email them if they have mails turned on, and if they have a membership - if they don't, then we
                 # don't want to annoy them.
+                error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
                 if ($thisu->notifsOn(User::NOTIFS_EMAIL) && count($thisu->getMemberships()) > 0) {
                     # Now collect a summary of what they've missed.
                     $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
@@ -1030,7 +1031,7 @@ class ChatRoom extends Entity
                             $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0
                         ]);
 
-                    #error_log("Unseen " . var_export($unmailedmsgs, TRUE));
+                    error_log("Unseen " . var_export($unmailedmsgs, TRUE));
 
                     if (count($unmailedmsgs) > 0) {
                         $textsummary = '';
@@ -1046,21 +1047,21 @@ class ChatRoom extends Entity
                                 case ChatMessage::TYPE_COMPLETED: {
                                     # There's no text stored for this - we invent it on the client.  Do so here
                                     # too.
-                                    $lastmsg = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, this is no longer available." : "Thanks, this is no longer needed.";
+                                    $thisone = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, this is no longer available." : "Thanks, this is no longer needed.";
                                     break;
                                 }
 
                                 default: {
                                     # Use the text in the message.
-                                    $lastmsg = $unmailedmsg['message'];
+                                    $thisone = $unmailedmsg['message'];
                                     break;
                                 }
                             }
 
-                            if (!$lastmsg || $lastmsg != $unmailedmsg['message']) {
+                            if (!$lastmsg || $lastmsg != $thisone) {
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
-                                $textsummary .= $lastmsg . "\r\n";
+                                $textsummary .= $thisone . "\r\n";
 
                                 #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
                                 if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
@@ -1078,10 +1079,11 @@ class ChatRoom extends Entity
 
                                 $lastfrom = $unmailedmsg['userid'];
 
-                                $htmlsummary .= nl2br($lastmsg) . "<br>";
+                                $htmlsummary .= nl2br($thisone) . "<br>";
                                 $htmlsummary .= '</span>';
 
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
+                                $lastmsg = $thisone;
                             }
                         }
 
