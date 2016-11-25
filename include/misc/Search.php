@@ -156,12 +156,13 @@ class Search
                 $id = $this->getWordIdExact($word);
                 if ($id) {
                     # We use a - value because MySQL doesn't support DESC indexing.
-                    $sql = "INSERT IGNORE INTO {$this->table} (`{$this->idatt}`, `wordid`, `{$this->sortatt}`, `{$this->filtatt}`) VALUES (?,?,?,?);";
+                    $sql = "INSERT IGNORE INTO {$this->table} (`{$this->idatt}`, `wordid`, `{$this->sortatt}`, `{$this->filtatt}`) VALUES (?,?,?,?) ON DUPLICATE KEY update `{$this->sortatt}` = ?;";
                     $rc = $this->dbhm->preExec($sql, [
                         $extid,
                         $id,
                         -$sortval,
-                        $filtval
+                        $filtval,
+                        -$sortval
                     ]);
 
                     $sql = "UPDATE {$this->wordtab} SET popularity = -(SELECT COUNT(*) FROM {$this->table} WHERE `wordid` = ?) WHERE `id` = ?;";
@@ -332,7 +333,7 @@ class Search
         while ($count < $limit && count($results) > 0) {
             $key = key($results);
 
-            # Find min value of the sort att to return in the context.
+            # Find max value of the sort att to return in the context.
             $thislot = $results[$key]['items'];
             $ret[] = [
                 'id' => $key,
@@ -343,12 +344,14 @@ class Search
                 $results[$key][] = $thisone['item'];
 
                 $retcont[$thisone['tag']] = pres($thisone['tag'], $retcont) ?
-                    min($retcont[$thisone['tag']], $thisone['item'][$this->idatt]) : $thisone['item'][$this->idatt];
+                    max($retcont[$thisone['tag']], $thisone['item'][$this->sortatt]) : $thisone['item'][$this->sortatt];
             }
 
             unset($results[$key]);
             $count++;
         }
+
+        error_log("Ret " . json_encode($ret));
 
         $context = $retcont;
 
