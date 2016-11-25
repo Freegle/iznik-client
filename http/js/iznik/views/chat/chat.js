@@ -785,9 +785,14 @@ define([
 
                 // If the unread message count changes, we want to update it.
                 if (!self.unseenListen) {
+                    self.unseenListen = true;
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
                 }
-                self.listenTo(self.model, 'change:snippet', self.render);
+
+                if (!self.snippetListen) {
+                    self.snippetListen = true;
+                    self.listenTo(self.model, 'change:snippet', self.render);
+                }
             });
 
             return (p);
@@ -830,21 +835,45 @@ define([
             }
         },
 
+        getLatestMessages: function() {
+            var self = this;
+
+            if (!self.fetching) {
+                self.fetching = true;
+                self.fetchAgain = false;
+
+                // Get the full set of messages back.  This will replace any temporary
+                // messages added, and also ensure we don't miss any that arrived while we
+                // were sending ours.
+                self.messages.fetch({
+                    remove: true
+                }).then(function () {
+                    self.fetching = false;
+                    if (self.fetchAgain) {
+                        // console.log("Fetch messages again");
+                        self.getLatestMessages();
+                    } else {
+                        // console.log("Fetched and no more");
+                        self.options.updateCounts();
+                        self.scrollBottom();
+                    }
+                });
+            } else {
+                // We are currently fetching, but would like to do so again.  Queue another fetch to happen
+                // once this completes.  That avoids a car crash of fetches happening when there are a lot of
+                // messages being sent and we're not keeping up.
+                // console.log("Fetch again later");
+                self.fetchAgain = true;
+            }
+        },
+
         send: function () {
             var self = this;
             var message = this.$('.js-message').val();
             if (message.length > 0) {
                 // We get called back when the message has actually been sent to the server.
                 self.listenToOnce(this.model, 'sent', function () {
-                    // Get the full set of messages back.  This will replace any temporary
-                    // messages added, and also ensure we don't miss any that arrived while we
-                    // were sending ours.
-                    self.messages.fetch({
-                        remove: true
-                    }).then(function () {
-                        self.options.updateCounts();
-                        self.scrollBottom();
-                    });
+                    self.getLatestMessages();
                 });
 
                 self.model.send(message);
@@ -1147,6 +1176,7 @@ define([
             $('#notifchatdropdown').hide();
 
             // Input text autosize
+            // console.log("Autosize on " + self.model.get('id') + " " + self.doneAutosize);
             if (!self.doneAutosize) {
                 self.doneAutosize = true;
                 autosize(self.$('textarea'));
@@ -1401,7 +1431,7 @@ define([
             if (ret.ret === 0) {
                 if (!_.isUndefined(ret.roster)) {
                     self.$('.js-roster').empty();
-                    console.log("Roster", ret.roster);
+                    // console.log("Roster", ret.roster);
                     _.each(ret.roster, function (rost) {
                         var mod = new Iznik.Model(rost);
                         var v = new Iznik.Views.Chat.RosterEntry({
@@ -1416,7 +1446,7 @@ define([
                 }
 
                 if (!_.isUndefined(ret.unseen)) {
-                    console.log("Set unseen from", self.model.get('unseen'), ret.unseen, ret);
+                    // console.log("Set unseen from", self.model.get('unseen'), ret.unseen, ret);
                     self.model.set('unseen', ret.unseen);
                 }
             }
@@ -1581,6 +1611,7 @@ define([
         render: function () {
             var self = this;
             var p;
+            //console.log("Render chat message", this.model.get('id'));
 
             if (this.model.get('id')) {
                 var message = this.model.get('message');
