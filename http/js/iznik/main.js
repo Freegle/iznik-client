@@ -276,15 +276,23 @@ require([
                     var chatids = data.additionalData.chatids;
                     chatids = _.uniq(chatids);
 
-                    require(['iznik/views/chat/chat'], function (ChatHolder) {
-                        //_.each(chatids, function (chatid) {
-                        //    ChatHolder().fetchAndRestore(chatid);
-                        //});
-                        // Just open first chat
-                        if (chatids.length > 0) {
-                            ChatHolder().fetchAndRestore(chatids[0]);
-                        };
-                    });
+                    if (chatids.length > 0) {
+                        require(['iznik/views/chat/chat'], function (ChatHolder) {
+                            //_.each(chatids, function (chatid) {
+                            //    ChatHolder().fetchAndRestore(chatid);
+                            //});
+                            // Just open first chat - when logged in
+                            Iznik.Session.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                                ChatHolder().fetchAndRestore(chatids[0]);
+                            });
+                            /*(function theLoop(i) {
+                                if (Iznik.Session.loggedIn) {
+                                } else {
+                                    setTimeout(function () { if (--i) { theLoop(i); }}, 1000);
+                                }
+                            })(10);*/
+                        });
+                    }
                 }
             }
 
