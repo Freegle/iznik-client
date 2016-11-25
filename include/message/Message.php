@@ -799,7 +799,6 @@ class Message
      */
     public function setFromIP($fromip)
     {
-        $this->fromip = $fromip;
         $name = NULL;
 
         if ($fromip) {
@@ -807,13 +806,19 @@ class Message
             # not resolvable.
             $name = gethostbyaddr($fromip);
             $name = ($name == $fromip) ? NULL : $name;
-            $this->fromhost = $name;
+
+            if ($name) {
+                $this->fromhost = $name;
+            }
         }
 
-        $this->dbhm->preExec("UPDATE messages SET fromip = ? WHERE id = ?;",
-            [$fromip, $this->id]);
-        $this->dbhm->preExec("UPDATE messages_history SET fromip = ?, fromhost = ? WHERE msgid = ?;",
-            [$fromip, $name, $this->id]);
+        if ($fromip) {
+            $this->fromip = $fromip;
+            $this->dbhm->preExec("UPDATE messages SET fromip = ? WHERE id = ? AND fromip IS NULL;",
+                [$fromip, $this->id]);
+            $this->dbhm->preExec("UPDATE messages_history SET fromip = ?, fromhost = ? WHERE msgid = ? AND fromip IS NULL;",
+                [$fromip, $name, $this->id]);
+        }
     }
 
     /**
