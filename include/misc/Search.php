@@ -346,7 +346,7 @@ class Search
             $count++;
         }
 
-        error_log("Ret " . json_encode($ret));
+        #error_log("Ret limit $limit " . json_encode($ret));
 
         $context = $retcont;
 

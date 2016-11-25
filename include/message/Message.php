@@ -1925,6 +1925,8 @@ class Message
 
             $this->maybeMail($groupid, $subject, $body, 'Approve');
         }
+
+        $this->index();
     }
 
     public function reply($groupid, $subject, $body, $stdmsgid) {

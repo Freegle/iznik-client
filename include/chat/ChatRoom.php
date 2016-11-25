@@ -344,10 +344,10 @@ class ChatRoom extends Entity
         return ($counts[0]['count']);
     }
 
-    public function allUnseenForUser($userid, $chattypes)
+    public function allUnseenForUser($userid, $chattypes, $modtools = FALSE)
     {
         # Get all unseen messages.
-        $chatids = $this->listForUser($userid, $chattypes);
+        $chatids = $this->listForUser($userid, $chattypes, NULL, FALSE, $modtools);
         $ret = [];
 
         foreach ($chatids as $chatid) {
@@ -362,7 +362,7 @@ class ChatRoom extends Entity
         return ($ret);
     }
 
-    public function listForUser($userid, $chattypes, $search = NULL, $all = FALSE)
+    public function listForUser($userid, $chattypes, $search = NULL, $all = FALSE, $modtools = MODTOOLS)
     {
         $ret = [];
         $u = User::get($this->dbhr, $this->dbhm, $userid);
@@ -390,7 +390,7 @@ class ChatRoom extends Entity
             # If we're on ModTools then we want User2Mod chats for our group.
             #
             # If we're on the user site then we only want User2Mod chats where we are a user.
-            $sql = MODTOOLS ? "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'User2Mod';" : "SELECT chat_rooms.* FROM chat_rooms WHERE user1 = ? AND chattype = 'User2Mod';";
+            $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'User2Mod';" : "SELECT chat_rooms.* FROM chat_rooms WHERE user1 = ? AND chattype = 'User2Mod';";
             $rooms = $this->dbhr->preQuery($sql, [$userid]);
             foreach ($rooms as $room) {
                 $chatids[] = $room['id'];
