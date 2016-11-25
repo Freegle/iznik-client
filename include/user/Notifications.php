@@ -98,17 +98,6 @@ class Notifications
                     $rc = $webPush->sendNotification($endpoint, $payload, NULL, TRUE);
                     break;
                 case Notifications::PUSH_IOS:
-                    $body['aps'] = [
-                        'alert' => [
-                            'title' => $payload['title'],
-                            'body' => $payload['message'] ? $payload['message'] : 'testbody'
-                        ],
-                        'badge' => $payload['badge'],
-                        'sound' => 'default',
-                        'content-available' => "1",
-                        'chatids' => $payload['chatids']
-                    ];
-
                     try {
                         $deviceToken = $endpoint;
                         $ctx = stream_context_create();
@@ -199,6 +188,7 @@ class Notifications
                             'title' => $title,
                             'message' => $message,
                             'chatids' => $chatids,
+                            'content-available' => 1,
                             'image' => "www/images/user_logo.png"
                         ];
                     }
@@ -221,6 +211,7 @@ class Notifications
                             'title' => $title,
                             'message' => $message,
                             'chatids' => $chatids,
+                            'content-available' => 1,
                             'modtools' => MODTOOLS
                         ];
                     }

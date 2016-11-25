@@ -18,10 +18,10 @@ define([
 
             if (self.fetchPromise && self.fetching == self.selected) {
                 // We are already fetching what we need to be.
-                console.log("Already fetching");
+                // console.log("Already fetching");
                 return(self.fetchPromise);
             } else {
-                console.log("Not already fetching");
+                // console.log("Not already fetching");
                 self.fetching = self.selected;
                 self.fetchPromise = new Promise(function(resolve, reject) {
                     if (data) {
@@ -76,18 +76,18 @@ define([
                     }
 
                     // Fetch more - and leave the old ones in the collection unless we're fetching another group.
-                    console.log("Fetch vs", self.selected, self.lastFetched, self.selected != self.lastFetched, data);
+                    // console.log("Fetch vs", self.selected, self.lastFetched, self.selected != self.lastFetched, data);
                     self.collection.fetch({
                         data: data,
                         remove: self.selected != self.lastFetched,
                         success: function (collection, response, options) {
-                            console.log("Check response", self.retField, response);
+                            // console.log("Check response", self.retField, response);
                             if (response.hasOwnProperty(self.retField) && response[self.retField].length > 0) {
                                 // We want find last one, so that we can tell when we've scrolled to it.  We might
                                 // be using visibleModelsFilter, so we need to watch for that class.
                                 // console.log("Look for last", self.collectionView);
                                 var last = self.collectionView.$el.find("li:not('.not-visible'):last");
-                                console.log("Last visible", last);
+                                // console.log("Last visible", last);
 
                                 if (last.length > 0) {
                                     // Waypoints allow us to see when we have scrolled to the bottom.
@@ -96,7 +96,7 @@ define([
                                         self.lastWaypoint.destroy();
                                     }
 
-                                    console.log("Set up waypoint for", last.get(0));
+                                    // console.log("Set up waypoint for", last.get(0));
                                     self.lastWaypoint = new Waypoint({
                                         element: last.get(0),
                                         handler: function (direction) {
@@ -112,9 +112,9 @@ define([
 
                                                 // We have scrolled to the last view.  Fetch more as long as we've not switched
                                                 // away to another page.
-                                                console.log("Scrolled to last", last.closest('body').length);
+                                                // console.log("Scrolled to last", last.closest('body').length);
                                                 if (last.closest('body').length > 0) {
-                                                    console.log("Still in DOM, fetch");
+                                                    // console.log("Still in DOM, fetch");
                                                     self.fetch();
                                                 }
                                             }

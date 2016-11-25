@@ -478,6 +478,46 @@ define([
         }
     });
 
+    Iznik.Collections.Messages.MatchedOn = Iznik.Collections.Message.extend({
+        matchtypes: [],
+
+        getMatch: function(model) {    
+            var self = this;
+            var id = model.get('id');
+            
+            // For this kind of collection, later fetches might return the same messages but with a less good matchedon
+            // type.  We sort on the matched on type, so the result of this would be that the message would degrade
+            // in position, which would look silly.  So we save off the match type when we first see a message and
+            // that's what we'll use in the sort.
+            if (!self.matchtypes[model.get('id')]) {
+                self.matchtypes[id] = model.get('matchedon').type;
+                // console.log("First sight of " + id + " with type " + model.get('matchedon').type);
+            } else {
+                // console.log("Ignore later sight of " + id + " with type " + model.get('matchedon').type);
+            }
+            
+            return(self.matchtypes[id]);
+        },
+
+        comparator: function (a, b) {
+            // We show matches in order of Exact, Typo, StartsWith, SoundsLike, and then within that, most recent first.
+            // This will give results that visually look most plausible first.
+            var types = ['Exact', 'Typo', 'StartsWith', 'SoundsLike'];
+            atype = types.indexOf(this.getMatch(a));
+            btype = types.indexOf(this.getMatch(b));
+            var ret;
+
+            if (atype != btype) {
+                ret = atype - btype;
+            } else {
+                ret = (new Date(b.get('arrival'))).getTime() - (new Date(a.get('arrival'))).getTime();
+            }
+
+            // console.log("Result", a.get('id'), a.get('matchedon').type, b.get('id'), b.get('matchedon').type, ret);
+            return (ret);
+        }
+    });
+
     Iznik.Collections.Messages.Search = Iznik.Collections.Message.extend({
         url: function() {
             var url;
@@ -495,34 +535,6 @@ define([
         url: function() {
             url = API + 'messages/searchall/' + encodeURIComponent(this.options.searchmess);
             return(url);
-        }
-    });
-
-    // Search sorted by closeness.
-    Iznik.Collections.Messages.GeoSearch = Iznik.Collections.Messages.Search.extend({
-        comparator: function(a, b) {
-            if (this.options.nearlocation) {
-                var mylat = this.options.nearlocation.lat;
-                var mylng = this.options.nearlocation.lng;
-
-                // Messages might have an area, or (if we have rights) a location.
-                var aloc = a.get('location') ? a.get('location') : a.get('area');
-                var bloc = b.get('location') ? b.get('location') : b.get('area');
-
-                // Some messages don't have locations.  Assume they're far away.
-                if (!aloc) {
-                    return(1)
-                } else if (!bloc) {
-                    return(-1);
-                }
-
-                var adist = haversineDistance([mylat, mylng], [aloc.lat, aloc.lng], true);
-                var bdist = haversineDistance([mylat, mylng], [bloc.lat, bloc.lng], true);
-                a.set('distance', Math.round(adist, 1));
-                b.set('distance', Math.round(bdist, 1));
-
-                return(adist - bdist);
-            }
         }
     });
 });

@@ -156,12 +156,13 @@ class Search
                 $id = $this->getWordIdExact($word);
                 if ($id) {
                     # We use a - value because MySQL doesn't support DESC indexing.
-                    $sql = "INSERT IGNORE INTO {$this->table} (`{$this->idatt}`, `wordid`, `{$this->sortatt}`, `{$this->filtatt}`) VALUES (?,?,?,?);";
+                    $sql = "INSERT IGNORE INTO {$this->table} (`{$this->idatt}`, `wordid`, `{$this->sortatt}`, `{$this->filtatt}`) VALUES (?,?,?,?) ON DUPLICATE KEY update `{$this->sortatt}` = ?;";
                     $rc = $this->dbhm->preExec($sql, [
                         $extid,
                         $id,
                         -$sortval,
-                        $filtval
+                        $filtval,
+                        -$sortval
                     ]);
 
                     $sql = "UPDATE {$this->wordtab} SET popularity = -(SELECT COUNT(*) FROM {$this->table} WHERE `wordid` = ?) WHERE `id` = ?;";
@@ -252,6 +253,8 @@ class Search
         $results = array();
 
         foreach ($words as $word) {
+            # We look for matches in the following order: Exact, Typo, StartsWith, SoundsLike.  These will be visually
+            # the most relevant.
             if (strlen($word) > 0) {
                 # Check for exact matches even for short words
                 $startq = pres('Exact', $context) ? " AND {$this->sortatt} > {$context['Exact']} " : "";
@@ -265,10 +268,20 @@ class Search
             }
 
             if (!$exactonly) {
-                # If we found an exact match on the word, there's no need to check for other options.
-                if (count($results) == 0) {
-                    if (strlen($word) >= 2) {
-                        # Check for starts matches with two characters
+                if (strlen($word) >= 2) {
+                    if (count($results) == 0) {
+                        # Search for typos.  This is slow, so we need to stick a limit on it.
+                        $startq = pres('Typo', $context) ? " AND {$this->sortatt} > {$context['Typo']} " : "";
+                        $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                        $batch = $this->dbhr->preQuery($sql, [
+                            $this->sortatt,
+                            $this->idatt
+                        ]);
+                        $this->processResults($results, $batch, $word, 'Typo', Search::WeightTypo);
+                    }
+
+                    if (count($results) == 0) {
+                        # Check for starts matches.
                         $startq = pres('StartsWith', $context) ? " AND {$this->sortatt} > {$context['StartsWith']} " : "";
                         $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsStartsWith($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                         #error_log($sql . "{$this->sortatt} {$this->idatt}");
@@ -279,13 +292,8 @@ class Search
                         $this->processResults($results, $batch, $word, 'StartsWith', Search::WeightStartsWith);
                     }
 
-                    if (strlen($word) > 2) {
-                        # Ignore short words.  We search for two other kinds of word matches
-                        # - a sounds like
-                        # - a distance using
-                        #
-                        # Add in sounds like.  We add these in because it's quick, and some of the extra matches might be
-                        # better matches overall than some of the ones we already have.
+                    if (count($results) == 0) {
+                        # Add in sounds like.
                         $startq = pres('SoundsLike', $context) ? " AND {$this->sortatt} > {$context['SoundsLike']} " : "";
                         $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsSoundsLike($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
                         $batch = $this->dbhr->preQuery($sql, [
@@ -293,18 +301,6 @@ class Search
                             $this->idatt
                         ]);
                         $this->processResults($results, $batch, $word, 'SoundsLike', Search::WeightSoundsLike);
-
-                        if (count($results) < $limit * Search::Comfort) {
-                            # We still didn't find enough to be comfortable that we have a decent set of matches.
-                            # Search for typos.  This is slow, so we need to stick a limit on it.
-                            $startq = pres('Typo', $context) ? " AND {$this->sortatt} > {$context['Typo']} " : "";
-                            $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
-                            $batch = $this->dbhr->preQuery($sql, [
-                                $this->sortatt,
-                                $this->idatt
-                            ]);
-                            $this->processResults($results, $batch, $word, 'Typo', Search::WeightTypo);
-                        }
                     }
                 }
             }
@@ -332,7 +328,7 @@ class Search
         while ($count < $limit && count($results) > 0) {
             $key = key($results);
 
-            # Find min value of the sort att to return in the context.
+            # Find max value of the sort att to return in the context.
             $thislot = $results[$key]['items'];
             $ret[] = [
                 'id' => $key,
@@ -343,12 +339,14 @@ class Search
                 $results[$key][] = $thisone['item'];
 
                 $retcont[$thisone['tag']] = pres($thisone['tag'], $retcont) ?
-                    min($retcont[$thisone['tag']], $thisone['item'][$this->idatt]) : $thisone['item'][$this->idatt];
+                    max($retcont[$thisone['tag']], $thisone['item'][$this->sortatt]) : $thisone['item'][$this->sortatt];
             }
 
             unset($results[$key]);
             $count++;
         }
+
+        error_log("Ret " . json_encode($ret));
 
         $context = $retcont;
 

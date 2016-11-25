@@ -108,6 +108,9 @@ class MailRouter
             $this->msg->getID()
         ]);
 
+        # Now visible in search
+        $this->msg->index();
+
         return($rc);
     }
 
