@@ -615,7 +615,7 @@ class Message
         if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
             # Add replies.
             $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
-            $replies = $this->dbhr->preQuery($sql, [ $this->id ]);
+            $replies = $this->dbhr->preQuery($sql, [$this->id]);
             $ret['replies'] = [];
             foreach ($replies as $reply) {
                 $ctx = NULL;
@@ -650,7 +650,7 @@ class Message
             if ($this->type == Message::TYPE_OFFER) {
                 # Add any promises, i.e. one or more people we've said can have this.
                 $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
-                $ret['promises'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+                $ret['promises'] = $this->dbhr->preQuery($sql, [$this->id]);
                 $ret['promisecount'] = count($ret['promises']);
 
                 foreach ($ret['replies'] as &$reply) {
@@ -659,10 +659,19 @@ class Message
                     }
                 }
             }
+        }
 
-            # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
-            $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
-            $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+        # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
+        $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
+        $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
+
+        # We can only see the details of the outcome if we have access.
+        if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
+            foreach ($ret['outcomes'] as &$outcome) {
+                $outcome['userid'] = NULL;
+                $outcome['happiness'] = NULL;
+                $outcome['comments'] = NULL;
+            }
         }
 
         if ($role == User::ROLE_NONMEMBER) {
@@ -2987,13 +2996,17 @@ class Message
         }
 
         # Let anyone who was interested, and who didn't get it, know.
-        $userq = $userid ? " userid != $userid AND " : "";
-        $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 $userq AND userid IS NOT NULL GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
-        $replies = $this->dbhr->preQuery($sql, [ $this->id ]);
-        $r = new ChatMessage($this->dbhr, $this->dbhm);
+        $userq = $userid ? " AND userid != $userid " : "";
+        $sql = "SELECT DISTINCT t.* FROM (SELECT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? WHERE refmsgid = ? AND reviewrejected = 0 $userq AND userid IS NOT NULL GROUP BY userid, chatid) t;";
+        $replies = $this->dbhr->preQuery($sql, [ ChatRoom::TYPE_USER2USER, $this->id ]);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
         foreach ($replies as $reply) {
-            $r->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
+            $cm->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
+
+            # Make sure this message is highlighted in chat/email.
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);
+            $r->upToDate($userid);
         }
     }
 

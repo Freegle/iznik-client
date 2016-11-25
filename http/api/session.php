@@ -224,6 +224,7 @@ function session() {
                             case Notifications::PUSH_GOOGLE:
                             case Notifications::PUSH_FIREFOX:
                             case Notifications::PUSH_ANDROID:
+                            case Notifications::PUSH_IOS:
                                 $n->add($me->getId(), $push['type'], $push['subscription']);
                                 break;
                         }

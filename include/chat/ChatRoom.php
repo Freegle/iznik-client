@@ -235,7 +235,7 @@ class ChatRoom extends Entity
         return ($id);
     }
 
-    public function getPublic()
+    public function getPublic($me = NULL)
     {
         $ret = $this->getAtts($this->publicatts);
 
@@ -264,7 +264,7 @@ class ChatRoom extends Entity
             $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
         }
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $ret['unseen'] = $this->unseenCountForUser($myid);
@@ -530,6 +530,19 @@ class ChatRoom extends Entity
         return ($cansee);
     }
 
+    public function upToDate($userid) {
+        $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ?;",
+                [
+                    $msg['max'],
+                    $msg['max'],
+                    $this->id,
+                    $userid
+                ]);
+        }
+    }
+
     public function updateRoster($userid, $lastmsgseen, $status)
     {
         # We have a unique key, and an update on current timestamp.
@@ -554,7 +567,9 @@ class ChatRoom extends Entity
                 $lastmsgseen
             ], FALSE);
 
-            if ($rc) {
+            #error_log("Update roster $userid {$this->id} $rc last seen $lastmsgseen affected " . $this->dbhm->rowsAffected());
+            #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen))");
+            if ($rc && $this->dbhm->rowsAffected()) {
                 # We have updated our last seen.  Notify ourselves because we might have multiple devices which
                 # have counts/notifications which need updating.
                 $n = new Notifications($this->dbhr, $this->dbhm);
@@ -1000,22 +1015,23 @@ class ChatRoom extends Entity
 
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed of the messages in this chat.  Find the other one.
-                #error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
+                error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
 
                 # We email them if they have mails turned on, and if they have a membership - if they don't, then we
                 # don't want to annoy them.
+                error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
                 if ($thisu->notifsOn(User::NOTIFS_EMAIL) && count($thisu->getMemberships()) > 0) {
                     # Now collect a summary of what they've missed.
-                    $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
+                    $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                         [
                             $chat['chatid'],
                             $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0
                         ]);
 
-                    #error_log("Unseen " . var_export($unmailedmsgs, TRUE));
+                    error_log("Unseen " . var_export($unmailedmsgs, TRUE));
 
                     if (count($unmailedmsgs) > 0) {
                         $textsummary = '';
@@ -1027,26 +1043,25 @@ class ChatRoom extends Entity
                             $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
 
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
-                            if (pres('message', $unmailedmsg) && (!$lastmsg || $lastmsg != $unmailedmsg['message'])) {
-
-                                switch ($unmailedmsg['type']) {
-                                    case ChatMessage::TYPE_COMPLETED: {
-                                        # There's no text stored for this - we invent it on the client.  Do so here
-                                        # too.
-                                        $lastmsg = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, this is no longer available." : "Thanks, this is no longer needed.";
-                                        break;
-                                    }
-
-                                    default: {
-                                        # Use the text in the message.
-                                        $lastmsg = $unmailedmsg['message'];
-                                        break;
-                                    }
+                            switch ($unmailedmsg['type']) {
+                                case ChatMessage::TYPE_COMPLETED: {
+                                    # There's no text stored for this - we invent it on the client.  Do so here
+                                    # too.
+                                    $thisone = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, this is no longer available." : "Thanks, this is no longer needed.";
+                                    break;
                                 }
 
+                                default: {
+                                    # Use the text in the message.
+                                    $thisone = $unmailedmsg['message'];
+                                    break;
+                                }
+                            }
+
+                            if (!$lastmsg || $lastmsg != $thisone) {
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
-                                $textsummary .= $lastmsg . "\r\n";
+                                $textsummary .= $thisone . "\r\n";
 
                                 #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
                                 if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
@@ -1064,10 +1079,11 @@ class ChatRoom extends Entity
 
                                 $lastfrom = $unmailedmsg['userid'];
 
-                                $htmlsummary .= nl2br($lastmsg) . "<br>";
+                                $htmlsummary .= nl2br($thisone) . "<br>";
                                 $htmlsummary .= '</span>';
 
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
+                                $lastmsg = $thisone;
                             }
                         }
 
