@@ -146,7 +146,7 @@ define([
                 }
             }).data("dd");
 
-            console.log("Consider autoselect", json, gotselected);
+            // console.log("Consider autoselect", json, gotselected);
             if (json.length === (self.options.choose ? 2 : 1) && !gotselected) {
                 // Just one group - select it by default.
                 gotselected = true;

@@ -390,7 +390,7 @@ class ChatRoom extends Entity
             # If we're on ModTools then we want User2Mod chats for our group.
             #
             # If we're on the user site then we only want User2Mod chats where we are a user.
-            $sql = SITE_HOST == USER_SITE ? "SELECT chat_rooms.* FROM chat_rooms WHERE user1 = ? AND chattype = 'User2Mod';" : "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'User2Mod';";
+            $sql = MODTOOLS ? "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'User2Mod';" : "SELECT chat_rooms.* FROM chat_rooms WHERE user1 = ? AND chattype = 'User2Mod';";
             $rooms = $this->dbhr->preQuery($sql, [$userid]);
             foreach ($rooms as $room) {
                 $chatids[] = $room['id'];
@@ -1015,14 +1015,14 @@ class ChatRoom extends Entity
 
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed of the messages in this chat.  Find the other one.
-                error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
+                #error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
 
                 # We email them if they have mails turned on, and if they have a membership - if they don't, then we
                 # don't want to annoy them.
-                error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
+                #error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
                 if ($thisu->notifsOn(User::NOTIFS_EMAIL) && count($thisu->getMemberships()) > 0) {
                     # Now collect a summary of what they've missed.
                     $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
@@ -1031,7 +1031,7 @@ class ChatRoom extends Entity
                             $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0
                         ]);
 
-                    error_log("Unseen " . var_export($unmailedmsgs, TRUE));
+                    #error_log("Unseen " . var_export($unmailedmsgs, TRUE));
 
                     if (count($unmailedmsgs) > 0) {
                         $textsummary = '';
