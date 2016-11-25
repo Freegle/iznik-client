@@ -889,6 +889,7 @@ define([
                         self.$('.js-subject span').each(function () {
                             if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
                                 $(this).addClass('searchmatch');
+                                $(this).prop('title', 'Match type: ' + matched.type);
                             }
                         });
                     }
