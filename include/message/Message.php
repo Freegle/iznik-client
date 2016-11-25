@@ -1684,9 +1684,6 @@ class Message
             }
         }
 
-        # Add into the search index.
-        $this->s->add($this->id, $this->subject, strtotime($this->date), $this->groupid);
-
         return([ $this->id, $already ]);
     }
 
@@ -2073,6 +2070,14 @@ class Message
         }
 
         return($rc);
+    }
+
+    public function index() {
+        $groups = $this->getGroups(FALSE, FALSE);
+        foreach ($groups as $group) {
+            # Add into the search index.
+            $this->s->add($this->id, $this->subject, strtotime($group['arrival']), $group['groupid']);
+        }
     }
 
     public function checkEarlierCopies($approvedby) {
