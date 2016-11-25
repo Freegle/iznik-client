@@ -1,5 +1,5 @@
-//var API = 'https://www.ilovefreegle.org/api/'; // CC
-var API = 'https://iznik.ilovefreegle.org/api/'; // CC
+var API = 'https://www.ilovefreegle.org/api/'; // CC
+//var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -235,7 +235,8 @@ require([
 
     console.log("push init start");
     if (!PushNotification) {
-        alert("No PN");
+        console.log("no push notification service");
+        //alert("No PN");
     } else if( !mobilePushId) {
         mobilePush = PushNotification.init({
             android: {
@@ -255,10 +256,7 @@ require([
         mobilePush.on('registration', function (data) {
             mobilePushId = data.registrationId;
             console.log("push registration " + mobilePushId);
-            //$("#registrationId").val(data.registrationId);
-            if (isiOS) {
-                alert("registration: " + mobilePushId);
-            }
+            //alert("registration: " + mobilePushId);
         });
 
         mobilePush.on('notification', function (data) {
@@ -268,7 +266,7 @@ require([
                 mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
             }
             if (data.count > 0) {
-                alert(JSON.stringify(data));
+                //alert(JSON.stringify(data));
                 console.log("push notification");
                 console.log(data);
                 var foreground = data.additionalData.foreground.toString() == 'true';
@@ -282,15 +280,17 @@ require([
                             //    ChatHolder().fetchAndRestore(chatid);
                             //});
                             // Just open first chat - when logged in
-                            Iznik.Session.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                                ChatHolder().fetchAndRestore(chatids[0]);
-                            });
-                            /*(function theLoop(i) {
+                            var chatid = chatids[0];
+                            /*Iznik.Session.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                                ChatHolder().fetchAndRestore(chatid);
+                            });*/
+                            (function waitUntilLoggedIn(i) {
                                 if (Iznik.Session.loggedIn) {
+                                    setTimeout(function () { ChatHolder().fetchAndRestore(chatid); }, 2000);
                                 } else {
-                                    setTimeout(function () { if (--i) { theLoop(i); }}, 1000);
+                                    setTimeout(function () { if (--i) { waitUntilLoggedIn(i); } }, 1000);
                                 }
-                            })(10);*/
+                            })(10);
                         });
                     }
                 }
