@@ -1202,7 +1202,7 @@ define([
 
         large: function () {
             this.$el.width($(window).innerWidth());
-            this.$el.height($(window).innerHeight());
+            this.$el.height($(window).innerHeight() - $('.navbar').outerHeight());
 
             this.$('.js-large').hide();
             this.$('.js-small').show();
