@@ -552,6 +552,18 @@ define([
                 }
             });
 
+            self.listenTo(Iznik.Session.chats, 'change:lastdate', function(model) {
+                // We want to reach to this by making sure the changed chat is near the top of the list of
+                // minimised chats, so that it's easier to find.  This achieves that...but it's a bit of a
+                // hack.  Probably the architecturally right way to do this would be to trigger a sort
+                // on the collection, which ought to sort the collectionview.  But what seems to happen
+                // is that this causes any open chats to be closed when they're detached.  I've spent enough
+                // time failing to work out why - so we do it this way.
+                var view = Iznik.minimisedChats.viewManager.findByModel(model);
+                view.$el.detach();
+                $('#notifchatdropdownlist').prepend(view.$el);
+            });
+
             Iznik.minimisedChats.render();
 
             $('#js-notifchat').click(function (e) {
@@ -1497,7 +1509,7 @@ define([
 
             if (!self.rendered) {
                 self.rendered = true;
-                self.$el.attr('id', 'chat-' + self.model.get('id'));
+                self.$el.attr('id', 'chat-active-' + self.model.get('id'));
                 self.$el.addClass('chat-' + self.model.get('name'));
 
                 self.$el.css('visibility', 'hidden');
