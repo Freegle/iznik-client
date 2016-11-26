@@ -391,6 +391,7 @@ class ChatRoom extends Entity
             #
             # If we're on the user site then we only want User2Mod chats where we are a user.
             $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'User2Mod';" : "SELECT chat_rooms.* FROM chat_rooms WHERE user1 = ? AND chattype = 'User2Mod';";
+            #error_log("List for user, modtools $modtools");
             $rooms = $this->dbhr->preQuery($sql, [$userid]);
             foreach ($rooms as $room) {
                 $chatids[] = $room['id'];
@@ -573,6 +574,7 @@ class ChatRoom extends Entity
                 # We have updated our last seen.  Notify ourselves because we might have multiple devices which
                 # have counts/notifications which need updating.
                 $n = new Notifications($this->dbhr, $this->dbhm);
+                #error_log("Update roster for $userid set last seen $lastmsgseen from {$_SERVER['REMOTE_ADDR']}");
                 $n->notify($userid);
             }
 

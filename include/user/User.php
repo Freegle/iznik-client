@@ -2656,6 +2656,7 @@ class User extends Entity
                 $chatids[] = $un['chatid'];
             };
 
+            error_log("Chats with unseen " . var_export($chatids, TRUE));
             if ($count === 1) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
                 $atts = $r->getPublic($this);

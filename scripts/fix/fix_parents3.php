@@ -20,7 +20,7 @@ foreach ($locs as $loc) {
         $usings = $dbhm->preQuery("SELECT id, gridid FROM locations WHERE areaid = ?;", [ $loc['areaid'] ]);
         foreach ($usings as $using) {
             #error_log("Set parents for {$using['id']} {$using['name']}");
-            $l->setParents($using['id'], $using['gridid']);
+            $l->setParents($using['id']);
         }
     } catch (Exception $e) {
 

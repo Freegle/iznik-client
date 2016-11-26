@@ -1964,173 +1964,180 @@ define([
                     self.Wkt = Wkt;
 
                     _.defer(function() {
-                        var centre = new google.maps.LatLng(53.9450, -2.5209)
-
+                        var group = null;
+                        var p = resolvedPromise(self);
                         if (self.options.groupid) {
-                            var group = Iznik.Session.getGroup(self.options.groupid);
-                            centre = new google.maps.LatLng(group.get('lat'), group.get('lng'));
+                            group = new Iznik.Models.Group({
+                                id: self.options.groupid
+                            });
+
+                            p = group.fetch();
                         }
 
-                        var options = {
-                            center: centre,
-                            zoom: self.options.groupid ? 14 : 5,
-                            defaults: {
-                                icon: '/images/red_dot.png',
-                                shadow: '/images/dot_shadow.png',
-                                strokeColor: '#990000',
-                                fillColor: '#EEFFCC',
-                                fillOpacity: 0.6
-                            },
-                            disableDefaultUI: true,
-                            mapTypeControl: false,
-                            mapTypeId: google.maps.MapTypeId.ROADMAP,
-                            mapTypeControlOptions: {
-                                position: google.maps.ControlPosition.TOP_LEFT,
-                                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
-                            },
-                            panControl: false,
-                            streetViewControl: false,
-                            zoomControl: true,
-                            minZoom: self.options.groupid ? 11 : 0,
-                            zoomControlOptions: {
-                                position: google.maps.ControlPosition.LEFT_TOP,
-                                style: google.maps.ZoomControlStyle.SMALL
-                            }
-                        };
+                        p.then(function() {
+                            var centre = !group ? new google.maps.LatLng(53.9450, -2.5209) : new google.maps.LatLng(group.get('lat'), group.get('lng'));
 
-                        self.map = new google.maps.Map(document.getElementById("map"), options);
-
-                        if (self.options.groupid) {
-                            self.map.drawingManager = new google.maps.drawing.DrawingManager({
-                                drawingControlOptions: {
-                                    position: google.maps.ControlPosition.TOP_RIGHT,
-                                    drawingModes: [
-                                        google.maps.drawing.OverlayType.POLYGON
-                                    ]
+                            var options = {
+                                center: centre,
+                                zoom: self.options.groupid ? 14 : 5,
+                                defaults: {
+                                    icon: '/images/red_dot.png',
+                                    shadow: '/images/dot_shadow.png',
+                                    strokeColor: '#990000',
+                                    fillColor: '#EEFFCC',
+                                    fillOpacity: 0.6
                                 },
-                                markerOptions: self.map.defaults,
-                                polygonOptions: self.map.defaults,
-                                polylineOptions: self.map.defaults,
-                                rectangleOptions: self.map.defaults
-                            });
-                            self.map.drawingManager.setMap(self.map);
-
-                            google.maps.event.addListener(self.map.drawingManager, 'overlaycomplete', function (event) {
-                                var wkt;
-
-                                // Set the drawing mode to "pan" (the hand) so users can immediately edit
-                                this.setDrawingMode(null);
-
-                                // Polygon drawn
-                                var obj = event.overlay;
-                                var area = self.selected;
-
-                                if (event.type === google.maps.drawing.OverlayType.POLYGON || event.type === google.maps.drawing.OverlayType.POLYLINE) {
-                                    // New vertex is inserted
-                                    google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
-
-                                    // Existing vertex is removed (insertion is undone)
-                                    google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
-
-                                    // Existing vertex is moved (set elsewhere)
-                                    google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
-
-                                    // Click to show info
-                                    google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
+                                disableDefaultUI: true,
+                                mapTypeControl: false,
+                                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                                mapTypeControlOptions: {
+                                    position: google.maps.ControlPosition.TOP_LEFT,
+                                    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+                                },
+                                panControl: false,
+                                streetViewControl: false,
+                                zoomControl: true,
+                                minZoom: self.options.groupid ? 11 : 0,
+                                zoomControlOptions: {
+                                    position: google.maps.ControlPosition.LEFT_TOP,
+                                    style: google.maps.ZoomControlStyle.SMALL
                                 }
+                            };
 
-                                self.features.push(event.overlay);
-                                self.changeHandler(self, area, obj, false)();
-                            });
-                        }
+                            self.map = new google.maps.Map(document.getElementById("map"), options);
 
-                        // Searchbox
-                        var input = document.getElementById('pac-input');
-                        self.searchBox = new google.maps.places.SearchBox(input);
-                        self.map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+                            if (self.options.groupid) {
+                                self.map.drawingManager = new google.maps.drawing.DrawingManager({
+                                    drawingControlOptions: {
+                                        position: google.maps.ControlPosition.TOP_RIGHT,
+                                        drawingModes: [
+                                            google.maps.drawing.OverlayType.POLYGON
+                                        ]
+                                    },
+                                    markerOptions: self.map.defaults,
+                                    polygonOptions: self.map.defaults,
+                                    polylineOptions: self.map.defaults,
+                                    rectangleOptions: self.map.defaults
+                                });
+                                self.map.drawingManager.setMap(self.map);
 
-                        self.map.addListener('bounds_changed', function() {
-                            self.searchBox.setBounds(self.map.getBounds());
-                        });
+                                google.maps.event.addListener(self.map.drawingManager, 'overlaycomplete', function (event) {
+                                    var wkt;
 
-                        self.searchBox.addListener('places_changed', function() {
-                            // Put the map here.
-                            var places = self.searchBox.getPlaces();
+                                    // Set the drawing mode to "pan" (the hand) so users can immediately edit
+                                    this.setDrawingMode(null);
 
-                            if (places.length == 0) {
-                                return;
+                                    // Polygon drawn
+                                    var obj = event.overlay;
+                                    var area = self.selected;
+
+                                    if (event.type === google.maps.drawing.OverlayType.POLYGON || event.type === google.maps.drawing.OverlayType.POLYLINE) {
+                                        // New vertex is inserted
+                                        google.maps.event.addListener(obj.getPath(), 'insert_at', self.changeHandler(self, area, obj, true));
+
+                                        // Existing vertex is removed (insertion is undone)
+                                        google.maps.event.addListener(obj.getPath(), 'remove_at', self.changeHandler(self, area, obj, true));
+
+                                        // Existing vertex is moved (set elsewhere)
+                                        google.maps.event.addListener(obj.getPath(), 'set_at', self.changeHandler(self, area, obj, true));
+
+                                        // Click to show info
+                                        google.maps.event.addListener(obj, 'click', self.changeHandler(self, area, obj, false));
+                                    }
+
+                                    self.features.push(event.overlay);
+                                    self.changeHandler(self, area, obj, false)();
+                                });
                             }
 
-                            var bounds = new google.maps.LatLngBounds();
-                            places.forEach(function(place) {
-                                if (place.geometry.viewport) {
-                                    // Only geocodes have viewport.
-                                    bounds.union(place.geometry.viewport);
-                                } else {
-                                    bounds.extend(place.geometry.location);
-                                }
+                            // Searchbox
+                            var input = document.getElementById('pac-input');
+                            self.searchBox = new google.maps.places.SearchBox(input);
+                            self.map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+
+                            self.map.addListener('bounds_changed', function() {
+                                self.searchBox.setBounds(self.map.getBounds());
                             });
 
-                            self.map.fitBounds(bounds);
-                        });
+                            self.searchBox.addListener('places_changed', function() {
+                                // Put the map here.
+                                var places = self.searchBox.getPlaces();
 
-                        if (self.options.groupid) {
-                            // We show areas for the current map.
-                            self.areas = new Iznik.Collections.Locations();
-                            self.listenTo(self.areas, 'add', function(area) {
-                                var poly = area.get('polygon');
-                                console.log("Poly", poly);
-                                var lat = area.get('lat');
-                                var lng = area.get('lng');
+                                if (places.length == 0) {
+                                    return;
+                                }
 
-                                if (poly || lat || lng) {
-                                    if (poly) {
-                                        self.mapWKT(poly, area);
+                                var bounds = new google.maps.LatLngBounds();
+                                places.forEach(function(place) {
+                                    if (place.geometry.viewport) {
+                                        // Only geocodes have viewport.
+                                        bounds.union(place.geometry.viewport);
                                     } else {
-                                        var wkt = 'POINT(' + lng + ' ' + lat + ')';
-                                        self.mapWKT(poly, area);
+                                        bounds.extend(place.geometry.location);
                                     }
-                                }
+                                });
+
+                                self.map.fitBounds(bounds);
                             });
 
-                            self.listenTo(self.areas, 'remove', function(area) {
-                                var obj = area.get('obj');
-                                if (!_.isUndefined(obj)) {
-                                    var oldlen = self.features.length;
-                                    self.features = _.without(self.features, obj);
-                                    console.log("Removed", obj, oldlen, self.features.length);
-                                    obj.setMap(null);
-                                }
-                            });
+                            if (self.options.groupid) {
+                                // We show areas for the current map.
+                                self.areas = new Iznik.Collections.Locations();
+                                self.listenTo(self.areas, 'add', function(area) {
+                                    var poly = area.get('polygon');
+                                    console.log("Poly", poly);
+                                    var lat = area.get('lat');
+                                    var lng = area.get('lng');
 
-                            google.maps.event.addListener(self.map, 'idle', _.bind(function() {
-                                if (!self.editing) {
-                                    self.getAreas();
-                                }
-                            }, self));
-                        } else {
-                            // We just want all the groups.
-                            google.maps.event.addDomListener(self.map, 'idle', function() {
-                                if (!self.fetched) {
-                                    // Get all the groups.
-                                    self.allGroups = new Iznik.Collections.Group();
-                                    self.allGroups.fetch({
-                                        data: {
-                                            grouptype: 'Freegle'
+                                    if (poly || lat || lng) {
+                                        if (poly) {
+                                            self.mapWKT(poly, area);
+                                        } else {
+                                            var wkt = 'POINT(' + lng + ' ' + lat + ')';
+                                            self.mapWKT(poly, area);
                                         }
-                                    }).then(function() {
-                                        self.fetched = true;
+                                    }
+                                });
 
-                                        // Add a polygon for each
-                                        self.allGroups.each(function(group) {
-                                            group.set('name', group.get('nameshort'))
-                                            self.mapWKT(group.get('poly'), group);
-                                        })
-                                    });
-                                }
-                            });
+                                self.listenTo(self.areas, 'remove', function(area) {
+                                    var obj = area.get('obj');
+                                    if (!_.isUndefined(obj)) {
+                                        var oldlen = self.features.length;
+                                        self.features = _.without(self.features, obj);
+                                        console.log("Removed", obj, oldlen, self.features.length);
+                                        obj.setMap(null);
+                                    }
+                                });
 
-                        }
+                                google.maps.event.addListener(self.map, 'idle', _.bind(function() {
+                                    if (!self.editing) {
+                                        self.getAreas();
+                                    }
+                                }, self));
+                            } else {
+                                // We just want all the groups.
+                                google.maps.event.addDomListener(self.map, 'idle', function() {
+                                    if (!self.fetched) {
+                                        // Get all the groups.
+                                        self.allGroups = new Iznik.Collections.Group();
+                                        self.allGroups.fetch({
+                                            data: {
+                                                grouptype: 'Freegle'
+                                            }
+                                        }).then(function() {
+                                            self.fetched = true;
+
+                                            // Add a polygon for each
+                                            self.allGroups.each(function(group) {
+                                                group.set('name', group.get('nameshort'))
+                                                self.mapWKT(group.get('poly'), group);
+                                            })
+                                        });
+                                    }
+                                });
+
+                            }
+                        });
                     });
                 });
             });

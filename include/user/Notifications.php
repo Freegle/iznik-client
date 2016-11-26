@@ -88,7 +88,7 @@ class Notifications
 
     public function executeSend($userid, $notiftype, $params, $endpoint, $payload) {
         try {
-            #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoing $endpoint");
+            #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
             switch ($notiftype) {
                 case Notifications::PUSH_GOOGLE:
                 case Notifications::PUSH_FIREFOX:
@@ -181,6 +181,7 @@ class Notifications
 
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
                         list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
+                        #error_log("Notify for $userid $title $message");
 
                         $payload = [
                             'badge' => $chatcount,
@@ -189,7 +190,8 @@ class Notifications
                             'message' => $message,
                             'chatids' => $chatids,
                             'content-available' => 1,
-                            'image' => "www/images/user_logo.png"
+                            'image' => "www/images/user_logo.png",
+                            'modtools' => MODTOOLS
                         ];
                     }
 
