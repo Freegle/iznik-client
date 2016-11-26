@@ -249,6 +249,7 @@ define([
             // This organises our chat windows so that:
             // - they're at the bottom, padded at the top to ensure that
             // - they're not wider or taller than the space we have.
+            // - they're not too narrow.
             //
             // The code is a bit complex
             // - partly because the algorithm is a bit complicated
@@ -285,9 +286,12 @@ define([
                             css[prop] = parseInt(val.replace('px', ''));
                         });
 
+                        // Matches style.
+                        css.width = css.width ? css.width : 300;
+
                         // We use this later to see if we need to shrink.
                         totalOuter += css.width + css['margin-left'] + css['margin-right'];
-                        // console.log("Chat width", css.width, css['margin-left'], css['margin-right']);
+                        //console.log("Chat width", chat.$el.prop('id'), css.width, css['margin-left'], css['margin-right']);
                         totalWidth += css.width;
                         totalMax++;
 
@@ -309,25 +313,47 @@ define([
 
                 // console.log("Checked height", (new Date()).getMilliseconds() - start);
 
-                var max = window.innerWidth - 50;
+                var max = window.innerWidth - 100;
 
-                // console.log("Consider width", totalOuter, max);
+                //console.log("Consider width", totalOuter, max);
 
                 if (totalOuter > max) {
                     // The chat windows we have open are too wide.  Make them narrower.
                     var reduceby = Math.round((totalOuter - max) / totalMax + 0.5);
                     // console.log("Chats too wide", max, totalOuter, totalWidth, reduceby);
                     var width = (Math.floor(totalWidth / totalMax + 0.5) - reduceby);
-                    // console.log("New width", width);
+                    //console.log("New width", width);
 
-                    Iznik.activeChats.viewManager.each(function (chat) {
-                        if (!chat.minimised) {
-                            if (chat.$el.css('width') != width) {
-                                // console.log("Set new width ", chat.$el.css('width'), width);
-                                chat.$el.css('width', width.toString() + 'px');
+                    if (width < 300) {
+                        // This would be stupidly narrow for a chat.  Close the oldest one.
+                        var toclose = null;
+                        var oldest = null;
+                        Iznik.activeChats.viewManager.each(function (chat) {
+                            if (!chat.minimised) {
+                                if (!oldest || chat.restoredAt < oldest) {
+                                    toclose = chat;
+                                    oldest = chat.restoredAt;
+                                }
                             }
+                        });
+
+                        //console.log("COnsider close", toclose);
+                        if (toclose) {
+                            toclose.minimise();
+
+                            // Organise again now that's gone.
+                            _.defer(_.bind(self.organise, self));
                         }
-                    });
+                    } else {
+                        Iznik.activeChats.viewManager.each(function (chat) {
+                            if (!chat.minimised) {
+                                if (chat.$el.css('width') != width) {
+                                    // console.log("Set new width ", chat.$el.css('width'), width);
+                                    chat.$el.css('width', width.toString() + 'px');
+                                }
+                            }
+                        });
+                    }
                 }
 
                 // console.log("Checked width", (new Date()).getMilliseconds() - start);
@@ -660,6 +686,9 @@ define([
                     self.organise();
                     Iznik.Session.trigger('chatsfetched');
                 });
+
+                self.organise();
+
             }
         },
 
@@ -722,6 +751,14 @@ define([
                 });
             } else {
                 p = resolvedPromise(self);
+            }
+
+            if (!self.windowResizeListening) {
+                // If the window size changes, we will need to adapt.
+                self.windowResizeListening = true;
+                $(window).resize(function () {
+                    self.organise();
+                });
             }
 
             return (p);
@@ -1045,12 +1082,17 @@ define([
             this.updateCount();
         },
 
+        stayHidden: function() {
+            if (this.minimised) {
+                this.$el.hide();
+                _.delay(_.bind(this.stayHidden, this), 5000);
+            }
+        },
+
         minimise: function (quick) {
             var self = this;
-            _.defer(function () {
-                self.$el.hide();
-            });
             this.minimised = true;
+            this.stayHidden();
 
             if (!quick) {
                 this.waitDOM(self, self.options.organise);
@@ -1182,6 +1224,7 @@ define([
 
         restore: function (large) {
             var self = this;
+            self.restoredAt = (new Date()).getTime();
             self.minimised = false;
 
             // Hide the chat list if it's open.
