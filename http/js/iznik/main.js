@@ -261,7 +261,10 @@ require([
 
         mobilePush.on('notification', function (data) {
             //alert("push notification");
-            mobilePush.clearAllNotifications();   // no success and error fns given
+            var foreground = data.additionalData.foreground.toString() == 'true';
+            if (data.count == 0 || foreground) {
+                mobilePush.clearAllNotifications();   // no success and error fns given
+            }
             if (data.count) {
                 mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
             }
@@ -269,7 +272,6 @@ require([
                 //alert(JSON.stringify(data));
                 console.log("push notification");
                 console.log(data);
-                var foreground = data.additionalData.foreground.toString() == 'true';
                 if (!foreground) {
                     var chatids = data.additionalData.chatids;
                     chatids = _.uniq(chatids);
