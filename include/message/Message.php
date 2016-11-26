@@ -3018,7 +3018,7 @@ class Message
 
             # Make sure this message is highlighted in chat/email.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);
-            $r->upToDate($userid);
+            $r->upToDate($this->getFromuser());
         }
     }
 
