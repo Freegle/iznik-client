@@ -616,7 +616,6 @@ class Message
             # Add replies, as long as they're not awaiting review or rejected.
             $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
-            error_log("Replies " . var_export($replies, TRUE));
             $ret['replies'] = [];
             foreach ($replies as $reply) {
                 $ctx = NULL;
@@ -2377,6 +2376,7 @@ class Message
         $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
 
         # Get rid of sigs
+        $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
