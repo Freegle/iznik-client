@@ -1106,7 +1106,7 @@ class ChatRoom extends Entity
                             }
                         }
 
-                        error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
+                        #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
                         if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
                             if ($textsummary != '') {
                                 # As a subject, we should use the last referenced message in this chat.
