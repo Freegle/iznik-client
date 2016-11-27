@@ -1061,6 +1061,11 @@ class ChatRoom extends Entity
                                     break;
                                 }
 
+                                case ChatMessage::TYPE_RENEGED: {
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You cancelled your promise to " . $otheru->getName()) : ("Sorry, this is no longer promised to you.");
+                                    break;
+                                }
+
                                 default: {
                                     # Use the text in the message.
                                     $thisone = $unmailedmsg['message'];
