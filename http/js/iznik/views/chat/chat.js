@@ -566,6 +566,7 @@ define([
         createMinimised: function () {
             var self = this;
 
+            $('#notifchatdropdownlist').empty();
             Iznik.minimisedChats = new Backbone.CollectionView({
                 el: $('#notifchatdropdownlist'),
                 modelView: Iznik.Views.Chat.Minimised,
