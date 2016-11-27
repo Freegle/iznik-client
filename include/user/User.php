@@ -51,6 +51,7 @@ class User extends Entity
     const LOGIN_LINK = 'Link';
 
     const NOTIFS_EMAIL = 'email';
+    const NOTIFS_EMAIL_MINE = 'emailmine';
     const NOTIFS_PUSH = 'push';
     const NOTIFS_FACEBOOK = 'facebook';
     const NOTIFS_APP = 'app';
@@ -2629,6 +2630,7 @@ class User extends Entity
 
         $defs = [
             'email' => TRUE,
+            'emailmine' => FALSE,
             'push' => TRUE,
             'facebook' => TRUE,
             'app' => TRUE

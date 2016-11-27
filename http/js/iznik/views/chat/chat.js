@@ -1306,7 +1306,7 @@ define([
                 self.madeResizable = true;
 
                 self.$el.resizable({
-                    handleSelector: '#chat-' + self.model.get('id') + ' .js-grip',
+                    handleSelector: '#chat-active-' + self.model.get('id') + ' .js-grip',
                     resizeWidthFrom: 'left',
                     resizeHeightFrom: 'top',
                     onDrag: _.bind(self.drag, self),
