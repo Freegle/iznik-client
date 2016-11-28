@@ -55,7 +55,8 @@ define([
         fastForward: false,
             
         lastMouseX: null,
-        lastMouseY: null,    
+        lastMouseY: null,
+        replayEvents: [],
 
         eventIndex: 0,
 

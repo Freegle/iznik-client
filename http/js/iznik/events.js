@@ -163,68 +163,72 @@ define([
                 if (detailed) {
                     // Use innerHTML as we don't put classes on body, and it allows us to restore the content within
                     // a div when replaying.
-                    var dom = $('body')[0].innerHTML;
-                    // console.log("DOM initially", dom.length);
-                    var type;
-                    var now = (new Date()).getTime();
+                    var dom = $('body');
 
-                    if (!this.lastDOM) {
-                        // We've not captured the DOM yet
-                        type = 'f';
-                        strdiff = dom;
-                    } else {
-                        if (dom.length == this.lastDOM.length) {
-                            // Very probably, this is exactly the same.  Save some CPU.
-                            return;
-                        } else if (now - this.lastDOMtime > 30000) {
-                            // We save it regularly to handle the case where it gets messed up and would otherwise never
-                            // recover.
-                            type = 'f';
-                            strdiff = dom;
-                        } else if (dom.length / this.lastDOM.length < 0.75 || dom.length / this.lastDOM.length > 1.25) {
-                            // The two must be pretty different.  Just track the whole thing.
-                            //console.log("Don't even bother with a diff", dom.length, this.lastDOM.length);
+                    if (dom.length > 0) {
+                        dom = dom[0].innerHTML;
+                        // console.log("DOM initially", dom.length);
+                        var type;
+                        var now = (new Date()).getTime();
+
+                        if (!this.lastDOM) {
+                            // We've not captured the DOM yet
                             type = 'f';
                             strdiff = dom;
                         } else {
-                            var strdiff = JsDiff.createTwoFilesPatch('o', 'n', this.lastDOM, dom);
-
-                            if (strdiff.length > dom.length) {
-                                // Not worth tracking the diff, as the diff is bigger than the whole thing, or it's been
-                                // a while.  The second is to help us recover from weirdnesses by providing a periodic
-                                // reset, which also helps when playing forwards.
+                            if (dom.length == this.lastDOM.length) {
+                                // Very probably, this is exactly the same.  Save some CPU.
+                                return;
+                            } else if (now - this.lastDOMtime > 30000) {
+                                // We save it regularly to handle the case where it gets messed up and would otherwise never
+                                // recover.
+                                type = 'f';
+                                strdiff = dom;
+                            } else if (dom.length / this.lastDOM.length < 0.75 || dom.length / this.lastDOM.length > 1.25) {
+                                // The two must be pretty different.  Just track the whole thing.
+                                //console.log("Don't even bother with a diff", dom.length, this.lastDOM.length);
                                 type = 'f';
                                 strdiff = dom;
                             } else {
-                                type = 'd';
+                                var strdiff = JsDiff.createTwoFilesPatch('o', 'n', this.lastDOM, dom);
+
+                                if (strdiff.length > dom.length) {
+                                    // Not worth tracking the diff, as the diff is bigger than the whole thing, or it's been
+                                    // a while.  The second is to help us recover from weirdnesses by providing a periodic
+                                    // reset, which also helps when playing forwards.
+                                    type = 'f';
+                                    strdiff = dom;
+                                } else {
+                                    type = 'd';
+                                }
+                                //console.log("DOM diff", strdiff, strdiff.length);
                             }
-                            //console.log("DOM diff", strdiff, strdiff.length);
                         }
-                    }
 
-                    if (type == 'f') {
-                        this.lastDOMtime = now;
-                        strdiff = this.getWithValues();
-                        // console.log("Dom now", dom.length);
-                    }
+                        if (type == 'f') {
+                            this.lastDOMtime = now;
+                            strdiff = this.getWithValues();
+                            // console.log("Dom now", dom.length);
+                        }
 
-                    if (strdiff.length > 80) {
-                        // 80 is the "no differences" text.
-                        //
-                        // We log these with the same timestamp so that they are replayed seamlessly.
-                        var timestamp = (new Date()).getTime();
-                        self.trackEvent('window', 'DOM-' + type, null, null, strdiff, timestamp);
-                        this.lastDOM = dom;
+                        if (strdiff.length > 80) {
+                            // 80 is the "no differences" text.
+                            //
+                            // We log these with the same timestamp so that they are replayed seamlessly.
+                            var timestamp = (new Date()).getTime();
+                            self.trackEvent('window', 'DOM-' + type, null, null, strdiff, timestamp);
+                            this.lastDOM = dom;
 
-                        // Rewriting the DOM may lose input values which were set post-page-load (most of 'em).
-                        // $('input, select, textarea').each(function() {
-                        //     var val = $(this).val();
-                        //     if (val) {
-                        //         trackEvent(self.getPath($(this)), 'input', null, null, val, timestamp);
-                        //     }
-                        // });
+                            // Rewriting the DOM may lose input values which were set post-page-load (most of 'em).
+                            // $('input, select, textarea').each(function() {
+                            //     var val = $(this).val();
+                            //     if (val) {
+                            //         trackEvent(self.getPath($(this)), 'input', null, null, val, timestamp);
+                            //     }
+                            // });
+                        }
+                        //console.timeEnd('checkDOM');
                     }
-                    //console.timeEnd('checkDOM');
                 }
             },
 
