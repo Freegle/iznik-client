@@ -9,6 +9,7 @@ var initialURL = false;
 var hammer = false;
 var mobilePushId = false;
 var mobilePush = false;
+var lastPushMsgid = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -262,6 +263,9 @@ require([
         mobilePush.on('notification', function (data) {
             //alert("push notification");
             var foreground = data.additionalData.foreground.toString() == 'true';
+            var msgid = data.additionalData['google.message_id'];
+            var doubleEvent = (msgid==lastPushMsgid);
+            lastPushMsgid = msgid;
             if (data.count == 0 || foreground) {
                 mobilePush.clearAllNotifications();   // no success and error fns given
             }
@@ -272,7 +276,8 @@ require([
                 //alert(JSON.stringify(data));
                 console.log("push notification");
                 console.log(data);
-                if (!foreground) {
+                var showChat = isiOS || doubleEvent;
+                if (showChat) {
                     var chatids = data.additionalData.chatids;
                     chatids = _.uniq(chatids);
 
@@ -288,7 +293,8 @@ require([
                             });*/
                             (function waitUntilLoggedIn(i) {
                                 if (Iznik.Session.loggedIn) {
-                                    setTimeout(function () { ChatHolder().fetchAndRestore(chatid); }, 2000);
+                                    //ChatHolder().fetchAndRestore(chatid);
+                                    setTimeout(function () { ChatHolder().fetchAndRestore(chatid); }, 500);
                                 } else {
                                     setTimeout(function () { if (--i) { waitUntilLoggedIn(i); } }, 1000);
                                 }
