@@ -77,7 +77,7 @@ class Events {
     
     public function listSessions($userid = NULL) {
         $userq = $userid ? " WHERE userid = $userid " : '';
-        $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq;";
+        $sql = "SELECT DISTINCT(sessionid) FROM logs_events $userq ORDER BY timestamp DESC LIMIT 100;";
         $sesslist = $this->dbhr->preQuery($sql);
         #error_log("Queryed, got " . count($sesslist));
         $ret = [];
@@ -93,6 +93,10 @@ class Events {
             $sessions = $this->dbhr->preQuery($sql, [ $sessid ]);
             foreach ($sessions as $session) {
                 $thisone['ip'] = $session['ip'];
+                $routes = $this->dbhr->preQuery("SELECT route FROM logs_events WHERE timestamp = ?;", [ $session['start'] ]);
+                foreach ($routes as $route) {
+                    $thisone['entry'] = $route['route'];
+                }
 
                 if ($thisone['ip']) {
                     $thisone['modtools'] = strpos($session['route'], 'modtools') !== FALSE;
@@ -111,7 +115,11 @@ class Events {
                 }
             }
         }
-        
+
+        usort($ret, function($a, $b) {
+            return(strtotime($b['start']) - strtotime($a['start']));
+        });
+
         return($ret);
     }
 

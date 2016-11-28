@@ -517,6 +517,11 @@ define([
                         v.render().then(function () {
                             self.$('.js-message').append(v.el);
                             self.$('.js-caretdown').click();
+
+                            var group = self.model.get('groups')[0];
+                            self.$('.js-moregroup').html(group.namedisplay);
+                            self.$('.js-groupurl').attr('href', '/explore/' + group.nameshort);
+                            self.$('.js-more').show();
                         });
                     } else {
                         self.$('.js-gone').fadeIn('slow');

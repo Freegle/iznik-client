@@ -11,7 +11,7 @@ define([
     var eventQueue = [];
     var flushTimerRunning;
     var sessionCookie = null;
-    var detailed = false;
+    var detailed = true;
 
     var monitor = (function () {
         return ({
@@ -32,7 +32,7 @@ define([
                 viewy: $(window).outerHeight(),
                 posX: posX,
                 posY: posY,
-                data: data,
+                data: data
             };
 
             eventQueue.push(data);
