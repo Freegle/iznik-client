@@ -272,10 +272,10 @@ require([
                 mobilePush.clearAllNotifications();   // no success and error fns given
             }
             mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
-            var msg = new Date();
+            /*var msg = new Date();
             msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
             badgeconsole += msg;
-            $('#badgeconsole').html(badgeconsole);
+            $('#badgeconsole').html(badgeconsole);*/
             if (data.count > 0) {
                 //alert(JSON.stringify(data));
                 console.log("push notification");
@@ -308,7 +308,7 @@ require([
                 }
             }
             require(['iznik/views/chat/chat'], function (ChatHolder) {
-                ChatHolder().updateCounts();
+                ChatHolder().fallback();
                 /*var unseen = data.count;
                 if (unseen != ChatHolder().unseenCount) {
                     if (unseen > 0) {
