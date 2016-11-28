@@ -498,6 +498,12 @@ class Location extends Entity
 
             $ret[] = $thisone;
         }
+
+        if (count($ret) === 1) {
+            # Just one; worth recording the popularity.
+            $this->dbhm->background("UPDATE locations SET popularity = popularity + 1 WHERE id = {$ret[0]['id']}");
+        }
+
         return($ret);
     }
 
