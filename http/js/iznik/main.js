@@ -265,7 +265,7 @@ require([
             //alert("push notification");
             var foreground = data.additionalData.foreground.toString() == 'true';
             var msgid = data.additionalData['google.message_id'];
-            var doubleEvent = (msgid==lastPushMsgid);
+            var doubleEvent = (!isiOS) && (msgid == lastPushMsgid);
             lastPushMsgid = msgid;
             if (!('count' in data)) { data.count = 0; }
             if (data.count == 0 || foreground) {
@@ -273,14 +273,14 @@ require([
             }
             mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
             var msg = new Date();
-            msg = msg.toLocaleTimeString() + " N " + data.count + "<br/>";
+            msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
             badgeconsole += msg;
             $('#badgeconsole').html(badgeconsole);
             if (data.count > 0) {
                 //alert(JSON.stringify(data));
                 console.log("push notification");
                 console.log(data);
-                var showChat = isiOS || doubleEvent;
+                var showChat = (isiOS && !foreground) || doubleEvent;
                 if (showChat) {
                     var chatids = data.additionalData.chatids;
                     chatids = _.uniq(chatids);
@@ -307,6 +307,19 @@ require([
                     }
                 }
             }
+            require(['iznik/views/chat/chat'], function (ChatHolder) {
+                var unseen = data.count;
+                if (unseen != ChatHolder().unseenCount) {
+                    if (unseen > 0) {
+                        $('#dropdownmenu').find('.js-totalcount').html(unseen).show();
+                        $('#js-notifchat').find('.js-totalcount').html(unseen).show();
+                    } else {
+                        $('#dropdownmenu').find('.js-totalcount').html(unseen).hide();
+                        $('#js-notifchat').find('.js-totalcount').html(unseen).hide();
+                    }
+                    ChatHolder().showMin();
+                }
+            });
 
             mobilePush.finish(function () {
                 console.log("push finished");
