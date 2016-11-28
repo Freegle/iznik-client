@@ -22,6 +22,7 @@ define('GOOGLE_VISION_KEY', 'zzz');
 define('GOOGLE_CLIENT_ID', 'zzz');
 define('GOOGLE_CLIENT_SECRET', 'zzz');
 define('GOOGLE_APP_NAME', 'zzz');
+define('GOOGLE_SITE_VERIFICATION', 'zzz');
 
 # We support Facebook login, but you have to create your own app
 define('FBAPP_ID', 'zzz');
