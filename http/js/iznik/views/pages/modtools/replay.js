@@ -15,7 +15,7 @@ define([
 
         render: function() {
             var self = this;
-            
+
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function() {
                 var v = new Iznik.Views.PleaseWait();

@@ -1104,6 +1104,11 @@ define([
         
         replay: function(sessionid) {
             var self = this;
+
+            // Disable chat animation which interacts badly with replay.
+            $("<style type='text/css'> .chat-window{ animation: none !important;} </style>").appendTo("head");
+            console.log("Added CSS");
+
             require(["iznik/views/pages/modtools/replay"], function () {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.Replay({
