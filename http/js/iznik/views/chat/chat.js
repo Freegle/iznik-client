@@ -403,6 +403,12 @@ define([
                     unseen += chat.get('unseen');
                 });
             }
+            {
+                var msg = new Date();
+                msg = msg.toLocaleTimeString() + " U " + unseen + ' ' + self.unseenCount + "<br/>";
+                badgeconsole += msg;
+                $('#badgeconsole').html(badgeconsole);
+            }
 
             // We'll adjust the count in the window title.
             var title = document.title;

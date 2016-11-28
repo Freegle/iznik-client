@@ -308,7 +308,8 @@ require([
                 }
             }
             require(['iznik/views/chat/chat'], function (ChatHolder) {
-                var unseen = data.count;
+                ChatHolder().updateCounts();
+                /*var unseen = data.count;
                 if (unseen != ChatHolder().unseenCount) {
                     if (unseen > 0) {
                         $('#dropdownmenu').find('.js-totalcount').html(unseen).show();
@@ -318,7 +319,7 @@ require([
                         $('#js-notifchat').find('.js-totalcount').html(unseen).hide();
                     }
                     ChatHolder().showMin();
-                }
+                }*/
             });
 
             mobilePush.finish(function () {
