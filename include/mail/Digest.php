@@ -265,7 +265,7 @@ class Digest
                     if ($email && $email != MODERATOR_EMAIL && $u->sendOurMails($g)) {
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
-                            '{{bounce}}' => "bounce-{$user['userid']}-" . time() . "@" . USER_DOMAIN,
+                            '{{bounce}}' => $u->getBounce(),
                             '{{unsubscribe}}' => 'https://' . USER_SITE . '/unsubscribe',
                             '{{email}}' => $email,
                             '{{frequency}}' => $this->freqText[$frequency],

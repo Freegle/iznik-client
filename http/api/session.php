@@ -1,5 +1,5 @@
 <?php
-require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
+require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 
 function session() {
     global $dbhr, $dbhm;
