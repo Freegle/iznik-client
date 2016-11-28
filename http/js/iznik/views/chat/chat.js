@@ -427,6 +427,10 @@ define([
 
                 if (mobilePush) {
                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
+                    var msg = new Date();
+                    msg = msg.toLocaleTimeString() + " C " + unseen + "<br/>";
+                    badgeconsole += msg;
+                    $('#badgeconsole').html(badgeconsole);
                 }
             }
         },

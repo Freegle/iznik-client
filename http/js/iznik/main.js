@@ -10,6 +10,7 @@ var hammer = false;
 var mobilePushId = false;
 var mobilePush = false;
 var lastPushMsgid = false;
+var badgeconsole = '';
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -266,12 +267,15 @@ require([
             var msgid = data.additionalData['google.message_id'];
             var doubleEvent = (msgid==lastPushMsgid);
             lastPushMsgid = msgid;
+            if (!('count' in data)) { data.count = 0; }
             if (data.count == 0 || foreground) {
                 mobilePush.clearAllNotifications();   // no success and error fns given
             }
-            if (data.count) {
-                mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
-            }
+            mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+            var msg = new Date();
+            msg = msg.toLocaleTimeString() + " N " + data.count + "<br/>";
+            badgeconsole += msg;
+            $('#badgeconsole').html(badgeconsole);
             if (data.count > 0) {
                 //alert(JSON.stringify(data));
                 console.log("push notification");
