@@ -261,6 +261,16 @@ require([
             //alert("registration: " + mobilePushId);
         });
 
+        // Called to handle a push notification
+        //
+        // A push shows a notification immediately and sets desktop badge count (on iOS and some Android)
+        //
+        // On iOS this handler is called immediately if running in foreground;
+        //  it is not called if app not started or in background; the handler is called when app started.
+        //
+        // On Android this handler is called immediately if running in foreground;
+        //  it is not called if not started;
+        //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
         mobilePush.on('notification', function (data) {
             //alert("push notification");
             var foreground = data.additionalData.foreground.toString() == 'true';
@@ -309,17 +319,6 @@ require([
             }
             require(['iznik/views/chat/chat'], function (ChatHolder) {
                 ChatHolder().fallback();
-                /*var unseen = data.count;
-                if (unseen != ChatHolder().unseenCount) {
-                    if (unseen > 0) {
-                        $('#dropdownmenu').find('.js-totalcount').html(unseen).show();
-                        $('#js-notifchat').find('.js-totalcount').html(unseen).show();
-                    } else {
-                        $('#dropdownmenu').find('.js-totalcount').html(unseen).hide();
-                        $('#js-notifchat').find('.js-totalcount').html(unseen).hide();
-                    }
-                    ChatHolder().showMin();
-                }*/
             });
 
             mobilePush.finish(function () {
