@@ -11,5 +11,5 @@ $l = new Location($dbhr, $dbhm);
 
 foreach ($locs as $loc) {
     error_log("#{$loc['id']} {$loc['name']}");
-    $l->setParents($loc['id'], $loc['gridid']);
+    $l->setParents($loc['id']);
 }

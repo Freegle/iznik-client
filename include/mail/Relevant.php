@@ -103,7 +103,7 @@ class Relevant {
                     $ctx = NULL;
 
                     # We want to search for exact matches only, as some of the others will look silly.
-                    $res = $s->search($interested['item'], $ctx, 1, NULL, $groups, TRUE);
+                    $res = $s->search($interested['item'], $ctx, 10, NULL, $groups, TRUE);
                     #error_log("Search for {$interested['item']} returned " . var_export($res, TRUE));
 
                     foreach ($res as $r) {

@@ -77,7 +77,7 @@ class Location extends Entity
             }
 
             # Set any area and postcode for this new location.
-            $this->setParents($id, $gridid, $osmparentsonly);
+            $this->setParents($id, $osmparentsonly);
 
             if ($type == 'Polygon') {
                 # We might have postcodes which should now map to this new area rather than wherever they mapped
@@ -99,7 +99,7 @@ class Location extends Entity
                 foreach ($locs as $loc) {
                     if ($loc['id'] != $id) {
                         #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
-                        $this->setParents($loc['id'], $gridid, 1, $id);
+                        $this->setParents($loc['id'], 1, $id);
                     }
                 }
             }
@@ -124,7 +124,7 @@ class Location extends Entity
         }
     }
 
-    public function setParents($id, $gridid, $osmonly = 1, $areaid = NULL) {
+    public function setParents($id, $osmonly = 1, $areaid = NULL) {
         # We use the write DB handle because we don't want to waste time querying or cluttering our cache with this
         # info, which is unlikely to be cached effectively.
         #
@@ -390,7 +390,7 @@ class Location extends Entity
         $sql = "SELECT id FROM locations WHERE areaid = ?;";
         $locs = $this->dbhr->preQuery($sql, [ $this->id ]);
         foreach ($locs as $loc) {
-            $this->setParents($loc['id'], $loc['gridid']);
+            $this->setParents($loc['id']);
         }
 
         # Not the end of the world if this doesn't work.
@@ -535,7 +535,7 @@ class Location extends Entity
         foreach ($locs as $loc) {
             if ($loc['id'] != $this->id) {
                 #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
-                $this->setParents($loc['id'], $loc['gridid'], 1, $this->id);
+                $this->setParents($loc['id'], 1, $this->id);
             }
         }
     }

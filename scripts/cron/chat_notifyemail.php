@@ -11,10 +11,10 @@ $lockh = lockScript(basename(__FILE__));
 
 $c = new ChatRoom($dbhr, $dbhm);
 
-$count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2MOD);
-error_log("Sent $count for User2Mod");
+//$count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2MOD);
+//error_log("Sent $count for User2Mod");
 
-$count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2USER);
+$count = $c->notifyByEmail(924956, ChatRoom::TYPE_USER2USER);
 error_log("Sent $count to User2User");
 
 unlockScript($lockh);

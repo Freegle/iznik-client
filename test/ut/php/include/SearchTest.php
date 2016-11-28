@@ -54,6 +54,7 @@ class searchTest extends IznikTestCase
         $m->setSearch($this->s);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
+        $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->setSearch($this->s);
         error_log("Created message id $id1");
@@ -87,14 +88,14 @@ class searchTest extends IznikTestCase
         $ret = $m->search("tuesday", $ctx);
         error_log("Fuzzy " . var_export($ctx, true));
         assertEquals($id1, $ret[0]['id']);
-        assertEquals($id1, $ctx['SoundsLike']);
+        assertNotNull($ctx['SoundsLike']);
 
         # Test typo
         $ctx = NULL;
         $ret = $m->search("Tets", $ctx);
         error_log("Typo " . var_export($ctx, true));
         assertEquals($id1, $ret[0]['id']);
-        assertEquals($id1, $ctx['Typo']);
+        assertNotNull($ctx['Typo']);
 
         # Too far
         $ctx = NULL;
@@ -146,6 +147,7 @@ class searchTest extends IznikTestCase
         $m->setSearch($this->s);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id1, $already) = $m->save();
+        $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->setSearch($this->s);
         error_log("Created message id $id1");
@@ -156,6 +158,7 @@ class searchTest extends IznikTestCase
         $m->setSearch($this->s);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($id2, $already) = $m->save();
+        $m->index();
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         $m2->setSearch($this->s);
         error_log("Created message id $id2");

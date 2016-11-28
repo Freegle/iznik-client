@@ -120,6 +120,7 @@ class RelevantTest extends IznikTestCase
         assertEquals(0, count($msgs));
 
         # Add two relevant messages.
+        error_log("Add two relevant");
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: thing (location)', $msg);

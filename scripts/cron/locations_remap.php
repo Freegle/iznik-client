@@ -33,7 +33,7 @@ $count = 0;
 foreach ($pcids as $id => $gridid) {
     $count++;
     error_log("$id ($count / " . count($pcids) . ")");
-    $l->setParents($id, $gridid);
+    $l->setParents($id);
 }
 
 unlockScript($lockh);

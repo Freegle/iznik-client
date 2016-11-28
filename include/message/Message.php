@@ -613,8 +613,8 @@ class Message
         # - we're on ModTools and we're a mod for this message
         # - it's our message
         if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
-            # Add replies.
-            $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
+            # Add replies, as long as they're not awaiting review or rejected.
+            $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [$this->id]);
             $ret['replies'] = [];
             foreach ($replies as $reply) {
@@ -1925,6 +1925,8 @@ class Message
 
             $this->maybeMail($groupid, $subject, $body, 'Approve');
         }
+
+        $this->index();
     }
 
     public function reply($groupid, $subject, $body, $stdmsgid) {
@@ -2374,6 +2376,7 @@ class Message
         $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
 
         # Get rid of sigs
+        $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my Samsung device.*/ms', '', $textbody);
@@ -3016,7 +3019,7 @@ class Message
 
             # Make sure this message is highlighted in chat/email.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);
-            $r->upToDate($userid);
+            $r->upToDate($this->getFromuser());
         }
     }
 

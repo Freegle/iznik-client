@@ -51,6 +51,7 @@ class User extends Entity
     const LOGIN_LINK = 'Link';
 
     const NOTIFS_EMAIL = 'email';
+    const NOTIFS_EMAIL_MINE = 'emailmine';
     const NOTIFS_PUSH = 'push';
     const NOTIFS_FACEBOOK = 'facebook';
     const NOTIFS_APP = 'app';
@@ -2629,6 +2630,7 @@ class User extends Entity
 
         $defs = [
             'email' => TRUE,
+            'emailmine' => FALSE,
             'push' => TRUE,
             'facebook' => TRUE,
             'app' => TRUE
@@ -2650,12 +2652,13 @@ class User extends Entity
         if (!$modtools) {
             # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
-            $unseen = $r->allUnseenForUser($this->id, [ ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD ]);
+            $unseen = $r->allUnseenForUser($this->id, [ ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD ], $modtools);
             $count = count($unseen);
             foreach ($unseen as $un) {
                 $chatids[] = $un['chatid'];
             };
 
+            error_log("Chats with unseen " . var_export($chatids, TRUE));
             if ($count === 1) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
                 $atts = $r->getPublic($this);
