@@ -71,9 +71,9 @@ define([
 
         carettoggle: function() {
             if (this.expanded) {
-                this.$('.js-snippet').slideUp();
-            } else {
                 this.$('.js-snippet').slideDown();
+            } else {
+                this.$('.js-snippet').slideUp();
             }
             this.caretshow();
             this.expanded = !this.expanded;
@@ -181,8 +181,11 @@ define([
                     Iznik.View.prototype.render.call(self).then(function() {
                         if (self.expanded) {
                             self.$('.panel-collapse').collapse('show');
+                            self.$('.js-snippet').hide();
+                            self.$('.js-caretdown').parent().hide();
                         } else {
                             self.$('.panel-collapse').collapse('hide');
+                            self.$('.js-snippet').show();
                         }
 
                         var groups = self.model.get('groups');
