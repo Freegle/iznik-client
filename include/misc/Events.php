@@ -93,7 +93,7 @@ class Events {
             $sessions = $this->dbhr->preQuery($sql, [ $sessid ]);
             foreach ($sessions as $session) {
                 $thisone['ip'] = $session['ip'];
-                $routes = $this->dbhr->preQuery("SELECT route FROM logs_events WHERE timestamp = ?;", [ $session['start'] ]);
+                $routes = $this->dbhr->preQuery("SELECT route FROM logs_events WHERE timestamp = ? AND sessionid = ?;", [ $session['start'], $session['sessionid'] ]);
                 foreach ($routes as $route) {
                     $thisone['entry'] = $route['route'];
                 }
