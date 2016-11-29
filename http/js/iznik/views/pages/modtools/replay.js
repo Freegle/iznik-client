@@ -219,6 +219,7 @@ define([
                     case 'scrollpos': {
                         var target = event.target.replace('html>body', '#replayContent');
                         $(target).get(0).scrollTop = event.data;
+                        break;
                     }
 
                     case 'click':

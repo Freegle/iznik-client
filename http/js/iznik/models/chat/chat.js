@@ -95,7 +95,6 @@ define([
                 sess = localStorage.getItem('session');
                 if (sess) {
                     parsed = JSON.parse(sess);
-                    console.log("Session is", parsed);
 
                     if (parsed.hasOwnProperty('persistent')) {
                         options.data.persistent = parsed.persistent;

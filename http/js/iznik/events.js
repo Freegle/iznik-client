@@ -106,7 +106,7 @@ define([
                     if (this.scrollHeight > this.clientHeight && this.scrollTop > 0) {
                         var path = self.getPath($(this));
                         var timestamp = (new Date()).getTime();
-                        trackEvent(path, 'scrollpos', null, null, this.scrolltop, timestamp);
+                        self.trackEvent(path, 'scrollpos', null, null, this.scrolltop, timestamp);
                     }
                 });
             },
