@@ -163,9 +163,9 @@ define([
                 //
                 // This avoids doing syncs which will definitely do nothing, which can be the case for people with a lot
                 // of groups.
-                //console.log("Worthit", group.get('nameshort'));
-                //console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
-                //console.log("Work on MT", group.get('work'));
+                console.log("Worthit", group.get('nameshort'));
+                console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
+                console.log("Work on MT", group.get('work'));
     
                 var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
                         presdef(countname, group.get('work'), 0);
@@ -250,7 +250,7 @@ define([
             // sync via the plugin.
             //
             // Delay doesn't set the right context by default.
-            _.delay(_.bind(this.listYahooGroups, this), 600000);
+            _.delay(_.bind(this.listYahooGroups, this), 30000);
         },
 
         // TODO This whole callback approach is old code and should use promises or something.
@@ -666,6 +666,7 @@ define([
         listYahooGroups: function() {
             // We get a list of all the groups on Yahoo so that we can see whether there are groups on the server
             // for which we need to update our mod status.
+            console.log("List Yahoo groups");
             this.yahooGroupStart = 1;
             this.getYahooGroupChunk();
         },

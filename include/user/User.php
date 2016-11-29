@@ -711,6 +711,19 @@ class User extends Entity
                         }
                     }
                 }
+
+                if (strpos($email['email'], '@user.trashnothing.com') !== FALSE) {
+                    list ($transport, $mailer) = getMailer();
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
+                        ->setFrom($g->getModsEmail())
+                        ->setTo($email['email'])
+                        ->setDate(time())
+                        ->setBody("Parting is such sweet sorry.");
+                    $headers = $message->getHeaders();
+                    $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
+                    $mailer->send($message);
+                }
             }
         }
 

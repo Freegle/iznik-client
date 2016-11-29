@@ -666,12 +666,14 @@ class Message
         $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
 
         # We can only see the details of the outcome if we have access.
-        if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
-            foreach ($ret['outcomes'] as &$outcome) {
+        foreach ($ret['outcomes'] as &$outcome) {
+            if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
                 $outcome['userid'] = NULL;
                 $outcome['happiness'] = NULL;
                 $outcome['comments'] = NULL;
             }
+
+            $outcome['timestamp'] = ISODate($outcome['timestamp']);
         }
 
         if ($role == User::ROLE_NONMEMBER) {
@@ -2080,6 +2082,19 @@ class Message
             # Add into the search index.
             $this->s->add($this->id, $this->subject, strtotime($group['arrival']), $group['groupid']);
         }
+    }
+
+    public function findEarlierCopy($groupid, $pendingid, $approvedid) {
+        $sql = "SELECT msgid, collection FROM messages_groups WHERE groupid = ? AND " . ($pendingid ? 'yahoopendingid' : 'yahooapprovedid') . " = ?;";
+        $msgs = $this->dbhr->preQuery($sql, [
+            $groupid,
+            $pendingid ? $pendingid : $approvedid
+        ]);
+
+        $msgid = count($msgs) == 0 ? NULL : $msgs['msgid'];
+        $collection = count($msgs) == 0 ? NULL : $msgs['collection'];
+
+        return([ $msgid, $collection ]);
     }
 
     public function checkEarlierCopies($approvedby) {
