@@ -669,10 +669,29 @@ class User extends Entity
     }
 
     public function removeMembership($groupid, $ban = FALSE, $spam = FALSE) {
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $meid = $me ? $me->getId() : NULL;
 
-        # Trigger removal of any Yahoo memberships first.
+        $emails = $this->getEmails();
+
+        foreach ($emails as $email) {
+            error_log("Consider mail {$email['email']} vs " . strpos($email['email'], '@user.trashnothing.com'));
+            if (strpos($email['email'], '@user.trashnothing.com') !== FALSE) {
+                list ($transport, $mailer) = getMailer();
+                $message = Swift_Message::newInstance()
+                    ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
+                    ->setFrom($g->getModsEmail())
+                    ->setTo($email['email'])
+                    ->setDate(time())
+                    ->setBody("Parting is such sweet sorry.");
+                $headers = $message->getHeaders();
+                $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
+                $mailer->send($message);
+            }
+        }
+
+        # Trigger removal of any Yahoo memberships.
         $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ?;";
         $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
         #error_log("$sql, $groupid, {$this->id}");
@@ -687,8 +706,6 @@ class User extends Entity
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
             if ($email['email']) {
-                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-
                 if ($g->getPrivate('onyahoo')) {
                     $p = new Plugin($this->dbhr, $this->dbhm);
                     $p->add($groupid, [
@@ -710,19 +727,6 @@ class User extends Entity
                             $mailer->send($message);
                         }
                     }
-                }
-
-                if (strpos($email['email'], '@user.trashnothing.com') !== FALSE) {
-                    list ($transport, $mailer) = getMailer();
-                    $message = Swift_Message::newInstance()
-                        ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
-                        ->setFrom($g->getModsEmail())
-                        ->setTo($email['email'])
-                        ->setDate(time())
-                        ->setBody("Parting is such sweet sorry.");
-                    $headers = $message->getHeaders();
-                    $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
-                    $mailer->send($message);
                 }
             }
         }
