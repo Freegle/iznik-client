@@ -3,25 +3,6 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
-    <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
-    <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
-    <meta name="msapplication-tap-highlight" content="no"/>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
-    <meta name="robots" content="nofollow, noindex, noarchive, nocache">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="<?php echo SITE_NAME; ?>">
-    <meta name="format-detection" content="telephone=no">
-    <link rel="manifest" href="/manifest.json">
-
-    <?php
-    # TODO _escaped_fragment_ previews for Facebook etc.
-    ?>
-
-    <meta property="og:url" content="<?php get_current_url(); ?>">
     <?php
     if (!defined('BASE_DIR')) {
         define( 'BASE_DIR', dirname(__FILE__) . '/../..' );
@@ -41,6 +22,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             $atts = $g->getPublic();
             ?>
             <title><?php echo $atts['namedisplay']; ?></title>
+            <meta itemprop="title" content="<?php echo $atts['namedisplay']; ?>"/>
+            <meta itemprop="description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
+            <meta name="description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
             <meta property="og:title" content="<?php echo $atts['namedisplay']; ?>"/>
             <meta property="og:description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
             <meta property="og:image" content="<?php echo presdef('profile', $atts, USERLOGO); ?>"/>
@@ -59,6 +43,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
             ?>
             <title><?php echo $atts['subject']; ?></title>
+            <meta itemprop="title" content="<?php echo $atts['subject']; ?>"/>
+            <meta itemprop="description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
+            <meta name="description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
             <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
             <meta property="og:description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
             <meta property="og:image" content="<?php echo $icon; ?>"/>
@@ -76,6 +63,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
             ?>
             <title><?php echo $atts['title']; ?></title>
+            <meta itemprop="title" content="<?php echo $atts['title']; ?>"/>
+            <meta name="description" content="<?php echo $atts['title']; ?>"/>
+            <meta property="og:description" content="<?php echo $atts['title']; ?>"/>
             <meta property="og:title" content="<?php echo $atts['title']; ?>"/>
             <meta property="og:description" content=""/>
             <?php
@@ -83,13 +73,36 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     } else {
         ?>
         <title><?php echo SITE_NAME; ?></title>
+        <meta name="description" content="<?php echo SITE_DESC; ?>"/>
+        <meta itemprop="description" content="<?php echo SITE_DESC; ?>"/>
+        <meta itemprop="title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
         <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>largetile.png"/>
         <?php
         echo "<!-- requested " . $_SERVER["REQUEST_URI"] . " -->\r\n";
     }
+
+    if (!MODTOOLS && defined('GOOGLE_SITE_VERIFICATION')) {
+        ?>
+        <meta name="google-site-verification" content="<?php echo GOOGLE_SITE_VERIFICATION; ?>" />
+        <?php
+    }
     ?>
+    <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
+    <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
+    <meta name="msapplication-tap-highlight" content="no"/>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
+    <meta name="robots" content="nofollow, noindex, noarchive, nocache">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="<?php echo SITE_NAME; ?>">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:url" content="<?php get_current_url(); ?>">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
     <?php

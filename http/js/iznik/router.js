@@ -122,12 +122,14 @@ define([
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
             "replay/(:id)": "replay",
+            "find": "userFindWhereAmI",
             "find/whereami": "userFindWhereAmI",
             "find/search/(:search)": "userSearched",
             "find/search": "userSearch",
             "find/whatnext": "userFindWhatNext",
             "find/whatisit": "userFindWhatIsIt",
             "find/whoami": "userFindWhoAmI",
+            "give": "userGiveWhereAmI",
             "give/whereami": "userGiveWhereAmI",
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
@@ -1107,6 +1109,11 @@ define([
         
         replay: function(sessionid) {
             var self = this;
+
+            // Disable chat animation which interacts badly with replay.
+            $("<style type='text/css'> .chat-window{ animation: none !important;} </style>").appendTo("head");
+            console.log("Added CSS");
+
             require(["iznik/views/pages/modtools/replay"], function () {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.Replay({

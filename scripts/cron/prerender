@@ -1,0 +1,6 @@
+#!/bin/bash
+cd /var/www/iznik/scripts/cron
+php prerender.php > /tmp/prerender
+chmod +x /tmp/prerender
+cd ../cli
+/tmp/prerender

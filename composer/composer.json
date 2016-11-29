@@ -24,6 +24,7 @@
     "swiftmailer/swiftmailer": "@stable",
     "abraham/twitteroauth": "^0.6.4",
     "Oefenweb/damerau-levenshtein": "^2.1",
-    "kartik-v/bootstrap-fileinput": "dev-master"
+    "kartik-v/bootstrap-fileinput": "dev-master",
+    "graphp/graphviz": "^0.2.1"
   }
 }

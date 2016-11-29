@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
+require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
@@ -189,6 +189,10 @@ class User extends Entity
     public function getToken() {
         $s = new Session($this->dbhr, $this->dbhm);
         return($s->getToken($this->id));
+    }
+
+    public function getBounce() {
+        return("bounce-{$this->id}-" . time() . "@" . USER_DOMAIN);
     }
 
     public function getName($default = TRUE) {
@@ -2243,7 +2247,19 @@ class User extends Entity
             $this->dbhm->preExec($sql,
                 [$email, $canon, $key, strrev($canon), $key]);
             $confirm = $usersite ? ("https://" . $_SERVER['HTTP_HOST'] . "/settings/confirmmail/" . urlencode($key)) : ("https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key));
-            $this->mailer($email, "Please verify your email", modtools_verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO), $headers, "-f" . NOREPLY_ADDR);
+
+            list ($transport, $mailer) = getMailer();
+            $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
+
+            $message = Swift_Message::newInstance()
+                ->setSubject("Please verify your email")
+                ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                ->setReturnPath($this->getBounce())
+                ->setTo([ $email => $this->getName() ])
+                ->setBody("Someone, probably you, has said that $email is their email address.\n\nIf this was you, please click on the link below to verify the address; if this wasn't you, please just ignore this mail.\n\n$confirm")
+                ->addPart($html, 'text/html');
+
+            $mailer->send($message);
         }
 
         return($handled);

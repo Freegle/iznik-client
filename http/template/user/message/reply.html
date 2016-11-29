@@ -12,6 +12,11 @@
                 <% } else { %>
                 You replied to yourself<br />
                 <% } %>
+                <% if (obj.userid == me.id) { %>
+                <span class="glyphicon glyphicon-arrow-right" title="You sent this message" />&nbsp;
+                <% } else { %>
+                <span class="glyphicon glyphicon-arrow-left" title="They sent this message" />&nbsp;
+                <% } %>
                 <% if (obj.snippet) { %>
                 <span class="js-chat text-muted">{{snippet}}...</span><br />
                 <% } %>

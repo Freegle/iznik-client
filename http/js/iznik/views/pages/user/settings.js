@@ -93,6 +93,14 @@ define([
             }
         },
 
+        showHideMine: function() {
+            if (!this.$('.js-emailswitch').bootstrapSwitch('state')) {
+                this.$('.js-mineholder').hide();
+            } else {
+                this.$('.js-mineholder').show();
+            }
+        },
+
         notifSwitch: function() {
             var me = Iznik.Session.get('me');
             var notifs = {};
@@ -101,6 +109,8 @@ define([
             notifs.app = this.$('.js-appswitch').bootstrapSwitch('state');
             notifs.push = this.$('.js-pushswitch').bootstrapSwitch('state');
             notifs.facebook = this.$('.js-facebookswitch').bootstrapSwitch('state');
+
+            this.showHideMine();
 
             me.settings.notifications = notifs;
 
@@ -267,6 +277,8 @@ define([
                     offText: 'No Thanks',
                     state: notifs.hasOwnProperty('emailmine') ? notifs.emailmine : false
                 });
+
+                self.showHideMine();
 
                 if (me.hasOwnProperty('notifications')) {
                     self.$(".js-pushswitch").bootstrapSwitch({

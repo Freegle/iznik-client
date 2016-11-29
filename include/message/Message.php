@@ -614,8 +614,8 @@ class Message
         # - it's our message
         if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
             # Add replies, as long as they're not awaiting review or rejected.
-            $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
-            $replies = $this->dbhr->preQuery($sql, [$this->id]);
+            $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
+            $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
             $ret['replies'] = [];
             foreach ($replies as $reply) {
                 $ctx = NULL;
@@ -2376,6 +2376,7 @@ class Message
         $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
 
         # Get rid of sigs
+        $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
@@ -2990,6 +2991,13 @@ class Message
 
         foreach ($groups as $groupid) {
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+
+            # Update the arrival time.  This is so that if anyone (TN, I'm looking at you) is using the API to retrieve
+            # messages, it can tell that the message has had an outcome.
+            $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ? AND groupid = ?;", [
+                $this->id,
+                $groupid
+            ]);
 
             if ($g->getPrivate('onyahoo')) {
                 # For Yahoo, we send a TAKEN/RECEIVED message.  Not for native.

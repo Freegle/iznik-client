@@ -1,28 +1,7 @@
 <?php
 
-function modtools_verify_email($email, $confirm, $logo) {
+function verify_email($email, $confirm, $logo) {
     $html = <<<EOT
---_I_Z_N_I_K_
-Content-Type: text/plain; charset="utf-8"; format="fixed"
-Content-Transfer-Encoding: quoted-printable
-
-Someone, probably you, said that $email was your email addr=
-ess.
-
-If this was you, please click here to verify it:
-
-$confirm
-
-If this wasn't you, just ignore this mail.
-
-Regards,
-
-ModTools
-
---_I_Z_N_I_K_
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -201,7 +180,6 @@ Content-Transfer-Encoding: quoted-printable
 
 </body>
 </html>
---_I_Z_N_I_K_--
 EOT;
 
 return($html);

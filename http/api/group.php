@@ -123,6 +123,19 @@ function group() {
 
                         # Other support-settable attributes
                         if ($me->isAdminOrSupport()) {
+                            // @codeCoverageIgnoreStart Impractical to test.
+                            if ($g->onYahoo() && array_key_exists('onyahoo', $_REQUEST) && !$_REQUEST['onyahoo']) {
+                                # We are switching a group over from being on Yahoo to not being.  Notify TrashNothing
+                                # so that it can also do that, and talk to us rather than Yahoo.
+                                $url = "https://trashnothing.com/modtools/api/switch-to-freegle-direct?key=" . TNKEY . "&group_id=" . $g->getPrivate('nameshort') . "&moderator_email=" . $me->getEmailPreferred();
+                                $rsp = file_get_contents($url);
+                            } else if (!$g->onYahoo() && array_key_exists('onyahoo', $_REQUEST) && $_REQUEST['onyahoo']) {
+                                # We are switching a group over from being on here to Yahoo.  This is poorly tested.
+                                $url = "https://trashnothing.com/modtools/api/switch-to-yahoo-groups?key=" . TNKEY . "&group_id=" . $g->getPrivate('nameshort') . "&moderator_email=" . $me->getEmailPreferred();
+                                $rsp = file_get_contents($url);
+                            }
+                            // @codeCoverageIgnoreEnd
+
                             foreach (['publish', 'onyahoo', 'onhere', 'showonyahoo', 'licenserequired', 'lat', 'lng', 'poly', 'polyofficial'] as $att) {
                                 $val = presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {

@@ -337,8 +337,10 @@ define([
                         // This would be stupidly narrow for a chat.  Close the oldest one.
                         var toclose = null;
                         var oldest = null;
+                        var count = 0;
                         Iznik.activeChats.viewManager.each(function (chat) {
                             if (!chat.minimised) {
+                                count++;
                                 if (!oldest || chat.restoredAt < oldest) {
                                     toclose = chat;
                                     oldest = chat.restoredAt;
@@ -347,7 +349,7 @@ define([
                         });
 
                         //console.log("COnsider close", toclose);
-                        if (toclose) {
+                        if (toclose && count > 1) {
                             toclose.minimise();
 
                             // Organise again now that's gone.
