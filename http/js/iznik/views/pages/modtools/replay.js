@@ -216,6 +216,11 @@ define([
                         break;
                     }
 
+                    case 'scrollpos': {
+                        var target = event.target.replace('html>body', '#replayContent');
+                        $(target).get(0).scrollTop = event.data;
+                    }
+
                     case 'click':
                     case 'focus': {
                         // Don't actually click - just draw on the canvas to illustrate it.
@@ -307,7 +312,6 @@ define([
                         $(target).focus();
                         $(target).val(event.data);
                         // console.log("Trigger", event.data, target);
-
                         break;
                     }
                 }
