@@ -18,86 +18,100 @@ define([
             lastDOM: null,
             lastDOMtime: 0,
 
-        trackEvent: function(target, event, posX, posY, data, timestamp) {
-            if (!timestamp) {
-                timestamp = (new Date()).getTime();
-            }
+            trackEvent: function(target, event, posX, posY, data, timestamp) {
+                if (!timestamp) {
+                    timestamp = (new Date()).getTime();
+                }
 
-            var data = {
-                timestamp: timestamp,
-                route: location.pathname + location.hash,
-                target: target,
-                event: event,
-                viewx: $(window).outerWidth(),
-                viewy: $(window).outerHeight(),
-                posX: posX,
-                posY: posY,
-                data: data
-            };
+                var data = {
+                    timestamp: timestamp,
+                    route: location.pathname + location.hash,
+                    target: target,
+                    event: event,
+                    viewx: $(window).outerWidth(),
+                    viewy: $(window).outerHeight(),
+                    posX: posX,
+                    posY: posY,
+                    data: data
+                };
 
-            eventQueue.push(data);
-        },
+                eventQueue.push(data);
+            },
 
-        flushEventQueue: function() {
-            var self = this;
+            flushEventQueue: function() {
+                var self = this;
 
-            flushTimerRunning = false;
+                flushTimerRunning = false;
 
-            if (eventQueue.length > 0) {
-                // If we fail, we'll lose events.  Oh well.
-                var currQueue = eventQueue;
-                eventQueue = [];
+                if (eventQueue.length > 0) {
+                    // If we fail, we'll lose events.  Oh well.
+                    var currQueue = eventQueue;
+                    eventQueue = [];
 
-                // If we have too much data, throw it away.
-                if (eventQueue.length < 20000) {
+                    // If we have too much data, throw it away.
+                    if (eventQueue.length < 20000) {
 
-                    var eventhost = $('meta[name=iznikevent]').attr("content");
+                        var eventhost = $('meta[name=iznikevent]').attr("content");
 
-                    // We will typically be posting to another domain, to avoid delaying requests on the main
-                    // domain because of event tracking (the per host connection limit).  This means that our
-                    // session from the main domain won't be inherited unless we set it manually.  It's the same
-                    // system under the covers, so the session is still valid.
-                    if (!sessionCookie) {
-                        try {
-                            var sess = localStorage.getItem('session');
-                            if (sess) {
-                                sess = JSON.parse(sess);
-                                sessionCookie = sess.session;
-                                // console.log("Got session from local", sessionCookie);
-                            }
-                        } catch (e) {console.log(e.message)};
-                    }
+                        // We will typically be posting to another domain, to avoid delaying requests on the main
+                        // domain because of event tracking (the per host connection limit).  This means that our
+                        // session from the main domain won't be inherited unless we set it manually.  It's the same
+                        // system under the covers, so the session is still valid.
+                        if (!sessionCookie) {
+                            try {
+                                var sess = localStorage.getItem('session');
+                                if (sess) {
+                                    sess = JSON.parse(sess);
+                                    sessionCookie = sess.session;
+                                    // console.log("Got session from local", sessionCookie);
+                                }
+                            } catch (e) {console.log(e.message)};
+                        }
 
-                    var me = Iznik.Session.get('me');
-                    var myid = me ? me.id : null;
+                        var me = Iznik.Session.get('me');
+                        var myid = me ? me.id : null;
 
-                    $.ajax({
-                        url: 'https://' + eventhost + API + 'event',
-                        type: 'POST',
-                        data: {
-                            api_key: sessionCookie,
-                            userid: myid,
-                            events: currQueue
-                        }, success: function(ret) {
-                            if (ret.ret === 0) {
-                                // Save the cookie
-                                sessionCookie = ret.session;
+                        $.ajax({
+                            url: 'https://' + eventhost + API + 'event',
+                            type: 'POST',
+                            data: {
+                                api_key: sessionCookie,
+                                userid: myid,
+                                events: currQueue
+                            }, success: function(ret) {
+                                if (ret.ret === 0) {
+                                    // Save the cookie
+                                    sessionCookie = ret.session;
 
-                                if (!flushTimerRunning) {
-                                    flushTimerRunning = true;
-                                    window.setTimeout(_.bind(self.flushEventQueue, self), 5000);
+                                    if (!flushTimerRunning) {
+                                        flushTimerRunning = true;
+                                        window.setTimeout(_.bind(self.flushEventQueue, self), 5000);
+                                    }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
+                } else if (!flushTimerRunning) {
+                    flushTimerRunning = true;
+                    window.setTimeout(_.bind(self.flushEventQueue, self), 5000);
                 }
-            } else if (!flushTimerRunning) {
-                flushTimerRunning = true;
-                window.setTimeout(_.bind(self.flushEventQueue, self), 5000);
-            }
-        },
+            },
 
-        getWithValues: function() {
+            checkScroll: function() {
+                var self = this;
+
+                // Record scroll position in scrollable divs, e.g. chat windows.
+                $('.overscrolly').each(function(i) {
+                    var scrollTop = this.scrollTop;
+                    if (this.scrollHeight > this.clientHeight && this.scrollTop > 0) {
+                        var path = self.getPath($(this));
+                        var timestamp = (new Date()).getTime();
+                        trackEvent(path, 'scrollpos', null, null, this.scrolltop, timestamp);
+                    }
+                });
+            },
+
+            getWithValues: function() {
                 // We're saving off the full DOM.  What we get from innerHTML doesn't have any values in it which
                 // were changed post initial insertion.  So we need to get the DOM with all the values.
                 //
@@ -239,6 +253,7 @@ define([
 
             checkTimer: function () {
                 this.checkDOM();
+                this.checkScroll();
                 this.startTimer();
             },
 
