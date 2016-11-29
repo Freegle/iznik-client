@@ -147,7 +147,8 @@ define([
                 var percent = 100 * ((new Date(event.clienttimestamp)).getTime() - self.clientStart) / self.clientDuration;
                 // console.log("Progress", event.clienttimestamp, (new Date(event.clienttimestamp)).getTime(), self.clientStart, self.clientDuration, percent)
                 $('#js-progress').css('width',  percent + '%').attr('aria-valuenow', percent);
-                $('#js-time').html(event.clienttimestamp + "&nbsp;GMT");
+                var mom = new moment(event.clienttimestamp);
+                $('#js-time').html(mom.format('DD/MM HH:mm:ss'));
             }
         },
 
@@ -443,7 +444,8 @@ define([
                                 self.replayEvents = ret.events;
                                 self.clientStart = (new Date(ret.events[0].clienttimestamp)).getTime();
                                 self.clientEnd = (new Date(ret.events[ret.events.length - 1].clienttimestamp)).getTime();
-                                $('#js-endtime').html(ret.events[ret.events.length - 1].clienttimestamp + '&nbsp;GMT');
+                                var mom = new moment(ret.events[ret.events.length - 1].clienttimestamp);
+                                $('#js-endtime').html(mom.format('DD/MM HH:mm:ss'));
                                 self.clientDuration = self.clientEnd - self.clientStart;
                                 self.replayStart = (new Date()).getTime();
 
