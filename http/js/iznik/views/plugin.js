@@ -93,8 +93,6 @@ define([
         yahooGroupsWithPendingMessages: [],
         yahooGroupsWithPendingMembers: [],
     
-        outstandingSyncs: 0,
-    
         render: function() {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
@@ -139,8 +137,7 @@ define([
         startSyncs: function() {
             var now = moment();
             var self = this;
-            console.log("Start syncs", this.outstandingSyncs);
-    
+
             function doSync(group, key) {
                 // Whether we start a sync depends on whether we are showing the group in All Groups.  This allows people
                 // who are on many groups as a backup not to have absurdly large numbers of syncs going on.
@@ -173,8 +170,9 @@ define([
     
                 return(worthit);
             }
-    
-            if (this.outstandingSyncs == 0) {
+
+            // Only start the syncs if there is no other work to do.
+            if (window.IznikPlugin.collection.length == 0) {
                 // Start pending syncs first because if they're wrong, that's normally more annoying.
                 //
                 // If we only have a few groups, sync them all, as Yahoo has issues with the counts being wrong
@@ -898,9 +896,7 @@ define([
     
         start: function() {
             var self = this;
-    
-            window.IznikPlugin.outstandingSyncs++;
-    
+
             this.startBusy();
     
             // Need to create this here rather than as a property, otherwise the same array is shared between instances
@@ -1109,15 +1105,12 @@ define([
                                             if (self.promisesCount >= self.promisesLen) {
                                                 // Once they're all done, we have succeeded.
                                                 self.succeed();
-    
-                                                window.IznikPlugin.outstandingSyncs--;
                                             }
                                         });
                                     });
     
                                     if (self.promisesLen == 0) {
                                         self.succeed();
-                                        window.IznikPlugin.outstandingSyncs--;
                                     }
                                 } else {
                                     self.failChunk();
@@ -1218,9 +1211,7 @@ define([
     
         start: function() {
             var self = this;
-    
-            window.IznikPlugin.outstandingSyncs++;
-    
+
             self.synctime = moment().format();
             self.progressBar();
     
@@ -1333,7 +1324,7 @@ define([
                     if (typeof self.completed === 'function') {
                         // We have a custom callback
                         self.completed(self.members);
-                        window.IznikPlugin.outstandingSyncs--;
+
                     } else {
                         // Pass to server
                         $.ajax({
@@ -1355,7 +1346,6 @@ define([
     
                                 if (ret.ret == 0) {
                                     self.succeed();
-                                    window.IznikPlugin.outstandingSyncs--;
                                 } else {
                                     self.failChunk();
                                 }
