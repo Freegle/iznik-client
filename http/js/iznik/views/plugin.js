@@ -139,6 +139,7 @@ define([
         startSyncs: function() {
             var now = moment();
             var self = this;
+            console.log("Start syncs", this.outstandingSyncs);
     
             function doSync(group, key) {
                 // Whether we start a sync depends on whether we are showing the group in All Groups.  This allows people
@@ -163,9 +164,9 @@ define([
                 //
                 // This avoids doing syncs which will definitely do nothing, which can be the case for people with a lot
                 // of groups.
-                console.log("Worthit", group.get('nameshort'));
-                console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
-                console.log("Work on MT", group.get('work'));
+                // console.log("Worthit", group.get('nameshort'));
+                // console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
+                // console.log("Work on MT", group.get('work'));
     
                 var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
                         presdef(countname, group.get('work'), 0);
@@ -184,7 +185,7 @@ define([
                     // We know from our Yahoo scan whether there is any work to do.
                     if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
                         doSync(group, 'showmessages')) {
-                        //console.log("Sync pending messages for", group.get('nameshort'));
+                        console.log("Sync pending messages for", group.get('nameshort'));
                         self.collection.add(new Iznik.Models.Plugin.Work({
                             id: group.get('nameshort') + '.SyncMessages.Pending',
                             subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({
@@ -250,7 +251,7 @@ define([
             // sync via the plugin.
             //
             // Delay doesn't set the right context by default.
-            _.delay(_.bind(this.listYahooGroups, this), 30000);
+            _.delay(_.bind(this.listYahooGroups, this), 60000);
         },
 
         // TODO This whole callback approach is old code and should use promises or something.
@@ -666,7 +667,7 @@ define([
         listYahooGroups: function() {
             // We get a list of all the groups on Yahoo so that we can see whether there are groups on the server
             // for which we need to update our mod status.
-            console.log("List Yahoo groups");
+            // console.log("List Yahoo groups");
             this.yahooGroupStart = 1;
             this.getYahooGroupChunk();
         },
