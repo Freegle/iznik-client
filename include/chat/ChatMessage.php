@@ -27,11 +27,15 @@ class ChatMessage extends Entity
     /** @var  $log Log */
     private $log;
 
+    # Use matching from https://gist.github.com/gruber/249502 .
+    private $urlPattern = '#(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))#m';
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
         $this->spamwords = $dbhr->preQuery("SELECT * FROM spam_keywords;");
+        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain = 'spam.wherever';");
     }
 
     /**
@@ -42,6 +46,27 @@ class ChatMessage extends Entity
         $this->dbhm = $dbhm;
     }
 
+    public function whitelistURLs($message) {
+        if (preg_match_all($this->urlPattern, $message, $matches)) {
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
+
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    if (strlen($url) > 0 && stripos($url, 'http') !== FALSE) {
+                        $url = substr($url, strpos($url, '://') + 3);
+                        $p = strpos($url, '/');
+                        $domain = $p ? substr($url, 0, $p) : $url;
+                        $this->dbhm->preExec("INSERT IGNORE INTO spam_whitelist_links (userid, domain) VALUES (?, ?);", [
+                            $myid,
+                            $domain
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+
     public function checkReview($message) {
         $check = FALSE;
 
@@ -50,11 +75,11 @@ class ChatMessage extends Entity
             $check = TRUE;
         }
 
-        # Check for URLs.  Use matching from https://gist.github.com/gruber/249502 .
-        $ourdomains = explode(',', TRUSTED_LINKS);
-
-        if (preg_match_all('#(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))#m', $message, $matches)) {
+        # Check for URLs.
+        if (preg_match_all($this->urlPattern, $message, $matches)) {
             # A link.  Some domains are ok.
+            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links;");
+
             $valid = 0;
             $count = 0;
             $badurl = NULL;
@@ -68,8 +93,8 @@ class ChatMessage extends Entity
                         $trusted = FALSE;
 
                         foreach ($ourdomains as $domain) {
-                            #error_log("Check ours $domain vs $url pos " . stripos($url, $domain));
-                            if (stripos($url, $domain) === 0) {
+                            error_log("Check ours $domain vs $url pos " . stripos($url, $domain['domain']));
+                            if (stripos($url, $domain['domain']) === 0) {
                                 # One of our domains.
                                 $valid++;
                                 $trusted = TRUE;
@@ -204,6 +229,9 @@ class ChatMessage extends Entity
                 $myid,
                 $id
             ]);
+
+            # Whitelist any URLs - they can't be indicative of spam.
+            $this->whitelistURLs($msg['message']);
 
             # This is like a new message now, so alert them.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
