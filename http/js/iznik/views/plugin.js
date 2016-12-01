@@ -12,7 +12,8 @@ define([
     // on the client.  We use a collectionview to render these.  The model contains information about which specific
     // view we want.
 
-    var cantban = false;
+    var cantban = [];
+    var cantremove = [];
     
     Iznik.Models.Plugin.Work = Iznik.Model.extend({
         initialize: function() {
@@ -499,7 +500,8 @@ define([
                                     break;
                                 }
 
-                                case 'RejectPendingMember': {
+                                case 'RejectPendingMember':
+                                case 'RemovePendingMember': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
                                         subview: new Iznik.Views.Plugin.Yahoo.RejectPendingMember({
@@ -510,18 +512,20 @@ define([
                                 }
 
                                 case 'RemoveApprovedMember': {
-                                    self.collection.add(new Iznik.Models.Plugin.Work({
-                                        id: work.id,
-                                        subview: new Iznik.Views.Plugin.Yahoo.RemoveApprovedMember({
-                                            model: new Iznik.Model(work)
-                                        })
-                                    }));
+                                    if (!cantremove[work.groupid]) {
+                                        self.collection.add(new Iznik.Models.Plugin.Work({
+                                            id: work.id,
+                                            subview: new Iznik.Views.Plugin.Yahoo.RemoveApprovedMember({
+                                                model: new Iznik.Model(work)
+                                            })
+                                        }));
+                                    }
                                     break;
                                 }
 
                                 case 'BanPendingMember':
                                 case 'BanApprovedMember': {
-                                    if (!cantban) {
+                                    if (!cantban[work.groupid]) {
                                         self.collection.add(new Iznik.Models.Plugin.Work({
                                             id: work.id,
                                             subview: new Iznik.Views.Plugin.Yahoo.BanApprovedMember({
@@ -2044,6 +2048,10 @@ define([
         start: function() {
             var self = this;
 
+            if (cantremove[self.model.get('group').id]) {
+                self.drop();
+            }
+
             var mod = new Iznik.Models.Yahoo.User({
                 group: self.model.get('group').nameshort,
                 email: self.model.get('email')
@@ -2053,6 +2061,11 @@ define([
                 console.log("Fetched mod", mod);
                 self.listenToOnce(mod, 'removesucceeded', self.succeed);
                 self.listenToOnce(mod, 'removefailed', self.fail);
+                self.listenToOnce(mod, 'removeprohibited', function() {
+                    console.log("Remove prohibited, drop");
+                    cantremove[self.model.get('group').id] = true;
+                    self.drop();
+                });
                 mod.remove(self.crumb);
             });
             
@@ -2070,7 +2083,7 @@ define([
         start: function() {
             var self = this;
 
-            if (cantban) {
+            if (cantban[self.model.get('group').id]) {
                 self.drop();
             }
 
@@ -2088,7 +2101,7 @@ define([
                     self.listenToOnce(mod, 'bansucceeded', self.succeed);
                     self.listenToOnce(mod, 'banfailed', self.fail);
                     self.listenToOnce(mod, 'banprohibited', function() {
-                        cantban = true;
+                        cantban[self.model.get('group').id] = true;
                         self.drop();
                     });
                     mod.ban(self.crumb);
