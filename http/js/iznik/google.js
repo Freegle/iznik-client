@@ -78,7 +78,8 @@ define([
                                 'cookiepolicy': 'single_host_origin',
                                 'callback': self.onSignInCallback,
                                 'immediate': false,
-                                'scope': self.scopes
+                                'scope': self.scopes,
+                                'app_package_name': 'org.ilovefreegle.direct'
                             };
 
                             gapi.auth.signIn(params);
