@@ -701,7 +701,7 @@ class User extends Entity
             if ($ban) {
                 $type = 'BanApprovedMember';
             } else {
-                $type = $this->isPending($groupid) ? 'RemovePendingMember' : 'RemoveApprovedMember';
+                $type = $this->isPending($groupid) ? 'RejectPendingMember' : 'RemoveApprovedMember';
             }
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
