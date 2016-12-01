@@ -50,7 +50,6 @@ EOT;
                                                                 </table>               
                                                             </td>    
                                                             <td>
-                                                                <p style="color: red">Get 10% off some lovely cheese and support Freegle at the same time! <a href="http://freegle.in/cheeseoffer">Find out more...</a></p>                                                                                                                        
                                                                 <p>You've received this mail because you're a member of <a href="{{visit}}">$groupname</a>.</p>
                                                                 <table width="100%">
                                                                     <tr>
