@@ -7,6 +7,8 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
@@ -23,3 +25,5 @@ do {
     $total += $count;
     error_log("...$total");
 } while ($count > 0);
+
+unlockScript($lockh);
