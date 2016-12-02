@@ -142,7 +142,7 @@ class Digest
                 $atts['textbody'] = $m->stripGumf();
 
                 if ($atts['type'] == Message::TYPE_OFFER || $atts['type'] == Message::TYPE_WANTED) {
-                    if (count($atts['related']) == 0) {
+                    if (count($atts['outcomes']) == 0) {
                         $available[] = $atts;
                     } else {
                         $unavailable[] = $atts;
