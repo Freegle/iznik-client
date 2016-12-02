@@ -12,7 +12,7 @@ class Events {
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
-        try { mkdir(IZNIK_BASE . '/events'); } catch (Exception $e) {};
+        try { @mkdir(IZNIK_BASE . '/events'); } catch (Exception $e) {};
     }
 
     public function record($id, $sessid, $route, $target, $action, $timestamp, $posx, $posy, $viewx, $viewy, $data) {
@@ -134,7 +134,7 @@ class Events {
 
                 $modtools = FALSE;
                 $userid = NULL;
-                $last = NULL;
+                $last = 0;
 
                 foreach ($data as $d) {
                     if (strpos($d['route'], 'modtools') !== FALSE) {
@@ -142,7 +142,7 @@ class Events {
                     }
 
                     $userid = $userid ? $userid : $d['userid'];
-                    $last = $d['clienttimestamp'];
+                    $last = $d['clienttimestamp'] > $last ? $d['clienttimestamp'] : $last;
                 }
 
                 $thisone['modtools'] = $modtools;
@@ -155,6 +155,15 @@ class Events {
             }
 
             $ret[] = $thisone;
+        }
+
+        if (count($ret) > 0) {
+            # Show most recent start date first
+            usort($ret, function($a, $b) {
+                $atime = (new DateTime($a['start']))->getTimestamp();
+                $btime = (new DateTime($b['start']))->getTimestamp();
+                return($btime - $atime);
+            });
         }
 
         return($ret);
@@ -171,8 +180,9 @@ class Events {
 
             foreach ($events as &$d) {
                 # Convert the differences into relative diffs between the items.
-                $d['clientdiff'] = $lasttime ? ($d['clienttimestamp'] - $lasttime) : 0;
+                $d['clientdiff'] = floor(($lasttime ? ($d['clienttimestamp'] - $lasttime) : 0) * 1000);
                 $lasttime = $d['clienttimestamp'];
+                $d['clienttimestamp'] = ISODateFromFloat($d['clienttimestamp']);
             }
         }
 
