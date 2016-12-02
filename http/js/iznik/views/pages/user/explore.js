@@ -289,7 +289,7 @@ define([
                 // Yahoo group - open new tab.
                 window.open("https://groups.yahoo.com/group/" + this.model.get('nameshort'));
             } else {
-                Router.navigate('/explore/' + this.model.get('id'), true);
+                Router.navigate('/explore/' + this.model.get('nameshort'), true);
             }
         }
     });
@@ -307,7 +307,7 @@ define([
         },
 
         join: function() {
-            Router.navigate('/explore/' + this.model.get('id') + '/join', true);
+            Router.navigate('/explore/' + this.model.get('nameshort') + '/join', true);
         },
 
         leave: function() {
@@ -325,7 +325,7 @@ define([
                         // Now force a refresh of the session.
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                             self.model.set('role', 'Non-member');
-                            Router.navigate('/explore/' + self.model.get('id'), true);
+                            Router.navigate('/explore/' + self.model.get('nameshort'), true);
                         });
 
                         Iznik.Session.testLoggedIn(true);
@@ -445,6 +445,7 @@ define([
                                 }, complete: function () {
                                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                                         self.showHideJoin();
+                                        self.refetch();
                                     });
 
                                     Iznik.Session.testLoggedIn(true);
