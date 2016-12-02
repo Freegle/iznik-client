@@ -129,7 +129,7 @@ class Events {
                     'entry' => $first['route'],
                     'viewx' => $first['viewx'],
                     'viewy' => $first['viewy'],
-                    'start' => ISODateFromFloat($first['clienttimestamp'])
+                    'start' => $first['clienttimestamp']
                 ];
 
                 $modtools = FALSE;
@@ -142,7 +142,8 @@ class Events {
                     }
 
                     $userid = $userid ? $userid : $d['userid'];
-                    $last = $d['clienttimestamp'] > $last ? $d['clienttimestamp'] : $last;
+                    $thistime = (new DateTime($d['clienttimestamp']))->getTimestamp();
+                    $last = $thistime > $last ? $thistime : $last;
                 }
 
                 $thisone['modtools'] = $modtools;
