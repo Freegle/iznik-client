@@ -688,6 +688,7 @@ class ChatRoom extends Entity
         # - push
         $userids = [];
         $group = NULL;
+        #error_log("Notify $message exclude $excludeuser");
 
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:

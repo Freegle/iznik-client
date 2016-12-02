@@ -93,5 +93,5 @@ if ($cont) {
 
 
 error_log("CPU cost " . getCpuUsage() . " rc $rc");
-fwrite($logh, "Route returned $rc");
+fwrite($logh, "Route returned $rc\n");
 exit(0);
