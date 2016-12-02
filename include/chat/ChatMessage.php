@@ -87,13 +87,11 @@ class ChatMessage extends Entity
             foreach ($matches as $val) {
                 foreach ($val as $url) {
                     if (strlen($url) > 0 && stripos($url, 'http') !== FALSE) {
-                        #error_log("Check $url");
                         $url = substr($url, strpos($url, '://') + 3);
                         $count++;
                         $trusted = FALSE;
 
                         foreach ($ourdomains as $domain) {
-                            error_log("Check ours $domain vs $url pos " . stripos($url, $domain['domain']));
                             if (stripos($url, $domain['domain']) === 0) {
                                 # One of our domains.
                                 $valid++;
