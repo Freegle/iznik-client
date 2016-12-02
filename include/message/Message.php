@@ -2091,8 +2091,8 @@ class Message
             $pendingid ? $pendingid : $approvedid
         ]);
 
-        $msgid = count($msgs) == 0 ? NULL : $msgs['msgid'];
-        $collection = count($msgs) == 0 ? NULL : $msgs['collection'];
+        $msgid = count($msgs) == 0 ? NULL : $msgs[0]['msgid'];
+        $collection = count($msgs) == 0 ? NULL : $msgs[0]['collection'];
 
         return([ $msgid, $collection ]);
     }
