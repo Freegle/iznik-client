@@ -465,8 +465,11 @@ And something after it.', $stripped);
 
         $m = new Message($this->dbhr, $this->dbhm);
 
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+
         # Put two messages on the group - one eligible for autorepost, the other not yet.
         $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('test@test.com', $email, $msg);
         $msg = str_replace('Basic test', 'OFFER: Test not due (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
@@ -479,6 +482,7 @@ And something after it.', $stripped);
         assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents('msgs/attachment'));
+        $msg = str_replace('test@test.com', $email, $msg);
         $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
