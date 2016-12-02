@@ -38,7 +38,7 @@ function get_current_url() {
 }
 
 function pres($key, $arr) {
-    return($arr && array_key_exists($key, $arr) && $arr[$key] ? $arr[$key] : FALSE);
+    return($arr && is_array($arr) && array_key_exists($key, $arr) && $arr[$key] ? $arr[$key] : FALSE);
 }
 
 function presdef($key, $arr, $def) {
