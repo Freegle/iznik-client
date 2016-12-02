@@ -9,21 +9,20 @@ require_once(IZNIK_BASE . '/include/db.php');
 
 $lockh = lockScript(basename(__FILE__));
 
-# Bypass our usual DB class as we don't want the overhead nor to log.
-$dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
-$dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES => FALSE
-));
+if ($handle = opendir(IZNIK_BASE . "/events")) {
+    while (false !== ($file = readdir($handle))) {
+        $fn = IZNIK_BASE . "/events/$file";
 
-$start = date('Y-m-d', strtotime("4 hours ago"));
+        # Skip index files.
+        if (is_file($fn) && strpos($file, '.') === FALSE) {
+            $modified = filemtime($fn);
 
-error_log("Event logs:");
-$total = 0;
-do {
-    $count = $dbhm->exec("DELETE FROM logs_events WHERE `timestamp` < '$start' LIMIT 1000;");
-    $total += $count;
-    error_log("...$total");
-} while ($count > 0);
+            if (time() - filemtime($fn) > 24 * 3600) {
+                unlink($fn);
+            }
+        }
+    }
+    closedir($handle);
+}
 
 unlockScript($lockh);

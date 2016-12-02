@@ -145,6 +145,15 @@ if (!function_exists('ISODate')) {
     }
 }
 
+function ISODateFromFloat($t) {
+    $s = floor($t);
+    $micro = sprintf("%06d",($t - $s) * 1000000);
+    $d = new DateTime(date('Y-m-d H:i:s.'.$micro, $t));
+    $date = $d->format(DateTime::ISO8601);
+    $date = str_replace('+0000', 'Z', $date);
+    return($date);
+}
+
 function code_to_country( $code ){
 
     $code = strtoupper($code);

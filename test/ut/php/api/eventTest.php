@@ -38,11 +38,14 @@ class eventsAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+
         if (EVENTLOG) {
             $events = [
                 [
                     'timestamp' => 1465293055786,
-                    'route' => '/give/whereami',
+                    'route' => '/modtools/give/whereami',
                     'target' => 'window',
                     'event' => 'DOM-f',
                     'viewx' => 1920,
@@ -69,7 +72,8 @@ EOT
 
             error_log("POST");
             $ret = $this->call('event', 'POST', [
-                'events' => $events
+                'events' => $events,
+                'userid' => $this->uid
             ]);
             assertEquals(0, $ret['ret']);
 
@@ -100,8 +104,6 @@ EOT
             ]);
             assertEquals(2, $ret['ret']);
 
-            $u = User::get($this->dbhr, $this->dbhm);
-            $this->uid = $u->create(NULL, NULL, 'Test User');
             $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
             $this->user->addEmail('test@test.com');
             $pw = randstr(32);
@@ -134,6 +136,16 @@ EOT
             }
 
             assertTrue($found);
+
+            # Now get via userid
+            $ret = $this->call('event', 'GET', [
+                'userid' => $this->uid
+            ]);
+            error_log("Get returned " . count($ret['sessions']));
+
+            #error_log(var_export($ret, TRUE));
+            assertEquals(0, $ret['ret']);
+            assertEquals(1, count($ret['sessions']));
         }
 
         error_log(__METHOD__ . " end");
