@@ -562,7 +562,6 @@ class User extends Entity
         $membershipid = $this->dbhm->lastInsertId();
         #error_log("Insert returned $rc membership $membershipid");
 
-        error_log("Consider insert into yahoo $rc, $emailid, " . $g->onYahoo());
         if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
             $this->dbhm->preExec($sql, [
