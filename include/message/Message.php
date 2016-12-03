@@ -2736,13 +2736,21 @@ class Message
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
+        error_log("Atts " . var_export($atts, TRUE));
         $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
         #error_log("Items " . var_export($items, TRUE));
 
         if (pres('location', $atts) && count($items) > 0) {
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
             if (pres('area', $atts) && pres('postcode', $atts)) {
-                $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
+                $includearea = $g->getSetting('includearea', TRUE);
+                if ($includearea) {
+                    # We want the area in the group, e.g. Edinburgh EH4.
+                    $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
+                } else {
+                    # We have it, but don't want it, e.g. EH4.
+                    $loc = $atts['postcode']['name'];
+                }
             } else {
                 $l = new Location($this->dbhr, $this->dbhm, $atts['location']['id']);
                 $loc = $l->ensureVague();

@@ -55,6 +55,7 @@ class Group extends Entity
         $this->defaultSettings = [
             'showchat' => 1,
             'communityevents' => 1,
+            'includearea' => 1,
             'autoapprove' => [
                 'members' => 0,
                 'messages' => 0
