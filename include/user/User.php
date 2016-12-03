@@ -562,6 +562,7 @@ class User extends Entity
         $membershipid = $this->dbhm->lastInsertId();
         #error_log("Insert returned $rc membership $membershipid");
 
+        error_log("Consider insert into yahoo $rc, $emailid, " . $g->onYahoo());
         if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
             $this->dbhm->preExec($sql, [
@@ -591,7 +592,6 @@ class User extends Entity
                 ->setSubject("Welcome to " . $g->getPrivate('nameshort'))
                 ->setFrom($g->getModsEmail())
                 ->setTo($byemail)
-                ->setBcc('log@ehibbert.org.uk')
                 ->setDate(time())
                 ->setBody("Pleased to meet you.");
             $headers = $message->getHeaders();
@@ -698,7 +698,6 @@ class User extends Entity
                 ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
                 ->setFrom($g->getModsEmail())
                 ->setTo($byemail)
-                ->setBcc('log@ehibbert.org.uk')
                 ->setDate(time())
                 ->setBody("Parting is such sweet sorrow.");
             $headers = $message->getHeaders();
