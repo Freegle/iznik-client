@@ -164,6 +164,8 @@ function messages() {
                 $m = new Message($dbhr, $dbhm);
                 list ($msgid, $collection) = $m->findEarlierCopy($groupid, $yahoopendingid, $yahooapprovedid);
 
+                $ret = ['ret' => 3, 'status' => 'Not new or pending'];
+
                 if (!$msgid || $collection == MessageCollection::PENDING) {
                     # This message is new to us, or we are updating an existing pending message.
                     $r = new MailRouter($dbhr, $dbhm);
@@ -189,6 +191,11 @@ function messages() {
                             'id' => $id
                         ];
                     }
+                } else if ($msgid && $collection == MessageCollection::APPROVED && $yahoopendingid) {
+                    # This is a message which is on Pending on Yahoo but has already been approved on here.
+                    # Approve it again - which should result in plugin work which will remove it from Yahoo.
+                    $m = new Message($dbhr, $dbhm, $msgid);
+                    $m->approve($groupid);
                 }
             }
         }
