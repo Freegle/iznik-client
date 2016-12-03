@@ -89,6 +89,7 @@ define([
         connected: false,
         everConnected: false,
         confirmedMod: false,
+
     
         yahooGroups: [],
         yahooGroupsWithPendingMessages: [],
@@ -172,13 +173,14 @@ define([
                 return(worthit);
             }
 
-            // Only start the syncs if there is no other work to do.
-            if (window.IznikPlugin.collection.length == 0) {
+            // Only start the syncs if there is no other work to do or never sync'd.
+            if (window.IznikPlugin.collection.length == 0 || window.IznikPlugin.notsynced) {
                 // Start pending syncs first because if they're wrong, that's normally more annoying.
                 //
                 // If we only have a few groups, sync them all, as Yahoo has issues with the counts being wrong
                 // sometimes.
                 var numgroups = Iznik.Session.get('groups').length;
+                window.IznikPlugin.notsynced = false;
 
                 Iznik.Session.get('groups').each(function (group) {
                     // We know from our Yahoo scan whether there is any work to do.
@@ -1147,7 +1149,8 @@ define([
         numField: 'numResults',
         idField: 'yahoopendingid',
         dateField: 'postDate',
-    
+        notsynced: true,
+
         deleteAllMissing: true,
     
         collections: [
