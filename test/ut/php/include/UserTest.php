@@ -127,6 +127,7 @@ class userTest extends IznikTestCase {
         # Add them as memberships and check we get the right ones.
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
         $emailid1 = $u->getIdForEmail('test@test.com')['id'];
         $emailid3 = $u->getIdForEmail('test3@test.com')['id'];
         error_log("emailid1 $emailid1 emailid3 $emailid3");
@@ -397,6 +398,7 @@ class userTest extends IznikTestCase {
         # Simulates processing from real emails migration script.
         $g = Group::get($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup', Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create(NULL, NULL, 'Test User');
@@ -435,6 +437,7 @@ class userTest extends IznikTestCase {
         # Simulates processing from real emails migration script.
         $g = Group::get($this->dbhr, $this->dbhm);
         $group = $g->create('testgroup', Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create(NULL, NULL, 'Test User');

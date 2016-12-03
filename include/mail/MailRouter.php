@@ -601,7 +601,7 @@ class MailRouter
 
                 # We should always find them as Message::parse should create them
                 if ($u->getId()) {
-                    $u->addMembership($gid);
+                    $u->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, $envfrom);
                     $ret = MailRouter::TO_SYSTEM;
                 }
             }
@@ -620,7 +620,7 @@ class MailRouter
 
                 if ($uid) {
                     $u = new User($this->dbhr, $this->dbhm, $uid);
-                    $u->removeMembership($gid);
+                    $u->removeMembership($gid, FALSE, FALSE, $envfrom);
                     $ret = MailRouter::TO_SYSTEM;
                 }
             }

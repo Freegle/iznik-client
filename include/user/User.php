@@ -529,8 +529,9 @@ class User extends Entity
         return($coll);
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL) {
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
         Session::clearSessionCache();
 
@@ -561,7 +562,7 @@ class User extends Entity
         $membershipid = $this->dbhm->lastInsertId();
         #error_log("Insert returned $rc membership $membershipid");
 
-        if ($rc && $emailid) {
+        if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
             $this->dbhm->preExec($sql, [
                 $membershipid,
@@ -583,9 +584,24 @@ class User extends Entity
         # Not the end of the world if this fails.
         $this->updateSystemRole($role);
 
+        // @codeCoverageIgnoreStart
+        if ($byemail) {
+            list ($transport, $mailer) = getMailer();
+            $message = Swift_Message::newInstance()
+                ->setSubject("Welcome to " . $g->getPrivate('nameshort'))
+                ->setFrom($g->getModsEmail())
+                ->setTo($byemail)
+                ->setBcc('log@ehibbert.org.uk')
+                ->setDate(time())
+                ->setBody("Pleased to meet you.");
+            $headers = $message->getHeaders();
+            $headers->addTextHeader('X-Freegle-Mail-Type', 'Added');
+            $mailer->send($message);
+        }
+        // @codeCoverageIgnoreStart
+        
         if ($rc) {
             # The membership didn't already exist.
-            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $atts = $g->getPublic();
 
             if ($atts['welcomemail'] || $message) {
@@ -668,28 +684,28 @@ class User extends Entity
         return($rc);
     }
 
-    public function removeMembership($groupid, $ban = FALSE, $spam = FALSE) {
+    public function removeMembership($groupid, $ban = FALSE, $spam = FALSE, $byemail = NULL) {
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $meid = $me ? $me->getId() : NULL;
 
-        $emails = $this->getEmails();
-
-        foreach ($emails as $email) {
-            error_log("Consider mail {$email['email']} vs " . strpos($email['email'], '@user.trashnothing.com'));
-            if (strpos($email['email'], '@user.trashnothing.com') !== FALSE) {
-                list ($transport, $mailer) = getMailer();
-                $message = Swift_Message::newInstance()
-                    ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
-                    ->setFrom($g->getModsEmail())
-                    ->setTo($email['email'])
-                    ->setDate(time())
-                    ->setBody("Parting is such sweet sorry.");
-                $headers = $message->getHeaders();
-                $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
-                $mailer->send($message);
-            }
+        // @codeCoverageIgnoreStart
+        //
+        // Let them know.
+        if ($byemail) {
+            list ($transport, $mailer) = getMailer();
+            $message = Swift_Message::newInstance()
+                ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
+                ->setFrom($g->getModsEmail())
+                ->setTo($byemail)
+                ->setBcc('log@ehibbert.org.uk')
+                ->setDate(time())
+                ->setBody("Parting is such sweet sorrow.");
+            $headers = $message->getHeaders();
+            $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
+            $mailer->send($message);
         }
+        // @codeCoverageIgnoreEnd
 
         # Trigger removal of any Yahoo memberships.
         $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ?;";
