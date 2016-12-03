@@ -195,7 +195,12 @@ function messages() {
                     # This is a message which is on Pending on Yahoo but has already been approved on here.
                     # Approve it again - which should result in plugin work which will remove it from Yahoo.
                     $m = new Message($dbhr, $dbhm, $msgid);
+                    $m->setYahooPendingId($groupid, $yahoopendingid);
                     $m->approve($groupid);
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Already approved - do so again'
+                    ];
                 }
             }
         }
