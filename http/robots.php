@@ -7,22 +7,4 @@ require_once(IZNIK_BASE . '/include/db.php');
 
 echo "User-agent: *\n";
 
-# Exclude some folders.  Some crawlers may ignore this.
-foreach ([
-    'api',
-    'css',
-    'facebook',
-    'fonts',
-    'js',
-    'jscache',
-    'mobile',
-    'plugin',
-    'swagger-ui',
-    'template',
-    'tools',
-    'twitter'
-         ] as $excl) {
-    echo "Disallow: /$excl\n";
-}
-
 echo "\nSITEMAP: http://" . USER_SITE . '/sitemap.xml';
