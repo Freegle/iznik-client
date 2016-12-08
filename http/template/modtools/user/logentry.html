@@ -97,6 +97,8 @@
             Triggered application to Yahoo Group {{obj.group.namedisplay}}.
             <% } else if (subtype == 'YahooJoined') { %>
             Yahoo informed ModTools that the member has joined.
+            <% } else if (subtype == 'SuspendMail') { %>
+            Stop mailing this member as they are bouncing.
             <% } else if (subtype == 'Bounce') { %>
             {{text}}
             <% } else { %>
