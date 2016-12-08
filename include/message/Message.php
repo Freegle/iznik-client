@@ -3189,7 +3189,7 @@ class Message
                                 # with multiple copies on Yahoo are just too horrible to be worth trying to do.
                                 $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                                 error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                                $m->repost();
+                                $m->repost($message['autoreposts'] + 1, $reposts['max']);
 
                                 $count++;
                             }
@@ -3219,10 +3219,18 @@ class Message
         return($ret);
     }
 
-    public function repost() {
+    public function repost($reposts, $max) {
         # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
         # near the top, and get mailed out again.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+
+        $this->log->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_AUTO_REPOSTED,
+            'msgid' => $this->id,
+            'user' => $this->getFromuser(),
+            'text' => "$reposts / $max"
+        ]);
     }
 
     public function isBounce()

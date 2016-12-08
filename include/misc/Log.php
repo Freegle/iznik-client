@@ -58,6 +58,7 @@ class Log
     const SUBTYPE_RELEVANTOFF = 'RelevantOff';
     const SUBTYPE_BOUNCE = 'Bounce';
     const SUBTYPE_SUSPEND_MAIL = 'SuspendMail';
+    const SUBTYPE_AUTO_REPOSTED = 'Autoreposted';
 
     function __construct($dbhr, $dbhm)
     {

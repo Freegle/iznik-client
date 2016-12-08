@@ -452,7 +452,6 @@ And something after it.', $stripped);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isBounce());
 
-
         error_log(__METHOD__ . " end");
     }
 
@@ -537,6 +536,13 @@ And something after it.', $stripped);
         list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid);
         assertEquals(1, $count);
         assertEquals(0, $warncount);
+
+        $this->waitBackground();
+        $uid = $m2->getFromuser();
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $atts = $u->getPublic(NULL, FALSE, TRUE);
+        $log = $this->findLog('Message', 'Autoreposted', $atts['logs']);
+        self::assertNotNull($log);
 
         error_log(__METHOD__ . " end");
     }
