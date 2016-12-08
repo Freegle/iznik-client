@@ -29,9 +29,13 @@ define([
 
         allseen: function () {
             Iznik.minimisedChats.viewManager.each(function (chat) {
-                if (chat.model.get('unseen') > 0) {
-                    chat.allseen();
-                    chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+                try {
+                    if (chat.model.get('unseen') > 0) {
+                        chat.allseen();
+                        chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+                    }
+                } catch (e) {
+                    console.error("Failed to process chat", chat, e.message);
                 }
             });
             $('#notifchatdropdownlist').empty();
