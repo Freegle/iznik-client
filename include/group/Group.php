@@ -807,9 +807,9 @@ class Group extends Entity
                         # Now update with any new settings.  Having this if test looks a bit clunky but it means that
                         # when resyncing a group where most members have not changed settings, we can avoid many UPDATEs.
                         #
-                        # This will have the effect of moving members between collections if required.
+                        # This will have the effect of moving members between collections, if required.
                         $yahoorole = $this->getYahooRole($member);
-                        
+
                         if ($new ||
                             $yahoomembs[0]['role'] != $yahoorole || $yahoomembs[0]['collection'] != $collection || $yahoomembs[0]['yahooPostingStatus'] != $yps || $yahoomembs[0]['yahooDeliveryType'] != $ydt || $yahoomembs[0]['joincomment'] != $joincomment || $yahoomembs[0]['emailid'] != $member['emailid'] || $yahoomembs[0]['added'] != $added || $yahoomembs[0]['yahooAlias'] != $yahooAlias)
                         {
