@@ -65,7 +65,7 @@ if (preg_match('/List-Unsubscribe: <mailto:(.*)-unsubscribe@yahoogroups.co/', $m
 }
 
 if ($cont) {
-    if (preg_match('/^MODERATE -- (.*) posted to (.*)/', $msg, $matches)) {
+    if (preg_match('/^Subject: MODERATE -- (.*) posted to (.*)/', $msg, $matches)) {
         # This is a moderation notification for a pending message.
         error_log("MODERATE");
         $r->received(Message::YAHOO_PENDING, NULL, $envto, $msg);
