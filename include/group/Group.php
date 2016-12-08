@@ -548,7 +548,7 @@ class Group extends Entity
                 $yahoorole = User::ROLE_OWNER;
             }
         }
-        
+
         return($yahoorole);
     }
 
@@ -577,6 +577,23 @@ class Group extends Entity
             }
 
             $count++;
+        }
+    }
+
+    public function setNativeRoles() {
+        # This is used when migrating a group from Yahoo to this platform.  We find the owners and mods on Yahoo,
+        # and give them that status on here.
+        $mods = $this->dbhr->preQuery("SELECT memberships.userid, memberships_yahoo.role FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE groupid = ? AND memberships_yahoo.role IN ('Owner', 'Moderator');",
+            [
+                $this->id
+            ]);
+
+        foreach ($mods as $mod) {
+            $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;", [
+                $mod['role'],
+                $mod['userid'],
+                $this->id,
+            ]);
         }
     }
 
@@ -791,7 +808,7 @@ class Group extends Entity
                         # when resyncing a group where most members have not changed settings, we can avoid many UPDATEs.
                         #
                         # This will have the effect of moving members between collections if required.
-                        $yahoorole = $this->getYahooRole($memb);
+                        $yahoorole = $this->getYahooRole($member);
                         
                         if ($new ||
                             $yahoomembs[0]['role'] != $yahoorole || $yahoomembs[0]['collection'] != $collection || $yahoomembs[0]['yahooPostingStatus'] != $yps || $yahoomembs[0]['yahooDeliveryType'] != $ydt || $yahoomembs[0]['joincomment'] != $joincomment || $yahoomembs[0]['emailid'] != $member['emailid'] || $yahoomembs[0]['added'] != $added || $yahoomembs[0]['yahooAlias'] != $yahooAlias)
