@@ -304,6 +304,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid,
             'userid' => $this->uid,
             'emailfrequency' => 8,
+            'eventsallowed' => 0,
             'ourpostingstatus' => 'DEFAULT'
         ]);
         assertEquals(0, $ret['ret']);
@@ -314,6 +315,7 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(8, $ret['member']['emailfrequency']);
+        assertEquals(0, $ret['member']['eventsallowed']);
         self::assertEquals('DEFAULT', $ret['member']['ourpostingstatus']);
         
         assertEquals(1, $this->user2->addMembership($this->groupid, User::ROLE_MEMBER));

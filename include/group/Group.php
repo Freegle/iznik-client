@@ -477,7 +477,8 @@ class Group extends Entity
             $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [
                 'showmessages' => 1,
                 'showmembers' => 1,
-                'pushnotify' => 1
+                'pushnotify' => 1,
+                'eventsallowed' => 1
             ];
 
             $thisone['settings']['configid'] = $member['configid'];
@@ -490,6 +491,7 @@ class Group extends Entity
             $thisone['role'] = $u->getRoleForGroup($member['groupid'], FALSE);
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
+            $thisone['eventsallowed'] = $member['eventsallowed'];
 
             # Our posting status only applies for groups we host.  In that case, the default is moderated.
             $thisone['ourpostingstatus'] = presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);

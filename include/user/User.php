@@ -660,6 +660,7 @@ class User extends Entity
     }
 
     public function setMembershipAtt($groupid, $att, $val) {
+        error_log("SEt $att = $val for $groupid");
         Session::clearSessionCache();
         $sql = "UPDATE memberships SET $att = ? WHERE groupid = ? AND userid = ?;";
         $rc = $this->dbhm->preExec($sql, [
@@ -1036,7 +1037,7 @@ class User extends Entity
 
     public function getGroupSettings($groupid) {
 
-        $sql = "SELECT settings, role, emailfrequency FROM memberships WHERE userid = ? AND groupid = ?;";
+        $sql = "SELECT settings, role, emailfrequency, eventsallowed FROM memberships WHERE userid = ? AND groupid = ?;";
         $sets = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
 
         # Defaults match memberships ones in Group.php.
@@ -1044,7 +1045,8 @@ class User extends Entity
             'showmessages' => 1,
             'showmembers' => 1,
             'showchat' => 1,
-            'pushnotify' => 1
+            'pushnotify' => 1,
+            'eventsallowed' => 1
         ];
 
         $settings = $defaults;
@@ -1066,6 +1068,7 @@ class User extends Entity
             }
 
             $settings['emailfrequency'] = $set['emailfrequency'];
+            $settings['eventsallowed'] = $set['eventsallowed'];
         }
 
         return($settings);
@@ -1382,6 +1385,7 @@ class User extends Entity
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
+                        'ourPostingStatus' => $group['ourPostingStatus'],
                         'type' => $group['type']
                     ];
 

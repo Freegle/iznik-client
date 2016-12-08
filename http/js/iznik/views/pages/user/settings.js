@@ -334,6 +334,7 @@ define([
 
         events: {
             'change .js-frequency': 'changeFreq',
+            'change .js-events': 'changeEvents',
             'click .js-leave': 'leave'
         },
 
@@ -389,11 +390,34 @@ define([
             });
         },
 
+        changeEvents: function() {
+            var self = this;
+            var me = Iznik.Session.get('me');
+            var data = {
+                userid: me.id,
+                groupid: self.model.get('id'),
+                eventsallowed: self.$('.js-events').val()
+            };
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PATCH',
+                data: data,
+                success: function(ret) {
+                    if (ret.ret === 0) {
+                        self.$('.js-ok').removeClass('hidden');
+                    }
+                }
+            });
+        },
+
         render: function() {
             var self = this;
             Iznik.View.prototype.render.call(this).then(function() {
                 var freq = parseInt(self.model.get('mysettings').emailfrequency);
                 self.$('.js-frequency').val(freq);
+                var events = parseInt(self.model.get('mysettings').eventsallowed);
+                self.$('.js-events').val(events);
             })
         }
     });
