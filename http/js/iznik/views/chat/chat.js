@@ -34,6 +34,8 @@ define([
                     chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
                 }
             });
+            $('#notifchatdropdownlist').empty();
+            Iznik.minimisedChats.render();
         },
 
         waitError: function () {
@@ -593,6 +595,7 @@ define([
                 $('#notifchatdropdownlist').prepend(view.$el);
             });
 
+            $('#notifchatdropdownlist').empty();
             Iznik.minimisedChats.render();
 
             $('#js-notifchat').click(function (e) {
