@@ -262,7 +262,9 @@ function user() {
         case 'DELETE': {
             $u = User::get($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            if ($me && $me->isAdmin()) {
+
+            # We can only delete members, to be safe.
+            if ($me && $me->isAdminOrSupport() && !$u->isModerator()) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
                 $u->delete();
             }

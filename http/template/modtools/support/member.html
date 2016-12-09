@@ -58,9 +58,11 @@
                 <div class="glyphicons glyphicons-ban-circle" />&nbsp;Report as Spammer
             </div>
             <% } %>
-            <div class="btn btn-white js-adminonly hidden js-purge">
+            <% if (obj.systemrole == 'User') { %>
+            <div class="btn btn-white js-purge">
                 <div class="glyphicons glyphicons-bin" />&nbsp;Purge from DB
             </div>
+            <% } %>
             <% if (obj.loginlink) { %>
             <a data-realurl="true" target="_blank" href="{{loginlink}}">
                 <div class="btn btn-white">
