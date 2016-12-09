@@ -304,7 +304,7 @@ define([
                         // Make sure it's not stupidly tall or short.  We let the navbar show unless we're really short,
                         // which happens when on-screen keyboards open up.
                         // console.log("Consider height", css.height, windowInnerHeight, navbarOuterHeight, windowInnerHeight - navbarOuterHeight - 5);
-                        height = Math.min(css.height, windowInnerHeight - (isVeryShort() ? 0 : navbarOuterHeight) - 5);
+                        height = Math.min(css.height, windowInnerHeight - (isVeryShort() ? 0 : navbarOuterHeight) - 10);
                         // console.log("Consider shortness", height, css.height, windowInnerHeight, isVeryShort() ? 0 : navbarOuterHeight, navbarOuterHeight);
                         height = Math.max(height, 100);
                         maxHeight = Math.max(height, maxHeight);
