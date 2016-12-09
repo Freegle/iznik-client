@@ -57,7 +57,7 @@ class ChatMessage extends Entity
                         $url = substr($url, strpos($url, '://') + 3);
                         $p = strpos($url, '/');
                         $domain = $p ? substr($url, 0, $p) : $url;
-                        $this->dbhm->preExec("INSERT IGNORE INTO spam_whitelist_links (userid, domain) VALUES (?, ?);", [
+                        $this->dbhm->preExec("INSERT INTO spam_whitelist_links (userid, domain) VALUES (?, ?) ON DUPLICATE KEY UPDATE count = count + 1;", [
                             $myid,
                             $domain
                         ]);
@@ -77,8 +77,8 @@ class ChatMessage extends Entity
 
         # Check for URLs.
         if (preg_match_all($this->urlPattern, $message, $matches)) {
-            # A link.  Some domains are ok.
-            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links;");
+            # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
+            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3;");
 
             $valid = 0;
             $count = 0;
