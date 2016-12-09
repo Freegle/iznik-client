@@ -139,14 +139,8 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
             if (inChrome) {
                 // Use our version so that we will add a new service worker when the code changes.
-                var lastversion = null;
-
-                try {
-                    lastversion = localStorage.getItem('version');
-                } catch (e) {
-                }
-                ;
-
+                //
+                // There may be a delay before that service worker becomes live, but that's ok.
                 var version = <?php echo $version; ?>;
                 console.log("Register service worker", version);
                 navigator.serviceWorker.register('/sw.js?version=' + version).then(function (reg) {
@@ -159,16 +153,6 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
                 try {
                     localStorage.setItem('version', version);
                 } catch (e) {};
-
-                console.log("Versions", lastversion, version);
-
-                if (lastversion != null && version != lastversion) {
-                    // The code has changed.  Reload to pick up the changes.
-                    console.log("Code changed, reload");
-                    window.setTimeout(function () {
-                        window.location.reload();
-                    }, 1000);
-                }
             } else {
                 // Make sure no service workers running.
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
