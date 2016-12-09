@@ -3,6 +3,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
+    <div itemscope itemtype="http://schema.org/Organization" style="display: none">
+        <span itemprop="name"><?php echo SITE_NAME; ?></span>
+    </div>
     <?php
     if (!defined('BASE_DIR')) {
         define( 'BASE_DIR', dirname(__FILE__) . '/../..' );
@@ -88,6 +91,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         <meta name="google-site-verification" content="<?php echo GOOGLE_SITE_VERIFICATION; ?>" />
         <?php
     }
+
     ?>
     <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
     <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
