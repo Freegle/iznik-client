@@ -30,6 +30,7 @@ foreach ($groups as $group) {
 }
 
 $pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR TIMESTAMPDIFF(MINUTE, retrieved,NOW()) >= timeout ORDER BY html ASC;");
+shuffle($pages);
 
 foreach ($pages as $page) {
     echo "php ../cli/prerender.php -i {$page['id']}&\nsleep 1\n";
