@@ -1338,9 +1338,9 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route($m);
         assertEquals(MailRouter::TO_SYSTEM, $rc);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail('test@test.com');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $membs = $u->getMemberships();
         assertEquals(1, count($membs));
 

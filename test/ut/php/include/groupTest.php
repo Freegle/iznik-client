@@ -408,6 +408,8 @@ class groupTest extends IznikTestCase {
         self::assertEquals(User::ROLE_MODERATOR, $mod->getMembershipAtt($gid, 'role'));
         self::assertEquals(User::ROLE_MODERATOR, $own->getMembershipAtt($gid, 'role'));
         $g->setNativeRoles();
+        $mod->clearMembershipCache();
+        $own->clearMembershipCache();
         self::assertEquals(User::ROLE_MODERATOR, $mod->getMembershipAtt($gid, 'role'));
         self::assertEquals(User::ROLE_OWNER, $own->getMembershipAtt($gid, 'role'));
     }

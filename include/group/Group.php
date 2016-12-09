@@ -16,7 +16,7 @@ class Group extends Entity
     
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
-        'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'lat', 'lng',
+        'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
         'contactmail');
 
@@ -325,12 +325,6 @@ class Group extends Entity
         $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
         $atts['settings'] = array_merge($this->defaultSettings, json_decode($atts['settings'], true));
         $atts['founded'] = ISODate($this->group['founded']);
-
-        if (MODTOOLS) {
-            $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
-            $counts = $this->dbhr->preQuery($sql);
-            $atts['nummods'] = $counts[0]['count'];
-        }
 
         foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
             $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;

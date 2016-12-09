@@ -59,6 +59,7 @@ class User extends Entity
     /** @var  $log Log */
     private $log;
     var $user;
+    private $memberships = NULL;
 
     private $ouremailid = NULL;
 
@@ -530,6 +531,7 @@ class User extends Entity
     }
 
     public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL) {
+        $this->memberships = NULL;
         $me = whoAmI($this->dbhr, $this->dbhm);
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
@@ -648,19 +650,37 @@ class User extends Entity
         return(count($membs) > 0);
     }
 
+    private function cacheMemberships() {
+        # We get all the memberships in a single call, because some members are on many groups and this can
+        # save hundreds of calls to the DB.
+        if (!$this->memberships) {
+            $this->memberships = [];
+
+            $membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = ?;", [ $this->id ]);
+            foreach ($membs as $memb) {
+                $this->memberships[$memb['groupid']] = $memb;
+            }
+        }
+
+        return($this->memberships);
+    }
+
+    public function clearMembershipCache() {
+        $this->memberships = NULL;
+    }
+
     public function getMembershipAtt($groupid, $att) {
-        $sql = "SELECT * FROM memberships WHERE groupid = ? AND userid = ?;";
+        $this->cacheMemberships();
         $val = NULL;
-        $membs = $this->dbhr->preQuery($sql , [ $groupid, $this->id ]);
-        foreach ($membs as $memb) {
-            $val = presdef($att, $memb, NULL);
+        if (pres($groupid, $this->memberships)) {
+            $val = presdef($att, $this->memberships[$groupid], NULL);
         }
 
         return($val);
     }
 
     public function setMembershipAtt($groupid, $att, $val) {
-        error_log("SEt $att = $val for $groupid");
+        $this->clearMembershipCache();
         Session::clearSessionCache();
         $sql = "UPDATE memberships SET $att = ? WHERE groupid = ? AND userid = ?;";
         $rc = $this->dbhm->preExec($sql, [
@@ -685,6 +705,7 @@ class User extends Entity
     }
 
     public function removeMembership($groupid, $ban = FALSE, $spam = FALSE, $byemail = NULL) {
+        $this->clearMembershipCache();
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $meid = $me ? $me->getId() : NULL;
@@ -779,7 +800,7 @@ class User extends Entity
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
-        $sql = "SELECT groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
+        $sql = "SELECT memberships.settings, emailfrequency, eventsallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
         #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
 
@@ -791,9 +812,13 @@ class User extends Entity
             $one = $g->getPublic();
 
             $one['role'] = $group['role'];
-            $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
+            $one['configid'] = presdef('configid', $group, NULL);
 
-            $one['mysettings'] = $this->getGroupSettings($group['groupid']);
+            if (!pres('configid', $one)) {
+                $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
+            }
+
+            $one['mysettings'] = $this->getGroupSettings($group['groupid'], presdef('configid', $one, NULL));
 
             if ($getwork) {
                 # We only need finding out how much work there is if we are interested in seeing it.
@@ -1027,6 +1052,7 @@ class User extends Entity
     }
 
     public function setGroupSettings($groupid, $settings) {
+        $this->clearMembershipCache();
         $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
         return($this->dbhm->preExec($sql, [
             json_encode($settings),
@@ -1035,10 +1061,9 @@ class User extends Entity
         ]));
     }
 
-    public function getGroupSettings($groupid) {
-
-        $sql = "SELECT settings, role, emailfrequency, eventsallowed FROM memberships WHERE userid = ? AND groupid = ?;";
-        $sets = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
+    public function getGroupSettings($groupid, $configid = NULL) {
+        # We have some parameters which may give us some info which saves queries
+        $this->cacheMemberships();
 
         # Defaults match memberships ones in Group.php.
         $defaults = [
@@ -1051,11 +1076,13 @@ class User extends Entity
 
         $settings = $defaults;
 
-        foreach ($sets as $set) {
+        if (pres($groupid, $this->memberships)) {
+            $set = $this->memberships[$groupid];
+
             if ($set['settings']) {
                 $settings = json_decode($set['settings'], TRUE);
 
-                if ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR) {
+                if (!$configid && ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR)) {
                     $c = new ModConfig($this->dbhr, $this->dbhm);
                     $settings['configid'] = $c->getForGroup($this->id, $groupid);
                 }
@@ -1070,6 +1097,7 @@ class User extends Entity
             $settings['emailfrequency'] = $set['emailfrequency'];
             $settings['eventsallowed'] = $set['eventsallowed'];
         }
+
 
         return($settings);
     }
@@ -1089,6 +1117,7 @@ class User extends Entity
             'text' => $role
         ]);
 
+        $this->clearMembershipCache();
         $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
         $rc = $this->dbhm->preExec($sql, [
             $role,

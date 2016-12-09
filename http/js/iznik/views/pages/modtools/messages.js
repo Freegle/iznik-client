@@ -576,7 +576,7 @@ define([
                 text = text.replace(/\$groupurl/g, group.url);
                 text = text.replace(/\$myname/g, Iznik.Session.get('me').displayname);
                 text = text.replace(/\$nummembers/g, group.membercount);
-                text = text.replace(/\$nummods/g, group.nummods);
+                text = text.replace(/\$nummods/g, group.modcount);
 
                 text = text.replace(/\$origsubj/g, model.subject);
 
