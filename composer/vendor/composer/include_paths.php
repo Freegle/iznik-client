@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     $vendorDir . '/phpunit/phpunit-selenium',
+    $vendorDir . '/googleads/googleads-php-lib/src',
 );
