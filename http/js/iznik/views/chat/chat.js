@@ -1150,7 +1150,7 @@ define([
 
             var width = self.$el.width();
 
-            if (self.model.get('chattype') == 'Mod2Mod') {
+            if (self.model.get('chattype') == 'Mod2Mod' || self.model.get('chattype') == 'Group') {
                 // Group chats have a roster.
                 var lpwidth = self.$('.js-leftpanel').width();
                 lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;
