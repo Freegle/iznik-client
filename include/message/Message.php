@@ -666,12 +666,14 @@ class Message
         $ret['outcomes'] = $this->dbhr->preQuery($sql, [ $this->id ]);
 
         # We can only see the details of the outcome if we have access.
-        if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
-            foreach ($ret['outcomes'] as &$outcome) {
+        foreach ($ret['outcomes'] as &$outcome) {
+            if (!($seeall || ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) || ($myid && $this->fromuser == $myid))) {
                 $outcome['userid'] = NULL;
                 $outcome['happiness'] = NULL;
                 $outcome['comments'] = NULL;
             }
+
+            $outcome['timestamp'] = ISODate($outcome['timestamp']);
         }
 
         if ($role == User::ROLE_NONMEMBER) {
@@ -2082,6 +2084,19 @@ class Message
         }
     }
 
+    public function findEarlierCopy($groupid, $pendingid, $approvedid) {
+        $sql = "SELECT msgid, collection FROM messages_groups WHERE groupid = ? AND " . ($pendingid ? 'yahoopendingid' : 'yahooapprovedid') . " = ?;";
+        $msgs = $this->dbhr->preQuery($sql, [
+            $groupid,
+            $pendingid ? $pendingid : $approvedid
+        ]);
+
+        $msgid = count($msgs) == 0 ? NULL : $msgs[0]['msgid'];
+        $collection = count($msgs) == 0 ? NULL : $msgs[0]['collection'];
+
+        return([ $msgid, $collection ]);
+    }
+
     public function checkEarlierCopies($approvedby) {
         # We don't need a transaction for this - transactions aren't great for scalability and worst case we
         # leave a spurious message around which a mod will handle.
@@ -2721,13 +2736,21 @@ class Message
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
+        error_log("Atts " . var_export($atts, TRUE));
         $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
         #error_log("Items " . var_export($items, TRUE));
 
         if (pres('location', $atts) && count($items) > 0) {
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
             if (pres('area', $atts) && pres('postcode', $atts)) {
-                $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
+                $includearea = $g->getSetting('includearea', TRUE);
+                if ($includearea) {
+                    # We want the area in the group, e.g. Edinburgh EH4.
+                    $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
+                } else {
+                    # We have it, but don't want it, e.g. EH4.
+                    $loc = $atts['postcode']['name'];
+                }
             } else {
                 $l = new Location($this->dbhr, $this->dbhm, $atts['location']['id']);
                 $loc = $l->ensureVague();
@@ -3092,7 +3115,7 @@ class Message
             # message gets resent repeatedly and people keep replying and not getting a response.
             #
             # The sending user must also still be a member of the group.
-            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL;";
+            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL;";
             #error_log("$sql, $mindate, {$group['id']}");
             $messages = $this->dbhr->preQuery($sql, [
                 $mindate,
@@ -3102,71 +3125,74 @@ class Message
             $now = time();
 
             foreach ($messages as $message) {
-                if ($message['autoreposts'] < $reposts['max']) {
-                    # We want to send a warning 24 hours before we repost.
-                    $lastwarnago = $message['lastautopostwarning'] ? (strtotime($message['lastautopostwarning']) - $now) : NULL;
-                    $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                if (ourDomain($message['fromaddr'])) {
+                    if ($message['autoreposts'] < $reposts['max']) {
+                        # We want to send a warning 24 hours before we repost.
+                        $lastwarnago = $message['lastautopostwarning'] ? (strtotime($message['lastautopostwarning']) - $now) : NULL;
+                        $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
 
-                    #error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago");
+                        #error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago");
 
-                    # Reposts might be turned off.
-                    if ($interval > 0) {
-                        if ($message['hoursago'] <= $interval * 24  &&
-                            $message['hoursago'] > ($interval - 1) * 24 &&
-                            ($lastwarnago === NULL || $lastwarnago > 24)) {
-                            # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
-                            # an old one (probably from the previous repost).
-                            if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
-                                # And we haven't sent a warning yet.
-                                $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
-                                $warncount++;
+                        # Reposts might be turned off.
+                        if ($interval > 0) {
+                            if ($message['hoursago'] <= $interval * 24 &&
+                                $message['hoursago'] > ($interval - 1) * 24 &&
+                                ($lastwarnago === NULL || $lastwarnago > 24)
+                            ) {
+                                # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
+                                # an old one (probably from the previous repost).
+                                if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
+                                    # And we haven't sent a warning yet.
+                                    $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
+                                    $warncount++;
 
-                                $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                                $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-                                $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
-                                $gatts = $g->getPublic();
+                                    $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                    $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                                    $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
+                                    $gatts = $g->getPublic();
 
-                                if ($u->getId()) {
-                                    $to = $u->getEmailPreferred();
-                                    $subj = $m->getSubject();
+                                    if ($u->getId()) {
+                                        $to = $u->getEmailPreferred();
+                                        $subj = $m->getSubject();
 
-                                    # Remove any group tag.
-                                    $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
+                                        # Remove any group tag.
+                                        $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                    $url = 'https://' . USER_SITE. "/mypost/{$message['msgid']}";
-                                    $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $url to let us know.";
-                                    $html = autorepost_warning(USER_DOMAIN,
-                                        USERLOGO,
-                                        $subj,
-                                        $u->getName(),
-                                        $to,
-                                        $url
-                                    );
+                                        $url = 'https://' . USER_SITE . "/mypost/{$message['msgid']}";
+                                        $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $url to let us know.";
+                                        $html = autorepost_warning(USER_DOMAIN,
+                                            USERLOGO,
+                                            $subj,
+                                            $u->getName(),
+                                            $to,
+                                            $url
+                                        );
 
-                                    list ($transport, $mailer) = getMailer();
+                                        list ($transport, $mailer) = getMailer();
 
-                                    $message = Swift_Message::newInstance()
-                                        ->setSubject("Re: " . $subj)
-                                        ->setFrom([ $g->getModsEmail() => $gatts['namedisplay'] ])
-                                        ->setTo($to)
-                                        ->setBody($text)
-                                        ->addPart($html, 'text/html');
-                                    $mailer->send($message);
+                                        $message = Swift_Message::newInstance()
+                                            ->setSubject("Re: " . $subj)
+                                            ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                            ->setTo($to)
+                                            ->setBody($text)
+                                            ->addPart($html, 'text/html');
+                                        $mailer->send($message);
+                                    }
                                 }
-                            }
-                        } else if ($message['hoursago'] > $interval * 24) {
-                            # We can repost this one.  That consists of:
-                            # - incrementing the repost count
-                            # - resetting the arrival time, which will mean the message shows up on the site as recent,
-                            #   and goes out by mail from Digest.php.
-                            #
-                            # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
-                            # with multiple copies on Yahoo are just too horrible to be worth trying to do.
-                            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                            error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                            $m->repost();
+                            } else if ($message['hoursago'] > $interval * 24) {
+                                # We can repost this one.  That consists of:
+                                # - incrementing the repost count
+                                # - resetting the arrival time, which will mean the message shows up on the site as recent,
+                                #   and goes out by mail from Digest.php.
+                                #
+                                # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
+                                # with multiple copies on Yahoo are just too horrible to be worth trying to do.
+                                $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
+                                $m->repost($message['autoreposts'] + 1, $reposts['max']);
 
-                            $count++;
+                                $count++;
+                            }
                         }
                     }
                 }
@@ -3193,10 +3219,18 @@ class Message
         return($ret);
     }
 
-    public function repost() {
+    public function repost($reposts, $max) {
         # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
         # near the top, and get mailed out again.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+
+        $this->log->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_AUTO_REPOSTED,
+            'msgid' => $this->id,
+            'user' => $this->getFromuser(),
+            'text' => "$reposts / $max"
+        ]);
     }
 
     public function isBounce()

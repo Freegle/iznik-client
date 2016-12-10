@@ -8,6 +8,7 @@ $lockh = lockScript(basename(__FILE__));
 
 # We want the key top-level pages.
 $tops = [
+    '' => 1,
     'give' => 1,
     'find' => 1,
     'explore' => 0.8,
@@ -28,10 +29,13 @@ foreach ($groups as $group) {
     $dbhm->preExec("INSERT IGNORE INTO prerender (url) VALUES (?);", [ "https://" . USER_SITE . "/explore/{$group['nameshort']}" ]);
 }
 
-$pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR TIMESTAMPDIFF(HOUR, retrieved,NOW()) >= timeout ORDER BY html ASC;");
+$pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR TIMESTAMPDIFF(MINUTE, retrieved,NOW()) >= timeout ORDER BY html ASC;");
+shuffle($pages);
 
 foreach ($pages as $page) {
-    echo "nohup php prerender.php -i {$page['id']}&\nsleep 1\n";
+    echo "php ../cli/prerender.php -i {$page['id']}&\nsleep 1\n";
 }
+
+echo "wait\n";
 
 unlockScript($lockh);

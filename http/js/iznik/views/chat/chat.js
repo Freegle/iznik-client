@@ -29,11 +29,17 @@ define([
 
         allseen: function () {
             Iznik.minimisedChats.viewManager.each(function (chat) {
-                if (chat.model.get('unseen') > 0) {
-                    chat.allseen();
-                    chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+                try {
+                    if (chat.model.get('unseen') > 0) {
+                        chat.allseen();
+                        chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+                    }
+                } catch (e) {
+                    console.error("Failed to process chat", chat, e.message);
                 }
             });
+            $('#notifchatdropdownlist').empty();
+            Iznik.minimisedChats.render();
         },
 
         waitError: function () {
@@ -307,7 +313,7 @@ define([
                         // Make sure it's not stupidly tall or short.  We let the navbar show unless we're really short,
                         // which happens when on-screen keyboards open up.
                         // console.log("Consider height", css.height, windowInnerHeight, navbarOuterHeight, windowInnerHeight - navbarOuterHeight - 5);
-                        height = Math.min(css.height, windowInnerHeight - (isVeryShort() ? 0 : navbarOuterHeight) - 5);
+                        height = Math.min(css.height, windowInnerHeight - (isVeryShort() ? 0 : navbarOuterHeight) - 10);
                         // console.log("Consider shortness", height, css.height, windowInnerHeight, isVeryShort() ? 0 : navbarOuterHeight, navbarOuterHeight);
                         height = Math.max(height, 100);
                         maxHeight = Math.max(height, maxHeight);
@@ -616,6 +622,7 @@ define([
                 $('#notifchatdropdownlist').prepend(view.$el);
             });
 
+            $('#notifchatdropdownlist').empty();
             Iznik.minimisedChats.render();
 
             $('#js-notifchat').click(function (e) {
@@ -964,7 +971,7 @@ define([
                     message: message,
                     date: (new Date()).toISOString(),
                     sameaslast: true,
-                    sameasnext: false,
+                    sameasnext: true,
                     seenbyall: 0,
                     type: 'Default',
                     user: Iznik.Session.get('me')
@@ -1167,7 +1174,7 @@ define([
 
             var width = self.$el.width();
 
-            if (self.model.get('chattype') == 'Mod2Mod') {
+            if (self.model.get('chattype') == 'Mod2Mod' || self.model.get('chattype') == 'Group') {
                 // Group chats have a roster.
                 var lpwidth = self.$('.js-leftpanel').width();
                 lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;

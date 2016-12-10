@@ -18,6 +18,7 @@ class ChatRoom extends Entity
     const TYPE_MOD2MOD = 'Mod2Mod';
     const TYPE_USER2MOD = 'User2Mod';
     const TYPE_USER2USER = 'User2User';
+    const TYPE_GROUP = 'Group';
 
     const STATUS_ONLINE = 'Online';
     const STATUS_OFFLINE = 'Offline';
@@ -287,6 +288,10 @@ class ChatRoom extends Entity
                 # Mods chatting to each other.
                 $ret['name'] = "{$ret['group']['namedisplay']} Mods";
                 break;
+            case ChatRoom::TYPE_GROUP:
+                # Members chatting to each other
+                $ret['name'] = "{$ret['group']['namedisplay']} Discussion";
+                break;
         }
 
         $refmsgs = $this->dbhr->preQuery("SELECT DISTINCT refmsgid FROM chat_messages INNER JOIN messages ON messages.id = refmsgid AND messages.type IN ('Offer', 'Wanted') WHERE chatid = ?;", [$this->id]);
@@ -407,6 +412,16 @@ class ChatRoom extends Entity
             }
         }
 
+        if (in_array(ChatRoom::TYPE_GROUP, $chattypes)) {
+            # We want chats marked by groupid for which we are a member.
+            $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'Group';";
+            #error_log("Group chats $sql, $userid");
+            $rooms = $this->dbhr->preQuery($sql, [$userid]);
+            foreach ($rooms as $room) {
+                $chatids[] = $room['id'];
+            }
+        }
+
         #error_log("After group " . var_export($chatids, TRUE));
 
         # We also want any chats which we feature in.
@@ -457,6 +472,10 @@ class ChatRoom extends Entity
                     case ChatRoom::TYPE_USER2MOD:
                         # We can see this if we're one of the mods on the group, or the user who started it.
                         $cansee = $u->isModOrOwner($room['groupid']) || $userid == $room['user1'];
+                        break;
+                    case ChatRoom::TYPE_GROUP:
+                        # We can see this if we're an approved member..
+                        $cansee = $u->isApprovedMember($room['groupid']);
                         break;
                 }
 
@@ -688,6 +707,7 @@ class ChatRoom extends Entity
         # - push
         $userids = [];
         $group = NULL;
+        #error_log("Notify $message exclude $excludeuser");
 
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:

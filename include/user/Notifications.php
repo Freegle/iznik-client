@@ -134,6 +134,7 @@ class Notifications
             $rc = $this->uthook($rc);
         } catch (Exception $e) {
             $rc = [ 'exception' => $e->getMessage() ];
+            error_log("Push exception {$rc['exception']}");
         }
 
         if ($rc !== TRUE) {

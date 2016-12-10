@@ -15,8 +15,8 @@ class Group extends Entity
     const CACHE_SIZE = 100;
     
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'logo',
-        'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'lat', 'lng',
+    var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo',
+        'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
         'contactmail');
 
@@ -55,6 +55,7 @@ class Group extends Entity
         $this->defaultSettings = [
             'showchat' => 1,
             'communityevents' => 1,
+            'includearea' => 1,
             'autoapprove' => [
                 'members' => 0,
                 'messages' => 0
@@ -325,12 +326,6 @@ class Group extends Entity
         $atts['settings'] = array_merge($this->defaultSettings, json_decode($atts['settings'], true));
         $atts['founded'] = ISODate($this->group['founded']);
 
-        if (MODTOOLS) {
-            $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = {$this->id} AND role IN ('Owner', 'Moderator');";
-            $counts = $this->dbhr->preQuery($sql);
-            $atts['nummods'] = $counts[0]['count'];
-        }
-
         foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
             $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;
         }
@@ -476,7 +471,8 @@ class Group extends Entity
             $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [
                 'showmessages' => 1,
                 'showmembers' => 1,
-                'pushnotify' => 1
+                'pushnotify' => 1,
+                'eventsallowed' => 1
             ];
 
             $thisone['settings']['configid'] = $member['configid'];
@@ -489,6 +485,7 @@ class Group extends Entity
             $thisone['role'] = $u->getRoleForGroup($member['groupid'], FALSE);
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
+            $thisone['eventsallowed'] = $member['eventsallowed'];
 
             # Our posting status only applies for groups we host.  In that case, the default is moderated.
             $thisone['ourpostingstatus'] = presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
@@ -547,7 +544,7 @@ class Group extends Entity
                 $yahoorole = User::ROLE_OWNER;
             }
         }
-        
+
         return($yahoorole);
     }
 
@@ -576,6 +573,23 @@ class Group extends Entity
             }
 
             $count++;
+        }
+    }
+
+    public function setNativeRoles() {
+        # This is used when migrating a group from Yahoo to this platform.  We find the owners and mods on Yahoo,
+        # and give them that status on here.
+        $mods = $this->dbhr->preQuery("SELECT memberships.userid, memberships_yahoo.role FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE groupid = ? AND memberships_yahoo.role IN ('Owner', 'Moderator');",
+            [
+                $this->id
+            ]);
+
+        foreach ($mods as $mod) {
+            $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;", [
+                $mod['role'],
+                $mod['userid'],
+                $this->id,
+            ]);
         }
     }
 
@@ -789,9 +803,9 @@ class Group extends Entity
                         # Now update with any new settings.  Having this if test looks a bit clunky but it means that
                         # when resyncing a group where most members have not changed settings, we can avoid many UPDATEs.
                         #
-                        # This will have the effect of moving members between collections if required.
-                        $yahoorole = $this->getYahooRole($memb);
-                        
+                        # This will have the effect of moving members between collections, if required.
+                        $yahoorole = $this->getYahooRole($member);
+
                         if ($new ||
                             $yahoomembs[0]['role'] != $yahoorole || $yahoomembs[0]['collection'] != $collection || $yahoomembs[0]['yahooPostingStatus'] != $yps || $yahoomembs[0]['yahooDeliveryType'] != $ydt || $yahoomembs[0]['joincomment'] != $joincomment || $yahoomembs[0]['emailid'] != $member['emailid'] || $yahoomembs[0]['added'] != $added || $yahoomembs[0]['yahooAlias'] != $yahooAlias)
                         {

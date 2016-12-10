@@ -25,6 +25,8 @@
         <% } else if (type == 'Message') { %>
             <% if (subtype == 'Received') { %>
                 Posted #{{msgid}} <em>{{message.subject}}</em><% if (obj.group) { %> to {{obj.group.namedisplay}}<% } %><% if (message.sourceheader) { %> via {{message.sourceheader}}<% } %>
+            <% } else if (subtype == 'Autoreposted') { %>
+            Autoreposted #{{msgid}} <em>{{message.subject}}</em><% if (obj.group) { %> to {{obj.group.namedisplay}}<% } %> repost {{text}}
             <% } else if (subtype == 'Approved') { %>
                 Approved message #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Rejected') { %>
@@ -97,6 +99,8 @@
             Triggered application to Yahoo Group {{obj.group.namedisplay}}.
             <% } else if (subtype == 'YahooJoined') { %>
             Yahoo informed ModTools that the member has joined.
+            <% } else if (subtype == 'SuspendMail') { %>
+            Stop mailing this member as they are bouncing.
             <% } else if (subtype == 'Bounce') { %>
             {{text}}
             <% } else { %>

@@ -19,4 +19,14 @@ foreach ($groups as $group) {
             $group['id']
         ]);
     }
+
+    $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');";
+    $counts = $dbhr->preQuery($sql, [ $group['id'] ]);
+    foreach ($counts as $count) {
+        $sql = "UPDATE groups SET modcount = ? WHERE id = ?;";
+        $counts = $dbhr->preExec($sql, [
+            $count['count'],
+            $group['id']
+        ]);
+    }
 }

@@ -159,27 +159,47 @@ function messages() {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
             if ($source && $g && $me && $me->isModOrOwner($groupid)) {
-                $r = new MailRouter($dbhr, $dbhm);
-                $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message, $groupid);
-                $ret = ['ret' => 3, 'status' => 'Failed to create message - possible duplicate'];
+                # We might already have this message, in which case it might be rejected.  We don't want to resync
+                # such messages as it would put them back to Pending.
+                $m = new Message($dbhr, $dbhm);
+                list ($msgid, $collection) = $m->findEarlierCopy($groupid, $yahoopendingid, $yahooapprovedid);
 
-                if ($id) {
-                    $rc = $r->route();
-                    $m = new Message($dbhr, $dbhm, $id);
+                $ret = ['ret' => 3, 'status' => 'Not new or pending'];
 
-                    if ($yahoopendingid) {
-                        $m->setYahooPendingId($groupid, $yahoopendingid);
+                if (!$msgid || $collection == MessageCollection::PENDING) {
+                    # This message is new to us, or we are updating an existing pending message.
+                    $r = new MailRouter($dbhr, $dbhm);
+                    $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message, $groupid);
+                    $ret = ['ret' => 3, 'status' => 'Failed to create message - possible duplicate'];
+
+                    if ($id) {
+                        $rc = $r->route();
+                        $m = new Message($dbhr, $dbhm, $id);
+
+                        if ($yahoopendingid) {
+                            $m->setYahooPendingId($groupid, $yahoopendingid);
+                        }
+
+                        if ($yahooapprovedid) {
+                            $m->setYahooApprovedId($groupid, $yahooapprovedid);
+                        }
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'routed' => $rc,
+                            'id' => $id
+                        ];
                     }
-
-                    if ($yahooapprovedid) {
-                        $m->setYahooApprovedId($groupid, $yahooapprovedid);
-                    }
-
+                } else if ($msgid && $collection == MessageCollection::APPROVED && $yahoopendingid) {
+                    # This is a message which is on Pending on Yahoo but has already been approved on here.
+                    # Approve it again - which should result in plugin work which will remove it from Yahoo.
+                    $m = new Message($dbhr, $dbhm, $msgid);
+                    $m->setYahooPendingId($groupid, $yahoopendingid);
+                    $m->approve($groupid);
                     $ret = [
                         'ret' => 0,
-                        'status' => 'Success',
-                        'routed' => $rc,
-                        'id' => $id
+                        'status' => 'Already approved - do so again'
                     ];
                 }
             }

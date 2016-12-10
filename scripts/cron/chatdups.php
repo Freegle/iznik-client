@@ -6,10 +6,11 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
+$mysqltime = date("Y-m-d", strtotime("Midnight 3 days ago"));
 $chats = $dbhr->preQuery("SELECT id FROM chat_rooms;");
 
 foreach ($chats as $chat) {
-    $chatmsgs = $dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ?;", [ $chat['id'] ]);
+    $chatmsgs = $dbhr->preQuery("SELECT * FROM chat_messages WHERE date > ? AND chatid = ?;", [ $mysqltime, $chat['id'] ]);
 
     $lastmsg = NULL;
     $lastid = NULL;

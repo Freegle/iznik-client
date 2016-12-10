@@ -37,6 +37,7 @@ class groupAPITest extends IznikAPITestCase {
         $this->group = $g;
 
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g->setPrivate('onyahoo', 1);
 
         # This plus the test below ensure that if an attribute is 0 we still get it back.
         $g->setPrivate('showonyahoo', 0);
@@ -87,8 +88,6 @@ class groupAPITest extends IznikAPITestCase {
         error_log(__METHOD__);
 
         # Not logged in - shouldn't see members list
-        $this->group->setPrivate('onyahoo', 1);
-
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid,
             'members' => TRUE

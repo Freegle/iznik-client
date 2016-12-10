@@ -6,7 +6,14 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'AdWordsConstants' => $vendorDir . '/googleads/googleads-php-lib/src/Google/Api/Ads/AdWords/Lib/AdWordsConstants.php',
+    'AdWordsSoapClient' => $vendorDir . '/googleads/googleads-php-lib/src/Google/Api/Ads/AdWords/Lib/AdWordsSoapClient.php',
+    'AdWordsSoapClientFactory' => $vendorDir . '/googleads/googleads-php-lib/src/Google/Api/Ads/AdWords/Lib/AdWordsSoapClientFactory.php',
+    'AdWordsUser' => $vendorDir . '/googleads/googleads-php-lib/src/Google/Api/Ads/AdWords/Lib/AdWordsUser.php',
     'ConfigurationGenerator' => $vendorDir . '/phpunit/phpunit/src/Util/ConfigurationGenerator.php',
+    'DfpSoapClient' => $vendorDir . '/googleads/googleads-php-lib/src/Google/Api/Ads/Dfp/Lib/DfpSoapClient.php',
+    'DfpSoapClientFactory' => $vendorDir . '/googleads/googleads-php-lib/src/Google/Api/Ads/Dfp/Lib/DfpSoapClientFactory.php',
+    'DfpUser' => $vendorDir . '/googleads/googleads-php-lib/src/Google/Api/Ads/Dfp/Lib/DfpUser.php',
     'File_Iterator' => $vendorDir . '/phpunit/php-file-iterator/src/Iterator.php',
     'File_Iterator_Facade' => $vendorDir . '/phpunit/php-file-iterator/src/Facade.php',
     'File_Iterator_Factory' => $vendorDir . '/phpunit/php-file-iterator/src/Factory.php',

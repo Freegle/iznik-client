@@ -3,6 +3,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
+    <div itemscope itemtype="http://schema.org/Organization" style="display: none">
+        <span itemprop="name"><?php echo SITE_NAME; ?></span>
+    </div>
     <?php
     if (!defined('BASE_DIR')) {
         define( 'BASE_DIR', dirname(__FILE__) . '/../..' );
@@ -88,6 +91,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         <meta name="google-site-verification" content="<?php echo GOOGLE_SITE_VERIFICATION; ?>" />
         <?php
     }
+
     ?>
     <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
     <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
@@ -95,7 +99,6 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
-    <meta name="robots" content="nofollow, noindex, noarchive, nocache">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -136,14 +139,8 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
             if (inChrome) {
                 // Use our version so that we will add a new service worker when the code changes.
-                var lastversion = null;
-
-                try {
-                    lastversion = localStorage.getItem('version');
-                } catch (e) {
-                }
-                ;
-
+                //
+                // There may be a delay before that service worker becomes live, but that's ok.
                 var version = <?php echo $version; ?>;
                 console.log("Register service worker", version);
                 navigator.serviceWorker.register('/sw.js?version=' + version).then(function (reg) {
@@ -156,16 +153,6 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
                 try {
                     localStorage.setItem('version', version);
                 } catch (e) {};
-
-                console.log("Versions", lastversion, version);
-
-                if (lastversion != null && version != lastversion) {
-                    // The code has changed.  Reload to pick up the changes.
-                    console.log("Code changed, reload");
-                    window.setTimeout(function () {
-                        window.location.reload();
-                    }, 1000);
-                }
             } else {
                 // Make sure no service workers running.
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -211,7 +198,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=105">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=106">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -230,7 +217,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=10"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=127"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=128"><?php
     }
     ?>
 

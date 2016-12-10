@@ -19,14 +19,16 @@ $tops = [
     'contact' => 0.5
 ];
 
+$prot = presdef('HTTPS', $_SERVER) ? 'https://' : 'http://';
+
 foreach ($tops as $top => $prio) {
-    echo "<url><loc>https://" . USER_SITE . "/$top</loc><changefreq>monthly</changefreq><priority>$prio</priority></url>\n";
+    echo "<url><loc>$prot" . USER_SITE . "/$top</loc><changefreq>monthly</changefreq><priority>$prio</priority></url>\n";
 }
 
 # Now the groups.
 $groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1;");
 foreach ($groups as $group) {
-    echo "<url><loc>https://" . USER_SITE . "/explore/{$group['nameshort']}</loc><changefreq>hourly</changefreq></url>\n";
+    echo "<url><loc>$prot" . USER_SITE . "/explore/{$group['nameshort']}</loc><changefreq>hourly</changefreq></url>\n";
 }
 ?>
 </urlset>

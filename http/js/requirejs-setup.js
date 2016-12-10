@@ -48,6 +48,7 @@ requirejs.config({
         "jquery.dotdotdot": [ "jquery" ],
         "jquery.geocomplete": [ "jquery" ],
         "jquery-show-first": [ "iznik/utility", "jquery" ],
+        'jquery.validate.additional-methods': [ 'jquery.validate.min' ],
         "fileinput": [ "jquery", "canvas-to-blob" ],
         "jquery.ui.widget": [ "jquery" ],
         "jquery.ui.touch-punch": [ "jquery" ],

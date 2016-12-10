@@ -32,7 +32,7 @@ define([
                     viewy: $(window).outerHeight(),
                     posX: posX,
                     posY: posY,
-                    data: data,
+                    data: data
                 };
 
                 eventQueue.push(data);
@@ -95,6 +95,20 @@ define([
                     flushTimerRunning = true;
                     window.setTimeout(_.bind(self.flushEventQueue, self), 5000);
                 }
+            },
+
+            checkScroll: function () {
+                var self = this;
+
+                // Record scroll position in scrollable divs, e.g. chat windows.
+                $('.overscrolly').each(function (i) {
+                    var scrollTop = this.scrollTop;
+                    if (this.scrollHeight > this.clientHeight && this.scrollTop > 0) {
+                        var path = self.getPath($(this));
+                        var timestamp = (new Date()).getTime();
+                        self.trackEvent(path, 'scrollpos', null, null, this.scrollTop, timestamp);
+                    }
+                });
             },
 
             getWithValues: function () {
@@ -239,6 +253,7 @@ define([
 
             checkTimer: function () {
                 this.checkDOM();
+                this.checkScroll();
                 this.startTimer();
             },
 
@@ -307,4 +322,3 @@ define([
 
     return (monitor);
 });
-

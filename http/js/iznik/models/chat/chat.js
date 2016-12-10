@@ -95,7 +95,6 @@ define([
                 sess = localStorage.getItem('session');
                 if (sess) {
                     parsed = JSON.parse(sess);
-                    console.log("Session is", parsed);
 
                     if (parsed.hasOwnProperty('persistent')) {
                         options.data.persistent = parsed.persistent;
@@ -106,7 +105,7 @@ define([
             }
 
             // Which chat types we fetch depends on whether we're in ModTools or the User i/f.
-            options.data.chattypes = (Iznik.Session && Iznik.Session.get('modtools')) ? [ 'Mod2Mod', 'User2Mod' ] : [ 'User2User', 'User2Mod' ];
+            options.data.chattypes = (Iznik.Session && Iznik.Session.get('modtools')) ? [ 'Mod2Mod', 'User2Mod', 'Group' ] : [ 'User2User', 'User2Mod', 'Group' ];
             options.processData = true;
 
             if (!options.hasOwnProperty('cached')) {

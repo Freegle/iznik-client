@@ -1,6 +1,8 @@
 #!/bin/bash
+killall -9 phantomjs
 cd /var/www/iznik/scripts/cron
 php prerender.php > /tmp/prerender
+cat /tmp/prerender
 chmod +x /tmp/prerender
 cd ../cli
 /tmp/prerender

@@ -24,7 +24,8 @@ define([
         specialSettings: [
             'onhere',
             'onyahoo',
-            'welcomemail'
+            'welcomemail',
+            'region'
         ],
     
         events: {
@@ -303,6 +304,25 @@ define([
 
                         self.groupFields = [
                             {
+                                name: 'region',
+                                label: 'Region',
+                                control: 'select',
+                                options: [
+                                    {label: 'East', value: 'East'},
+                                    {label: 'London', value: 'London'},
+                                    {label: 'Midlands West', value: 'West Midlands'},
+                                    {label: 'Midlands East', value: 'East Midlands'},
+                                    {label: 'North East', value: 'North East'},
+                                    {label: 'North West', value: 'North West'},
+                                    {label: 'Northern Ireland', value: 'Northern Ireland'},
+                                    {label: 'South East', value: 'South East'},
+                                    {label: 'South West', value: 'South West'},
+                                    {label: 'Wales', value: 'Wales'},
+                                    {label: 'Yorkshire and the Humber'},
+                                    {label: 'Scotland', value: 'Scotland'}
+                                ],
+                            },
+                            {
                                 name: 'onhere',
                                 label: 'Enable Freegle Direct?',
                                 control: 'radio',
@@ -429,6 +449,12 @@ define([
                                 label: 'Default zoom for maps',
                                 control: 'input',
                                 type: 'number'
+                            },
+                            {
+                                name: 'includearea',
+                                label: 'Include area name in locations?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                             },
                             {
                                 control: 'button',

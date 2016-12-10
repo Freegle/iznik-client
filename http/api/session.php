@@ -56,9 +56,7 @@ function session() {
                             }
                         }
 
-                        $ammod = $me->isModerator();
-
-                        if ($ammod) {
+                        if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
                             # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
                             # in here - but it's of no interest to members so there's no point delaying them by
                             # fetching it.

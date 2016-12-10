@@ -2216,7 +2216,7 @@
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/kartik-v/bootstrap-fileinput/zipball/2c771588e86d6aba3980f79bedbc4b0aa4c703c2",
+            "url": "https://api.github.com/repos/kartik-v/bootstrap-fileinput/zipball/cc9d6f3c899119fd4b0f8cf66667f39d79027007",
             "reference": "b71f878364677bfcf45f5c229819f0b9940e024a",
             "shasum": ""
         },
@@ -2562,5 +2562,51 @@
             "graph image",
             "graphviz"
         ]
+    },
+    {
+        "name": "googleads/googleads-php-lib",
+        "version": "15.0.0",
+        "version_normalized": "15.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/googleads/googleads-php-lib.git",
+            "reference": "7abdf8535698cf72cf568bb96b8ebf0304927052"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/googleads/googleads-php-lib/zipball/7abdf8535698cf72cf568bb96b8ebf0304927052",
+            "reference": "7abdf8535698cf72cf568bb96b8ebf0304927052",
+            "shasum": ""
+        },
+        "require": {
+            "ext-curl": "*",
+            "ext-openssl": "*",
+            "ext-soap": "*",
+            "php": ">=5.3.0"
+        },
+        "time": "2016-12-07 19:42:49",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "classmap": [
+                "src/Google/Api/Ads/AdWords/Lib",
+                "src/Google/Api/Ads/Dfp/Lib"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "include-path": [
+            "src/"
+        ],
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "Google",
+                "homepage": "https://github.com/googleads/googleads-php-lib/contributors"
+            }
+        ],
+        "description": "Google Ads APIs Client Library for PHP (AdWords and DFP)",
+        "homepage": "https://github.com/googleads/googleads-php-lib"
     }
 ]
