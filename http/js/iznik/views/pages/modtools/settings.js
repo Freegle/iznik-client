@@ -383,6 +383,13 @@ define([
                                 helpMessage: "(Freegle only) Messages to members come through the system.  It can flag suspicious ones for review so you can check if they are spam or not.  If you turn this off, such replies (some of which may be fine) will be dropped and members won't see them."
                             },
                             {
+                                name: 'spammers.messagereview',
+                                label: 'Check for spam messages to group?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "Check group messages for spam and put in Messages->Spam?"
+                            },
+                            {
                                 name: 'keywords.offer',
                                 label: 'OFFER keyword',
                                 control: 'input'

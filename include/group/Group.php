@@ -68,7 +68,8 @@ class Group extends Entity
             ], 'spammers' => [
                 'check' => $this->group['type'] == Group::GROUP_FREEGLE,
                 'remove' => $this->group['type'] == Group::GROUP_FREEGLE,
-                'chatreview' => $this->group['type'] == Group::GROUP_FREEGLE
+                'chatreview' => $this->group['type'] == Group::GROUP_FREEGLE,
+                'messagereview' => 1
             ], 'joiners' => [
                 'check' => 1,
                 'threshold' => 5
@@ -323,7 +324,7 @@ class Group extends Entity
         $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];
         $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
         $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
-        $atts['settings'] = array_merge($this->defaultSettings, json_decode($atts['settings'], true));
+        $atts['settings'] = array_replace_recursive($this->defaultSettings, json_decode($atts['settings'], true));
         $atts['founded'] = ISODate($this->group['founded']);
 
         foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
