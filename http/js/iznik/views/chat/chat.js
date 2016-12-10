@@ -947,7 +947,7 @@ define([
                     message: message,
                     date: (new Date()).toISOString(),
                     sameaslast: true,
-                    sameasnext: false,
+                    sameasnext: true,
                     seenbyall: 0,
                     type: 'Default',
                     user: Iznik.Session.get('me')

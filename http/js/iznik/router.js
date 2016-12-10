@@ -211,8 +211,9 @@ define([
             if (document.URL.indexOf('modtools') !== -1) {
                 Router.navigate('/modtools', true);
             } else {
-                self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                    if (loggedIn) {
+                function f(loggedIn) {
+                    console.log("Logged in", loggedIn);
+                    if (loggedIn || _.isUndefined(loggedIn)) {
                         require(["iznik/views/pages/user/home"], function() {
                             var page = new Iznik.Views.User.Pages.Home({
                                 chatid: chatid
@@ -226,9 +227,16 @@ define([
                             self.loadRoute({page: page});
                         });
                     }
-                });
+                }
 
-                Iznik.Session.testLoggedIn();
+                if (chatid) {
+                    // We need to be logged in to see this.
+                    self.listenToOnce(Iznik.Session, 'loggedIn', f);
+                    Iznik.Session.forceLogin();
+                } else {
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+                    Iznik.Session.testLoggedIn();
+                }
             }
         },
 

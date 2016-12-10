@@ -415,7 +415,7 @@ class ChatRoom extends Entity
         if (in_array(ChatRoom::TYPE_GROUP, $chattypes)) {
             # We want chats marked by groupid for which we are a member.
             $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'Group';";
-            error_log("Group chats $sql, $userid");
+            #error_log("Group chats $sql, $userid");
             $rooms = $this->dbhr->preQuery($sql, [$userid]);
             foreach ($rooms as $room) {
                 $chatids[] = $room['id'];
