@@ -9,6 +9,9 @@
       "email": "edward@ehibbert.org.uk"
     }
   ],
+  "classmap": [
+    "vendor/googleads/googleads-php-lib/src/Google/Api/Ads/AdWords/Util/v201603"
+  ],
   "require": {
     "phpunit/phpunit": "5.3",
     "php-mime-mail-parser/php-mime-mail-parser" : "^2.1",
@@ -24,6 +27,8 @@
     "swiftmailer/swiftmailer": "@stable",
     "abraham/twitteroauth": "^0.6.4",
     "Oefenweb/damerau-levenshtein": "^2.1",
-    "kartik-v/bootstrap-fileinput": "dev-master"
+    "kartik-v/bootstrap-fileinput": "dev-master",
+    "graphp/graphviz": "^0.2.1",
+    "googleads/googleads-php-lib": "^15.0"
   }
 }

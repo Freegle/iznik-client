@@ -386,7 +386,7 @@ class MailRouterTest extends IznikTestCase {
         
         $pend = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals('test@test.com', $pend->getFromaddr());
-        assertNull($pend->getFromIP()); # Because whitelisted IPs are masked out
+        assertEquals('1.2.3.4', $pend->getFromIP());
         assertNull($pend->getFromhost());
         assertNotNull($pend->getGroups()[0]);
         assertEquals($id, $pend->getID());
@@ -1338,9 +1338,9 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route($m);
         assertEquals(MailRouter::TO_SYSTEM, $rc);
 
-        $u = new User($this->dbhr, $this->dbhm);
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail('test@test.com');
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $membs = $u->getMemberships();
         assertEquals(1, count($membs));
 

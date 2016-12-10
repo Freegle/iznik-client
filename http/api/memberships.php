@@ -14,6 +14,7 @@ function memberships() {
     $ctx = presdef('context', $_REQUEST, NULL);
     $settings = presdef('settings', $_REQUEST, NULL);
     $emailfrequency = array_key_exists('emailfrequency', $_REQUEST) ? intval($_REQUEST['emailfrequency']) : NULL;
+    $eventsallowed = array_key_exists('eventsallowed', $_REQUEST) ? intval($_REQUEST['eventsallowed']) : NULL;
     $ourpostingstatus = array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL;
     $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
     $message = presdef('message', $_REQUEST, NULL);
@@ -364,6 +365,10 @@ function memberships() {
 
                         if ($emailfrequency !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));
+                        }
+                        
+                        if ($eventsallowed !== NULL) {
+                            $rc &= $u->setMembershipAtt($groupid, 'eventsallowed', intval($eventsallowed));
                         }
 
                         if ($ourpostingstatus !== NULL) {

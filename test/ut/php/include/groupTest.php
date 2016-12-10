@@ -373,5 +373,45 @@ class groupTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testNativeRoles()
+    {
+        error_log(__METHOD__);
+
+        # Create a group with a mod and a member.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $modid = $u->create(NULL, NULL, 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        $mod->addEmail('test1@test.com');
+        error_log("Created mod $modid");
+        $ownid = $u->create(NULL, NULL, 'Test User');
+        $own = User::get($this->dbhr, $this->dbhm, $ownid);
+        $own->addEmail('test2@test.com');
+        error_log("Created owner $ownid");
+
+        $rc = $g->setMembers([
+            [
+                'yahooModeratorStatus' => 'MODERATOR',
+                'email' => 'test1@test.com'
+            ],
+            [
+                'yahooModeratorStatus' => 'OWNER',
+                'email' => 'test2@test.com'
+            ]
+        ], MembershipCollection::APPROVED);
+        assertEquals(0, $rc['ret']);
+
+        # Should both be mods until we switch.
+        self::assertEquals(User::ROLE_MODERATOR, $mod->getMembershipAtt($gid, 'role'));
+        self::assertEquals(User::ROLE_MODERATOR, $own->getMembershipAtt($gid, 'role'));
+        $g->setNativeRoles();
+        $mod->clearMembershipCache();
+        $own->clearMembershipCache();
+        self::assertEquals(User::ROLE_MODERATOR, $mod->getMembershipAtt($gid, 'role'));
+        self::assertEquals(User::ROLE_OWNER, $own->getMembershipAtt($gid, 'role'));
+    }
 }
 

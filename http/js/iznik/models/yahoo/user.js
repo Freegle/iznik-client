@@ -62,6 +62,12 @@ define([
                                         ret.ygData.members[0].status == 'NOT_SUBSCRIBED') {
                                         console.log("Succeeded as gone");
                                         self.trigger('removesucceeded');
+                                    } else if (ret.ygData.hasOwnProperty('members') &&
+                                            ret.ygData.members.length == 1 &&
+                                            ret.ygData.members[0].hasOwnProperty('status') &&
+                                            ret.ygData.members[0].status == 'UNAUTHORIZED') {
+                                        console.log("Unauthorized, trigger");
+                                        self.trigger('removeprohibited');
                                     } else {
                                         console.log("Failed to remove");
                                         self.trigger('removefailed');

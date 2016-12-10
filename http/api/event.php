@@ -11,6 +11,7 @@ function event() {
 
             if ($me && $me->isAdminOrSupport()) {
                 $sessionid = presdef('sessionid', $_REQUEST, NULL);
+                $userid = intval(presdef('userid', $_REQUEST, 0));
                 $p = new Events($dbhr, $dbhm);
 
                 if ($sessionid) {
@@ -18,7 +19,7 @@ function event() {
                     $events = $p->get($sessionid);
                     $ret = !$events ? ['ret' => 1, 'status' => 'Session not found'] : ['ret' => 0, 'status' => 'Success', 'events' => $events];
                 } else {
-                    $ret = [ 'ret' => 0, 'status' => 'Success', 'sessions' => $p->listSessions() ];
+                    $ret = [ 'ret' => 0, 'status' => 'Success', 'sessions' => $p->listSessions($userid) ];
                 }
             }
 

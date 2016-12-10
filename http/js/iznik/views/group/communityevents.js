@@ -101,7 +101,7 @@ define([
                 var dates = self.model.get('dates');
                 for (var i = 0; i < dates.length; i++) {
                     var date = dates[i];
-                    if (moment().diff(date.start) < 0  || moment().isSame(date.start, 'day')) {
+                    if (moment().diff(date.end) < 0  || moment().isSame(date.end, 'day')) {
                         var mom = new moment(date.start);
                         self.$('.js-start').html(mom.format('ddd, Do MMM HH:mm'));
                         var mom = new moment(date.end);

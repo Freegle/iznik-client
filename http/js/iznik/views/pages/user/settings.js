@@ -28,6 +28,7 @@ define([
         events: {
             'switchChange.bootstrapSwitch .js-onholiday': 'onholiday',
             'switchChange.bootstrapSwitch .js-emailswitch': 'notifSwitch',
+            'switchChange.bootstrapSwitch .js-emailmineswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-pushswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-appswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-facebookswitch': 'notifSwitch',
@@ -92,13 +93,24 @@ define([
             }
         },
 
+        showHideMine: function() {
+            if (!this.$('.js-emailswitch').bootstrapSwitch('state')) {
+                this.$('.js-mineholder').hide();
+            } else {
+                this.$('.js-mineholder').show();
+            }
+        },
+
         notifSwitch: function() {
             var me = Iznik.Session.get('me');
             var notifs = {};
             notifs.email = this.$('.js-emailswitch').bootstrapSwitch('state');
+            notifs.emailmine = this.$('.js-emailmineswitch').bootstrapSwitch('state');
             notifs.app = this.$('.js-appswitch').bootstrapSwitch('state');
             notifs.push = this.$('.js-pushswitch').bootstrapSwitch('state');
             notifs.facebook = this.$('.js-facebookswitch').bootstrapSwitch('state');
+
+            this.showHideMine();
 
             me.settings.notifications = notifs;
 
@@ -260,6 +272,14 @@ define([
                     state: notifs.hasOwnProperty('email') ? notifs.email : true
                 });
 
+                self.$(".js-emailmineswitch").bootstrapSwitch({
+                    onText: 'Yes Please',
+                    offText: 'No Thanks',
+                    state: notifs.hasOwnProperty('emailmine') ? notifs.emailmine : false
+                });
+
+                self.showHideMine();
+
                 if (me.hasOwnProperty('notifications')) {
                     self.$(".js-pushswitch").bootstrapSwitch({
                         onText: 'Browser Popups On',
@@ -322,6 +342,7 @@ define([
 
         events: {
             'change .js-frequency': 'changeFreq',
+            'change .js-events': 'changeEvents',
             'click .js-leave': 'leave'
         },
 
@@ -377,11 +398,34 @@ define([
             });
         },
 
+        changeEvents: function() {
+            var self = this;
+            var me = Iznik.Session.get('me');
+            var data = {
+                userid: me.id,
+                groupid: self.model.get('id'),
+                eventsallowed: self.$('.js-events').val()
+            };
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PATCH',
+                data: data,
+                success: function(ret) {
+                    if (ret.ret === 0) {
+                        self.$('.js-ok').removeClass('hidden');
+                    }
+                }
+            });
+        },
+
         render: function() {
             var self = this;
             Iznik.View.prototype.render.call(this).then(function() {
                 var freq = parseInt(self.model.get('mysettings').emailfrequency);
                 self.$('.js-frequency').val(freq);
+                var events = parseInt(self.model.get('mysettings').eventsallowed);
+                self.$('.js-events').val(events);
             })
         }
     });

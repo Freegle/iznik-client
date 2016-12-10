@@ -18,6 +18,7 @@ class ChatRoom extends Entity
     const TYPE_MOD2MOD = 'Mod2Mod';
     const TYPE_USER2MOD = 'User2Mod';
     const TYPE_USER2USER = 'User2User';
+    const TYPE_GROUP = 'Group';
 
     const STATUS_ONLINE = 'Online';
     const STATUS_OFFLINE = 'Offline';
@@ -235,7 +236,7 @@ class ChatRoom extends Entity
         return ($id);
     }
 
-    public function getPublic()
+    public function getPublic($me = NULL)
     {
         $ret = $this->getAtts($this->publicatts);
 
@@ -264,7 +265,7 @@ class ChatRoom extends Entity
             $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
         }
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
         $ret['unseen'] = $this->unseenCountForUser($myid);
@@ -286,6 +287,10 @@ class ChatRoom extends Entity
             case ChatRoom::TYPE_MOD2MOD:
                 # Mods chatting to each other.
                 $ret['name'] = "{$ret['group']['namedisplay']} Mods";
+                break;
+            case ChatRoom::TYPE_GROUP:
+                # Members chatting to each other
+                $ret['name'] = "{$ret['group']['namedisplay']} Discussion";
                 break;
         }
 
@@ -344,10 +349,10 @@ class ChatRoom extends Entity
         return ($counts[0]['count']);
     }
 
-    public function allUnseenForUser($userid, $chattypes)
+    public function allUnseenForUser($userid, $chattypes, $modtools = FALSE)
     {
         # Get all unseen messages.
-        $chatids = $this->listForUser($userid, $chattypes);
+        $chatids = $this->listForUser($userid, $chattypes, NULL, FALSE, $modtools);
         $ret = [];
 
         foreach ($chatids as $chatid) {
@@ -362,7 +367,7 @@ class ChatRoom extends Entity
         return ($ret);
     }
 
-    public function listForUser($userid, $chattypes, $search = NULL, $all = FALSE)
+    public function listForUser($userid, $chattypes, $search = NULL, $all = FALSE, $modtools = MODTOOLS)
     {
         $ret = [];
         $u = User::get($this->dbhr, $this->dbhm, $userid);
@@ -390,7 +395,8 @@ class ChatRoom extends Entity
             # If we're on ModTools then we want User2Mod chats for our group.
             #
             # If we're on the user site then we only want User2Mod chats where we are a user.
-            $sql = SITE_HOST == USER_SITE ? "SELECT chat_rooms.* FROM chat_rooms WHERE user1 = ? AND chattype = 'User2Mod';" : "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'User2Mod';";
+            $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'User2Mod';" : "SELECT chat_rooms.* FROM chat_rooms WHERE user1 = ? AND chattype = 'User2Mod';";
+            #error_log("List for user, modtools $modtools");
             $rooms = $this->dbhr->preQuery($sql, [$userid]);
             foreach ($rooms as $room) {
                 $chatids[] = $room['id'];
@@ -401,6 +407,16 @@ class ChatRoom extends Entity
             # We want chats where we are one of the users.
             $sql = "SELECT chat_rooms.* FROM chat_rooms WHERE (user1 = ? OR user2 = ?) AND chattype = 'User2User';";
             $rooms = $this->dbhr->preQuery($sql, [$userid, $userid]);
+            foreach ($rooms as $room) {
+                $chatids[] = $room['id'];
+            }
+        }
+
+        if (in_array(ChatRoom::TYPE_GROUP, $chattypes)) {
+            # We want chats marked by groupid for which we are a member.
+            $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'Group';";
+            #error_log("Group chats $sql, $userid");
+            $rooms = $this->dbhr->preQuery($sql, [$userid]);
             foreach ($rooms as $room) {
                 $chatids[] = $room['id'];
             }
@@ -456,6 +472,10 @@ class ChatRoom extends Entity
                     case ChatRoom::TYPE_USER2MOD:
                         # We can see this if we're one of the mods on the group, or the user who started it.
                         $cansee = $u->isModOrOwner($room['groupid']) || $userid == $room['user1'];
+                        break;
+                    case ChatRoom::TYPE_GROUP:
+                        # We can see this if we're an approved member..
+                        $cansee = $u->isApprovedMember($room['groupid']);
                         break;
                 }
 
@@ -530,6 +550,19 @@ class ChatRoom extends Entity
         return ($cansee);
     }
 
+    public function upToDate($userid) {
+        $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ?;",
+                [
+                    $msg['max'],
+                    $msg['max'],
+                    $this->id,
+                    $userid
+                ]);
+        }
+    }
+
     public function updateRoster($userid, $lastmsgseen, $status)
     {
         # We have a unique key, and an update on current timestamp.
@@ -554,10 +587,13 @@ class ChatRoom extends Entity
                 $lastmsgseen
             ], FALSE);
 
-            if ($rc) {
+            #error_log("Update roster $userid {$this->id} $rc last seen $lastmsgseen affected " . $this->dbhm->rowsAffected());
+            #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen))");
+            if ($rc && $this->dbhm->rowsAffected()) {
                 # We have updated our last seen.  Notify ourselves because we might have multiple devices which
                 # have counts/notifications which need updating.
                 $n = new Notifications($this->dbhr, $this->dbhm);
+                #error_log("Update roster for $userid set last seen $lastmsgseen from {$_SERVER['REMOTE_ADDR']}");
                 $n->notify($userid);
             }
 
@@ -671,6 +707,7 @@ class ChatRoom extends Entity
         # - push
         $userids = [];
         $group = NULL;
+        #error_log("Notify $message exclude $excludeuser");
 
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
@@ -984,6 +1021,7 @@ class ChatRoom extends Entity
         $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND chattype = ? $chatq;";
         #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
+        #error_log("Chats " . var_export($chats, TRUE));
         $notified = 0;
 
         foreach ($chats as $chat) {
@@ -1007,9 +1045,10 @@ class ChatRoom extends Entity
 
                 # We email them if they have mails turned on, and if they have a membership - if they don't, then we
                 # don't want to annoy them.
+                #error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
                 if ($thisu->notifsOn(User::NOTIFS_EMAIL) && count($thisu->getMemberships()) > 0) {
                     # Now collect a summary of what they've missed.
-                    $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
+                    $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                         [
                             $chat['chatid'],
                             $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0
@@ -1023,30 +1062,45 @@ class ChatRoom extends Entity
                         $lastmsgemailed = 0;
                         $lastfrom = 0;
                         $lastmsg = NULL;
+                        $justmine = TRUE;
+
                         foreach ($unmailedmsgs as $unmailedmsg) {
                             $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
 
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
-                            if (pres('message', $unmailedmsg) && (!$lastmsg || $lastmsg != $unmailedmsg['message'])) {
-
-                                switch ($unmailedmsg['type']) {
-                                    case ChatMessage::TYPE_COMPLETED: {
-                                        # There's no text stored for this - we invent it on the client.  Do so here
-                                        # too.
-                                        $lastmsg = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, this is no longer available." : "Thanks, this is no longer needed.";
-                                        break;
-                                    }
-
-                                    default: {
-                                        # Use the text in the message.
-                                        $lastmsg = $unmailedmsg['message'];
-                                        break;
-                                    }
+                            switch ($unmailedmsg['type']) {
+                                case ChatMessage::TYPE_COMPLETED: {
+                                    # There's no text stored for this - we invent it on the client.  Do so here
+                                    # too.
+                                    $thisone = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, this is no longer available." : "Thanks, this is no longer needed.";
+                                    break;
                                 }
 
+                                case ChatMessage::TYPE_PROMISED: {
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You promised this to " . $otheru->getName()) : ("Good news! " . $otheru->getName() . " has promised this to you.");
+                                    break;
+                                }
+
+                                case ChatMessage::TYPE_RENEGED: {
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You cancelled your promise to " . $otheru->getName()) : ("Sorry, this is no longer promised to you.");
+                                    break;
+                                }
+
+                                default: {
+                                    # Use the text in the message.
+                                    $thisone = $unmailedmsg['message'];
+                                    break;
+                                }
+                            }
+
+                            # Have we got any messages from someone else?
+                            $justmine = ($unmailedmsg['userid'] != $thisu->getId()) ? FALSE : $justmine;
+                            #error_log("From {$unmailedmsg['userid']} $thisone justmine? $justmine");
+
+                            if (!$lastmsg || $lastmsg != $thisone) {
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
-                                $textsummary .= $lastmsg . "\r\n";
+                                $textsummary .= $thisone . "\r\n";
 
                                 #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
                                 if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
@@ -1064,101 +1118,105 @@ class ChatRoom extends Entity
 
                                 $lastfrom = $unmailedmsg['userid'];
 
-                                $htmlsummary .= nl2br($lastmsg) . "<br>";
+                                $htmlsummary .= nl2br($thisone) . "<br>";
                                 $htmlsummary .= '</span>';
 
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
+                                $lastmsg = $thisone;
                             }
                         }
 
-                        if ($textsummary != '') {
-                            # As a subject, we should use the last referenced message in this chat.
-                            $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
-                            #error_log($sql . $chat['chatid']);
-                            $subjs = $this->dbhr->preQuery($sql, [
-                                $chat['chatid']
-                            ]);
-                            #error_log(var_export($subjs, TRUE));
+                        #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
+                        if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
+                            if ($textsummary != '') {
+                                # As a subject, we should use the last referenced message in this chat.
+                                $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+                                #error_log($sql . $chat['chatid']);
+                                $subjs = $this->dbhr->preQuery($sql, [
+                                    $chat['chatid']
+                                ]);
+                                #error_log(var_export($subjs, TRUE));
 
-                            switch ($chattype) {
-                                case ChatRoom::TYPE_USER2USER:
-                                    $subject = count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject']));
-                                    $site = USER_SITE;
-                                    break;
-                                case ChatRoom::TYPE_USER2MOD:
-                                    # We might either be notifying a user, or the mods.
-                                    $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
-                                    if ($member['role'] == User::ROLE_MEMBER) {
-                                        $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
+                                switch ($chattype) {
+                                    case ChatRoom::TYPE_USER2USER:
+                                        $subject = count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject']));
                                         $site = USER_SITE;
-                                    } else {
-                                        $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
-                                        $site = MOD_SITE;
-                                    }
-                                    break;
+                                        break;
+                                    case ChatRoom::TYPE_USER2MOD:
+                                        # We might either be notifying a user, or the mods.
+                                        $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
+                                        if ($member['role'] == User::ROLE_MEMBER) {
+                                            $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
+                                            $site = USER_SITE;
+                                        } else {
+                                            $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
+                                            $site = MOD_SITE;
+                                        }
+                                        break;
 //                            case ChatRoom::TYPE_MOD2MOD:
 //                                $subject = "New messages in Mod Chat";
 //                                $site = MOD_SITE;
 //                                break;
-                            }
+                                }
 
-                            # Construct the SMTP message.
-                            # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
-                            #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
-                            #   clients will show something interesting.
-                            # - The HTML bodypart will show the user text, but in a way that is designed to encourage people to
-                            #   click and reply on the web rather than by email.  This reduces the problems we have with quoting,
-                            #   and encourages people to use the (better) web interface, while still allowing email replies for
-                            #   those users who prefer it.  Because we put the text they're replying to inside a visual wrapping,
-                            #   it's less likely that they will interleave their response inside it - they will probably reply at
-                            #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
-                            #   added.
-                            $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid']);
+                                # Construct the SMTP message.
+                                # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
+                                #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
+                                #   clients will show something interesting.
+                                # - The HTML bodypart will show the user text, but in a way that is designed to encourage people to
+                                #   click and reply on the web rather than by email.  This reduces the problems we have with quoting,
+                                #   and encourages people to use the (better) web interface, while still allowing email replies for
+                                #   those users who prefer it.  Because we put the text they're replying to inside a visual wrapping,
+                                #   it's less likely that they will interleave their response inside it - they will probably reply at
+                                #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
+                                #   added.
+                                $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid']);
 
-                            switch ($chattype) {
-                                case ChatRoom::TYPE_USER2USER:
-                                    $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
-                                        $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
-                                    break;
-                                case ChatRoom::TYPE_USER2MOD:
-                                    if ($member['role'] == User::ROLE_MEMBER) {
+                                switch ($chattype) {
+                                    case ChatRoom::TYPE_USER2USER:
                                         $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
                                             $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
-                                    } else {
-                                        $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
+                                        break;
+                                    case ChatRoom::TYPE_USER2MOD:
+                                        if ($member['role'] == User::ROLE_MEMBER) {
+                                            $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
+                                                $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
+                                        } else {
+                                            $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
+                                        }
+                                        break;
+                                }
+
+                                # We ask them to reply to an email address which will direct us back to this chat.
+                                $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
+                                $to = $thisu->getEmailPreferred();
+
+                                # ModTools users should never get notified.
+                                if ($to && strpos($to, MOD_SITE) === FALSE) {
+                                    error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
+                                    try {
+                                        #$to = 'log@ehibbert.org.uk';
+                                        $message = $this->constructMessage($thisu,
+                                            $member['userid'],
+                                            $thisu->getName(),
+                                            $to,
+                                            $fromname,
+                                            $replyto,
+                                            $subject,
+                                            $textsummary,
+                                            $html);
+                                        $this->mailer($message);
+
+                                        $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
+                                            $lastmsgemailed,
+                                            $member['userid'],
+                                            $chat['chatid']
+                                        ]);
+
+                                        $notified++;
+                                    } catch (Exception $e) {
+                                        error_log("Send to {$member['userid']} failed with " . $e->getMessage());
                                     }
-                                    break;
-                            }
-
-                            # We ask them to reply to an email address which will direct us back to this chat.
-                            $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
-                            $to = $thisu->getEmailPreferred();
-
-                            # ModTools users should never get notified.
-                            if ($to && strpos($to, MOD_SITE) === FALSE) {
-                                error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
-                                try {
-                                    #$to = 'log@ehibbert.org.uk';
-                                    $message = $this->constructMessage($thisu,
-                                        $member['userid'],
-                                        $thisu->getName(),
-                                        $to,
-                                        $fromname,
-                                        $replyto,
-                                        $subject,
-                                        $textsummary,
-                                        $html);
-                                    $this->mailer($message);
-
-                                    $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
-                                        $lastmsgemailed,
-                                        $member['userid'],
-                                        $chat['chatid']
-                                    ]);
-
-                                    $notified++;
-                                } catch (Exception $e) {
-                                    error_log("Send to {$member['userid']} failed with " . $e->getMessage());
                                 }
                             }
                         }
@@ -1170,7 +1228,7 @@ class ChatRoom extends Entity
                 # We have now mailed some more.  Note that this is resilient to new messages arriving while we were
                 # looping above, and we will mail those next time.
                 $lastmaxmailed = $lastmaxmailed ? $lastmaxmailed : 0;
-                error_log("Set mailedto all for $lastmaxmailed to $maxmailednow for {$chat['chatid']}");
+                #error_log("Set mailedto all for $lastmaxmailed to $maxmailednow for {$chat['chatid']}");
                 $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id > ? AND id <= ? AND chatid = ?;", [
                     $lastmaxmailed,
                     $maxmailednow,

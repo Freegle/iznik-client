@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
+require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
@@ -51,6 +51,7 @@ class User extends Entity
     const LOGIN_LINK = 'Link';
 
     const NOTIFS_EMAIL = 'email';
+    const NOTIFS_EMAIL_MINE = 'emailmine';
     const NOTIFS_PUSH = 'push';
     const NOTIFS_FACEBOOK = 'facebook';
     const NOTIFS_APP = 'app';
@@ -58,6 +59,7 @@ class User extends Entity
     /** @var  $log Log */
     private $log;
     var $user;
+    private $memberships = NULL;
 
     private $ouremailid = NULL;
 
@@ -188,6 +190,10 @@ class User extends Entity
     public function getToken() {
         $s = new Session($this->dbhr, $this->dbhm);
         return($s->getToken($this->id));
+    }
+
+    public function getBounce() {
+        return("bounce-{$this->id}-" . time() . "@" . USER_DOMAIN);
     }
 
     public function getName($default = TRUE) {
@@ -524,8 +530,10 @@ class User extends Entity
         return($coll);
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL) {
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL) {
+        $this->memberships = NULL;
         $me = whoAmI($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
         Session::clearSessionCache();
 
@@ -556,7 +564,7 @@ class User extends Entity
         $membershipid = $this->dbhm->lastInsertId();
         #error_log("Insert returned $rc membership $membershipid");
 
-        if ($rc && $emailid) {
+        if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
             $this->dbhm->preExec($sql, [
                 $membershipid,
@@ -578,9 +586,23 @@ class User extends Entity
         # Not the end of the world if this fails.
         $this->updateSystemRole($role);
 
+        // @codeCoverageIgnoreStart
+        if ($byemail) {
+            list ($transport, $mailer) = getMailer();
+            $message = Swift_Message::newInstance()
+                ->setSubject("Welcome to " . $g->getPrivate('nameshort'))
+                ->setFrom($g->getModsEmail())
+                ->setTo($byemail)
+                ->setDate(time())
+                ->setBody("Pleased to meet you.");
+            $headers = $message->getHeaders();
+            $headers->addTextHeader('X-Freegle-Mail-Type', 'Added');
+            $mailer->send($message);
+        }
+        // @codeCoverageIgnoreStart
+        
         if ($rc) {
             # The membership didn't already exist.
-            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $atts = $g->getPublic();
 
             if ($atts['welcomemail'] || $message) {
@@ -628,18 +650,37 @@ class User extends Entity
         return(count($membs) > 0);
     }
 
+    private function cacheMemberships() {
+        # We get all the memberships in a single call, because some members are on many groups and this can
+        # save hundreds of calls to the DB.
+        if (!$this->memberships) {
+            $this->memberships = [];
+
+            $membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = ?;", [ $this->id ]);
+            foreach ($membs as $memb) {
+                $this->memberships[$memb['groupid']] = $memb;
+            }
+        }
+
+        return($this->memberships);
+    }
+
+    public function clearMembershipCache() {
+        $this->memberships = NULL;
+    }
+
     public function getMembershipAtt($groupid, $att) {
-        $sql = "SELECT * FROM memberships WHERE groupid = ? AND userid = ?;";
+        $this->cacheMemberships();
         $val = NULL;
-        $membs = $this->dbhr->preQuery($sql , [ $groupid, $this->id ]);
-        foreach ($membs as $memb) {
-            $val = presdef($att, $memb, NULL);
+        if (pres($groupid, $this->memberships)) {
+            $val = presdef($att, $this->memberships[$groupid], NULL);
         }
 
         return($val);
     }
 
     public function setMembershipAtt($groupid, $att, $val) {
+        $this->clearMembershipCache();
         Session::clearSessionCache();
         $sql = "UPDATE memberships SET $att = ? WHERE groupid = ? AND userid = ?;";
         $rc = $this->dbhm->preExec($sql, [
@@ -663,11 +704,30 @@ class User extends Entity
         return($rc);
     }
 
-    public function removeMembership($groupid, $ban = FALSE, $spam = FALSE) {
+    public function removeMembership($groupid, $ban = FALSE, $spam = FALSE, $byemail = NULL) {
+        $this->clearMembershipCache();
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $meid = $me ? $me->getId() : NULL;
 
-        # Trigger removal of any Yahoo memberships first.
+        // @codeCoverageIgnoreStart
+        //
+        // Let them know.
+        if ($byemail) {
+            list ($transport, $mailer) = getMailer();
+            $message = Swift_Message::newInstance()
+                ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
+                ->setFrom($g->getModsEmail())
+                ->setTo($byemail)
+                ->setDate(time())
+                ->setBody("Parting is such sweet sorrow.");
+            $headers = $message->getHeaders();
+            $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
+            $mailer->send($message);
+        }
+        // @codeCoverageIgnoreEnd
+
+        # Trigger removal of any Yahoo memberships.
         $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ?;";
         $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
         #error_log("$sql, $groupid, {$this->id}");
@@ -677,13 +737,11 @@ class User extends Entity
             if ($ban) {
                 $type = 'BanApprovedMember';
             } else {
-                $type = $this->isPending($groupid) ? 'RemovePendingMember' : 'RemoveApprovedMember';
+                $type = $this->isPending($groupid) ? 'RejectPendingMember' : 'RemoveApprovedMember';
             }
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
             if ($email['email']) {
-                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-
                 if ($g->getPrivate('onyahoo')) {
                     $p = new Plugin($this->dbhr, $this->dbhm);
                     $p->add($groupid, [
@@ -742,7 +800,7 @@ class User extends Entity
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
-        $sql = "SELECT groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
+        $sql = "SELECT memberships.settings, emailfrequency, eventsallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
         #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
 
@@ -754,9 +812,13 @@ class User extends Entity
             $one = $g->getPublic();
 
             $one['role'] = $group['role'];
-            $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
+            $one['configid'] = presdef('configid', $group, NULL);
 
-            $one['mysettings'] = $this->getGroupSettings($group['groupid']);
+            if (!pres('configid', $one)) {
+                $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
+            }
+
+            $one['mysettings'] = $this->getGroupSettings($group['groupid'], presdef('configid', $one, NULL));
 
             if ($getwork) {
                 # We only need finding out how much work there is if we are interested in seeing it.
@@ -990,6 +1052,7 @@ class User extends Entity
     }
 
     public function setGroupSettings($groupid, $settings) {
+        $this->clearMembershipCache();
         $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
         return($this->dbhm->preExec($sql, [
             json_encode($settings),
@@ -998,26 +1061,28 @@ class User extends Entity
         ]));
     }
 
-    public function getGroupSettings($groupid) {
-
-        $sql = "SELECT settings, role, emailfrequency FROM memberships WHERE userid = ? AND groupid = ?;";
-        $sets = $this->dbhr->preQuery($sql, [ $this->id, $groupid ]);
+    public function getGroupSettings($groupid, $configid = NULL) {
+        # We have some parameters which may give us some info which saves queries
+        $this->cacheMemberships();
 
         # Defaults match memberships ones in Group.php.
         $defaults = [
             'showmessages' => 1,
             'showmembers' => 1,
             'showchat' => 1,
-            'pushnotify' => 1
+            'pushnotify' => 1,
+            'eventsallowed' => 1
         ];
 
         $settings = $defaults;
 
-        foreach ($sets as $set) {
+        if (pres($groupid, $this->memberships)) {
+            $set = $this->memberships[$groupid];
+
             if ($set['settings']) {
                 $settings = json_decode($set['settings'], TRUE);
 
-                if ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR) {
+                if (!$configid && ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR)) {
                     $c = new ModConfig($this->dbhr, $this->dbhm);
                     $settings['configid'] = $c->getForGroup($this->id, $groupid);
                 }
@@ -1030,7 +1095,9 @@ class User extends Entity
             }
 
             $settings['emailfrequency'] = $set['emailfrequency'];
+            $settings['eventsallowed'] = $set['eventsallowed'];
         }
+
 
         return($settings);
     }
@@ -1050,6 +1117,7 @@ class User extends Entity
             'text' => $role
         ]);
 
+        $this->clearMembershipCache();
         $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
         $rc = $this->dbhm->preExec($sql, [
             $role,
@@ -1346,6 +1414,7 @@ class User extends Entity
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
+                        'ourPostingStatus' => $group['ourPostingStatus'],
                         'type' => $group['type']
                     ];
 
@@ -2242,7 +2311,19 @@ class User extends Entity
             $this->dbhm->preExec($sql,
                 [$email, $canon, $key, strrev($canon), $key]);
             $confirm = $usersite ? ("https://" . $_SERVER['HTTP_HOST'] . "/settings/confirmmail/" . urlencode($key)) : ("https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key));
-            $this->mailer($email, "Please verify your email", modtools_verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO), $headers, "-f" . NOREPLY_ADDR);
+
+            list ($transport, $mailer) = getMailer();
+            $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
+
+            $message = Swift_Message::newInstance()
+                ->setSubject("Please verify your email")
+                ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                ->setReturnPath($this->getBounce())
+                ->setTo([ $email => $this->getName() ])
+                ->setBody("Someone, probably you, has said that $email is their email address.\n\nIf this was you, please click on the link below to verify the address; if this wasn't you, please just ignore this mail.\n\n$confirm")
+                ->addPart($html, 'text/html');
+
+            $mailer->send($message);
         }
 
         return($handled);
@@ -2629,6 +2710,7 @@ class User extends Entity
 
         $defs = [
             'email' => TRUE,
+            'emailmine' => FALSE,
             'push' => TRUE,
             'facebook' => TRUE,
             'app' => TRUE
@@ -2650,15 +2732,16 @@ class User extends Entity
         if (!$modtools) {
             # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
-            $unseen = $r->allUnseenForUser($this->id, [ ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD ]);
+            $unseen = $r->allUnseenForUser($this->id, [ ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD ], $modtools);
             $count = count($unseen);
             foreach ($unseen as $un) {
                 $chatids[] = $un['chatid'];
             };
 
+            #error_log("Chats with unseen " . var_export($chatids, TRUE));
             if ($count === 1) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
-                $atts = $r->getPublic();
+                $atts = $r->getPublic($this);
                 $title = $atts['name'];
                 list($msgs, $users) = $r->getMessages(100, 0);
 

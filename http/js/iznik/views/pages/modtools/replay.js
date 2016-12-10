@@ -15,7 +15,7 @@ define([
 
         render: function() {
             var self = this;
-            
+
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function() {
                 var v = new Iznik.Views.PleaseWait();
@@ -55,7 +55,8 @@ define([
         fastForward: false,
             
         lastMouseX: null,
-        lastMouseY: null,    
+        lastMouseY: null,
+        replayEvents: [],
 
         eventIndex: 0,
 
@@ -146,7 +147,8 @@ define([
                 var percent = 100 * ((new Date(event.clienttimestamp)).getTime() - self.clientStart) / self.clientDuration;
                 // console.log("Progress", event.clienttimestamp, (new Date(event.clienttimestamp)).getTime(), self.clientStart, self.clientDuration, percent)
                 $('#js-progress').css('width',  percent + '%').attr('aria-valuenow', percent);
-                $('#js-time').html(event.clienttimestamp + "&nbsp;GMT");
+                var mom = new moment(event.clienttimestamp);
+                $('#js-time').html(mom.format('DD/MM HH:mm:ss'));
             }
         },
 
@@ -211,6 +213,12 @@ define([
 
                     case 'scroll': {
                         $('body').scrollTo(parseInt(event.data));
+                        break;
+                    }
+
+                    case 'scrollpos': {
+                        var target = event.target.replace('html>body', '#replayContent');
+                        $(target).get(0).scrollTop = event.data;
                         break;
                     }
 
@@ -305,7 +313,6 @@ define([
                         $(target).focus();
                         $(target).val(event.data);
                         // console.log("Trigger", event.data, target);
-
                         break;
                     }
                 }
@@ -442,7 +449,8 @@ define([
                                 self.replayEvents = ret.events;
                                 self.clientStart = (new Date(ret.events[0].clienttimestamp)).getTime();
                                 self.clientEnd = (new Date(ret.events[ret.events.length - 1].clienttimestamp)).getTime();
-                                $('#js-endtime').html(ret.events[ret.events.length - 1].clienttimestamp + '&nbsp;GMT');
+                                var mom = new moment(ret.events[ret.events.length - 1].clienttimestamp);
+                                $('#js-endtime').html(mom.format('DD/MM HH:mm:ss'));
                                 self.clientDuration = self.clientEnd - self.clientStart;
                                 self.replayStart = (new Date()).getTime();
 
@@ -478,10 +486,9 @@ define([
             // Open a window of the appropriate size, and also in with an URL which will cause us to pick up the
             // correct stylesheet.
             var modsess = this.model.get('modtools');
-            var modsite = $('meta[name=iznikmodsite]').attr("content");
-            var usersite = $('meta[name=iznikusersite]').attr("content");
-            
-            var pref = "https://" + (modsess ? modsite : usersite) + (modsess ? '/modtools' : '');
+            var eventsite = $('meta[name=iznikevent]').attr("content");
+
+            var pref = "https://" + eventsite + (modsess ? '/modtools' : '');
             window.open(pref + '/replay/' + this.model.get('id'), 'Session Replay', 'width=' + width + ', height=' + height + ', top=' + ((window.innerHeight - height) / 2) + ', left=' + ((window.innerWidth - width) / 2));
         },
 

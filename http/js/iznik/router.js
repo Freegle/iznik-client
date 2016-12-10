@@ -122,12 +122,14 @@ define([
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
             "replay/(:id)": "replay",
+            "find": "userFindWhereAmI",
             "find/whereami": "userFindWhereAmI",
             "find/search/(:search)": "userSearched",
             "find/search": "userSearch",
             "find/whatnext": "userFindWhatNext",
             "find/whatisit": "userFindWhatIsIt",
             "find/whoami": "userFindWhoAmI",
+            "give": "userGiveWhereAmI",
             "give/whereami": "userGiveWhereAmI",
             "give/whatisit": "userGiveWhatIsIt",
             "give/whoami": "userGiveWhoAmI",
@@ -213,26 +215,34 @@ define([
             if (true) {  // MT
                 Router.navigate('/modtools', true);
             } else {
-                self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                function f(loggedIn) {
+                    console.log("Logged in", loggedIn);
                     if (Iznik.Session.maintenanceMode) {  // CC
-                      console.log("Don't load home or landing as in maintenanceMode");
-                    } else if (loggedIn) {
-                      require(["iznik/views/pages/user/home"], function () {
+                        console.log("Don't load home or landing as in maintenanceMode");
+                    } else if (loggedIn || _.isUndefined(loggedIn)) {
+                        require(["iznik/views/pages/user/home"], function () {
                             var page = new Iznik.Views.User.Pages.Home({
                                 chatid: chatid
                             });
-                            self.loadRoute({page: page});
+                            self.loadRoute({ page: page });
                         });
                     } else {
                         require(["iznik/views/pages/user/landing"], function () {
                             console.log("Load landing");
                             var page = new Iznik.Views.User.Pages.Landing();
-                            self.loadRoute({page: page});
+                            self.loadRoute({ page: page });
                         });
                     }
-                });
+                }
 
-                Iznik.Session.testLoggedIn();
+                if (chatid) {
+                    // We need to be logged in to see this.
+                    self.listenToOnce(Iznik.Session, 'loggedIn', f);
+                    Iznik.Session.forceLogin();
+                } else {
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+                    Iznik.Session.testLoggedIn();
+                }
             }
         },
 
@@ -1107,6 +1117,11 @@ define([
         
         replay: function(sessionid) {
             var self = this;
+
+            // Disable chat animation which interacts badly with replay.
+            $("<style type='text/css'> .chat-window{ animation: none !important;} </style>").appendTo("head");
+            console.log("Added CSS");
+
             require(["iznik/views/pages/modtools/replay"], function () {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.Replay({

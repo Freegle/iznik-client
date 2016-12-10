@@ -6,73 +6,36 @@ require_once(IZNIK_BASE . '/include/utils.php');
 
 $lockh = lockScript(basename(__FILE__));
 
+# We want the key top-level pages.
+$tops = [
+    '' => 1,
+    'give' => 1,
+    'find' => 1,
+    'explore' => 0.8,
+    'about' => 0.1,
+    'terms' => 0.1,
+    'privacy' => 0.1,
+    'donate' => 0.3,
+    'contact' => 0.5
+];
+
+foreach ($tops as $top => $prio) {
+    $dbhm->preExec("INSERT IGNORE INTO prerender (url) VALUES (?);", [ "https://" . USER_SITE . "/$top" ]);
+}
+
 # We want to pre-cache all Freegle groups.
-$groups = $dbhr->preQuery("SELECT id FROM groups WHERE type = 'Freegle' AND publish = 1;");
+$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE type = 'Freegle' AND publish = 1;");
 foreach ($groups as $group) {
-    $dbhm->preExec("INSERT IGNORE INTO prerender (url) VALUES (?);", [ "https://" . USER_SITE . "/explore/{$group['id']}" ]);
+    $dbhm->preExec("INSERT IGNORE INTO prerender (url) VALUES (?);", [ "https://" . USER_SITE . "/explore/{$group['nameshort']}" ]);
 }
 
-$pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR TIMESTAMPDIFF(HOUR, retrieved,NOW()) >= timeout;");
+$pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR TIMESTAMPDIFF(MINUTE, retrieved,NOW()) >= timeout ORDER BY html ASC;");
+shuffle($pages);
+
 foreach ($pages as $page) {
-    $url = $page['url'] . "?nocache=1";
-    $file_name = tempnam('/tmp', 'prerender_') . ".html";
-    $job_file = tempnam('/tmp', 'prerender_') . ".js";
-    error_log("Fetch $url using $job_file");
-
-    # Create phantomjs script which loads the page, and then waits until a time has passed during which there have
-    # been no new network requests.  That tells us that the page has loaded.
-    $src = "
-                var page = new WebPage();
-                page.settings.userAgent = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:16.0) Gecko/20120815 Firefox/16.0';
-                var fs = require('fs');
-                var requests = 0;
-                
-                page.settings.resourceTimeout = 12000; 
-                page.onResourceTimeout = function(e) {
-                  console.log(e.errorCode);   // it'll probably be 408 
-                  console.log(e.errorString); // it'll probably be 'Network timeout on resource'
-                  console.log(e.url);         // the url whose request timed out
-                  phantom.exit(1);
-                };
-                                
-                page.onResourceRequested = function(request) {
-                    console.log('Requested', request.url);
-                    requests++;
-                };
-                
-                page.onLoadFinished = function(status) {
-                    interval = setInterval(function() {
-                        console.log('Check finished', requests);
-                        if (requests == 0) {
-                            var bodyhtml = page.evaluate(function() {
-                                return document.body.outerHTML;
-                            });
-                            fs.write('{$file_name}', bodyhtml, 'w');
-                            phantom.exit();
-                        }
-                        
-                        requests = 0;
-                    }, 10000);
-                }
-                page.open('{$url}');
-            ";
-
-    file_put_contents($job_file, $src);
-    exec("phantomjs --ssl-protocol=tlsv1 $job_file");
-    $html = file_get_contents($file_name);
-    unlink($file_name);
-    unlink($job_file);
-
-    if ($html && strlen($html) > 100) {
-        $rc = $dbhm->preExec("UPDATE prerender SET html = ? WHERE id = ?;", [ $html, $page['id'] ]);
-        if ($rc) {
-            error_log("...saved");
-        } else {
-            error_log("...failed to save");
-        }
-    } else {
-        error_log("...failed to fetch");
-    }
+    echo "php ../cli/prerender.php -i {$page['id']}&\nsleep 1\n";
 }
+
+echo "wait\n";
 
 unlockScript($lockh);

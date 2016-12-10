@@ -161,8 +161,9 @@ class chatRoomsTest extends IznikTestCase {
 
         $this->msgsSent = [];
 
-        # Notify - will email body.
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        # Notify - will email just one as we don't notify our own by default.
+        error_log("Will email justone");
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
         assertEquals('Re: OFFER: Test item (location)', $this->msgsSent[0]['subject']);
 
         # Now pretend we've seen the messages.  Should flag the message as seen by all.
@@ -286,11 +287,10 @@ class chatRoomsTest extends IznikTestCase {
             return($this->mailer($message));
         }));
 
-        # Notify mod; will also notify user
+        # Notify mods; we don't notify user of our own by default.
         $this->msgsSent = [];
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
-        assertEquals("Your conversation with the testgroup volunteers", $this->msgsSent[0]['subject']);
-        assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[1]['subject']);
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
 
         # Chase up mods after unreasonably short interval
         self::assertEquals(1, count($r->chaseupMods($id, 0)));
@@ -298,12 +298,11 @@ class chatRoomsTest extends IznikTestCase {
         # Fake mod reply
         $cm2 = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
 
-        # Notify user; this will also copy the mod.
+        # Notify user; this won't copy the mod by default..
         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NULL WHERE userid = ?;", [ $u1 ]);
         $this->msgsSent = [];
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("Your conversation with the testgroup volunteers", $this->msgsSent[0]['subject']);
-        assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[1]['subject']);
 
         error_log(__METHOD__ . " end");
     }

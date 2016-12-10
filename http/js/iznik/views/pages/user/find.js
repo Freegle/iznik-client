@@ -111,7 +111,7 @@ define([
                         }
                     } catch (e) {}
 
-                    self.collection = new Iznik.Collections.Messages.GeoSearch(null, {
+                    self.collection = new Iznik.Collections.Messages.MatchedOn(null, {
                         modtools: false,
                         searchmess: self.options.search,
                         nearlocation: mylocation ? mylocation : null,

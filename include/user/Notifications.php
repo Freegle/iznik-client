@@ -14,6 +14,7 @@ class Notifications
     const PUSH_FIREFOX = 'Firefox';
     const PUSH_TEST = 'Test';
     const PUSH_ANDROID = 'Android';
+    const PUSH_IOS = 'IOS';
 
     private $dbhr, $dbhm, $log, $pheanstalk = NULL;
 
@@ -58,7 +59,7 @@ class Notifications
         return($rc);
     }
 
-    private function queueSend($userid, $params, $endpoint, $payload) {
+    private function queueSend($userid, $type, $params, $endpoint, $payload) {
         #error_log("queueSend $userid $endpoint params " . var_export($params, TRUE));
         try {
             $this->uthook();
@@ -69,6 +70,7 @@ class Notifications
 
             $str = json_encode(array(
                 'type' => 'webpush',
+                'notiftype' => $type,
                 'queued' => time(),
                 'userid' => $userid,
                 'params' => $params,
@@ -84,16 +86,55 @@ class Notifications
         }
     }
 
-    public function executeSend($userid, $params, $endpoint, $payload) {
+    public function executeSend($userid, $notiftype, $params, $endpoint, $payload) {
         try {
-            error_log("Execute send params " . var_export($params, TRUE));
-            $params = $params ? $params : [];
-            $webPush = new WebPush($params);
-            $rc = $webPush->sendNotification($endpoint, $payload, NULL, TRUE);
+            #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
+            switch ($notiftype) {
+                case Notifications::PUSH_GOOGLE:
+                case Notifications::PUSH_FIREFOX:
+                case Notifications::PUSH_ANDROID:
+                    $params = $params ? $params : [];
+                    $webPush = new WebPush($params);
+                    $rc = $webPush->sendNotification($endpoint, $payload, NULL, TRUE);
+                    break;
+                case Notifications::PUSH_IOS:
+                    try {
+                        $deviceToken = $endpoint;
+                        $ctx = stream_context_create();
+                        $certfile = $payload['modtools'] ? '/etc/modtools_push.pem' : '/etc/user_push.pem';
+                        stream_context_set_option($ctx, 'ssl', 'local_cert', $certfile);
+                        $fp = stream_socket_client(
+                            'ssl://gateway.push.apple.com:2195', $err,
+                            $errstr, 60, STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT, $ctx);
+
+                        if ($fp) {
+                            $body['aps'] = [
+                                'alert' => [
+                                    'body' => $payload['title'] . ($payload['message'] ? ": {$payload['message']}" : '')
+                                ],
+                                'badge' => $payload['badge'],
+                                'sound' => 'default',
+                                'content-available' => "1",
+                                'chatids' => $payload['chatids']
+                            ];
+
+                            $payload = json_encode($body);
+                            $msg = chr(0) . pack('n', 32) . pack('H*', $deviceToken) . pack('n', strlen($payload)) . $payload;
+                            stream_set_blocking($fp, 0);
+                            $result = fwrite($fp, $msg, strlen($msg));
+                            fclose($fp);
+                        }
+                    } catch (Exception $e) { error_log("Exception " . $e->getMessage()); }
+
+                    $rc = TRUE;
+
+                    break;
+            }
             #error_log("Returned " . var_export($rc, TRUE) . " for {$notif['subscription']}");
             $rc = $this->uthook($rc);
         } catch (Exception $e) {
             $rc = [ 'exception' => $e->getMessage() ];
+            error_log("Push exception {$rc['exception']}");
         }
 
         if ($rc !== TRUE) {
@@ -141,14 +182,40 @@ class Notifications
 
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
                         list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
+                        #error_log("Notify for $userid $title $message");
 
                         $payload = [
-                            'badge' => $count,
+                            'badge' => $chatcount,
                             'count' => $chatcount,
                             'title' => $title,
                             'message' => $message,
                             'chatids' => $chatids,
-                            'image' => "www/images/user_logo.png"
+                            'content-available' => 1,
+                            'image' => "www/images/user_logo.png",
+                            'modtools' => MODTOOLS
+                        ];
+                    }
+
+                    break;
+                }
+                case Notifications::PUSH_IOS: {
+                    $proceed = $u->notifsOn(User::NOTIFS_APP);
+
+                    if ($proceed) {
+                        # We need the payload.
+                        $params = [];
+
+                        $u = User::get($this->dbhr, $this->dbhm, $userid);
+                        list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
+
+                        $payload = [
+                            'badge' => $chatcount,
+                            'count' => $chatcount,
+                            'title' => $title,
+                            'message' => $message,
+                            'chatids' => $chatids,
+                            'content-available' => 1,
+                            'modtools' => MODTOOLS
                         ];
                     }
 
@@ -157,7 +224,7 @@ class Notifications
             }
 
             if ($proceed) {
-                $this->queueSend($userid, $params, $notif['subscription'], $payload);
+                $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
                 $count++;
             }
         }

@@ -3,25 +3,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
-    <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
-    <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
-    <meta name="msapplication-tap-highlight" content="no"/>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
-    <meta name="robots" content="nofollow, noindex, noarchive, nocache">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="<?php echo SITE_NAME; ?>">
-    <meta name="format-detection" content="telephone=no">
-    <link rel="manifest" href="/manifest.json">
-
-    <?php
-    # TODO _escaped_fragment_ previews for Facebook etc.
-    ?>
-
-    <meta property="og:url" content="<?php get_current_url(); ?>">
+    <div itemscope itemtype="http://schema.org/Organization" style="display: none">
+        <span itemprop="name"><?php echo SITE_NAME; ?></span>
+    </div>
     <?php
     if (!defined('BASE_DIR')) {
         define( 'BASE_DIR', dirname(__FILE__) . '/../..' );
@@ -41,6 +25,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             $atts = $g->getPublic();
             ?>
             <title><?php echo $atts['namedisplay']; ?></title>
+            <meta itemprop="title" content="<?php echo $atts['namedisplay']; ?>"/>
+            <meta itemprop="description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
+            <meta name="description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
             <meta property="og:title" content="<?php echo $atts['namedisplay']; ?>"/>
             <meta property="og:description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
             <meta property="og:image" content="<?php echo presdef('profile', $atts, USERLOGO); ?>"/>
@@ -59,6 +46,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
             ?>
             <title><?php echo $atts['subject']; ?></title>
+            <meta itemprop="title" content="<?php echo $atts['subject']; ?>"/>
+            <meta itemprop="description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
+            <meta name="description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
             <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
             <meta property="og:description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
             <meta property="og:image" content="<?php echo $icon; ?>"/>
@@ -76,6 +66,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
             ?>
             <title><?php echo $atts['title']; ?></title>
+            <meta itemprop="title" content="<?php echo $atts['title']; ?>"/>
+            <meta name="description" content="<?php echo $atts['title']; ?>"/>
+            <meta property="og:description" content="<?php echo $atts['title']; ?>"/>
             <meta property="og:title" content="<?php echo $atts['title']; ?>"/>
             <meta property="og:description" content=""/>
             <?php
@@ -83,13 +76,36 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     } else {
         ?>
         <title><?php echo SITE_NAME; ?></title>
+        <meta name="description" content="<?php echo SITE_DESC; ?>"/>
+        <meta itemprop="description" content="<?php echo SITE_DESC; ?>"/>
+        <meta itemprop="title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
         <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>largetile.png"/>
         <?php
         echo "<!-- requested " . $_SERVER["REQUEST_URI"] . " -->\r\n";
     }
+
+    if (!MODTOOLS && defined('GOOGLE_SITE_VERIFICATION')) {
+        ?>
+        <meta name="google-site-verification" content="<?php echo GOOGLE_SITE_VERIFICATION; ?>" />
+        <?php
+    }
+
     ?>
+    <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, or -->
+    <!-- help make the code better at https://github.com/Freegle/iznik ?  -->
+    <meta name="msapplication-tap-highlight" content="no"/>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="<?php echo SITE_NAME; ?>">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:url" content="<?php get_current_url(); ?>">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
     <?php
@@ -123,14 +139,8 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
             if (inChrome) {
                 // Use our version so that we will add a new service worker when the code changes.
-                var lastversion = null;
-
-                try {
-                    lastversion = localStorage.getItem('version');
-                } catch (e) {
-                }
-                ;
-
+                //
+                // There may be a delay before that service worker becomes live, but that's ok.
                 var version = <?php echo $version; ?>;
                 console.log("Register service worker", version);
                 navigator.serviceWorker.register('/sw.js?version=' + version).then(function (reg) {
@@ -143,16 +153,6 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
                 try {
                     localStorage.setItem('version', version);
                 } catch (e) {};
-
-                console.log("Versions", lastversion, version);
-
-                if (lastversion != null && version != lastversion) {
-                    // The code has changed.  Reload to pick up the changes.
-                    console.log("Code changed, reload");
-                    window.setTimeout(function () {
-                        window.location.reload();
-                    }, 1000);
-                }
             } else {
                 // Make sure no service workers running.
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -198,7 +198,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=105">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=106">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -217,7 +217,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=10"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=127"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=128"><?php
     }
     ?>
 

@@ -125,7 +125,7 @@ class Session {
     private $id;
 
     public static function clearSessionCache() {
-        # We cache some information for the duration of a call.
+        # We cache some information.
         $_SESSION['modorowner'] = [];
     }
 

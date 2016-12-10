@@ -50,7 +50,7 @@ EOT;
                                                                 </table>               
                                                             </td>    
                                                             <td>
-                                                                <p style="color: red">Get 10% off some lovely cheese and support Freegle at the same time! <a href="http://freegle.in/cheeseoffer">Find out more...</a></p>                                                                                                                        
+                                                                <p style="color: red">Help Freegle get the recognition it deserves - please vote for all three of our nominees: <a href="http://hot100.resource.co/nominee/cat-fletcher" target="_blank">Cat</a>, <a href="http://hot100.resource.co/nominee/edward-hibbert" target="_blank">Edward</a> and <a href="http://hot100.resource.co/nominee/david-greenfield" target="_blank">David</a></p>                                                                                                                                                                                                                                                
                                                                 <p>You've received this mail because you're a member of <a href="{{visit}}">$groupname</a>.</p>
                                                                 <table width="100%">
                                                                     <tr>

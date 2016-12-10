@@ -23,7 +23,7 @@ foreach ($locs as $loc) {
                 #error_log("{$area['name']}");
                 if ($area['dim'] != 2) {
                     error_log("#{$loc['id']} {$loc['name']} bad area {$area['id']} {$area['name']} dim {$area['dim']}");
-                    $l->setParents($loc['id'], $loc['gridid']);
+                    $l->setParents($loc['id']);
                 }
             }
 

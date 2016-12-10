@@ -17,7 +17,7 @@ $count = 0;
 foreach ($locs as $loc) {
     #echo "{$loc['id']} - {$loc['name']} => ";
     try {
-        $l->setParents($loc['id'], $loc['gridid']);
+        $l->setParents($loc['id']);
         $count++;
 
         if ($count % 1000 == 0) {

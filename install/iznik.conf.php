@@ -7,8 +7,8 @@ define('PASSWORD_SALT', 'zzzz');
 define('MODERATOR_EMAIL', 'zzzz');
 
 # Logos
-define('USERLOGO', 'https://iznik.ilovefreegle.org/images/user_logo.png');
-define('MODLOGO', 'https://iznik.modtools.org/images/modlogo-large.jpg');
+define('USERLOGO', 'https://www.ilovefreegle.org/images/user_logo.png');
+define('MODLOGO', 'https://modtools.org/images/modlogo-large.jpg');
 
 # We can query Trash Nothing to get real email addresses for their users.
 define('TNKEY', 'zzzzz');
@@ -22,6 +22,7 @@ define('GOOGLE_VISION_KEY', 'zzz');
 define('GOOGLE_CLIENT_ID', 'zzz');
 define('GOOGLE_CLIENT_SECRET', 'zzz');
 define('GOOGLE_APP_NAME', 'zzz');
+define('GOOGLE_SITE_VERIFICATION', 'zzz');
 
 # We support Facebook login, but you have to create your own app
 define('FBAPP_ID', 'zzz');
@@ -55,9 +56,6 @@ define('SITE_HOST', $host);
 
 # Where we send event tracking.
 define('EVENT_HOST', 'dev.ilovefreegle.org');
-
-# Trusted domains for links
-define('TRUSTED_LINKS', 'a.b.c');
 
 switch($host) {
     case 'iznik.modtools.org':

@@ -88,7 +88,8 @@ if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
     $pages = $dbhr->preQuery("SELECT * FROM prerender WHERE url = ?;", [ $url ]);
 
     if (count($pages) > 0 && $pages[0]['html']) {
-        echo $pages[0]['html'];
+        $html = $pages[0]['html'];
+        echo $html;
         $default = FALSE;
     }
 }

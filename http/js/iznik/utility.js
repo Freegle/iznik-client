@@ -25,8 +25,12 @@ define([
         };
     }
 
-    window.isNarrow = function() {
-        return window.innerWidth < 749;
+    window.isXS = function() {
+        return window.innerWidth < 320;
+    };
+
+    window.isSM = function() {
+        return window.innerWidth < 768;
     };
 
     window.isShort = function() {
@@ -72,10 +76,6 @@ define([
         else {
             return uri;
         }
-    };
-
-    window.isNarrow = function() {
-        return window.innerWidth < 749;
     };
 
     window.getDistanceFromLatLonInKm = function(lat1, lon1, lat2, lon2) {

@@ -116,8 +116,10 @@ define([
                         }
                     });
 
-                    val = first.id;
-                    console.log("Selected not on here, use first", val);
+                    if (first) {
+                        val = first.id;
+                        console.log("Selected not on here, use first", val);
+                    }
                 }
             } else {
                 // We don't have a dropdown but are proceeding onsite.  Choose the closest group which is on the

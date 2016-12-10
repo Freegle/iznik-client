@@ -29,11 +29,17 @@ define([
 
         allseen: function () {
             Iznik.minimisedChats.viewManager.each(function (chat) {
-                if (chat.model.get('unseen') > 0) {
-                    chat.allseen();
-                    chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+                try {
+                    if (chat.model.get('unseen') > 0) {
+                        chat.allseen();
+                        chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+                    }
+                } catch (e) {
+                    console.error("Failed to process chat", chat, e.message);
                 }
             });
+            $('#notifchatdropdownlist').empty();
+            Iznik.minimisedChats.render();
         },
 
         waitError: function () {
@@ -258,6 +264,7 @@ define([
             // This organises our chat windows so that:
             // - they're at the bottom, padded at the top to ensure that
             // - they're not wider or taller than the space we have.
+            // - they're not too narrow.
             //
             // The code is a bit complex
             // - partly because the algorithm is a bit complicated
@@ -294,16 +301,19 @@ define([
                             css[prop] = parseInt(val.replace('px', ''));
                         });
 
+                        // Matches style.
+                        css.width = css.width ? css.width : 300;
+
                         // We use this later to see if we need to shrink.
                         totalOuter += css.width + css['margin-left'] + css['margin-right'];
-                        // console.log("Chat width", css.width, css['margin-left'], css['margin-right']);
+                        //console.log("Chat width", chat.$el.prop('id'), css.width, css['margin-left'], css['margin-right']);
                         totalWidth += css.width;
                         totalMax++;
 
                         // Make sure it's not stupidly tall or short.  We let the navbar show unless we're really short,
                         // which happens when on-screen keyboards open up.
                         // console.log("Consider height", css.height, windowInnerHeight, navbarOuterHeight, windowInnerHeight - navbarOuterHeight - 5);
-                        height = Math.min(css.height, windowInnerHeight - (isVeryShort() ? 0 : navbarOuterHeight) - 5);
+                        height = Math.min(css.height, windowInnerHeight - (isVeryShort() ? 0 : navbarOuterHeight) - 10);
                         // console.log("Consider shortness", height, css.height, windowInnerHeight, isVeryShort() ? 0 : navbarOuterHeight, navbarOuterHeight);
                         height = Math.max(height, 100);
                         maxHeight = Math.max(height, maxHeight);
@@ -318,25 +328,49 @@ define([
 
                 // console.log("Checked height", (new Date()).getMilliseconds() - start);
 
-                var max = window.innerWidth - 50;
+                var max = window.innerWidth - 100;
 
-                // console.log("Consider width", totalOuter, max);
+                //console.log("Consider width", totalOuter, max);
 
                 if (totalOuter > max) {
                     // The chat windows we have open are too wide.  Make them narrower.
                     var reduceby = Math.round((totalOuter - max) / totalMax + 0.5);
                     // console.log("Chats too wide", max, totalOuter, totalWidth, reduceby);
                     var width = (Math.floor(totalWidth / totalMax + 0.5) - reduceby);
-                    // console.log("New width", width);
+                    //console.log("New width", width);
 
-                    Iznik.activeChats.viewManager.each(function (chat) {
-                        if (!chat.minimised) {
-                            if (chat.$el.css('width') != width) {
-                                // console.log("Set new width ", chat.$el.css('width'), width);
-                                chat.$el.css('width', width.toString() + 'px');
+                    if (width < 300) {
+                        // This would be stupidly narrow for a chat.  Close the oldest one.
+                        var toclose = null;
+                        var oldest = null;
+                        var count = 0;
+                        Iznik.activeChats.viewManager.each(function (chat) {
+                            if (!chat.minimised) {
+                                count++;
+                                if (!oldest || chat.restoredAt < oldest) {
+                                    toclose = chat;
+                                    oldest = chat.restoredAt;
+                                }
                             }
+                        });
+
+                        //console.log("COnsider close", toclose);
+                        if (toclose && count > 1) {
+                            toclose.minimise();
+
+                            // Organise again now that's gone.
+                            _.defer(_.bind(self.organise, self));
                         }
-                    });
+                    } else {
+                        Iznik.activeChats.viewManager.each(function (chat) {
+                            if (!chat.minimised) {
+                                if (chat.$el.css('width') != width) {
+                                    // console.log("Set new width ", chat.$el.css('width'), width);
+                                    chat.$el.css('width', width.toString() + 'px');
+                                }
+                            }
+                        });
+                    }
                 }
 
                 // console.log("Checked width", (new Date()).getMilliseconds() - start);
@@ -377,6 +411,12 @@ define([
                     unseen += chat.get('unseen');
                 });
             }
+            /*{
+                var msg = new Date();
+                msg = msg.toLocaleTimeString() + " U " + unseen + ' ' + self.unseenCount + "<br/>";
+                badgeconsole += msg;
+                $('#badgeconsole').html(badgeconsole);
+            }*/
 
             // We'll adjust the count in the window title.
             var title = document.title;
@@ -401,6 +441,10 @@ define([
 
                 if (mobilePush) {
                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
+                    /*var msg = new Date();
+                    msg = msg.toLocaleTimeString() + " C " + unseen + "<br/>";
+                    badgeconsole += msg;
+                    $('#badgeconsole').html(badgeconsole);*/
                 }
             }
         },
@@ -553,6 +597,7 @@ define([
         createMinimised: function () {
             var self = this;
 
+            $('#notifchatdropdownlist').empty();
             Iznik.minimisedChats = new Backbone.CollectionView({
                 el: $('#notifchatdropdownlist'),
                 modelView: Iznik.Views.Chat.Minimised,
@@ -565,6 +610,19 @@ define([
                 }
             });
 
+            self.listenTo(Iznik.Session.chats, 'change:lastdate', function(model) {
+                // We want to reach to this by making sure the changed chat is near the top of the list of
+                // minimised chats, so that it's easier to find.  This achieves that...but it's a bit of a
+                // hack.  Probably the architecturally right way to do this would be to trigger a sort
+                // on the collection, which ought to sort the collectionview.  But what seems to happen
+                // is that this causes any open chats to be closed when they're detached.  I've spent enough
+                // time failing to work out why - so we do it this way.
+                var view = Iznik.minimisedChats.viewManager.findByModel(model);
+                view.$el.detach();
+                $('#notifchatdropdownlist').prepend(view.$el);
+            });
+
+            $('#notifchatdropdownlist').empty();
             Iznik.minimisedChats.render();
 
             $('#js-notifchat').click(function (e) {
@@ -662,6 +720,9 @@ define([
                     self.organise();
                     Iznik.Session.trigger('chatsfetched');
                 });
+
+                self.organise();
+
             }
         },
 
@@ -724,6 +785,14 @@ define([
                 });
             } else {
                 p = resolvedPromise(self);
+            }
+
+            if (!self.windowResizeListening) {
+                // If the window size changes, we will need to adapt.
+                self.windowResizeListening = true;
+                $(window).resize(function () {
+                    self.organise();
+                });
             }
 
             return (p);
@@ -799,9 +868,14 @@ define([
 
                 // If the unread message count changes, we want to update it.
                 if (!self.unseenListen) {
+                    self.unseenListen = true;
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
                 }
-                self.listenTo(self.model, 'change:snippet', self.render);
+
+                if (!self.snippetListen) {
+                    self.snippetListen = true;
+                    self.listenTo(self.model, 'change:snippet', self.render);
+                }
             });
 
             return (p);
@@ -844,21 +918,45 @@ define([
             }
         },
 
+        getLatestMessages: function() {
+            var self = this;
+
+            if (!self.fetching) {
+                self.fetching = true;
+                self.fetchAgain = false;
+
+                // Get the full set of messages back.  This will replace any temporary
+                // messages added, and also ensure we don't miss any that arrived while we
+                // were sending ours.
+                self.messages.fetch({
+                    remove: true
+                }).then(function () {
+                    self.fetching = false;
+                    if (self.fetchAgain) {
+                        // console.log("Fetch messages again");
+                        self.getLatestMessages();
+                    } else {
+                        // console.log("Fetched and no more");
+                        self.options.updateCounts();
+                        self.scrollBottom();
+                    }
+                });
+            } else {
+                // We are currently fetching, but would like to do so again.  Queue another fetch to happen
+                // once this completes.  That avoids a car crash of fetches happening when there are a lot of
+                // messages being sent and we're not keeping up.
+                // console.log("Fetch again later");
+                self.fetchAgain = true;
+            }
+        },
+
         send: function () {
             var self = this;
             var message = this.$('.js-message').val();
             if (message.length > 0) {
                 // We get called back when the message has actually been sent to the server.
                 self.listenToOnce(this.model, 'sent', function () {
-                    // Get the full set of messages back.  This will replace any temporary
-                    // messages added, and also ensure we don't miss any that arrived while we
-                    // were sending ours.
-                    self.messages.fetch({
-                        remove: true
-                    }).then(function () {
-                        self.options.updateCounts();
-                        self.scrollBottom();
-                    });
+                    self.getLatestMessages();
                 });
 
                 self.model.send(message);
@@ -873,7 +971,7 @@ define([
                     message: message,
                     date: (new Date()).toISOString(),
                     sameaslast: true,
-                    sameasnext: false,
+                    sameasnext: true,
                     seenbyall: 0,
                     type: 'Default',
                     user: Iznik.Session.get('me')
@@ -1018,12 +1116,17 @@ define([
             this.updateCount();
         },
 
+        stayHidden: function() {
+            if (this.minimised) {
+                this.$el.hide();
+                _.delay(_.bind(this.stayHidden, this), 5000);
+            }
+        },
+
         minimise: function (quick) {
             var self = this;
-            _.defer(function () {
-                self.$el.hide();
-            });
             this.minimised = true;
+            this.stayHidden();
 
             if (!quick) {
                 this.waitDOM(self, self.options.organise);
@@ -1071,7 +1174,7 @@ define([
 
             var width = self.$el.width();
 
-            if (self.model.get('chattype') == 'Mod2Mod') {
+            if (self.model.get('chattype') == 'Mod2Mod' || self.model.get('chattype') == 'Group') {
                 // Group chats have a roster.
                 var lpwidth = self.$('.js-leftpanel').width();
                 lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;
@@ -1102,8 +1205,7 @@ define([
                 // On mobile we maximise the chat window, as the whole resizing thing is too fiddly.
                 var height = localStorage.getItem('chat-' + self.model.get('id') + '-height');
                 var width = localStorage.getItem('chat-' + self.model.get('id') + '-width');
-                // console.log("Narrow?", isNarrow(), $(window).innerWidth());
-                if (isNarrow()) {
+                if (isSM()) {
                     // Just maximise it.
                     width = $(window).innerWidth();
                 }
@@ -1134,7 +1236,7 @@ define([
 
         large: function () {
             this.$el.width($(window).innerWidth());
-            this.$el.height($(window).innerHeight());
+            this.$el.height($(window).innerHeight() - $('.navbar').outerHeight());
 
             this.$('.js-large').hide();
             this.$('.js-small').show();
@@ -1156,12 +1258,14 @@ define([
 
         restore: function (large) {
             var self = this;
+            self.restoredAt = (new Date()).getTime();
             self.minimised = false;
 
             // Hide the chat list if it's open.
             $('#notifchatdropdown').hide();
 
             // Input text autosize
+            // console.log("Autosize on " + self.model.get('id') + " " + self.doneAutosize);
             if (!self.doneAutosize) {
                 self.doneAutosize = true;
                 autosize(self.$('textarea'));
@@ -1236,7 +1340,7 @@ define([
                 self.madeResizable = true;
 
                 self.$el.resizable({
-                    handleSelector: '#chat-' + self.model.get('id') + ' .js-grip',
+                    handleSelector: '#chat-active-' + self.model.get('id') + ' .js-grip',
                     resizeWidthFrom: 'left',
                     resizeHeightFrom: 'top',
                     onDrag: _.bind(self.drag, self),
@@ -1248,6 +1352,18 @@ define([
                     resizeHeight: false,
                     onDragEnd: _.bind(self.panelSize, self)
                 });
+            }
+
+            _.delay(_.bind(self.adjustTimer, self), 5000);
+        },
+
+        adjustTimer: function() {
+            // We run this to handle resizing due to onscreen keyboards.
+            var self = this;
+
+            if (!self.minimised) {
+                self.adjust();
+                _.delay(_.bind(self.adjustTimer, self), 5000);
             }
         },
 
@@ -1404,7 +1520,7 @@ define([
             if (ret.ret === 0) {
                 if (!_.isUndefined(ret.roster)) {
                     self.$('.js-roster').empty();
-                    console.log("Roster", ret.roster);
+                    // console.log("Roster", ret.roster);
                     _.each(ret.roster, function (rost) {
                         var mod = new Iznik.Model(rost);
                         var v = new Iznik.Views.Chat.RosterEntry({
@@ -1419,7 +1535,7 @@ define([
                 }
 
                 if (!_.isUndefined(ret.unseen)) {
-                    console.log("Set unseen from", self.model.get('unseen'), ret.unseen, ret);
+                    // console.log("Set unseen from", self.model.get('unseen'), ret.unseen, ret);
                     self.model.set('unseen', ret.unseen);
                 }
             }
@@ -1470,7 +1586,7 @@ define([
 
             if (!self.rendered) {
                 self.rendered = true;
-                self.$el.attr('id', 'chat-' + self.model.get('id'));
+                self.$el.attr('id', 'chat-active-' + self.model.get('id'));
                 self.$el.addClass('chat-' + self.model.get('name'));
 
                 self.$el.css('visibility', 'hidden');
@@ -1495,7 +1611,6 @@ define([
                     // If the unread message count changes, we want to update it.
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
 
-                    var narrow = isNarrow();
                     var minimise = true;
 
                     try {
@@ -1505,7 +1620,7 @@ define([
                         var open = localStorage.getItem(self.lsID() + '-open');
                         open = (open === null) ? open : parseInt(open);
 
-                        if (!open || (open != 2 && narrow)) {
+                        if (!open || (open != 2 && isSM())) {
                             minimise = true;
                         } else {
                             minimise = false;
@@ -1585,6 +1700,7 @@ define([
         render: function () {
             var self = this;
             var p;
+            //console.log("Render chat message", this.model.get('id'));
 
             if (this.model.get('id')) {
                 var message = this.model.get('message');

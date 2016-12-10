@@ -142,7 +142,7 @@ class Digest
                 $atts['textbody'] = $m->stripGumf();
 
                 if ($atts['type'] == Message::TYPE_OFFER || $atts['type'] == Message::TYPE_WANTED) {
-                    if (count($atts['related']) == 0) {
+                    if (count($atts['outcomes']) == 0) {
                         $available[] = $atts;
                     } else {
                         $unavailable[] = $atts;
@@ -265,7 +265,7 @@ class Digest
                     if ($email && $email != MODERATOR_EMAIL && $u->sendOurMails($g)) {
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
-                            '{{bounce}}' => "bounce-{$user['userid']}-" . time() . "@" . USER_DOMAIN,
+                            '{{bounce}}' => $u->getBounce(),
                             '{{unsubscribe}}' => 'https://' . USER_SITE . '/unsubscribe',
                             '{{email}}' => $email,
                             '{{frequency}}' => $this->freqText[$frequency],

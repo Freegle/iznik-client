@@ -1,5 +1,5 @@
 <?php
-require_once(IZNIK_BASE . '/mailtemplates/modtools/verifymail.php');
+require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 
 function session() {
     global $dbhr, $dbhm;
@@ -56,9 +56,7 @@ function session() {
                             }
                         }
 
-                        $ammod = $me->isModerator();
-
-                        if ($ammod) {
+                        if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
                             # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
                             # in here - but it's of no interest to members so there's no point delaying them by
                             # fetching it.
@@ -224,6 +222,7 @@ function session() {
                             case Notifications::PUSH_GOOGLE:
                             case Notifications::PUSH_FIREFOX:
                             case Notifications::PUSH_ANDROID:
+                            case Notifications::PUSH_IOS:
                                 $n->add($me->getId(), $push['type'], $push['subscription']);
                                 break;
                         }

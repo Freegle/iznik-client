@@ -323,7 +323,7 @@ define([
                 // Yahoo group - open new tab.
                 window.open("https://groups.yahoo.com/group/" + this.model.get('nameshort'));
             } else {
-                Router.navigate('/explore/' + this.model.get('id'), true);
+                Router.navigate('/explore/' + this.model.get('nameshort'), true);
             }
         }
     });
@@ -341,7 +341,7 @@ define([
         },
 
         join: function() {
-            Router.navigate('/explore/' + this.model.get('id') + '/join', true);
+            Router.navigate('/explore/' + this.model.get('nameshort') + '/join', true);
         },
 
         leave: function() {
@@ -359,7 +359,7 @@ define([
                         // Now force a refresh of the session.
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                             self.model.set('role', 'Non-member');
-                            Router.navigate('/explore/' + self.model.get('id'), true);
+                            Router.navigate('/explore/' + self.model.get('nameshort'), true);
                         });
 
                         Iznik.Session.testLoggedIn(true);
@@ -479,6 +479,7 @@ define([
                                 }, complete: function () {
                                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                                         self.showHideJoin();
+                                        self.refetch();
                                     });
 
                                     Iznik.Session.testLoggedIn(true);
@@ -517,9 +518,11 @@ define([
                             model: self.model
                         });
 
+                        v.expanded = true;
+
                         v.render().then(function () {
                             self.$('.js-message').append(v.el);
-                            self.$('.js-caretdown').click();
+                            v.expand();
                         });
                     } else {
                         self.$('.js-gone').fadeIn('slow');
@@ -548,9 +551,14 @@ define([
                             model: self.model
                         });
 
+                        v.expanded = true;
                         v.render().then(function () {
                             self.$('.js-message').append(v.el);
-                            self.$('.js-caretdown').click();
+
+                            var group = self.model.get('groups')[0];
+                            self.$('.js-moregroup').html(group.namedisplay);
+                            self.$('.js-groupurl').attr('href', '/explore/' + group.nameshort);
+                            self.$('.js-more').show();
                         });
                     } else {
                         self.$('.js-gone').fadeIn('slow');

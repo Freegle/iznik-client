@@ -9,10 +9,15 @@
         {{user.email}}
         <% } %>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-2">
         {{id}}
     </div>
-    <div class="col-sm-2">
+    <div class="col-sm-2 forcebreak">
+        {{entry}}
+    </div>
+    <div class="col-sm-1">
+        <% if (!modtools) { %>
         <div class="btn btn-white js-play"><span class="glyphicon glyphicon-play" />&nbsp;Replay</div>
+        <% } %>
     </div>
 </div>

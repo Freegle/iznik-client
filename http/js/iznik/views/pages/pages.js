@@ -332,6 +332,10 @@ define([
                 // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
                 var GoogleLoad = new Iznik.Views.GoogleLoad();
                 GoogleLoad.buttonShim('googleshim');
+
+                // Events site is special.
+                var eventsite = $('meta[name=iznikevent]').attr("content");
+                self.$('.js-recentsessions').attr('href', 'https://' + eventsite + '/modtools/sessions');
             });
 
             return p;

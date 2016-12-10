@@ -309,6 +309,10 @@ define([
                 if (Iznik.Session.isAdmin()) {
                     self.$('.js-adminonly').removeClass('hidden');
                 }
+
+                if (Iznik.Session.isAdminOrSupport()) {
+                    self.$('.js-adminsupportonly').removeClass('hidden');
+                }
             });
 
             return (p);

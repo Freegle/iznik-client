@@ -394,11 +394,11 @@ define([
                                 _.each(counts, function (count) {
                                     var countel = $(count.el);
                                     var currcount = countel.html();
-                                    if (ret.work[count.fi] != currcount) {
+                                    if (ret.work && ret.work[count.fi] != currcount) {
                                         countschanged = true;
                                     }
 
-                                    if (ret.work[count.fi]) {
+                                    if (ret.work && ret.work[count.fi]) {
                                         if (count.window) {
                                             total += ret.work[count.fi];
                                         }

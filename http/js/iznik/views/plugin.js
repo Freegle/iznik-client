@@ -12,7 +12,8 @@ define([
     // on the client.  We use a collectionview to render these.  The model contains information about which specific
     // view we want.
 
-    var cantban = false;
+    var cantban = [];
+    var cantremove = [];
     
     Iznik.Models.Plugin.Work = Iznik.Model.extend({
         initialize: function() {
@@ -88,12 +89,11 @@ define([
         connected: false,
         everConnected: false,
         confirmedMod: false,
+
     
         yahooGroups: [],
         yahooGroupsWithPendingMessages: [],
         yahooGroupsWithPendingMembers: [],
-    
-        outstandingSyncs: 0,
     
         render: function() {
             var p = Iznik.View.prototype.render.call(this);
@@ -139,7 +139,7 @@ define([
         startSyncs: function() {
             var now = moment();
             var self = this;
-    
+
             function doSync(group, key) {
                 // Whether we start a sync depends on whether we are showing the group in All Groups.  This allows people
                 // who are on many groups as a backup not to have absurdly large numbers of syncs going on.
@@ -163,28 +163,30 @@ define([
                 //
                 // This avoids doing syncs which will definitely do nothing, which can be the case for people with a lot
                 // of groups.
-                //console.log("Worthit", group.get('nameshort'));
-                //console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
-                //console.log("Work on MT", group.get('work'));
+                // console.log("Worthit", group.get('nameshort'));
+                // console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
+                // console.log("Work on MT", group.get('work'));
     
                 var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
                         presdef(countname, group.get('work'), 0);
     
                 return(worthit);
             }
-    
-            if (this.outstandingSyncs == 0) {
+
+            // Only start the syncs if there is no other work to do or never sync'd.
+            if (window.IznikPlugin.collection.length == 0 || window.IznikPlugin.notsynced) {
                 // Start pending syncs first because if they're wrong, that's normally more annoying.
                 //
                 // If we only have a few groups, sync them all, as Yahoo has issues with the counts being wrong
                 // sometimes.
                 var numgroups = Iznik.Session.get('groups').length;
+                window.IznikPlugin.notsynced = false;
 
                 Iznik.Session.get('groups').each(function (group) {
                     // We know from our Yahoo scan whether there is any work to do.
                     if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
                         doSync(group, 'showmessages')) {
-                        //console.log("Sync pending messages for", group.get('nameshort'));
+                        console.log("Sync pending messages for", group.get('nameshort'));
                         self.collection.add(new Iznik.Models.Plugin.Work({
                             id: group.get('nameshort') + '.SyncMessages.Pending',
                             subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({
@@ -250,7 +252,7 @@ define([
             // sync via the plugin.
             //
             // Delay doesn't set the right context by default.
-            _.delay(_.bind(this.listYahooGroups, this), 600000);
+            _.delay(_.bind(this.listYahooGroups, this), 60000);
         },
 
         // TODO This whole callback approach is old code and should use promises or something.
@@ -506,7 +508,8 @@ define([
                                     break;
                                 }
 
-                                case 'RejectPendingMember': {
+                                case 'RejectPendingMember':
+                                case 'RemovePendingMember': {
                                     self.collection.add(new Iznik.Models.Plugin.Work({
                                         id: work.id,
                                         subview: new Iznik.Views.Plugin.Yahoo.RejectPendingMember({
@@ -517,18 +520,20 @@ define([
                                 }
 
                                 case 'RemoveApprovedMember': {
-                                    self.collection.add(new Iznik.Models.Plugin.Work({
-                                        id: work.id,
-                                        subview: new Iznik.Views.Plugin.Yahoo.RemoveApprovedMember({
-                                            model: new Iznik.Model(work)
-                                        })
-                                    }));
+                                    if (!cantremove[work.groupid]) {
+                                        self.collection.add(new Iznik.Models.Plugin.Work({
+                                            id: work.id,
+                                            subview: new Iznik.Views.Plugin.Yahoo.RemoveApprovedMember({
+                                                model: new Iznik.Model(work)
+                                            })
+                                        }));
+                                    }
                                     break;
                                 }
 
                                 case 'BanPendingMember':
                                 case 'BanApprovedMember': {
-                                    if (!cantban) {
+                                    if (!cantban[work.groupid]) {
                                         self.collection.add(new Iznik.Models.Plugin.Work({
                                             id: work.id,
                                             subview: new Iznik.Views.Plugin.Yahoo.BanApprovedMember({
@@ -673,6 +678,7 @@ define([
         listYahooGroups: function() {
             // We get a list of all the groups on Yahoo so that we can see whether there are groups on the server
             // for which we need to update our mod status.
+            // console.log("List Yahoo groups");
             this.yahooGroupStart = 1;
             this.getYahooGroupChunk();
         },
@@ -903,9 +909,7 @@ define([
     
         start: function() {
             var self = this;
-    
-            window.IznikPlugin.outstandingSyncs++;
-    
+
             this.startBusy();
     
             // Need to create this here rather than as a property, otherwise the same array is shared between instances
@@ -1114,15 +1118,12 @@ define([
                                             if (self.promisesCount >= self.promisesLen) {
                                                 // Once they're all done, we have succeeded.
                                                 self.succeed();
-    
-                                                window.IznikPlugin.outstandingSyncs--;
                                             }
                                         });
                                     });
     
                                     if (self.promisesLen == 0) {
                                         self.succeed();
-                                        window.IznikPlugin.outstandingSyncs--;
                                     }
                                 } else {
                                     self.failChunk();
@@ -1155,7 +1156,8 @@ define([
         numField: 'numResults',
         idField: 'yahoopendingid',
         dateField: 'postDate',
-    
+        notsynced: true,
+
         deleteAllMissing: true,
     
         collections: [
@@ -1223,9 +1225,7 @@ define([
     
         start: function() {
             var self = this;
-    
-            window.IznikPlugin.outstandingSyncs++;
-    
+
             self.synctime = moment().format();
             self.progressBar();
     
@@ -1338,7 +1338,7 @@ define([
                     if (typeof self.completed === 'function') {
                         // We have a custom callback
                         self.completed(self.members);
-                        window.IznikPlugin.outstandingSyncs--;
+
                     } else {
                         // Pass to server
                         $.ajax({
@@ -1360,7 +1360,6 @@ define([
     
                                 if (ret.ret == 0) {
                                     self.succeed();
-                                    window.IznikPlugin.outstandingSyncs--;
                                 } else {
                                     self.failChunk();
                                 }
@@ -2059,6 +2058,10 @@ define([
         start: function() {
             var self = this;
 
+            if (cantremove[self.model.get('group').id]) {
+                self.drop();
+            }
+
             var mod = new Iznik.Models.Yahoo.User({
                 group: self.model.get('group').nameshort,
                 email: self.model.get('email')
@@ -2068,6 +2071,11 @@ define([
                 console.log("Fetched mod", mod);
                 self.listenToOnce(mod, 'removesucceeded', self.succeed);
                 self.listenToOnce(mod, 'removefailed', self.fail);
+                self.listenToOnce(mod, 'removeprohibited', function() {
+                    console.log("Remove prohibited, drop");
+                    cantremove[self.model.get('group').id] = true;
+                    self.drop();
+                });
                 mod.remove(self.crumb);
             });
             
@@ -2085,7 +2093,7 @@ define([
         start: function() {
             var self = this;
 
-            if (cantban) {
+            if (cantban[self.model.get('group').id]) {
                 self.drop();
             }
 
@@ -2103,7 +2111,7 @@ define([
                     self.listenToOnce(mod, 'bansucceeded', self.succeed);
                     self.listenToOnce(mod, 'banfailed', self.fail);
                     self.listenToOnce(mod, 'banprohibited', function() {
-                        cantban = true;
+                        cantban[self.model.get('group').id] = true;
                         self.drop();
                     });
                     mod.ban(self.crumb);

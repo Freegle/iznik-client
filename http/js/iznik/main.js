@@ -9,6 +9,8 @@ var initialURL = false;
 var hammer = false;
 var mobilePushId = false;
 var mobilePush = false;
+var lastPushMsgid = false;
+var badgeconsole = '';
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -259,7 +261,8 @@ require([
 
     console.log("push init start");
     if (!PushNotification) {
-        alert("No PN");
+        console.log("no push notification service");
+        //alert("No PN");
     } else if( !mobilePushId) {
         mobilePush = PushNotification.init({
             android: {
@@ -279,35 +282,68 @@ require([
         mobilePush.on('registration', function (data) {
             mobilePushId = data.registrationId;
             console.log("push registration " + mobilePushId);
-            //$("#registrationId").val(data.registrationId);
-            if (isiOS) {
-                alert("registration: " + mobilePushId);
-            }
+            //alert("registration: " + mobilePushId);
         });
 
+        // Called to handle a push notification
+        //
+        // A push shows a notification immediately and sets desktop badge count (on iOS and some Android)
+        //
+        // On iOS this handler is called immediately if running in foreground;
+        //  it is not called if app not started or in background; the handler is called when app started.
+        //
+        // On Android this handler is called immediately if running in foreground;
+        //  it is not called if not started;
+        //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
         mobilePush.on('notification', function (data) {
             //alert("push notification");
-            mobilePush.clearAllNotifications();   // no success and error fns given
-            if (data.count) {
-                mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+            var foreground = data.additionalData.foreground.toString() == 'true';
+            var msgid = data.additionalData['google.message_id'];
+            var doubleEvent = (!isiOS) && (msgid == lastPushMsgid);
+            lastPushMsgid = msgid;
+            if (!('count' in data)) { data.count = 0; }
+            if (data.count == 0 || foreground) {
+                mobilePush.clearAllNotifications();   // no success and error fns given
             }
+            mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+            /*var msg = new Date();
+            msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
+            badgeconsole += msg;
+            $('#badgeconsole').html(badgeconsole);*/
             if (data.count > 0) {
-                alert(JSON.stringify(data));
+                //alert(JSON.stringify(data));
                 console.log("push notification");
                 console.log(data);
-                var chatids = data.additionalData.chatids;
-                chatids = _.uniq(chatids);
+                var showChat = (isiOS && !foreground) || doubleEvent;
+                if (showChat) {
+                    var chatids = data.additionalData.chatids;
+                    chatids = _.uniq(chatids);
 
-                require(['iznik/views/chat/chat'], function (ChatHolder) {
-                    //_.each(chatids, function (chatid) {
-                    //    ChatHolder().fetchAndRestore(chatid);
-                    //});
-                    // Just open first chat
                     if (chatids.length > 0) {
-                        ChatHolder().fetchAndRestore(chatids[0]);
-                    };
-                });
+                        require(['iznik/views/chat/chat'], function (ChatHolder) {
+                            //_.each(chatids, function (chatid) {
+                            //    ChatHolder().fetchAndRestore(chatid);
+                            //});
+                            // Just open first chat - when logged in
+                            var chatid = chatids[0];
+                            /*Iznik.Session.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                                ChatHolder().fetchAndRestore(chatid);
+                            });*/
+                            (function waitUntilLoggedIn(i) {
+                                if (Iznik.Session.loggedIn) {
+                                    //ChatHolder().fetchAndRestore(chatid);
+                                    setTimeout(function () { ChatHolder().fetchAndRestore(chatid); }, 500);
+                                } else {
+                                    setTimeout(function () { if (--i) { waitUntilLoggedIn(i); } }, 1000);
+                                }
+                            })(10);
+                        });
+                    }
+                }
             }
+            require(['iznik/views/chat/chat'], function (ChatHolder) {
+                ChatHolder().fallback();
+            });
 
             mobilePush.finish(function () {
                 console.log("push finished");

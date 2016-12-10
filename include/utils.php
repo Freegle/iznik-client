@@ -38,7 +38,7 @@ function get_current_url() {
 }
 
 function pres($key, $arr) {
-    return($arr && array_key_exists($key, $arr) && $arr[$key] ? $arr[$key] : FALSE);
+    return($arr && is_array($arr) && array_key_exists($key, $arr) && $arr[$key] ? $arr[$key] : FALSE);
 }
 
 function presdef($key, $arr, $def) {
@@ -143,6 +143,15 @@ if (!function_exists('ISODate')) {
 
         return ($date);
     }
+}
+
+function ISODateFromFloat($t) {
+    $s = floor($t);
+    $micro = sprintf("%06d",($t - $s) * 1000000);
+    $d = new DateTime(date('Y-m-d H:i:s.'.$micro, $t));
+    $date = $d->format(DateTime::ISO8601);
+    $date = str_replace('+0000', 'Z', $date);
+    return($date);
 }
 
 function code_to_country( $code ){

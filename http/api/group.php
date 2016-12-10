@@ -114,16 +114,34 @@ function group() {
                         }
 
                         # Other settable attributes
-                        foreach (['tagline', 'showonyahoo', 'namefull', 'welcomemail', 'description'] as $att) {
+                        foreach (['tagline', 'showonyahoo', 'onyahoo', 'onhere', 'namefull', 'welcomemail', 'description', 'region'] as $att) {
                             $val = presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);
                             }
                         }
 
+                        // @codeCoverageIgnoreStart Impractical to test.
+                        if ($g->onYahoo() && array_key_exists('onyahoo', $_REQUEST) && !$_REQUEST['onyahoo']) {
+                            # We are switching a group over from being on Yahoo to not being.  Enshrine the owner/
+                            # mod roles.
+                            $g->setNativeRoles();
+
+                            #  Notify TrashNothing so that it can also do that, and talk to us rather than Yahoo.
+                            $url = "https://trashnothing.com/modtools/api/switch-to-freegle-direct?key=" . TNKEY . "&group_id=" . $g->getPrivate('nameshort') . "&moderator_email=" . $me->getEmailPreferred();
+                            $rsp = file_get_contents($url);
+                            error_log("Move to FD on TN " . var_export($rsp, TRUE));
+                        } else if (!$g->onYahoo() && array_key_exists('onyahoo', $_REQUEST) && $_REQUEST['onyahoo']) {
+                            # We are switching a group over from being on here to Yahoo.  This is poorly tested.
+                            $url = "https://trashnothing.com/modtools/api/switch-to-yahoo-groups?key=" . TNKEY . "&group_id=" . $g->getPrivate('nameshort') . "&moderator_email=" . $me->getEmailPreferred();
+                            $rsp = file_get_contents($url);
+                            error_log("Move from FD on TN " . var_export($rsp, TRUE));
+                        }
+                        // @codeCoverageIgnoreEnd
+
                         # Other support-settable attributes
                         if ($me->isAdminOrSupport()) {
-                            foreach (['publish', 'onyahoo', 'onhere', 'showonyahoo', 'licenserequired', 'lat', 'lng', 'poly', 'polyofficial'] as $att) {
+                            foreach (['publish', 'licenserequired', 'lat', 'lng', 'poly', 'polyofficial'] as $att) {
                                 $val = presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {
                                     $g->setPrivate($att, $val);

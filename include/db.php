@@ -117,6 +117,7 @@ class LoggedPDO {
     private $tries = 10;
     public  $errorLog = FALSE;
     private $lastInsert = NULL;
+    private $rowsAffected = NULL;
     private $transactionStart = NULL;
     private $dbwaittime = 0;
     private $cachetime = 0;
@@ -339,6 +340,7 @@ class LoggedPDO {
 
                     if (!$select) {
                         $this->lastInsert = $this->_db->lastInsertId();
+                        $this->rowsAffected = $sth->rowCount();
                     }
 
                     if ($rc) {
@@ -632,6 +634,10 @@ class LoggedPDO {
 
     public function lastInsertId() {
         return($this->lastInsert);
+    }
+
+    public function rowsAffected() {
+        return($this->rowsAffected);
     }
 
     public function background($sql) {

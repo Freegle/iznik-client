@@ -71,9 +71,9 @@ define([
 
         carettoggle: function() {
             if (this.expanded) {
-                this.$('.js-snippet').slideUp();
-            } else {
                 this.$('.js-snippet').slideDown();
+            } else {
+                this.$('.js-snippet').slideUp();
             }
             this.caretshow();
             this.expanded = !this.expanded;
@@ -181,8 +181,11 @@ define([
                     Iznik.View.prototype.render.call(self).then(function() {
                         if (self.expanded) {
                             self.$('.panel-collapse').collapse('show');
+                            self.$('.js-snippet').hide();
+                            self.$('.js-caretdown').parent().hide();
                         } else {
                             self.$('.panel-collapse').collapse('hide');
+                            self.$('.js-snippet').show();
                         }
 
                         var groups = self.model.get('groups');
@@ -676,6 +679,22 @@ define([
             this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events);
         },
 
+        showMap: function() {
+            var self = this;
+            var loc = null;
+
+            if (self.model.get('location')) {
+                loc = self.model.get('location');
+            } else if (self.model.get('area')) {
+                loc = self.model.get('area');
+            }
+
+            if (loc) {
+                self.$('.js-mapzoom .js-map').attr('src', "https://maps.google.com/maps/api/staticmap?size=110x110&zoom=" + self.model.get('mapzoom') + "&center=" + loc.lat + "," + loc.lng + "&maptype=roadmap&markers=icon:" + self.model.get('mapicon') + "|" + loc.lat + "," + loc.lng + "&sensor=false&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg");
+                self.$('.js-mapzoom').show();
+            }
+        },
+
         mapZoom: function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -882,6 +901,7 @@ define([
                         self.$('.js-subject span').each(function () {
                             if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
                                 $(this).addClass('searchmatch');
+                                $(this).prop('title', 'Match type: ' + matched.type);
                             }
                         });
                     }
@@ -903,6 +923,11 @@ define([
                     }
 
                     self.$el.css('visibility', 'visible');
+
+                    // Show the map on expand.  This reduces costs
+                    self.$('.panel').on('shown.bs.collapse', function() {
+                        self.showMap();
+                    });
                 })
             }
 
