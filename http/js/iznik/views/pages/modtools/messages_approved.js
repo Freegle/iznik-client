@@ -193,8 +193,8 @@ define([
 
         render: function () {
             var self = this;
-            console.log("Render in approved");
-            self.model.set('mapicon', window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif');
+            //console.log("Render in approved");
+            self.model.set('https://www.ilovefreegle.org/images/mapmarker.gif');    // CC
 
             // Get a zoom level for the map.
             _.each(self.model.get('groups'), function (group) {

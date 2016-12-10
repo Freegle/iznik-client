@@ -664,7 +664,7 @@ define([
                                 success: checkResponse(self),
                                 error: checkResponse(self),
                                 complete: function() {
-                                    window.setTimeout(_.bind(self.checkPluginStatus, self), 30000); // TODOCC 10000
+                                    window.setTimeout(_.bind(self.checkPluginStatus, self), 10000); // TODOCC 
                                 }
                             });
                         }

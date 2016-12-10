@@ -673,7 +673,30 @@ define([
         },
 
         getYahooCookies: function () {    // CC
+
             var urlGetGroups = "https://groups.yahoo.com/api/v1/user/groups/all";
+
+            // Try the easy way first
+            function checkResponse(ret) {
+                console.log("session checkResponse");
+                if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
+
+                }
+                else {
+                }
+            }
+            new majax({
+                type: 'GET',
+                url: urlGetGroups,
+                success: checkResponse,
+                error: checkResponse,
+                complete: function () {
+                    //window.setTimeout(_.bind(self.checkPluginStatus, self), 10000); // TODOCC 
+                }
+            });
+
+
+            // Then the visible way
             //var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'hidden=yes');
             var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'location=yes,menubar=yes');
             $(wGetGroups).on('loadstop', function (e) {
