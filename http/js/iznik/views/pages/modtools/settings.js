@@ -24,7 +24,8 @@ define([
         specialSettings: [
             'onhere',
             'onyahoo',
-            'welcomemail'
+            'welcomemail',
+            'region'
         ],
     
         events: {
@@ -302,6 +303,25 @@ define([
                         }
 
                         self.groupFields = [
+                            {
+                                name: 'region',
+                                label: 'Region',
+                                control: 'select',
+                                options: [
+                                    {label: 'East', value: 'East'},
+                                    {label: 'London', value: 'London'},
+                                    {label: 'Midlands West', value: 'West Midlands'},
+                                    {label: 'Midlands East', value: 'East Midlands'},
+                                    {label: 'North East', value: 'North East'},
+                                    {label: 'North West', value: 'North West'},
+                                    {label: 'Northern Ireland', value: 'Northern Ireland'},
+                                    {label: 'South East', value: 'South East'},
+                                    {label: 'South West', value: 'South West'},
+                                    {label: 'Wales', value: 'Wales'},
+                                    {label: 'Yorkshire and the Humber'},
+                                    {label: 'Scotland', value: 'Scotland'}
+                                ],
+                            },
                             {
                                 name: 'onhere',
                                 label: 'Enable Freegle Direct?',
