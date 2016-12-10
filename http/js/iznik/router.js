@@ -139,6 +139,7 @@ define([
             "mygroups": "userMyGroups",
             "settings/confirmmail/(:key)": "userConfirmMail",
             "settings": "userSettings",
+            "explore/region/:id": "userExploreRegion",
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
@@ -482,6 +483,17 @@ define([
                 var page = new Iznik.Views.User.Pages.ExploreGroup({
                     id: id,
                     naked: naked
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
+        userExploreRegion: function(region) {
+            var self = this;
+
+            require(["iznik/views/pages/user/explore"], function() {
+                var page = new Iznik.Views.User.Pages.Explore({
+                    region: region
                 });
                 self.loadRoute({page: page});
             });

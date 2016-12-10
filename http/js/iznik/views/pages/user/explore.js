@@ -15,6 +15,8 @@ define([
 ], function ($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.Pages.Explore = Iznik.Views.Page.extend({
         template: 'user_explore_main',
+
+        title: 'Explore',
         
         events: {
             'click .js-getloc': 'getLocation',
@@ -46,6 +48,8 @@ define([
         render: function () {
             var self = this;
 
+            self.title = self.options.region ? ("Groups in " + self.options.region) : 'Explore';
+
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
                 if (!navigator.geolocation) {
                     self.$('.js-geoloconly').hide();
@@ -60,27 +64,105 @@ define([
                     self.map.moveTo(result.geometry.location.lat(), result.geometry.location.lng());
                 });
 
-                // Just centre on one of the centres of Britain.  Yes, there are multiple.
-                self.map = new Iznik.Views.Map({
-                    model: new Iznik.Model({
-                        clat: 53.9450,
-                        clng: -2.5209,
-                        zoom: 5,
-                        target: self.$('.js-maparea')
-                    })
-                });
-
-                self.map.render().then(function() {
-                    if (self.options.search) {
-                        // We've been asked to search for a place.
-                        self.$('.js-location').val(self.options.search);
-                        self.locButton();
+                // Get all the groups.  There aren't too many, and this means we are responsive when panning or zooming.
+                self.collection = new Iznik.Collections.Group();
+                self.collection.fetch({
+                    data: {
+                        grouptype: 'Freegle'
                     }
+                }).then(function() {
+                    if (!self.options.region) {
+                        self.$('.js-exploreall').show();
+                        self.$('.js-findholder').show();
+
+                        // Just centre on one of the centres of Britain.  Yes, there are multiple.
+                        self.map = new Iznik.Views.Map({
+                            model: new Iznik.Model({
+                                clat: 53.9450,
+                                clng: -2.5209,
+                                zoom: 5,
+                                target: self.$('.js-maparea')
+                            }),
+                            collection: self.collection,
+                            summary: true,
+                            bounds: null
+                        });
+
+                        // Add links for the different regions.
+                        self.regions = new Iznik.Collection();
+                        self.regions.comparator = 'id';
+                        self.collection.each(function(group) {
+                            var region = group.get('region');
+
+                            if (region && region.length > 0) {
+                                self.regions.add(new Iznik.Model({
+                                    id: region
+                                }));
+                            }
+                        });
+
+                        self.regionCollectionView = new Backbone.CollectionView({
+                            el: self.$('.js-regions'),
+                            modelView: Iznik.Views.User.Pages.Explore.Region,
+                            collection: self.regions
+                        });
+
+                        self.regionCollectionView.render();
+                        self.$('.js-regionholder').fadeIn('slow');
+                    } else {
+                        // We have a specific region to show.  First find the relevant groups.
+                        self.$('.js-region').html(self.options.region);
+                        self.$('.js-exploreregion').show();
+                        var newgroups = self.collection.where({
+                            region: self.options.region
+                        });
+                        self.collection = new Iznik.Collection(newgroups);
+
+                        // Find a centre and bounding box
+                        var swlat = swlng = nelat = nelng = clat = clng = 0;
+                        var bounds = new google.maps.LatLngBounds();
+                        self.collection.each(function(group) {
+                            var lat = group.get('lat');
+                            var lng = group.get('lng');
+                            swlat = lat < swlat ? lat : swlat;
+                            swlng = lng < swlng ? lng : swlng;
+                            nelat = lat > nelat ? lat : nelat;
+                            nelng = lng > nelng ? lng : nelng;
+                            bounds = bounds.extend(new google.maps.LatLng(lat, lng));
+                        });
+
+                        var clat = (swlat + nelat) / 2;
+                        var clng = (swlng + nelng) / 2;
+
+                        self.map = new Iznik.Views.Map({
+                            model: new Iznik.Model({
+                                clat: clat,
+                                clng: clng,
+                                target: self.$('.js-maparea')
+                            }),
+                            collection: self.collection,
+                            summary: false,
+                            bounds: bounds
+                        });
+                    }
+
+                    self.map.render().then(function() {
+                        if (self.options.search) {
+                            // We've been asked to search for a place.
+                            self.$('.js-location').val(self.options.search);
+                            self.locButton();
+                        }
+                    });
                 });
             });
 
             return (p);
         }
+    });
+
+    Iznik.Views.User.Pages.Explore.Region = Iznik.View.extend({
+        template: 'user_explore_region',
+        tagName: 'li'
     });
 
     Iznik.Views.Map = Iznik.View.extend({
@@ -96,8 +178,15 @@ define([
             this.markers.push(marker);
         },
 
+        fitted: false,
+
         updateMap: function() {
             var self = this;
+
+            if (self.options.bounds && !self.fitted) {
+                self.fitted = true;
+                self.map.fitBounds(self.options.bounds);
+            }
 
             // Get new markers for current map bounds.
             var bounds = self.map.getBounds();
@@ -125,8 +214,18 @@ define([
 
                 $('.js-grouptextlist').empty();
 
+                if (self.options.summary) {
+                    $('.js-numgroups').html(self.collection.length);
+                    $('.js-groupsumm').css('visibility', 'visible');
+                    $('.js-groupsumm').fadeIn('slow');
+                } else {
+                    $('.js-groupsumm').hide();
+                }
+
                 self.lastBounds = boundsstr;
+
                 var within = 0;
+
                 self.collection.each(function(group) {
                     if (bounds.contains(new google.maps.LatLng(group.get('lat'), group.get('lng'))) &&
                         group.get('onmap')) {
@@ -142,7 +241,6 @@ define([
                         if (within > 20) {
                             // Switch to pins for large collections
                             var icon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif?a=1';
-                            console.log("Large collection", icon);
                             var marker = new google.maps.Marker({
                                 position: latLng,
                                 icon: icon,
@@ -251,23 +349,7 @@ define([
 
             // Render the map
             google.maps.event.addDomListener(self.map, 'idle', function() {
-                if (!self.fetched) {
-                    // Get all the groups.  There aren't too many, and this means we are responsive when panning or zooming.
-                    self.collection = new Iznik.Collections.Group();
-                    self.collection.fetch({
-                        data: {
-                            grouptype: 'Freegle'
-                        }
-                    }).then(function() {
-                        $('.js-numgroups').html(self.collection.length);
-                        $('.js-groupsumm').css('visibility', 'visible');
-                        $('.js-groupsumm').fadeIn('slow');
-                        self.fetched = true;
-                        self.updateMap();
-                    });
-                } else {
-                    self.updateMap();
-                }
+                self.updateMap();
             });
 
             return(resolvedPromise(self));

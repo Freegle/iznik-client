@@ -100,7 +100,7 @@ define([
             // Set the base page layout.
             var p = new Promise(function(resolve, reject) {
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
-                    if (self.title) {
+                    if (self.title && self.title.length > 0) {
                         window.document.title = self.title;
                     }
 
