@@ -32,7 +32,11 @@ define([
                 try {
                     if (chat.model.get('unseen') > 0) {
                         chat.allseen();
-                        chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+
+                        if (!chat.minimised) {
+                            // This may exist for open chats but not minimised.
+                            chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+                        }
                     }
                 } catch (e) {
                     console.error("Failed to process chat", chat, e.message);
@@ -99,7 +103,9 @@ define([
 
                                             if (chat) {
                                                 var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-                                                chatView.updateRoster(chatView.statusWithOverride('Online'), chatView.noop);
+                                                if (!chatView.minimised) {
+                                                    chatView.updateRoster(chatView.statusWithOverride('Online'), chatView.noop);
+                                                }
                                             }
 
                                             Iznik.Session.chats.trigger('newroom', data.newroom);
