@@ -152,6 +152,8 @@ define([
                             self.$('.js-location').val(self.options.search);
                             self.locButton();
                         }
+
+                        self.$('.js-nogroups').fadeIn('slow');
                     });
                 });
             });
