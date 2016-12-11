@@ -11,11 +11,14 @@ define([
     'iznik/views/user/message'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Find.WhereAmI = Iznik.Views.User.Pages.WhereAmI.extend({
-        template: "user_find_whereami"
+        template: "user_find_whereami",
+        title: "Find something"
     });
 
     Iznik.Views.User.Pages.Find.Search = Iznik.Views.Infinite.extend({
         template: "user_find_search",
+
+        title: "Find something",
 
         retField: 'messages',
 
@@ -253,6 +256,7 @@ define([
         msgType: 'Wanted',
         template: "user_find_whatisit",
         whoami: '/find/whoami',
+        title: "Find something",
 
         render: function() {
             // We want to start the wanted with the last search term.
@@ -266,10 +270,12 @@ define([
 
     Iznik.Views.User.Pages.Find.WhoAmI = Iznik.Views.User.Pages.WhoAmI.extend({
         whatnext: '/find/whatnext',
-        template: "user_find_whoami"
+        template: "user_find_whoami",
+        title: "Find something"
     });
 
     Iznik.Views.User.Pages.Find.WhatNext = Iznik.Views.User.Pages.WhatNext.extend({
-        template: "user_find_whatnext"
+        template: "user_find_whatnext",
+        title: "Find something"
     });
 });

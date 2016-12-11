@@ -10,22 +10,27 @@ define([
     'iznik/views/pages/user/post'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Give.WhereAmI = Iznik.Views.User.Pages.WhereAmI.extend({
-        template: "user_give_whereami"
+        template: "user_give_whereami",
+        title: "Give away something"
     });
 
     Iznik.Views.User.Pages.Give.WhatIsIt = Iznik.Views.User.Pages.WhatIsIt.extend({
         msgType: 'Offer',
         template: "user_give_whatisit",
-        whoami: '/give/whoami'
+        whoami: '/give/whoami',
+        title: "Give away something"
     });
 
     Iznik.Views.User.Pages.Give.WhoAmI = Iznik.Views.User.Pages.WhoAmI.extend({
         template: "user_give_whoami",
-        whatnext: '/give/whatnext'
+        whatnext: '/give/whatnext',
+        title: "Give away something"
     });
     
     Iznik.Views.User.Pages.Give.WhatNext = Iznik.Views.User.Pages.WhatNext.extend({
         template: "user_give_whatnext",
+
+        title: "Give away something",
 
         events: {
             'click .js-fop': 'fop'
