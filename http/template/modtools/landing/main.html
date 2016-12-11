@@ -1,6 +1,6 @@
 <p>Hello, <% if (me.firstname) { %>{{me.firstname}}<% } else { %>{{me.fullname}}<% } %>.  <span class="js-yahooinfo" /><p>
 <% if (me.systemrole == 'User') { %>
-</p><div class="alert alert-info" role="alert">It looks like we've not yet worked out which groups you moderate on.  Make sure you've got the plugin installed, and refresh in a couple of minutes.</div>
+</p><div class="alert alert-info" role="alert">It looks like we've not yet worked out which groups you moderate on.  Make sure you're connected to Yahoo, and refresh in a couple of minutes.</div>
 <% } else if (me.systemrole == 'Moderator') { %>
 <p>You're a moderator.  Here's your dashboard.</p>
 <% } else if (me.systemrole == 'Support') { %>
@@ -10,16 +10,6 @@
 <% } %>
 <div class="row">
   <div id="js-mobile-version" class="col-md-12">
-  </div>
-</div>
-<div class="row">
-  <div class="col-md-12" style="display: none;" id="js-pluginconnected2">
-    <div class="glyphicon glyphicon-ok"></div>
-    Connected to Yahoo
-  </div>
-  <div class="col-md-12" style="display: none;color:red;font-weight:bold;" id="js-plugindisconnected2">
-    <div class="glyphicon glyphicon-warning-sign"></div>
-    Not connected to Yahoo
   </div>
 </div>
 <div class="js-missingprofile" />

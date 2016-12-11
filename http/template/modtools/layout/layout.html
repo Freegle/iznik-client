@@ -74,32 +74,51 @@
             </div>
         </div>
         <div class="container-fluid xyz">
+          <div class="row">
+            <div class="col-md-12 pageContent">
+              <div style="width:33%; float:right; display: none;" id="js-pluginconnected2">
+                <div class="glyphicon glyphicon-ok"></div>
+                Connected to Yahoo
+              </div>
+              <div style="width:33%; float:right; display: none;color:red;font-weight:bold;" id="js-plugindisconnected2">
+                <div class="glyphicon glyphicon-warning-sign"></div>
+                Not connected to Yahoo
+              </div>
+              <div id="js-work2">
+                Work item(s)
+              </div>
+            </div>
+          </div>
             <div class="row">
-              <div class="col-lg-2 rightSidebar js-rightsidebar">
-                <!-- hidden-md hidden-sm hidden-xs -->
+              <!--div class="col-lg-2 rightSidebar js-rightsidebar">
                 <div id="rightaccordion" class="panel-group">
                 </div>
                 <div id="js-mobilelog" style="height:150px;background-color:#e9f134;overflow-y: scroll;">
                 </div>
-                <!--div id="js-mobiledebug" style="height:100px;background-color:#ccc;overflow-y: scroll;margin-top:5px;">
-                </div-->
+                <xdiv id="js-mobiledebug" style="height:100px;background-color:#ccc;overflow-y: scroll;margin-top:5px;">
+                </xdiv>
 
-              </div>
-                <div class="col-lg-10 pageContent">
-                    <div id="js-pluginbuildup" class="alert alert-danger" role="alert" style="display: none"> <!-- TODOCC -->
-                        <p><strong>Please use ModTools regularly from a machine with the plugin installed.</strong></p>
-                        <p>ModTools can only do some things via the browser plugin.  Right now you have
-                            work like that which has been waiting for at least 4 hours, so some changes won't have been made to Yahoo.</p>
-                        <p>If you already have the plugin installed, see <a href="http://wiki.modtools.org/index.php?title=FAQ#Browser_Plugin" data-realurl="true" target="_blank">help</a>.</p>
-                        <p>You can install the plugin on a desktop/laptop by clicking on the Firefox or Chrome icons on the
-                        bottom left.  Unfortunately it's not possible to install the plugin on tablets/mobiles, so at
-                            least one moderator per group needs to use a desktop/laptop regularly.  You can just
-                            leave a ModTools tab open.</p>
-                    </div>
-                    <div class="padmdbotplus js-pageContent" />
+              </div-->
+              <div class="col-lg-10">
+                <div id="js-pluginbuildup" class="alert alert-danger" role="alert" style="display: none">
+                  <!-- TODOCC -->
+                  <p><strong>Please use ModTools regularly from a machine with the plugin installed.</strong></p>
+                  <p>
+                    ModTools can only do some things via the browser plugin.  Right now you have
+                    work like that which has been waiting for at least 4 hours, so some changes won't have been made to Yahoo.
+                  </p>
+                  <p>If you already have the plugin installed, see <a href="http://wiki.modtools.org/index.php?title=FAQ#Browser_Plugin" data-realurl="true" target="_blank">help</a>.</p>
+                  <p>
+                    You can install the plugin on a desktop/laptop by clicking on the Firefox or Chrome icons on the
+                    bottom left.  Unfortunately it's not possible to install the plugin on tablets/mobiles, so at
+                    least one moderator per group needs to use a desktop/laptop regularly.  You can just
+                    leave a ModTools tab open.
+                  </p>
                 </div>
+                <div class="padmdbotplus js-pageContent" />
+              </div>
             </div>
-        </div>
+          </div>
     </div>
 </div>
 <div id="footer" style="display:none;">

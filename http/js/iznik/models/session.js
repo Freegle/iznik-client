@@ -278,7 +278,7 @@ define([
                             self.set(ret);
 
                             if (!gotYahooCookies) {
-                                self.getYahooCookies();
+                                self.checkYahooCookies();
                             }
 
                             // We get an array of groups back - we want it to be a collection.
@@ -593,7 +593,7 @@ define([
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
                         self.trigger('loggedIn', response);
-                        self.getYahooCookies();
+                        self.checkYahooCookies();
                         Router.mobileReload('/');  // CC
                         tryingYahooLogin = false;
                     } else if (response.ret === 1) {  // CC
@@ -648,7 +648,7 @@ define([
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
                       self.trigger('loggedIn', response);
-                      self.getYahooCookies();
+                      self.checkYahooCookies();
                       Router.mobileReload('/');  // CC
                     } else {
                       $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
@@ -672,33 +672,40 @@ define([
           });
         },
 
-        getYahooCookies: function () {    // CC
+        checkYahooCookies: function () {    // CC
 
             var urlGetGroups = "https://groups.yahoo.com/api/v1/user/groups/all";
 
-            // Try the easy way first
+            var accessOK = false;
+
+            // If we've already got cookies then this will work
             function checkResponse(ret) {
                 console.log("session checkResponse");
                 if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
-
-                }
-                else {
+                    accessOK = true;
                 }
             }
             new majax({
                 type: 'GET',
                 url: urlGetGroups,
                 success: checkResponse,
-                error: checkResponse,
                 complete: function () {
-                    //window.setTimeout(_.bind(self.checkPluginStatus, self), 10000); // TODOCC 
+                    if (!accessOK) {
+                        getYahooCookies();
+                    }
                 }
             });
+        },
 
+        getYahooCookies: function () {    // CC
 
-            // Then the visible way
-            //var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'hidden=yes');
-            var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'location=yes,menubar=yes');
+            console.log("getYahooCookies start");
+
+            var urlGetGroups = "https://groups.yahoo.com/api/v1/user/groups/all";
+
+            // If not got cookies then try to get them in inAppBrowser
+            var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'hidden=yes');
+            //var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'location=yes,menubar=yes');
             $(wGetGroups).on('loadstop', function (e) {
                 var url = e.originalEvent.url;
                 console.log("getYahooCookies: " + url);

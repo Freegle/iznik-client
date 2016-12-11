@@ -118,6 +118,7 @@ define([
             "modtools/settings/:id/map": "mapSettings",
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
+            "modtools/mobiledebug": "mobiledebug",
             "modtools/support": "support",
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
@@ -1056,7 +1057,16 @@ define([
             });
         },
 
-        alertViewed: function(alertid) {
+        mobiledebug: function () {  // CC
+            var self = this;
+
+            require(["iznik/views/pages/modtools/mobiledebug"], function () {
+                var page = new Iznik.Views.ModTools.Pages.MobileDebug();
+                self.loadRoute({ page: page, modtools: true });
+            });
+        },
+
+        alertViewed: function (alertid) {
             var self = this;
 
             require(["iznik/views/pages/user/alerts"], function() {

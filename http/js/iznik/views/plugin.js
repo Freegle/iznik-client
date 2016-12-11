@@ -111,6 +111,9 @@ define([
                         collection: self.collection
                     } );
 
+                    var count = self.collection.length; // CC
+                    $("#js-work2").text(count + " work item(s)");
+
                     // Update our count when the number of work items changes.
                     self.listenTo(self.collection, 'add remove', self.updatePluginCount);
 
