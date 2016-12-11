@@ -60,6 +60,7 @@ define([
         setTitle: function(title) {
             // This sets new info in the tags used by search engines.
             console.log("Set page title", title);
+            window.document.title = title;
             $('title').remove();
             $('head').append('<title>' + title + '</title>');
             $('meta[itemprop=title]').remove();
@@ -138,7 +139,6 @@ define([
             var p = new Promise(function(resolve, reject) {
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
                     if (self.title && self.title.length > 0) {
-                        window.document.title = self.title;
                         self.setTitle(self.title);
                     }
 

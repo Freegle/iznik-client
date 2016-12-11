@@ -46,6 +46,26 @@ if (count($opts) == 0) {
                                 return document.body.outerHTML;
                             });
                             fs.write('{$file_name}', bodyhtml, 'w');
+                            var title = page.evaluate(function() {
+                                return document.title;
+                            });
+                            fs.write('{$file_name}.title', title, 'w');
+                           
+                            var description = page.evaluate(function() {
+                                var metas = document.getElementsByTagName('meta');
+                                var desc = null; 
+    
+                                for (var i = 0; i < metas.length; i++) { 
+                                    if (metas[i].getAttribute('property') == 'description') {
+                                        desc = metas[i].getAttribute('content'); 
+                                    }
+                                } 
+                                
+                                return(desc);
+                            });
+                            
+                            fs.write('{$file_name}.description', description, 'w');                                                         
+
                             phantom.exit();
                         }
                         
@@ -58,11 +78,19 @@ if (count($opts) == 0) {
         file_put_contents($job_file, $src);
         exec("phantomjs --ssl-protocol=tlsv1 $job_file");
         $html = file_get_contents($file_name);
+        $title = file_get_contents("$file_name.title");
+        $desc = file_get_contents("$file_name.description");
         unlink($file_name);
+        unlink("$file_name.title");
+        unlink("$file_name.description");
         unlink($job_file);
 
         if ($html && strlen($html) > 100) {
-            $rc = $dbhm->preExec("UPDATE prerender SET html = ? WHERE id = ?;", [$html, $page['id']]);
+            $rc = $dbhm->preExec("UPDATE prerender SET html = ?, title = ?, description = ? WHERE id = ?;", [
+                $html,
+                strlen($title) > 0 ? $title : NULL,
+                strlen($desc) > 0 ? $desc : NULL,
+                $page['id']]);
             if ($rc) {
                 error_log("...saved");
             } else {
