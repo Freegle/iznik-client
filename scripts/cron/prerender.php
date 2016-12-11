@@ -26,7 +26,7 @@ foreach ($tops as $top => $prio) {
 # We want to pre-cache all Freegle groups.
 $regions = [];
 
-$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE type = 'Freegle' AND publish = 1;");
+$groups = $dbhr->preQuery("SELECT id, nameshort, region FROM groups WHERE type = 'Freegle' AND publish = 1;");
 foreach ($groups as $group) {
     $dbhm->preExec("INSERT IGNORE INTO prerender (url) VALUES (?);", [ "https://" . USER_SITE . "/explore/{$group['nameshort']}" ]);
     $regions[$group['region']] = TRUE;

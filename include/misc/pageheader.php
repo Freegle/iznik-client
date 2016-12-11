@@ -3,9 +3,6 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 ?><!DOCTYPE HTML>
 <html>
 <head>
-    <div itemscope itemtype="http://schema.org/Organization" style="display: none">
-        <span itemprop="name"><?php echo SITE_NAME; ?></span>
-    </div>
     <?php
     if (!defined('BASE_DIR')) {
         define( 'BASE_DIR', dirname(__FILE__) . '/../..' );
