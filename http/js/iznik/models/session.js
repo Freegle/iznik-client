@@ -674,15 +674,18 @@ define([
 
         checkYahooCookies: function () {    // CC
 
+            console.log("checkYahooCookies");
             var urlGetGroups = "https://groups.yahoo.com/api/v1/user/groups/all";
 
             var accessOK = false;
 
             // If we've already got cookies then this will work
             function checkResponse(ret) {
-                console.log("session checkResponse");
+                //console.log("session checkResponse");
                 if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
                     accessOK = true;
+                    gotYahooCookies = true;
+                    console.log("checkYahooCookies OK");
                 }
             }
             new majax({

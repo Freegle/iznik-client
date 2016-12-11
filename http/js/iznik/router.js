@@ -119,6 +119,7 @@ define([
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
             "modtools/mobiledebug": "mobiledebug",
+            "modtools/supporters": "supporters",
             "modtools/support": "support",
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
@@ -1062,6 +1063,15 @@ define([
 
             require(["iznik/views/pages/modtools/mobiledebug"], function () {
                 var page = new Iznik.Views.ModTools.Pages.MobileDebug();
+                self.loadRoute({ page: page, modtools: true });
+            });
+        },
+
+        supporters: function () {  // CC
+            var self = this;
+
+            require(["iznik/views/pages/modtools/supporters"], function () {
+                var page = new Iznik.Views.ModTools.Pages.Supporters();
                 self.loadRoute({ page: page, modtools: true });
             });
         },

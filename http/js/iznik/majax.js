@@ -177,7 +177,7 @@ define([
         copy.crossDomain = true;
         copy.xhrFields = { withCredentials: true };
 
-        console.log("majax: " + copy.url);
+        //console.log("majax: " + copy.url);
 
         // Issue the request to kick the plugin
         $.ajax(copy);
