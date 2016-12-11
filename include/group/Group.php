@@ -594,6 +594,22 @@ class Group extends Entity
         }
     }
 
+    public function setNativeModerationStatus() {
+        # This is used when migrating a group from Yahoo to this platform.
+        $mods = $this->dbhr->preQuery("SELECT memberships.userid, memberships_yahoo.yahooPostingStatus FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE groupid = ? AND memberships_yahoo.collection = 'Approved';",
+            [
+                $this->id
+            ]);
+
+        foreach ($mods as $mod) {
+            $this->dbhm->preExec("UPDATE memberships SET ourPostingStatus = ? WHERE userid = ? AND groupid = ?;", [
+                $mod['yahooPostingStatus'],
+                $mod['userid'],
+                $this->id,
+            ]);
+        }
+    }
+
     public function setMembers($members, $collection, $synctime = NULL) {
         # This is used to set the whole of the membership list for a group.  It's only used when the group is
         # mastered on Yahoo, rather than by us.
