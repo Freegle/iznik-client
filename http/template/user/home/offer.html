@@ -67,37 +67,46 @@
         <hr class="nopad nomargin" />
         <div class="row">
             <div class="col-xs-12 topspace">
-                <button class="btn btn-success inline js-taken" style="display: none">
-                    <div class="glyphicon glyphicon-ok"></div>
-                    Mark this TAKEN
-                </button>
-                <a href="/edit/{{id}}">
-                    <button class="btn btn-warning js-rejected" style="display: none">
-                        <span class="glyphicon glyphicon-pencil" />
-                        Edit and Resend
+                <% if (obj.outcomes.length == 0) { %>
+                    <button class="btn btn-success inline js-taken" style="display: none">
+                        <div class="glyphicon glyphicon-ok"></div>
+                        Mark this TAKEN
                     </button>
-                </a>
-                <button class="btn btn-white js-withdraw">
-                    <div class="glyphicon glyphicon-trash"></div>
-                    Withdraw
-                </button>
-                <% if (obj.canrepost) { %>
+                    <a href="/edit/{{id}}">
+                        <button class="btn btn-warning js-rejected" style="display: none">
+                            <span class="glyphicon glyphicon-pencil" />
+                            Edit and Resend
+                        </button>
+                    </a>
+                    <button class="btn btn-white js-withdraw">
+                        <div class="glyphicon glyphicon-trash"></div>
+                        Withdraw
+                    </button>
+                    <% if (obj.canrepost) { %>
+                    <a href="/edit/{{id}}">
+                        <button class="btn btn-white inline js-repost">
+                            <div class="glyphicon glyphicon-refresh"></div>
+                            Post again
+                        </button>
+                    </a>
+                    <% } else if (obj.willautorepost) { %>
+                    <button class="btn btn-white inline js-repost disabled">
+                        <div class="glyphicon glyphicon-refresh"></div>
+                        Will auto-repost <span class="js-repostat" />
+                    </button>
+                    <% } else { %>
+                    <button class="btn btn-white inline js-repost disabled">
+                        <div class="glyphicon glyphicon-refresh"></div>
+                        Can post again <span class="js-repostat" />
+                    </button>
+                    <% } %>
+                <% } else { %>
                 <a href="/edit/{{id}}">
                     <button class="btn btn-white inline js-repost">
                         <div class="glyphicon glyphicon-refresh"></div>
                         Post again
                     </button>
                 </a>
-                <% } else if (obj.willautorepost) { %>
-                <button class="btn btn-white inline js-repost disabled">
-                    <div class="glyphicon glyphicon-refresh"></div>
-                    Will auto-repost <span class="js-repostat" />
-                </button>
-                <% } else { %>
-                <button class="btn btn-white inline js-repost disabled">
-                    <div class="glyphicon glyphicon-refresh"></div>
-                    Can post again <span class="js-repostat" />
-                </button>
                 <% } %>
                 <div class="pull-right text-muted">#{{id}}</div>
             </div>

@@ -159,13 +159,6 @@ define([
                 var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
 
-                var outcomes = self.model.get('outcomes');
-                if (outcomes && outcomes.length > 0) {
-                    // Hide completed posts by default.
-                    // TODO option to show
-                    self.$el.hide();
-                }
-
                 // Make safe and decent for display.
                 this.model.stripGumf('textbody');
                 this.model.set('textbody', strip_tags(this.model.get('textbody')));

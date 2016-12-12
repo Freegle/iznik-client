@@ -2809,6 +2809,7 @@ class Message
         # - create a full MIME message
         # - send it
         # - remove it from the drafts table
+        # - remove any previous outcomes.
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
 
         if (pres('location', $atts)) {
@@ -2823,6 +2824,8 @@ class Message
 
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $this->setPrivate('envelopeto', $g->getGroupEmail());
+
+            $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [ $this->id ]);
 
             # The from IP and country.
             $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
