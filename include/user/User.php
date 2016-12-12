@@ -2752,6 +2752,35 @@ class User extends Entity
             } else if ($count > 1) {
                 $title = "You have $count new messages.";
             }
+        } else {
+            # ModTools notification.  Similar code in session (to calculate work) and sw.php (to construct notification
+            # text on the client side).
+            $groups = $this->getMemberships(FALSE, NULL, TRUE);
+            $work = [];
+
+            foreach ($groups as &$group) {
+                if (pres('work', $group)) {
+                    foreach ($group['work'] as $key => $workitem) {
+                        if (pres($key, $work)) {
+                            $work[$key] += $workitem;
+                        } else {
+                            $work[$key] = $workitem;
+                        }
+                    }
+                }
+            }
+
+            if (pres('pendingmembers', $work) > 0) {
+                $title .= $work['pendingmembers'] . ' pending member' . (($work['pendingmembers'] != 1) ? 's' : '') . " \n";
+                $count += $work['pendingmembers'];
+            }
+
+            if (pres('pending', $work) > 0) {
+                $title .= $work['pending'] . ' pending message' . (($work['pending'] != 1) ? 's' : '') . " \n";
+                $count += $work['pending'];
+            }
+
+            $title = $title == '' ? "No tasks outstanding" : $title;
         }
 
         return([$count, $title, $message, $chatids]);

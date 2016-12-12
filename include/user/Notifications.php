@@ -41,8 +41,9 @@ class Notifications
     public function add($userid, $type, $val) {
         $rc = NULL;
         if ($userid) {
-            $sql = "INSERT INTO users_push_notifications (`userid`, `type`, `subscription`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE userid = ?, type = ?;";
-            $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val, $userid, $type ]);
+            $apptype = MODTOOLS ? 'User': 'ModTools';
+            $sql = "INSERT INTO users_push_notifications (`userid`, `type`, `subscription`, `apptype`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE userid = ?, type = ?, apptype = ?;";
+            $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val, $apptype, $userid, $type, $apptype ]);
             Session::clearSessionCache();
         }
         return($rc);
@@ -146,11 +147,14 @@ class Notifications
         }
     }
 
-    public function notify($userid, $title = NULL, $message = NULL) {
+    public function notify($userid, $modtools = MODTOOLS) {
         $count = 0;
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-        $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ?;", [ $userid ]);
+        $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?;", [
+            $userid,
+            $modtools ? 'ModTools' : 'User'
+        ]);
 
         foreach ($notifs as $notif) {
             #error_log("Send user $userid {$notif['subscription']} type {$notif['type']}");
@@ -181,8 +185,8 @@ class Notifications
                         ];
 
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
-                        list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
-                        #error_log("Notify for $userid $title $message");
+                        list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload($modtools);
+                        #error_log("Notify for $userid count $count title $title message $message");
 
                         $payload = [
                             'badge' => $chatcount,
@@ -191,8 +195,8 @@ class Notifications
                             'message' => $message,
                             'chatids' => $chatids,
                             'content-available' => 1,
-                            'image' => "www/images/user_logo.png",
-                            'modtools' => MODTOOLS
+                            'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
+                            'modtools' => $modtools
                         ];
                     }
 
@@ -206,7 +210,7 @@ class Notifications
                         $params = [];
 
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
-                        list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload(MODTOOLS);
+                        list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload($modtools);
 
                         $payload = [
                             'badge' => $chatcount,
@@ -215,7 +219,7 @@ class Notifications
                             'message' => $message,
                             'chatids' => $chatids,
                             'content-available' => 1,
-                            'modtools' => MODTOOLS
+                            'modtools' => $modtools
                         ];
                     }
 
