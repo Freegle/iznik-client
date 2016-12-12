@@ -185,7 +185,7 @@ class Notifications
                         ];
 
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
-                        list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload($modtools);
+                        list ($chatcount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
                         #error_log("Notify for $userid count $count title $title message $message");
 
                         $payload = [
@@ -196,7 +196,8 @@ class Notifications
                             'chatids' => $chatids,
                             'content-available' => 1,
                             'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
-                            'modtools' => $modtools
+                            'modtools' => $modtools,
+                            'route' => $route
                         ];
                     }
 
@@ -210,7 +211,7 @@ class Notifications
                         $params = [];
 
                         $u = User::get($this->dbhr, $this->dbhm, $userid);
-                        list ($chatcount, $title, $message, $chatids) = $u->getNotificationPayload($modtools);
+                        list ($chatcount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
 
                         $payload = [
                             'badge' => $chatcount,
@@ -219,7 +220,8 @@ class Notifications
                             'message' => $message,
                             'chatids' => $chatids,
                             'content-available' => 1,
-                            'modtools' => $modtools
+                            'modtools' => $modtools,
+                            'route' => $route
                         ];
                     }
 

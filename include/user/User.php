@@ -2728,6 +2728,7 @@ class User extends Entity
         $message = NULL;
         $unseen = [];
         $chatids = [];
+        $route = NULL;
 
         if (!$modtools) {
             # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
@@ -2773,16 +2774,18 @@ class User extends Entity
             if (pres('pendingmembers', $work) > 0) {
                 $title .= $work['pendingmembers'] . ' pending member' . (($work['pendingmembers'] != 1) ? 's' : '') . " \n";
                 $count += $work['pendingmembers'];
+                $route = 'modtools/members/pending';
             }
 
             if (pres('pending', $work) > 0) {
                 $title .= $work['pending'] . ' pending message' . (($work['pending'] != 1) ? 's' : '') . " \n";
                 $count += $work['pending'];
+                $route = 'modtools/messages/pending';
             }
 
             $title = $title == '' ? "No tasks outstanding" : $title;
         }
 
-        return([$count, $title, $message, $chatids]);
+        return([$count, $title, $message, $chatids, $route]);
     }
 }
