@@ -25,6 +25,9 @@ define([
             Iznik.activeChats.viewManager.each(function (chat) {
                 chat.minimise();
             });
+
+            // Close the dropdown.  This helps if there is nothing to do - at least something happens.
+            $('#notifchatdropdown').hide();
         },
 
         allseen: function () {
