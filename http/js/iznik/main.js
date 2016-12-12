@@ -1,5 +1,5 @@
-var API = 'https://modtools.org/api/'; // CC
-//var API = 'https://iznik.ilovefreegle.org/api/'; // CC
+//var API = 'https://modtools.org/api/'; // CC
+var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -314,36 +314,22 @@ require([
                 //alert(JSON.stringify(data));
                 console.log("push notification");
                 console.log(data);
-                var showChat = (isiOS && !foreground) || doubleEvent;
-                if (showChat) {
-                    var chatids = data.additionalData.chatids;
-                    chatids = _.uniq(chatids);
-
-                    if (chatids.length > 0) {
-                        require(['iznik/views/chat/chat'], function (ChatHolder) {
-                            //_.each(chatids, function (chatid) {
-                            //    ChatHolder().fetchAndRestore(chatid);
-                            //});
-                            // Just open first chat - when logged in
-                            var chatid = chatids[0];
-                            /*Iznik.Session.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                                ChatHolder().fetchAndRestore(chatid);
-                            });*/
-                            (function waitUntilLoggedIn(i) {
-                                if (Iznik.Session.loggedIn) {
-                                    //ChatHolder().fetchAndRestore(chatid);
-                                    setTimeout(function () { ChatHolder().fetchAndRestore(chatid); }, 500);
-                                } else {
-                                    setTimeout(function () { if (--i) { waitUntilLoggedIn(i); } }, 1000);
-                                }
-                            })(10);
-                        });
+                var showRoute = (isiOS && !foreground) || doubleEvent;
+                if (showRoute) {
+                    if (data.additionalData.route) {
+                        console.log("About to show route: " + data.additionalData.route);
+                        (function waitUntilLoggedIn(i) {
+                            if (Iznik.Session.loggedIn) {
+                                setTimeout(function () {
+                                    Router.navigate(data.additionalData.route, true);
+                                }, 500);
+                            } else {
+                                setTimeout(function () { if (--i) { waitUntilLoggedIn(i); } }, 1000);
+                            }
+                        })(10);
                     }
                 }
             }
-            require(['iznik/views/chat/chat'], function (ChatHolder) {
-                ChatHolder().fallback();
-            });
 
             mobilePush.finish(function () {
                 console.log("push finished");
