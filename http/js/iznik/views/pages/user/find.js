@@ -35,16 +35,33 @@ define([
             }
         },
 
+        saveSearchType: function() {
+            var self = this;
+            try {
+                var val = self.$('.js-searchoffers').prop('checked') ? 'Offer' : 'Wanted';
+                console.log("Save search type", val);
+                localStorage.setItem('searchtype', val);
+            } catch (e) {}
+        },
+
+        restoreSearchType: function() {
+            var self = this;
+            try {
+                var t = localStorage.getItem('searchtype');
+                console.log("Restore search type", t);
+                if (t) {
+                    self.$(".js-searchoffers").boostrapSwitch('state', t == 'Offer' );
+                }
+            } catch (e) {}
+        },
+
         changeSearchType: function() {
             // If we change the type of the search when there is something in the search box, do the search again (for
             // the new type).  This means they don't need to figure out to hit the Search button again, which wouldn't
             // work anyway because we are already on the correct URL.
+            this.saveSearchType();
             var term = this.$('.js-search').val();
             if (term.length > 0) {
-                try {
-                    localStorage.setItem('searchtype', self.$('.js-searchoffers').prop('checked') ? 'Offer' : 'Wanted');
-                } catch (e) {}
-
                 this.render();
             }
         },
@@ -53,10 +70,6 @@ define([
             this.$('h1').slideUp('slow');
 
             var term = this.$('.js-search').val();
-
-            try {
-                localStorage.setItem('searchtype', self.$('.js-searchoffers').prop('checked') ? 'Offer' : 'Wanted');
-            } catch (e) {}
 
             if (term != '') {
                 Router.navigate('/find/search/' + encodeURIComponent(term), true);
@@ -86,7 +99,22 @@ define([
             })
         },
 
+        showOfferWanted: function(){
+            var self = this;
+            console.log("Show offer wanted ", self.$(".js-searchoffers").bootstrapSwitch('state'));
+
+            if (self.$(".js-searchoffers").bootstrapSwitch('state')) {
+                self.$('.js-offeronly').show();
+                self.$('.js-wantedonly').hide();
+            } else {
+                self.$('.js-offeronly').hide();
+                self.$('.js-wantedonly').show();
+            }
+        },
+
         render: function () {
+            this.context = null;
+
             var p = Iznik.Views.Infinite.prototype.render.call(this, {
                 model: new Iznik.Model({
                     item: this.options.item
@@ -118,6 +146,7 @@ define([
 
                 if (self.options.search) {
                     // We've searched for something - we're showing the results.
+                    self.restoreSearchType();
                     self.$('h1').hide();
                     self.$('.js-search').val(self.options.search);
 
@@ -160,6 +189,8 @@ define([
                         messagetype: self.searchtype
                     };
                 }
+
+                self.showOfferWanted();
 
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-list'),
