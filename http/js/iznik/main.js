@@ -106,7 +106,9 @@ function showNetworkStatus() {
 
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
-var alllog = "";    // TODOCC
+if (typeof alllog === 'undefined') {
+    var alllog = "";    // TODOCC
+}
 var logtog = false;
 
 function mainOnAppStart() { // CC
