@@ -24,11 +24,19 @@ foreach ($tops as $top => $prio) {
 }
 
 # We want to pre-cache all Freegle groups.
-$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE type = 'Freegle' AND publish = 1;");
+$regions = [];
+
+$groups = $dbhr->preQuery("SELECT id, nameshort, region FROM groups WHERE type = 'Freegle' AND publish = 1;");
 foreach ($groups as $group) {
     $dbhm->preExec("INSERT IGNORE INTO prerender (url) VALUES (?);", [ "https://" . USER_SITE . "/explore/{$group['nameshort']}" ]);
+    $regions[$group['region']] = TRUE;
 }
 
+foreach ($regions as $key => $val) {
+    if ($key && strlen($key)) {
+        $dbhm->preExec("INSERT IGNORE INTO prerender (url) VALUES (?);", [ "https://" . USER_SITE . "/explore/region/$key" ]);
+    }
+}
 $pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR TIMESTAMPDIFF(MINUTE, retrieved,NOW()) >= timeout ORDER BY html ASC;");
 shuffle($pages);
 

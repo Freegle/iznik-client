@@ -1,10 +1,11 @@
-<h1 class="text-center">Explore!</h1>
+<h1 class="text-center js-exploreall js-pagetitle" style="display: none;">Explore Freegle groups across the UK!</h1>
+<h1 class="text-center js-exploreregion js-pagetitle" style="display: none;">Freegle groups in <span class="js-region" /></h1>
 <div class="text-larger js-groupsumm" style="visibility: hidden">
-    <p class="text-center">
+    <p class="text-center js-pagedescription">
         There are <span class="js-numgroups" /> lovely groups of freeglers across the UK.  Shall we see what they're up to?
     </p>
 </div>
-<div class="row botspace">
+<div class="row botspace js-findholder" style="display: none">
     <div class="col-md-5 col-md-12 col-lg-5 text-center botspace">
         <div class="btn btn-lg btn-primary js-geoloconly js-getloc">
             <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
@@ -24,6 +25,12 @@
     </div>
 </div>
 <div class="row-fluid"><div class="col-xs-12 botspace"/></div>
+<div class="row botspace js-regionholder" style="display: none">
+    <div class="col-xs-12">
+        <p class="text-larger text-center">Or choose a region:</p>
+        <ul class="text-center list-inline list-unstyled js-regions" />
+    </div>
+</div>
 <div class="row-fluid">
     <div class="col-xs-12 completefull topspace nopad nomargin">
         <div class="img-rounded maparea js-maparea" />
@@ -42,5 +49,10 @@
             </div>
         </div>
         <h3></h3>
+    </div>
+</div>
+<div class="row-fluid js-nogroup" style="display:none">
+    <div class="col-xs-12 text-center text-larger">
+        If there's no group for your area, would you like to start one?  <a data-realurl="true" href="mailto:newgroups@ilovefreegle.org">Mail us!</a>
     </div>
 </div>

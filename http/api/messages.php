@@ -70,7 +70,7 @@ function messages() {
             switch ($subaction) {
                 case NULL:
                     # Just a normal fetch.
-                    list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), FAVICON_HOME == 'user');
+                    list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $collection == MessageCollection::ALLUSER ? MessageCollection::OWNPOSTS: NULL);
                     break;
                 case 'search':
                 case 'searchmess':
@@ -133,7 +133,7 @@ function messages() {
                     if (count($userids) > 0) {
                         # Now get the messages for those members.
                         $c = new MessageCollection($dbhr, $dbhm, $collection);
-                        list ($groups, $msgs) = $c->get($ctx, $limit, $groupids, $userids, FAVICON_HOME == 'user');
+                        list ($groups, $msgs) = $c->get($ctx, $limit, $groupids, $userids, $collection == MessageCollection::ALLUSER ?  MessageCollection::OWNPOSTS : NULL);
                     }
                     break;
             }

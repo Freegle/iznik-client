@@ -26,9 +26,18 @@ foreach ($tops as $top => $prio) {
 }
 
 # Now the groups.
-$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1;");
+$regions = [];
+
+$groups = $dbhr->preQuery("SELECT id, region, nameshort FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1;");
 foreach ($groups as $group) {
     echo "<url><loc>$prot" . USER_SITE . "/explore/{$group['nameshort']}</loc><changefreq>hourly</changefreq></url>\n";
+    $regions[$group['region']] = TRUE;
+}
+
+foreach ($regions as $key => $val) {
+    if ($key && strlen($key)) {
+        echo "<url><loc>$prot" . USER_SITE . "/explore/region/$key</loc><changefreq>daily</changefreq></url>\n";
+    }
 }
 ?>
 </urlset>

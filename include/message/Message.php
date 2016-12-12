@@ -2809,6 +2809,7 @@ class Message
         # - create a full MIME message
         # - send it
         # - remove it from the drafts table
+        # - remove any previous outcomes.
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
 
         if (pres('location', $atts)) {
@@ -2823,6 +2824,8 @@ class Message
 
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $this->setPrivate('envelopeto', $g->getGroupEmail());
+
+            $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [ $this->id ]);
 
             # The from IP and country.
             $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
@@ -2998,12 +3001,22 @@ class Message
     }
 
     public function mark($outcome, $comment, $happiness, $userid) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
         $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
             $this->id,
             $outcome,
             $happiness,
             $userid,
             $comment
+        ]);
+
+        $this->log->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_OUTCOME,
+            'msgid' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'text' => "$outcome $comment"
         ]);
 
         # This message may be on one or more Yahoo groups; if so we need to send a TAKEN.
@@ -3060,6 +3073,16 @@ class Message
             Message::OUTCOME_WITHDRAWN,
             $happiness,
             $comment
+        ]);
+
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $this->log->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_OUTCOME,
+            'msgid' => $this->id,
+            'byuser' => $me ? $me->getId() : NULL,
+            'text' => "Withdrawn: $comment"
         ]);
     }
 

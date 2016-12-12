@@ -97,6 +97,9 @@ if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
 if ($default) {
 ?>
         <body style="background-colour: #dff2d1;">
+            <div itemscope itemtype="http://schema.org/Organization" style="display: none">
+                <span itemprop="name"><?php echo SITE_NAME; ?></span>
+            </div>
             <noscript>
                 <h1>Please enable Javascript</h1>
 

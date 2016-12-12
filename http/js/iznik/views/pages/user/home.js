@@ -12,14 +12,71 @@ define([
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
 
+        showingOldOffers: false,
+        showingOldWanteds: false,
+
+        events: {
+            'click .js-oldoffers': 'showOldOffers',
+            'click .js-oldwanteds': 'showOldWanteds'
+        },
+
         filter: function(model) {
             // Only show a search result for an offer which has not been taken or wanted not received.
             var thetype = model.get('type');
-            var paired = _.where(model.get('related'), {
-                type: thetype == 'Offer' ? 'Taken' : 'Received'
-            });
 
-            return (paired.length == 0);
+            if ((thetype == 'Offer' && this.showingOldOffers) || (thetype == 'Wanted' && this.showingOldWanteds)) {
+                return(true);
+            }
+
+            return (model.get('outcomes').length == 0);
+        },
+
+        showOldOffers: function() {
+            this.$('.js-oldoffers').hide();
+            this.showingOldOffers = true;
+            this.offersView.render();
+        },
+
+        showOldWanteds: function() {
+            this.$('.js-oldwanteds').hide();
+            this.showingOldWanteds = true;
+            this.wantedsView.render();
+        },
+
+        updateOldWantedCount: function() {
+            this.updateOldCount('Wanted', this.showingOldWanteds);
+        },
+
+        updateOldOfferCount: function() {
+            this.updateOldCount('Offer', this.showingOldOffers);
+        },
+
+        updateOldCount: function(type, showing) {
+            var self = this;
+            var count = 0;
+
+            console.log("UpdateOldCOunt", type, showing, self.messages);
+            if (!showing) {
+                self.messages.each(function(msg) {
+                    if (msg.get('type') == type && msg.get('outcomes').length != 0) {
+                        count++;
+                    }
+                });
+            }
+
+            var container = this.$('.js-old' + type.toLowerCase() + 's');
+            var countel = this.$('.js-old' + type.toLowerCase() + 'count');
+            console.log("Update it", container, count);
+
+            if (count == 0) {
+                container.hide();
+            } else if (count == 1) {
+                countel.html("1 old " + type.toUpperCase());
+                container.show();
+            } else {
+                countel.html(count + " old " + type.toUpperCase() + "s");
+                container.show();
+            }
         },
 
         fetchedChats: function() {
@@ -56,7 +113,7 @@ define([
                     },
                     modelView: Iznik.Views.User.Home.Offer,
                     collection: self.offers,
-                    visibleModelsFilter: self.filter
+                    visibleModelsFilter: _.bind(self.filter, self)
                 });
 
                 self.offersView.render();
@@ -70,7 +127,7 @@ define([
                         chatid: self.options.chatid
                     },
                     collection: self.wanteds,
-                    visibleModelsFilter: self.filter
+                    visibleModelsFilter: _.bind(self.filter, self)
                 });
 
                 self.wantedsView.render();
@@ -92,21 +149,9 @@ define([
                     var related = msg.get('related');
 
                     if (msg.get('type') == 'Offer') {
-                        var taken = _.where(related, {
-                            type: 'Taken'
-                        });
-
-                        if (taken.length == 0) {
-                            self.offers.add(msg);
-                        }
+                        self.offers.add(msg);
                     } else if (msg.get('type') == 'Wanted') {
-                        var received = _.where(related, {
-                            type: 'Received'
-                        });
-
-                        if (received.length == 0) {
-                            self.wanteds.add(msg);
-                        }
+                        self.wanteds.add(msg);
                     } else {
                         console.log("Got something else", msg);
                     }
@@ -156,6 +201,9 @@ define([
             // therefore no longer show.  Refresh.
             self.offersView.reapplyFilter('visibleModels');
             self.wantedsView.reapplyFilter('visibleModels');
+
+            self.updateOldWantedCount();
+            self.updateOldOfferCount();
         },
 
         render: function () {

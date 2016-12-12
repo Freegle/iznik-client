@@ -68,7 +68,8 @@ class Group extends Entity
             ], 'spammers' => [
                 'check' => $this->group['type'] == Group::GROUP_FREEGLE,
                 'remove' => $this->group['type'] == Group::GROUP_FREEGLE,
-                'chatreview' => $this->group['type'] == Group::GROUP_FREEGLE
+                'chatreview' => $this->group['type'] == Group::GROUP_FREEGLE,
+                'messagereview' => 1
             ], 'joiners' => [
                 'check' => 1,
                 'threshold' => 5
@@ -323,7 +324,7 @@ class Group extends Entity
         $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];
         $atts['lastyahoomembersync'] = ISODate($this->group['lastyahoomembersync']);
         $atts['lastyahoomessagesync'] = ISODate($this->group['lastyahoomessagesync']);
-        $atts['settings'] = array_merge($this->defaultSettings, json_decode($atts['settings'], true));
+        $atts['settings'] = array_replace_recursive($this->defaultSettings, json_decode($atts['settings'], true));
         $atts['founded'] = ISODate($this->group['founded']);
 
         foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
@@ -587,6 +588,22 @@ class Group extends Entity
         foreach ($mods as $mod) {
             $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;", [
                 $mod['role'],
+                $mod['userid'],
+                $this->id,
+            ]);
+        }
+    }
+
+    public function setNativeModerationStatus() {
+        # This is used when migrating a group from Yahoo to this platform.
+        $mods = $this->dbhr->preQuery("SELECT memberships.userid, memberships_yahoo.yahooPostingStatus FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE groupid = ? AND memberships_yahoo.collection = 'Approved';",
+            [
+                $this->id
+            ]);
+
+        foreach ($mods as $mod) {
+            $this->dbhm->preExec("UPDATE memberships SET ourPostingStatus = ? WHERE userid = ? AND groupid = ?;", [
+                $mod['yahooPostingStatus'],
                 $mod['userid'],
                 $this->id,
             ]);
@@ -1126,7 +1143,7 @@ class Group extends Entity
    public function listByType($type) {
        $me = whoAmI($this->dbhr, $this->dbhm);
        $typeq = $type ? "type = ?" : '1=1';
-        $sql = "SELECT id, nameshort, namefull, lat, lng, poly, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $sql = "SELECT id, nameshort, region, namefull, lat, lng, poly, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];

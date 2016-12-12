@@ -697,13 +697,13 @@ define([
             p.then(function(self) {
                 var hideedit = true;
                 var group = self.model.get('group');
-                if (group && (group.role == 'Moderator' || group.role == 'Moderator')) {
+                if (group && (group.role == 'Moderator' || group.role == 'Owner')) {
                     // We are a mod on self group - we can modify it.
                     hideedit = false;
                 }
 
                 if (hideedit) {
-                    self.$('.js-editnote, js-deletenote').hide();
+                    self.$('.js-editnote, .js-deletenote').hide();
                 }
 
                 self.$('.timeago').timeago();

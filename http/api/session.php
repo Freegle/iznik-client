@@ -42,7 +42,7 @@ function session() {
                 $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS);
 
                 if (MODTOOLS) {
-                    # Tell them what mod work there is.
+                    # Tell them what mod work there is.  Similar code in Notifications.
                     $ret['work'] = [];
 
                     foreach ($ret['groups'] as &$group) {

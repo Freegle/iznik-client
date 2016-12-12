@@ -2,7 +2,7 @@
  * Backbone.CollectionView, v1.1.2
  * Copyright (c)2013 Rotunda Software, LLC.
  * Distributed under MIT license
- * http://github.com/rotundasoftware/backbone-collection-view
+ * hhttps://github.com/rotundasoftware/backbone.collectionView
  */
 
 ( function( root, factory ) {

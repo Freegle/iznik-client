@@ -631,11 +631,22 @@ class MailRouter
             $contentcheck = !$notspam && !preg_match('/.*?\:(.*)\(.*\)/', $this->msg->getSubject());
             $spamscore = NULL;
 
+            $groups = $this->msg->getGroups(FALSE, FALSE);
+
+            # Check if the group wants us to check for spam.
+            # TODO Multiple groups?
+            foreach ($groups as $group) {
+                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                $defs = $g->getDefaults();
+                $spammers = $g->getSetting('spammers', $defs['spammers']);
+                $check = pres('messagereview', $spammers) ? $spammers['messagereview'] : $defs['spammers']['messagereview'];
+                $notspam = $check ? $notspam : TRUE;
+            }
+
             if (!$notspam) {
                 # First check if this message is spam based on our own checks.
                 $rc = $this->spam->check($this->msg);
                 if ($rc) {
-                    $groups = $this->msg->getGroups(FALSE, FALSE);
 
                     if (count($groups) > 0) {
                         foreach ($groups as $group) {
@@ -712,8 +723,6 @@ class MailRouter
 
             if (!$ret) {
                 # Not obviously spam.
-                $groups = $this->msg->getGroups(FALSE, FALSE);
-                #error_log("Groups " . var_export($groups, TRUE));
                 if ($log) { error_log("Not obviously spam, groups " . var_export($groups, TRUE)); }
 
                 if (count($groups) > 0) {
