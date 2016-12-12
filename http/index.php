@@ -99,6 +99,8 @@ if ($default) {
         <body style="background-colour: #dff2d1;">
             <div itemscope itemtype="http://schema.org/Organization" style="display: none">
                 <span itemprop="name"><?php echo SITE_NAME; ?></span>
+                <img itemprop="logo" src="<?php echo USERLOGO; ?>" />
+                <a itemprop="url" href="https://<?php echo USER_SITE; ?>" />
             </div>
             <noscript>
                 <h1>Please enable Javascript</h1>
