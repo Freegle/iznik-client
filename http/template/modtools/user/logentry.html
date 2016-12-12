@@ -47,6 +47,8 @@
                 Released #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>
             <% } else if (subtype == 'Edit') { %>
                 Edited #{{msgid}} {{text}} <% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %>
+            <% } else if (subtype == 'Outcome') { %>
+            Outcome for #{{msgid}}: {{text}}
             <% } else { %>
                     <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
