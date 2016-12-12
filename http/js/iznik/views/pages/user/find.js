@@ -35,6 +35,20 @@ define([
             }
         },
 
+        changeSearchType: function() {
+            // If we change the type of the search when there is something in the search box, do the search again (for
+            // the new type).  This means they don't need to figure out to hit the Search button again, which wouldn't
+            // work anyway because we are already on the correct URL.
+            var term = this.$('.js-search').val();
+            if (term.length > 0) {
+                try {
+                    localStorage.setItem('searchtype', self.$('.js-searchoffers').prop('checked') ? 'Offer' : 'Wanted');
+                } catch (e) {}
+
+                this.render();
+            }
+        },
+
         doSearch: function () {
             this.$('h1').slideUp('slow');
 
@@ -100,6 +114,8 @@ define([
                     state: self.searchtype == 'Offer'
                 });
 
+                self.$(".js-searchoffers").on('switchChange.bootstrapSwitch', _.bind(self.changeSearchType, self));
+
                 if (self.options.search) {
                     // We've searched for something - we're showing the results.
                     self.$('h1').hide();
@@ -144,8 +160,6 @@ define([
                         messagetype: self.searchtype
                     };
                 }
-
-                console.log("Fetch data", data);
 
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-list'),
