@@ -17,6 +17,7 @@ class MessageCollection
     const QUEUED_YAHOO_USER = 'QueuedYahooUser'; # Awaiting a user on the Yahoo group before it can be sent
     const REJECTED = 'Rejected'; # Rejected by mod; user can see and resend.
     const ALLUSER = 'AllUser';
+    const OWNPOSTS = 120;
 
     /** @var  $dbhr LoggedPDO */
     public $dbhr;
@@ -61,7 +62,7 @@ class MessageCollection
         }
     }
 
-    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $recentonly = FALSE) {
+    function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL) {
         $msgids = [];
 
 
@@ -91,16 +92,22 @@ class MessageCollection
             # message arrived for the very first time, or when it was reposted.
             $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
             $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
+            $oldest = '';
 
-            # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
-            # See also Group.
-            #
-            # This fits with Yahoo's policy on deleting pending activity.
-            #
-            # This code assumes that if we're called to retrieve SPAM, it's the only collection.  That's true at
-            # the moment as the only use of multiple collection values is via ALLUSER, which doesn't include SPAM.
-            $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
-            $oldest = ($recentonly || in_array(MessageCollection::SPAM, $collection)) ? " AND messages_groups.arrival >= '$mysqltime' " : '';
+            if (in_array(MessageCollection::SPAM, $collection)) {
+                # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
+                # See also Group.
+                #
+                # This fits with Yahoo's policy on deleting pending activity.
+                #
+                # This code assumes that if we're called to retrieve SPAM, it's the only collection.  That's true at
+                # the moment as the only use of multiple collection values is via ALLUSER, which doesn't include SPAM.
+                $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
+                $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
+            } else if ($age !== NULL) {
+                $mysqltime = date ("Y-m-d", strtotime("Midnight $age days ago"));
+                $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
+            }
 
             # We may have some groups to filter by.
             $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
