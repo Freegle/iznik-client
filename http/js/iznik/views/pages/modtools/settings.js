@@ -218,11 +218,11 @@ define([
                             userid: Iznik.Session.get('me').id
                         });
 
-                        membership.fetch().then(function() {
+                        membership.fetch().then(function () {
                             self.myGroupModel = new Iznik.Model(membership.get('settings'));
                             var configoptions = [];
                             var configs = Iznik.Session.get('configs');
-                            configs.each(function(config) {
+                            configs.each(function (config) {
                                 configoptions.push({
                                     label: config.get('name'),
                                     value: config.get('id')
@@ -239,28 +239,28 @@ define([
                                     name: 'pushnotify',
                                     label: 'Push notifications?',
                                     control: 'radio',
-                                    extraClasses: [ 'row' ],
-                                    options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                                    extraClasses: ['row'],
+                                    options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
                                 },
                                 {
                                     name: 'showmessages',
                                     label: 'Show messages in All Groups?',
                                     control: 'radio',
-                                    extraClasses: [ 'row' ],
-                                    options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                                    extraClasses: ['row'],
+                                    options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
                                 },
                                 {
                                     name: 'showmembers',
                                     label: 'Show members in All Groups?',
                                     control: 'radio',
-                                    extraClasses: [ 'row' ],
-                                    options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                                    extraClasses: ['row'],
+                                    options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
                                 },
                                 {
                                     control: 'button',
                                     label: 'Save changes',
                                     type: 'submit',
-                                    extraClasses: [ 'btn-success topspace botspace' ]
+                                    extraClasses: ['btn-success topspace botspace']
                                 }
                             ];
 
@@ -269,7 +269,7 @@ define([
                                 model: self.myGroupModel,
                                 fields: self.myGroupFields,
                                 events: {
-                                    'submit': function(e) {
+                                    'submit': function (e) {
                                         // Send a PATCH to the server for settings.
                                         e.preventDefault();
                                         var newdata = self.myGroupModel.toJSON();
@@ -280,7 +280,7 @@ define([
                                             success: _.bind(self.success, self),
                                             error: self.error
                                         });
-                                        return(false);
+                                        return (false);
                                     }
                                 }
                             });
