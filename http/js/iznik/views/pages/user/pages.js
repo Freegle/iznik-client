@@ -354,7 +354,7 @@ define([
                 url: API + 'locations',
                 data: {
                     lat: position.coords.latitude,
-                    lng: position.coords.longitude,
+                    lng: position.coords.longitude
                 }, success: function(ret) {
                     if (ret.ret == 0 && ret.location) {
                         self.recordLocation(ret.location, true);

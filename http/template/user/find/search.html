@@ -1,7 +1,11 @@
 <h1 class="text-center">Ok, what are you looking for?</h1>
-<p class="text-muted text-center">
+<p class="text-muted text-center js-offeronly">
     We'll search so that you can see if someone has already posted an OFFER.  If not, you can
-    posted a WANTED for it.
+    post a WANTED for it.
+</p>
+<p class="text-muted text-center js-wantedonly">
+    We'll search so that you can see if someone has already posted a WANTED.  If not, you can
+    post an OFFER for it.
 </p>
 <div class="row-fluid">
     <div class="col-md-12 text-center nopad">
@@ -23,12 +27,21 @@
     <div class="topspace col-md-12 nopad">
         <div class="nopadtop nopadbot alert alert-info">
             <div>
-                <h3 class="nomargin">
+                <h3 class="nomargin js-offeronly">
                     <div class="glyphicon glyphicon-info-sign glyphicon-larger" />
                     Can't find it?
                     <a href="/find/whatisit" class="js-wanted">
                         <div class="margleft topspace botspace btn btn-lg btn-primary">
                             <div class="glyphicon glyphicon-search"></div>&nbsp;Post a WANTED
+                        </div>
+                    </a>
+                </h3>
+                <h3 class="nomargin js-wantedonly">
+                    <div class="glyphicon glyphicon-info-sign glyphicon-larger" />
+                    Nobody looking for one?
+                    <a href="/give/whatisit" class="js-wanted">
+                        <div class="margleft topspace botspace btn btn-lg btn-primary">
+                            <div class="glyphicon glyphicon-search"></div>&nbsp;Post an OFFER
                         </div>
                     </a>
                 </h3>
@@ -41,9 +54,14 @@
         <div class="text-center">
             <em>Or</em>
             <br class="clearfix" />
-            <a href="/find/whatisit" class="js-wanted">
+            <a href="/find/whatisit" class="js-wanted js-offeronly">
                 <div class="margleft topspace botspace btn btn-lg btn-white">
                     <div class="glyphicon glyphicon-search"></div>&nbsp;Post a WANTED
+                </div>
+            </a>
+            <a href="/give/whatisit" class="js-wanted js-wantedonly">
+                <div class="margleft topspace botspace btn btn-lg btn-white">
+                    <div class="glyphicon glyphicon-gift"></div>&nbsp;Post an OFFER
                 </div>
             </a>
         </div>
