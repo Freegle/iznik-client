@@ -544,7 +544,7 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     position: fixed;
     bottom: 0;
     left: 0;
-    z-index: 1050;
+    z-index: 800;
 }
 
 #botleft img {
