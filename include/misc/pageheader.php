@@ -20,13 +20,14 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         if ($gid) {
             $g = Group::get($dbhr, $dbhm, $gid);
             $atts = $g->getPublic();
+            $groupdescdef = "Give and Get Stuff for Free on {$atts['namedisplay']}";
             ?>
             <title><?php echo $atts['namedisplay']; ?></title>
             <meta itemprop="title" content="<?php echo $atts['namedisplay']; ?>"/>
-            <meta itemprop="description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
-            <meta name="description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
+            <meta itemprop="description" content="<?php echo presdef('tagline', $atts, $groupdescdef) ; ?>"/>
+            <meta name="description" content="<?php echo presdef('tagline', $atts, $groupdescdef) ; ?>"/>
             <meta property="og:title" content="<?php echo $atts['namedisplay']; ?>"/>
-            <meta property="og:description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
+            <meta property="og:description" content="<?php echo presdef('tagline', $atts, $groupdescdef) ; ?>"/>
             <meta property="og:image" content="<?php echo presdef('profile', $atts, USERLOGO); ?>"/>
             <?php
         }
