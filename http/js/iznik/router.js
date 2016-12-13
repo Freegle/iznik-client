@@ -40,6 +40,11 @@ define([
                 }
             });
 
+            // Any pages with trailing slashes should route the same as ones without.
+            this.route(/(.*)\/+$/, "trailFix", function (id) {
+                this.navigate(id, true);
+            });
+
             this.bind('route', this.pageView);
         },
 
@@ -1220,8 +1225,6 @@ define([
         },
 
         groupPlugin: function(groupid) {
-            console.log("Group plugin", groupid);
-
             // Might be trailing guff in legacy routes.
             groupid = parseInt(groupid);
             this.userExploreGroup(groupid, true);
