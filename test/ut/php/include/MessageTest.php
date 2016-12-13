@@ -151,6 +151,9 @@ class messageTest extends IznikTestCase {
         assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
         assertEquals($id1, $atts['related'][0]['id']);
+        $m1 = new Message($this->dbhr, $this->dbhm, $id1);
+        $atts1 = $m1->getPublic();
+        self::assertEquals('Taken', $atts1['outcomes'][0]['outcome']);
 
         error_log(__METHOD__ . " end");
     }
