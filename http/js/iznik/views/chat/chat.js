@@ -4,11 +4,12 @@ define([
     'backbone',
     'iznik/base',
     'autosize',
+    'moment',
     'iznik/models/chat/chat',
     'iznik/models/message',
     'jquery-resizable',
     'jquery-visibility'
-], function ($, _, Backbone, Iznik, autosize) {
+], function ($, _, Backbone, Iznik, autosize, moment) {
     // This is a singleton view.
     var instance;
 
@@ -1123,11 +1124,6 @@ define([
             // Tell the server now, in case they navigate away before the next roster timer.
             self.updateRoster(self.statusWithOverride('Online'), self.noop, true);
 
-            // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
-            // then revert.
-            _.delay(function () {
-                self.$('.chat-message-unseen').removeClass('chat-message-unseen');
-            }, 60000)
             this.updateCount();
         },
 
@@ -1743,6 +1739,9 @@ define([
                 this.model.set('group', group);
                 this.model.set('myid', myid);
 
+                var d = Math.floor(moment().diff(moment(self.model.get('date'))) / 1000);
+                self.model.set('secondsago', d);
+
                 // Decide if this message should be on the left or the right.
                 //
                 // For group messages, our messages are on the right.
@@ -1812,6 +1811,13 @@ define([
                     }
                     self.$('.timeago').timeago();
                     self.$('.timeago').show();
+
+                    // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
+                    // then revert.
+                    _.delay(_.bind(function () {
+                        this.$('.chat-message-unseen').removeClass('chat-message-unseen');
+                    }, self), 60000);
+
                     self.$el.fadeIn('slow');
                 });
             } else {
