@@ -893,14 +893,44 @@ define([
 
         keyUp: function (e) {
             var self = this;
-            if (e.which === 13 && (e.altKey || e.shiftKey)) {
-                this.$('.js-message').val(this.$('.js-message').val() + "\n");
-            } else if (e.which === 13) {
-                this.send();
+            var enterSend = null;
+            try {
+                enterSend = localStorage.getItem('chatentersend');
+                if (enterSend !== null) {
+                    enterSend = parseInt(enterSend);
+                }
+            } catch (e) {};
+
+            if (e.which === 13) {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-            }
+
+                if (e.altKey || e.shiftKey || enterSend === 0) {
+                    // They've used the alt/shift trick, or we know they don't want to send.
+                    self.$('.js-message').val(self.$('.js-message').val() + "\n");
+                } else  {
+                    if (enterSend !== 0 && enterSend !== 1) {
+                        // We don't know what they want it to do.  Ask them.
+                        var v = new Iznik.Views.Chat.Enter();
+                        self.listenToOnce(v, 'modalClosed', function() {
+                            // Now we should know.
+                            try {
+                                enterSend = parseInt(localStorage.getItem('chatentersend'));
+                            } catch (e) {};
+
+                            if (enterSend) {
+                                self.send();
+                            } else {
+                                self.$('.js-message').val(self.$('.js-message').val() + "\n");
+                            }
+                        });
+                        v.render();
+                    } else {
+                        self.send();
+                    }
+                }
+            }  
         },
 
         getLatestMessages: function() {
@@ -1097,7 +1127,7 @@ define([
             // then revert.
             _.delay(function () {
                 self.$('.chat-message-unseen').removeClass('chat-message-unseen');
-            }, 5000)
+            }, 60000)
             this.updateCount();
         },
 
@@ -1823,6 +1853,29 @@ define([
         }
     });
 
+    Iznik.Views.Chat.Enter = Iznik.Views.Modal.extend({
+        template: 'chat_enter',
+        
+        events: {
+            'click .js-send': 'send',
+            'click .js-newline': 'newline'
+        },
+        
+        send: function() {
+            try {
+                localStorage.setItem('chatentersend', 1);
+            } catch (e) {}
+            this.close();
+        },
+        
+        newline: function() {
+            try {
+                localStorage.setItem('chatentersend', 0);
+            } catch (e) {}
+            this.close();
+        }
+    });
+    
     Iznik.Views.Chat.Report = Iznik.Views.Modal.extend({
         template: 'chat_report',
 
