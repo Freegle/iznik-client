@@ -1153,7 +1153,9 @@ define([
             self.$('textarea').css('max-height', maxinpheight);
             self.$('textarea').css('min-height', mininpheight);
 
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - this.$('.js-modwarning').outerHeight() - 20;
+            var chatwarning = this.$('.js-chatwarning');
+            var warningheight = chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight();
+            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - warningheight - 20;
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
@@ -1304,11 +1306,13 @@ define([
                 self.trigger('restored');
             });
 
-            self.$('.js-modwarning').show();
+            self.$('.js-chatwarning').show();
 
             window.setTimeout(_.bind(function () {
-                this.$('.js-modwarning').slideUp('slow');
-            }, self), 30000);
+                this.$('.js-chatwarning').slideUp('slow', _.bind(function() {
+                    this.adjust();
+                }, this));
+            }, self), 3000);
 
             if (!self.windowResizeListening) {
                 // If the window size changes, we will need to adapt.
