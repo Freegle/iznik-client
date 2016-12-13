@@ -2736,7 +2736,6 @@ class Message
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
-        error_log("Atts " . var_export($atts, TRUE));
         $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
         #error_log("Items " . var_export($items, TRUE));
 

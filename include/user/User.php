@@ -2783,7 +2783,7 @@ class User extends Entity
                 $route = 'modtools/messages/pending';
             }
 
-            $title = $title == '' ? "No tasks outstanding" : $title;
+            $title = $title == '' ? NULL : $title;
         }
 
         return([$count, $title, $message, $chatids, $route]);

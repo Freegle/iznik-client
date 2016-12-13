@@ -41,7 +41,7 @@ class Notifications
     public function add($userid, $type, $val) {
         $rc = NULL;
         if ($userid) {
-            $apptype = MODTOOLS ? 'User': 'ModTools';
+            $apptype = MODTOOLS ? 'ModTools' : 'User';
             $sql = "INSERT INTO users_push_notifications (`userid`, `type`, `subscription`, `apptype`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE userid = ?, type = ?, apptype = ?;";
             $rc = $this->dbhm->preExec($sql, [ $userid, $type, $val, $apptype, $userid, $type, $apptype ]);
             Session::clearSessionCache();
