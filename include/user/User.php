@@ -2231,7 +2231,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function split($email, $yahooid, $yahoouserid) {
+    public function split($email) {
         # We want to ensure that the current user has no reference to these values.
         #
         # This will leave logs pointing to the old user, but there's no way to recover that.
@@ -2241,20 +2241,16 @@ class User extends Entity
             $this->removeEmail($email);
         }
 
-        if ($yahooid && $this->user['yahooid'] && $this->user['yahooid'] == $yahooid) {
-            $this->setPrivate('yahooid', NULL);
-        }
-
-        if ($yahoouserid && $this->user['yahooUserId'] && $this->user['yahooUserId'] == $yahoouserid) {
-            $this->setPrivate('yahooUserId', NULL);
-        }
+        # Reset the Yahoo IDs in case they're wrong.  If they're right they'll get set on the next sync.
+        $this->setPrivate('yahooid', NULL);
+        $this->setPrivate('yahooUserId', NULL);
 
         $l->log([
             'type' => Log::TYPE_USER,
             'subtype' => Log::SUBTYPE_SPLIT,
             'user' => $this->id,
             'byuser' => $me ? $me->getId() : NULL,
-            'text' => "Split $email, YID $yahooid, YUID $yahoouserid"
+            'text' => "Split out $email"
         ]);
     }
 
