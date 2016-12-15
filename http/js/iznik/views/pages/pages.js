@@ -111,7 +111,7 @@ define([
 
             // Start event tracking.
             if (monitor) {
-                // monitor.start();
+                monitor.start();
             }
 
             if (currentPage) {

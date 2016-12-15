@@ -1338,7 +1338,7 @@ define([
                 this.$('.js-chatwarning').slideUp('slow', _.bind(function() {
                     this.adjust();
                 }, this));
-            }, self), 3000);
+            }, self), 30000);
 
             if (!self.windowResizeListening) {
                 // If the window size changes, we will need to adapt.

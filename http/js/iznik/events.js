@@ -11,12 +11,12 @@ define([
     var eventQueue = [];
     var flushTimerRunning;
     var sessionCookie = null;
-    var detailed = true;
 
     var monitor = (function () {
         return ({
             lastDOM: null,
             lastDOMtime: 0,
+            idCount: 0,
 
             trackEvent: function(target, event, posX, posY, data, timestamp) {
                 if (!timestamp) {
@@ -45,12 +45,32 @@ define([
 
                 if (eventQueue.length > 0) {
                     // If we fail, we'll lose events.  Oh well.
-                    var currQueue = eventQueue;
+                    //
+                    // We might have multiple mutation events for the same target.  If so, there's no point sending
+                    // them to the server, with the cost in bandwidth and encoding time.
+                    var mutTargets = [];
+                    _.each(eventQueue, function(ent) {
+                        if (ent.event == 'mutation') {
+                            mutTargets[ent.target] = ent;
+                        }
+                    });
+
+                    var currQueue = [];
+                    _.each(eventQueue, function(ent) {
+                        if (ent.event == 'mutation') {
+                            if (ent === mutTargets[ent.target]) {
+                                // It's the last.
+                                currQueue.push(ent);
+                            }
+                        } else {
+                            currQueue.push(ent);
+                        }
+                    });
+
                     eventQueue = [];
 
                     // If we have too much data, throw it away.
                     if (eventQueue.length < 20000) {
-
                         var eventhost = $('meta[name=iznikevent]').attr("content");
 
                         // We will typically be posting to another domain, to avoid delaying requests on the main
@@ -70,6 +90,8 @@ define([
 
                         var me = Iznik.Session.get('me');
                         var myid = me ? me.id : null;
+
+                        // console.log("Flush events", currQueue);
 
                         $.ajax({
                             url: 'https://' + eventhost + API + 'event',
@@ -106,19 +128,16 @@ define([
                     if (this.scrollHeight > this.clientHeight && this.scrollTop > 0) {
                         var path = self.getPath($(this));
                         var timestamp = (new Date()).getTime();
-                        self.trackEvent(path, 'scrollpos', null, null, this.scrollTop, timestamp);
+                        self.trackEvent(path[0], 'scrollpos', null, null, this.scrollTop, timestamp);
                     }
                 });
             },
 
-            getWithValues: function() {
-                // We're saving off the full DOM.  What we get from innerHTML doesn't have any values in it which
+            getWithValues: function(target) {
+                // What we get from innerHTML doesn't have any values in it which
                 // were changed post initial insertion.  So we need to get the DOM with all the values.
                 //
-                // We only need to do this in the 'f' case, as there will be other input tracking events which
-                // will mean the delta case works out ok.
-                //
-                // Create a copy of the body outside the DOM
+                // Create outside the DOM
                 // Fill in all the values
                 // Get it back.
                 //
@@ -127,13 +146,11 @@ define([
                 // It's tempting to use getPath to find a selector, then find that in the clone.  But getPath
                 // isn't very efficient on large DOMs.  So we save off all the vals, then go through the clone,
                 // where they will appear in the same order, setting them.
-                var clone = $('body').clone();
+                var clone = $(target).clone();
                 var vals = [];
-                $('input, select, textarea').each(function() {
+                $(target).find('input, select, textarea').each(function() {
                     vals.push($(this).val());
                 });
-
-                // console.log("Saved vals", vals);
 
                 // Now go through and set them in the copy.
                 clone.find('input, select, textarea').each(function() {
@@ -161,89 +178,7 @@ define([
                     }
                 });
 
-                // var vals2 = [];
-                // clone.find('input, select, textarea').each(function() {
-                //     vals2.push($(this).val());
-                // });
-                //
-                // console.log("Restored vals", vals2);
-
-                return(clone.html());
-            },
-
-            checkDOM: function () {
-                var self = this;
-
-                if (detailed) {
-                    // Use innerHTML as we don't put classes on body, and it allows us to restore the content within
-                    // a div when replaying.
-                    var dom = $('body');
-
-                    if (dom.length > 0) {
-                        dom = dom[0].innerHTML;
-                        // console.log("DOM initially", dom.length);
-                        var type;
-                        var now = (new Date()).getTime();
-
-                        if (!this.lastDOM) {
-                            // We've not captured the DOM yet
-                            type = 'f';
-                            strdiff = dom;
-                        } else {
-                            if (dom.length == this.lastDOM.length) {
-                                // Very probably, this is exactly the same.  Save some CPU.
-                                return;
-                            } else if (now - this.lastDOMtime > 30000) {
-                                // We save it regularly to handle the case where it gets messed up and would otherwise never
-                                // recover.
-                                type = 'f';
-                                strdiff = dom;
-                            } else if (dom.length / this.lastDOM.length < 0.75 || dom.length / this.lastDOM.length > 1.25) {
-                                // The two must be pretty different.  Just track the whole thing.
-                                //console.log("Don't even bother with a diff", dom.length, this.lastDOM.length);
-                                type = 'f';
-                                strdiff = dom;
-                            } else {
-                                var strdiff = JsDiff.createTwoFilesPatch('o', 'n', this.lastDOM, dom);
-
-                                if (strdiff.length > dom.length) {
-                                    // Not worth tracking the diff, as the diff is bigger than the whole thing, or it's been
-                                    // a while.  The second is to help us recover from weirdnesses by providing a periodic
-                                    // reset, which also helps when playing forwards.
-                                    type = 'f';
-                                    strdiff = dom;
-                                } else {
-                                    type = 'd';
-                                }
-                                //console.log("DOM diff", strdiff, strdiff.length);
-                            }
-                        }
-
-                        if (type == 'f') {
-                            this.lastDOMtime = now;
-                            strdiff = this.getWithValues();
-                            // console.log("Dom now", dom.length);
-                        }
-
-                        if (strdiff.length > 80) {
-                            // 80 is the "no differences" text.
-                            //
-                            // We log these with the same timestamp so that they are replayed seamlessly.
-                            var timestamp = (new Date()).getTime();
-                            self.trackEvent('window', 'DOM-' + type, null, null, strdiff, timestamp);
-                            this.lastDOM = dom;
-
-                            // Rewriting the DOM may lose input values which were set post-page-load (most of 'em).
-                            // $('input, select, textarea').each(function() {
-                            //     var val = $(this).val();
-                            //     if (val) {
-                            //         trackEvent(self.getPath($(this)), 'input', null, null, val, timestamp);
-                            //     }
-                            // });
-                        }
-                        //console.timeEnd('checkDOM');
-                    }
-                }
+                return(clone);
             },
 
             // We have a background timer to spot DOM changes which are not driven by events such as clicks.
@@ -251,66 +186,169 @@ define([
                 window.setTimeout(_.bind(this.checkTimer, this), 200);
             },
 
+            snapshotDOM: function() {
+                var self = this;
+
+                // Use innerHTML as we don't put classes on body, and it allows us to restore the content within
+                // a div when replaying.
+                //
+                // Clone to get input state.
+                var dom = this.getWithValues('body').html();
+                // console.log("With values", dom);
+                // console.log("Without", $('body').html());
+
+                if (dom.length > 0) {
+                    var timestamp = (new Date()).getTime();
+                    self.trackEvent('body', 'mutation', null, null, dom, timestamp);
+                }
+            },
+
             checkTimer: function () {
-                this.checkDOM();
                 this.checkScroll();
+                // this.snapshotDOM();
                 this.startTimer();
             },
 
             getPath: function (node) {
-                if (!this.selgen) {
-                    // We don't want to generate selectors based on classes, because we make very heavy use of them,
-                    // and the library will do a querySelectorAll call to see if the selector it has generated is
-                    // unique, which would match a lot of elements and hence cause us to crawl.  Similarly for large
-                    // documents, the tag is not efficient.
-                    this.selgen = new CssSelectorGenerator({
-                        selectors: ['id', 'nthchild']
-                    });
+                if (node.get(0).tagName.toLowerCase() == 'body') {
+                    return('body');
                 }
 
-                return(this.selgen.getSelector(node.get(0)));
+                // We need this to be efficient, so we put an id on every element.
+                var id = node.attr('id');
+                var usableid = null;
+
+                if (!id) {
+                    id = 'eventtracking' + this.idCount++;
+                    node.attr('id', id);
+
+                    // We've just set this id, so we can't also use it as a target.  Find the closest element with
+                    // an id.
+                    var closest = node.parent().closest('[id]');
+                    if (closest.length > 0) {
+                        if (closest.get(0).tagName.toLowerCase() == 'body') {
+                            usableid = 'body';
+                        } else {
+                            usableid = '#' + closest.attr('id');
+                        }
+                    }
+                } else {
+                    usableid = '#' + id;
+                }
+
+                return(['#' + id, usableid ? usableid : 'body']);
             },
 
             start: function () {
                 var self = this;
 
-                if (detailed) {
-                    // Capture scrolls on the window
-                    $(window).scroll(function (e) {
-                        var scroll = $(window).scrollTop();
-                        self.trackEvent('window', 'scroll', null, null, scroll);
+                self.snapshotDOM();
+
+                // Capture scrolls on the window
+                $(window).scroll(function (e) {
+                    var scroll = $(window).scrollTop();
+                    self.trackEvent('window', 'scroll', null, null, scroll);
+                });
+
+                // Track mouse movements
+                (function () {
+                    var lastX = null;
+                    var lastY = null;
+                    var granularity = 10;
+
+                    $(document).mousemove(function (e) {
+                        if (Math.abs(lastX - e.pageX) > granularity || Math.abs(lastY - e.pageY) > granularity) {
+                            self.trackEvent('window', 'mousemove', e.pageX, e.pageY, null);
+
+                            lastX = e.pageX;
+                            lastY = e.pageY;
+                        }
                     });
+                })();
 
-                    // Track mouse movements
-                    (function () {
-                        var lastX = null;
-                        var lastY = null;
-                        var granularity = 10;
+                // Track mouse clicks
+                $(window).click(function (e) {
+                    self.trackEvent('window', 'click', e.pageX, e.pageY, null);
+                });
 
-                        $(document).mousemove(function (e) {
-                            if (Math.abs(lastX - e.pageX) > granularity || Math.abs(lastY - e.pageY) > granularity) {
-                                self.trackEvent('window', 'mousemove', e.pageX, e.pageY, null);
+                // Track input changes
+                $(window).on('keydown', _.bind(function(e) {
+                    var type = $(e.target).get(0).tagName.toLowerCase();
 
-                                lastX = e.pageX;
-                                lastY = e.pageY;
+                    if (type == 'input' || type == 'textarea' || type == 'select') {
+                        var val = $(e.target).val();
+                        if (val) {
+                            var path = self.getPath($(e.target))[0];
+                            self.trackEvent(path, 'input', e.pageX, e.pageY, val);
+                        }
+                    }
+                }, self));
+
+                // Monitor for DOM changes
+                try {
+                    self.mutationObserver = new MutationObserver(function(mutations) {
+                        // We might well get many mutations for the same target, for example when doing slideUp.  So
+                        // first scan to find the separate targets.
+                        var paths = [];
+                        _.each(mutations, function(mutation) {
+                            if (mutation.target) {
+                                // Get the paths (this sets up ids so we need to do it first).
+                                var path = self.getPath($(mutation.target));
+                                paths[path[0]] = [path, mutation.target];
                             }
                         });
-                    })();
+                        
+                        // Now scan 
+                        for (var key in paths) {
+                            var path = paths[key][0];
+                            var target = paths[key][1];
 
-                    // Track mouse clicks
-                    $(window).click(function (e) {
-                        self.trackEvent('window', 'click', e.pageX, e.pageY, null);
-                    });
+                            // Grab the HTML.  We can't use getWithValues because that does a clone, which in turn
+                            // causes more mutations.
+                            var timestamp = (new Date()).getTime();
+                            // Get the paths (this sets up ids so we need to do it first).
+                            //
+                            // First make sure there's an id on this target.
+                            var inputs = [].concat(
+                                Array.prototype.slice.call(target.getElementsByTagName('input'), 0),
+                                Array.prototype.slice.call(target.getElementsByTagName('textarea'), 0),
+                                Array.prototype.slice.call(target.getElementsByTagName('select'), 0));
 
-                    $(window).on('keydown', _.bind(function(e) {
-                        if ($(e.target).is('input')) {
-                            var val = $(e.target).val();
-                            if (val) {
-                                self.trackEvent(self.getPath($(e.target)), 'input', e.pageX, e.pageY, val);
+                            var inputvals = [];
+                            _.each(inputs, function(input) {
+                                var val = $(input).val();
+                                if (val) {
+                                    inputvals[self.getPath($(input))[0]] = val;
+                                }
+                            });
+
+                            // If we just set an id, then we can't use it as a path because it won't yet exist
+                            // in the DOM when we're replaying.  But the usable path returned will.
+                            //
+                            // Get the HTML - which will now include the ids.  It needs to, because subsquent
+                            // events use those to set values.
+                            if (path[1]) {
+                                var el = $(path[1]).get(0);
+                                
+                                if (!_.isUndefined(el)) {
+                                    var html = el.outerHTML;
+                                    self.trackEvent(path[1], 'mutation', null, null, html, timestamp);
+                                }
+                            }
+
+                            // Now pick up any input values within it.
+                            for (var path in inputvals) {
+                                self.trackEvent(path, 'input', null, null, inputvals[path], timestamp);
                             }
                         }
-                    }, self));
-                }
+                    });
+
+                    self.mutationObserver.observe($('body').get(0), {
+                        childList: true,
+                        attributes: true,
+                        subtree: true
+                    });
+                } catch (e) { console.log("Mutation start failed", e.message); }
 
                 flushTimerRunning = true;
                 window.setTimeout(_.bind(self.flushEventQueue, self), 5000);
