@@ -48,13 +48,13 @@ class notificationsTest extends IznikTestCase {
         $n = new Notifications($this->dbhr, $this->dbhm);
         error_log("Send Google");
         $n->add($id, Notifications::PUSH_GOOGLE, 'test');
-        assertEquals(1, $mock->notify($id, FALSE));
+        assertEquals(1, $mock->notify($id));
         error_log("Send Firefox");
         $n->add($id, Notifications::PUSH_FIREFOX, 'test2');
-        assertEquals(2, $n->notify($id, FALSE));
+        assertEquals(2, $n->notify($id));
         error_log("Send Android");
         $n->add($id, Notifications::PUSH_ANDROID, 'test3');
-        assertEquals(3, $n->notify($id, FALSE));
+        assertEquals(3, $n->notify($id));
 
         error_log(__METHOD__ . " end");
     }
