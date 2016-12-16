@@ -35,7 +35,6 @@ class ChatMessage extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
         $this->spamwords = $dbhr->preQuery("SELECT * FROM spam_keywords;");
-        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain = 'spam.wherever';");
     }
 
     /**

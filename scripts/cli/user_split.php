@@ -29,6 +29,30 @@ if (count($opts) < 1) {
             $uid2,
             $email
         ]);
+        $dbhm->preExec("UPDATE messages_history SET fromuser = ? WHERE fromaddr = ?;", [
+            $uid2,
+            $email
+        ]);
+
+        # Chats which reference the messages sent from that email must also be intended for the split user.
+        $chats = $dbhr->preQuery("SELECT DISTINCT chat_rooms.* FROM chat_rooms INNER JOIN chat_messages ON chat_messages.chatid = chat_rooms.id WHERE refmsgid IN (SELECT id FROM messages WHERE fromaddr = ?);", [
+            $email
+        ]);
+
+        foreach ($chats as $chat) {
+            if ($chat['user1'] == $uid) {
+                $dbhm->preExec("UPDATE chat_rooms SET user1 = ? WHERE id = ?;", [
+                    $uid2,
+                    $chat['id']
+                ]);
+            }
+            if ($chat['user2'] == $uid) {
+                $dbhm->preExec("UPDATE chat_rooms SET user2 = ? WHERE id = ?;", [
+                    $uid2,
+                    $chat['id']
+                ]);
+            }
+        }
 
         # We might have a name.
         $dbhm->preExec("UPDATE users SET fullname = (SELECT fromname FROM messages WHERE fromaddr = ? LIMIT 1) WHERE id = ?;", [
