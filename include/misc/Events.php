@@ -112,8 +112,11 @@ class Events {
             krsort($files);
 
             foreach ($files as $mod => $file) {
-                $fns[] = $file;
-                if (count($fns) > 100) { break; }
+                # Don't return very large sessions, which we can't really handle properly.
+                if (filesize(IZNIK_BASE . "/events/$file") < 10*1024*1024) {
+                    $fns[] = $file;
+                    if (count($fns) > 100) { break; }
+                }
             }
         }
 

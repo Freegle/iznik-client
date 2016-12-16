@@ -460,7 +460,7 @@ class Location extends Entity
         # Favour groups hosted by us if there's a tie.
         $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(poly)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE poly IS NOT NULL AND publish = 1 HAVING dist < ? AND dist IS NOT NULL ORDER BY dist ASC, external ASC LIMIT 10;";
         $groups = $this->dbhr->preQuery($sql, [ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ]);
-        error_log("Find near $sql " . var_export([ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ], TRUE));
+        #error_log("Find near $sql " . var_export([ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ], TRUE));
         $ret = [];
         foreach ($groups as $group) {
             if ($expand) {

@@ -109,8 +109,9 @@ define([
         render: function (options) {
             var self = this;
 
-            // Start event tracking.
-            if (monitor) {
+            // Start event tracking.  Don't do this for ModTools because it seems to kill performance on some
+            // low-end hardware, and we don't really need it.
+            if (monitor && !self.modtools) {
                 monitor.start();
             }
 
