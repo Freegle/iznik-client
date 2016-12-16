@@ -2542,10 +2542,8 @@ class Message
                 $sql = "INSERT IGNORE INTO messages_related (id1, id2) VALUES (?,?);";
                 $this->dbhm->preExec($sql, [ $this->id, $matchmsg['id']] );
 
-                error_log("Consider outcome {$this->type}");
                 if ($this->type == Message::TYPE_TAKEN || $this->type == Message::TYPE_RECEIVED) {
                     # Also record an outcome on the original message.
-                    error_log("REcord outcome");
                     $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
                         $matchmsg['id'],
                         $this->type == Message::TYPE_TAKEN ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED,
