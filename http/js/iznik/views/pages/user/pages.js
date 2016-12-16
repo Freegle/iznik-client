@@ -62,6 +62,10 @@ define([
         },
 
         getLocation: function() {
+            var self = this;
+            self.wait = new Iznik.Views.PleaseWait();
+            self.wait.render();
+
             navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
         },
 
@@ -321,6 +325,7 @@ define([
         gotLocation: function(position) {
             var self = this;
 
+
             $.ajax({
                 type: 'GET',
                 url: API + 'locations',
@@ -341,6 +346,8 @@ define([
                             self.$('.js-postcode').tooltip('destroy');
                         }, 20000);
                     }
+                }, complete: function() {
+                    self.wait.close();
                 }
             });
         },
