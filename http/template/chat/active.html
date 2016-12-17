@@ -42,8 +42,13 @@
 <div class="row-fluid">
     <div class="col-xs-12">
         <% if (obj.chattype == 'User2Mod') { %>
-        <div class="js-modwarning topspace alert alert-info">
+        <div class="js-chatwarning topspace alert alert-info">
             Our lovely volunteers have lives and are not online 24/7.  Please be patient until you receive a reply.
+        </div>
+        <% } else if (obj.chattype == 'Group') { %>
+        <div class="js-chatwarning topspace alert alert-info">
+            What you put on here will be seen by lots of people, so please don't put your phone number or details of
+            your love life.  Be nice!
         </div>
         <% } %>
     </div>

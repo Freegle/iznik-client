@@ -60,40 +60,6 @@ define([
 
         eventIndex: 0,
 
-        jump: function(e) {
-            var self = this;
-            var x = e.pageX - $('#replayBar').offset().left;
-            var fraction = x / $('#replayBar').width();
-            var time = self.clientStart + fraction * (self.clientEnd - self.clientStart);
-
-            this.eventIndex = 0;
-            var eventtime;
-            do {
-                eventtime = (new Date(this.replayEvents[this.eventIndex].clienttimestamp)).getTime();
-                if (eventtime > time) {
-                    this.eventIndex--;
-                    break;
-                } else {
-                    this.eventIndex++;
-                }
-            } while (true);
-
-            this.eventIndex = Math.max(0, this.eventIndex);
-
-            this.progress();
-
-            // Find any previous full DOM, and then play forwards until we get to this point, then pause.
-            this.pauseAt = this.eventIndex;
-            $('#replayHeader').addClass('showclicked');
-            this.paused = false;
-
-            while (this.eventIndex > 0 && this.replayEvents[this.eventIndex].event != 'DOM-f') {
-                this.eventIndex--;
-            }
-
-            this.playEvent();
-        },
-
         pause: function() {
             $('#js-pause').addClass('reallyHide');
             $('#js-play').removeClass('reallyHide');
@@ -190,131 +156,125 @@ define([
                 // Update time and progress
                 self.progress();
 
-                switch (event.event) {
-                    case 'DOM-f':
-                    {
-                        // Full DOM replace.
-                        self.replaceDOM(event.data);
-                        break;
-                    }
-
-                    case 'DOM-d':
-                    {
-                        // Diff on current DOM.
-                        if (self.currentDOM && !_.isUndefined(event.data) ) {
-                            var newdom = JsDiff.applyPatch(self.currentDOM, event.data);
-                            if (newdom) {
-                                self.replaceDOM(newdom);
+                try {
+                    switch (event.event) {
+                        case 'mutation':
+                        {
+                            if (event.target == 'body') {
+                                self.replaceDOM(event.data);
+                            } else {
+                                var target = (event.target == 'body') ? '#replayContent' : event.target;
+                                $(target).get(0).outerHTML = event.data;
                             }
+                            break;
                         }
 
-                        break;
-                    }
-
-                    case 'scroll': {
-                        $('body').scrollTo(parseInt(event.data));
-                        break;
-                    }
-
-                    case 'scrollpos': {
-                        var target = event.target.replace('html>body', '#replayContent');
-                        $(target).get(0).scrollTop = event.data;
-                        break;
-                    }
-
-                    case 'click':
-                    case 'focus': {
-                        // Don't actually click - just draw on the canvas to illustrate it.
-                        var canvas = document.getElementById('replayCanvas');
-                        var context = canvas.getContext('2d');
-                        var x = Math.round(parseInt(event.posx));
-                        var y = Math.round(parseInt(event.posy));
-
-                        function drawClick(context, x, y, oldradius, newradius, grow) {
-                            return (function () {
-                                // console.log("Draw click at", x, y);
-                                if (oldradius) {
-                                    // Wipe any previous one.
-                                    var old = context.globalCompositeOperation;
-                                    context.globalCompositeOperation = "destination-out";
-                                    context.beginPath();
-                                    context.arc(x, y, oldradius + 10, 0, Math.PI * 2, true);
-                                    context.fillStyle = "rgba(0,0,0,1)";
-                                    context.fill();
-                                    context.globalCompositeOperation = old;
-                                }
-
-                                // Draw the new one.
-                                context.beginPath();
-                                context.arc(x, y, newradius, 0, Math.PI * 2, true);
-                                context.fillStyle = 'red';
-                                context.fill();
-
-                                if (grow) {
-                                    if (newradius < 20) {
-                                        window.setTimeout(drawClick(context, x, y, newradius, newradius + 1, true), 100);
-                                    } else {
-                                        window.setTimeout(drawClick(context, x, y, newradius + 1, newradius, false), 100);
-                                    }
-                                } else {
-                                    if (newradius > 0) {
-                                        window.setTimeout(drawClick(context, x, y, newradius, newradius - 1, false), 100);
-                                    }
-                                }
-                            });
+                        case 'scroll': {
+                            $('body').scrollTo(parseInt(event.data));
+                            break;
                         }
 
-                        drawClick(context, x, y, 0, 0, true)();
+                        case 'scrollpos': {
+                            var target = (event.target == 'body') ? '#replayContent' : event.target;
+                            $(target).get(0).scrollTop = event.data;
+                            break;
+                        }
 
-                        break;
-                    }
-
-                    case 'mousemove': {
-                        // Mouse track - draw a line from the last one, then wipe it after a while.
-                        if (self.lastMouseX && self.lastMouseY) {
+                        case 'click':
+                        case 'focus': {
+                            // Don't actually click - just draw on the canvas to illustrate it.
                             var canvas = document.getElementById('replayCanvas');
                             var context = canvas.getContext('2d');
-                            context.beginPath();
-                            context.moveTo(self.lastMouseX, self.lastMouseY);
-                            context.lineTo(event.posx, event.posy);
-                            context.lineWidth = 5;
-                            context.globalAlpha = 0.5;
-                            context.strokeStyle = 'red';
-                            context.stroke();
+                            var x = Math.round(parseInt(event.posx));
+                            var y = Math.round(parseInt(event.posy));
 
-                            function wipe(context, lastMouseX, lastMouseY, posx, posy) {
+                            function drawClick(context, x, y, oldradius, newradius, grow) {
                                 return (function () {
-                                    //console.log("Wipe", lastMouseX, lastMouseY, posx, posy);
-                                    var old = context.globalCompositeOperation;
-                                    context.globalCompositeOperation = "destination-out";
-                                    context.strokeStyle = "rgba(0,0,0,1)";
-                                    context.beginPath();
-                                    context.moveTo(lastMouseX, lastMouseY);
-                                    context.lineTo(posx, posy);
-                                    context.lineWidth = 10;
-                                    context.globalAlpha = 1;
-                                    context.stroke();
+                                    // console.log("Draw click at", x, y);
+                                    if (oldradius) {
+                                        // Wipe any previous one.
+                                        var old = context.globalCompositeOperation;
+                                        context.globalCompositeOperation = "destination-out";
+                                        context.beginPath();
+                                        context.arc(x, y, oldradius + 10, 0, Math.PI * 2, true);
+                                        context.fillStyle = "rgba(0,0,0,1)";
+                                        context.fill();
+                                        context.globalCompositeOperation = old;
+                                    }
 
-                                    context.globalCompositeOperation = old;
+                                    // Draw the new one.
+                                    context.beginPath();
+                                    context.arc(x, y, newradius, 0, Math.PI * 2, true);
+                                    context.fillStyle = 'red';
+                                    context.fill();
+
+                                    if (grow) {
+                                        if (newradius < 20) {
+                                            window.setTimeout(drawClick(context, x, y, newradius, newradius + 1, true), 100);
+                                        } else {
+                                            window.setTimeout(drawClick(context, x, y, newradius + 1, newradius, false), 100);
+                                        }
+                                    } else {
+                                        if (newradius > 0) {
+                                            window.setTimeout(drawClick(context, x, y, newradius, newradius - 1, false), 100);
+                                        }
+                                    }
                                 });
                             }
 
-                            window.setTimeout(wipe(context, self.lastMouseX, self.lastMouseY, event.posx, event.posy), 5000);
+                            drawClick(context, x, y, 0, 0, true)();
+
+                            break;
                         }
 
-                        self.lastMouseX = event.posx;
-                        self.lastMouseY = event.posy;
+                        case 'mousemove': {
+                            // Mouse track - draw a line from the last one, then wipe it after a while.
+                            if (self.lastMouseX && self.lastMouseY) {
+                                var canvas = document.getElementById('replayCanvas');
+                                var context = canvas.getContext('2d');
+                                context.beginPath();
+                                context.moveTo(self.lastMouseX, self.lastMouseY);
+                                context.lineTo(event.posx, event.posy);
+                                context.lineWidth = 5;
+                                context.globalAlpha = 0.5;
+                                context.strokeStyle = 'red';
+                                context.stroke();
 
-                        break;
-                    }
+                                function wipe(context, lastMouseX, lastMouseY, posx, posy) {
+                                    return (function () {
+                                        //console.log("Wipe", lastMouseX, lastMouseY, posx, posy);
+                                        var old = context.globalCompositeOperation;
+                                        context.globalCompositeOperation = "destination-out";
+                                        context.strokeStyle = "rgba(0,0,0,1)";
+                                        context.beginPath();
+                                        context.moveTo(lastMouseX, lastMouseY);
+                                        context.lineTo(posx, posy);
+                                        context.lineWidth = 10;
+                                        context.globalAlpha = 1;
+                                        context.stroke();
 
-                    case 'input': {
-                        var target = event.target.replace('html>body', '#replayContent');
-                        $(target).focus();
-                        $(target).val(event.data);
-                        // console.log("Trigger", event.data, target);
-                        break;
+                                        context.globalCompositeOperation = old;
+                                    });
+                                }
+
+                                window.setTimeout(wipe(context, self.lastMouseX, self.lastMouseY, event.posx, event.posy), 5000);
+                            }
+
+                            self.lastMouseX = event.posx;
+                            self.lastMouseY = event.posy;
+
+                            break;
+                        }
+
+                        case 'input': {
+                            var target = (event.target == 'body') ? '#replayContent' : event.target;
+                            $(target).focus();
+                            $(target).val(event.data);
+                            break;
+                        }
                     }
+                } catch (e) {
+                    console.error("Event replay failed with", e.message, event.event, event.target);
                 }
 
                 if (self.pauseAt == self.eventIndex) {
@@ -433,7 +393,6 @@ define([
                 // Can't use backbone events because of the way we mess with the DOM.
                 $('#js-play').click(_.bind(self.play, self));
                 $('#js-pause').click(_.bind(self.pause, self));
-                $('#replayBar').click(_.bind(self.jump, self));
                 $('#js-forward').click(_.bind(self.forward, self));
                 $('#js-forward-off').click(_.bind(self.forwardOff, self));
 

@@ -349,6 +349,7 @@ define([
             var self = this;
             self.$('.js-getloc').tooltip('destroy');
 
+
             $.ajax({
                 type: 'GET',
                 url: API + 'locations',
@@ -369,6 +370,8 @@ define([
                             self.$('.js-postcode').tooltip('destroy');
                         }, 20000);
                     }
+                }, complete: function() {
+                    self.wait.close();
                 }
             });
         },

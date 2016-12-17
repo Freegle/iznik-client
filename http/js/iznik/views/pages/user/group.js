@@ -38,12 +38,8 @@ define([
                 return(false);
             } else {
                 if (filttype == 'All' || filttype == thetype) {
-                    // Only show an offer which has not been taken or wanted not received.
-                    var paired = _.where(model.get('related'), {
-                        type: thetype == 'Offer' ? 'Taken' : 'Received'
-                    });
-
-                    return (paired.length == 0);
+                    // Only show a search result for active posts.
+                    return (model.get('outcomes').length == 0);
                 } else {
                     // This type is filtered out
                     return(false);
