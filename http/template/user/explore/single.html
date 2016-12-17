@@ -1,3 +1,19 @@
+<div itemscope itemtype="http://www.schema.org/RecyclingCenter" style="display: none">
+    <div itemprop="name" content="{{namedisplay}}" />
+    <div itemprop="image" content="<% if (obj.profile) { %>{{obj.profile}}<% } else { %>/images/user_logo.png<% } %>" />
+    <time itemprop="openingHours" datetime="Mo-Su" style="display: none">Monday through Sunday, all day</time>
+    <div itemprop="priceRange" content="0" />
+    <div itemprop="currenciesAccepted" content="GBP" />
+    <div itemprop="address" content="Peer to Peer Online Service" />
+    <div itemprop="areaServed" itemtype="GeoShape" content="{{obj.rawpolygon}}" />
+    <div itemprop="brand" itemtype="Freegle" />
+    <div itemprop="foundingDate" content="{{founded}}" />
+    <div itemprop="parentOrganization" itemscope itemtype="http://schema.org/Organization">
+        <a itemprop="url" href="https://www.ilovefreegle.org">
+            <span itemprop="name">Freegle</span>
+        </a>
+    </div>
+</div>
 <div class="panel panel-white">
     <div class="row">
         <% if (obj.profile) { %>
