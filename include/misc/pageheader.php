@@ -135,7 +135,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
                 daysReminder: 90, // days to hide banner after "VIEW" button is clicked (defaults to 90)
                 appStoreLanguage: 'us', // language code for the App Store (defaults to user's browser language)
                 title: 'Freegle',
-                author: 'Freegle',
+                author: 'Freegle UK',
                 button: 'VIEW',
                 store: {
                     ios: 'On the App Store',
