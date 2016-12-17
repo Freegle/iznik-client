@@ -104,9 +104,14 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <meta name="format-detection" content="telephone=no">
     <link rel="manifest" href="/manifest.json">
     <meta property="og:url" content="<?php get_current_url(); ?>">
+
     <?php if (defined('IOS_APPID')) { ?>
         <meta name="apple-itunes-app" content="app-id=<?php echo IOS_APPID; ?>" />
     <?php } ?>
+    <?php if (defined('ANDROID_APPID')) { ?>
+    <meta name="google-play-app" content="app-id=<?php echo ANDROID_APPID; ?>">
+    <?php } ?>
+
     <meta name="apple-mobile-web-app-capable" content="yes" />
 
     <?php
@@ -117,8 +122,33 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     $version = $version ? $version : 0;
     echo "<meta name=\"iznikcache\" content=\"$version\" >\n";
     ?>
-    
+
+    <link rel="stylesheet" href="css/smart-app-banner.css?a=1" type="text/css" media="screen">
+    <script src="/js/lib/smart-app-banner.js"></script>
     <script type="text/javascript">
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+        if (/android/i.test(userAgent)) {
+            // SmartBanner to encourage people to install the apps.  IOS has it natively.
+            new SmartBanner({
+                daysHidden: 15,   // days to hide banner after close button is clicked (defaults to 15)
+                daysReminder: 90, // days to hide banner after "VIEW" button is clicked (defaults to 90)
+                appStoreLanguage: 'us', // language code for the App Store (defaults to user's browser language)
+                title: 'Freegle',
+                author: 'Freegle',
+                button: 'VIEW',
+                store: {
+                    ios: 'On the App Store',
+                    android: 'In Google Play'
+                },
+                price: {
+                    ios: 'FREE',
+                    android: 'FREE'
+                },
+                icon: '/images/user_logo.png'
+            });
+        }
+
         // Start a timer to reload if we fail to get the page rendered.  Do this now as any JS errors might prevent
         // us doing it later.  This is a last resort so the timer can be long.
         window.setTimeout(function() {

@@ -372,3 +372,4 @@ function strip_tags (input, allowed) { // eslint-disable-line camelcase
 }
 
 function nullFn() {}
+
