@@ -104,7 +104,10 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <meta name="format-detection" content="telephone=no">
     <link rel="manifest" href="/manifest.json">
     <meta property="og:url" content="<?php get_current_url(); ?>">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <?php if (defined('IOS_APPID')) { ?>
+        <meta name="apple-itunes-app" content="app-id=<?php echo IOS_APPID; ?>" />
+    <?php } ?>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
 
     <?php
     # We use require on the client, and we want to avoid caching code after it has changed.  Find out when the
