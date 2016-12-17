@@ -107,7 +107,7 @@ function showNetworkStatus() {
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
 if (typeof alllog === 'undefined') {
-    var alllog = "";    // TODOCC
+    var alllog = "<p>Log started: "+(new Date()).toISOString()+"</p>";    // TODOCC
 }
 var logtog = false;
 
@@ -137,7 +137,22 @@ require([
         // Something has gone unpleasantly wrong.
         console.error("Backbone failed to fetch");
         panicReload();
-	  }
+    }
+
+    var entityMap = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': '&quot;',
+        "'": '&#39;',
+        "/": '&#x2F;'
+    };
+
+    function escapeHtml(string) {
+        return String(string).replace(/[&<>"'\/]/g, function (s) {
+            return entityMap[s];
+        });
+    }
 
 	  var oldconsolelog = console.log;  // TODOCC http://stackoverflow.com/questions/1215392/how-to-quickly-and-conveniently-disable-all-console-log-statements-in-my-code
 	  console.log = function () {
@@ -149,6 +164,7 @@ require([
 	          }
 	          msg += arg+' ';
 	      }
+	      msg = escapeHtml(msg);
 	      if (logtog) {
 	          msg = "<div style='background-color:#aaa;'>" + msg + "</div>";
 	      } else {
@@ -340,7 +356,7 @@ require([
         });
 
         mobilePush.on('error', function (e) {
-            alert("error: " + e.message);
+            alert("push error: " + e.message);
         });
     }
 

@@ -35,9 +35,20 @@ define([
                 }
 
                 // Force reload of window to clear any data.
-                Router.mobileReload('/'); // CC
+                //Router.mobileReload('/'); // CC
             }
-        })
+        });
+
+        //var logoutYahooUrl = 'https://login.yahoo.com/config/login?logout=1';
+        var logoutYahooUrl = 'https://uk.yahoo.com/';
+        var authWindow = cordova.InAppBrowser.open(logoutYahooUrl, '_blank', 'location=yes,menubar=yes');
+        /*console.log('Yahoo logout start');
+        $.ajax({    // CC
+            url: logoutYahooUrl,
+            success: function (ret) { console.log('Yahoo logout OK'); },
+            error: function (ret) { console.log('Yahoo logout error'); },
+        });*/
+
     }
 
     Iznik.Views.Page = Iznik.View.extend({

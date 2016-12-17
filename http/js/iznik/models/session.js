@@ -201,6 +201,8 @@ define([
             try {
                 sess = localStorage.getItem('session');
                 if (sess) {
+                    console.log("testLoggedIn: OK");
+                    //console.log(sess.substring(0,30));
                     parsed = JSON.parse(sess);
                 }
             } catch (e) {
@@ -255,6 +257,7 @@ define([
                             var now = (new Date()).getTime();
                             try {
                                 localStorage.setItem('session', JSON.stringify(ret));
+                                console.log("Save session: " + JSON.stringify(ret).substring(0, 0));
                                 lastloggedinas = localStorage.getItem('lastloggedinas');
                                 localStorage.setItem('lastloggedinas', ret.me.id);
                                 localStorage.setItem('myemail', ret.me.email);
@@ -688,7 +691,7 @@ define([
                     console.log("checkYahooCookies not OK");
                     self.getYahooCookies();
                 } catch (e) {
-                    consoole.log(e.message);
+                    console.log(e.message);
                 }
             }
             $.ajax({

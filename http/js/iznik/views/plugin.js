@@ -358,12 +358,16 @@ define([
             this.count = count;
         },
     
-        checkPluginStatus: function() {
+        checkPluginStatus: function () {
+            console.log("checkPluginStatus");
+            var e = new Error();
+            console.log(e.stack);
             var self = this;
     
             function checkResponse(self) {
-                return(function(ret) {
+                return (function (ret) {
                     if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
+                        console.log("checkResponse OK");
                         $('.js-pluginonly').show();
                         $('#js-loginbuildup').fadeOut('slow');
     
@@ -387,6 +391,8 @@ define([
                             $('#js-pluginconnected2').fadeIn('slow');
                         });
                     } else {
+                        console.log("checkResponse not OK");
+                        //console.log(ret.substring(0,100));
                         $('.js-pluginonly').hide();
     
                         if (self.connected) {
@@ -666,8 +672,9 @@ define([
                                 url: 'https://groups.yahoo.com/api/v1/user/groups/all',
                                 success: checkResponse(self),
                                 error: checkResponse(self),
-                                complete: function() {
-                                    window.setTimeout(_.bind(self.checkPluginStatus, self), 10000); // TODOCC 
+                                complete: function () {
+                                    console.log("majax get all complete");
+                                    window.setTimeout(_.bind(self.checkPluginStatus, self), 20000); // TODOCC 
                                 }
                             });
                         }
