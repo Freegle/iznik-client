@@ -153,7 +153,7 @@ define([
                             self.locButton();
                         }
 
-                        self.$('.js-nogroups').fadeIn('slow');
+                        self.$('.js-nogroup').fadeIn('slow');
                     });
                 });
             });
