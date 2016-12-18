@@ -849,10 +849,7 @@ class MailRouter
                                     # The email address that we replied from might not currently be attached to the
                                     # other user, for example if someone has email forwarding set up.  So make sure we
                                     # have it.
-                                    $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') :
-                                        $r->getPrivate('user1');
-                                    $otheru = User::get($this->dbhr, $this->dbhm, $other);
-                                    $otheru->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
+                                    $u->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
 
                                     # Now add this into the conversation as a message.  This will notify them.
                                     $textbody = $this->msg->stripQuoted();

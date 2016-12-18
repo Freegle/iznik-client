@@ -206,12 +206,8 @@ define([
                             // Not interested in this type of message.
                             return(false);
                         } else {
-                            // Only show a search result for an offer which has not been taken or wanted not received.
-                            var paired = _.where(model.get('related'), {
-                                type: thetype == 'Offer' ? 'Taken' : 'Received'
-                            });
-
-                            return (paired.length == 0);
+                            // Only show a search result for active posts.
+                            return (model.get('outcomes').length == 0);
                         }
                     },
                     collection: self.collection

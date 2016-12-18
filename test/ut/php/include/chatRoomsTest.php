@@ -179,10 +179,11 @@ class chatRoomsTest extends IznikTestCase {
         # Once more for luck - this time won't even check this chat.
         assertEquals(0, $r->notifyByEmail($id,  ChatRoom::TYPE_USER2USER));
         
-        # Now send an email reply to this notification.
+        # Now send an email reply to this notification, but from a different email.  That email should
+        # get attached to the correct user.
         $msg = $this->unique(file_get_contents('msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-        $mid = $mr->received(Message::EMAIL, 'from@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
+        $mid = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         assertEquals(MailRouter::TO_USER, $rc);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
@@ -191,6 +192,15 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals(ChatMessage::TYPE_DEFAULT, $msgs[1]['type']);
         assertEquals("Ok, here's a reply.", $msgs[1]['message']);
         assertEquals($u2, $msgs[1]['userid']);
+        $u = User::get($this->dbhr, $this->dbhm, $u1);
+        $u1emails = $u->getEmails();
+        error_log("U1 emails " . var_export($u1emails, TRUE));
+        assertEquals(2, count($u1emails));
+        $u = User::get($this->dbhr, $this->dbhm, $u2);
+        $u2emails = $u->getEmails();
+        error_log("U2 emails " . var_export($u2emails, TRUE));
+        assertEquals(3, count($u2emails));
+        assertEquals('from2@test.com', $u2emails[1]['email']);
 
         error_log(__METHOD__ . " end");
     }

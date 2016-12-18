@@ -16,15 +16,22 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 
 error_log("Purge main logs");
 
+try {
 # Non-Freegle groups only keep data for 31 days.
-$start = date('Y-m-d', strtotime("midnight 31 days ago"));
-error_log("Non-Freegle logs");
-$total = 0;
-do {
-    $count = $dbhm->exec("DELETE FROM logs WHERE `timestamp` < '$start' AND groupid IS NOT NULL AND groupid IN (SELECT id FROM groups WHERE type != 'Freegle') LIMIT 1000;");
-    $total += $count;
-    error_log("...$total");
-} while ($count > 0);
+    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+    error_log("Non-Freegle logs");
+    $groups = $dbhr->preQuery("SELECT id FROM groups WHERE type != 'Freegle';");
+    foreach ($groups as $group) {
+        $total = 0;
+        do {
+            $count = $dbhm->exec("DELETE FROM logs WHERE `timestamp` < '$start' AND groupid IS NOT NULL AND groupid = ? LIMIT 1000;", $group['id']);
+            $total += $count;
+            error_log("...$total");
+        } while ($count > 0);
+    }
+} catch (Exception $e) {
+    error_log("Failed to delete non-Freegle logs " . $e->getMessage());
+}
 
 # In the main logs table we might have logs that can be removed once enough time has elapsed for us using them for PD.
 $start = date('Y-m-d', strtotime("midnight 7 days ago"));
@@ -51,26 +58,38 @@ $keys = [
 $start = date('Y-m-d', strtotime("midnight 1 day ago"));
 error_log("Purge detailed logs before $start");
 
-error_log("Plugin logs:");
-$total = 0;
-do {
-    $count = $dbhm->exec("DELETE FROM logs WHERE `timestamp` < '$start' AND TYPE = 'Plugin' LIMIT 1000;");
-    $total += $count;
-    error_log("...$total");
-} while ($count > 0);
+try {
+    error_log("Plugin logs:");
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM logs WHERE `timestamp` < '$start' AND TYPE = 'Plugin' LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete Plugin logs " . $e->getMessage());
+}
 
-error_log("API logs:");
-$total = 0;
-do {
-    $count = $dbhm->exec("DELETE FROM logs_api WHERE `date` < '$start' LIMIT 1000;");
-    $total += $count;
-    error_log("...$total");
-} while ($count > 0);
+try {
+    error_log("API logs:");
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM logs_api WHERE `date` < '$start' LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete API logs " . $e->getMessage());
+}
 
-error_log("SQL logs:");
-$total = 0;
-do {
-    $count = $dbhm->exec("DELETE FROM logs_sql WHERE `date` < '$start' LIMIT 1000;");
-    $total += $count;
-    error_log("...$total");
-} while ($count > 0);
+try {
+    error_log("SQL logs:");
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM logs_sql WHERE `date` < '$start' LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete SQL logs " . $e->getMessage());
+}

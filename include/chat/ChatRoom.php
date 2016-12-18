@@ -355,12 +355,14 @@ class ChatRoom extends Entity
         $chatids = $this->listForUser($userid, $chattypes, NULL, FALSE, $modtools);
         $ret = [];
 
-        foreach ($chatids as $chatid) {
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-            if ($r->unseenCountForUser($userid) > 0) {
-                $sql = "SELECT * FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
-                $msgs = $this->dbhr->preQuery($sql, [$chatid, $userid, $chatid, $userid]);
-                $ret = array_merge($ret, $msgs);
+        if ($chatids) {
+            foreach ($chatids as $chatid) {
+                $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+                if ($r->unseenCountForUser($userid) > 0) {
+                    $sql = "SELECT * FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
+                    $msgs = $this->dbhr->preQuery($sql, [$chatid, $userid, $chatid, $userid]);
+                    $ret = array_merge($ret, $msgs);
+                }
             }
         }
 

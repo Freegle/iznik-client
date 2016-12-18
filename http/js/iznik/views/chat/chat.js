@@ -4,11 +4,12 @@ define([
     'backbone',
     'iznik/base',
     'autosize',
+    'moment',
     'iznik/models/chat/chat',
     'iznik/models/message',
     'jquery-resizable',
     'jquery-visibility'
-], function ($, _, Backbone, Iznik, autosize) {
+], function ($, _, Backbone, Iznik, autosize, moment) {
     // This is a singleton view.
     var instance;
 
@@ -917,14 +918,44 @@ define([
 
         keyUp: function (e) {
             var self = this;
-            if (e.which === 13 && (e.altKey || e.shiftKey)) {
-                this.$('.js-message').val(this.$('.js-message').val() + "\n");
-            } else if (e.which === 13) {
-                this.send();
+            var enterSend = null;
+            try {
+                enterSend = localStorage.getItem('chatentersend');
+                if (enterSend !== null) {
+                    enterSend = parseInt(enterSend);
+                }
+            } catch (e) {};
+
+            if (e.which === 13) {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-            }
+
+                if (e.altKey || e.shiftKey || enterSend === 0) {
+                    // They've used the alt/shift trick, or we know they don't want to send.
+                    self.$('.js-message').val(self.$('.js-message').val() + "\n");
+                } else  {
+                    if (enterSend !== 0 && enterSend !== 1) {
+                        // We don't know what they want it to do.  Ask them.
+                        var v = new Iznik.Views.Chat.Enter();
+                        self.listenToOnce(v, 'modalClosed', function() {
+                            // Now we should know.
+                            try {
+                                enterSend = parseInt(localStorage.getItem('chatentersend'));
+                            } catch (e) {};
+
+                            if (enterSend) {
+                                self.send();
+                            } else {
+                                self.$('.js-message').val(self.$('.js-message').val() + "\n");
+                            }
+                        });
+                        v.render();
+                    } else {
+                        self.send();
+                    }
+                }
+            }  
         },
 
         getLatestMessages: function() {
@@ -1117,11 +1148,6 @@ define([
             // Tell the server now, in case they navigate away before the next roster timer.
             self.updateRoster(self.statusWithOverride('Online'), self.noop, true);
 
-            // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
-            // then revert.
-            _.delay(function () {
-                self.$('.chat-message-unseen').removeClass('chat-message-unseen');
-            }, 5000)
             this.updateCount();
         },
 
@@ -1177,7 +1203,9 @@ define([
             self.$('textarea').css('max-height', maxinpheight);
             self.$('textarea').css('min-height', mininpheight);
 
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - this.$('.js-modwarning').outerHeight() - 20;
+            var chatwarning = this.$('.js-chatwarning');
+            var warningheight = chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight();
+            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - warningheight - 20;
             // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
@@ -1328,10 +1356,12 @@ define([
                 self.trigger('restored');
             });
 
-            self.$('.js-modwarning').show();
+            self.$('.js-chatwarning').show();
 
             window.setTimeout(_.bind(function () {
-                this.$('.js-modwarning').slideUp('slow');
+                this.$('.js-chatwarning').slideUp('slow', _.bind(function() {
+                    this.adjust();
+                }, this));
             }, self), 30000);
 
             if (!self.windowResizeListening) {
@@ -1733,6 +1763,9 @@ define([
                 this.model.set('group', group);
                 this.model.set('myid', myid);
 
+                var d = Math.floor(moment().diff(moment(self.model.get('date'))) / 1000);
+                self.model.set('secondsago', d);
+
                 // Decide if this message should be on the left or the right.
                 //
                 // For group messages, our messages are on the right.
@@ -1802,6 +1835,13 @@ define([
                     }
                     self.$('.timeago').timeago();
                     self.$('.timeago').show();
+
+                    // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
+                    // then revert.
+                    _.delay(_.bind(function () {
+                        this.$('.chat-message-unseen').removeClass('chat-message-unseen');
+                    }, self), 60000);
+
                     self.$el.fadeIn('slow');
                 });
             } else {
@@ -1843,6 +1883,29 @@ define([
         }
     });
 
+    Iznik.Views.Chat.Enter = Iznik.Views.Modal.extend({
+        template: 'chat_enter',
+        
+        events: {
+            'click .js-send': 'send',
+            'click .js-newline': 'newline'
+        },
+        
+        send: function() {
+            try {
+                localStorage.setItem('chatentersend', 1);
+            } catch (e) {}
+            this.close();
+        },
+        
+        newline: function() {
+            try {
+                localStorage.setItem('chatentersend', 0);
+            } catch (e) {}
+            this.close();
+        }
+    });
+    
     Iznik.Views.Chat.Report = Iznik.Views.Modal.extend({
         template: 'chat_report',
 

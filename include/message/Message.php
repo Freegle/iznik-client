@@ -2369,6 +2369,10 @@ class Message
         $p = strpos($textbody, '________________________________');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # A reply from us.
+        $p = strpos("You can respond by just replying to this email");
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # Or we might have this, for example from GMail:
         #
         # On Sat, May 14, 2016 at 2:19 PM, Edward Hibbert <
@@ -2393,6 +2397,7 @@ class Message
         # Get rid of sigs
         $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my .*smartphone./ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from EE.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my Samsung device.*/ms', '', $textbody);
@@ -2536,6 +2541,18 @@ class Message
                 #error_log("Best match {$matchmsg['subject']}");
                 $sql = "INSERT IGNORE INTO messages_related (id1, id2) VALUES (?,?);";
                 $this->dbhm->preExec($sql, [ $this->id, $matchmsg['id']] );
+
+                if ($this->type == Message::TYPE_TAKEN || $this->type == Message::TYPE_RECEIVED) {
+                    # Also record an outcome on the original message.
+                    $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
+                        $matchmsg['id'],
+                        $this->type == Message::TYPE_TAKEN ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED,
+                        NULL,
+                        NULL,
+                        $this->getTextbody()
+                    ]);
+                }
+
                 $found++;
             }
         }
@@ -2736,7 +2753,6 @@ class Message
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
-        error_log("Atts " . var_export($atts, TRUE));
         $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
         #error_log("Items " . var_export($items, TRUE));
 

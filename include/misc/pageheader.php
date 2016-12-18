@@ -20,13 +20,14 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         if ($gid) {
             $g = Group::get($dbhr, $dbhm, $gid);
             $atts = $g->getPublic();
+            $groupdescdef = "Give and Get Stuff for Free on {$atts['namedisplay']}";
             ?>
             <title><?php echo $atts['namedisplay']; ?></title>
             <meta itemprop="title" content="<?php echo $atts['namedisplay']; ?>"/>
-            <meta itemprop="description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
-            <meta name="description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
+            <meta itemprop="description" content="<?php echo presdef('tagline', $atts, $groupdescdef) ; ?>"/>
+            <meta name="description" content="<?php echo presdef('tagline', $atts, $groupdescdef) ; ?>"/>
             <meta property="og:title" content="<?php echo $atts['namedisplay']; ?>"/>
-            <meta property="og:description" content="<?php echo presdef('tagline', $atts, SITE_DESC) ; ?>"/>
+            <meta property="og:description" content="<?php echo presdef('tagline', $atts, $groupdescdef) ; ?>"/>
             <meta property="og:image" content="<?php echo presdef('profile', $atts, USERLOGO); ?>"/>
             <?php
         }
@@ -103,7 +104,10 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <meta name="format-detection" content="telephone=no">
     <link rel="manifest" href="/manifest.json">
     <meta property="og:url" content="<?php get_current_url(); ?>">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <?php if (defined('IOS_APPID')) { ?>
+        <meta name="apple-itunes-app" content="app-id=<?php echo IOS_APPID; ?>" />
+    <?php } ?>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
 
     <?php
     # We use require on the client, and we want to avoid caching code after it has changed.  Find out when the
@@ -214,7 +218,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=10"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=128"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=129"><?php
     }
     ?>
 
