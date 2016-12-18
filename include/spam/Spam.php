@@ -154,7 +154,6 @@ class Spam {
 
         # Check if this is a greetings spam.
         $text = $msg->getTextbody();
-        error_log($text);
         if (stripos($text, 'http')) {
             error_log("Got http");
             $p = strpos($text, "\n");
