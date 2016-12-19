@@ -159,6 +159,7 @@ define([
 
                             var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
                             mod.set('groupid', group.id);
+
                             var v = new Iznik.Views.ModTools.User({
                                 model: mod
                             });
@@ -167,21 +168,23 @@ define([
                                 self.$('.js-user').append(v.el);
                             });
 
-                            // The Yahoo part of the user
-                            var mod = IznikYahooUsers.findUser({
-                                email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
-                                group: group.nameshort,
-                                groupid: group.id
-                            });
+                            if (group.onyahoo) {
+                                // The Yahoo part of the user
+                                var mod = IznikYahooUsers.findUser({
+                                    email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
+                                    group: group.nameshort,
+                                    groupid: group.id
+                                });
 
-                            mod.fetch().then(function () {
-                                var v = new Iznik.Views.ModTools.Yahoo.User({
-                                    model: mod
+                                mod.fetch().then(function () {
+                                    var v = new Iznik.Views.ModTools.Yahoo.User({
+                                        model: mod
+                                    });
+                                    v.render().then(function (v) {
+                                        self.$('.js-yahoo').html(v.el);
+                                    });
                                 });
-                                v.render().then(function (v) {
-                                    self.$('.js-yahoo').html(v.el);
-                                });
-                            });
+                            }
                         });
 
                         self.addOtherInfo();
