@@ -967,6 +967,8 @@ define([
                     // This is the membership we're after
                     var mod = new Iznik.Model(member);
                     self.model = mod;
+                    var group = Iznik.Session.getGroup(self.options.groupid);
+                    self.model.set('group', group);
                     p = Iznik.Views.ModTools.Member.Freegle.prototype.render.call(self);
                 }
             });

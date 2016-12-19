@@ -18,7 +18,7 @@ class Dashboard {
         $this->stats = new Stats($dbhr, $dbhm);
     }
 
-    public function get($systemwide, $allgroups, $groupid, $type) {
+    public function get($systemwide, $allgroups, $groupid, $type, $start = '30 days ago') {
         $groupids = [];
 
         # Get the possible groups.
@@ -43,7 +43,7 @@ class Dashboard {
             }
         }
 
-        $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids);
+        $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids, $start);
 
         if ($groupid) {
             # For specific groups we return info about when mods were last active.

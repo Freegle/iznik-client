@@ -5,6 +5,8 @@
         <a data-realurl="true" target="_blank" href="mailto:{{nameshort}}-owner@yahoogroups.com">
             <span class="glyphicon glyphicon-envelope" />
         </a>
+        <br />
+        <span class="text-muted">#{{id}}</span>
     </div>
     <div class="col-md-1 js-date">
     </div>
@@ -30,12 +32,20 @@
             <option data-content="<span class='glyphicon glyphicon-calendar'></span>&nbsp;Event Mails Off" value="0">Event Mails Off</option>
         </select>
         <br />
+        <% if (obj.onyahoo) { %>
         <select class="form-control botspace js-yahoodelivery" data-style="btn-white" disabled="true">
             <option data-content="<img src='/images/yahoo.png' class='smallicon' />Daily Digest " value="DIGEST">Daily Digest</option>
             <option data-content="<img src='/images/yahoo.png' class='smallicon' />Web Only " value="NONE">Web Only</option>
             <option data-content="<img src='/images/yahoo.png' class='smallicon' />Individual Emails " value="SINGLE">Individual Emails</option>
             <option data-content="<img src='/images/yahoo.png' class='smallicon' />Special Notices " value="ANNOUNCEMENT">Special Notices</option>
         </select>
+        <% } else { %>
+        <select class="form-control js-ourpostingstatus" data-style="btn-white">
+            <option data-content="<img src='/images/heart_empty.png' />&nbsp;Moderated " value="MODERATED">Moderated</option>
+            <option data-content="<img src='/images/heart_empty.png' />&nbsp;Group Settings " value="DEFAULT">Group Settings</option>
+        </select>
+        <input type="text" class="form-control js-onholidaytill datepicker" disabled="true" style="display: none"/>
+        <% } %>
     </div>
     <div class="col-md-3">
         <% if (role == 'Member') { %>

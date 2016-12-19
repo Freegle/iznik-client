@@ -2370,7 +2370,7 @@ class Message
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
         # A reply from us.
-        $p = strpos("You can respond by just replying to this email");
+        $p = strpos($textbody, "You can respond by just replying to this email");
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
         # Or we might have this, for example from GMail:
@@ -2722,17 +2722,21 @@ class Message
 
     public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL) {
         $ret = $this->s->search($string, $context, $limit, $restrict, $groups);
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
 
-        if (count($ret) > 0) {
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me ? $me->getId() : NULL;
-
-            if ($myid) {
-                $maxid = $ret[0]['id'];
-                $s = new UserSearch($this->dbhr, $this->dbhm);
-                $s->create($myid, $maxid, $string, $locationid);
-            }
+        if (count($ret) > 0 && $myid) {
+            $maxid = $ret[0]['id'];
+            $s = new UserSearch($this->dbhr, $this->dbhm);
+            $s->create($myid, $maxid, $string, $locationid);
         }
+
+        $this->dbhm->preExec("INSERT INTO search_history (userid, term, locationid, groups) VALUES (?, ?, ?, ?);", [
+            $myid,
+            $string,
+            $locationid,
+            $groups ? implode(',', $groups) : NULL
+        ]);
 
         return($ret);
     }

@@ -1,0 +1,72 @@
+<div class="panel panel-white">
+    <div class="row">
+        <% if (obj.profile) { %>
+        <div class="col-xs-2">
+            <img src="{{obj.profile}}" class="img-thumbnail img-rounded" />
+        </div>
+        <% } %>
+        <% if (obj.profile) { %>
+        <div class="col-xs-8">
+            <% } else { %>
+            <div class="col-xs-10">
+                <% } %>
+                <h1 class="js-pagetitle">
+                    {{namedisplay}} - Statistics
+                </h1>
+                <p class="text-larger">{{obj.tagline}}</p>
+                <div class="text-muted">
+                <span class="js-founded">
+                    Founded <span class="js-foundeddate" />.
+                </span>
+                    <span class="js-membercount" /> current freeglers.
+                </div>
+            </div>
+            <div class="col-xs-2">
+                <br />
+                <div class="btn btn-success pull-right margright js-join" style="display: none;">
+                    <div class="glyphicon glyphicon-plus" /><span class="topspace">&nbsp;Join</span>
+                </div>
+                <div class="btn btn-white pull-right margright js-leave" style="display: none;">
+                    <div class="glyphicon glyphicon-trash" /><span class="topspace">&nbsp;Leave</span>
+                </div>
+            </div>
+        </div>
+        <div class="row js-gotdesc" style="display: none">
+            <div class="col-xs-12">
+                <hr />
+                <div class="padleft groupdescription js-description" />
+                <br class="clearfix" />
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <h3>Activity</h3>
+        <p>
+            This includes people OFFERing something, posting a WANTED for something, or searching for
+            something.
+        </p>
+        <div class="js-messagegraph" />
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <h3>Outcomes</h3>
+        <p>Here you can see how often people give away something, or get what they are looking for.</p>
+        <p>We only know when people tell us, though, so this tends to be an underestimate.</p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <h3>Weights</h3>
+        <p>This is an estimate of the weight of items we have diverted from the waste stream.</p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <h3>Members</h3>
+        <p>Here you can see how many members are on the group.</p>
+        <div class="js-membergraph" />
+    </div>
+</div>

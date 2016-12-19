@@ -148,6 +148,7 @@ define([
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
+            "stats/:id": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
             "communityevent(/:id)": "userCommunityEvent",
             "newuser": "newUser",
@@ -514,6 +515,17 @@ define([
 
             require(["iznik/views/pages/user/explore"], function() {
                 var page = new Iznik.Views.User.Pages.Explore();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStatsGroup: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stats"], function() {
+                var page = new Iznik.Views.User.Pages.StatsGroup({
+                    id: id
+                });
                 self.loadRoute({page: page});
             });
         },

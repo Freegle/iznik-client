@@ -102,7 +102,7 @@ define([
                 self.collection = new Iznik.Collections.Group();
                 self.collection.fetch({
                     data: {
-                        grouptype: 'Freegle'
+                        grouptype: 'Freegle',
                     }
                 }).then(function() {
                     if (!self.options.region) {
@@ -187,7 +187,7 @@ define([
                             self.locButton();
                         }
 
-                        self.$('.js-nogroups').fadeIn('slow');
+                        self.$('.js-nogroup').fadeIn('slow');
                     });
                 });
             });
@@ -493,9 +493,20 @@ define([
             // Create the model.  If the id is a legacy group id then it will be corrected in the model we fetch,
             // so we shouldn't use the options.id after this.
             self.model = new Iznik.Models.Group({ id: self.options.id });
-            var p = self.model.fetch();
+            var p = self.model.fetch({
+                data: {
+                    polygon: true
+                }
+            });
             p.then(function() {
                 self.title = self.model.get('namedisplay');
+
+                // We want the raw polygon data for structured data.
+                var poly = self.model.get('polygon');
+                if (poly) {
+                    self.model.set('rawpolygon', poly.replace('POLYGON((', '').replace('))', ''));
+                }
+
                 Iznik.Views.User.Pages.Group.prototype.render.call(self).then(function () {
                     self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
 

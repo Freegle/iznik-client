@@ -79,6 +79,14 @@ class statsTest extends IznikTestCase {
         assertEquals($gid, $m->getGroups()[0]);
         error_log("Created message $id on $gid");
 
+        # Need to be a mod to see all.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
         # Now generate stats for today
         $s = new Stats($this->dbhr, $this->dbhm, $gid);
         $date = date ("Y-m-d", strtotime("today"));
@@ -94,7 +102,7 @@ class statsTest extends IznikTestCase {
         assertEquals([ 'DIGEST' => 1 ], $stats['YahooDeliveryBreakdown']);
         assertEquals([ 'MODERATED' => 1 ], $stats['YahooPostingBreakdown']);
 
-        $multistats = $s->getMulti($date, [ $gid ], "tomorrow");
+        $multistats = $s->getMulti($date, [ $gid ], "30 days ago", "tomorrow");
         var_dump($multistats);
         assertEquals([
             [

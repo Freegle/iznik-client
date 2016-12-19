@@ -457,12 +457,11 @@ class Group extends Entity
                 }
             } else {
                 # Groups we host only use a single email.
+                $email = $u->getEmailPreferred();
                 foreach ($emails as $anemail) {
-                    if (strpos($anemail['email'], USER_DOMAIN ) !== FALSE) {
-                        $email = $anemail['email'];
+                    if ($anemail['email'] != $email) {
+                        $others[] = $anemail;
                     }
-
-                    $others[] = $anemail;
                 }
             }
 
@@ -512,7 +511,7 @@ class Group extends Entity
         $ctxq = $ctx == NULL ? "" : " messages_outcomes.id < {$ctx['id']} AND ";
 
         $sql = "SELECT messages_outcomes.*, messages.fromuser, memberships.groupid FROM memberships INNER JOIN messages ON messages.fromuser = memberships.userid INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.groupid = memberships.groupid INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE $ctxq $groupq ORDER BY messages_outcomes.timestamp DESC LIMIT 10;";
-        error_log("Get happiness $sql");
+        #error_log("Get happiness $sql");
         $members = $this->dbhr->preQuery($sql);
 
         foreach ($members as $member) {
