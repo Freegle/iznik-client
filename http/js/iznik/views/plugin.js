@@ -113,6 +113,7 @@ define([
 
                     var count = self.collection.length; // CC
                     $("#js-work2").text(count + " work item(s)");
+                    console.log("plugin render " + count + " work item(s)");
 
                     // Update our count when the number of work items changes.
                     self.listenTo(self.collection, 'add remove', self.updatePluginCount);
@@ -307,6 +308,10 @@ define([
     
         checkWork: function() {
             var self = this;
+
+            var count = self.collection.length; // CC
+            $("#js-work2").text(count + " work item(s)");
+            console.log("plugin checkWork " + count + " work item(s)");
     
             if (self.connected) {
                 // Get any first item of work to do.
@@ -366,6 +371,10 @@ define([
     
             function checkResponse(self) {
                 return (function (ret) {
+                    console.log("plugin typeof ret=" + typeof ret);
+                    if (typeof ret == "string") {
+                        console.log("plugin ret=" + ret.substring(0,50));
+                    }
                     if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
                         console.log("checkResponse OK");
                         $('.js-pluginonly').show();

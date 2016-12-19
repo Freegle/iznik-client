@@ -554,7 +554,7 @@ define([
         // Flow is:
         //  - we may have persistent session so try logging in at MT
         //  - if not, log in options are shown
-        //  - if Yahoo chosen then come back to yahooLogin() here
+        //  - if Yahoo chosen then come back to yahooMTLogin() here
         //  - this tries MT session log in again
         //  - if ret==1 then we have redirect info to pass to yahooAuth() here
         //  - yahooAuth shows InAppBrowser to show Yahoo login to user
@@ -576,8 +576,8 @@ define([
         // http://stackoverflow.com/questions/17228785/yahoo-authentication-by-oauth-without-any-redirectionclient-side-is-it-possib
         //  - looked at: OpenID solution uses window.open https://gist.github.com/erikeldridge/619947
 
-        yahooLogin: function () {
-            console.log("Login with Yahoo");
+        yahooMTLogin: function () {
+            console.log("yahooMTLogin");
             var self = this;
 
             if (tryingYahooLogin) { return; }
@@ -618,7 +618,7 @@ define([
 
         yahooAuth: function (yauthurl) {   // CC
           var self = this;
-          console.log("Yahoo authenticate window open");
+          console.log("yahooAuth: Yahoo authenticate window open");
           console.log(yauthurl);
 
           var authGiven = false;
@@ -683,6 +683,11 @@ define([
             // If we've already got cookies then this will work
             function checkResponse(ret) {
                 try{
+                    console.log("session typeof ret=" + typeof ret);
+                    if (typeof ret == "string") {
+                        console.log("session ret=" + ret.substring(0, 50));
+                    }
+
                     if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
                         gotYahooCookies = true;
                         console.log("checkYahooCookies OK");
@@ -734,7 +739,7 @@ define([
                         console.log(params);
                         var yahooCookies = params[0];
                         localStorage.setItem('yahoo.cookies', yahooCookies);
-                        getBodyAndClose();
+                        //getBodyAndClose();
                     }
                     wGetGroups.executeScript({ code: jsReturnCookies }, cbReturnCookies);
                 } else {

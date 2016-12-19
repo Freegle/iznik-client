@@ -162,7 +162,7 @@ define([
                 var messagetitle, spamtitle, domaintitle;
                 var p = Iznik.Views.Page.prototype.render.call(this);
                 p.then(function(self) {
-                    // Get Yahoo login info
+                    // Get Yahoo login info // CC
                     var email = localStorage.getItem('yahoo.email');
                     var fullname = localStorage.getItem('yahoo.fullname');
 

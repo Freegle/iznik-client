@@ -41,6 +41,8 @@ define([
         },
 
         sync: function () {
+            console.log("members_approved.sync");
+            console.log("members_approved.sync " + group.get('nameshort'));
             var group = Iznik.Session.getGroup(this.selected)
             IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
                 id: group.get('nameshort') + '.SyncMessages.Approved',

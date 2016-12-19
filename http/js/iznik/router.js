@@ -677,6 +677,7 @@ define([
 
         yahoologin: function (path) {
             var self = this;
+            console.log("router.yahoologin");
 
             // We have been redirected here after an attempt to sign in with Yahoo.  We now try again to login
             // on the server.  This time we should succeed.
@@ -691,11 +692,12 @@ define([
                     }
                 } else {
                     // TODO
+                    console.log("router.yahoologin window.location = '/'");
                     window.location = '/';
                 }
             });
 
-            Iznik.Session.yahooLogin();
+            Iznik.Session.yahooMTLogin();
         },
 
         modtools: function () {

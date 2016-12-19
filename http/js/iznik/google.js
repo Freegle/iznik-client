@@ -51,6 +51,7 @@ define([
 
         signInButton: function (id) {
             try {
+                console.log("google.signInButton");
                 var self = this;
                 self.buttonId = id;
                 self.scopes = "profile email";

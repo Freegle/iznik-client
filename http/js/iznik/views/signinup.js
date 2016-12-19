@@ -53,6 +53,7 @@ define([
         },
 
         signin: function () {
+            console.log("signinup.signin");
             var self = this;
             self.$('.js-signinerror').hide();
 
@@ -90,6 +91,7 @@ define([
         },
 
         signup: function () {
+            console.log("signinup.signup");
             var self = this;
             self.$('.js-signinerror').hide();
             $.ajax({
@@ -120,6 +122,7 @@ define([
         },
 
         fblogin: function () {
+            console.log("signinup.fblogin");
             var self = this;
 
             var FBLoad = new Iznik.Views.FBLoad();
@@ -127,6 +130,8 @@ define([
         },
 
         yahoologin: function () {
+            console.log("signinup.yahoologin");
+
             if (navigator.connection.type === Connection.NONE) {  // CC
                 console.log("No connection - please try again later.");
                 $('.js-signin-msg').text("No internet connection - please try again later");
@@ -134,7 +139,7 @@ define([
                 return;
             }
 
-            Iznik.Session.yahooLogin();
+            Iznik.Session.yahooMTLogin();
         },
 
         showNative: function () {

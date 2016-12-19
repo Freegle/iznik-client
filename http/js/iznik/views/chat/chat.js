@@ -450,7 +450,7 @@ define([
                 this.showMin();
 
                 if (mobilePush) {
-                    mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
+                    // CC Not in MT mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
                     /*var msg = new Date();
                     msg = msg.toLocaleTimeString() + " C " + unseen + "<br/>";
                     badgeconsole += msg;
