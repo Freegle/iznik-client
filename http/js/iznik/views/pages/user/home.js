@@ -571,25 +571,29 @@ define([
         },
 
         render: function() {
+            var self = this;
+            
             var p = Iznik.View.prototype.render.call(this);
+            self.$el.hide();
 
-            p.then(function() {
-                $.ajax({
-                    url: API + 'item',
-                    data: {
-                        'weightless': true
-                    },
-                    context: this,
-                    success: function(ret) {
-                        if (ret.ret == 0 && ret.item.id) {
-                            this.id = ret.item.id;
-                            this.$('.js-item').html(ret.item.name);
-                        } else {
-                            this.$el.hide();
+            // Do this after a delay so that the rest of the page loads.
+            _.delay(function() {
+                p.then(function() {
+                    $.ajax({
+                        url: API + 'item',
+                        data: {
+                            'weightless': true
+                        },
+                        success: function(ret) {
+                            if (ret.ret == 0 && ret.item.id) {
+                                self.id = ret.item.id;
+                                self.$('.js-item').html(ret.item.name);
+                                self.$el.fadeIn(10000);
+                            }
                         }
-                    }
+                    });
                 });
-            });
+            }, 5000);
 
             return(p);
         }
