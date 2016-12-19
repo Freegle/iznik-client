@@ -773,7 +773,7 @@ define([
                         console.log("Mod on Yahoo but not server", serverMissing);
                         console.log("Mod on server but but not Yahoo", yahooMissing);
                         console.log("NameToId", nameToId);
-                        console.log("Session", Iznik.Session);
+                        //console.log("Session", Iznik.Session);
     
                         // If we're a mod on the server but not on Yahoo, then we need to demote ourselves.  But
                         // doing this might cause us to lose groups if we log in with multiple Yahoo IDs.  So we

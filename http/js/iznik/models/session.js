@@ -637,6 +637,7 @@ define([
                 authGiven = true;
                 urlParams.yahoologin = true;
                 console.log(urlParams);
+                alert(JSON.stringify(urlParams));
                 var email = urlParams['openid.ax.value.email'];
                 var fullname = urlParams['openid.ax.value.fullname'];
                 localStorage.setItem('yahoo.email', email);

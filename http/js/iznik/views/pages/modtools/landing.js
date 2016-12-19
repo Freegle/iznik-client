@@ -161,9 +161,36 @@ define([
             render: function() {
                 var messagetitle, spamtitle, domaintitle;
                 var p = Iznik.Views.Page.prototype.render.call(this);
-                p.then(function(self) {
+                p.then(function (self) {
+                    console.log("landing.render");
+                    new majax({
+                        type: "GET",
+                        url: "https://groups.yahoo.com/neo",
+                        success: function (ret) {
+                            var re = /data-userid="(.*?)"/g;
+                            var matches = re.exec(ret);
+
+                            if (matches && matches.length > 0 && matches[0].length > 0) {
+                                var yid = matches[1];
+                                var p = yid.indexOf('@');
+                                yid = p == -1 ? yid : yid.substring(0, p);
+                                console.log("landing.render success " + yid);
+                                self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + yid + ".");
+                                Iznik.Session.set('loggedintoyahooas', yid);
+
+                            } else {
+                                console.log("landing.render fail");
+                                self.$('.js-yahooinfo').html("You aren't logged in to Yahoo.");
+                                Iznik.Session.unset('loggedintoyahooas');
+                            }
+                        }, error: function () {
+                            self.$('.js-yahooinfo').html("You aren't connected to Yahoo.");
+                            Iznik.Session.unset('loggedintoyahooas');
+                        }
+                    });
+
                     // Get Yahoo login info // CC
-                    var email = localStorage.getItem('yahoo.email');
+                    /*var email = localStorage.getItem('yahoo.email');
                     var fullname = localStorage.getItem('yahoo.fullname');
 
                     if (email) {
@@ -172,7 +199,7 @@ define([
                     } else {
                         self.$('.js-yahooinfo').html("You aren't logged in to Yahoo.");
                         //Iznik.Session.unset('loggedintoyahooas');
-                    }
+                    }*/
 
 
                     self.$('.js-grouptype').selectPersist();
