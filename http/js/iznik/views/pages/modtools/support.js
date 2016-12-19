@@ -864,6 +864,30 @@ define([
                 self.$('.js-eventsenabled').val(self.model.get('eventsenabled'));
                 self.$('.js-yahoodelivery').val(self.model.get('yahooDeliveryType'));
 
+                self.$('.js-ourpostingstatus').val(self.model.get('ourpostingstatus'));
+                self.$('.js-role').val(self.model.get('role'));
+
+                self.$('.datepicker').datepicker({
+                    format: 'D, dd MM yyyy',
+                    startDate: '0d',
+                    endDate: '+30d'
+                });
+
+                var onholiday = self.model.get('onholidaytill');
+
+                self.$(".js-switch").bootstrapSwitch({
+                    onText: 'Paused',
+                    offText: 'On',
+                    state: onholiday != undefined
+                });
+
+                if (onholiday && onholiday != undefined && onholiday != "1970-01-01T00:00:00Z") {
+                    self.$('.js-onholidaytill').show();
+                    self.$('.datepicker').datepicker('setUTCDate', new Date(onholiday));
+                } else {
+                    self.$('.js-onholidaytill').hide();
+                }
+
                 self.waitDOM(self, function() {
                     self.$('select').selectpicker();
                 });

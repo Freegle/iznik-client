@@ -352,27 +352,29 @@ define([
                             })
                         }
 
-                        // Delay getting the Yahoo info slightly to improve apparent render speed.
-                        _.delay(function () {
-                            // The Yahoo part of the user
-                            var mod = IznikYahooUsers.findUser({
-                                email: self.model.get('email'),
-                                group: group.get('nameshort'),
-                                groupid: group.get('id')
-                            });
-
-                            mod.fetch().then(function () {
-                                // We don't want to show the Yahoo joined date because we have our own.
-                                mod.unset('date');
-                                var v = new Iznik.Views.ModTools.Yahoo.User({
-                                    model: mod
+                        if (group.get('onyahoo')) {
+                            // Delay getting the Yahoo info slightly to improve apparent render speed.
+                            _.delay(function () {
+                                // The Yahoo part of the user
+                                var mod = IznikYahooUsers.findUser({
+                                    email: self.model.get('email'),
+                                    group: group.get('nameshort'),
+                                    groupid: group.get('id')
                                 });
 
-                                v.render().then(function(v) {
-                                    self.$('.js-yahoo').html(v.el);
-                                })
-                            });
-                        }, 200);
+                                mod.fetch().then(function () {
+                                    // We don't want to show the Yahoo joined date because we have our own.
+                                    mod.unset('date');
+                                    var v = new Iznik.Views.ModTools.Yahoo.User({
+                                        model: mod
+                                    });
+
+                                    v.render().then(function(v) {
+                                        self.$('.js-yahoo').html(v.el);
+                                    })
+                                });
+                            }, 200);
+                        }
 
                         // Add the default standard actions.
                         var configs = Iznik.Session.get('configs');

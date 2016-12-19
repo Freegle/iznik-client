@@ -19,9 +19,15 @@ if (count($opts) == 0) {
 
         # Create phantomjs script which loads the page, and then waits until a time has passed during which there have
         # been no new network requests.  That tells us that the page has loaded.
+        #
+        # Have a tall viewport because for pages with infinite scrolling this will fetch a decent amount of data.
         $src = "
                 var page = new WebPage();
                 page.settings.userAgent = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:16.0) Gecko/20120815 Firefox/16.0';
+                page.viewportSize = {
+                  width: 1366,
+                  height: 4000
+                };                
                 var fs = require('fs');
                 var requests = 0;
                 
@@ -36,6 +42,10 @@ if (count($opts) == 0) {
                 page.onResourceRequested = function(request) {
                     console.log('Requested', request.url);
                     requests++;
+                };
+                
+                page.onConsoleMessage = function(msg, lineNum, sourceId) {
+                    console.log('CONSOLE: ' + msg + ' (from line #' + lineNum + ' in \"' + sourceId + '\")');
                 };
                 
                 page.onLoadFinished = function(status) {
@@ -76,14 +86,11 @@ if (count($opts) == 0) {
             ";
 
         file_put_contents($job_file, $src);
-        exec("phantomjs --ssl-protocol=tlsv1 $job_file");
+        $op = [];
+        exec("phantomjs --ssl-protocol=tlsv1 $job_file 2>&1", $op);
         $html = file_get_contents($file_name);
         $title = file_get_contents("$file_name.title");
         $desc = file_get_contents("$file_name.description");
-        unlink($file_name);
-        unlink("$file_name.title");
-        unlink("$file_name.description");
-        unlink($job_file);
 
         if ($html && strlen($html) > 100) {
             $rc = $dbhm->preExec("UPDATE prerender SET html = ?, title = ?, description = ? WHERE id = ?;", [
@@ -96,8 +103,12 @@ if (count($opts) == 0) {
             } else {
                 error_log("...failed to save");
             }
+            unlink($file_name);
+            unlink("$file_name.title");
+            unlink("$file_name.description");
+            unlink($job_file);
         } else {
-            error_log("...failed to fetch");
+            error_log("...failed to fetch " . implode("\n", $op));
         }
     }
 }

@@ -68,6 +68,8 @@ function group() {
                     $ret['group']['facebook'] =  $atts;
                 }
 
+                $ret['group']['polygon'] = presdef('polygon', $_REQUEST, FALSE) ? $g->getPrivate('poly') : NULL;
+
                 break;
             }
 

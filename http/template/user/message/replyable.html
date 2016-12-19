@@ -1,3 +1,18 @@
+<div itemscope itemtype="http://www.schema.org/<% if (obj.type == 'Offer') { %>Offer<% } else { %>Demand<% } %>" style="display: none">
+    <% if (obj.postcode) { %>
+    <div itemprop="areaServed" itemtype="postalCode" content="{{postcode.name}}" />
+    <% } %>
+    <div itemprop="name" content="<%-subject%>" />
+    <div itemprop="itemCondition" content="UsedCondition" />
+    <% if (obj.type == 'Offer') { %>
+    <div itemprop="price" content="0" />
+    <div itemprop="priceCurrency" content="GBP" />
+    <% } %>
+    <div itemprop="availability" content="<% if (obj.outcomes) { %>LimitedAvailability<% } else { %>OutOfStock<% } %>" />
+    <% if (obj.attachments && attachments.length > 0) { %>
+    <div itemprop="image" content="{{attachments[0]['path']}}" />
+    <% } %>
+</div>
 <div class="nomargin panel panel-success">
     <div class="panel-heading nopad clearfix">
         <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
