@@ -8,9 +8,11 @@ function item() {
 
     $id = presdef('id', $_REQUEST, NULL);
     $typeahead = presdef('typeahead', $_REQUEST, NULL);
+    $weightless = presdef('weightless', $_REQUEST, NULL);
+    $weight = presdef('weight', $_REQUEST, NULL);
     $i = new Item($dbhr, $dbhm, $id);
 
-    if ($id && $i->getId() || $_REQUEST['type'] == 'POST' || $typeahead) {
+    if ($id && $i->getId() || $_REQUEST['type'] == 'POST' || $typeahead || $weightless) {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 if ($typeahead) {
@@ -19,6 +21,22 @@ function item() {
                         'status' => 'Success',
                         'items' => $i->typeahead($typeahead)
                     ];
+                } else if ($weightless) {
+                    $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
+
+                    if ($me) {
+                        $ret = [ 'ret' => 2, 'status' => 'None left' ];
+                        $id = $i->getWeightless($me->getId());
+                        error_log("Got weightless id $id");
+
+                        if ($id) {
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                                'item' => (new Item($dbhr, $dbhm, $id))->getPublic()
+                            ];
+                        }
+                    }
                 } else {
                     $ret = [
                         'ret' => 0,
@@ -65,6 +83,9 @@ function item() {
             case 'PATCH': {
                 if (!$me) {
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
+                } else if ($weight && $id) {
+                    $i->setWeight($me->getId(), intval($weight));
+                    $ret = ['ret' => 0, 'status' => 'Success'];
                 } else {
                     $systemrole = $me->getPublic()['systemrole'];
                     if ($systemrole != User::SYSTEMROLE_MODERATOR &&

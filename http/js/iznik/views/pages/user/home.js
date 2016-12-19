@@ -222,6 +222,12 @@ define([
                     $('#js-eventcontainer').append(v.$el);
                 });
 
+                // Right menu has requests for weight info
+                var w = new Iznik.Views.User.Home.Weightless();
+                w.render().then(function () {
+                    $('#js-weightless').append(w.$el);
+                });
+
                 // Searches
                 self.searches = new Iznik.Collections.User.Search();
 
@@ -534,6 +540,58 @@ define([
                     }
                 }
             });
+        }
+    });
+
+    Iznik.Views.User.Home.Weightless = Iznik.View.extend({
+        template: "user_home_weightless",
+
+        events: {
+            'click .js-send': 'send'
+        },
+
+        send: function() {
+            var weight = this.$('.js-weight').val();
+
+            if (weight > 0) {
+                $.ajax({
+                    url: API + 'item',
+                    type: 'PATCH',
+                    context: this,
+                    data: {
+                        id: self.id,
+                        weight: weight
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            this.render();
+                        }
+                    }
+                });
+            }
+        },
+
+        render: function() {
+            var p = Iznik.View.prototype.render.call(this);
+
+            p.then(function() {
+                $.ajax({
+                    url: API + 'item',
+                    data: {
+                        'weightless': true
+                    },
+                    context: this,
+                    success: function(ret) {
+                        if (ret.ret == 0 && ret.item.id) {
+                            this.id = ret.item.id;
+                            this.$('.js-item').html(ret.item.name);
+                        } else {
+                            this.$el.hide();
+                        }
+                    }
+                });
+            });
+
+            return(p);
         }
     });
 });
