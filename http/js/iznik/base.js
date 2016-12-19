@@ -191,7 +191,7 @@ define([
                                         // Don't cache stuff that's too big, otherwise we'll hit our local storage limit.
                                         localStorage.setItem(key, data);
                                         localStorage.setItem(key + '.time', (new Date()).getTime());
-                                        console.log("Stored length", key, localStorage.getItem(key).length);
+                                        // console.log("Stored length", key, localStorage.getItem(key).length);
                                     } else {
                                         // We can't cache this, as it's too big.  Remove any previously cached data
                                         // which might be below this limit, as otherwise it will persist forever and

@@ -46,33 +46,47 @@ class Dashboard {
         $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids, $start);
 
         if ($groupid) {
-            # For specific groups we return info about when mods were last active.
-            $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner');", [ $groupid ]);
-            $active = [];
-            foreach ($mods as $mod) {
-                # A mod counts as active if they perform activity for this group on here, or if we know that they have
-                # approved a message (which might be on Yahoo).
-                $logs = $this->dbhr->preQuery("SELECT MAX(timestamp) AS lastactive FROM logs WHERE groupid = ? AND byuser = ?;", [ $groupid, $mod['userid']] );
-                $lastactive = $logs[0]['lastactive'];
+            if ($this->me && $this->me->isModerator()) {
+                # For specific groups we return info about when mods were last active.
+                $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner');", [ $groupid ]);
+                $active = [];
+                foreach ($mods as $mod) {
+                    # A mod counts as active if they perform activity for this group on here, or if we know that they have
+                    # approved a message (which might be on Yahoo).
+                    $logs = $this->dbhr->preQuery("SELECT MAX(timestamp) AS lastactive FROM logs WHERE groupid = ? AND byuser = ?;", [ $groupid, $mod['userid']] );
+                    $lastactive = $logs[0]['lastactive'];
 
-                if (!$lastactive) {
-                    $approved = $this->dbhr->preQuery("SELECT MAX(arrival) AS lastactive FROM messages_groups WHERE groupid = ? AND approvedby = ?;", [ $groupid, $mod['userid']] );
-                    $lastactive = $approved[0]['lastactive'];
+                    if (!$lastactive) {
+                        $approved = $this->dbhr->preQuery("SELECT MAX(arrival) AS lastactive FROM messages_groups WHERE groupid = ? AND approvedby = ?;", [ $groupid, $mod['userid']] );
+                        $lastactive = $approved[0]['lastactive'];
+                    }
+
+                    $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
+
+                    $active[$mod['userid']] = [
+                        'displayname' => $u->getName(),
+                        'lastactive' => $lastactive ? ISODate($lastactive) : NULL
+                    ];
                 }
 
-                $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
+                usort($active, function($mod1, $mod2) {
+                    return(strcmp($mod2['lastactive'], $mod1['lastactive']));
+                });
 
-                $active[$mod['userid']] = [
-                    'displayname' => $u->getName(),
-                    'lastactive' => $lastactive ? ISODate($lastactive) : NULL
-                ];
+                $ret['modinfo'] = $active;
             }
 
-            usort($active, function($mod1, $mod2) {
-                return(strcmp($mod2['lastactive'], $mod1['lastactive']));
-            });
+            # We also want to get the recent outcomes, where we know them.
+            $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
+            foreach ([Message::TYPE_OFFER, Message::TYPE_WANTED] as $type) {
+                $outcomes = $this->dbhr->preQuery("SELECT messages_outcomes.outcome, COUNT(*) AS count FROM messages_groups INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid WHERE messages_groups.arrival >= ? AND groupid = ? AND msgtype = ? GROUP BY outcome;", [
+                    $mysqltime,
+                    $groupid,
+                    $type
+                ]);
 
-            $ret['modinfo'] = $active;
+                $ret['Outcomes'][$type] = $outcomes;
+            }
         }
 
         return($ret);
