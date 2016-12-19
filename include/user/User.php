@@ -941,6 +941,7 @@ class User extends Entity
             }
             $login['added'] = ISODate($login['added']);
             $login['lastaccess'] = ISODate($login['lastaccess']);
+            $login['uid'] = '' . $login['uid'];
         }
 
         return($logins);
@@ -2745,8 +2746,8 @@ class User extends Entity
                 list($msgs, $users) = $r->getMessages(100, 0);
 
                 if (count($msgs) > 0) {
-                    $message = substr($msgs[0]['message'], 0, 256);
-                    $message = strlen($msgs[0]['message']) > 256 ? "$message..." : $message;
+                    $message = presdef('message', $msgs[0], "You have a message");
+                    $message = strlen($message) > 256 ? (substr($message, 0, 256) . "...") : $message;
                 }
             } else if ($count > 1) {
                 $title = "You have $count new messages.";

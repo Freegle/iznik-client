@@ -25,6 +25,8 @@ class Stats
     CONST FEEDBACK_HAPPY = 'Happy';
     CONST FEEDBACK_FINE = 'Fine';
     CONST FEEDBACK_UNHAPPY = 'Unhappy';
+    CONST SEARCHES = 'Searches';
+    CONST ACTIVITY = 'Activity';
 
     CONST TYPE_COUNT = 1;
     CONST TYPE_BREAKDOWN = 2;
@@ -36,7 +38,7 @@ class Stats
         $this->groupid = $groupid;
     }
 
-    private function setCount($date, $type, $val)
+    public function setCount($date, $type, $val)
     {
         $this->dbhm->preExec("REPLACE INTO stats (date, groupid, type, count) VALUES (?, ?, ?, ?);",
             [
@@ -61,13 +63,16 @@ class Stats
     public function generate($date)
     {
         # Counts are a specific day
-        $this->setCount($date, Stats::APPROVED_MESSAGE_COUNT,
-            $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messageid)) AS count FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE groupid = ? AND DATE(messages.arrival) = ? AND collection = ?;",
-                [
-                    $this->groupid,
-                    $date,
-                    MessageCollection::APPROVED
-                ])[0]['count']);
+        $activity = 0;
+        $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messageid)) AS count FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE groupid = ? AND DATE(messages.arrival) = ? AND collection = ?;",
+            [
+                $this->groupid,
+                $date,
+                MessageCollection::APPROVED
+            ])[0]['count'];
+        $activity += $count;
+        $this->setCount($date, Stats::APPROVED_MESSAGE_COUNT, $count);
+
         $this->setCount($date, Stats::APPROVED_MEMBER_COUNT,
             $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND DATE(added) <= ? AND collection = ?;",
                 [
@@ -194,6 +199,26 @@ class Stats
         }
 
         $this->setBreakdown($date, Stats::OUR_POSTING_BREAKDOWN, json_encode($srcs));
+
+        # Searches need a bit more work.  We're looking for searches which hit this group.
+        $searches = $this->dbhr->preQuery("SELECT * FROM search_history WHERE DATE(date) = ?;", [
+            $date
+        ]);
+
+        $count = 0;
+        foreach ($searches as $search) {
+            if ($search['groups']) {
+                $groups = explode(',', $search['groups']);
+                if (in_array($this->groupid, $groups)) {
+                   $count++;
+                }
+            }
+        }
+
+        $activity += $count;
+        $this->setCount($date, Stats::SEARCHES, $count);
+
+        $this->setCount($date, Stats::SEARCHES, $activity);
     }
 
     public function get($date)
@@ -208,6 +233,8 @@ class Stats
                 Stats::FEEDBACK_FINE => 0,
                 Stats::FEEDBACK_HAPPY => 0,
                 Stats::FEEDBACK_UNHAPPY => 0,
+                Stats::SEARCHES => 0,
+                Stats::ACTIVITY => 0,
                 Stats::MESSAGE_BREAKDOWN => [],
                 Stats::POST_METHOD_BREAKDOWN => [],
                 Stats::YAHOO_DELIVERY_BREAKDOWN => [],
@@ -224,6 +251,8 @@ class Stats
                 case Stats::FEEDBACK_HAPPY:
                 case Stats::FEEDBACK_UNHAPPY:
                 case Stats::SPAM_MEMBER_COUNT:
+                case Stats::SEARCHES:
+                case Stats::ACTIVITY:
                     $ret[$stat['type']] = $stat['count'];
                     break;
                 case Stats::MESSAGE_BREAKDOWN:
@@ -238,16 +267,39 @@ class Stats
         return ($ret);
     }
 
-    function getMulti($date, $groupids, $enddate = "today") {
+    function getMulti($date, $groupids, $startdate = "30 days ago", $enddate = "today") {
         # Get stats across multiple groups.
-        #
-        # Stats we want a value for each of the last month.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
         $ret = [];
         $ret['groupids'] = $groupids;
-        $start = date('Y-m-d', strtotime("30 days ago", strtotime($date)));
+        $start = date('Y-m-d', strtotime($startdate, strtotime($date)));
         $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
 
-        foreach ([Stats::APPROVED_MESSAGE_COUNT, Stats::APPROVED_MEMBER_COUNT, Stats::SPAM_MESSAGE_COUNT, Stats::SPAM_MEMBER_COUNT, Stats::SUPPORTQUERIES_COUNT, Stats::FEEDBACK_HAPPY, Stats::FEEDBACK_FINE, Stats::FEEDBACK_UNHAPPY] as $type) {
+        $types = [
+            Stats::APPROVED_MESSAGE_COUNT,
+            Stats::APPROVED_MEMBER_COUNT,
+            Stats::SEARCHES,
+            Stats::ACTIVITY
+        ];
+
+        if ($me && $me->isModerator()) {
+            # Mods can see more info.
+            $types = [
+                Stats::APPROVED_MESSAGE_COUNT,
+                Stats::APPROVED_MEMBER_COUNT,
+                Stats::SPAM_MESSAGE_COUNT,
+                Stats::SPAM_MEMBER_COUNT,
+                Stats::SUPPORTQUERIES_COUNT,
+                Stats::FEEDBACK_HAPPY,
+                Stats::FEEDBACK_FINE,
+                Stats::FEEDBACK_UNHAPPY,
+                Stats::SEARCHES,
+                Stats::ACTIVITY
+            ];
+        }
+
+        foreach ($types as $type) {
             $ret[$type] = [];
 
             $counts = $this->dbhr->preQuery("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ? GROUP BY date;",
@@ -256,6 +308,7 @@ class Stats
                     $end,
                     $type
                 ]);
+
             foreach ($counts as $count) {
                 $ret[$type][] = [ 'date' => $count['date'], 'count' => $count['count']];
             }
@@ -265,7 +318,18 @@ class Stats
         # data for today.
         $start = date('Y-m-d', strtotime("yesterday", strtotime($date)));
 
-        foreach ([Stats::MESSAGE_BREAKDOWN, Stats::POST_METHOD_BREAKDOWN, Stats::YAHOO_POSTING_BREAKDOWN, Stats::YAHOO_DELIVERY_BREAKDOWN] as $type) {
+        $types = [ Stats::MESSAGE_BREAKDOWN ];
+
+        if ($me && $me->isModerator()) {
+            $types = [
+                Stats::MESSAGE_BREAKDOWN,
+                Stats::POST_METHOD_BREAKDOWN,
+                Stats::YAHOO_POSTING_BREAKDOWN,
+                Stats::YAHOO_DELIVERY_BREAKDOWN
+            ];
+        }
+
+        foreach ($types as $type) {
             $ret[$type] = [];
 
             $sql = "SELECT breakdown FROM stats WHERE date = ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ?;";

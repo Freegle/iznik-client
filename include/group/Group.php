@@ -457,12 +457,11 @@ class Group extends Entity
                 }
             } else {
                 # Groups we host only use a single email.
+                $email = $u->getEmailPreferred();
                 foreach ($emails as $anemail) {
-                    if (strpos($anemail['email'], USER_DOMAIN ) !== FALSE) {
-                        $email = $anemail['email'];
+                    if ($anemail['email'] != $email) {
+                        $others[] = $anemail;
                     }
-
-                    $others[] = $anemail;
                 }
             }
 

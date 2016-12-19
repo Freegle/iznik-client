@@ -33,6 +33,20 @@ class userSearchAPITest extends IznikAPITestCase {
     public function __construct() {
     }
 
+    public function testSpecial() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('user', 'GET', [
+            'search' => 'hellsauntie@uwclub.net'
+        ]);
+
+        error_log("Got " . var_export($ret, TRUE));
+    }
+
     public function testCreateDelete() {
         error_log(__METHOD__);
 

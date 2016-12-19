@@ -86,7 +86,10 @@ function filterResult(&$array, $skip = NULL) {
                 # not least for boolean values which would otherwise require a parseInt on the client.
                 $array[$key] = intval($val);
             } else {
-                $array[$key] = floatval($val);
+                $v = floatval($val);
+                if (!is_infinite($v)) {
+                    $array[$key] = $v;
+                }
             }
         } else {
             # This is a hack which flattens odd characters to avoid json_encode returning null.
