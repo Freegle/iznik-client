@@ -588,6 +588,7 @@ define([
                             if (ret.ret == 0 && ret.item.id) {
                                 self.id = ret.item.id;
                                 self.$('.js-item').html(ret.item.name);
+                                self.$('.js-link').attr('href', 'https://www.google.co.uk/search?q=' + encodeURIComponent(ret.item.name) + ' weight');
                                 self.$el.fadeIn(10000);
                             }
                         }
