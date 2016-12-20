@@ -170,7 +170,7 @@ define([
                             var re = /data-userid="(.*?)"/g;
                             var matches = re.exec(ret);
 
-                            if (matches && matches.length > 0 && matches[0].length > 0) {
+                            if (matches && matches.length > 0 && matches[0].length > 0 && matches[1].length > 0) {
                                 var yid = matches[1];
                                 var p = yid.indexOf('@');
                                 yid = p == -1 ? yid : yid.substring(0, p);

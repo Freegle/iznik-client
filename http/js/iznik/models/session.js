@@ -257,7 +257,7 @@ define([
                             var now = (new Date()).getTime();
                             try {
                                 localStorage.setItem('session', JSON.stringify(ret));
-                                console.log("Save session: " + JSON.stringify(ret).substring(0, 0));
+                                //console.log("Save session: " + JSON.stringify(ret).substring(0, 30));
                                 lastloggedinas = localStorage.getItem('lastloggedinas');
                                 localStorage.setItem('lastloggedinas', ret.me.id);
                                 localStorage.setItem('myemail', ret.me.email);
@@ -637,7 +637,7 @@ define([
                 authGiven = true;
                 urlParams.yahoologin = true;
                 console.log(urlParams);
-                alert(JSON.stringify(urlParams));
+                //alert(JSON.stringify(urlParams));
                 var email = urlParams['openid.ax.value.email'];
                 var fullname = urlParams['openid.ax.value.fullname'];
                 localStorage.setItem('yahoo.email', email);

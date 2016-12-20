@@ -107,7 +107,7 @@ function showNetworkStatus() {
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
 if (typeof alllog === 'undefined') {
-    var alllog = "<p>Log started: "+(new Date()).toISOString()+"</p>";    // TODOCC
+    var alllog = "<p>Log started: "+(new Date()).toISOString()+"</p>";
 }
 var logtog = false;
 
@@ -154,7 +154,7 @@ require([
         });
     }
 
-	  var oldconsolelog = console.log;  // TODOCC http://stackoverflow.com/questions/1215392/how-to-quickly-and-conveniently-disable-all-console-log-statements-in-my-code
+	  var oldconsolelog = console.log;
 	  console.log = function () {
 	      var msg = '';
 	      for (var i = 0; i < arguments.length; i++) {

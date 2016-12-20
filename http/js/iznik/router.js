@@ -124,7 +124,6 @@ define([
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
             "modtools/mobiledebug": "mobiledebug",
-            "modtools/supporters": "supporters",
             "modtools/support": "support",
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
@@ -714,10 +713,10 @@ define([
             });
         },
 
-        supporters: function () {
+        /*supporters: function () {
             var page = new Iznik.Views.ModTools.Pages.Supporters();
             this.loadRoute({page: page});
-        },
+        },*/
 
         pendingMessages: function () {
             var self = this;
@@ -1099,6 +1098,7 @@ define([
         },
 
         supporters: function () {  // CC
+            console.log("router supporters");
             var self = this;
 
             require(["iznik/views/pages/modtools/supporters"], function () {

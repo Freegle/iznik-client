@@ -311,7 +311,7 @@ define([
 
             var count = self.collection.length; // CC
             $("#js-work2").text(count + " work item(s)");
-            console.log("plugin checkWork " + count + " work item(s)");
+            //console.log("plugin checkWork " + count + " work item(s)");
     
             if (self.connected) {
                 // Get any first item of work to do.
@@ -364,14 +364,14 @@ define([
         },
     
         checkPluginStatus: function () {
-            console.log("checkPluginStatus");
-            var e = new Error();
-            console.log(e.stack);
+            console.log("checkPluginStatus "+(new Date()).toTimeString());
+            //var e = new Error();
+            //console.log(e.stack);
             var self = this;
     
             function checkResponse(self) {
                 return (function (ret) {
-                    console.log("plugin typeof ret=" + typeof ret);
+                    //console.log("plugin typeof ret=" + typeof ret);
                     if (typeof ret == "string") {
                         console.log("plugin ret=" + ret.substring(0,50));
                     }
@@ -682,7 +682,7 @@ define([
                                 success: checkResponse(self),
                                 error: checkResponse(self),
                                 complete: function () {
-                                    console.log("majax get all complete");
+                                    //console.log("majax get all complete");
                                     window.setTimeout(_.bind(self.checkPluginStatus, self), 20000); // TODOCC 
                                 }
                             });

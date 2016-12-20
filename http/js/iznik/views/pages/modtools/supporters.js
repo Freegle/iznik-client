@@ -12,6 +12,7 @@ define([
         template: "layout_supporters",
 
         render: function () {
+            console.log("supporters render");
             return Iznik.Views.Page.prototype.render.call(this);
         }
     });

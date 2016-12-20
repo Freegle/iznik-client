@@ -33,15 +33,29 @@ define([
                     localStorage.removeItem('session');
                 } catch (e) {
                 }
-
+                //alert("Local logout");
+                var cookies = $.cookie();
+                for (var cookie in cookies) {
+                    $.removeCookie(cookie);
+                }
                 // Force reload of window to clear any data.
                 //Router.mobileReload('/'); // CC
             }
         });
 
-        //var logoutYahooUrl = 'https://login.yahoo.com/config/login?logout=1';
-        var logoutYahooUrl = 'https://uk.yahoo.com/';
+        var logoutYahooUrl = 'https://login.yahoo.com/config/login?logout=1';
+        //var logoutYahooUrl = 'https://uk.yahoo.com/';
         var authWindow = cordova.InAppBrowser.open(logoutYahooUrl, '_blank', 'location=yes,menubar=yes');
+        $(authWindow).on('loadstart', function (e) {
+        });
+        $(authWindow).on('loadstop', function (e) {
+            authWindow.close();
+        });
+        $(authWindow).on('exit', function (e) {
+            //alert("InApp logout");
+            Router.mobileReload('/'); // CC
+        });
+
         /*console.log('Yahoo logout start');
         $.ajax({    // CC
             url: logoutYahooUrl,
@@ -371,7 +385,7 @@ define([
                         });
                     }
                 });
-                $('#js-mobilelog').html(alllog);    // TODOCC
+                $('#js-mobilelog').html(alllog);
 
                 if (Iznik.Session.isAdminOrSupport()) {
                     self.$('.js-adminsupportonly').removeClass('hidden');
