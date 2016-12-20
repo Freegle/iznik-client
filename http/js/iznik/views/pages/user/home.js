@@ -222,10 +222,9 @@ define([
                     $('#js-eventcontainer').append(v.$el);
                 });
 
-                // Right menu has requests for weight info
                 var w = new Iznik.Views.User.Home.Weightless();
                 w.render().then(function () {
-                    $('#js-weightless').append(w.$el);
+                    $('.js-cta').append(w.$el);
                 });
 
                 // Searches
@@ -574,7 +573,6 @@ define([
             var self = this;
             
             var p = Iznik.View.prototype.render.call(this);
-            self.$el.hide();
 
             // Do this after a delay so that the rest of the page loads.
             _.delay(function() {
@@ -589,7 +587,9 @@ define([
                                 self.id = ret.item.id;
                                 self.$('.js-item').html(ret.item.name);
                                 self.$('.js-link').attr('href', 'https://www.google.co.uk/search?q=' + encodeURIComponent(ret.item.name) + ' weight');
-                                self.$el.fadeIn(10000);
+                                self.$('.js-link').css('visibility', '');
+                            } else {
+                                self.$el.hide();
                             }
                         }
                     });
