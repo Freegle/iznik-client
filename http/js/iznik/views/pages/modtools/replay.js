@@ -118,6 +118,17 @@ define([
             }
         },
 
+        DOMchange: function(event) {
+            var target = $((event.target == 'body') ? '#replayContent' : event.target);
+
+            if (target.length > 0) {
+                target.get(0).outerHTML = event.data;
+            } else {
+                // We can't find it.  Append it directly to the body - if nothing else, at least it'll be visible!
+                $('#replayContent').append(event.data);
+            }
+        },
+
         playEvent: function() {
             var self = this;
 
@@ -163,8 +174,7 @@ define([
                             if (event.target == 'body') {
                                 self.replaceDOM(event.data);
                             } else {
-                                var target = (event.target == 'body') ? '#replayContent' : event.target;
-                                $(target).get(0).outerHTML = event.data;
+                                self.DOMchange(event);
                             }
                             break;
                         }

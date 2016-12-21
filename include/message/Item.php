@@ -41,6 +41,11 @@ class Item extends Entity
 
             # Add into the search index.
             $this->index();
+
+            # Create a weight estimate for this.
+            $weight = $this->estimateWeight();
+            $this->setWeight($weight);
+
             return($id);
         } else {
             return(NULL);
@@ -65,23 +70,46 @@ class Item extends Entity
         return($results);
     }
 
-    public function getWeightless($userid) {
-        $sql = "SELECT items.id FROM items LEFT JOIN items_weights ON items.id = items_weights.itemid AND items_weights.userid = ? WHERE (items.weight IS NULL OR items.weight = 0) AND userid IS NULL ORDER BY popularity DESC LIMIT 1;";
-        $items = $this->dbhr->preQuery($sql, [
-            $userid,
-        ]);
+    public function getWeightless() {
+        $sql = "SELECT items.id FROM items WHERE items.weight IS NULL OR items.weight = 0 IS NULL ORDER BY popularity DESC LIMIT 1;";
+        $items = $this->dbhr->preQuery($sql);
 
         $id = count($items) == 1 ? $items[0]['id'] : NULL;
 
         return($id);
     }
 
-    public function setWeight($userid, $weight) {
+    public function estimateWeight() {
+        # We scan the standard weights, looking for the entry with the most words in common with this one.
+        $name = $this->item['name'];
+
+        $weights = $this->dbhr->preQuery("SELECT CASE WHEN simplename IS NOT NULL THEN simplename ELSE name END AS name, weight FROM weights");
+        $bestweight = NULL;
+        $bestwic = NULL;
+        $bestname = NULL;
+
+        foreach ($weights as $weight) {
+            $wic = wordsInCommon($name, $weight['name']);
+
+            #error_log("$name vs {$weight['name']} = $wic");
+            if ($bestwic === NULL || $wic > $bestwic) {
+                $bestweight = $weight['weight'];
+                $bestwic = $wic;
+                $bestname = $weight['name'];
+            }
+        }
+
+        $bestweight = $bestwic > 10 ? $bestweight : NULL;
+        error_log("$name => $bestname, $bestweight");
+
+        return($bestweight);
+    }
+
+    public function setWeight($weight) {
         if ($this->id) {
-            $this->dbhm->preExec("REPLACE INTO items_weights (userid, itemid, weight) VALUES (?, ?, ?);", [
-                $userid,
-                $this->id,
-                $weight
+            $this->dbhm->preExec("UPDATE items SET weight = ? WHERE id = ?;", [
+                $weight,
+                $this->id
             ]);
         }
     }

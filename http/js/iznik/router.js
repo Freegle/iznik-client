@@ -169,6 +169,7 @@ define([
             "plugins/events/:id": "communityEventsPlugin",
             "plugins/group?groupid=:id(&*t)": "groupPlugin",
             "plugins/group/:id": "groupPlugin",
+            "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
             "*path": "userHome"
         },
@@ -252,6 +253,22 @@ define([
                     Iznik.Session.testLoggedIn();
                 }
             }
+        },
+
+        userMyPostAction: function(msgid, action) {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                require(["iznik/views/pages/user/home"], function() {
+                    var page = new Iznik.Views.User.Pages.MyPost({
+                        id: msgid,
+                        action: action
+                    });
+                    self.loadRoute({page: page});
+                });
+            });
+
+            Iznik.Session.forceLogin();
         },
 
         userMyPost: function(msgid) {

@@ -13,6 +13,7 @@ require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/mailtemplates/autorepost.php');
+require_once(IZNIK_BASE . '/mailtemplates/chaseup.php');
 
 use GeoIp2\Database\Reader;
 use Oefenweb\DamerauLevenshtein\DamerauLevenshtein;
@@ -3150,7 +3151,7 @@ class Message
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
             $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
 
-            # We want approved messages which haven't got a related message, i.e. aren't TAKEN/RECEIVED, which don't have
+            # We want approved messages which haven't got an outcome, i.e. aren't TAKEN/RECEIVED, which don't have
             # some other outcome (e.g. withdrawn), aren't promised, don't have any replies and which we originally sent.
             #
             # The replies part is because we can't really rely on members to let us know what happens to a message,
@@ -3182,46 +3183,50 @@ class Message
                                 $message['hoursago'] > ($interval - 1) * 24 &&
                                 ($lastwarnago === NULL || $lastwarnago > 24)
                             ) {
-                                # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
-                                # an old one (probably from the previous repost).
-                                if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
-                                    # And we haven't sent a warning yet.
-                                    $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
-                                    $warncount++;
+                                    # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
+                                    # an old one (probably from the previous repost).
+                                    if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
+                                        # And we haven't sent a warning yet.
+                                        $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
+                                        $warncount++;
 
-                                    $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                                    $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-                                    $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
-                                    $gatts = $g->getPublic();
+                                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                                        $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
+                                        $gatts = $g->getPublic();
 
-                                    if ($u->getId()) {
-                                        $to = $u->getEmailPreferred();
-                                        $subj = $m->getSubject();
+                                        if ($u->getId()) {
+                                            $to = $u->getEmailPreferred();
+                                            $subj = $m->getSubject();
 
-                                        # Remove any group tag.
-                                        $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
+                                            # Remove any group tag.
+                                            $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                        $url = 'https://' . USER_SITE . "/mypost/{$message['msgid']}";
-                                        $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $url to let us know.";
-                                        $html = autorepost_warning(USER_DOMAIN,
-                                            USERLOGO,
-                                            $subj,
-                                            $u->getName(),
-                                            $to,
-                                            $url
-                                        );
+                                            $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed");
+                                            $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw");
+                                            $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
+                                            $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
+                                            $html = autorepost_warning(USER_DOMAIN,
+                                                USERLOGO,
+                                                $subj,
+                                                $u->getName(),
+                                                $to,
+                                                $othertype,
+                                                $completed,
+                                                $withdraw
+                                            );
 
-                                        list ($transport, $mailer) = getMailer();
+                                            list ($transport, $mailer) = getMailer();
 
-                                        $message = Swift_Message::newInstance()
-                                            ->setSubject("Re: " . $subj)
-                                            ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
-                                            ->setTo($to)
-                                            ->setBody($text)
-                                            ->addPart($html, 'text/html');
-                                        $mailer->send($message);
+                                            $message = Swift_Message::newInstance()
+                                                ->setSubject("Re: " . $subj)
+                                                ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                                ->setTo($to)
+                                                ->setBody($text)
+                                                ->addPart($html, 'text/html');
+                                            $mailer->send($message);
+                                        }
                                     }
-                                }
                             } else if ($message['hoursago'] > $interval * 24) {
                                 # We can repost this one.  That consists of:
                                 # - incrementing the repost count
@@ -3245,6 +3250,91 @@ class Message
         return([$count, $warncount]);
     }
 
+    public function chaseUp($type, $mindate, $groupid = NULL) {
+        $count = 0;
+        $groupq = $groupid ? " AND id = $groupid " : "";
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq;", [ $type ]);
+
+        foreach ($groups as $group) {
+            $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
+            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
+
+            # We want approved messages which haven't got an outcome, i.e. aren't TAKEN/RECEIVED, which don't have
+            # some other outcome (e.g. withdrawn), aren't promised, have any replies and which we originally sent.
+            #
+            # The sending user must also still be a member of the group.
+            $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id OR id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL;";
+            #error_log("$sql, $mindate, {$group['id']}");
+            $messages = $this->dbhr->preQuery($sql, [
+                $mindate,
+                $group['id']
+            ]);
+
+            $now = time();
+
+            foreach ($messages as $message) {
+                if (ourDomain($message['fromaddr'])) {
+                    # Find the last reply.
+                    $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+
+                    if ($m->canChaseup()) {
+                        $sql = "SELECT MAX(date) AS latest FROM chat_messages WHERE chatid IN (SELECT chatid FROM chat_messages WHERE refmsgid = ?);";
+                        $replies = $this->dbhr->preQuery($sql, [ $message['msgid'] ]);
+                        $lastreply = $replies[0]['latest'];
+                        $age = ($now - strtotime($lastreply)) / (60 * 60);
+
+                        if ($age > 48) {
+                            # We can chase up.
+                            $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                            $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
+                            $gatts = $g->getPublic();
+
+                            if ($u->getId() && $m->canRepost()) {
+                                error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " chaseup due");
+                                $count++;
+                                $this->dbhm->preExec("UPDATE messages_groups SET lastchaseup = NOW() WHERE msgid = ?;", [$message['msgid']]);
+
+                                $to = $u->getEmailPreferred();
+                                $subj = $m->getSubject();
+
+                                # Remove any group tag.
+                                $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
+
+                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed");
+                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw");
+                                $repost = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/repost");
+                                $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
+                                $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
+                                $html = chaseup(USER_DOMAIN,
+                                    USERLOGO,
+                                    $subj,
+                                    $u->getName(),
+                                    $to,
+                                    $othertype,
+                                    $repost,
+                                    $completed,
+                                    $withdraw
+                                );
+
+                                list ($transport, $mailer) = getMailer();
+
+                                $message = Swift_Message::newInstance()
+                                    ->setSubject("Re: " . $subj)
+                                    ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                    ->setTo($to)
+                                    ->setBody($text)
+                                    ->addPart($html, 'text/html');
+                                $mailer->send($message);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return($count);
+    }
+
     public function canRepost() {
         $ret = FALSE;
         $groups = $this->dbhr->preQuery("SELECT groupid, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ?;", [ $this->id ]);
@@ -3252,10 +3342,30 @@ class Message
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
             $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
-            $interval = $this->message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+            $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
 
             if ($group['hoursago'] > $interval * 24) {
                 $ret = TRUE;
+            }
+        }
+
+        return($ret);
+    }
+
+    public function canChaseup() {
+        $ret = FALSE;
+        $groups = $this->dbhr->preQuery("SELECT groupid, lastchaseup FROM messages_groups WHERE msgid = ?;", [ $this->id ]);
+
+        foreach ($groups as $group) {
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+
+            $ret = TRUE;
+
+            if ($group['lastchaseup']) {
+                $age = (time() - strtotime($group['lastchaseup'])) / (60 * 60);
+                $ret = $age > $interval * 24;
             }
         }
 

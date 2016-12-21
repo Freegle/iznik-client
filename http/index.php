@@ -96,7 +96,7 @@ if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
 
 if ($default) {
 ?>
-        <body style="background-colour: #dff2d1;">
+        <body style="background-colour: #dff2d1;" id="thebody">
             <div itemscope itemtype="http://schema.org/Organization" style="display: none">
                 <span itemprop="name"><?php echo SITE_NAME; ?></span>
                 <img itemprop="logo" src="<?php echo USERLOGO; ?>" />

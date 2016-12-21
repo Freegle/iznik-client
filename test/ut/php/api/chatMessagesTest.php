@@ -253,6 +253,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     public function testReview() {
         error_log(__METHOD__);
 
+        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
         assertTrue($this->user->login('testpw'));
 
         # Create a chat to the second user

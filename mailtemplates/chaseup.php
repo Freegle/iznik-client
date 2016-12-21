@@ -2,17 +2,17 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function autorepost_warning($domain, $logo, $subject, $toname, $to, $type, $completed, $gaveup) {
-        $siteurl = "https://$domain";
-        $html = <<<EOT
+function chaseup($domain, $logo, $subject, $toname, $to, $type, $repost, $completed, $gaveup) {
+    $siteurl = "https://$domain";
+    $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
     <title>$subject</title>
 EOT;
 
-        $html .= mail_header();
-        $html .= <<<EOT
+    $html .= mail_header();
+    $html .= <<<EOT
 <!-- Start Background -->
 <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F7F5EB">
     <tr>
@@ -52,11 +52,15 @@ EOT;
                                                             </td>    
                                                             <td class="mobile" align="left" valign="top">
                                                                 <p>Dear $toname,<p>
-                                                                <p>We will automatically repost your message <b><i>$subject</i></b> soon, so that more people will see it.</p>
-                                                                <p>If you <b>don't</b> want us to do that, please let us know:</p>
+                                                                <p>Can you let us know what happened to your post <b><i>$subject</i></b>?</p>
                                                                 
                                                                 <table width="350" cellpadding="10" cellspacing="10" align="left" border="0">
                                                                     <tr>
+                                                                        <td width="170" height="36" bgcolor="#ff0000" align="center" valign="middle"
+                                                                            style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
+                                                                                line-height:18px; border-radius:3px;">
+                                                                            <a href="$repost" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Repost it please!</a>
+                                                                        </td>
                                                                         <td width="170" height="36" bgcolor="#006400" align="center" valign="middle"
                                                                             style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                 line-height:18px; border-radius:3px;">
@@ -110,5 +114,5 @@ EOT;
 </html>
 EOT;
 
-        return($html);
-    }
+    return($html);
+}
