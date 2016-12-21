@@ -42,19 +42,47 @@
 </div>
 <div class="row">
     <div class="col-xs-12">
-        <h3>Activity</h3>
-        <p>
-            This includes people OFFERing something, posting a WANTED for something, or searching for
-            something.
-        </p>
-        <div class="js-messagegraph" />
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <h3>Activity</h3>
+                <p>
+                    This includes people OFFERing something, posting a WANTED for something, or searching for
+                    something.
+                </p>
+                <div class="js-messagegraph" />
+            </div>
+        </div>
     </div>
 </div>
-<div class="row">
-    <div class="col-xs-12">
-        <h3>Outcomes</h3>
-        <p>Here you can see how often people give away something, or get what they are looking for.</p>
-        <p>We only know when people tell us, though, so this tends to be an underestimate.</p>
+<div class="row topspace">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <p>
+                    Here you can see how often people give things away compared to how often they ask for things.
+                </p>
+                <div class="js-balancechart" />
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <p>
+                    These charts show how often people are successful in giving something away or getting something
+                    they ask for - when they let us know!
+                </p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="js-offeroutcome" />
+                    </div>
+                    <div class="col-md-6">
+                        <div class="js-wantedoutcome" />
+                    </div>
+                </div>
+                <div class="js-successgraph" />
+            </div>
+        </div>
     </div>
 </div>
 <div class="row">

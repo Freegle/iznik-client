@@ -161,6 +161,7 @@ define([
 
                             var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
                             mod.set('groupid', group.id);
+
                             var v = new Iznik.Views.ModTools.User({
                                 model: mod
                             });
@@ -171,6 +172,7 @@ define([
 
                             if (group.type == 'Freegle') {
                                 // The FD settings.
+
                                 var v = new Iznik.Views.ModTools.User.FreegleMembership({
                                     model: new Iznik.Model(self.model.get('fromuser')),
                                     groupid: group.id
@@ -181,22 +183,24 @@ define([
                                 });
                             }
 
-                            // The Yahoo part of the user
-                            var fromemail = self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr');
-                            var mod = IznikYahooUsers.findUser({
-                                email: fromemail,
-                                group: group.nameshort,
-                                groupid: group.id
-                            });
+                            if (group.onyahoo) {
+                                // The Yahoo part of the user
+                                var fromemail = self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr');
+                                var mod = IznikYahooUsers.findUser({
+                                    email: fromemail,
+                                    group: group.nameshort,
+                                    groupid: group.id
+                                });
 
-                            mod.fetch().then(function () {
-                                var v = new Iznik.Views.ModTools.Yahoo.User({
-                                    model: mod
+                                mod.fetch().then(function () {
+                                    var v = new Iznik.Views.ModTools.Yahoo.User({
+                                        model: mod
+                                    });
+                                    v.render().then(function (v) {
+                                        self.$('.js-yahoo').html(v.el);
+                                    });
                                 });
-                                v.render().then(function (v) {
-                                    self.$('.js-yahoo').html(v.el);
-                                });
-                            });
+                            }
 
                             self.addOtherInfo();
 

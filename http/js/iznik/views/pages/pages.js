@@ -84,7 +84,6 @@ define([
 
         setTitle: function(title) {
             // This sets new info in the tags used by search engines.
-            console.log("Set page title", title);
             window.document.title = title;
             $('title').remove();
             $('head').append('<title>' + title + '</title>');
@@ -95,7 +94,6 @@ define([
         },
 
         setDescription: function(desc) {
-            console.log("Set page desc", desc);
             $('meta[name=description]').remove();
             $('head').append( '<meta name="description" content="' + desc + '">');
             $('meta[itemprop=description]').remove();

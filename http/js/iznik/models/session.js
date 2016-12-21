@@ -841,13 +841,13 @@ define([
             var ret = 'Non-member';
 
             if (me) {
-                if (overrides && me.systemrole == 'Admin') {
+                var group = this.getGroup(groupid);
+                ret = group.get('role');
+
+                if (ret != 'Owner' && overrides && me.systemrole == 'Admin') {
                     ret = 'Owner';
-                } else if (overrides && me.systemrole == 'Support') {
+                } else if (ret == 'Member' && overrides && me.systemrole == 'Support') {
                     ret = 'Moderator'
-                } else {
-                    var group = this.getGroup(groupid);
-                    ret = group.role;
                 }
             }
 

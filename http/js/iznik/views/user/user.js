@@ -966,6 +966,9 @@ define([
                 if (self.options.groupid == member.id) {
                     // This is the membership we're after
                     var mod = new Iznik.Model(member);
+                    mod.set('myrole', Iznik.Session.roleForGroup(self.options.groupid, true));
+                    // console.log("My role is", self.options.groupid, mod.get('myrole'));
+
                     self.model = mod;
                     var group = Iznik.Session.getGroup(self.options.groupid);
                     self.model.set('group', group);
