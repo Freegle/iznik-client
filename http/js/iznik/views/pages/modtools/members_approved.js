@@ -352,7 +352,7 @@ define([
                             })
                         }
 
-                        if (group.get('onyahoo')) {
+                        if (group.onyahoo) {
                             // Delay getting the Yahoo info slightly to improve apparent render speed.
                             _.delay(function () {
                                 // The Yahoo part of the user

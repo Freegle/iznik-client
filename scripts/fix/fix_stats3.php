@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
-$groups = $dbhr->preQuery("SELECT * FROM groups  WHERE type = 'Freegle' and id = 21354 ORDER BY nameshort ASC;");
+$groups = $dbhr->preQuery("SELECT * FROM groups  WHERE type = 'Freegle' ORDER BY nameshort ASC;");
 foreach ($groups as $group) {
     error_log("...{$group['nameshort']}");
     $epoch = strtotime("17th December 2016");

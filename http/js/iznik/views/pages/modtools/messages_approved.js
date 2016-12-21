@@ -193,7 +193,6 @@ define([
 
         render: function () {
             var self = this;
-            console.log("Render in approved");
             self.model.set('mapicon', window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif');
 
             // Get a zoom level for the map.
@@ -240,6 +239,7 @@ define([
 
                             mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
                             mod.set('groupid', group.id);
+
                             v = new Iznik.Views.ModTools.User({
                                 model: mod
                             });
@@ -248,22 +248,24 @@ define([
                                 self.$('.js-user').html(v.el);
                             });
 
-                            // The Yahoo part of the user
-                            mod = IznikYahooUsers.findUser({
-                                email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
-                                group: group.nameshort,
-                                groupid: group.id
-                            });
-
-                            mod.fetch().then(function () {
-                                var v = new Iznik.Views.ModTools.Yahoo.User({
-                                    model: mod
+                            if (group.onyahoo) {
+                                // The Yahoo part of the user
+                                mod = IznikYahooUsers.findUser({
+                                    email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
+                                    group: group.nameshort,
+                                    groupid: group.id
                                 });
 
-                                v.render().then(function (v) {
-                                    self.$('.js-yahoo').html(v.el);
+                                mod.fetch().then(function () {
+                                    var v = new Iznik.Views.ModTools.Yahoo.User({
+                                        model: mod
+                                    });
+
+                                    v.render().then(function (v) {
+                                        self.$('.js-yahoo').html(v.el);
+                                    });
                                 });
-                            });
+                            }
 
                             if (group.type == 'Freegle') {
                                 // The FD settings.

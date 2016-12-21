@@ -222,6 +222,11 @@ define([
                     $('#js-eventcontainer').append(v.$el);
                 });
 
+                var w = new Iznik.Views.User.Home.Weightless();
+                w.render().then(function () {
+                    $('.js-cta').append(w.$el);
+                });
+
                 // Searches
                 self.searches = new Iznik.Collections.User.Search();
 
@@ -534,6 +539,64 @@ define([
                     }
                 }
             });
+        }
+    });
+
+    Iznik.Views.User.Home.Weightless = Iznik.View.extend({
+        template: "user_home_weightless",
+
+        events: {
+            'click .js-send': 'send'
+        },
+
+        send: function() {
+            var weight = this.$('.js-weight').val();
+
+            if (weight > 0) {
+                $.ajax({
+                    url: API + 'item',
+                    type: 'PATCH',
+                    context: this,
+                    data: {
+                        id: self.id,
+                        weight: weight
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            this.render();
+                        }
+                    }
+                });
+            }
+        },
+
+        render: function() {
+            var self = this;
+            
+            var p = Iznik.View.prototype.render.call(this);
+
+            // Do this after a delay so that the rest of the page loads.
+            _.delay(function() {
+                p.then(function() {
+                    $.ajax({
+                        url: API + 'item',
+                        data: {
+                            'weightless': true
+                        },
+                        success: function(ret) {
+                            if (ret.ret == 0 && ret.item.id) {
+                                self.id = ret.item.id;
+                                self.$('.js-item').html(ret.item.name);
+                                self.$('.js-link').attr('href', 'https://www.google.co.uk/search?q=' + encodeURIComponent(ret.item.name) + ' weight');
+                                self.$('.js-link').css('visibility', '');
+                            } else {
+                                self.$el.hide();
+                            }
+                        }
+                    });
+                });
+            }, 5000);
+
+            return(p);
         }
     });
 });

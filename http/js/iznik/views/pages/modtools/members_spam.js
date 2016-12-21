@@ -191,6 +191,8 @@ define([
                         // Our user.  In memberships the id is that of the member, so we need to get the userid.
                         var mod = self.model.clone();
                         mod.set('id', self.model.get('userid'));
+                        mod.set('myrole', Iznik.Session.roleForGroup(self.model.get('groupid'), true));
+
                         var v = new Iznik.Views.ModTools.User({
                             model: mod
                         });
@@ -214,7 +216,7 @@ define([
                         // Auto remove and ban may be turned off, so leave those buttons.
                         self.$('.js-spammer').closest('li').hide();
 
-                        if (group) {
+                        if (group && group.onyahoo) {
                             // Delay getting the Yahoo info slightly to improve apparent render speed.
                             _.delay(function () {
                                 // The Yahoo part of the user

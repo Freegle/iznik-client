@@ -45,7 +45,9 @@ define([
                         self.$('.js-description a').attr('data-realurl', true);
                     }
 
-                    var v = new Iznik.Views.PleaseWait();
+                    var v = new Iznik.Views.PleaseWait({
+                        timeout: 1
+                    });
                     v.render();
 
                     $.ajax({
@@ -76,11 +78,88 @@ define([
 
                                 graph.render();
 
+                                // We only want to show Offer vs Wanted.
+                                delete ret.dashboard.MessageBreakdown.Other;
+                                delete ret.dashboard.MessageBreakdown.Received;
+                                delete ret.dashboard.MessageBreakdown.Taken;
+
+                                // Make sure they're percentages so that people don't try to cross-reference
+                                // with the activity numbers, which wouldn't be possible.
+                                var total = ret.dashboard.MessageBreakdown.Offer + ret.dashboard.MessageBreakdown.Wanted;
+                                ret.dashboard.MessageBreakdown.Offer = Math.round(100 * ret.dashboard.MessageBreakdown.Offer / total);
+                                ret.dashboard.MessageBreakdown.Wanted = Math.round(100 * ret.dashboard.MessageBreakdown.Wanted / total);
+
                                 graph = new Iznik.Views.TypeChart({
-                                    target: self.$('.js-typechart').get()[0],
-                                    data: ret.dashbo9999999999999999999999999ard.MessageBreakdown,
+                                    target: self.$('.js-balancechart').get()[0],
+                                    data: ret.dashboard.MessageBreakdown,
                                     title: 'Message Balance'
                                 });
+
+                                graph.colours = [
+                                    'green',
+                                    'blue'
+                                ];
+
+                                graph.render();
+                                
+                                // Success
+                                // Make sure they're percentages so that people don't try to cross-reference
+                                // with the activity numbers, which wouldn't be possible.
+                                var offer = ret.dashboard.Outcomes.Offer;
+                                var total = taken = offerwithdrawn = 0;
+                                _.each(offer, function(val) {
+                                    total += val.count;
+                                    if (val.outcome == 'Taken') {
+                                        taken = val.count;
+                                    } else if (val.outcome == 'Withdrawn') {
+                                        offerwithdrawn = val.count;
+                                    }
+                                });
+
+                                var data = {
+                                    'Taken': Math.round((100 * taken) / total),
+                                    'Withdrawn': Math.round((100 * offerwithdrawn) / total)
+                                };
+                                
+                                graph = new Iznik.Views.TypeChart({
+                                    target: self.$('.js-offeroutcome').get()[0],
+                                    data: data,
+                                    title: 'Offer Outcome'
+                                });
+
+                                graph.colours = [
+                                    'green',
+                                    'blue'
+                                ];
+
+                                graph.render();
+
+                                var wanted = ret.dashboard.Outcomes.Wanted;
+                                var total = received = wantedwithdrawn = 0;
+                                _.each(wanted, function(val) {
+                                    total += val.count;
+                                    if (val.outcome == 'Received') {
+                                        received = val.count;
+                                    } else if (val.outcome == 'Withdrawn') {
+                                        wantedwithdrawn = val.count;
+                                    }
+                                });
+
+                                var data = {
+                                    'Received': Math.round((100 * received) / total),
+                                    'Withdrawn': Math.round((100 * wantedwithdrawn) / total)
+                                };
+
+                                graph = new Iznik.Views.TypeChart({
+                                    target: self.$('.js-wantedoutcome').get()[0],
+                                    data: data,
+                                    title: 'Wanted Outcome'
+                                });
+
+                                graph.colours = [
+                                    'green',
+                                    'blue'
+                                ];
 
                                 graph.render();
                             }
@@ -93,3 +172,4 @@ define([
         }
     });
 });
+

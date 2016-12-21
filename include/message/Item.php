@@ -65,6 +65,27 @@ class Item extends Entity
         return($results);
     }
 
+    public function getWeightless($userid) {
+        $sql = "SELECT items.id FROM items LEFT JOIN items_weights ON items.id = items_weights.itemid AND items_weights.userid = ? WHERE (items.weight IS NULL OR items.weight = 0) AND userid IS NULL ORDER BY popularity DESC LIMIT 1;";
+        $items = $this->dbhr->preQuery($sql, [
+            $userid,
+        ]);
+
+        $id = count($items) == 1 ? $items[0]['id'] : NULL;
+
+        return($id);
+    }
+
+    public function setWeight($userid, $weight) {
+        if ($this->id) {
+            $this->dbhm->preExec("REPLACE INTO items_weights (userid, itemid, weight) VALUES (?, ?, ?);", [
+                $userid,
+                $this->id,
+                $weight
+            ]);
+        }
+    }
+
     public function findFromPhoto($query) {
         $items = $this->dbhr->preQuery("SELECT * FROM items WHERE name = ? AND suggestfromphoto = 1 ORDER BY popularity DESC limit 1;", [ $query ]);
         return($items);

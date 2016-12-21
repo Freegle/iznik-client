@@ -544,7 +544,7 @@ class MailRouter
 
                 if ($gid) {
                     # It's one of our groups.  Find the user this is from.
-                    $envfrom = $this->msg->getEnvelopeFrom();
+                    $envfrom = $this->msg->getFromaddr();
                     $u = new User($this->dbhr, $this->dbhm);
                     $uid = $u->findByEmail($envfrom);
 

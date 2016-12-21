@@ -108,7 +108,7 @@ define([
                         self.chartOptions = {
                             title: self.options.title,
                             chartArea: {'width': '80%', 'height': '80%'},
-                            colors: leftColours,
+                            colors: self.colours ? self.colours : leftColours,
                             slices2: {
                                 1: {offset: 0.2},
                                 2: {offset: 0.2}
