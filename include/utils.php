@@ -483,3 +483,64 @@ function getMailer() {
     $mailer = Swift_Mailer::newInstance($transport);
     return([$transport, $mailer]);
 }
+
+function canonWord($word)
+{
+    $word = strtolower($word);
+    $word = preg_replace('/[^\da-z]/i', '', $word);
+
+    $arr = str_split($word);
+
+    if (strlen($word) > 3)
+    {
+        sort($arr);
+    }
+
+    $ret = implode($arr);
+
+    return($ret);
+}
+
+function canonSentence($sentence)
+{
+    $words = preg_split('/\s+/', $sentence);
+    $canonWords = array();
+
+    for ($i = 0; $i < count($words); $i++)
+    {
+        array_push($canonWords, canonWord($words[$i]));
+    }
+
+    $canonWords = array_values(array_unique($canonWords));
+
+    return($canonWords);
+}
+
+
+function wordsInCommon($sentence1, $sentence2)
+{
+    $words1 = canonSentence($sentence1);
+    $words2 = canonSentence($sentence2);
+
+    // We have two arrays of words.
+    $ret = 0;
+    $count1 = count($words1);
+    $count2 = count($words2);
+
+    for ($i = 0; $i < $count1; $i++)
+    {
+        for ($j = 0; $j < $count2; $j++)
+        {
+            if ($words1[$i] === $words2[$j])
+            {
+                $ret++;
+            }
+        }
+    }
+
+    # Calculate percent vs the longest.
+    $limit = max($count1, $count2);
+    $ret = ($limit == 1) ? 0 : (100 * $ret / $limit);
+
+    return($ret);
+}

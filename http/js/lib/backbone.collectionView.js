@@ -2,7 +2,7 @@
  * Backbone.CollectionView, v1.1.2
  * Copyright (c)2013 Rotunda Software, LLC.
  * Distributed under MIT license
- * hhttps://github.com/rotundasoftware/backbone.collectionView
+ * https://github.com/rotundasoftware/backbone.collectionView
  */
 
 ( function( root, factory ) {
@@ -539,8 +539,12 @@
                 var modelView;
 
                 if( this._hasBeenRendered ) {
-                    modelView = this._createNewModelView( model, this._getModelViewOptions( model ) );
-                    this._insertAndRenderModelView( modelView, this._getContainerEl(), this.collection.indexOf( model ) );
+                    modelView = this.viewManager.findByModelCid( model.cid );
+
+                    if (!modelView) {
+                        modelView = this._createNewModelView( model, this._getModelViewOptions( model ) );
+                        this._insertAndRenderModelView( modelView, this._getContainerEl(), this.collection.indexOf( model ) );
+                    }
                 }
 
                 if( this._isBackboneCourierAvailable() )

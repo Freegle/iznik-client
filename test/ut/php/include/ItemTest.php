@@ -24,6 +24,7 @@ class itemTest extends IznikTestCase {
     }
 
     protected function tearDown() {
+        $this->dbhm->preExec("DELETE FROM items WHERE name LIKE 'UTTest%';");
         parent::tearDown ();
     }
 
@@ -43,6 +44,17 @@ class itemTest extends IznikTestCase {
         $i->setDbhm($mock);
         $id = $i->create('UTTest');
         assertNull($id);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testWeights() {
+        error_log(__METHOD__);
+
+        $i = new Item($this->dbhr, $this->dbhm);
+        $id = $i->create('UTTest sofa');
+        $i = new Item($this->dbhr, $this->dbhm, $id);
+        self::assertEquals(37, $i->estimateWeight());
 
         error_log(__METHOD__ . " end");
     }
