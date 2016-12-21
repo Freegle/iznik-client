@@ -445,6 +445,10 @@ function message() {
                         $mid = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
                         $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
                         break;
+                    case 'OutcomeIntended':
+                        $outcome = presdef('outcome', $_REQUEST, NULL);
+                        $m->intendedOutcome($outcome);
+                        break;
                     case 'Outcome':
                         $outcome = presdef('outcome', $_REQUEST, NULL);
                         $h = presdef('happiness', $_REQUEST, NULL);

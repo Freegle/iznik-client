@@ -2847,6 +2847,7 @@ class Message
             $this->setPrivate('envelopeto', $g->getGroupEmail());
 
             $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [ $this->id ]);
+            $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
 
             # The from IP and country.
             $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
@@ -3021,9 +3022,18 @@ class Message
         return($subj);
     }
 
+    public function intendedOutcome($outcome) {
+        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
+        $this->dbhm->preExec($sql, [
+            $this->id,
+            $outcome
+        ]);
+    }
+
     public function mark($outcome, $comment, $happiness, $userid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
+        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
         $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
             $this->id,
             $outcome,
@@ -3089,6 +3099,8 @@ class Message
     }
 
     public function withdraw($comment, $happiness) {
+        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
+
         $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
             $this->id,
             Message::OUTCOME_WITHDRAWN,
@@ -3218,13 +3230,15 @@ class Message
 
                                             list ($transport, $mailer) = getMailer();
 
-                                            $message = Swift_Message::newInstance()
-                                                ->setSubject("Re: " . $subj)
-                                                ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
-                                                ->setTo($to)
-                                                ->setBody($text)
-                                                ->addPart($html, 'text/html');
-                                            $mailer->send($message);
+                                            if (Swift_Validate::email($to)) {
+                                                $message = Swift_Message::newInstance()
+                                                    ->setSubject("Re: " . $subj)
+                                                    ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                                    ->setTo($to)
+                                                    ->setBody($text)
+                                                    ->addPart($html, 'text/html');
+                                                $mailer->send($message);
+                                            }
                                         }
                                     }
                             } else if ($message['hoursago'] > $interval * 24) {
@@ -3318,18 +3332,54 @@ class Message
 
                                 list ($transport, $mailer) = getMailer();
 
-                                $message = Swift_Message::newInstance()
-                                    ->setSubject("Re: " . $subj)
-                                    ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
-                                    ->setTo($to)
-                                    ->setBody($text)
-                                    ->addPart($html, 'text/html');
-                                $mailer->send($message);
+                                if (Swift_Validate::email($to)) {
+                                    $message = Swift_Message::newInstance()
+                                        ->setSubject("Re: " . $subj)
+                                        ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                        ->setTo($to)
+                                        ->setBody($text)
+                                        ->addPart($html, 'text/html');
+                                    $mailer->send($message);
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+
+        return($count);
+    }
+
+    public function processIntendedOutcomes($msgid = NULL) {
+        $count = 0;
+
+        # If someone responded to a chaseup mail, but didn't complete the process in half an hour, we do it for them.
+        #
+        # This is quite common, and helps get more activity even from members who are put to shame by goldfish.
+        $msgq = $msgid ? " AND msgid = $msgid " : "";
+        $intendeds = $this->dbhr->preQuery("SELECT * FROM messages_outcomes_intended WHERE TIMESTAMPDIFF(MINUTE, timestamp, NOW()) > 30 $msgq;");
+        foreach ($intendeds as $intended) {
+            $m = new Message($this->dbhr, $this->dbhm, $intended['msgid']);
+
+            switch ($intended['outcome']) {
+                case 'Taken':
+                    $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);
+                    break;
+                case 'Received':
+                    $m->mark(Message::OUTCOME_RECEIVED, NULL, NULL, NULL);
+                    break;
+                case 'Withdrawn':
+                    $m->withdraw(NULL, NULL);
+                    break;
+                case 'Repost':
+                    # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
+                    # near the top, and get mailed out again.
+                    $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?;", [ $intended['msgid'] ]);
+                    break;
+            }
+
+            $count++;
         }
 
         return($count);

@@ -1817,6 +1817,12 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
+            'action' => 'OutcomeIntended',
+            'outcome' => Message::OUTCOME_TAKEN
+        ]);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
             'action' => 'Outcome',
             'outcome' => Message::OUTCOME_TAKEN,
             'happiness' => User::FINE,
@@ -1864,6 +1870,203 @@ class messageAPITest extends IznikAPITestCase
         error_log("Happiness " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(3, count($ret['members']));
+
+        $m->delete("UT delete");
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testIntendedTaken()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $origmsg = file_get_contents('msgs/basic');
+        $msg = $this->unique($origmsg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'OutcomeIntended',
+            'outcome' => Message::OUTCOME_TAKEN
+        ]);
+
+        # Too soon.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(0, $m->processIntendedOutcomes($id));
+
+        # Now make it look older.
+        $this->dbhm->preExec("UPDATE messages_outcomes_intended SET timestamp = DATE_SUB(timestamp, INTERVAL 3 HOUR) WHERE msgid = ?;", [ $id ]);
+        assertEquals(1, $m->processIntendedOutcomes($id));
+        $atts = $m->getPublic();
+        assertEquals(Message::OUTCOME_TAKEN, $atts['outcomes'][0]['outcome']);
+
+        $m->delete("UT delete");
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testIntendedReceived()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $origmsg = file_get_contents('msgs/basic');
+        $msg = $this->unique($origmsg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'OutcomeIntended',
+            'outcome' => Message::OUTCOME_RECEIVED
+        ]);
+
+        # Too soon.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(0, $m->processIntendedOutcomes($id));
+
+        # Now make it look older.
+        $this->dbhm->preExec("UPDATE messages_outcomes_intended SET timestamp = DATE_SUB(timestamp, INTERVAL 3 HOUR) WHERE msgid = ?;", [ $id ]);
+        assertEquals(1, $m->processIntendedOutcomes($id));
+        $atts = $m->getPublic();
+        assertEquals(Message::OUTCOME_RECEIVED, $atts['outcomes'][0]['outcome']);
+
+        $m->delete("UT delete");
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testIntendedWithdrawn()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $origmsg = file_get_contents('msgs/basic');
+        $msg = $this->unique($origmsg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'OutcomeIntended',
+            'outcome' => Message::OUTCOME_WITHDRAWN
+        ]);
+
+        # Too soon.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(0, $m->processIntendedOutcomes($id));
+
+        # Now make it look older.
+        $this->dbhm->preExec("UPDATE messages_outcomes_intended SET timestamp = DATE_SUB(timestamp, INTERVAL 3 HOUR) WHERE msgid = ?;", [ $id ]);
+        assertEquals(1, $m->processIntendedOutcomes($id));
+        $atts = $m->getPublic();
+        assertEquals(Message::OUTCOME_WITHDRAWN, $atts['outcomes'][0]['outcome']);
+
+        $m->delete("UT delete");
+
+        error_log(__METHOD__ . " end");
+    }
+
+
+    public function testIntendedRepost()
+    {
+        error_log(__METHOD__);
+
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $origmsg = file_get_contents('msgs/basic');
+        $msg = $this->unique($origmsg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'OutcomeIntended',
+            'outcome' => 'Repost'
+        ]);
+
+        $groups = $m->getGroups(FALSE, FALSE);
+        $arrival = strtotime($groups[0]['arrival']);
+
+        # Too soon.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(0, $m->processIntendedOutcomes($id));
+        sleep(5);
+
+        # Now make it look older.
+        $this->dbhm->preExec("UPDATE messages_outcomes_intended SET timestamp = DATE_SUB(timestamp, INTERVAL 3 HOUR) WHERE msgid = ?;", [ $id ]);
+        assertEquals(1, $m->processIntendedOutcomes($id));
+        $atts = $m->getPublic();
+        assertEquals(0, count($atts['outcomes']));
+
+        $groups = $m->getGroups(FALSE, FALSE);
+        $arrival2 = strtotime($groups[0]['arrival']);
+        assertGreaterThan($arrival, $arrival2);
 
         $m->delete("UT delete");
 

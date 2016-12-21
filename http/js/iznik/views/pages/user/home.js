@@ -296,13 +296,43 @@ define([
                         self.$('.js-continue').fadeIn('slow');
 
                         self.wait.close();
+
+                        // We might have an action.  Record it at the start in case they don't complete the
+                        // questions we ask.  We'll pick this up in a background script.
                         if (self.options.action == 'completed') {
                             var t = self.model.get('type') == 'Offer' ? '.js-taken' : '.js-received';
                             self.$(t).click();
+                            $.ajax({
+                                url: API + 'message',
+                                type: 'POST',
+                                data: {
+                                    action: 'OutcomeIntended',
+                                    id: self.model.get('id'),
+                                    outcome: self.model.get('type') == 'Offer' ? 'Taken' : 'Received'
+                                }
+                            });
                         } else if (self.options.action == 'withdraw') {
                             self.$('.js-withdraw').click();
+                            $.ajax({
+                                url: API + 'message',
+                                type: 'POST',
+                                data: {
+                                    action: 'OutcomeIntended',
+                                    id: self.model.get('id'),
+                                    outcome: 'Withdrawn'
+                                }
+                            });
                         } else if (self.options.action == 'repost') {
                             self.$('.js-repost').click();
+                            $.ajax({
+                                url: API + 'message',
+                                type: 'POST',
+                                data: {
+                                    action: 'OutcomeIntended',
+                                    id: self.model.get('id'),
+                                    outcome: 'Repost'
+                                }
+                            });
                         }
                     });
                 });
