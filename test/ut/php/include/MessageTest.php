@@ -6,6 +6,8 @@ if (!defined('UT_DIR')) {
 require_once UT_DIR . '/IznikTestCase.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 require_once IZNIK_BASE . '/include/message/Message.php';
+require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
+require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
 require_once IZNIK_BASE . '/include/misc/Location.php';
 require_once IZNIK_BASE . '/include/spam/Spam.php';
 require_once IZNIK_BASE . '/include/user/User.php';
@@ -546,6 +548,62 @@ And something after it.', $stripped);
         $atts = $u->getPublic(NULL, FALSE, TRUE);
         $log = $this->findLog('Message', 'Autoreposted', $atts['logs']);
         self::assertNotNull($log);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testChaseup() {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $g->setPrivate('onyahoo', 1);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('test@test.com', $email, $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $mid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($mid);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+
+        # Create a reply
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($m->getFromuser(), $uid);
+
+        $c = new ChatMessage($this->dbhr, $this->dbhm);
+        $cid = $c->create($rid, $uid, "Test reply", ChatMessage::TYPE_DEFAULT, $mid);
+
+        # Chaseup - expect none as too recent.
+        $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $gid);
+        assertEquals(0, $count);
+
+        # Make it older.
+        $mysqltime = date("Y-m-d H:i:s", strtotime('96 hours ago'));
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = ? WHERE msgid = ?;", [
+            $mysqltime,
+            $mid
+        ]);
+        $c = new ChatMessage($this->dbhr, $this->dbhm, $cid);
+        $c->setPrivate('date', $mysqltime);
+
+        # Chaseup again - should get one.
+        $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $gid);
+        assertEquals(1, $count);
+
+        # And again - shouldn't, as the last chaseup was too recent.
+        $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $gid);
+        assertEquals(0, $count);
 
         error_log(__METHOD__ . " end");
     }

@@ -200,40 +200,5 @@ class itemAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
-
-    public function testWeights() {
-        error_log(__METHOD__);
-
-        $ret = $this->call('item', 'GET', [
-            'weightless' => TRUE
-        ]);
-        assertEquals(1, $ret['ret']);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        $ret = $this->call('item', 'GET', [
-            'weightless' => TRUE
-        ]);
-        assertEquals(0, $ret['ret']);
-        $id = $ret['item']['id'];
-        assertNotNull($id);
-
-        $ret = $this->call('item', 'PATCH', [
-            'id' => $id,
-            'weight' => 1
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        $ret = $this->call('item', 'GET', [
-            'weightless' => TRUE
-        ]);
-        assertEquals(0, $ret['ret']);
-        self::assertNotEquals($id, $ret['item']['id']);
-
-        error_log(__METHOD__ . " end");
-    }
 }
 

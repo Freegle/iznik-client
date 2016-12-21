@@ -222,11 +222,6 @@ define([
                     $('#js-eventcontainer').append(v.$el);
                 });
 
-                var w = new Iznik.Views.User.Home.Weightless();
-                w.render().then(function () {
-                    $('.js-cta').append(w.$el);
-                });
-
                 // Searches
                 self.searches = new Iznik.Collections.User.Search();
 
@@ -272,7 +267,6 @@ define([
 
         fetchedChats: function() {
             var self = this;
-            console.log("Fetched chats", Iznik.Session.chats.length);
 
             // This can be called twice - once with cached data, once with the update.
             if (!self.chatsFetched) {
@@ -300,13 +294,26 @@ define([
                     v.render().then(function() {
                         self.$('.js-post').html(v.$el);
                         self.$('.js-continue').fadeIn('slow');
-                    })
+
+                        self.wait.close();
+                        if (self.options.action == 'completed') {
+                            var t = self.model.get('type') == 'Offer' ? '.js-taken' : '.js-received';
+                            self.$(t).click();
+                        } else if (self.options.action == 'withdraw') {
+                            self.$('.js-withdraw').click();
+                        } else if (self.options.action == 'repost') {
+                            self.$('.js-repost').click();
+                        }
+                    });
                 });
             }
         },
 
         render: function () {
             var self = this;
+
+            self.wait = new Iznik.Views.PleaseWait();
+            self.wait.render();
 
             Iznik.Session.askSubscription();
 

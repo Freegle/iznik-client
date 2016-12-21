@@ -9,13 +9,12 @@ require_once(IZNIK_BASE . '/include/misc/Stats.php');
 $groups = $dbhr->preQuery("SELECT * FROM groups  WHERE type = 'Freegle' ORDER BY nameshort ASC;");
 foreach ($groups as $group) {
     error_log("...{$group['nameshort']}");
-    $epoch = strtotime("17th December 2016");
+    $epoch = strtotime("yesterday");
 
-    for ($i = 0; $i < 400; $i++) {
+    for ($i = 0; $i < 30; $i++) {
         $date = date('Y-m-d', $epoch);
-        error_log($date);
         $s = new Stats($dbhr, $dbhm, $group['id']);
-        $s->generate($date);
+        $s->generate($date, [ Stats::WEIGHT ]);
         $epoch -= 24 * 60 * 60;
     }
 }
