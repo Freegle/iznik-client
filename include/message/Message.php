@@ -3157,7 +3157,9 @@ class Message
         $count = 0;
         $warncount = 0;
         $groupq = $groupid ? " AND id = $groupid " : "";
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq;", [ $type ]);
+
+        # Randomise the order to give all groups a chance if the script gets killed or something.
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
@@ -3298,8 +3300,9 @@ class Message
                         $replies = $this->dbhr->preQuery($sql, [ $message['msgid'] ]);
                         $lastreply = $replies[0]['latest'];
                         $age = ($now - strtotime($lastreply)) / (60 * 60);
+                        $interval = pres('chaseups', $reposts) ? $reposts['chaseups'] : 2;
 
-                        if ($age > $reposts['chaseups'] * 24) {
+                        if ($age > $interval * 24) {
                             # We can chase up.
                             $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                             $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
@@ -3412,7 +3415,7 @@ class Message
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
             $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
             $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-            $interval = max($interval, $reposts['chaseups'] * 24);
+            $interval = max($interval, (pres('chaseups', $reposts) ? $reposts['chaseups'] : 2) * 24);
 
             $ret = TRUE;
 

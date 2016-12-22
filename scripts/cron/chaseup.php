@@ -18,5 +18,4 @@ error_log("Processed $count intended");
 $count = $m->chaseUp(Group::GROUP_FREEGLE, $mysqltime);
 error_log("Sent $count chaseups");
 
-
 unlockScript($lockh);

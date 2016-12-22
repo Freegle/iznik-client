@@ -441,7 +441,7 @@ define([
                             },
                             {
                                 name: 'reposts.max',
-                                label: 'Max auto-reposts',
+                                label: 'Max auto-reposts (0 to disable)',
                                 control: 'input',
                                 type: 'number'
                             },

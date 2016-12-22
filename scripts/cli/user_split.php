@@ -59,5 +59,8 @@ if (count($opts) < 1) {
             $email,
             $uid2
         ]);
+
+        # Zap any existin sessions for either.
+        $dbhm->preExec("DELETE FROM sessions WHERE userid IN (?, ?);", [ $uid, $uid2 ]);
     }
 }
