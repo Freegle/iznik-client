@@ -101,13 +101,11 @@ define([
                         data.addColumn('date', 'Date');
                         data.addColumn('number', 'Count');
                         self.options.data.each(function (count) {
-                            if (self.options.data.indexOf(count) < self.options.data.length - (self.options.hasOwnProperty('trimEnd') ? self.options.trimEnd : 1)) {
+                            var trimend = self.options.hasOwnProperty('trimEnd') ? self.options.trimEnd : 1;
+                            if (!trimend || self.options.data.indexOf(count) < self.options.data.length - trimend) {
                                 data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10)]);
                             }
                         });
-
-                        var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
-                        formatter.format(data, 1);
 
                         self.chart = new google.visualization.ColumnChart(self.options.target);
                         self.data = data;

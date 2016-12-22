@@ -164,13 +164,13 @@ define([
                                 graph.render();
 
                                 // Weights - show per month.
-                                var months = [];
+                                var months = {};
 
                                 _.each(ret.dashboard.Weight, function(ent) {
                                     var date = new moment(ent.date);
-                                    var key = date.endOf('month').format('MMM YYYY');
+                                    var key = date.format('01 MMM YYYY');
                                     if (ent.count > 0) {
-                                        if (months[key]) {
+                                        if (key in months) {
                                             months[key] = months[key] + ent.count;
                                         } else {
                                             months[key] = ent.count;
@@ -178,9 +178,10 @@ define([
                                     }
                                 });
 
-                                var coll = new Iznik.Collections.DateCounts();
+                                var data = [];
+
                                 for (var key in months) {
-                                    coll.add({
+                                    data.push({
                                         date: key,
                                         count: months[key]
                                     });
@@ -188,7 +189,7 @@ define([
 
                                 var graph = new Iznik.Views.DateBar({
                                     target: self.$('.js-weightgraph').get()[0],
-                                    data: coll,
+                                    data: new Iznik.Collections.DateCounts(data),
                                     title: 'Weights (kg)',
                                     hAxisFormat: 'MMM yyyy',
                                     trimEnd: 0
