@@ -3267,7 +3267,9 @@ class Message
     public function chaseUp($type, $mindate, $groupid = NULL) {
         $count = 0;
         $groupq = $groupid ? " AND id = $groupid " : "";
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq;", [ $type ]);
+
+        # Randomise the order in case the script gets killed or something - gives all groups a chance.
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
