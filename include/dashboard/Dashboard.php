@@ -11,7 +11,7 @@ class Dashboard {
     private $me;
     private $stats;
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, User $me) {
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->me = $me;
