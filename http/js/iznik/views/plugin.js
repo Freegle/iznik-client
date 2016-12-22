@@ -112,8 +112,8 @@ define([
                     } );
 
                     var count = self.collection.length; // CC
-                    $("#js-work2").text(count + " work item(s)");
-                    console.log("plugin render " + count + " work item(s)");
+                    $("#js-work2").text("Background work: "+count);
+                    //console.log("plugin render " + count + " work item(s)");
 
                     // Update our count when the number of work items changes.
                     self.listenTo(self.collection, 'add remove', self.updatePluginCount);
@@ -310,7 +310,7 @@ define([
             var self = this;
 
             var count = self.collection.length; // CC
-            $("#js-work2").text(count + " work item(s)");
+            $("#js-work2").text("Background work: " + count);
             //console.log("plugin checkWork " + count + " work item(s)");
     
             if (self.connected) {
