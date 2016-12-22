@@ -174,6 +174,7 @@ define([
             }
 
             // Only start the syncs if there is no other work to do or never sync'd.
+            //console.log("Consider start syncs", window.IznikPlugin.collection.length, window.IznikPlugin.notsynced);
             if (window.IznikPlugin.collection.length == 0 || window.IznikPlugin.notsynced) {
                 // Start pending syncs first because if they're wrong, that's normally more annoying.
                 //
@@ -699,6 +700,7 @@ define([
                             if (group.hasOwnProperty('pendingCountMap') &&
                                 (group.pendingCountMap.hasOwnProperty('MESSAGE_COUNT') && group.pendingCountMap.MESSAGE_COUNT != 0)) {
                                 self.yahooGroupsWithPendingMessages.push(group.groupName.toLocaleLowerCase());
+                                //console.log("Pending messages on ", group.groupName);
                             }
     
                             if (group.hasOwnProperty('pendingCountMap') &&
