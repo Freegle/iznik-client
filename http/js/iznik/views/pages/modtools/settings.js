@@ -434,6 +434,12 @@ define([
                                 type: 'number'
                             },
                             {
+                                name: 'reposts.chaseups',
+                                label: 'Chaseup number of days after last reply (0 to disable)',
+                                control: 'input',
+                                type: 'number'
+                            },
+                            {
                                 name: 'reposts.max',
                                 label: 'Max auto-reposts',
                                 control: 'input',

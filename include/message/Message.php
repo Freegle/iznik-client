@@ -598,7 +598,7 @@ class Message
                 $ret['canrepost'] = FALSE;
 
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
+                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
                 $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $arrival = strtotime($group['arrival']);
                 $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
@@ -3161,7 +3161,7 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
-            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
 
             # We want approved messages which haven't got an outcome, i.e. aren't TAKEN/RECEIVED, which don't have
             # some other outcome (e.g. withdrawn), aren't promised, don't have any replies and which we originally sent.
@@ -3271,7 +3271,7 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
-            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
 
             # We want approved messages which haven't got an outcome, i.e. aren't TAKEN/RECEIVED, which don't have
             # some other outcome (e.g. withdrawn), aren't promised, have any replies and which we originally sent.
@@ -3297,7 +3297,7 @@ class Message
                         $lastreply = $replies[0]['latest'];
                         $age = ($now - strtotime($lastreply)) / (60 * 60);
 
-                        if ($age > 48) {
+                        if ($age > $reposts['chaseups'] * 24) {
                             # We can chase up.
                             $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                             $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
@@ -3391,7 +3391,7 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
             $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
 
             if ($group['hoursago'] > $interval * 24) {
@@ -3408,8 +3408,9 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
             $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+            $interval = max($interval, $reposts['chaseups'] * 24);
 
             $ret = TRUE;
 
