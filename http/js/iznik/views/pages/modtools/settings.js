@@ -318,7 +318,7 @@ define([
                                     {label: 'South East', value: 'South East'},
                                     {label: 'South West', value: 'South West'},
                                     {label: 'Wales', value: 'Wales'},
-                                    {label: 'Yorkshire and the Humber'},
+                                    {label: 'Yorkshire and the Humber', value: 'Yorkshire and the Humber'},
                                     {label: 'Scotland', value: 'Scotland'}
                                 ],
                             },
