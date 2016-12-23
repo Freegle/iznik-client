@@ -56,8 +56,15 @@
             <div class="row-fluid">
                 <div class="col-sm-7">
                     <div class="msgbody botspace"><% if (obj.textbody && obj.textbody.length > 0) { %>{{obj.textbody}}<% } else { %><span class="text-muted"><em>No message body</em></span><% } %></div>
-                    <% if (obj.FOP) { %>
-                    <em class="topspace"><b>Fair Offer Policy</b></em>
+                    <% if (obj.type == 'Offer') { %>
+                    <div class="topspace">
+                        <div class="checkbox">
+                            <label>
+                                <input class="js-fop" type="checkbox" <% if (obj.FOP) { %>checked<% } %>>
+                                <em><b>Fair Offer Policy</b></em>
+                            </label>
+                        </div>
+                    </div>
                     <% } %>
                     <div class="row">
                         <ul class="list-unstyled js-attlist"></ul>

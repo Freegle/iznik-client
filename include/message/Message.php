@@ -191,15 +191,15 @@ class Message
         return($this->$att);
     }
 
-    public function edit($subject, $textbody, $htmlbody, $fop = NULL) {
-        if ($fop !== NULL) {
-            $this->dbhm->preExec("INSERT INTO messages_deadlines (msgid, fop) VALUES (?,?) ON DUPLICATE KEY UPDATE fop = ?;", [
-                $this->id,
-                $fop ? 1 : 0,
-                $fop ? 1 : 0
-            ]);
-        }
-
+    public function setFOP($fop) {
+        $this->dbhm->preExec("INSERT INTO messages_deadlines (msgid, fop) VALUES (?,?) ON DUPLICATE KEY UPDATE fop = ?;", [
+            $this->id,
+            $fop ? 1 : 0,
+            $fop ? 1 : 0
+        ]);
+    }
+    
+    public function edit($subject, $textbody, $htmlbody) {
         if ($htmlbody && !$textbody) {
             # In the interests of accessibility, let's create a text version of the HTML
             $html = new \Html2Text\Html2Text($htmlbody);

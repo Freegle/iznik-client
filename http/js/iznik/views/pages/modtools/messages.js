@@ -10,6 +10,10 @@ define([
     'iznik/models/message'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Message = Iznik.View.extend({
+        events: {
+            'change .js-fop': 'setFOP'
+        },
+        
         rarelyUsed: function () {
             this.$('.js-rarelyused').fadeOut('slow');
             this.$('.js-stdmsgs li').fadeIn('slow');
@@ -99,6 +103,20 @@ define([
                 model: this.model
             });
             v.render();
+        },
+
+        setFOP: function(fop) {
+            var self = this;
+            var fop = self.$('.js-fop').is(':checked') ? 1 : 0;
+
+            $.ajax({
+                type: 'PATCH',
+                url: API + 'message',
+                data: {
+                    id: self.model.get('id'),
+                    FOP: fop
+                }
+            });
         },
 
         excludeLocation: function (e) {

@@ -13,7 +13,7 @@ define([
 
         click: function(e) {
             var self = this;
-            var val = $(e.target).data('value');
+            var val = $(e.target).closest('.js-click').data('value');
             $.ajax({
                 url: API + 'poll',
                 type: 'POST',

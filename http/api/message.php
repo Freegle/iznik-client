@@ -194,11 +194,16 @@ function message() {
                     $subject = presdef('subject', $_REQUEST, NULL);
                     $textbody = presdef('textbody', $_REQUEST, NULL);
                     $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
-                    $fop = presdef('FOP', $_REQUEST, NULL);
+                    $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
                     $attachments = presdef('attachments', $_REQUEST, []);
 
+
                     if ($subject || $textbody || $htmlbody) {
-                        $m->edit($subject, $textbody, $htmlbody, $fop);
+                        $m->edit($subject, $textbody, $htmlbody);
+                    }
+
+                    if ($fop !== NULL) {
+                        $m->setFOP($fop);
                     }
 
                     if ($attachments) {

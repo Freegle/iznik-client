@@ -435,15 +435,17 @@ define([
                             },
                             {
                                 name: 'reposts.chaseups',
-                                label: 'Chaseup number of days after last reply (0 to disable)',
+                                label: 'Chaseup after',
                                 control: 'input',
-                                type: 'number'
+                                type: 'number',
+                                helpMessage: 'Ask what\'s happening with the item this number of days after the last reply (0 to disable)'
                             },
                             {
                                 name: 'reposts.max',
-                                label: 'Max auto-reposts (0 to disable)',
+                                label: 'Max auto-reposts',
                                 control: 'input',
-                                type: 'number'
+                                type: 'number',
+                                helpMessage: '0 to disable'
                             },
                             {
                                 name: 'reposts.offer',
