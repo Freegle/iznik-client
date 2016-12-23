@@ -69,6 +69,13 @@ class pollAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['poll']['id']);
 
+        # Shown
+        $ret = $this->call('poll', 'POST', [
+            'id' => $id,
+            'shown' => true
+        ]);
+        assertEquals(0, $ret['ret']);
+
         # Response
         $ret = $this->call('poll', 'POST', [
             'id' => $id,

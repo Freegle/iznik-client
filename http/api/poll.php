@@ -52,7 +52,13 @@ function poll() {
 
         case 'POST': {
             $response = presdef('response', $_REQUEST, NULL);
-            $p->response($me->getId(), json_encode($response));
+            $shown = presdef('shown', $_REQUEST, NULL);
+
+            if ($shown) {
+                $p->shown($me->getId());
+            } else {
+                $p->response($me->getId(), json_encode($response));
+            }
             $ret = [
                 'ret' => 0,
                 'status' => 'Success'

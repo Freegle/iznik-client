@@ -54,12 +54,7 @@ define([
                             type: 'POST',
                             data: {
                                 id: self.poll.id,
-                                response: {
-                                    'shown': true
-                                }
-                            },
-                            success: function(ret) {
-                                self.$el.fadeOut('slow');
+                                shown: true
                             }
                         });
                     }

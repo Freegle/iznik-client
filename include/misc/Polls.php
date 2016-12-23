@@ -34,16 +34,24 @@ class Polls extends Entity
 
     public function getForUser($userid) {
         # Get first one we've not replied to.
-        $sql = "SELECT id FROM polls LEFT JOIN polls_users ON polls.id = polls_users.pollid AND userid = ? WHERE polls_users.pollid IS NULL ORDER BY polls.date DESC LIMIT 1;";
+        $sql = "SELECT id FROM polls LEFT JOIN polls_users ON polls.id = polls_users.pollid AND userid = ? WHERE (polls_users.pollid IS NULL OR response IS NULL) ORDER BY polls.date DESC LIMIT 1;";
         $polls = $this->dbhr->preQuery($sql, [ $userid ]);
 
         return(count($polls) == 0 ? NULL : $polls[0]['id']);
     }
 
+    public function shown($userid) {
+        $this->dbhm->preExec("INSERT INTO polls_users (pollid, userid) VALUES (?, ?) ON DUPLICATE KEY UPDATE shown = 1;", [
+            $this->id,
+            $userid
+        ]);
+    }
+
     public function response($userid, $response) {
-        $this->dbhm->preExec("REPLACE INTO polls_users (pollid, userid, response) VALUES (?, ?, ?);", [
+        $this->dbhm->preExec("INSERT INTO polls_users (pollid, userid, response) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE response = ?;", [
             $this->id,
             $userid,
+            $response,
             $response
         ]);
     }
