@@ -14,7 +14,6 @@ define([
         click: function(e) {
             var self = this;
             var val = $(e.target).data('value');
-            console.log("Click value", val, e.target);
             $.ajax({
                 url: API + 'poll',
                 type: 'POST',

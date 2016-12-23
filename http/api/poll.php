@@ -30,7 +30,6 @@ function poll() {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
                 if ($me) {
-                    error_log("Get poll");
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success - no polls'
