@@ -2414,6 +2414,10 @@ class Message
         $textbody = preg_replace('/\#yiv.*\}\}/', '', $textbody);
 
         #error_log("Pruned text to $textbody");
+
+        // We might have links to our own site.  Strip these in case they contain login information.
+        $textbody = preg_replace('/https:\/\/' . USER_SITE . '\S*/', 'https://' . USER_SITE, $textbody);
+
         return(trim($textbody));
     }
     

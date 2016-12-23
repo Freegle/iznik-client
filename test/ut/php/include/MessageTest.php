@@ -388,6 +388,13 @@ And something after it.', $stripped);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply.", $stripped);
 
+        $msg = $this->unique(file_get_contents('msgs/notif_reply_text7'));
+        $msg = str_replace('USER_SITE', USER_SITE, $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals("Ok, here's a reply with https://" . USER_SITE ." an url and https://" . USER_SITE, $stripped);
+
         error_log(__METHOD__ . " end");
     }
     

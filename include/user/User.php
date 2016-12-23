@@ -2519,7 +2519,7 @@ class User extends Entity
         }
 
         $p = strpos($url, '?');
-        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key") : ("https://" . SITE_HOST . "$url&u=$id&k=$key");
+        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key") : ("https://$domain$url&u=$id&k=$key");
 
         return($url);
     }
