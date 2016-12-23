@@ -2746,7 +2746,7 @@ class User extends Entity
                 list($msgs, $users) = $r->getMessages(100, 0);
 
                 if (count($msgs) > 0) {
-                    $message = presdef('message', $msgs[0], "You have a message");
+                    $message = presdef('message', $msgs[count($msgs) - 1], "You have a message");
                     $message = strlen($message) > 256 ? (substr($message, 0, 256) . "...") : $message;
                 }
             } else if ($count > 1) {
