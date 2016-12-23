@@ -609,12 +609,15 @@ define([
 
             if (me) {
                 var group = this.getGroup(groupid);
-                ret = group.get('role');
 
-                if (ret != 'Owner' && overrides && me.systemrole == 'Admin') {
-                    ret = 'Owner';
-                } else if (ret == 'Member' && overrides && me.systemrole == 'Support') {
-                    ret = 'Moderator'
+                if (group) {
+                    ret = group.get('role');
+
+                    if (ret != 'Owner' && overrides && me.systemrole == 'Admin') {
+                        ret = 'Owner';
+                    } else if (ret == 'Member' && overrides && me.systemrole == 'Support') {
+                        ret = 'Moderator'
+                    }
                 }
             }
 
