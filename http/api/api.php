@@ -51,6 +51,7 @@ require_once(IZNIK_BASE . '/include/group/Facebook.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
+require_once(IZNIK_BASE . '/include/misc/Polls.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
 require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
@@ -88,6 +89,7 @@ require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/event.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
+require_once(IZNIK_BASE . '/http/api/poll.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -265,6 +267,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'chatmessages':
                     $ret = chatmessages();
+                    break;
+                case 'poll':
+                    $ret = poll();
                     break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);

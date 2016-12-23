@@ -3,6 +3,11 @@
     background-image: url('/images/wallpaper.png');
 }
 
+.snowback {
+    background-image: url('/images/snowman.jpg');
+    background-size: contain;
+}
+
 .success {
     color: #61AE24 !important;
 }

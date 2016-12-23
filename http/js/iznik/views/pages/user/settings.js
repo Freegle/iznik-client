@@ -292,12 +292,7 @@ define([
                     self.$('.js-appon').show();
                 }
 
-                var facebook = false;
-                _.each(Iznik.Session.get('logins'), function(login) {
-                    if (login.type == 'Facebook') {
-                        facebook = true;
-                    }
-                });
+                var facebook = Iznik.Session.hasFacebook();
                 
                 if (facebook) {
                     self.$(".js-facebookswitch").bootstrapSwitch({

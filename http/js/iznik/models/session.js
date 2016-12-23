@@ -667,6 +667,17 @@ define([
             });
 
             return(ret);
+        },
+
+        hasFacebook: function() {
+            var facebook = false;
+            _.each(this.get('logins'), function(login) {
+                if (login.type == 'Facebook') {
+                    facebook = true;
+                }
+            });
+
+            return(facebook);
         }
     });
 });

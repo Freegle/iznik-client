@@ -7,7 +7,8 @@ define([
     'iznik/models/user/search',
     'iznik/views/group/communityevents',
     'iznik/views/pages/pages',
-    'iznik/views/user/message'
+    'iznik/views/user/message',
+    'iznik/views/user/polls'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
@@ -55,7 +56,6 @@ define([
             var self = this;
             var count = 0;
 
-            console.log("UpdateOldCOunt", type, showing, self.messages);
             if (!showing) {
                 self.messages.each(function(msg) {
                     if (msg.get('type') == type && msg.get('outcomes').length != 0) {
@@ -66,7 +66,6 @@ define([
 
             var container = this.$('.js-old' + type.toLowerCase() + 's');
             var countel = this.$('.js-old' + type.toLowerCase() + 'count');
-            console.log("Update it", container, count);
 
             if (count == 0) {
                 container.hide();
@@ -216,6 +215,11 @@ define([
             });
 
             p.then(function(self) {
+                var poll = new Iznik.Views.User.Poll();
+                poll.render().then(function() {
+                    self.$('.js-poll').html(poll.$el);
+                });
+
                 // Left menu is community events
                 var v = new Iznik.Views.User.CommunityEventsSidebar();
                 v.render().then(function () {
