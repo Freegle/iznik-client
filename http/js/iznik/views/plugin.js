@@ -257,7 +257,7 @@ define([
         },
 
         // TODO This whole callback approach is old code and should use promises or something.
-        getCrumb: function(groupname, crumblocation, success, fail) {
+        getCrumb: function(groupname, crumblocation, success, fail, drop) {
             // There's a bit of faffing to get a crumb from Yahoo to perform our actions.
             var self = this;
     
@@ -267,7 +267,8 @@ define([
                     var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
     
                     if (ret.indexOf("not allowed to perform this operation") !== -1) {
-                        fail.call(self);
+                        // Can't do this - no point keeping the work.
+                        drop.call(self);
                     } else if (match) {
                         success.call(self, match[1]);
                     } else {
@@ -337,6 +338,8 @@ define([
                         v.start.call(v);
                     }, function() {
                         self.collection.at(0).retry();
+                    }, function() {
+                        v.drop.call(v);
                     })();
                 }
             }
