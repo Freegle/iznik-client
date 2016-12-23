@@ -329,7 +329,7 @@ define([
 
                 // console.log("Checked height", (new Date()).getMilliseconds() - start);
 
-                var max = window.innerWidth - 100;
+                var max = window.innerWidth - (isSM() ? 0 : 100);
 
                 //console.log("Consider width", totalOuter, max);
 
@@ -1197,16 +1197,6 @@ define([
                 // Others
                 self.$('.js-leftpanel').width('100%');
             }
-
-            self.checkSmall(width);
-        },
-
-        checkSmall: function (width) {
-            if (width < 640) {
-                this.$el.addClass('chatsmall');
-            } else {
-                this.$el.removeClass('chatsmall');
-            }
         },
 
         setSize: function () {
@@ -1221,6 +1211,7 @@ define([
                 if (isSM()) {
                     // Just maximise it.
                     width = $(window).innerWidth();
+                    console.log("Small, maximimise", width);
                 }
 
                 // console.log("Short?", isShort(), $(window).innerHeight(), $('.navbar').outerHeight(), $('#js-notifchat').outerHeight());
@@ -1233,15 +1224,16 @@ define([
                     // console.log("Set size", width, height);
                     self.$el.height(height);
                     self.$el.width(width);
-                    self.checkSmall(width);
                 }
 
-                var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
-                lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
+                if (!isSM()) {
+                    var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
+                    lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
 
-                if (lpwidth) {
-                    // console.log("Restore chat width to", lpwidth);
-                    self.$('.js-leftpanel').width(lpwidth);
+                    if (lpwidth) {
+                        console.log("Restore chat width to", lpwidth);
+                        self.$('.js-leftpanel').width(lpwidth);
+                    }
                 }
             } catch (e) {
             }

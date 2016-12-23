@@ -941,10 +941,6 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     max-height: 34px !important;
 }
 
-.chatsmall .chathidesmall {
-    display: none !important;
-}
-
 #chatHolder {
     position:fixed;
     bottom:0;
