@@ -47,6 +47,21 @@ define([
                         if (Iznik.Session.hasFacebook() && self.$('.js-facebookonly').length > 0) {
                             self.$('.js-facebookonly').fadeIn('slow');
                         }
+
+                        // Record that we've shown it - then we know that if they don't click.
+                        $.ajax({
+                            url: API + 'poll',
+                            type: 'POST',
+                            data: {
+                                id: self.poll.id,
+                                response: {
+                                    'shown': true
+                                }
+                            },
+                            success: function(ret) {
+                                self.$el.fadeOut('slow');
+                            }
+                        });
                     }
                 }
             });
