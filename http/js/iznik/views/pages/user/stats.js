@@ -191,8 +191,7 @@ define([
                                     target: self.$('.js-weightgraph').get()[0],
                                     data: new Iznik.Collections.DateCounts(data),
                                     title: 'Weights (kg)',
-                                    hAxisFormat: 'MMM yyyy',
-                                    trimEnd: 0
+                                    hAxisFormat: 'MMM yyyy'
                                 });
 
                                 graph.render();

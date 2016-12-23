@@ -46,7 +46,7 @@ define([
                         data.addColumn('date', 'Date');
                         data.addColumn('number', 'Count');
                         self.options.data.each(function (count) {
-                            if (self.options.data.indexOf(count) < self.options.data.length - 1) {
+                            if (self.options.data.indexOf(count) < self.options.data.length) {
 
                                 data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10)]);
                             }
@@ -101,8 +101,7 @@ define([
                         data.addColumn('date', 'Date');
                         data.addColumn('number', 'Count');
                         self.options.data.each(function (count) {
-                            var trimend = self.options.hasOwnProperty('trimEnd') ? self.options.trimEnd : 1;
-                            if (!trimend || self.options.data.indexOf(count) < self.options.data.length - trimend) {
+                            if (self.options.data.indexOf(count) < self.options.data.length) {
                                 data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10)]);
                             }
                         });
