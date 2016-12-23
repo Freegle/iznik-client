@@ -81,7 +81,7 @@ define([
             var self = this;
 
             $('.js-pagetitle').each(function() {
-                if ($(this).length > 0 && $(this).css('display') != 'none') {
+                if ($(this).length > 0) {
                     self.setTitle($(this).get(0).textContent);
                 }
             });
