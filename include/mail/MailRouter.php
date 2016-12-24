@@ -639,7 +639,7 @@ class MailRouter
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
                 $defs = $g->getDefaults();
                 $spammers = $g->getSetting('spammers', $defs['spammers']);
-                $check = pres('messagereview', $spammers) ? $spammers['messagereview'] : $defs['spammers']['messagereview'];
+                $check = array_key_exists('messagereview', $spammers) ? $spammers['messagereview'] : $defs['spammers']['messagereview'];
                 $notspam = $check ? $notspam : TRUE;
             }
 
