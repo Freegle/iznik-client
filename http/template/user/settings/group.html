@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col-sm-1 hidden-xs">
-        <% if (obj.profile) { %><img src="{{profile}}" class="img img-thumbnail profilexs img-rounded" /><% } %>
+        <% if (obj.profile) { %><img alt="Group profile picture" src="{{profile}}" class="img img-thumbnail profilexs img-rounded" /><% } %>
     </div>
     <div class="col-sm-3">
         {{namedisplay}}<% if (role == 'Moderator' || role == 'Owner') { %>&nbsp;<div class="glyphicons glyphicons-crown" /><% } %>
