@@ -15,31 +15,31 @@
 </div>
 <div class="nomargin panel panel-success">
     <div class="panel-heading nopad clearfix">
-        <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
-            <div class="col-sm-11">
-                <% if (attachments.length>0) { %>
-                  <div class="pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
-                <% } %>
-                <div class="msgsubj panel-title">
+        <div class="col-sm-11">
+            <% if (attachments.length>0) { %>
+              <div class="pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
+            <% } %>
+            <div class="msgsubj panel-title">
+                <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
                   <span class="js-subject">
                     {{subject}} <br />
                   </span>
-                  <div class="hidden-xs js-groups" />
-                </div>
-                <div class="hidden-xs js-snippet">
-                  <% if (obj.snippet) { %>
-                  <h4 class="nomargin">{{snippet}}...</h4>
-                  <h4 class="black">Read more >></h4>
-                  <% } %>
-                </div>
+                </a>
+              <div class="hidden-xs js-groups" />
             </div>
-            <div class="hidden-xs col-sm-1">
-                <button class="btn btn-white pull-right topspace">
-                    <span class="js-caretdown caret"></span>
-                    <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
-                </button>
+            <div class="hidden-xs js-snippet">
+              <% if (obj.snippet) { %>
+              <h4 class="nomargin">{{snippet}}...</h4>
+              <h4 class="black">Read more >></h4>
+              <% } %>
             </div>
-        </a>
+        </div>
+        <div class="hidden-xs col-sm-1">
+            <button class="btn btn-white pull-right topspace">
+                <span class="js-caretdown caret"></span>
+                <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
+            </button>
+        </div>
         <% if (obj.snippet) { %>
         <div class="row hidden-xs hidden-sm hidden-md hidden-lg js-snippet">
             <div class="col-xs-12">
@@ -55,7 +55,7 @@
         <div class="panel-body">
             <div class="row">
                 <div class="col-sm-10">
-                    <div class="lead prewrap js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
+                    <div class="lead prewrap forcebreak js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
                     <% if (obj.fromuser) { %>
                     <span class="text-muted">
                         <% if (obj.mine) { %>
