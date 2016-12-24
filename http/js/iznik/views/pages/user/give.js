@@ -38,7 +38,7 @@ define([
 
         fop: function() {
             var self = this;
-            var fop = self.$('.js-fop').is(':checked');
+            var fop = self.$('.js-fop').is(':checked') ? 1 : 0;
 
             try {
                 self.id = localStorage.getItem('lastpost');
