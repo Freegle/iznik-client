@@ -578,6 +578,22 @@ class Message
         $ret['subject'] = preg_replace('/^\[.*?\]\s*/', '', $ret['subject']);
         $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
 
+        # Get the item.  Although it's an extra DB call, we use this in creating structured data for SEO.
+        $items = $this->dbhr->preQuery("SELECT items.id, items.name FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
+        if (count($items) > 0) {
+            $ret['item'] = $items[0];
+        } else if (preg_match("/(.+)\:(.+)\((.+)\)/", $ret['subject'], $matches)) {
+            # See if we can find it.
+            $item = trim($matches[2]);
+            $itemid = NULL;
+            $items = $this->dbhr->preQuery("SELECT items.id FROM items WHERE name LIKE ?;", [ $item ]);
+            $itemid = count($items) == 0 ? NULL : $items[0]['id'];
+            $ret['item'] = [
+                'id' => $itemid,
+                'name' => $item
+            ];
+        }
+
         # Add any groups that this message is on.
         $ret['groups'] = [];
         $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
@@ -593,11 +609,14 @@ class Message
                 $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
             }
 
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
+            $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
+
             if ($ret['mine']) {
                 # Can we repost?
                 $ret['canrepost'] = FALSE;
 
-                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
                 $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
                 $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $arrival = strtotime($group['arrival']);
