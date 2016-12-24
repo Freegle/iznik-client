@@ -48,7 +48,7 @@
                     <div class="topspace">
                         <div class="checkbox">
                             <label>
-                                <input class="js-fop" type="checkbox" <% if (obj.FOP) { %>checked<% } %>>
+                                <input class="js-fop" type="checkbox" <% if (obj.FOP) { %>checked<% } %><% if (!obj.groups[0].onhere) { %>disabled<% } %>>
                                 <em><b>Fair Offer Policy</b></em>
                             </label>
                         </div>
