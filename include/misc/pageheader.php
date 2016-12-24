@@ -123,7 +123,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     echo "<meta name=\"iznikcache\" content=\"$version\" >\n";
     ?>
 
-    <link rel="stylesheet" href="css/smart-app-banner.css?a=1" type="text/css" media="screen">
+    <link rel="stylesheet" href="/css/smart-app-banner.css?a=1" type="text/css" media="screen">
     <script src="/js/lib/smart-app-banner.js"></script>
     <script type="text/javascript">
         var userAgent = navigator.userAgent || navigator.vendor || window.opera;
