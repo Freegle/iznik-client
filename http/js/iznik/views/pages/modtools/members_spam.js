@@ -216,7 +216,7 @@ define([
                         // Auto remove and ban may be turned off, so leave those buttons.
                         self.$('.js-spammer').closest('li').hide();
 
-                        if (group && group.onyahoo) {
+                        if (group && group.get('onyahoo')) {
                             // Delay getting the Yahoo info slightly to improve apparent render speed.
                             _.delay(function () {
                                 // The Yahoo part of the user

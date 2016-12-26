@@ -921,7 +921,7 @@ define([
                 self.$('.js-ourpostingstatus').val(self.model.get('ourpostingstatus'));
                 self.$('.js-role').val(self.model.get('role'));
 
-                var mom = new moment(self.model.get('added'));
+                var mom = new moment(self.model.get('joined'));
                 var now = new moment();
 
                 self.$('.js-joined').html(mom.format('ll'));
