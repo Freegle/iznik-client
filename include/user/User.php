@@ -950,6 +950,7 @@ class User extends Entity
     public function findByLogin($type, $uid) {
         $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE uid = ? AND type = ?;",
             [ $uid, $type]);
+
         foreach ($logins as $login) {
             return($login['userid']);
         }

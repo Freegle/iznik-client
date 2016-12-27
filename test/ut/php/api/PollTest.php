@@ -96,5 +96,50 @@ class pollAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testLogin() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # Fake FB login.
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, NULL, 'testpw'));
+        $logins = $u->getLogins();
+        error_log("Got logins " . var_export($logins, TRUE));
+
+        # Create a poll requiring FB.
+        $c = new Polls($this->dbhr, $this->dbhm);
+        $id = $c->create('UTTest', 1, 'Test', User::LOGIN_FACEBOOK);
+        $found = FALSE;
+
+        do {
+            # Get for user until we run out or find it.
+            $ret = $this->call('poll', 'GET', []);
+
+            assertEquals(0, $ret['ret']);
+            assertNotNull($ret['poll']['id']);
+
+            if ($id == $ret['poll']['id']) {
+                $found = TRUE;
+            }
+
+            # Shown
+            error_log("Mark $id as shown");
+            $ret = $this->call('poll', 'POST', [
+                'id' => $id,
+                'response' => [
+                    'test' => true
+                ]
+            ]);
+            assertEquals(0, $ret['ret']);
+        } while (!$found);
+
+        assertTrue($found);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

@@ -17,11 +17,11 @@ class Polls extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'polls', 'poll', $this->publicatts);
     }
 
-    public function create($name, $active, $template) {
+    public function create($name, $active, $template, $logintype = NULL) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO polls (`name`, `active`, `template`) VALUES (?,?,?);", [
-            $name, $active, $template
+        $rc = $this->dbhm->preExec("INSERT INTO polls (`name`, `active`, `template`, `logintype`) VALUES (?,?,?,?);", [
+            $name, $active, $template, $logintype
         ]);
 
         if ($rc) {
@@ -33,11 +33,42 @@ class Polls extends Entity
     }
 
     public function getForUser($userid) {
-        # Get first one we've not replied to.
-        $sql = "SELECT id FROM polls LEFT JOIN polls_users ON polls.id = polls_users.pollid AND userid = ? WHERE (polls_users.pollid IS NULL OR response IS NULL) ORDER BY polls.date DESC LIMIT 1;";
-        $polls = $this->dbhr->preQuery($sql, [ $userid ]);
+        $ret = NULL;
+        $lastid = NULL;
 
-        return(count($polls) == 0 ? NULL : $polls[0]['id']);
+        do {
+            # Get first one we've not replied to.
+            $lastq = $lastid ? " AND polls.id > $lastid " : '';
+
+            $sql = "SELECT id, logintype FROM polls LEFT JOIN polls_users ON polls.id = polls_users.pollid AND userid = ? WHERE (polls_users.pollid IS NULL OR response IS NULL) $lastq ORDER BY polls.date DESC LIMIT 1;";
+            $polls = $this->dbhr->preQuery($sql, [ $userid ]);
+
+            # Keep looking while we're still finding some.
+            $cont = count($polls) > 0;
+
+            if ($cont) {
+                $lastid = $polls[0]['id'];
+
+                # Can we return this one?
+                $logintype = $polls[0]['logintype'];
+                if ($logintype) {
+                    # We need to check the login type against those for this user.
+                    $u = User::get($this->dbhr, $this->dbhm, $userid);
+                    $logins = $u->getLogins();
+
+                    foreach ($logins as $login) {
+                        if ($login['type'] == $logintype) {
+                            $ret = $polls[0]['id'];
+                        }
+                    }
+                } else {
+                    # No need to check the login type, so this will do.
+                    $ret = $polls[0]['id'];
+                }
+            }
+        } while (!$ret && $cont);
+
+        return($ret);
     }
 
     public function shown($userid) {
