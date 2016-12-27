@@ -40,7 +40,7 @@ class Polls extends Entity
             # Get first one we've not replied to.
             $lastq = $lastid ? " AND polls.id > $lastid " : '';
 
-            $sql = "SELECT id, logintype FROM polls LEFT JOIN polls_users ON polls.id = polls_users.pollid AND userid = ? WHERE (polls_users.pollid IS NULL OR response IS NULL) $lastq ORDER BY polls.date DESC LIMIT 1;";
+            $sql = "SELECT id, logintype FROM polls LEFT JOIN polls_users ON polls.id = polls_users.pollid AND userid = ? WHERE (polls_users.pollid IS NULL OR response IS NULL) AND polls.active = 1 $lastq ORDER BY polls.date DESC LIMIT 1;";
             $polls = $this->dbhr->preQuery($sql, [ $userid ]);
 
             # Keep looking while we're still finding some.

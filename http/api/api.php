@@ -323,7 +323,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 error_log("API call $call worked after $apicallretries");
             }
 
-            if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
+            $ip = presdef('REMOTE_ADDR', $_SERVER, '');
+
+            if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET' || $ip == '82.7.164.249') &&
                 (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
                 # save GET calls as they don't change the DB and there are a lot of them.

@@ -175,6 +175,15 @@ class Search
         }
     }
 
+    public function bump($extid, $sortval)
+    {
+        $sql = "UPDATE {$this->table} SET `{$this->sortatt}` = ? WHERE `{$this->idatt}` = ?;";
+        $this->dbhm->preExec($sql, [
+            -$sortval,
+            $extid
+        ]);
+    }
+
     private function getWord($id, $tag) {
         # We often get the same word when processing search results.  Cache in memory to speed that case.
         if (!pres($id, $this->wordcache)) {
@@ -259,7 +268,7 @@ class Search
                 # Check for exact matches even for short words
                 $startq = pres('Exact', $context) ? " AND {$this->sortatt} > {$context['Exact']} " : "";
                 $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsExact($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
-                #error_log(" $sql  {$this->sortatt} {$this->idatt}");
+                error_log(" $sql  {$this->sortatt} {$this->idatt}");
                 $batch = $this->dbhr->preQuery($sql, [
                     $this->sortatt,
                     $this->idatt

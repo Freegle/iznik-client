@@ -472,8 +472,10 @@ define([
 
         click: function (ev) {
             $('.btn-radio .btn').removeClass('active');
+            $('.btn-radio .btn').addClass('faded');
             var btn = $(ev.currentTarget);
             btn.addClass('active');
+            btn.removeClass('faded');
 
             if (btn.hasClass('js-unhappy')) {
                 this.$('.js-public').hide();

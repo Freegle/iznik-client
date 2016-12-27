@@ -2744,8 +2744,8 @@ class Message
         }
     }
 
-    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL) {
-        $ret = $this->s->search($string, $context, $limit, $restrict, $groups);
+    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL, $exactonly = FALSE) {
+        $ret = $this->s->search($string, $context, $limit, $restrict, $groups, $exactonly);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
@@ -3176,7 +3176,7 @@ class Message
         return(!$rollback);
     }
 
-    public function autoRepost($type, $mindate, $groupid = NULL) {
+    public function autoRepostGroup($type, $mindate, $groupid = NULL) {
         $count = 0;
         $warncount = 0;
         $groupq = $groupid ? " AND id = $groupid " : "";
@@ -3267,16 +3267,10 @@ class Message
                                         }
                                     }
                             } else if ($message['hoursago'] > $interval * 24) {
-                                # We can repost this one.  That consists of:
-                                # - incrementing the repost count
-                                # - resetting the arrival time, which will mean the message shows up on the site as recent,
-                                #   and goes out by mail from Digest.php.
-                                #
-                                # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
-                                # with multiple copies on Yahoo are just too horrible to be worth trying to do.
+                                # We can autorepost this one.
                                 $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                                 error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                                $m->repost($message['autoreposts'] + 1, $reposts['max']);
+                                $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
 
                                 $count++;
                             }
@@ -3451,10 +3445,25 @@ class Message
         return($ret);
     }
 
-    public function repost($reposts, $max) {
+    public function repost() {
         # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
         # near the top, and get mailed out again.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+
+        # ...and update the search index.
+        $this->s->bump($this->id, time());
+    }
+
+    public function autoRepost($reposts, $max) {
+        # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
+        # near the top, and get mailed out again.
+        #
+        # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
+        # with multiple copies on Yahoo are just too horrible to be worth trying to do.
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+
+        # ...and update the search index.
+        $this->s->bump($this->id, time());
 
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,

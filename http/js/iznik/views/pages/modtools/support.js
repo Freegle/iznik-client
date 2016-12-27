@@ -105,6 +105,7 @@ define([
                 remove: true,
                 data: {
                     search: self.$('.js-searchmsginp').val(),
+                    exactonly: true
                 },
                 success: function (collection, response, options) {
                     v.close();

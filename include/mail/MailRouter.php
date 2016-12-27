@@ -632,6 +632,7 @@ class MailRouter
             $spamscore = NULL;
 
             $groups = $this->msg->getGroups(FALSE, FALSE);
+            error_log("Got groups " . var_export($groups, TRUE));
 
             # Check if the group wants us to check for spam.
             # TODO Multiple groups?
@@ -641,6 +642,7 @@ class MailRouter
                 $spammers = $g->getSetting('spammers', $defs['spammers']);
                 $check = array_key_exists('messagereview', $spammers) ? $spammers['messagereview'] : $defs['spammers']['messagereview'];
                 $notspam = $check ? $notspam : TRUE;
+                error_log("Consider spam review $notspam from $check, " . var_export($spammers, TRUE));
             }
 
             if (!$notspam) {
