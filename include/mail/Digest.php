@@ -263,15 +263,19 @@ class Digest
                     if ($this->errorlog) { error_log("Preferred $email"); }
 
                     if ($email && $email != MODERATOR_EMAIL && $u->sendOurMails($g)) {
+                        $t = $u->loginLink(USER_SITE, $u->getId(), '/');
+                        $creds = substr($t, strpos($t, '?'));
+
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{bounce}}' => $u->getBounce(),
-                            '{{unsubscribe}}' => 'https://' . USER_SITE . '/unsubscribe',
+                            '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe'),
                             '{{email}}' => $email,
                             '{{frequency}}' => $this->freqText[$frequency],
                             '{{noemail}}' => 'digestoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
-                            '{{post}}' => 'https://' . USER_SITE,
-                            '{{visit}}' => 'https://' . USER_SITE . '/mygroups'
+                            '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/'),
+                            '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups'),
+                            '{{creds}}' => $creds
                         ];
                     }
                 }
@@ -295,25 +299,23 @@ class Digest
                     foreach ($tosend as $msg) {
                         foreach ($replacements as $email => $rep) {
                             try {
+                                # We created some HTML with logs of message links of this format:
+                                #   "https://" . USER_SITE . "/message/$msgid"
+                                # Add login info to them.
+                                # TODO This is a bit ugly.  Now that we send a single message per recipient is it
+                                # worth the double-loop we have in this function?
+                                $html = preg_replace('/(https:\/\/' . USER_SITE . '\/message\/[0-9]*)/', '$1' . $rep['{{creds}}'], $msg['html']);
+
                                 $message = Swift_Message::newInstance()
                                     ->setSubject($msg['subject'])
                                     ->setFrom([$msg['from'] => $msg['fromname']])
                                     ->setReturnPath($rep['{{bounce}}'])
                                     ->setReplyTo($msg['replyto'], $msg['replytoname'])
                                     ->setBody($msg['text'])
-                                    ->addPart($msg['html'], 'text/html');
+                                    ->addPart($html, 'text/html');
 
                                 $headers = $message->getHeaders();
                                 $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
-
-//                                    error_log("...$email {$msg['subject']}");
-//                                    if (strpos($email, 'btinternet.com')) {
-//                                        error_log("BT - cause fail");
-//                                        $message->setTo([ 'log@ehibbert.org.uk' => $rep['{{toname}}'] ]);
-//                                        #$message->setCc( [ 'investigation06@btinternet.com' => $rep['{{toname}}'] ]);
-//                                        $this->sendOne($mailer, $message);
-//                                        exit(0);
-//                                    }
                                 $message->setTo([ $email => $rep['{{toname}}'] ]);
                                 $this->sendOne($mailer, $message);
                                 $sent++;
