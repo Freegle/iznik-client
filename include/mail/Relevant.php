@@ -31,7 +31,7 @@ class Relevant {
         $email = $u->getEmailPreferred();
         if ($email) {
             list ($transport, $mailer) = getMailer();
-            $html = relevant_off(USER_DOMAIN, USERLOGO);
+            $html = relevant_off(USER_SITE, USERLOGO);
 
             $message = Swift_Message::newInstance()
                 ->setSubject("Email Change Confirmation")

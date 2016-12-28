@@ -71,7 +71,7 @@ class Digest
             $email = $u->getEmailPreferred();
             if ($email) {
                 list ($transport, $mailer) = getMailer();
-                $html = digest_off(USER_DOMAIN, USERLOGO, $groupname);
+                $html = digest_off(USER_SITE, USERLOGO, $groupname);
 
                 $message = Swift_Message::newInstance()
                     ->setSubject("Email Change Confirmation")

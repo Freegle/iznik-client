@@ -3243,7 +3243,7 @@ class Message
                                             $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw");
                                             $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                             $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
-                                            $html = autorepost_warning(USER_DOMAIN,
+                                            $html = autorepost_warning(USER_SITE,
                                                 USERLOGO,
                                                 $subj,
                                                 $u->getName(),
@@ -3341,7 +3341,7 @@ class Message
                                 $repost = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/repost");
                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                 $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
-                                $html = chaseup(USER_DOMAIN,
+                                $html = chaseup(USER_SITE,
                                     USERLOGO,
                                     $subj,
                                     $u->getName(),
