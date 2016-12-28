@@ -53,7 +53,7 @@ class Relevant {
         $interested = [];
 
         # First the messages.
-        $sql = "SELECT DISTINCT messages.type, messages.subject FROM messages LEFT OUTER JOIN messages_related ON id1 = fromuser OR id2 = fromuser INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? WHERE id1 IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted');";
+        $sql = "SELECT DISTINCT messages.type, messages.subject FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? WHERE messages_outcomes.msgid IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted');";
         $msgs = $this->dbhr->preQuery($sql, [ $grouptype, $userid ] );
         foreach ($msgs as $msg) {
             # We only bother with messages with standard subject line formats.
@@ -170,6 +170,7 @@ class Relevant {
             if (time() > $till) {
                 # Not on holiday
                 $ints = $this->interestedIn($user['id']);
+                #error_log("Interesteds " . var_export($ints, TRUE));
                 $msgs = $this->getMessages($user['id'], $ints);
 
                 if (count($msgs) > 0) {
@@ -183,35 +184,16 @@ class Relevant {
                         $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
 
                         # We need the approved ID on Yahoo for migration links.
-                        # TODO remove in time.
-                        $href = NULL;
-                        $atts = $m->getPublic(FALSE, FALSE, TRUE);
-                        $groups = $atts['groups'];
-                        foreach ($groups as $group) {
-                            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                            $gatts = $g->getPublic();
+                        $href = $u->loginLink(USER_SITE, $u->getId(), "/message/{$msg['id']}");
+                        $subject = $m->getSubject();
+                        $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
 
-                            $sql = "SELECT groupid FROM groups WHERE groupname = " . $dbhold->quote($gatts['nameshort']) . ";";
-                            $fdgroupid = NULL;
-                            $fdgroups = $dbhold->query($sql);
-                            foreach ($fdgroups as $fdgroup) {
-                                $fdgroupid = $fdgroup['groupid'];
-                            }
-
-                            $href = "https://direct.ilovefreegle.org/login.php?action=mygroups&subaction=displaypost&msgid={$group['yahooapprovedid']}&groupid=$fdgroupid&digest=$fdgroupid";
-                        }
-
-                        if ($href) {
-                            $subject = $m->getSubject();
-                            $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
-
-                            if ($m->getType() == Message::TYPE_OFFER) {
-                                $offers[] = "$subject - see $href\r\n";
-                                $hoffers[] = relevant_one($subject, $href);
-                            } else {
-                                $wanteds[] = "$subject - see $href\r\n";
-                                $hwanteds[] = relevant_one($subject, $href);
-                            }
+                        if ($m->getType() == Message::TYPE_OFFER) {
+                            $offers[] = "$subject - see $href\r\n";
+                            $hoffers[] = relevant_one($subject, $href);
+                        } else {
+                            $wanteds[] = "$subject - see $href\r\n";
+                            $hwanteds[] = relevant_one($subject, $href);
                         }
                     }
 
@@ -232,12 +214,13 @@ class Relevant {
                         $message = Swift_Message::newInstance()
                             ->setSubject($subj)
                             ->setFrom([NOREPLY_ADDR => SITE_NAME ])
-                            ->setReturnPath('bounce@direct.ilovefreegle.org')
+                            ->setReturnPath($u->getBounce())
                             ->setTo([ $email => $u->getName() ])
                             ->setBody($textbody)
                             ->addPart($html, 'text/html');
 
                         $this->sendOne($mailer, $message);
+                        error_log("Sent to $email");
                         $count++;
                     }
                 }

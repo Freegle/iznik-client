@@ -14,7 +14,7 @@ $lockh = lockScript(basename(__FILE__));
 $rl = new Relevant($dbhr, $dbhm);
 $count = 0;
 
-$users = $dbhr->preQuery("SELECT id FROM users WHERE lastlocation IS NOT NULL AND relevantallowed = 1 LIMIT 10;");
+$users = $dbhr->preQuery("SELECT id FROM users WHERE lastlocation IS NOT NULL AND relevantallowed = 1;");
 foreach ($users as $user) {
     $count += $rl->sendMessages($user['id']);
     $rl->recordCheck($user['id']);
