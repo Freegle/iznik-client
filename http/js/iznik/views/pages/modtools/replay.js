@@ -124,8 +124,8 @@ define([
             if (target.length > 0) {
                 target.get(0).outerHTML = event.data;
             } else {
-                // We can't find it.  Append it directly to the body - if nothing else, at least it'll be visible!
-                $('#replayContent').append(event.data);
+                // We can't find it.  They often turn up, though.
+                window.setTimeout(_.bind(this.DOMchange, this), 200, event);
             }
         },
 
