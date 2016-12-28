@@ -237,7 +237,7 @@ define([
                                 },
                                 {
                                     name: 'pushnotify',
-                                    label: 'Push notifications?',
+                                    label: 'Push/app notifications?',
                                     control: 'radio',
                                     extraClasses: [ 'row' ],
                                     options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
