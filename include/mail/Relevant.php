@@ -220,7 +220,7 @@ class Relevant {
                             ->addPart($html, 'text/html');
 
                         $this->sendOne($mailer, $message);
-                        error_log("Sent to $email");
+                        #error_log("Sent to $email");
                         $count++;
                     }
                 }
