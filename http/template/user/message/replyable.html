@@ -17,21 +17,20 @@
 </div>
 <div class="nomargin panel panel-success">
     <div class="panel-heading nopad clearfix">
-        <div class="col-sm-11 padmd">
+        <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
+            <div class="col-sm-11 padmd">
             <% if (attachments.length>0) { %>
               <div class="pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
             <% } %>
             <div class="msgsubj panel-title">
-                <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
                   <span class="js-subject">
                       <% if (obj.item && obj.keyword && obj.postcode && obj.area) { %>
                         <span class="keyword">{{obj.keyword}}</span>: <span class="js-item">{{obj.item.name}}</span> (<span class="area">{{obj.area.name}}</span> <span class="postcode">{{obj.postcode.name}}</span>)
                       <% } else { %>
-                        <span class="subject"{{subject}}</span>
+                        <span class="subject">{{subject}}</span>
                       <% } %>
                       <br />
                   </span>
-                </a>
               <div class="hidden-xs js-groups" />
             </div>
             <div class="hidden-xs js-snippet">
@@ -43,10 +42,11 @@
         </div>
         <div class="hidden-xs col-sm-1">
             <button class="btn btn-white pull-right topspace">
-                <span class="js-caretdown caret"></span>
-                <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
+                    <span class="js-caretdown caret"></span>
+                    <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
             </button>
         </div>
+        </a>
         <% if (obj.snippet) { %>
         <div class="row hidden-xs hidden-sm hidden-md hidden-lg js-snippet">
             <div class="col-xs-12">
