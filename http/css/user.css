@@ -28,12 +28,6 @@
     background-color: white;
 }
 
-.msgsubj {
-    font-size: 20px;
-    font-weight: bold;
-    color: #000080 !important
-}
-
 .navbar-custom .navbar-collapse,
 .navbar-custom .navbar-form,
 .navbar-custom {
@@ -115,6 +109,10 @@
 }
 
 @media (max-width: 767px) {
+    .msgsubj {
+        font-size: 16px;
+    }
+
     .navbar-custom .navbar-nav .open .dropdown-menu > li > a {
         color: #ffffff;
     }
