@@ -205,12 +205,12 @@ class Relevant {
 
                     $email = $u->getEmailPreferred();
                     if ($email) {
-                        $subj = "Check these out...";
+                        $subj = "Any of these take your fancy?";
                         $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
                         $post = $u->loginLink(USER_SITE, $u->getId(), "/");
                         $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe");
 
-                        $html = relevant_wrapper(USER_DOMAIN, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $unsubscribe);
+                        $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $unsubscribe);
                         $message = Swift_Message::newInstance()
                             ->setSubject($subj)
                             ->setFrom([NOREPLY_ADDR => SITE_NAME ])
