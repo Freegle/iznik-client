@@ -207,8 +207,8 @@ class Relevant {
                     if ($email) {
                         $subj = "Check these out...";
                         $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
-                        $post = "https://direct.ilovefreegle.org/login.php?action=post";
-                        $unsubscribe = 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email);
+                        $post = $u->loginLink(USER_SITE, $u->getId(), "/");
+                        $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe");
 
                         $html = relevant_wrapper(USER_DOMAIN, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $unsubscribe);
                         $message = Swift_Message::newInstance()
