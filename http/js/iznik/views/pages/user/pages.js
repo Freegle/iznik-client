@@ -373,7 +373,7 @@ define([
                     }, 10000);
 
                     if (matches.length == 0) {
-                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode'});
+                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode (including the space)'});
                         self.$('.js-postcode').tooltip('show');
                     } else {
                         self.firstMatch = matches[0];
