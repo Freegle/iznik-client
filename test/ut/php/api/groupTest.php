@@ -222,6 +222,18 @@ class groupAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         $key = $ret['key'];
 
+        # And again but with support status so it goes through.
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('group', 'POST', [
+            'action' => 'ConfirmKey',
+            'dup' => TRUE,
+            'id' => $this->groupid
+        ]);
+        error_log(var_export($ret, true));
+        assertEquals(100, $ret['ret']);
+
         error_log(__METHOD__ . " end");
     }
 

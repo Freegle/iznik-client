@@ -81,11 +81,9 @@ function image() {
                 $newdata = $i->getData(100);
                 $a->setData($newdata);
 
-                # Now clear any cached image files.
+                # Now clear any cached image files.  This will include any thumbnail, which
+                # will get created as a _250x250 file.
                 foreach (glob(IZNIK_BASE . "/http/imgcache/img_{$shorttype}_{$id}*") as $filename) {
-                    unlink($filename);
-                }
-                foreach (glob(IZNIK_BASE . "/http/imgcache/timg_{$id}*") as $filename) {
                     unlink($filename);
                 }
 

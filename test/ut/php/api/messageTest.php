@@ -972,10 +972,30 @@ class messageAPITest extends IznikAPITestCase
     {
         error_log(__METHOD__);
 
+        # Create an attachment
+        $cwd = getcwd();
+        error_log("Initial $cwd");
+        $data = file_get_contents('images/chair.jpg');
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        file_put_contents("/tmp/chair.jpg", $data);
+        chdir($cwd);
+        error_log("After " . getcwd());
+
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/chair.jpg',
+                'type' => 'image/jpeg'
+            ],
+            'identify' => FALSE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $attid = $ret['id'];
+
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_OTHER);
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1028,7 +1048,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,
-            'textbody' => 'Test edit'
+            'textbody' => 'Test edit',
+            'attachments' => [ $attid ]
         ]);
         assertEquals(0, $ret['ret']);
 
