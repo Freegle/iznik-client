@@ -12,6 +12,7 @@ define([
     'timeago',
     'dateshim',
     'bootstrap',
+    'persist-min',
     'bootstrap-select',
     'bootstrap-switch',
     'es6-promise',
@@ -104,7 +105,7 @@ define([
         // }
     });
 
-    // We have the ability to cache in localStorage.  This is controlled by several optional parameters.
+    // We have the ability to cache in storage.  This is controlled by several optional parameters.
     //
     // For now we only cache collection fetches because model fetches are unlikely to be on page load, which is
     // what we're interested in optimising.
@@ -139,9 +140,9 @@ define([
                 //console.log("Fetch key", key);
 
                 try {
-                    var cached = localStorage.getItem(key);
+                    var cached = Storage.get(key);
                     // console.log("Cache get returned", cached ? cached.length : null);
-                    var expires = localStorage.getItem(key + '.time');
+                    var expires = Storage.get(key + '.time');
                     // console.log("Expires", expires);
 
                     if (cached && expires) {
@@ -187,18 +188,18 @@ define([
                                     var key = cacheKey(url, options.data);
                                     var data = JSON.stringify(self.toJSON());
 
-                                    if (data.length < 500000) {
-                                        // Don't cache stuff that's too big, otherwise we'll hit our local storage limit.
-                                        localStorage.setItem(key, data);
-                                        localStorage.setItem(key + '.time', (new Date()).getTime());
-                                        // console.log("Stored length", key, localStorage.getItem(key).length);
+                                    if (Persist.size == -1 || data.length < Persist.size) {
+                                        // Don't cache stuff that's too big.
+                                        Storage.set(key, data);
+                                        Storage.set(key + '.time', (new Date()).getTime());
+                                        // console.log("Stored length", key, Storage.get(key).length);
                                     } else {
                                         // We can't cache this, as it's too big.  Remove any previously cached data
                                         // which might be below this limit, as otherwise it will persist forever and
                                         // become increasingly misleading.
                                         console.log("Don't cache too long", key, data.length);
-                                        localStorage.removeItem(key);
-                                        localStorage.removeItem(key + '.time');
+                                        Storage.remove(key);
+                                        Storage.remove(key + '.time');
                                     }
                                 } catch (e) {console.log("Exception", e); console.error(e.message);}
                             }

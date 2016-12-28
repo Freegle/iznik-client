@@ -741,11 +741,11 @@ define([
                                 // If we were replying, we might have forced a login and shown the message in
                                 // isolation, in which case we need to return to where we were.
                                 try {
-                                    var ret = localStorage.getItem('replyreturn');
+                                    var ret = Storage.get('replyreturn');
                                     console.log("Return after reply", ret);
 
                                     if (ret) {
-                                        localStorage.removeItem('replyreturn');
+                                        Storage.remove('replyreturn');
                                         Router.navigate(ret, true);
                                     }
                                 } catch (e) {};
@@ -774,8 +774,8 @@ define([
                         // Remove local storage so that we don't get stuck sending the same message, for example if we reload the
                         // page.
                         try {
-                            localStorage.removeItem('replyto');
-                            localStorage.removeItem('replytext');
+                            Storage.remove('replyto');
+                            Storage.remove('replytext');
                         } catch (e) {}
 
                         //
@@ -826,9 +826,9 @@ define([
                         // We are not logged in, and will have to do so.  This may result in a page reload - so save
                         // off details of our reply in local storage.
                         try {
-                            localStorage.setItem('replyto', self.model.get('id'));
-                            localStorage.setItem('replytext', replytext);
-                            localStorage.setItem('replyreturn', Backbone.history.getFragment());
+                            Storage.set('replyto', self.model.get('id'));
+                            Storage.set('replytext', replytext);
+                            Storage.set('replyreturn', Backbone.history.getFragment());
                         } catch (e) {
                             console.error("Failed to set up for reply", e.message);
                         }
@@ -866,7 +866,7 @@ define([
                 self.rendered = true;
                 var mylocation = null;
                 try {
-                    mylocation = localStorage.getItem('mylocation');
+                    mylocation = Storage.get('mylocation');
 
                     if (mylocation) {
                         mylocation = JSON.parse(mylocation);
@@ -912,8 +912,8 @@ define([
                     } else {
                         // We might have been trying to reply.
                         try {
-                            var replyto = localStorage.getItem('replyto');
-                            var replytext = localStorage.getItem('replytext');
+                            var replyto = Storage.get('replyto');
+                            var replytext = Storage.get('replytext');
                             var thisid = self.model.get('id');
 
                             if (replyto == thisid) {

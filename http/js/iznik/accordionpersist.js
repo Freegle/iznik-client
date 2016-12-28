@@ -7,7 +7,7 @@
 
         // Re-open last one
         try {
-            var id = localStorage.getItem('accordionPersist.' + this.id);
+            var id = Storage.get('accordionPersist.' + this.id);
 
             if (id) {
                 // Doesn't seem to be in the DOM for a while, so use a timeout.
@@ -27,7 +27,7 @@
             var id = el.attr('id');
 
             try {
-                localStorage.setItem('accordionPersist.' + self.id, '#' + id);
+                Storage.set('accordionPersist.' + self.id, '#' + id);
             } catch (e) {
                 console.log("accordionPersist", e);
             }
@@ -35,7 +35,7 @@
 
         el.on('hidden.bs.collapse', function() {
             try {
-                localStorage.removeItem('accordionPersist.' + self.id);
+                Storage.remove('accordionPersist.' + self.id);
             } catch (e) {
                 console.log("accordionPersist", e);
             }

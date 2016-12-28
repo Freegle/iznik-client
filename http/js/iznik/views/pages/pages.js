@@ -30,7 +30,7 @@ define([
             complete: function () {
                 // Zap our session cache - we're no longer logged in.
                 try {
-                    localStorage.removeItem('session');
+                    Storage.remove('session');
                 } catch (e) {
                 }
 

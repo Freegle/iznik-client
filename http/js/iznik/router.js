@@ -285,7 +285,7 @@ define([
             try {
                 // Force the chat code to open this chat, even if we're on mobile.
                 // TODO This is a horrid way of signalling.
-                localStorage.setItem('chat-' + chatid + '-open', 2);
+                Storage.set('chat-' + chatid + '-open', 2);
             } catch (e) {
                 console.error(e.message);
             }
@@ -322,7 +322,7 @@ define([
                 });
 
                 try {
-                    localStorage.setItem('lastsearch', query);
+                    Storage.set('lastsearch', query);
                 } catch (e) {}
 
                 self.loadRoute({page: page});
@@ -645,7 +645,7 @@ define([
                 success: function(ret) {
                     if (ret.ret === 0) {
                         try {
-                            localStorage.setItem('draft', id);
+                            Storage.set('draft', id);
 
                             if (ret.messagetype == 'Offer') {
                                 // Make them reconfirm the location
@@ -1262,15 +1262,21 @@ define([
 
     // We're ready.  Get backbone up and running.
     var Router = new IznikRouter();
+    window.Storage = null;
 
     try {
         Backbone.history.start({
             pushState: true
         });
 
-        // See if we have local storage enabled; we need it
         try {
-            localStorage.setItem('lsenabled', true);
+            // Set up storage.
+            console.log("Set up storage");
+            Storage = new Persist.Store("Iznik");
+
+            // Make sure it works
+            Storage.set('enabled', true);
+            console.log("Storage active");
         } catch (e) {
             // We don't.
             Router.navigate('/localstorage', true);

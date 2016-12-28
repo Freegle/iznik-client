@@ -79,7 +79,7 @@ define([
                         // system under the covers, so the session is still valid.
                         if (!sessionCookie) {
                             try {
-                                var sess = localStorage.getItem('session');
+                                var sess = Storage.get('session');
                                 if (sess) {
                                     sess = JSON.parse(sess);
                                     sessionCookie = sess.session;

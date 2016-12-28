@@ -72,7 +72,7 @@ define([
                             var lastasked = null;
                             var now = (new Date()).getTime();
                             try {
-                                lastasked = localStorage.getItem('lastAskedPush');
+                                lastasked = Storage.get('lastAskedPush');
                             } catch (e) {}
 
                             ask = (!lastasked || (now - lastasked > 60 * 60 * 1000));
@@ -82,7 +82,7 @@ define([
                         // Try to get push notification permissions.
                         try {
                             try {
-                                localStorage.setItem('lastAskedPush', now);
+                                Storage.set('lastAskedPush', now);
                             } catch (e) {}
 
                             window.serviceWorker.pushManager.getSubscription().then(function (subscription) {
@@ -169,7 +169,7 @@ define([
             var parsed = null;
 
             try {
-                sess = localStorage.getItem('session');
+                sess = Storage.get('session');
                 if (sess) {
                     parsed = JSON.parse(sess);
                 }
@@ -220,24 +220,22 @@ define([
                             // Save off the returned session information into local storage.
                             var now = (new Date()).getTime();
                             try {
-                                localStorage.setItem('session', JSON.stringify(ret));
-                                lastloggedinas = localStorage.getItem('lastloggedinas');
-                                localStorage.setItem('lastloggedinas', ret.me.id);
-                                localStorage.setItem('myemail', ret.me.email);
+                                Storage.set('session', JSON.stringify(ret));
+                                lastloggedinas = Storage.get('lastloggedinas');
+                                Storage.set('lastloggedinas', ret.me.id);
+                                Storage.set('myemail', ret.me.email);
 
                                 if (ret.me.id != lastloggedinas) {
                                     // We have logged in as someone else.  Zap our fetch cache.
-                                    for (var i = 0; i < localStorage.length; i++){
-                                        var key = localStorage.key(i);
-
+                                    Storage.iterate(function(key,value) {
                                         if (key.indexOf('cache.') === 0) {
-                                            localStorage.removeItem(key);
+                                            Storage.remove(key);
                                         }
-                                    }
+                                    });
                                 }
 
                                 // We use this to decide whether to show sign up or sign in.
-                                localStorage.setItem('signedinever', true);
+                                Storage.set('signedinever', true);
                             } catch (e) {
                             }
                             self.set(ret);
@@ -407,7 +405,7 @@ define([
                             }
                         } else {
                             try {
-                                var sess = localStorage.getItem('session');
+                                var sess = Storage.get('session');
 
                                 if (sess && ret.ret == 1) {
                                     // We thought we were logged in but we're not.  If the persistent session
@@ -418,7 +416,7 @@ define([
                                     // in is handled more quickly.
                                     try {
                                         console.error("Not logged in after all", sess, parsed, ret);
-                                        localStorage.removeItem('session');
+                                        Storage.remove('session');
                                     } catch (e) {
                                     }
                                     window.location.reload();

@@ -68,9 +68,9 @@ define([
             var locationid = null;
             var groupid = null;
             try {
-                var loc = localStorage.getItem('mylocation');
+                var loc = Storage.get('mylocation');
                 locationid = loc ? JSON.parse(loc).id : null;
-                groupid = localStorage.getItem('myhomegroup');
+                groupid = Storage.get('myhomegroup');
             } catch (e) {};
 
             var d = jQuery.Deferred();
@@ -97,7 +97,7 @@ define([
                     if (ret.ret == 0) {
                         d.resolve();
                         try {
-                            localStorage.setItem('draft', ret.id);
+                            Storage.set('draft', ret.id);
                         } catch (e) {
                         }
                     } else {
@@ -276,7 +276,7 @@ define([
                 });
 
                 try {
-                    var id = localStorage.getItem('draft');
+                    var id = Storage.get('draft');
 
                     if (id) {
                         // We have a draft we were in the middle of.
@@ -340,7 +340,7 @@ define([
             var id = null;
 
             try {
-                id = localStorage.getItem('draft');
+                id = Storage.get('draft');
             } catch (e) {
             }
 
@@ -361,8 +361,8 @@ define([
                         if (ret.ret == 0) {
                             try {
                                 // The draft has now been sent.
-                                localStorage.setItem('lastpost', id);
-                                localStorage.removeItem('draft');
+                                Storage.set('lastpost', id);
+                                Storage.remove('draft');
                             } catch (e) {}
 
                             if (ret.newuser) {
@@ -384,7 +384,7 @@ define([
         changeEmail: function () {
             var email = this.$('.js-email').val();
             try {
-                localStorage.setItem('myemail', email);
+                Storage.set('myemail', email);
             } catch (e) {
             }
 
@@ -410,7 +410,7 @@ define([
                     } else {
                         // We're not logged in - but we might have remembered one.
                         try {
-                            var email = localStorage.getItem('myemail');
+                            var email = Storage.get('myemail');
                             if (email) {
                                 self.$('.js-email').val(email);
                                 self.changeEmail();
