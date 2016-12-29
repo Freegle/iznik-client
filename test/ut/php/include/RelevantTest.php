@@ -157,6 +157,17 @@ class RelevantTest extends IznikTestCase
         error_log("Should be none " . var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
 
+        # Exception
+        $mock = $this->getMockBuilder('Relevant')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
+            ->setMethods(array('sendOne'))
+            ->getMock();
+        $mock->method('sendOne')->willThrowException(new Exception());
+
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->setPrivate('lastrelevantcheck', NULL);
+        self::assertEquals(0, $mock->sendMessages($uid));
+
         error_log(__METHOD__ . " end");
     }
 }

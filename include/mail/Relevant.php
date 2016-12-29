@@ -170,7 +170,6 @@ class Relevant {
             if (time() > $till) {
                 # Not on holiday
                 $ints = $this->interestedIn($user['id']);
-                #error_log("Interesteds " . var_export($ints, TRUE));
                 $msgs = $this->getMessages($user['id'], $ints);
 
                 if (count($msgs) > 0) {
@@ -211,17 +210,22 @@ class Relevant {
                         $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe");
 
                         $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $unsubscribe);
-                        $message = Swift_Message::newInstance()
-                            ->setSubject($subj)
-                            ->setFrom([NOREPLY_ADDR => SITE_NAME ])
-                            ->setReturnPath($u->getBounce())
-                            ->setTo([ $email => $u->getName() ])
-                            ->setBody($textbody)
-                            ->addPart($html, 'text/html');
 
-                        $this->sendOne($mailer, $message);
-                        #error_log("Sent to $email");
-                        $count++;
+                        try {
+                            $message = Swift_Message::newInstance()
+                                ->setSubject($subj)
+                                ->setFrom([NOREPLY_ADDR => SITE_NAME ])
+                                ->setReturnPath($u->getBounce())
+                                ->setTo([ $email => $u->getName() ])
+                                ->setBody($textbody)
+                                ->addPart($html, 'text/html');
+
+                            $this->sendOne($mailer, $message);
+                            #error_log("Sent to $email");
+                            $count++;
+                        } catch (Exception $e) {
+                            error_log("Send to $email failed with " . $e->getMessage());
+                        }
                     }
                 }
             }
