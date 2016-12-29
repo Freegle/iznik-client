@@ -137,8 +137,10 @@ define([
                 } catch (e) {}
 
                 self.$(".js-searchoffers").bootstrapSwitch({
-                    onText: 'Search OFFERs',
-                    offText: 'Search WANTEDs',
+                    onText: 'Only OFFERs',
+                    offText: 'Only WANTEDs',
+                    onColor: 'default',
+                    offColor: 'default',
                     state: self.searchtype == 'Offer'
                 });
 
