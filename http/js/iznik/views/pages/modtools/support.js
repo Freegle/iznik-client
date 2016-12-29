@@ -619,6 +619,8 @@ define([
         },
 
         render: function () {
+            var self = this;
+
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
                 if (Iznik.Session.isAdmin()) {
@@ -635,7 +637,7 @@ define([
                 _.each(self.model.get('memberof'), function (group) {
                     _.each(emails, function(email) {
                         if (email.id == group.emailid) {
-                            group.email = email.email
+                            group.email = email.email;
                             remaining = _.without(remaining, _.findWhere(remaining, {
                                 email: email.email
                             }));
@@ -674,7 +676,10 @@ define([
                 });
 
                 // Add any sessions.
-                self.sessionCollection = new Iznik.Collection(self.model.get('sessions'));
+                var sessions = self.model.get('sessions');
+                console.log("Sessions", sessions);
+                self.sessionCollection = new Iznik.Collection(sessions);
+                console.log("Session collection", self.sessionCollection);
 
                 if (self.sessionCollection.length == 0) {
                     self.$('.js-sessionsnone').show();

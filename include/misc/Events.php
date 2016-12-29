@@ -156,9 +156,9 @@ class Events {
                     $u = User::get($this->dbhr, $this->dbhm, $userid);
                     $thisone['user'] = $u->getPublic(NULL, FALSE);
                 }
-            }
 
-            $ret[] = $thisone;
+                $ret[] = $thisone;
+            }
         }
 
         if (count($ret) > 0) {
