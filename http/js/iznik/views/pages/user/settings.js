@@ -382,13 +382,13 @@ define([
             v.render();
         },
         
-        changeFreq: function() {
+        changeFreq: function(e) {
             var self = this;
             var me = Iznik.Session.get('me');
             var data = {
                 userid: me.id,
                 groupid: self.model.get('id'),
-                emailfrequency: self.$('.js-frequency').val()
+                emailfrequency: $(e.target).val()
             };
 
             $.ajax({
@@ -403,13 +403,13 @@ define([
             });
         },
 
-        changeEvents: function() {
+        changeEvents: function(e) {
             var self = this;
             var me = Iznik.Session.get('me');
             var data = {
                 userid: me.id,
                 groupid: self.model.get('id'),
-                eventsallowed: self.$('.js-events').val()
+                eventsallowed: $(e.target).val()
             };
 
             $.ajax({
