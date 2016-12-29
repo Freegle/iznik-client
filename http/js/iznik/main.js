@@ -114,6 +114,13 @@ window.Storage = {
     remove: function (key) {
         localStorage.removeItem(key);
     },
+    iterate: function (cb) {
+        for (var i = 0; i < localStorage.length; i++) {
+            var key = localStorage.key(i);
+            var value = localStorage.getItem(key);
+            cb(key, value);
+        }
+    },
 };
 
 // Called when app starts - and when it restarts when Router.mobileReload() called
