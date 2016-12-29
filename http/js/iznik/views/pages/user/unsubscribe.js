@@ -96,7 +96,7 @@ define([
                         self.addAndShow();
                     } else {
                         try {
-                            var email = localStorage.getItem('myemail');
+                            var email = Storage.get('myemail');
                             if (email) {
                                 self.$('.js-email').val(email);
                             }

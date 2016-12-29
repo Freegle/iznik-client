@@ -338,7 +338,7 @@ define([
 
                 // console.log("Checked height", (new Date()).getMilliseconds() - start);
 
-                var max = window.innerWidth - 100;
+                var max = window.innerWidth - (isSM() ? 0 : 100);
 
                 //console.log("Consider width", totalOuter, max);
 
@@ -740,18 +740,6 @@ define([
             var self = this;
             var p;
 
-            try {
-                // Remove old minimised data.
-                // TODO Remove this code after 2016-10-22.
-                for (var i = 0; i < localStorage.length; i++) {
-                    var key = localStorage.key(i);
-
-                    if (key.indexOf('-minimised') !== -1) {
-                        localStorage.removeItem(key);
-                    }
-                }
-            } catch (e) {};
-
             // We might already be rendered, as we're outside the body content that gets zapped when we move from
             // page to page.
             if ($('#chatHolder').length == 0) {
@@ -920,7 +908,7 @@ define([
             var self = this;
             var enterSend = null;
             try {
-                enterSend = localStorage.getItem('chatentersend');
+                enterSend = Storage.get('chatentersend');
                 if (enterSend !== null) {
                     enterSend = parseInt(enterSend);
                 }
@@ -941,7 +929,7 @@ define([
                         self.listenToOnce(v, 'modalClosed', function() {
                             // Now we should know.
                             try {
-                                enterSend = parseInt(localStorage.getItem('chatentersend'));
+                                enterSend = parseInt(Storage.get('chatentersend'));
                             } catch (e) {};
 
                             if (enterSend) {
@@ -993,6 +981,11 @@ define([
         send: function () {
             var self = this;
             var message = this.$('.js-message').val();
+
+            // Don't allow people to send > as it will lead to the message being stripped as a possible reply.
+            // TODO Allow this by recording the origin of the message as being on the platform.
+            message = message.replace('>', '');
+
             if (message.length > 0) {
                 // We get called back when the message has actually been sent to the server.
                 self.listenToOnce(this.model, 'sent', function () {
@@ -1056,9 +1049,9 @@ define([
                 self.$el.hide();
                 try {
                     // Remove the local storage, otherwise it will clog up with info for chats we don't look at.
-                    localStorage.removeItem(this.lsID() + '-open');
-                    localStorage.removeItem(this.lsID() + '-height');
-                    localStorage.removeItem(this.lsID() + '-width');
+                    Storage.remove(this.lsID() + '-open');
+                    Storage.remove(this.lsID() + '-height');
+                    Storage.remove(this.lsID() + '-width');
 
                     // Also refetch the chats, so that our cached copy gets updated.
                     Iznik.Session.chats.fetch();
@@ -1173,9 +1166,9 @@ define([
 
             try {
                 // Remove the local storage, otherwise it will clog up with info for chats we don't look at.
-                localStorage.removeItem(this.lsID() + '-open');
-                localStorage.removeItem(this.lsID() + '-height');
-                localStorage.removeItem(this.lsID() + '-width');
+                Storage.remove(this.lsID() + '-open');
+                Storage.remove(this.lsID() + '-height');
+                Storage.remove(this.lsID() + '-width');
             } catch (e) {
                 console.error(e.message)
             }
@@ -1221,16 +1214,6 @@ define([
                 // Others
                 self.$('.js-leftpanel').width('100%');
             }
-
-            self.checkSmall(width);
-        },
-
-        checkSmall: function (width) {
-            if (width < 640) {
-                this.$el.addClass('chatsmall');
-            } else {
-                this.$el.removeClass('chatsmall');
-            }
         },
 
         setSize: function () {
@@ -1240,11 +1223,12 @@ define([
                 // Restore any saved height
                 //
                 // On mobile we maximise the chat window, as the whole resizing thing is too fiddly.
-                var height = localStorage.getItem('chat-' + self.model.get('id') + '-height');
-                var width = localStorage.getItem('chat-' + self.model.get('id') + '-width');
+                var height = Storage.get('chat-' + self.model.get('id') + '-height');
+                var width = Storage.get('chat-' + self.model.get('id') + '-width');
                 if (isSM()) {
                     // Just maximise it.
                     width = $(window).innerWidth();
+                    console.log("Small, maximimise", width);
                 }
 
                 // console.log("Short?", isShort(), $(window).innerHeight(), $('.navbar').outerHeight(), $('#js-notifchat').outerHeight());
@@ -1257,15 +1241,16 @@ define([
                     // console.log("Set size", width, height);
                     self.$el.height(height);
                     self.$el.width(width);
-                    self.checkSmall(width);
                 }
 
-                var lpwidth = localStorage.getItem('chat-' + self.model.get('id') + '-lp');
-                lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
+                if (!isSM()) {
+                    var lpwidth = Storage.get('chat-' + self.model.get('id') + '-lp');
+                    lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
 
-                if (lpwidth) {
-                    // console.log("Restore chat width to", lpwidth);
-                    self.$('.js-leftpanel').width(lpwidth);
+                    if (lpwidth) {
+                        console.log("Restore chat width to", lpwidth);
+                        self.$('.js-leftpanel').width(lpwidth);
+                    }
                 }
             } catch (e) {
             }
@@ -1317,8 +1302,8 @@ define([
             if (large) {
                 // We want a larger and more prominent chat.
                 try {
-                    localStorage.setItem(this.lsID() + '-height', Math.floor(window.innerHeight * 2 / 3));
-                    localStorage.setItem(this.lsID() + '-width', Math.floor(window.innerWidth * 2 / 3));
+                    Storage.set(this.lsID() + '-height', Math.floor(window.innerHeight * 2 / 3));
+                    Storage.set(this.lsID() + '-width', Math.floor(window.innerWidth * 2 / 3));
                 } catch (e) {
                 }
             }
@@ -1337,7 +1322,7 @@ define([
             self.updateRoster(self.statusWithOverride('Online'), self.noop);
 
             try {
-                localStorage.setItem(self.lsID() + '-open', 1);
+                Storage.set(self.lsID() + '-open', 1);
             } catch (e) {
             }
 
@@ -1454,8 +1439,8 @@ define([
 
             // Save the new height to local storage so that we can restore it next time.
             try {
-                localStorage.setItem(this.lsID() + '-height', self.$el.height());
-                localStorage.setItem(this.lsID() + '-width', self.$el.width());
+                Storage.set(this.lsID() + '-height', self.$el.height());
+                Storage.set(this.lsID() + '-width', self.$el.width());
             } catch (e) {
             }
         },
@@ -1479,7 +1464,7 @@ define([
 
             // Save the new left panel width to local storage so that we can restore it next time.
             try {
-                localStorage.setItem(this.lsID() + '-lp', self.$('.js-leftpanel').width());
+                Storage.set(this.lsID() + '-lp', self.$('.js-leftpanel').width());
             } catch (e) {
             }
 
@@ -1491,7 +1476,7 @@ define([
             // We can override appearing online to show something else.
             var status = this.$('.js-status').val();
             try {
-                localStorage.setItem('mystatus', status);
+                Storage.set('mystatus', status);
             } catch (e) {
             }
 
@@ -1538,7 +1523,7 @@ define([
             if (status == 'Online') {
                 // We are online, but may have overridden this to appear something else.
                 try {
-                    var savestatus = localStorage.getItem('mystatus');
+                    var savestatus = Storage.get('mystatus');
                     status = savestatus ? savestatus : status;
                 } catch (e) {
                 }
@@ -1637,7 +1622,7 @@ define([
                 var p = Iznik.View.prototype.render.call(self);
                 p.then(function (self) {
                     try {
-                        var status = localStorage.getItem('mystatus');
+                        var status = Storage.get('mystatus');
 
                         if (status) {
                             self.$('.js-status').val(status);
@@ -1656,7 +1641,7 @@ define([
                         // On mobile we start them all minimised as there's not much room, unless one has been forced open.
                         //
                         // Otherwise default to minimised, which is what we get if the key is missing and returns null.
-                        var open = localStorage.getItem(self.lsID() + '-open');
+                        var open = Storage.get(self.lsID() + '-open');
                         open = (open === null) ? open : parseInt(open);
 
                         if (!open || (open != 2 && isSM())) {
@@ -1665,7 +1650,7 @@ define([
                             minimise = false;
 
                             // Make sure we don't force open.
-                            localStorage.setItem(self.lsID() + '-open', 1);
+                            Storage.set(self.lsID() + '-open', 1);
                         }
                     } catch (e) {
                     }
@@ -1893,14 +1878,14 @@ define([
         
         send: function() {
             try {
-                localStorage.setItem('chatentersend', 1);
+                Storage.set('chatentersend', 1);
             } catch (e) {}
             this.close();
         },
         
         newline: function() {
             try {
-                localStorage.setItem('chatentersend', 0);
+                Storage.set('chatentersend', 0);
             } catch (e) {}
             this.close();
         }

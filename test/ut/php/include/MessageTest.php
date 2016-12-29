@@ -388,6 +388,13 @@ And something after it.', $stripped);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply.", $stripped);
 
+        $msg = $this->unique(file_get_contents('msgs/notif_reply_text7'));
+        $msg = str_replace('USER_SITE', USER_SITE, $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals("Ok, here's a reply with https://" . USER_SITE ." an url and https://" . USER_SITE, $stripped);
+
         error_log(__METHOD__ . " end");
     }
     
@@ -502,7 +509,7 @@ And something after it.', $stripped);
 
         # Should get nothing - first message is not due and too old to generate a warning.
         error_log("Expect nothing");
-        list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-03-01', $gid);
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-03-01', $gid);
         assertEquals(0, $count);
         assertEquals(0, $warncount);
 
@@ -511,13 +518,13 @@ And something after it.', $stripped);
         $mysqltime = date("Y-m-d H:i:s", strtotime('35 hours ago'));
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
 
-        list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid);
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $gid);
         assertEquals(0, $count);
         assertEquals(1, $warncount);
 
         # Again - no action.
         error_log("Expect nothing");
-        list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid);
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $gid);
         assertEquals(0, $count);
         assertEquals(0, $warncount);
 
@@ -538,7 +545,7 @@ And something after it.', $stripped);
         error_log("Can repost {$atts['canrepost']} {$atts['canrepostat']}");
         self::assertEquals(TRUE, $atts['canrepost']);
 
-        list ($count, $warncount) = $m->autoRepost(Group::GROUP_FREEGLE, '2016-01-01', $gid);
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $gid);
         assertEquals(1, $count);
         assertEquals(0, $warncount);
 

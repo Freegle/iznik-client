@@ -8,7 +8,7 @@
         if (!action) {
             // Find last value
             try {
-                var val = localStorage.getItem('selectPersist.' + this.id);
+                var val = Storage.get('selectPersist.' + this.id);
 
                 if (val) {
                     this.selectpicker('val', val);
@@ -23,13 +23,13 @@
                 var val = $(this).val();
 
                 try {
-                    localStorage.setItem('selectPersist.' + self.id, val);
+                    Storage.set('selectPersist.' + self.id, val);
                 } catch (e) {
                     console.log("selectPersist", e);
                 }
             });
         } else if (action == 'set') {
-            localStorage.setItem('selectPersist.' + self.id, value);
+            Storage.set('selectPersist.' + self.id, value);
         }
 
         return this;

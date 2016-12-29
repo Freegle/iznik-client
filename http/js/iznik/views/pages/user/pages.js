@@ -135,7 +135,7 @@ define([
 
             try {
                 console.log("Save home group", val);
-                localStorage.setItem('myhomegroup', val);
+                Storage.set('myhomegroup', val);
             } catch (e) {}
         },
 
@@ -258,7 +258,7 @@ define([
                     delete l.groupsnear;
 
                     Iznik.Session.setSetting('mylocation', l);
-                    localStorage.setItem('mylocation', JSON.stringify(l))
+                    Storage.set('mylocation', JSON.stringify(l))
                 } catch (e) {
                     console.log("Exception", e.message);
                 };
@@ -274,7 +274,7 @@ define([
                         var firstonhere = null;
 
                         try {
-                            homegroup = localStorage.getItem('myhomegroup');
+                            homegroup = Storage.get('myhomegroup');
                         } catch (e) {};
 
                         // Show home group if it's present.
@@ -398,7 +398,7 @@ define([
                     }, 10000);
 
                     if (matches.length == 0) {
-                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode'});
+                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode (including the space)'});
                         self.$('.js-postcode').tooltip('show');
                     } else {
                         self.firstMatch = matches[0];
@@ -424,7 +424,7 @@ define([
                 });
 
                 try {
-                    var id = localStorage.getItem('draft');
+                    var id = Storage.get('draft');
                     var q = null;
                     var msg = null;
 
@@ -442,19 +442,18 @@ define([
                     q.then(function() {
                         if (id && msg.get('id') == id && !_.isUndefined(msg.get('location'))) {
                             // We want to use the location from the message we are in the middle of.
-                            localStorage.setItem('mylocation', JSON.stringify(msg.get('location')));
+                            Storage.set('mylocation', JSON.stringify(msg.get('location')));
                         }
 
                         // See if we know where we are from last time.
-                        var mylocation = localStorage.getItem('mylocation');
+                        var mylocation = Storage.get('mylocation');
 
                         if (!mylocation) {
                             mylocation = Iznik.Session.getSetting('mylocation', null);
                         }
 
-                        var postcode = JSON.parse(mylocation).name;
-
                         if (mylocation) {
+                            var postcode = JSON.parse(mylocation).name;
                             self.$('.js-postcode').typeahead('val', postcode);
                             self.locChange.call(self);
                         }
@@ -502,7 +501,7 @@ define([
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function() {
                 try {
-                    var homegroup = localStorage.getItem('myhomegroup');
+                    var homegroup = Storage.get('myhomegroup');
 
                     if (homegroup) {
                         var g = new Iznik.Models.Group({
@@ -527,7 +526,7 @@ define([
                             // We have to do this here, because we can't do async stuff in the click on the FB button
                             // otherwise the browser blocks our popup.
                             try {
-                                self.id = localStorage.getItem('lastpost');
+                                self.id = Storage.get('lastpost');
                             } catch (e) {}
 
                             if (self.id) {

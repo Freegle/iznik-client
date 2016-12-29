@@ -192,7 +192,7 @@ class LoggedPDO {
     private function getRedis() {
         if (!$this->cache) {
             $this->cache = new Redis();
-            $this->cache->pconnect(REDIS_CONNECT);
+            @$this->cache->pconnect(REDIS_CONNECT);
         }
 
         return($this->cache);

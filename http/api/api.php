@@ -51,6 +51,7 @@ require_once(IZNIK_BASE . '/include/group/Facebook.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/misc/Supporters.php');
+require_once(IZNIK_BASE . '/include/misc/Polls.php');
 require_once(IZNIK_BASE . '/include/mail/MailRouter.php');
 require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
@@ -88,6 +89,7 @@ require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/event.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
+require_once(IZNIK_BASE . '/http/api/poll.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -266,6 +268,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 case 'chatmessages':
                     $ret = chatmessages();
                     break;
+                case 'poll':
+                    $ret = poll();
+                    break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);
                     break;
@@ -318,7 +323,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 error_log("API call $call worked after $apicallretries");
             }
 
-            if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
+            $ip = presdef('REMOTE_ADDR', $_SERVER, '');
+
+            if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET' || $ip == '82.7.164.249') &&
                 (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
                 # save GET calls as they don't change the DB and there are a lot of them.

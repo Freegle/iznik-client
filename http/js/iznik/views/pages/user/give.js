@@ -38,10 +38,10 @@ define([
 
         fop: function() {
             var self = this;
-            var fop = self.$('.js-fop').is(':checked');
+            var fop = self.$('.js-fop').is(':checked') ? 1 : 0;
 
             try {
-                self.id = localStorage.getItem('lastpost');
+                self.id = Storage.get('lastpost');
             } catch (e) {}
 
             if (self.id) {
@@ -50,7 +50,7 @@ define([
                     message.setFOP(fop);
 
                     try {
-                        localStorage.setItem('FOP', fop ? 1 : 0);
+                        Storage.set('FOP', fop ? 1 : 0);
                     } catch (e) {}
                 });
             }
@@ -62,7 +62,7 @@ define([
             var p = Iznik.Views.User.Pages.WhatNext.prototype.render.call(this);
             p.then(function() {
                 try {
-                    var fop = localStorage.getItem('FOP');
+                    var fop = Storage.get('FOP');
                     if (fop !== null) {
                         self.$('.js-fop').prop('checked', parseInt(fop) ? true : false);
                     }

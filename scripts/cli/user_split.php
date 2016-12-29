@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('e:n:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_split.php -e <email to split out into separate user>\n";
+    echo "Usage: hhvm user_split.php -e <email to split out into separate user> -n <name>\n";
 } else {
     $email = $opts['e'];
     $name = $opts['n'];
@@ -59,5 +59,8 @@ if (count($opts) < 1) {
             $email,
             $uid2
         ]);
+
+        # Zap any existin sessions for either.
+        $dbhm->preExec("DELETE FROM sessions WHERE userid IN (?, ?);", [ $uid, $uid2 ]);
     }
 }

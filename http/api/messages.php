@@ -20,6 +20,7 @@ function messages() {
     $subaction = presdef('subaction', $_REQUEST, NULL);
     $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $grouptype = presdef('grouptype', $_REQUEST, NULL);
+    $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
@@ -101,7 +102,7 @@ function messages() {
                             $groups = $l->groupsNear();
                         }
 
-                        $msgs = $m->search($search, $ctx, $limit, NULL, $groups, $nearlocation);
+                        $msgs = $m->search($search, $ctx, $limit, NULL, $groups, $nearlocation, $exactonly);
                         list($groups, $msgs) = $c->fillIn($msgs, $limit, $messagetype, NULL);
                     }
 

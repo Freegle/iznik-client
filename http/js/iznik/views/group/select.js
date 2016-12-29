@@ -69,7 +69,7 @@ define([
 
                     if (!self.options.selected) {
                         // We haven't been passed a value to select - use what we last had.
-                        self.options.selected = localStorage.getItem('groupselect.' + self.id);
+                        self.options.selected = Storage.get('groupselect.' + self.id);
                     }
                 } catch (e) {}
             } else {
@@ -163,7 +163,7 @@ define([
                 if (self.persist) {
                     // We want to try to save the selected value in local storage to restore next time.
                     try {
-                        self.options.selected = localStorage.setItem('groupselect.' + self.id,
+                        self.options.selected = Storage.set('groupselect.' + self.id,
                             self.dropdown.value);
                     } catch (e) {
                     }

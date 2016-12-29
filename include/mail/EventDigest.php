@@ -49,7 +49,7 @@ class EventDigest
             $email = $u->getEmailPreferred();
             if ($email) {
                 list ($transport, $mailer) = getMailer();
-                $html = events_off(USER_DOMAIN, USERLOGO, $groupname);
+                $html = events_off(USER_SITE, USERLOGO, $groupname);
 
                 $message = Swift_Message::newInstance()
                     ->setSubject("Email Change Confirmation")

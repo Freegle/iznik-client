@@ -25,6 +25,7 @@ class communityEventTest extends IznikTestCase {
 
         $g = Group::get($dbhr, $dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $dbhm->preExec("DELETE FROM communityevents WHERE title = 'Test event';");
     }
 
     protected function tearDown() {
@@ -43,8 +44,8 @@ class communityEventTest extends IznikTestCase {
         assertNotNull($id);
 
         $c->addGroup($this->groupid);
-        $start = ISODate('@' . time());
-        $end = ISODate('@' . time());
+        $start = ISODate('@' . (time()+600));
+        $end = ISODate('@' . (time()+600));
         $c->addDate($start, $end);
 
         $atts = $c->getPublic();

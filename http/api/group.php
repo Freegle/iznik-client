@@ -125,7 +125,8 @@ function group() {
                             }
                         }
 
-                        // @codeCoverageIgnoreStart Impractical to test.
+                        // @codeCoverageIgnoreStart
+                        // Impractical to test.
                         $nowonyahoo = $g->onYahoo();
 
                         if ($wasonyahoo && !$nowonyahoo) {

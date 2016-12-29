@@ -3,6 +3,11 @@
     background-image: url('/images/wallpaper.png');
 }
 
+.snowback {
+    background-image: url('/images/snowman.jpg');
+    background-size: contain;
+}
+
 .success {
     color: #61AE24 !important;
 }
@@ -21,12 +26,6 @@
     box-shadow:0px 0px 0px 2px white, 0px 6px 0px 0px grey;
     border-radius:5px;
     background-color: white;
-}
-
-.msgsubj {
-    font-size: 20px;
-    font-weight: bold;
-    color: #000080 !important
 }
 
 .navbar-custom .navbar-collapse,
@@ -110,6 +109,10 @@
 }
 
 @media (max-width: 767px) {
+    .msgsubj {
+        font-size: 16px;
+    }
+
     .navbar-custom .navbar-nav .open .dropdown-menu > li > a {
         color: #ffffff;
     }

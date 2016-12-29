@@ -46,7 +46,7 @@ define([
                         data.addColumn('date', 'Date');
                         data.addColumn('number', 'Count');
                         self.options.data.each(function (count) {
-                            if (self.options.data.indexOf(count) < self.options.data.length - 1) {
+                            if (self.options.data.indexOf(count) < self.options.data.length) {
 
                                 data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10)]);
                             }
@@ -73,6 +73,58 @@ define([
                             },
                             series: {
                                 0: {color: 'blue'}
+                            }
+                        };
+                        self.chart.draw(self.data, self.chartOptions);
+                    });
+                });
+            }
+
+            google.load('visualization', '1.0', {
+                'packages':['corechart', 'annotationchart'],
+                'callback': apiLoaded
+            });
+        }
+    });
+
+    Iznik.Views.DateBar = Iznik.View.extend({
+        template: 'dashboard_message',
+
+        render: function () {
+            var self = this;
+
+            function apiLoaded() {
+                // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                _.defer(function () {
+                    Iznik.View.prototype.render.call(self).then(function(self) {
+                        var data = new google.visualization.DataTable();
+                        data.addColumn('date', 'Date');
+                        data.addColumn('number', 'Count');
+                        self.options.data.each(function (count) {
+                            if (self.options.data.indexOf(count) < self.options.data.length) {
+                                data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10)]);
+                            }
+                        });
+
+                        self.chart = new google.visualization.ColumnChart(self.options.target);
+                        self.data = data;
+                        self.chartOptions = {
+                            title: self.options.title,
+                            interpolateNulls: false,
+                            animation: {
+                                duration: 5000,
+                                easing: 'out',
+                                startup: true
+                            },
+                            legend: {position: 'none'},
+                            chartArea: {'width': '80%', 'height': '80%'},
+                            bar: { groupWidth: "100%" },
+                            vAxis: {viewWindow: {min: 0}},
+                            hAxis: {
+                                format: self.options.hAxisFormat ? self.options.hAxisFormat : 'dd MMM'
+                            },
+                            series: {
+                                0: {color: 'darkgreen'}
                             }
                         };
                         self.chart.draw(self.data, self.chartOptions);

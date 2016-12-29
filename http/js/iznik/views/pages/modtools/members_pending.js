@@ -174,7 +174,7 @@ define([
                             // No remove button for pending members.
                             self.$('.js-remove').closest('li').hide();
 
-                            if (group.onyahoo) {
+                            if (group.get('onyahoo')) {
                                 // Delay getting the Yahoo info slightly to improve apparent render speed.
                                 _.delay(function () {
                                     // The Yahoo part of the user

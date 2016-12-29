@@ -950,6 +950,7 @@ class User extends Entity
     public function findByLogin($type, $uid) {
         $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE uid = ? AND type = ?;",
             [ $uid, $type]);
+
         foreach ($logins as $login) {
             return($login['userid']);
         }
@@ -2030,6 +2031,9 @@ class User extends Entity
         # We'll pick them up on the next sync or when they post.
         #
         # No need for a transaction - if things go wrong, the member will remain in pending, which is recoverable.
+        $emails = $this->dbhr->preQuery("SELECT email FROM users_emails WHERE id = ?;", [ $emailid ]);
+        $email = count($emails) > 0 ? $emails[0]['email'] : NULL;
+
         $sql = "SELECT * FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
         $members = $this->dbhr->preQuery($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
 
@@ -2040,7 +2044,7 @@ class User extends Entity
                 'msgid' => $this->id,
                 'user' => $this->getId(),
                 'groupid' => $groupid,
-                'text' => 'Move from Pending to Approved after Yahoo notification mail'
+                'text' => 'Move from Pending to Approved after Yahoo notification mail for $email'
             ]);
 
             # Set the membership to be approved.
@@ -2056,7 +2060,8 @@ class User extends Entity
             'type' => Log::TYPE_USER,
             'subtype' => Log::SUBTYPE_YAHOO_JOINED,
             'user' => $this->getId(),
-            'groupid' => $groupid
+            'groupid' => $groupid,
+            'text' => $email
         ]);
 
         # The Yahoo membership should always exist as we'll have created it when we triggered the application, but
@@ -2519,7 +2524,7 @@ class User extends Entity
         }
 
         $p = strpos($url, '?');
-        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key") : ("https://" . SITE_HOST . "$url&u=$id&k=$key");
+        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key") : ("https://$domain$url&u=$id&k=$key");
 
         return($url);
     }
@@ -2746,7 +2751,7 @@ class User extends Entity
                 list($msgs, $users) = $r->getMessages(100, 0);
 
                 if (count($msgs) > 0) {
-                    $message = presdef('message', $msgs[0], "You have a message");
+                    $message = presdef('message', $msgs[count($msgs) - 1], "You have a message");
                     $message = strlen($message) > 256 ? (substr($message, 0, 256) . "...") : $message;
                 }
             } else if ($count > 1) {

@@ -7,7 +7,8 @@ define([
     'iznik/models/user/search',
     'iznik/views/group/communityevents',
     'iznik/views/pages/pages',
-    'iznik/views/user/message'
+    'iznik/views/user/message',
+    'iznik/views/user/polls'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
@@ -55,7 +56,6 @@ define([
             var self = this;
             var count = 0;
 
-            console.log("UpdateOldCOunt", type, showing, self.messages);
             if (!showing) {
                 self.messages.each(function(msg) {
                     if (msg.get('type') == type && msg.get('outcomes').length != 0) {
@@ -66,7 +66,6 @@ define([
 
             var container = this.$('.js-old' + type.toLowerCase() + 's');
             var countel = this.$('.js-old' + type.toLowerCase() + 'count');
-            console.log("Update it", container, count);
 
             if (count == 0) {
                 container.hide();
@@ -216,6 +215,11 @@ define([
             });
 
             p.then(function(self) {
+                var poll = new Iznik.Views.User.Poll();
+                poll.render().then(function() {
+                    self.$('.js-poll').html(poll.$el);
+                });
+
                 // Left menu is community events
                 var v = new Iznik.Views.User.CommunityEventsSidebar();
                 v.render().then(function () {
@@ -296,13 +300,43 @@ define([
                         self.$('.js-continue').fadeIn('slow');
 
                         self.wait.close();
+
+                        // We might have an action.  Record it at the start in case they don't complete the
+                        // questions we ask.  We'll pick this up in a background script.
                         if (self.options.action == 'completed') {
                             var t = self.model.get('type') == 'Offer' ? '.js-taken' : '.js-received';
                             self.$(t).click();
+                            $.ajax({
+                                url: API + 'message',
+                                type: 'POST',
+                                data: {
+                                    action: 'OutcomeIntended',
+                                    id: self.model.get('id'),
+                                    outcome: self.model.get('type') == 'Offer' ? 'Taken' : 'Received'
+                                }
+                            });
                         } else if (self.options.action == 'withdraw') {
                             self.$('.js-withdraw').click();
+                            $.ajax({
+                                url: API + 'message',
+                                type: 'POST',
+                                data: {
+                                    action: 'OutcomeIntended',
+                                    id: self.model.get('id'),
+                                    outcome: 'Withdrawn'
+                                }
+                            });
                         } else if (self.options.action == 'repost') {
                             self.$('.js-repost').click();
+                            $.ajax({
+                                url: API + 'message',
+                                type: 'POST',
+                                data: {
+                                    action: 'OutcomeIntended',
+                                    id: self.model.get('id'),
+                                    outcome: 'Repost'
+                                }
+                            });
                         }
                     });
                 });
@@ -438,8 +472,10 @@ define([
 
         click: function (ev) {
             $('.btn-radio .btn').removeClass('active');
+            $('.btn-radio .btn').addClass('faded');
             var btn = $(ev.currentTarget);
             btn.addClass('active');
+            btn.removeClass('faded');
 
             if (btn.hasClass('js-unhappy')) {
                 this.$('.js-public').hide();

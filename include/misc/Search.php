@@ -175,6 +175,15 @@ class Search
         }
     }
 
+    public function bump($extid, $sortval)
+    {
+        $sql = "UPDATE {$this->table} SET `{$this->sortatt}` = ? WHERE `{$this->idatt}` = ?;";
+        $this->dbhm->preExec($sql, [
+            -$sortval,
+            $extid
+        ]);
+    }
+
     private function getWord($id, $tag) {
         # We often get the same word when processing search results.  Cache in memory to speed that case.
         if (!pres($id, $this->wordcache)) {

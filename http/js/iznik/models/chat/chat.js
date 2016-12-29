@@ -92,7 +92,7 @@ define([
 
             // This happens on a timer; maybe we've lost our session. So pass the persistent one.
             try {
-                sess = localStorage.getItem('session');
+                sess = Storage.get('session');
                 if (sess) {
                     parsed = JSON.parse(sess);
 
