@@ -63,6 +63,7 @@ class User extends Entity
     const SRC_CHATNOTIF = 'chatnotif';
     const SRC_REPOST_WARNING = 'repostwarn';
     const SRC_FORGOT_PASSWORD = 'forgotpass';
+    const SRC_PUSHNOTIF = 'pushnotif'; // From JS
 
     /** @var  $log Log */
     private $log;
