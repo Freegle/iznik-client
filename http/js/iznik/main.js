@@ -104,6 +104,18 @@ function showNetworkStatus() {
     }
 }
 
+window.Storage = {
+    set: function (key, value) {
+        localStorage.setItem(key, value);
+    },
+    get: function (key) {
+        return localStorage.getItem(key);
+    },
+    remove: function (key) {
+        localStorage.removeItem(key);
+    },
+};
+
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
 function mainOnAppStart() { // CC
@@ -119,7 +131,7 @@ if (!isiOS) {   // vertical swipe on iOS stops scrolling
         useSwipeRefresh = true;
     }
 }
-
+setTimeout(function(){  // Have small delay at startup to try to avoid cannot load index.html error
 require([
     'jquery',
     'underscore',
@@ -333,5 +345,6 @@ require([
     }
 
 });
+}, 250);
 
 }; // CC

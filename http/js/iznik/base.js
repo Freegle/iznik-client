@@ -12,7 +12,7 @@ define([
     'timeago',
     'dateshim',
     'bootstrap',
-    'persist-min',
+    //'persist-min',
     'bootstrap-select',
     'bootstrap-switch',
     'es6-promise',

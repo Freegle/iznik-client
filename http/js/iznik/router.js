@@ -1277,7 +1277,6 @@ define([
 
     // We're ready.  Get backbone up and running.
     var Router = new IznikRouter();
-    window.Storage = null;
 
     try {
     	  var root = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
@@ -1289,11 +1288,7 @@ define([
         });
 
         try {
-            // Set up storage.
-            console.log("Set up storage");
-            Storage = new Persist.Store("Iznik");
-
-            // Make sure it works
+            // Make sure Storage works
             Storage.set('enabled', true);
             console.log("Storage active");
         } catch (e) {
