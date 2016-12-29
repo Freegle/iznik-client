@@ -2251,10 +2251,8 @@ class User extends Entity
         return($rc);
     }
 
-    public function split($email) {
+    public function split($email, $name = NULL) {
         # We want to ensure that the current user has no reference to these values.
-        #
-        # This will leave logs pointing to the old user, but there's no way to recover that.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $l = new Log($this->dbhr, $this->dbhm);
         if ($email) {
@@ -2272,6 +2270,56 @@ class User extends Entity
             'byuser' => $me ? $me->getId() : NULL,
             'text' => "Split out $email"
         ]);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, $name);
+        $u->addEmail($email);
+
+        # We might be able to move some messages over.
+        $this->dbhm->preExec("UPDATE messages SET fromuser = ? WHERE fromaddr = ?;", [
+            $uid2,
+            $email
+        ]);
+        $this->dbhm->preExec("UPDATE messages_history SET fromuser = ? WHERE fromaddr = ?;", [
+            $uid2,
+            $email
+        ]);
+
+        # Chats which reference the messages sent from that email must also be intended for the split user.
+        $chats = $this->dbhr->preQuery("SELECT DISTINCT chat_rooms.* FROM chat_rooms INNER JOIN chat_messages ON chat_messages.chatid = chat_rooms.id WHERE refmsgid IN (SELECT id FROM messages WHERE fromaddr = ?);", [
+            $email
+        ]);
+
+        foreach ($chats as $chat) {
+            if ($chat['user1'] == $this->id) {
+                $this->dbhm->preExec("UPDATE chat_rooms SET user1 = ? WHERE id = ?;", [
+                    $uid2,
+                    $chat['id']
+                ]);
+            }
+            if ($chat['user2'] == $this->id) {
+                $this->dbhm->preExec("UPDATE chat_rooms SET user2 = ? WHERE id = ?;", [
+                    $uid2,
+                    $chat['id']
+                ]);
+            }
+        }
+
+        # We might have a name.
+        $this->dbhm->preExec("UPDATE users SET fullname = (SELECT fromname FROM messages WHERE fromaddr = ? LIMIT 1) WHERE id = ?;", [
+            $email,
+            $uid2
+        ]);
+
+        # Zap any existing sessions for either.
+        $this->dbhm->preExec("DELETE FROM sessions WHERE userid IN (?, ?);", [ $this->id, $uid2 ]);
+
+        # We can't tell which user any existing logins relate to.  So remove them all.  If they log in with native,
+        # then they'll have to get a new password.  If they use social login, then it should hook the user up again
+        # when they next do.
+        $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ?;", [ $this->id ]);
+
+        return($uid2);
     }
 
     public function welcome($email, $password) {
@@ -2816,9 +2864,10 @@ class User extends Entity
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
-        $interval = pres('chaseups', $reposts) ? $reposts['chaseups'] : 2;
+        $interval = array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2;
 
         if ($interval > 0) {
+            exit(0);
             $gatts = $g->getPublic();
             $gname = $gatts['namedisplay'];
 

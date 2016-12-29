@@ -3434,7 +3434,7 @@ class Message
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
             $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
             $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-            $interval = max($interval, (pres('chaseups', $reposts) ? $reposts['chaseups'] : 2) * 24);
+            $interval = max($interval, (array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2) * 24);
 
             $ret = TRUE;
 

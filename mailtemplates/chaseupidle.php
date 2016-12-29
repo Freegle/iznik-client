@@ -53,7 +53,7 @@ EOT;
                                                                 <p>Dear $toname,<p>
                                                                 <p>$ago days ago, you freegled <em>$subject</em>.  That was nice of you!</p>
                                                                 <p><b>Maybe now you have something else you could freegle?</b>  That would be even nicer of you!</p>
-                                                                <p>(Or you can leave - though we'd rather you freegled something...)                                                                
+                                                                <p>(Or you can unsubscribe, if you want to - though we'd rather you stayed...)                                                                
                                                                 <table width="350" cellpadding="10" cellspacing="10" align="left" border="0">
                                                                     <tr>
                                                                         <td width="170" height="36" bgcolor="#006400" align="center" valign="middle"
