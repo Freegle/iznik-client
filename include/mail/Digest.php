@@ -263,18 +263,18 @@ class Digest
                     if ($this->errorlog) { error_log("Preferred $email"); }
 
                     if ($email && $email != MODERATOR_EMAIL && $u->sendOurMails($g)) {
-                        $t = $u->loginLink(USER_SITE, $u->getId(), '/');
+                        $t = $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST);
                         $creds = substr($t, strpos($t, '?'));
 
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{bounce}}' => $u->getBounce(),
-                            '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe'),
+                            '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_DIGEST),
                             '{{email}}' => $email,
                             '{{frequency}}' => $this->freqText[$frequency],
                             '{{noemail}}' => 'digestoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
-                            '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/'),
-                            '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups'),
+                            '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST),
+                            '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups', User::SRC_DIGEST),
                             '{{creds}}' => $creds
                         ];
                     }

@@ -52,7 +52,7 @@ class ChatRoom extends Entity
 
         $headers = $message->getHeaders();
 
-        $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id));
+        $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id, User::SRC_CHATNOTIF));
 
         return ($message);
     }
@@ -1172,17 +1172,17 @@ class ChatRoom extends Entity
                                 #   it's less likely that they will interleave their response inside it - they will probably reply at
                                 #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
                                 #   added.
-                                $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid']);
+                                $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
 
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
                                         $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
-                                            $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
+                                            $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
                                         break;
                                     case ChatRoom::TYPE_USER2MOD:
                                         if ($member['role'] == User::ROLE_MEMBER) {
                                             $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
-                                                $htmlsummary, $thisu->getUnsubLink($site, $member['userid']));
+                                                $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
                                         } else {
                                             $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
                                         }

@@ -56,6 +56,14 @@ class User extends Entity
     const NOTIFS_FACEBOOK = 'facebook';
     const NOTIFS_APP = 'app';
 
+    # Traffic sources
+    const SRC_DIGEST = 'digest';
+    const SRC_RELEVANT = 'relevant';
+    const SRC_CHASEUP = 'chaseup';
+    const SRC_CHATNOTIF = 'chatnotif';
+    const SRC_REPOST_WARNING = 'repostwarn';
+    const SRC_FORGOT_PASSWORD = 'forgotpass';
+
     /** @var  $log Log */
     private $log;
     var $user;
@@ -2277,7 +2285,7 @@ class User extends Entity
     }
 
     public function forgotPassword($email) {
-        $link = $this->loginLink(USER_SITE, $this->id, '/settings');
+        $link = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FORGOT_PASSWORD);
         $html = forgot_password(USER_SITE, USERLOGO, $email, $link);
 
         $message = Swift_Message::newInstance()
@@ -2492,17 +2500,17 @@ class User extends Entity
         return($rc);
     }
 
-    public function getUnsubLink($domain, $id) {
-        return(User::loginLink($domain, $id, "/unsubscribe/$id"));
+    public function getUnsubLink($domain, $id, $type = NULL) {
+        return(User::loginLink($domain, $id, "/unsubscribe/$id", $type));
     }
 
-    public function listUnsubscribe($domain, $id) {
+    public function listUnsubscribe($domain, $id, $type = NULL) {
         # Generates the value for the List-Unsubscribe header field.
-        $ret = "<mailto:unsubscribe-$id@" . USER_SITE . ">, <" . $this->getUnsubLink($domain, $id) .">";
+        $ret = "<mailto:unsubscribe-$id@" . USER_SITE . ">, <" . $this->getUnsubLink($domain, $id, $type) .">";
         return($ret);
     }
 
-    public function loginLink($domain, $id, $url = '/') {
+    public function loginLink($domain, $id, $url = '/', $type = NULL) {
         # Get a per-user link we can use to log in without a password.
         $key = NULL;
         $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
@@ -2524,7 +2532,8 @@ class User extends Entity
         }
 
         $p = strpos($url, '?');
-        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key") : ("https://$domain$url&u=$id&k=$key");
+        $src = $type ? "&src=$type" : "";
+        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key$src") : ("https://$domain$url&u=$id&k=$key$src");
 
         return($url);
     }

@@ -183,7 +183,7 @@ class Relevant {
                         $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
 
                         # We need the approved ID on Yahoo for migration links.
-                        $href = $u->loginLink(USER_SITE, $u->getId(), "/message/{$msg['id']}");
+                        $href = $u->loginLink(USER_SITE, $u->getId(), "/message/{$msg['id']}", User::SRC_RELEVANT);
                         $subject = $m->getSubject();
                         $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
 
@@ -206,8 +206,8 @@ class Relevant {
                     if ($email) {
                         $subj = "Any of these take your fancy?";
                         $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
-                        $post = $u->loginLink(USER_SITE, $u->getId(), "/");
-                        $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe");
+                        $post = $u->loginLink(USER_SITE, $u->getId(), "/", User::SRC_RELEVANT);
+                        $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", User::SRC_RELEVANT);
 
                         $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $unsubscribe);
 

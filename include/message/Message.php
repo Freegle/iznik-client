@@ -3239,8 +3239,8 @@ class Message
                                             # Remove any group tag.
                                             $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                            $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed");
-                                            $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw");
+                                            $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_REPOST_WARNING);
+                                            $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
                                             $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                             $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
                                             $html = autorepost_warning(USER_SITE,
@@ -3336,9 +3336,9 @@ class Message
                                 # Remove any group tag.
                                 $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed");
-                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw");
-                                $repost = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/repost");
+                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_CHASEUP);
+                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_CHASEUP);
+                                $repost = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/repost", User::SRC_CHASEUP);
                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                 $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
                                 $html = chaseup(USER_SITE,
