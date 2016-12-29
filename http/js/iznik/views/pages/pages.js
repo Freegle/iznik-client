@@ -30,7 +30,7 @@ define([
             complete: function () {
                 // Zap our session cache - we're no longer logged in.
                 try {
-                    localStorage.removeItem('session');
+                    Storage.remove('session');
                 } catch (e) {
                 }
                 //alert("Local logout");
@@ -106,7 +106,7 @@ define([
             var self = this;
 
             $('.js-pagetitle').each(function() {
-                if ($(this).length > 0 && $(this).css('display') != 'none') {
+                if ($(this).length > 0) {
                     self.setTitle($(this).get(0).textContent);
                 }
             });

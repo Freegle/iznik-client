@@ -40,14 +40,14 @@ define([
             try {
                 var val = self.$('.js-searchoffers').prop('checked') ? 'Offer' : 'Wanted';
                 console.log("Save search type", val);
-                localStorage.setItem('searchtype', val);
+                Storage.set('searchtype', val);
             } catch (e) {}
         },
 
         restoreSearchType: function() {
             var self = this;
             try {
-                var t = localStorage.getItem('searchtype');
+                var t = Storage.get('searchtype');
                 console.log("Restore search type", t);
                 if (t) {
                     self.$(".js-searchoffers").boostrapSwitch('state', t == 'Offer' );
@@ -129,7 +129,7 @@ define([
                 self.searchtype = 'Offer';
 
                 try {
-                    var stored = localStorage.getItem('searchtype');
+                    var stored = Storage.get('searchtype');
 
                     if (stored) {
                         self.searchtype = stored;
@@ -152,7 +152,7 @@ define([
 
                     var mylocation = null;
                     try {
-                        mylocation = localStorage.getItem('mylocation');
+                        mylocation = Storage.get('mylocation');
 
                         if (mylocation) {
                             mylocation = JSON.parse(mylocation);
@@ -220,8 +220,8 @@ define([
                     // scrolling.
                     self.listenTo(self.collectionView, 'add', function(modelView) {
                         try {
-                            var replyto = localStorage.getItem('replyto');
-                            var replytext = localStorage.getItem('replytext');
+                            var replyto = Storage.get('replyto');
+                            var replytext = Storage.get('replytext');
                             var thisid = modelView.model.get('id');
 
                             if (replyto == thisid) {
@@ -302,7 +302,7 @@ define([
         render: function() {
             // We want to start the wanted with the last search term.
             try {
-                this.options.item = localStorage.getItem('lastsearch');
+                this.options.item = Storage.get('lastsearch');
             } catch (e) {}
 
             return(Iznik.Views.User.Pages.WhatIsIt.prototype.render.call(this));

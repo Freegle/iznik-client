@@ -167,9 +167,9 @@ define([
                 //
                 // This avoids doing syncs which will definitely do nothing, which can be the case for people with a lot
                 // of groups.
-                // console.log("Worthit", group.get('nameshort'));
-                // console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
-                // console.log("Work on MT", group.get('work'));
+                console.log("Worthit", group.get('nameshort'));
+                console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
+                console.log("Work on MT", group.get('work'));
     
                 var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
                         presdef(countname, group.get('work'), 0);
@@ -178,6 +178,7 @@ define([
             }
 
             // Only start the syncs if there is no other work to do or never sync'd.
+            //console.log("Consider start syncs", window.IznikPlugin.collection.length, window.IznikPlugin.notsynced);
             if (window.IznikPlugin.collection.length == 0 || window.IznikPlugin.notsynced) {
                 // Start pending syncs first because if they're wrong, that's normally more annoying.
                 //
@@ -260,7 +261,7 @@ define([
         },
 
         // TODO This whole callback approach is old code and should use promises or something.
-        getCrumb: function(groupname, crumblocation, success, fail) {
+        getCrumb: function(groupname, crumblocation, success, fail, drop) {
             // There's a bit of faffing to get a crumb from Yahoo to perform our actions.
             var self = this;
     
@@ -270,7 +271,8 @@ define([
                     var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
     
                     if (ret.indexOf("not allowed to perform this operation") !== -1) {
-                        fail.call(self);
+                        // Can't do this - no point keeping the work.
+                        drop.call(self);
                     } else if (match) {
                         success.call(self, match[1]);
                     } else {
@@ -344,6 +346,8 @@ define([
                         v.start.call(v);
                     }, function() {
                         self.collection.at(0).retry();
+                    }, function() {
+                        v.drop.call(v);
                     })();
                 }
             }
@@ -725,6 +729,7 @@ define([
                             if (group.hasOwnProperty('pendingCountMap') &&
                                 (group.pendingCountMap.hasOwnProperty('MESSAGE_COUNT') && group.pendingCountMap.MESSAGE_COUNT != 0)) {
                                 self.yahooGroupsWithPendingMessages.push(group.groupName.toLocaleLowerCase());
+                                //console.log("Pending messages on ", group.groupName);
                             }
     
                             if (group.hasOwnProperty('pendingCountMap') &&

@@ -128,7 +128,7 @@ class imageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $id = $ret['id'];
-
+        
         # Now rotate.
         $origdata = $this->call('image', 'GET', [
             'id' => $id,

@@ -16,13 +16,18 @@ define([
 
             updateGraphs: function() {
                 var data = {};
+                var showYahoo = true;
 
                 if (this.selected == -2) {
                     data.systemwide = true;
                 } else if (this.selected == -1) {
                     data.allgroups = true;
                 } else {
-                    data.group = this.selected
+                    data.group = this.selected;
+                    var group = Iznik.Session.getGroup(data.group);
+                    if (!group.get('onyahoo')) {
+                        showYahoo = false;
+                    }
                 }
 
                 var statsGroupType = $('#statsGroupType');
@@ -113,21 +118,26 @@ define([
 
                             graph.render();
 
-                            graph = new Iznik.Views.DeliveryChart({
-                                target: self.$('.js-deliverychart').get()[0],
-                                data: ret.dashboard.YahooDeliveryBreakdown,
-                                title: 'How Yahoo users get mail (excludes FD/TN)'
-                            });
+                            if (showYahoo) {
+                                graph = new Iznik.Views.DeliveryChart({
+                                    target: self.$('.js-deliverychart').get()[0],
+                                    data: ret.dashboard.YahooDeliveryBreakdown,
+                                    title: 'How Yahoo users get mail (excludes FD/TN)'
+                                });
 
-                            graph.render();
+                                graph.render();
 
-                            graph = new Iznik.Views.PostingChart({
-                                target: self.$('.js-postingchart').get()[0],
-                                data: ret.dashboard.YahooPostingBreakdown,
-                                title: 'Yahoo users\' posting status'
-                            });
+                                graph = new Iznik.Views.PostingChart({
+                                    target: self.$('.js-postingchart').get()[0],
+                                    data: ret.dashboard.YahooPostingBreakdown,
+                                    title: 'Yahoo users\' posting status'
+                                });
 
-                            graph.render();
+                                graph.render();
+                            } else {
+                                self.$('.js-deliverychart').empty();
+                                self.$('.js-postingchart').empty();
+                            }
 
                             graph = new Iznik.Views.SourceChart({
                                 target: self.$('.js-sourcechart').get()[0],

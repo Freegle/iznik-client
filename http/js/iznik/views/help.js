@@ -15,7 +15,7 @@ define([
             var self = this;
             // We hide this box and try to set local storage to keep it hidden.
             try {
-                localStorage.setItem('help.' + this.template, true);
+                Storage.set('help.' + this.template, true);
             } catch (e) {
             }
 
@@ -25,7 +25,7 @@ define([
         show: function (e) {
             // We hide this box and try to set local storage to keep it hidden.
             try {
-                localStorage.removeItem('help.' + this.template);
+                Storage.remove('help.' + this.template);
             } catch (e) {
             }
 
@@ -41,7 +41,7 @@ define([
             var show = true;
 
             try {
-                show = localStorage.getItem('help.' + this.template) == null;
+                show = Storage.get('help.' + this.template) == null;
             } catch (e) {
             }
 

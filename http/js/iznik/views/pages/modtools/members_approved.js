@@ -329,6 +329,7 @@ define([
 
                         // Get the group from the session
                         var group = Iznik.Session.getGroup(self.model.get('groupid'));
+                        console.log("Member log", group);
 
                         // Our user.  In memberships the id is that of the member, so we need to get the userid.
                         var mod = self.model.clone();
@@ -345,7 +346,8 @@ define([
 
                         if (group.get('type') == 'Freegle') {
                             var v = new Iznik.Views.ModTools.Member.Freegle({
-                                model: mod
+                                model: mod,
+                                group: group
                             });
 
                             v.render().then(function(v) {
@@ -353,7 +355,7 @@ define([
                             })
                         }
 
-                        if (group.onyahoo) {
+                        if (group.get('onyahoo')) {
                             // Delay getting the Yahoo info slightly to improve apparent render speed.
                             _.delay(function () {
                                 // The Yahoo part of the user

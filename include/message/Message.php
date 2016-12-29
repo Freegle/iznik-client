@@ -191,15 +191,15 @@ class Message
         return($this->$att);
     }
 
-    public function edit($subject, $textbody, $htmlbody, $fop = NULL) {
-        if ($fop !== NULL) {
-            $this->dbhm->preExec("INSERT INTO messages_deadlines (msgid, fop) VALUES (?,?) ON DUPLICATE KEY UPDATE fop = ?;", [
-                $this->id,
-                $fop ? 1 : 0,
-                $fop ? 1 : 0
-            ]);
-        }
-
+    public function setFOP($fop) {
+        $this->dbhm->preExec("INSERT INTO messages_deadlines (msgid, fop) VALUES (?,?) ON DUPLICATE KEY UPDATE fop = ?;", [
+            $this->id,
+            $fop ? 1 : 0,
+            $fop ? 1 : 0
+        ]);
+    }
+    
+    public function edit($subject, $textbody, $htmlbody) {
         if ($htmlbody && !$textbody) {
             # In the interests of accessibility, let's create a text version of the HTML
             $html = new \Html2Text\Html2Text($htmlbody);
@@ -578,6 +578,22 @@ class Message
         $ret['subject'] = preg_replace('/^\[.*?\]\s*/', '', $ret['subject']);
         $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
 
+        # Get the item.  Although it's an extra DB call, we use this in creating structured data for SEO.
+        $items = $this->dbhr->preQuery("SELECT items.id, items.name FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
+        if (count($items) > 0) {
+            $ret['item'] = $items[0];
+        } else if (preg_match("/(.+)\:(.+)\((.+)\)/", $ret['subject'], $matches)) {
+            # See if we can find it.
+            $item = trim($matches[2]);
+            $itemid = NULL;
+            $items = $this->dbhr->preQuery("SELECT items.id FROM items WHERE name LIKE ?;", [ $item ]);
+            $itemid = count($items) == 0 ? NULL : $items[0]['id'];
+            $ret['item'] = [
+                'id' => $itemid,
+                'name' => $item
+            ];
+        }
+
         # Add any groups that this message is on.
         $ret['groups'] = [];
         $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
@@ -593,12 +609,15 @@ class Message
                 $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
             }
 
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
+            $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
+
             if ($ret['mine']) {
                 # Can we repost?
                 $ret['canrepost'] = FALSE;
 
-                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
+                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
                 $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
                 $arrival = strtotime($group['arrival']);
                 $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
@@ -2414,6 +2433,10 @@ class Message
         $textbody = preg_replace('/\#yiv.*\}\}/', '', $textbody);
 
         #error_log("Pruned text to $textbody");
+
+        // We might have links to our own site.  Strip these in case they contain login information.
+        $textbody = preg_replace('/https:\/\/' . USER_SITE . '\S*/', 'https://' . USER_SITE, $textbody);
+
         return(trim($textbody));
     }
     
@@ -2721,8 +2744,8 @@ class Message
         }
     }
 
-    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL) {
-        $ret = $this->s->search($string, $context, $limit, $restrict, $groups);
+    public function search($string, &$context, $limit = Search::Limit, $restrict = NULL, $groups = NULL, $locationid = NULL, $exactonly = FALSE) {
+        $ret = $this->s->search($string, $context, $limit, $restrict, $groups, $exactonly);
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
@@ -2847,6 +2870,7 @@ class Message
             $this->setPrivate('envelopeto', $g->getGroupEmail());
 
             $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [ $this->id ]);
+            $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
 
             # The from IP and country.
             $ip = presdef('REMOTE_ADDR', $_SERVER, NULL);
@@ -3021,9 +3045,18 @@ class Message
         return($subj);
     }
 
+    public function intendedOutcome($outcome) {
+        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
+        $this->dbhm->preExec($sql, [
+            $this->id,
+            $outcome
+        ]);
+    }
+
     public function mark($outcome, $comment, $happiness, $userid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
+        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
         $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
             $this->id,
             $outcome,
@@ -3089,6 +3122,8 @@ class Message
     }
 
     public function withdraw($comment, $happiness) {
+        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
+
         $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
             $this->id,
             Message::OUTCOME_WITHDRAWN,
@@ -3141,15 +3176,17 @@ class Message
         return(!$rollback);
     }
 
-    public function autoRepost($type, $mindate, $groupid = NULL) {
+    public function autoRepostGroup($type, $mindate, $groupid = NULL) {
         $count = 0;
         $warncount = 0;
         $groupq = $groupid ? " AND id = $groupid " : "";
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq;", [ $type ]);
+
+        # Randomise the order to give all groups a chance if the script gets killed or something.
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
-            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
 
             # We want approved messages which haven't got an outcome, i.e. aren't TAKEN/RECEIVED, which don't have
             # some other outcome (e.g. withdrawn), aren't promised, don't have any replies and which we originally sent.
@@ -3206,7 +3243,7 @@ class Message
                                             $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw");
                                             $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                             $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
-                                            $html = autorepost_warning(USER_DOMAIN,
+                                            $html = autorepost_warning(USER_SITE,
                                                 USERLOGO,
                                                 $subj,
                                                 $u->getName(),
@@ -3218,26 +3255,22 @@ class Message
 
                                             list ($transport, $mailer) = getMailer();
 
-                                            $message = Swift_Message::newInstance()
-                                                ->setSubject("Re: " . $subj)
-                                                ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
-                                                ->setTo($to)
-                                                ->setBody($text)
-                                                ->addPart($html, 'text/html');
-                                            $mailer->send($message);
+                                            if (Swift_Validate::email($to)) {
+                                                $message = Swift_Message::newInstance()
+                                                    ->setSubject("Re: " . $subj)
+                                                    ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                                    ->setTo($to)
+                                                    ->setBody($text)
+                                                    ->addPart($html, 'text/html');
+                                                $mailer->send($message);
+                                            }
                                         }
                                     }
                             } else if ($message['hoursago'] > $interval * 24) {
-                                # We can repost this one.  That consists of:
-                                # - incrementing the repost count
-                                # - resetting the arrival time, which will mean the message shows up on the site as recent,
-                                #   and goes out by mail from Digest.php.
-                                #
-                                # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
-                                # with multiple copies on Yahoo are just too horrible to be worth trying to do.
+                                # We can autorepost this one.
                                 $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                                 error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                                $m->repost($message['autoreposts'] + 1, $reposts['max']);
+                                $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
 
                                 $count++;
                             }
@@ -3253,11 +3286,13 @@ class Message
     public function chaseUp($type, $mindate, $groupid = NULL) {
         $count = 0;
         $groupq = $groupid ? " AND id = $groupid " : "";
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq;", [ $type ]);
+
+        # Randomise the order in case the script gets killed or something - gives all groups a chance.
+        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
-            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $reposts = $g->getSetting('reposts', [ 'offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
 
             # We want approved messages which haven't got an outcome, i.e. aren't TAKEN/RECEIVED, which don't have
             # some other outcome (e.g. withdrawn), aren't promised, have any replies and which we originally sent.
@@ -3282,8 +3317,9 @@ class Message
                         $replies = $this->dbhr->preQuery($sql, [ $message['msgid'] ]);
                         $lastreply = $replies[0]['latest'];
                         $age = ($now - strtotime($lastreply)) / (60 * 60);
+                        $interval = pres('chaseups', $reposts) ? $reposts['chaseups'] : 2;
 
-                        if ($age > 48) {
+                        if ($age > $interval * 24) {
                             # We can chase up.
                             $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                             $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
@@ -3305,7 +3341,7 @@ class Message
                                 $repost = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/repost");
                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                 $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
-                                $html = chaseup(USER_DOMAIN,
+                                $html = chaseup(USER_SITE,
                                     USERLOGO,
                                     $subj,
                                     $u->getName(),
@@ -3318,18 +3354,54 @@ class Message
 
                                 list ($transport, $mailer) = getMailer();
 
-                                $message = Swift_Message::newInstance()
-                                    ->setSubject("Re: " . $subj)
-                                    ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
-                                    ->setTo($to)
-                                    ->setBody($text)
-                                    ->addPart($html, 'text/html');
-                                $mailer->send($message);
+                                if (Swift_Validate::email($to)) {
+                                    $message = Swift_Message::newInstance()
+                                        ->setSubject("Re: " . $subj)
+                                        ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                        ->setTo($to)
+                                        ->setBody($text)
+                                        ->addPart($html, 'text/html');
+                                    $mailer->send($message);
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+
+        return($count);
+    }
+
+    public function processIntendedOutcomes($msgid = NULL) {
+        $count = 0;
+
+        # If someone responded to a chaseup mail, but didn't complete the process in half an hour, we do it for them.
+        #
+        # This is quite common, and helps get more activity even from members who are put to shame by goldfish.
+        $msgq = $msgid ? " AND msgid = $msgid " : "";
+        $intendeds = $this->dbhr->preQuery("SELECT * FROM messages_outcomes_intended WHERE TIMESTAMPDIFF(MINUTE, timestamp, NOW()) > 30 $msgq;");
+        foreach ($intendeds as $intended) {
+            $m = new Message($this->dbhr, $this->dbhm, $intended['msgid']);
+
+            switch ($intended['outcome']) {
+                case 'Taken':
+                    $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);
+                    break;
+                case 'Received':
+                    $m->mark(Message::OUTCOME_RECEIVED, NULL, NULL, NULL);
+                    break;
+                case 'Withdrawn':
+                    $m->withdraw(NULL, NULL);
+                    break;
+                case 'Repost':
+                    # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
+                    # near the top, and get mailed out again.
+                    $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?;", [ $intended['msgid'] ]);
+                    break;
+            }
+
+            $count++;
         }
 
         return($count);
@@ -3341,7 +3413,7 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
             $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
 
             if ($group['hoursago'] > $interval * 24) {
@@ -3358,8 +3430,9 @@ class Message
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10]);
+            $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
             $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+            $interval = max($interval, (pres('chaseups', $reposts) ? $reposts['chaseups'] : 2) * 24);
 
             $ret = TRUE;
 
@@ -3372,10 +3445,25 @@ class Message
         return($ret);
     }
 
-    public function repost($reposts, $max) {
+    public function repost() {
         # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
         # near the top, and get mailed out again.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+
+        # ...and update the search index.
+        $this->s->bump($this->id, time());
+    }
+
+    public function autoRepost($reposts, $max) {
+        # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
+        # near the top, and get mailed out again.
+        #
+        # Don't resend to Yahoo - the complexities of trying to keep the single message we have in sync
+        # with multiple copies on Yahoo are just too horrible to be worth trying to do.
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+
+        # ...and update the search index.
+        $this->s->bump($this->id, time());
 
         $this->log->log([
             'type' => Log::TYPE_MESSAGE,

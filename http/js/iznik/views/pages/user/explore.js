@@ -107,6 +107,7 @@ define([
                 }).then(function() {
                     if (!self.options.region) {
                         self.$('.js-exploreall').show();
+                        self.$('.js-exploreregion').remove();
                         self.$('.js-findholder').show();
 
                         // Just centre on one of the centres of Britain.  Yes, there are multiple.
@@ -146,6 +147,7 @@ define([
                     } else {
                         // We have a specific region to show.  First find the relevant groups.
                         self.$('.js-region').html(self.options.region);
+                        self.$('.js-exploreall').remove();
                         self.$('.js-exploreregion').show();
                         var newgroups = self.collection.where({
                             region: self.options.region

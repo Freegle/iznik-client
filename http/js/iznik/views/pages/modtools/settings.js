@@ -237,7 +237,7 @@ define([
                                 },
                                 {
                                     name: 'pushnotify',
-                                    label: 'Push notifications?',
+                                    label: 'Push/app notifications?',
                                     control: 'radio',
                                     extraClasses: ['row'],
                                     options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
@@ -318,7 +318,7 @@ define([
                                     {label: 'South East', value: 'South East'},
                                     {label: 'South West', value: 'South West'},
                                     {label: 'Wales', value: 'Wales'},
-                                    {label: 'Yorkshire and the Humber'},
+                                    {label: 'Yorkshire and the Humber', value: 'Yorkshire and the Humber'},
                                     {label: 'Scotland', value: 'Scotland'}
                                 ],
                             },
@@ -434,10 +434,18 @@ define([
                                 type: 'number'
                             },
                             {
+                                name: 'reposts.chaseups',
+                                label: 'Chaseup after',
+                                control: 'input',
+                                type: 'number',
+                                helpMessage: 'Ask what\'s happening with the item this number of days after the last reply (0 to disable)'
+                            },
+                            {
                                 name: 'reposts.max',
                                 label: 'Max auto-reposts',
                                 control: 'input',
-                                type: 'number'
+                                type: 'number',
+                                helpMessage: '0 to disable'
                             },
                             {
                                 name: 'reposts.offer',

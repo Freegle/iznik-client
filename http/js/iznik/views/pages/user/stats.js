@@ -162,6 +162,39 @@ define([
                                 ];
 
                                 graph.render();
+
+                                // Weights - show per month.
+                                var months = {};
+
+                                _.each(ret.dashboard.Weight, function(ent) {
+                                    var date = new moment(ent.date);
+                                    var key = date.format('01 MMM YYYY');
+                                    if (ent.count > 0) {
+                                        if (key in months) {
+                                            months[key] = months[key] + ent.count;
+                                        } else {
+                                            months[key] = ent.count;
+                                        }
+                                    }
+                                });
+
+                                var data = [];
+
+                                for (var key in months) {
+                                    data.push({
+                                        date: key,
+                                        count: months[key]
+                                    });
+                                }
+
+                                var graph = new Iznik.Views.DateBar({
+                                    target: self.$('.js-weightgraph').get()[0],
+                                    data: new Iznik.Collections.DateCounts(data),
+                                    title: 'Weights (kg)',
+                                    hAxisFormat: 'MMM yyyy'
+                                });
+
+                                graph.render();
                             }
                         }
                     });

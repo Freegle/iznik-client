@@ -1,6 +1,6 @@
 <div class="row-fluid js-chatheader">
     <div class="chat-name">
-        <img src="/images/wingrip.png" class="hidden-xs hidden-sm clickme pull-left js-grip">&nbsp;
+        <img src="/images/wingrip.png" alt="Grip to resize chat window" class="hidden-xs hidden-sm clickme pull-left js-grip">&nbsp;
         <div class="dropdown pull-right">
             <% if (obj.chattype != 'Mod2Mod') { %>
             <span class="glyphicon glyphicon-menu-down dropdown-toggle clickme" type="button" id="chat-dropdown-{{id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" />
@@ -79,10 +79,8 @@
         <span class="input-group-addon nopad">
             <span class="clickme btn btn-sm btn-primary js-send" title="Send this message">
                 <span class="glyphicons glyphicons-chevron-right" />
-                <!--<span class="chathidesmall vcenter">&nbsp;Send</span>-->
             </span><br class="visible-xs" /><% if (chattype == 'User2User') { %><span class="clickme btn btn-sm btn-success js-promise" title="Promise an item to this person" id="chat-promise-{{id}}">
                 <span class="glyphicons glyphicons-handshake" />
-                <!--<span class="chathidesmall vcenter">&nbsp;Promise</span>-->
             </span>
             <% } %>
         </span>

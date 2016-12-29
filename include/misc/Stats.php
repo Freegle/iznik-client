@@ -250,7 +250,7 @@ class Stats
         if ($type === NULL || in_array(Stats::WEIGHT, $type)) {
             # Weights also require more work.
             #
-            # - Get the messages from today
+            # - Get the messages from the date
             # - For those with a suitable outcome
             #   - if we know a weight, then add it
             #   - if we don't know a weight, assume it's the average weight

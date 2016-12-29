@@ -58,7 +58,7 @@ define([
             self.$('.js-signinerror').hide();
 
             try {
-                localStorage.setItem('myemail', self.$('.js-signinform .js-email').val());
+                Storage.set('myemail', self.$('.js-signinform .js-email').val());
             } catch (e) {
             }
 
@@ -147,7 +147,7 @@ define([
             this.$('.js-native').show();
 
             try {
-                var email = localStorage.getItem('myemail');
+                var email = Storage.get('myemail');
                 if (email) {
                     self.$('.js-email').val(email);
                 }
@@ -175,7 +175,7 @@ define([
                 self.$('.js-password').val($('#hiddenloginpassword').val());
 
                 try {
-                    var ever = localStorage.getItem('signedinever');
+                    var ever = Storage.get('signedinever');
                     if (ever) {
                         self.already();
                     } else {
@@ -242,7 +242,7 @@ define([
 
             Iznik.Views.Modal.prototype.render.call(this).then(function () {
                 try {
-                    var email = localStorage.getItem('myemail');
+                    var email = Storage.get('myemail');
                     if (email) {
                         self.$('.js-email').val(email);
                     }

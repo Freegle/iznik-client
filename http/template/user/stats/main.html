@@ -2,7 +2,7 @@
     <div class="row">
         <% if (obj.profile) { %>
         <div class="col-xs-2">
-            <img src="{{obj.profile}}" class="img-thumbnail img-rounded" />
+            <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded" />
         </div>
         <% } %>
         <% if (obj.profile) { %>
@@ -88,7 +88,10 @@
 <div class="row">
     <div class="col-xs-12">
         <h3>Weights</h3>
-        <p>This is an estimate of the weight of items we have diverted from the waste stream.</p>
+        <p>This is an estimate of the weight of items we have diverted from the waste stream.  People don't always
+            tell us when things have worked - so this is likely to be an underestimate.  Figures are only
+        available since September 2016.</p>
+        <div class="js-weightgraph" />
     </div>
 </div>
 <div class="row">

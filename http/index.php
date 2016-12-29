@@ -71,12 +71,14 @@ if (strpos($_SERVER['REQUEST_URI'], '?') !== FALSE) {
     $_REQUEST = array_merge($_REQUEST, $qss);
 }
 
-# Check if we are fetching this url with a key which allows us to auto-login a user.
-$uid = presdef('u', $_REQUEST, NULL);
-$key = presdef('k', $_REQUEST, NULL);
-if ($uid && $key) {
-    $u = User::get($dbhr, $dbhm, $uid);
-    $u->linkLogin($key);
+if (!pres('id', $_SESSION)) {
+    # Not logged in.  Check if we are fetching this url with a key which allows us to auto-login a user.
+    $uid = presdef('u', $_REQUEST, NULL);
+    $key = presdef('k', $_REQUEST, NULL);
+    if ($uid && $key) {
+        $u = User::get($dbhr, $dbhm, $uid);
+        $u->linkLogin($key);
+    }
 }
 
 $default = TRUE;

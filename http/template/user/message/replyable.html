@@ -2,7 +2,9 @@
     <% if (obj.postcode) { %>
     <div itemprop="areaServed" itemtype="postalCode" content="{{postcode.name}}" />
     <% } %>
-    <div itemprop="name" content="<%-subject%>" />
+    <% if (obj.item) { %>
+    <div itemprop="name" content="<%-item%>" />
+    <% } %>
     <div itemprop="itemCondition" content="UsedCondition" />
     <% if (obj.type == 'Offer') { %>
     <div itemprop="price" content="0" />
@@ -16,29 +18,34 @@
 <div class="nomargin panel panel-success">
     <div class="panel-heading nopad clearfix">
         <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
-            <div class="col-sm-11">
-                <% if (attachments.length>0) { %>
-                  <div class="pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
-                <% } %>
-                <div class="msgsubj panel-title">
+            <div class="col-sm-11 padmd">
+            <% if (attachments.length>0) { %>
+              <div class="pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
+            <% } %>
+            <div class="msgsubj panel-title">
                   <span class="js-subject">
-                    {{subject}} <br />
+                      <% if (obj.item && obj.keyword && obj.postcode && obj.area) { %>
+                        <span class="keyword">{{obj.keyword}}</span>: <span class="js-item">{{obj.item.name}}</span> (<span class="area">{{obj.area.name}}</span> <span class="postcode">{{obj.postcode.name}}</span>)
+                      <% } else { %>
+                        <span class="subject">{{subject}}</span>
+                      <% } %>
+                      <br />
                   </span>
-                  <div class="hidden-xs js-groups" />
-                </div>
-                <div class="hidden-xs js-snippet">
-                  <% if (obj.snippet) { %>
-                  <h4 class="nomargin">{{snippet}}...</h4>
-                  <h4 class="black">Read more >></h4>
-                  <% } %>
-                </div>
+              <div class="hidden-xs js-groups" />
             </div>
-            <div class="hidden-xs col-sm-1">
-                <button class="btn btn-white pull-right topspace">
+            <div class="hidden-xs js-snippet">
+              <% if (obj.snippet) { %>
+              <h4 class="nomargin">{{snippet}}...</h4>
+              <h4 class="black">Read more >></h4>
+              <% } %>
+            </div>
+        </div>
+        <div class="hidden-xs col-sm-1">
+            <button class="btn btn-white pull-right topspace">
                     <span class="js-caretdown caret"></span>
                     <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
-                </button>
-            </div>
+            </button>
+        </div>
         </a>
         <% if (obj.snippet) { %>
         <div class="row hidden-xs hidden-sm hidden-md hidden-lg js-snippet">
@@ -55,7 +62,7 @@
         <div class="panel-body">
             <div class="row">
                 <div class="col-sm-10">
-                    <div class="lead prewrap js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
+                    <div class="lead prewrap forcebreak js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
                     <% if (obj.fromuser) { %>
                     <span class="text-muted">
                         <% if (obj.mine) { %>
@@ -79,11 +86,11 @@
                 <div class="hidden-xs col-sm-2 js-mapzoom" style="display:none">
                     <% if (obj.location) { %>
                     <div class="mapimage margleft topspace pull-right location">
-                        <img class="img-thumbnail js-map"/>
+                        <img alt="Thumbnail map" class="img-thumbnail js-map"/>
                     </div>
                     <% } else if (obj.area) { %>
                     <div class="mapimage margleft topspace pull-right area">
-                        <img class="img-thumbnail js-map" />
+                        <img alt="Thumbnail map" class="img-thumbnail js-map" />
                     </div>
                     <% } %>
                 </div>
