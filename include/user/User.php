@@ -15,6 +15,7 @@ require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
+require_once(IZNIK_BASE . '/mailtemplates/chaseupidle.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
@@ -60,6 +61,7 @@ class User extends Entity
     const SRC_DIGEST = 'digest';
     const SRC_RELEVANT = 'relevant';
     const SRC_CHASEUP = 'chaseup';
+    const SRC_CHASEUP_IDLE = 'beenawhile';
     const SRC_CHATNOTIF = 'chatnotif';
     const SRC_REPOST_WARNING = 'repostwarn';
     const SRC_FORGOT_PASSWORD = 'forgotpass';
@@ -2802,5 +2804,82 @@ class User extends Entity
         }
 
         return([$count, $title, $message, $chatids, $route]);
+    }
+
+    public function chaseUpIdle($groupid, $idledays = 60, $userid = NULL)
+    {
+        # Find users who haven't offered anything for a while, but not absurdly old.
+        $mysqltime = date("Y-m-d", strtotime("Midnight $idledays days ago"));
+        $mysqltime2 = date("Y-m-d", strtotime("Midnight 365 days ago"));
+        $lastidle = date("Y-m-d", strtotime("Midnight 30 days ago"));
+        $uq = $userid ? " AND fromuser = $userid " : '';
+
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+        $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+        $interval = pres('chaseups', $reposts) ? $reposts['chaseups'] : 2;
+
+        if ($interval > 0) {
+            $gatts = $g->getPublic();
+            $gname = $gatts['namedisplay'];
+
+            $sql = "SELECT DISTINCT fromuser, MAX(messages_groups.arrival) AS maxarrival FROM messages 
+          INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.groupid = ? 
+          INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid
+          INNER JOIN users ON users.id = messages.fromuser
+            WHERE fromuser IS NOT NULL 
+            AND messages.type =  'Offer'
+            AND messages.arrival < ?
+            AND messages.arrival > ?
+            AND (users.lastidlechaseup IS NULL OR users.lastidlechaseup < ?)
+            $uq
+            GROUP BY fromuser";
+
+            $users = $this->dbhr->preQuery($sql, [
+                $groupid,
+                $mysqltime,
+                $mysqltime2,
+                $lastidle
+            ]);
+
+            foreach ($users as $user) {
+                $u = User::get($this->dbhr, $this->dbhm, $user['fromuser']);
+                $msgs = $this->dbhr->preQuery("SELECT subject FROM messages WHERE fromuser = ? AND type = 'Offer' ORDER BY arrival DESC LIMIT 1;", [
+                    $user['fromuser']
+                ]);
+                $subject = Message::canonSubj($msgs[0]['subject'], FALSE);
+                $ago = round((time() - strtotime($user['maxarrival'])) / (24 * 60 * 60));
+                error_log("#{$user['fromuser']} " . $u->getEmailPreferred() . " last active $ago days ago with {$user['maxarrival']} $subject");
+
+                $post = $u->loginLink(USER_SITE, $user['fromuser'], '/', User::SRC_CHASEUP_IDLE);
+                $unsub = $u->loginLink(USER_SITE, $user['fromuser'], '/unsubscribe', User::SRC_CHASEUP_IDLE);
+                $settings = $u->loginLink(USER_SITE, $user['fromuser'], '/settings', User::SRC_CHASEUP_IDLE);
+                $email = $u->getEmailPreferred();
+
+                $text = "It's been $ago days since you freegled $subject.  Maybe you have something else you could freegle?  That would be lovely of you - just go to $post\n\nOr if you want to leave, then go to $unsub .  But we'd rather you freegled something!";
+                $html = chaseup_idle(USERLOGO,
+                    $gname,
+                    $subject,
+                    $settings,
+                    $post,
+                    $unsub,
+                    $u->getName(),
+                    $email,
+                    $ago
+                );
+
+                list ($transport, $mailer) = getMailer();
+
+                if (Swift_Validate::email($email)) {
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("$gname needs you!")
+                        ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                        ->setTo($email)
+                        ->setBody($text)
+                        ->addPart($html, 'text/html');
+                    $mailer->send($message);
+                    $this->dbhm->preExec("UPDATE users SET lastidlechaseup = NOW() WHERE id = ?;", [ $u->getId() ]);
+                }
+            }
+        }
     }
 }

@@ -173,7 +173,8 @@ class Relevant {
                 $msgs = $this->getMessages($user['id'], $ints);
 
                 if (count($msgs) > 0) {
-                    $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\n";
+                    $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
+                    $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\nIf you don't want to get these suggestions, mail $noemail.";
                     $offers = [];
                     $wanteds = [];
                     $hoffers = [];
@@ -205,7 +206,6 @@ class Relevant {
                     $email = $u->getEmailPreferred();
                     if ($email) {
                         $subj = "Any of these take your fancy?";
-                        $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
                         $post = $u->loginLink(USER_SITE, $u->getId(), "/", User::SRC_RELEVANT);
                         $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", User::SRC_RELEVANT);
 

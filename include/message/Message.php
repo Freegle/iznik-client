@@ -2440,8 +2440,10 @@ class Message
         return(trim($textbody));
     }
     
-    public static function canonSubj($subj) {
-        $subj = strtolower($subj);
+    public static function canonSubj($subj, $lower = TRUE) {
+        if ($lower) {
+            $subj = strtolower($subj);
+        }
 
         // Remove any group tag
         $subj = preg_replace('/^\[.*?\](.*)/', "$1", $subj);
@@ -3317,9 +3319,9 @@ class Message
                         $replies = $this->dbhr->preQuery($sql, [ $message['msgid'] ]);
                         $lastreply = $replies[0]['latest'];
                         $age = ($now - strtotime($lastreply)) / (60 * 60);
-                        $interval = pres('chaseups', $reposts) ? $reposts['chaseups'] : 2;
+                        $interval = array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2;
 
-                        if ($age > $interval * 24) {
+                        if ($interval > 0 && $age > $interval * 24) {
                             # We can chase up.
                             $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                             $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
