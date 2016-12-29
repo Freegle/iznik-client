@@ -73,6 +73,7 @@ define([
                             var now = (new Date()).getTime();
                             try {
                                 lastasked = Storage.get('lastAskedPush');
+                                lastasked = !_.isUndefined(lastasked) ? lastasked : null;
                             } catch (e) {}
 
                             ask = (!lastasked || (now - lastasked > 60 * 60 * 1000));
