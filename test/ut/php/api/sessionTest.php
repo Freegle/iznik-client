@@ -168,6 +168,7 @@ class sessionTest extends IznikAPITestCase
             'displayname' => "Testing User",
             'email' => 'test2@test.com',
             'onholidaytill' => ISODate('@' . time()),
+            'relevantallowed' => 0,
             'notifications' => [
                 'push' => [
                     'type' => 'Google',
@@ -182,6 +183,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals('{"test":1}', $ret['me']['settings']);
         assertEquals('Testing User', $ret['me']['displayname']);
         assertEquals('test@test.com', $ret['me']['email']);
+        assertFalse(array_key_exists('relevantallowed', $ret['me']));
 
         # Confirm it
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'test2@test.com';");

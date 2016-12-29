@@ -24,6 +24,7 @@ define([
             'switchChange.bootstrapSwitch .js-pushswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-appswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-facebookswitch': 'notifSwitch',
+            'switchChange.bootstrapSwitch .js-relevant': 'relevantSwitch',
             'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
             'click .js-savename': 'nameChange',
@@ -91,6 +92,18 @@ define([
             } else {
                 this.$('.js-mineholder').show();
             }
+        },
+
+        relevantSwitch: function() {
+            var me = Iznik.Session.get('me');
+            var relevant = this.$('.js-relevant').bootstrapSwitch('state');
+
+            Iznik.Session.save({
+                id: me.id,
+                relevantallowed: relevant
+            }, {
+                patch: true
+            });
         },
 
         notifSwitch: function() {
@@ -247,7 +260,12 @@ define([
                 });
                 self.onholiday();
 
-                var me = Iznik.Session.get('me')
+                self.$(".js-relevant").bootstrapSwitch({
+                    onText: 'Send them',
+                    offText: 'No thanks',
+                    state: me.relevantallowed ? true : false
+                });
+
                 var notifs = me.settings.notifications;
 
                 if (_.isUndefined(notifs)) {

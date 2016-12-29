@@ -1163,6 +1163,7 @@ class User extends Entity
             # Add in private attributes for our own entry.
             $atts['emails'] = $me->getEmails();
             $atts['email'] = $me->getEmailPreferred($atts['emails']);
+            $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
         }
 
         if ($me && $me->isModerator()) {

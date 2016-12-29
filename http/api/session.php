@@ -252,6 +252,10 @@ function session() {
                     $me->setPrivate('onholidaytill', $_REQUEST['onholidaytill']);
                 }
 
+                if (array_key_exists('relevantallowed', $_REQUEST)) {
+                    $me->setPrivate('relevantallowed', $_REQUEST['relevantallowed']);
+                }
+
                 Session::clearSessionCache();
             }
             break;

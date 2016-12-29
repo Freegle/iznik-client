@@ -1265,10 +1265,6 @@ define([
     window.Storage = null;
 
     try {
-        Backbone.history.start({
-            pushState: true
-        });
-
         try {
             // Set up storage.
             console.log("Set up storage");
@@ -1297,6 +1293,9 @@ define([
                 }
             } catch (e) {}
 
+            Backbone.history.start({
+                pushState: true
+            });
         } catch (e) {
             // We don't.
             Router.navigate('/localstorage', true);
