@@ -438,7 +438,7 @@ define([
                                 label: 'Chaseup after',
                                 control: 'input',
                                 type: 'number',
-                                helpMessage: 'Ask what\'s happening with the item this number of days after the last reply (0 to disable, which also disables chasing up members who have not posted for a while)'
+                                helpMessage: 'Ask what\'s happening with the item this number of days after the last reply (0 to disable)'
                             },
                             {
                                 name: 'reposts.max',
