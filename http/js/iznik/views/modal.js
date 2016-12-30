@@ -38,6 +38,8 @@ define([
             this.remove();
             this.undelegateEvents();
             $(this.el).removeData().unbind();
+
+            $('body').css('padding-right', '');
         },
 
         close: function(){
@@ -55,6 +57,8 @@ define([
             this.remove();
             this.undelegateEvents();
             this.$el.removeData().unbind();
+
+            $('body').css('padding-right', '');
         },
 
         attach: function() {
@@ -109,7 +113,9 @@ define([
             self.$('.modal').one('hidden.bs.modal', function () {
                 $('body').css('padding-right', '');
             })
-            $('body').css('padding-right', '');
+            self.$('.modal').one('shown.bs.modal', function () {
+                $('body').css('padding-right', '');
+            });
 
             return(p);
         },

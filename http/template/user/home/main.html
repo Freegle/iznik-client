@@ -52,20 +52,30 @@
     <div class="col-xs-12">
         <div class="panel panel-default">
             <div class="panel-body">
-                <p class="text-center text-muted js-pagedescription">Here's where you work with posts you've made.</p>
-                <div class="col-sm-5">
+                <p class="text-center text-muted hidden-xs js-pagedescription">Here's where you work with posts you've made.</p>
+                <div class="col-sm-5 col-xs-6">
                     <a href="/give">
-                        <div class="topspace btn btn-lg btn-block btn-success">
-                            <div class="glyphicon glyphicon-gift" />&nbsp;Give stuff
+                        <div class="btn btn-lg btn-block btn-success">
+                            <span class="hidden-xs">
+                                <span class="glyphicon glyphicon-gift" />&nbsp;Give stuff
+                            </span>
+                            <span class="visible-xs">
+                                <span class="glyphicon glyphicon-gift" />&nbsp;Give
+                            </span>
                         </div>
                     </a>
                 </div>
-                <div class="col-sm-2">
+                <div class="col-sm-2 hidden-xs">
                 </div>
-                <div class="col-sm-5">
+                <div class="col-sm-5 col-xs-6">
                     <a href="/find">
-                        <div class="topspace btn btn-lg btn-block btn-primary">
-                            <div class="glyphicon glyphicon-search" />&nbsp;Find stuff
+                        <div class="btn btn-lg btn-block btn-primary">
+                            <span class="hidden-xs">
+                                <span class="glyphicon glyphicon-search" />&nbsp;Find stuff
+                            </span>
+                            <span class="visible-xs">
+                                <span class="glyphicon glyphicon-search" />&nbsp;Find
+                            </span>
                         </div>
                     </a>
                 </div>
@@ -78,16 +88,16 @@
         <div class="panel panel-default">
             <div class="panel-heading panel-info">
                 <h3 class="panel-title">
-                    <div class="glyphicon glyphicon-gift" />&nbsp;Your OFFERs
+                    <div class="glyphicon glyphicon-gift" />&nbsp;<span class="hidden-xs">Your </span>OFFERs
                     <a class="js-oldoffers" style="display: none">
                         <span class="btn btn-white">
-                            <span class="glyphicon glyphicon-plus" />&nbsp;Show <span class="js-oldoffercount" />
+                            <span class="glyphicon glyphicon-plus" />&nbsp;<span class="hidden-xs">Show </span><span class="js-oldoffercount" />
                         </span>
                     </a>
                 </h3>
             </div>
             <div class="panel-body">
-                <p class="text-center text-muted">Stuff you're giving away.</p>
+                <p class="text-center text-muted hidden-xs">Stuff you're giving away.</p>
                 <div class="js-offerhelp" />
                 <div class="js-nooffers alert alert-info" style="display: none">
                     <a href="/give">Nothing at the moment.  Why not OFFER something?</a>
@@ -102,16 +112,16 @@
         <div class="panel panel-default">
             <div class="panel-heading panel-primary">
                 <h3 class="panel-title">
-                    <div class="glyphicon glyphicon-search" />&nbsp;Your WANTEDs
+                    <div class="glyphicon glyphicon-search" />&nbsp&nbsp;<span class="hidden-xs">Your </span>WANTEDs
                     <a class="js-oldwanteds" style="display: none">
                         <span class="btn btn-white">
-                            <span class="glyphicon glyphicon-plus" />&nbsp;Show <span class="js-oldwantedcount" />
+                            <span class="glyphicon glyphicon-plus" />&nbsp;<span class="hidden-xs">Show </span><span class="js-oldwantedcount" />
                         </span>
                     </a>
                 </h3>
             </div>
             <div class="panel-body">
-                <p class="text-center text-muted">Stuff you're trying to find.</p>
+                <p class="text-center text-muted hidden-xs">Stuff you're trying to find.</p>
                 <ul class="list-unstyled js-wanteds" />
             </div>
         </div>
@@ -125,7 +135,7 @@
                 <div class="js-replyhelp" />
             </div>
             <div class="panel-body">
-                <p class="text-center text-muted">Your replies to other people's OFFERs and WANTEDs.</p>
+                <p class="text-center text-muted hidden-xs">Your replies to other people's OFFERs and WANTEDs.</p>
                 <ul class="list-unstyled js-replylist" />
             </div>
         </div>
@@ -138,7 +148,7 @@
                 <h3 class="panel-title"><div class="glyphicon glyphicon-search" />&nbsp;Your Searches</h3>
             </div>
             <div class="panel-body">
-                <p class="text-center text-muted">What you've recently searched for.</p>
+                <p class="text-center text-muted hidden-xs">What you've recently searched for.</p>
                 <ul class="list-inline list-unstyled js-searchlist" />
             </div>
         </div>

@@ -4,7 +4,16 @@
             <div class="row">
                 <div class="col-xs-8 col-sm-10 col-md-8">
                     <div class="js-rejected glyphicon glyphicon-warning-sign glyphicon-larger error" style="display: none" title="This message has been sent back to you by the volunteers." />
-                    {{subject}}
+                    <span class="hidden-xs">
+                        {{subject}}
+                    </span>
+                    <span class="visible-xs">
+                        <% if (obj.item && obj.keyword) { %>
+                        <span class="keyword">{{obj.keyword}}</span>: <span class="js-item">{{obj.item.name}}</span>
+                        <% } else { %>
+                        <span class="subject">{{subject}}</span>
+                        <% } %>
+                    </span>
                 </div>
                 <div class="col-xs-2 col-sm-1 col-md-2 nopad">
                     <ul class="list-unstyled list-inline">

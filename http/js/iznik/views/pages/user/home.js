@@ -70,10 +70,10 @@ define([
             if (count == 0) {
                 container.hide();
             } else if (count == 1) {
-                countel.html("1 old " + type.toUpperCase());
+                countel.html("1 old" + (isXS() ? '' : (' ' + type.toUpperCase())));
                 container.show();
             } else {
-                countel.html(count + " old " + type.toUpperCase() + "s");
+                countel.html(count + " old" + (isXS() ? '' : (' ' + type.toUpperCase() + "s")));
                 container.show();
             }
         },
