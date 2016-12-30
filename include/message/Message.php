@@ -3397,9 +3397,7 @@ class Message
                     $m->withdraw(NULL, NULL);
                     break;
                 case 'Repost':
-                    # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
-                    # near the top, and get mailed out again.
-                    $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?;", [ $intended['msgid'] ]);
+                    $m->repost();
                     break;
             }
 
@@ -3448,6 +3446,9 @@ class Message
     }
 
     public function repost() {
+        # Make sure we don't keep doing this.
+        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
+
         # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
         # near the top, and get mailed out again.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
