@@ -20,7 +20,7 @@ class Relevant {
 
     public function off($uid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->setPrivate('relevantallowed', 1);
+        $u->setPrivate('relevantallowed', 0);
 
         $this->log->log([
             'type' => Log::TYPE_USER,
@@ -61,7 +61,8 @@ class Relevant {
                 $item = trim($matches[2]);
                 $interested[] = [
                     'type' => $msg['type'],
-                    'item' => $item
+                    'item' => $item,
+                    'reason' => $msg['subject']
                 ];
             }
         }
@@ -73,7 +74,8 @@ class Relevant {
         foreach ($searches as $search) {
             $interested[] = [
                 'type' => Message::TYPE_WANTED,
-                'item' => $search['term']
+                'item' => $search['term'],
+                'reason' => "Searched for {$search['term']} on {$search['date']}"
             ];
         }
 
