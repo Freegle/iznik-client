@@ -451,13 +451,15 @@ define([
                                 name: 'reposts.offer',
                                 label: 'OFFER auto-repost (days)',
                                 control: 'input',
-                                type: 'number'
+                                type: 'number',
+                                helpMessage: 'Also controls when the user can manually repost using the button on FD.'
                             },
                             {
                                 name: 'reposts.wanted',
                                 label: 'WANTED auto-repost (days)',
                                 control: 'input',
-                                type: 'number'
+                                type: 'number',
+                                helpMessage: 'Also controls when the user can manually repost using the button on FD.'
                             },
                             {
                                 name: 'map.zoom',
