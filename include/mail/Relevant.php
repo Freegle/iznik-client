@@ -46,6 +46,9 @@ class Relevant {
     }
 
     public function interestedIn($userid, $grouptype = Group::GROUP_FREEGLE) {
+        # Anything longer ago probably isn't relevant.
+        $start = date('Y-m-d', strtotime("30 days ago"));
+
         # We have two sources:
         # - outstanding posts by the user, which might be either OFFERs or WANTEDs, where we want to look for the
         #   relevant WANTEDs or OFFERs respectively.
@@ -53,8 +56,8 @@ class Relevant {
         $interested = [];
 
         # First the messages.
-        $sql = "SELECT DISTINCT messages.type, messages.subject FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? WHERE messages_outcomes.msgid IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted');";
-        $msgs = $this->dbhr->preQuery($sql, [ $grouptype, $userid ] );
+        $sql = "SELECT DISTINCT messages.type, messages.subject, messages.arrival, messages.id FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? WHERE messages_outcomes.msgid IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted') AND messages.arrival >= ?;";
+        $msgs = $this->dbhr->preQuery($sql, [ $grouptype, $userid, $start ] );
         foreach ($msgs as $msg) {
             # We only bother with messages with standard subject line formats.
             if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
@@ -62,14 +65,14 @@ class Relevant {
                 $interested[] = [
                     'type' => $msg['type'],
                     'item' => $item,
-                    'reason' => $msg['subject']
+                    'reason' => "{$msg['id']} {$msg['subject']} on {$msg['arrival']}"
                 ];
             }
         }
 
         # Now the searches.
-        $sql = "SELECT * FROM users_searches WHERE userid = ? AND deleted = 0 AND locationid IS NOT NULL;";
-        $searches = $this->dbhr->preQuery($sql, [ $userid ]);
+        $sql = "SELECT * FROM users_searches WHERE userid = ? AND deleted = 0 AND locationid IS NOT NULL AND `date` >= ?;";
+        $searches = $this->dbhr->preQuery($sql, [ $userid, $start ]);
 
         foreach ($searches as $search) {
             $interested[] = [
