@@ -279,6 +279,7 @@ class Spam {
                 $spammer['byuser'] = $u->getPublic();
             }
 
+            $spammer['added'] = ISODate($spammer['added']);
             $context['id'] = $spammer['id'];
         }
 
