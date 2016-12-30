@@ -112,6 +112,7 @@ define([
             "modtools/members/happiness": "happinessMembers",
             "modtools/events/pending": "pendingEvents",
             "modtools/publicity": "socialActions",
+            "modtools/fbgroups": "facebookGroups",
             "modtools/admins": "admins",
             "modtools/conversations/spam": "chatReview",
             "modtools/conversations/reported": "chatReport",
@@ -850,6 +851,24 @@ define([
             require(["iznik/views/pages/modtools/social"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.SocialActions();
+                    self.loadRoute({
+                        page: page,
+                        modtools: true
+                    });
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        facebookGroups: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/fbgroups"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.FacebookGroups();
                     self.loadRoute({
                         page: page,
                         modtools: true
