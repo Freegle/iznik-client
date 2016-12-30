@@ -316,6 +316,21 @@ class User extends Entity
         return($ret);
     }
 
+    public function getOurEmail($emails = NULL) {
+        $emails = $emails ? $emails : $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",
+            [$this->id]);
+        $ret = NULL;
+
+        foreach ($emails as $email) {
+            if (ourDomain($email['email'])) {
+                $ret = $email['email'];
+                break;
+            }
+        }
+
+        return($ret);
+    }
+
     public function getAnEmailId() {
         $emails = $this->dbhr->preQuery("SELECT id FROM users_emails WHERE userid = ? ORDER BY preferred DESC;",
             [$this->id]);
