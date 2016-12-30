@@ -42,13 +42,20 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             $atts = $m->getPublic();
             $icon = (count($atts['attachments']) > 0) ? $atts['attachments'][0]['path'] : USERLOGO;
 
+            $rsptext = '';
+            if ($m->getType() == Message::TYPE_OFFER) {
+                $rsptext = "Interested?  Click here to reply.  Everything on Freegle is free.  ";
+            } else if ($m->getType() == Message::TYPE_WANTED) {
+                $rsptext = "Got one?  Click here to reply.  Everything on Freegle is free.  ";
+            }
+
             ?>
             <title><?php echo $atts['subject']; ?></title>
             <meta itemprop="title" content="<?php echo $atts['subject']; ?>"/>
-            <meta itemprop="description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
-            <meta name="description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
+            <meta itemprop="description" content="<?php echo $rsptext; ?>"/>
+            <meta name="description" content="<?php echo $rsptext; ?>"/>
             <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
-            <meta property="og:description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
+            <meta property="og:description" content="<?php echo $rsptext; ?>"/>
             <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
