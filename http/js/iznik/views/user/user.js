@@ -981,7 +981,7 @@ define([
 
                     self.model = mod;
                     var group = Iznik.Session.getGroup(self.options.groupid);
-                    self.model.set('group', group);
+                    self.model.set('group', group.attributes);
                     p = Iznik.Views.ModTools.Member.Freegle.prototype.render.call(self);
                 }
             });
