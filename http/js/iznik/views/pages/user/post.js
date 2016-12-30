@@ -63,61 +63,66 @@ define([
             if (item.length == 0) {
                 self.$('.js-item').focus();
                 self.$('.js-item').addClass('error-border');
-            }
+                return(null);
+            } else {
+                var locationid = null;
+                var groupid = null;
+                try {
+                    var loc = Storage.get('mylocation');
+                    locationid = loc ? JSON.parse(loc).id : null;
+                    groupid = Storage.get('myhomegroup');
+                } catch (e) {};
 
-            var locationid = null;
-            var groupid = null;
-            try {
-                var loc = Storage.get('mylocation');
-                locationid = loc ? JSON.parse(loc).id : null;
-                groupid = Storage.get('myhomegroup');
-            } catch (e) {};
+                var d = jQuery.Deferred();
+                var attids = [];
+                this.photos.each(function (photo) {
+                    attids.push(photo.get('id'))
+                });
 
-            var d = jQuery.Deferred();
-            var attids = [];
-            this.photos.each(function (photo) {
-                attids.push(photo.get('id'))
-            });
+                var data = {
+                    collection: 'Draft',
+                    locationid: locationid,
+                    messagetype: self.msgType,
+                    item: item,
+                    textbody: self.$('.js-description').val(),
+                    attachments: attids,
+                    groupid: groupid
+                };
 
-            var data = {
-                collection: 'Draft',
-                locationid: locationid,
-                messagetype: self.msgType,
-                item: item,
-                textbody: self.$('.js-description').val(),
-                attachments: attids,
-                groupid: groupid
-            };
-
-            $.ajax({
-                type: 'PUT',
-                url: API + 'message',
-                data: data,
-                success: function (ret) {
-                    if (ret.ret == 0) {
-                        d.resolve();
-                        try {
-                            Storage.set('draft', ret.id);
-                        } catch (e) {
+                $.ajax({
+                    type: 'PUT',
+                    url: API + 'message',
+                    data: data,
+                    success: function (ret) {
+                        if (ret.ret == 0) {
+                            d.resolve();
+                            try {
+                                Storage.set('draft', ret.id);
+                            } catch (e) {
+                            }
+                        } else {
+                            d.reject();
                         }
-                    } else {
+                    }, error: function () {
                         d.reject();
                     }
-                }, error: function () {
-                    d.reject();
-                }
-            });
+                });
 
-            return (d.promise());
+                return (d.promise());
+            }
         },
 
         next: function () {
             var self = this;
-            this.save().done(function () {
-                Router.navigate(self.whoami, true);
-            }).fail(function () {
-                self.$('.js-saveerror').fadeIn('slow');
-            });
+            var p = this.save();
+
+            if (p) {
+                p.done(function () {
+                    Router.navigate(self.whoami, true);
+                }).fail(function () {
+                    self.$('.js-saveerror').fadeIn('slow');
+                });
+            }
         },
 
         itemSource: function (query, syncResults, asyncResults) {
