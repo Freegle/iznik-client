@@ -15,13 +15,9 @@ function dashboard() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             # Check if we're logged in
-            if ($me || $groupid) {
-                $ret = array('ret' => 0, 'status' => 'Success');
-                $d = new Dashboard($dbhr, $dbhm, $me);
-                $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $type, $start);
-            } else {
-                $ret = array('ret' => 1, 'status' => 'Not logged in');
-            }
+            $ret = array('ret' => 0, 'status' => 'Success');
+            $d = new Dashboard($dbhr, $dbhm, $me);
+            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $type, $start);
 
             break;
         }

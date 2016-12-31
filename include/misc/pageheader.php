@@ -247,6 +247,8 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <?php if (defined('USER_GROUP_OVERRIDE')) { ?>
     <meta name="iznikusergroupoverride" content="<?php echo USER_GROUP_OVERRIDE; ?>">
     <?php } ?>
+    <meta name="izniksitename" content="<?php echo SITE_NAME; ?>">
+    <meta name="izniksitedesc" content="<?php echo SITE_DESC; ?>">
     <meta name="iznikusersite" content="<?php echo USER_SITE; ?>">
     <meta name="iznikmodsite" content="<?php echo MOD_SITE; ?>">
     

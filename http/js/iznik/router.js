@@ -149,7 +149,7 @@ define([
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
-            "stats/:id": "userStatsGroup",
+            "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
             "communityevent(/:id)": "userCommunityEvent",
             "newuser": "newUser",
