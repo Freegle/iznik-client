@@ -302,12 +302,13 @@ class User extends Entity
         # - the preferred flag, which gets set by end user action
         # - the date added, as most recently added emails are most likely to be right
         # - exclude our own invented mails
+        # - exclude any yahoo groups mails which have snuck in.
         $emails = $emails ? $emails : $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",
             [$this->id]);
         $ret = NULL;
 
         foreach ($emails as $email) {
-            if (!ourDomain($email['email'])) {
+            if (!ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE) {
                 $ret = $email['email'];
                 break;
             } 
@@ -555,7 +556,7 @@ class User extends Entity
         return($coll);
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL) {
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE) {
         $this->memberships = NULL;
         $me = whoAmI($this->dbhr, $this->dbhm);
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
@@ -627,23 +628,26 @@ class User extends Entity
         // @codeCoverageIgnoreStart
         
         if ($rc) {
-            # The membership didn't already exist.
+            # The membership didn't already exist.  We might want to send a welcome mail.
             $atts = $g->getPublic();
 
-            if ($atts['welcomemail'] || $message) {
+            if (($addedhere) && ($atts['welcomemail'] || $message)) {
                 # We need to send a per-group welcome mail.
                 $to = $this->getEmailPreferred();
-                $welcome = $message ? $message : $atts['welcomemail'];
-                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($welcome));
-                list ($transport, $mailer) = getMailer();
-                $message = Swift_Message::newInstance()
-                    ->setSubject("Welcome to " . $atts['namedisplay'])
-                    ->setFrom([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
-                    ->setTo($to)
-                    ->setDate(time())
-                    ->setBody($welcome)
-                    ->addPart($html, 'text/html');
-                $mailer->send($message);
+
+                if ($to) {
+                    $welcome = $message ? $message : $atts['welcomemail'];
+                    $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($welcome));
+                    list ($transport, $mailer) = getMailer();
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("Welcome to " . $atts['namedisplay'])
+                        ->setFrom([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
+                        ->setTo($to)
+                        ->setDate(time())
+                        ->setBody($welcome)
+                        ->addPart($html, 'text/html');
+                    $mailer->send($message);
+                }
             }
 
             $l = new Log($this->dbhr, $this->dbhm);
@@ -1199,10 +1203,10 @@ class User extends Entity
                 if ($groupids && count($groupids) > 0) {
                     # On these groups
                     $groupq = implode(',', $groupids);
-                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
+                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
                 } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
                     # We can see all groups.
-                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
+                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
                 }
 
                 if ($sql) {

@@ -385,7 +385,7 @@ class MailRouter
                         $notify = FALSE;
 
                         # Now add them as a pending member.
-                        if ($u->addMembership($gid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING)) {
+                        if ($u->addMembership($gid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING, NULL, NULL, FALSE)) {
                             $u->setYahooMembershipAtt($gid, $emailid, 'yahooapprove', $approve);
                             $u->setYahooMembershipAtt($gid, $emailid, 'yahooreject', $reject);
                             $u->setYahooMembershipAtt($gid, $emailid, 'joincomment', $comment);

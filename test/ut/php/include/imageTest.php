@@ -44,11 +44,13 @@ class imageTest extends IznikTestCase {
         assertEquals($h, $i->height());
 
         $i->scale($w+1, NULL);
-        assertEquals($w + 1, $i->width());
-        assertEquals($h + 1, $i->height());
+
+        // Rounds up.
+        assertEquals($w + 2, $i->width());
+        assertEquals($h + 2, $i->height());
 
         $i->scale(NULL, $h+1);
-        assertEquals($w + 1, $i->width());
+        assertEquals($w + 2, $i->width());
         assertEquals($h + 1, $i->height());
 
         error_log(__METHOD__ . " end");

@@ -2,5 +2,13 @@
     <div class="col-md-4">
         <div class="js-date"></div>
     </div>
-    <div class="col-md-8 forcebreak">{{subject}}</div>
+    <div class="col-md-7 forcebreak">{{subject}}</div>
+    <div class="col-md-1">
+        <% if (obj.repost) { %>
+        <div class="glyphicon glyphicon-refresh inline" alt="Repost" title="Repost" />&nbsp;
+        <% } %>
+        <% if (obj.repost) { %>
+        <div class="glyphicon glyphicon-laptop inline" alt="Auto-repost" title="Auto-repost" />
+        <% } %>
+    </div>
 </div>

@@ -1459,7 +1459,7 @@ class Message
                     # Make sure we have a membership for the originator of this message; they were a member
                     # at the time they sent this.  If they have since left we'll pick that up later via a sync.
                     if (!$u->isApprovedMember($this->groupid)) {
-                        $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
+                        $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::APPROVED, NULL, NULL, FALSE);
                     }
                 }
             }
@@ -3455,6 +3455,18 @@ class Message
 
         # ...and update the search index.
         $this->s->bump($this->id, time());
+
+        # Record that we've done this.
+        $groups = $this->getGroups();
+        foreach ($groups as $groupid) {
+            $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
+            $this->dbhm->preExec($sql, [
+                $this->id,
+                $groupid,
+                1,
+                0
+            ]);
+        }
     }
 
     public function autoRepost($reposts, $max) {
@@ -3475,6 +3487,18 @@ class Message
             'user' => $this->getFromuser(),
             'text' => "$reposts / $max"
         ]);
+
+        # Record that we've done this.
+        $groups = $this->getGroups();
+        foreach ($groups as $groupid) {
+            $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
+            $this->dbhm->preExec($sql, [
+                $this->id,
+                $groupid,
+                1,
+                0
+            ]);
+        }
     }
 
     public function isBounce()
