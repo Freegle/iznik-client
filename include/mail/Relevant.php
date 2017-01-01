@@ -215,8 +215,9 @@ class Relevant {
                             $subj = "Any of these take your fancy?";
                             $post = $u->loginLink(USER_SITE, $u->getId(), "/", User::SRC_RELEVANT);
                             $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", User::SRC_RELEVANT);
+                            $visit = $u->loginLink(USER_SITE, $u->getId(), "/mygroups", User::SRC_RELEVANT);
 
-                            $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $unsubscribe);
+                            $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $visit, $unsubscribe);
 
                             try {
                                 $message = Swift_Message::newInstance()

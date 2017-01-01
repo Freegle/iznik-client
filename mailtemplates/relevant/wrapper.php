@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function relevant_wrapper($domain, $logo, $subject, $htmloffers, $htmlwanteds, $email, $noemail, $post, $unsubscribe) {
+function relevant_wrapper($domain, $logo, $subject, $htmloffers, $htmlwanteds, $email, $noemail, $post, $visit, $unsubscribe) {
     $siteurl = "https://$domain";
     $sitename = SITE_NAME;
 
@@ -67,6 +67,17 @@ EOT;
                                                                                 </tr>
                                                                             </table>
                                                                          </td>
+                                                                        <td>
+                                                                            <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
+                                                                                <tr>
+                                                                                    <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
+                                                                                        style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
+                                                                                            line-height:18px; border-radius:3px;">
+                                                                                        <a href="$visit" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Browse&nbsp;the&nbsp;group&nbsp;</a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
                                                                         <td>
                                                                             <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
                                                                                 <tr>
