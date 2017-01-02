@@ -99,7 +99,7 @@ class Relevant {
 
         if ($lastloc) {
             $l = new Location($this->dbhr, $this->dbhm, $lastloc);
-            $groups = $l->groupsNear();
+            $groups = $l->groupsNear(Location::QUITENEARBY);
             #error_log("Groups near $lastloc are " . var_export($groups, TRUE));
 
             # Only want groups where this function is allowed.
