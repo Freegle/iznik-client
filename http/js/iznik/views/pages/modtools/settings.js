@@ -377,10 +377,10 @@ define([
                             },
                             {
                                 name: 'spammers.chatreview',
-                                label: 'Check for spam messages to members?',
+                                label: '(Freegle only) Check for spam messages to members?',
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
-                                helpMessage: "(Freegle only) Messages to members come through the system.  It can flag suspicious ones for review so you can check if they are spam or not.  If you turn this off, such replies (some of which may be fine) will be dropped and members won't see them."
+                                helpMessage: "Messages to members come through the system.  It can flag suspicious ones for review so you can check if they are spam or not.  If you turn this off, such replies (some of which may be fine) will be dropped and members won't see them."
                             },
                             {
                                 name: 'spammers.messagereview',
@@ -435,28 +435,35 @@ define([
                             },
                             {
                                 name: 'reposts.chaseups',
-                                label: 'Chaseup after',
+                                label: '(Freegle only) Chaseup after',
                                 control: 'input',
                                 type: 'number',
                                 helpMessage: 'Ask what\'s happening with the item this number of days after the last reply (0 to disable)'
                             },
                             {
+                                name: 'relevant',
+                                label: '(Freegle only) Send relevant messages to members?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "Email specific messages to members based on their searches and posting history.  Members can turn this on/off themselves, so you would only turn this off if you want to override their decision."
+                            },
+                            {
                                 name: 'reposts.max',
-                                label: 'Max auto-reposts',
+                                label: '(Freegle only) Max auto-reposts',
                                 control: 'input',
                                 type: 'number',
                                 helpMessage: '0 to disable'
                             },
                             {
                                 name: 'reposts.offer',
-                                label: 'OFFER auto-repost (days)',
+                                label: '(Freegle only) OFFER auto-repost (days)',
                                 control: 'input',
                                 type: 'number',
                                 helpMessage: 'Also controls when the user can manually repost using the button on FD.'
                             },
                             {
                                 name: 'reposts.wanted',
-                                label: 'WANTED auto-repost (days)',
+                                label: '(Freegle only) WANTED auto-repost (days)',
                                 control: 'input',
                                 type: 'number',
                                 helpMessage: 'Also controls when the user can manually repost using the button on FD.'

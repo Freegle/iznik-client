@@ -102,6 +102,17 @@ class Relevant {
             $groups = $l->groupsNear();
             #error_log("Groups near $lastloc are " . var_export($groups, TRUE));
 
+            # Only want groups where this function is allowed.
+            $allowed = [];
+            foreach ($groups as $group) {
+                $g = Group::get($this->dbhr, $this->dbhm, $group);
+                if ($g->getSetting('relevant', 1)) {
+                    $allowed[] = $group;
+                }
+            }
+
+            $groups = $allowed;
+
             if (count($groups) > 0) {
                 foreach ($interesteds as $interested) {
                     $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid', $start);

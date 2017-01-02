@@ -58,7 +58,7 @@ function stdmsg() {
                     }
 
                     # Clear cache.
-                    $_SESSION['modconfigs'] = NULL;
+                    $_SESSION['configs'] = NULL;
                 }
 
                 break;
@@ -83,7 +83,7 @@ function stdmsg() {
                     ];
 
                     # Clear cache.
-                    $_SESSION['modconfigs'] = NULL;
+                    $_SESSION['configs'] = NULL;
                 }
                 break;
             }
@@ -107,7 +107,7 @@ function stdmsg() {
                     ];
 
                     # Clear cache.
-                    $_SESSION['modconfigs'] = NULL;
+                    $_SESSION['configs'] = NULL;
                 }
             }
         }
