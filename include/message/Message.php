@@ -3451,7 +3451,7 @@ class Message
 
         # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
         # near the top, and get mailed out again.
-        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?;", [ $this->id ]);
 
         # ...and update the search index.
         $this->s->bump($this->id, time());
