@@ -5,10 +5,11 @@
     <div class="col-md-7 forcebreak">{{subject}}</div>
     <div class="col-md-1">
         <% if (obj.repost) { %>
-        <div class="glyphicon glyphicon-refresh inline" alt="Repost" title="Repost" />&nbsp;
-        <% } %>
-        <% if (obj.repost) { %>
-        <div class="glyphicon glyphicon-laptop inline" alt="Auto-repost" title="Auto-repost" />
+            <% if (obj.autorepost) { %>
+                <div class="glyphicon glyphicon-refresh inline error" alt="Auto-repost" title="Auto-repost" />&nbsp;
+            <% } else { %>
+                <div class="glyphicon glyphicon-hand-up inline error" alt="Manual repost" title="Manual repost" />
+            <% } %>
         <% } %>
     </div>
 </div>
