@@ -53,7 +53,7 @@ EOT;
                                                                 </table>               
                                                             </td>    
                                                             <td>
-                                                                <p>You've received this mail because you're a member of <a href="$siteurl">$sitename</a>.</p>
+                                                                <p>You've received this automated mail because you're a member of <a href="$siteurl">$sitename</a>.</p>
                                                                 <table width="100%">
                                                                     <tr>
                                                                         <td>

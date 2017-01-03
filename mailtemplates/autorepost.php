@@ -69,7 +69,6 @@ EOT;
                                                                         </td>
                                                                     </tr>
                                                                 </table>
-                                                                
                                                             </td>
                                                         </tr>        
                                                         <tr>
