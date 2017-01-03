@@ -119,7 +119,7 @@ define([
         share: function() {
             var self = this;
 
-            if (self.model.get('type') == 'Page') {
+            if (self.model.get('facebook').type == 'Page') {
                 $.ajax({
                     url: API + 'socialactions',
                     type: 'POST',
