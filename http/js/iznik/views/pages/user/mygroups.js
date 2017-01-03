@@ -112,6 +112,7 @@ define([
                     if (ret.ret === 0) {
                         // Now force a refresh of the session.
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                            self.model.set('role', 'Non-member');
                             Router.navigate('/mygroups', true);
                         });
 
