@@ -32,6 +32,7 @@ define([
 
                 if (self.get('moderatorStatus')) {
                     console.error("Refused to remove mod/owner", self);
+                    self.trigger('removeprohibited');
                 } else {
                     var data = [{
                         userId: self.get('userId')
