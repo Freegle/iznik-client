@@ -617,7 +617,7 @@ class User extends Entity
             list ($transport, $mailer) = getMailer();
             $message = Swift_Message::newInstance()
                 ->setSubject("Welcome to " . $g->getPrivate('nameshort'))
-                ->setFrom($g->getModsEmail())
+                ->setFrom($g->getAutoEmail())
                 ->setTo($byemail)
                 ->setDate(time())
                 ->setBody("Pleased to meet you.");
@@ -641,7 +641,7 @@ class User extends Entity
                     list ($transport, $mailer) = getMailer();
                     $message = Swift_Message::newInstance()
                         ->setSubject("Welcome to " . $atts['namedisplay'])
-                        ->setFrom([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
+                        ->setFrom([$g->getAutoEmail() => $atts['namedisplay'] . ' Volunteers'])
                         ->setTo($to)
                         ->setDate(time())
                         ->setBody($welcome)
@@ -746,7 +746,7 @@ class User extends Entity
             list ($transport, $mailer) = getMailer();
             $message = Swift_Message::newInstance()
                 ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
-                ->setFrom($g->getModsEmail())
+                ->setFrom($g->getAutoEmail())
                 ->setTo($byemail)
                 ->setDate(time())
                 ->setBody("Parting is such sweet sorrow.");

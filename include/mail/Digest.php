@@ -180,7 +180,7 @@ class Digest
 
                     $tosend[] = [
                         'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
-                        'from' => $ouremail ? $ouremail : $g->getModsEmail(),
+                        'from' => $ouremail ? $ouremail : $g->getAutoEmail(),
                         'fromname' => $msg['fromname'],
                         'replyto' => $msg['fromaddr'],
                         'replytoname' => $msg['fromname'],
@@ -233,14 +233,14 @@ class Digest
                     $gatts['namedisplay'],
                     $subject,
                     $gatts['namedisplay'],
-                    $g->getModsEmail()
+                    $g->getAutoEmail()
                 );
 
                 $tosend[] = [
                     'subject' => $subject,
-                    'from' => $g->getModsEmail(),
+                    'from' => $g->getAutoEmail(),
                     'fromname' => $gatts['namedisplay'],
-                    'replyto' => $g->getModsEmail(),
+                    'replyto' => $g->getAutoEmail(),
                     'replytoname' => $gatts['namedisplay'],
                     'html' => $html,
                     'text' => $textsumm

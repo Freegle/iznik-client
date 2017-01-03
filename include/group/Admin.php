@@ -89,7 +89,7 @@ class Admin extends Entity
 
             if ($preferred && ($ouremail || !$onyahoo)) {
                 try {
-                    $msg = $this->constructMessage($groupname, $preferred, $u->getName(), $g->getModsEmail(), $this->admin['subject'], $this->admin['text']);
+                    $msg = $this->constructMessage($groupname, $preferred, $u->getName(), $g->getAutoEmail(), $this->admin['subject'], $this->admin['text']);
                     $mailer->send($msg);
                     $done++;
                 } catch (Exception $e) {

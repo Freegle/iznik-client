@@ -589,8 +589,8 @@ define([
                 }
 
                 text = text.replace(/\$groupname/g, group.nameshort);
-                text = text.replace(/\$owneremail/g, group.nameshort + "-owner@yahoogroups.com");
-                text = text.replace(/\$groupemail/g, group.nameshort + "@yahoogroups.com");
+                text = text.replace(/\$owneremail/g, group.modsemail);
+                text = text.replace(/\$groupemail/g, group.groupemail);
                 text = text.replace(/\$groupurl/g, group.url);
                 text = text.replace(/\$myname/g, Iznik.Session.get('me').displayname);
                 text = text.replace(/\$nummembers/g, group.membercount);

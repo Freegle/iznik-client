@@ -72,7 +72,7 @@ class socialactionsAPITest extends IznikAPITestCase
         $ret = $this->call('socialactions', 'GET', []);
         assertEquals(0, $ret['ret']);
 
-        assertNotEquals($ret['socialactions'][0]['id'], $orig['socialactions'][0]['id']);
+        assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
 
         # Force a failure for coverage.
         $tokens = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = $gid;");

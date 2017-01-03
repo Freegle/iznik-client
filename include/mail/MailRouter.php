@@ -529,7 +529,8 @@ class MailRouter
 
                 $ret = MailRouter::TO_SYSTEM;
             }
-        } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches)) {
+        } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches) ||
+            preg_match('/(.*)-auto@' . GROUP_DOMAIN . '/', $to, $matches)) {
             # Mail to our owner address.  First check if it's spam.
             if ($this->log) { error_log("To volunteers"); }
             $rc = $this->spam->check($this->msg);

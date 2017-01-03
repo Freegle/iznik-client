@@ -1131,7 +1131,8 @@ class Message
                     $groupname = $matches[1];
                     #error_log("Got $groupname from {$t['address']}");
                 } else if (preg_match('/(.*)@' . GROUP_DOMAIN . '/', $t['address'], $matches) &&
-                    strpos($t['address'], '-volunteers@') === FALSE) {
+                    strpos($t['address'], '-volunteers@') === FALSE &&
+                    strpos($t['address'], '-auto@') === FALSE) {
                     # Native group.
                     $groupname = $matches[1];
                     #error_log("Got $groupname from {$t['address']}");
@@ -3260,7 +3261,7 @@ class Message
                                             if (Swift_Validate::email($to)) {
                                                 $message = Swift_Message::newInstance()
                                                     ->setSubject("Re: " . $subj)
-                                                    ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                                    ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                                     ->setTo($to)
                                                     ->setBody($text)
                                                     ->addPart($html, 'text/html');
@@ -3359,7 +3360,7 @@ class Message
                                 if (Swift_Validate::email($to)) {
                                     $message = Swift_Message::newInstance()
                                         ->setSubject("Re: " . $subj)
-                                        ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                        ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                         ->setTo($to)
                                         ->setBody($text)
                                         ->addPart($html, 'text/html');
