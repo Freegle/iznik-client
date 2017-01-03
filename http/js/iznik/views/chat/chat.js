@@ -37,7 +37,7 @@ define([
                     if (chat.model.get('unseen') > 0) {
                         chat.allseen();
 
-                        if (!chat.minimised) {
+                        if (!chat.minimised && typeof chat.statusWithOverride == 'function') {
                             // This may exist for open chats but not minimised.
                             chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
                         }
