@@ -183,7 +183,7 @@ class Twitter {
         # We want to tweet any messages since the last one, with a max of the 24 hours ago to avoid flooding things.
         $mysqltime = date ("Y-m-d", strtotime("24 hours ago"));
         $msgid = $this->msgid ? $this->msgid : 0;
-        $sql = "SELECT messages_groups.msgid, groups.legacyid, messages_groups.yahooapprovedid FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser WHERE messages_groups.groupid = ? AND messages_groups.arrival >= ? AND msgid > ? AND messages_groups.yahooapprovedid IS NOT NULL AND users.publishconsent = 1 ORDER BY messages_groups.msgid ASC;";
+        $sql = "SELECT messages_groups.msgid, messages_groups.yahooapprovedid FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser WHERE messages_groups.groupid = ? AND messages_groups.arrival >= ? AND msgid > ? AND messages_groups.yahooapprovedid IS NOT NULL AND users.publishconsent = 1 ORDER BY messages_groups.msgid ASC;";
 
         $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime, $msgid ]);
         $msgid = NULL;
@@ -198,7 +198,7 @@ class Twitter {
             $status = $m->getSubject();
             $status = substr($status, 0, 80);
 
-            $link = "https://" . USER_SITE . "/message/{$msg['msgid']}";
+            $link = "https://" . USER_SITE . "/message/{$msg['msgid']}?src=" . User::SRC_TWITTER;
 
             $status .= " $link";
             $rc = $this->tweet($status, $media);
