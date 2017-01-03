@@ -221,6 +221,7 @@ define([
 
                         _.each(self.model.get('groups'), function (group) {
                             var mod = new Iznik.Model(group);
+                            console.log("Message", self.model.get('id'), group);
 
                             if (!group.onhere) {
                                 // Native group - can edit.
@@ -233,9 +234,8 @@ define([
                             var v = new Iznik.Views.ModTools.Message.Approved.Group({
                                 model: mod
                             });
-                            v.render().then(function (v) {
-                                self.$('.js-grouplist').append(v.el);
-                            });
+                            v.render();
+                            self.$('.js-grouplist').append(v.el);
 
                             mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
                             mod.set('groupid', group.id);
@@ -244,9 +244,8 @@ define([
                                 model: mod
                             });
 
-                            v.render().then(function (v) {
-                                self.$('.js-user').html(v.el);
-                            });
+                            v.render();
+                            self.$('.js-user').html(v.el);
 
                             if (group.onyahoo) {
                                 // The Yahoo part of the user
@@ -261,9 +260,8 @@ define([
                                         model: mod
                                     });
 
-                                    v.render().then(function (v) {
-                                        self.$('.js-yahoo').html(v.el);
-                                    });
+                                    v.render();
+                                    self.$('.js-yahoo').html(v.el);
                                 });
                             }
 
@@ -274,9 +272,8 @@ define([
                                     groupid: group.id
                                 });
 
-                                v.render().then(function (v) {
-                                    self.$('.js-freegleinfo').append(v.el);
-                                });
+                                v.render();
+                                self.$('.js-freegleinfo').append(v.el);
                             }
 
                             // Add the default standard actions.
