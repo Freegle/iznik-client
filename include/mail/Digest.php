@@ -240,7 +240,7 @@ class Digest
                     'subject' => $subject,
                     'from' => $g->getAutoEmail(),
                     'fromname' => $gatts['namedisplay'],
-                    'replyto' => $g->getAutoEmail(),
+                    'replyto' => $g->getModsEmail(),
                     'replytoname' => $gatts['namedisplay'],
                     'html' => $html,
                     'text' => $textsumm

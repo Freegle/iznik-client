@@ -115,7 +115,7 @@ class EventDigest
                 'subject' => '[' . $gatts['namedisplay'] . "] Community Event Roundup",
                 'from' => $g->getAutoEmail(),
                 'fromname' => $gatts['namedisplay'],
-                'replyto' => $g->getAutoEmail(),
+                'replyto' => $g->getModsEmail(),
                 'replytoname' => $gatts['namedisplay'],
                 'html' => $html,
                 'text' => $textsumm

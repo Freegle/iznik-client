@@ -789,13 +789,15 @@ class MailRouter
                             $ret = MailRouter::APPROVED;
                         }
                     } else if ($this->msg->getSource() == Message::EMAIL) {
-                        if ($log) { error_log("Email source"); }
                         $uid = $this->msg->getFromuser();
+                        if ($log) { error_log("Email source, user $uid"); }
 
                         if ($uid) {
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
                             foreach ($groups as $group) {
-                                if ($u->isApprovedMember($group['groupid'])) {
+                                $appmemb = $u->isApprovedMember($group['groupid']);
+                                if ($log) { error_log("Approved member? $appmemb"); }
+                                if ($appmemb) {
                                     $ps = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
                                     $ps = $ps ? $ps : Group::POSTING_MODERATED;
                                     if ($log) { error_log("Member, Our PS is $ps"); }

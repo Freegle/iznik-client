@@ -3262,6 +3262,7 @@ class Message
                                                 $message = Swift_Message::newInstance()
                                                     ->setSubject("Re: " . $subj)
                                                     ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
+                                                    ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
                                                     ->setTo($to)
                                                     ->setBody($text)
                                                     ->addPart($html, 'text/html');
@@ -3361,6 +3362,7 @@ class Message
                                     $message = Swift_Message::newInstance()
                                         ->setSubject("Re: " . $subj)
                                         ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
+                                        ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
                                         ->setTo($to)
                                         ->setBody($text)
                                         ->addPart($html, 'text/html');
