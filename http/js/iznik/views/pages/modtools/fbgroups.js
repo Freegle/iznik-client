@@ -4,7 +4,6 @@ define([
     'backbone',
     'moment',
     'iznik/base',
-    'iznik/facebook',
     "iznik/modtools",
     'iznik/views/pages/pages',
     "iznik/views/pages/modtools/messages",
@@ -85,13 +84,13 @@ define([
                     _.each(msgs, function(id) {
                         var msg = self.collection.get(id);
                         console.log("Got message", msg);
-                            FB.api('/' + fbgroup + '/feed', 'post', {
-                                link: 'https://www.ilovefreegle.org/message/' + id,
-                                description: 'Please click to view and reply - no PMs please.  Everything on Freegle is completely free.'
-                            }, function(response) {
-                                console.log("Share returned", response);
-                                self.$('.js-share').fadeOut('slow');
-                            });
+                        FB.api('/' + fbgroup + '/feed', 'post', {
+                            link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup',
+                            description: 'Please click to view and reply - no PMs please.  Everything on Freegle is completely free.'
+                        }, function(response) {
+                            console.log("Share returned", response);
+                            self.$('.js-share').fadeOut('slow');
+                        });
                     });
                 });
             }, {

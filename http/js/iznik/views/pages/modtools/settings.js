@@ -173,7 +173,8 @@ define([
                     });
 
                     self.$('.js-twitterauth').attr('href', '/twitter/twitter_request.php?groupid=' + self.selected);
-                    self.$('.js-facebookauth').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected);
+                    self.$('.js-facebookauthpage').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected + '&type=Page');
+                    self.$('.js-facebookauthgroup').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected + '&type=Group');
 
                     self.group.fetch().then(function() {
                         // Because we switch the form based on our group select we need to remove old events to avoid saving new
@@ -651,6 +652,13 @@ define([
                         if (facebook) {
                             self.$('.js-facebookname').html(facebook.name);
                             self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
+                            if (facebook.type == 'Page') {
+                                self.$('.js-facebookpage').show();
+                                self.$('.js-facebookgroup').hide();
+                            } else {
+                                self.$('.js-facebookpage').hide();
+                                self.$('.js-facebookgroup').show();
+                            }
 
                             if (!facebook.valid) {
                                 self.$('.js-facebooknotlinked').show();

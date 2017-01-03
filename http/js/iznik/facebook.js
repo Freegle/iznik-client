@@ -4,7 +4,6 @@ define([
     'backbone',
     'iznik/base'
 ], function($, _, Backbone, Iznik) {
-    // TODO Make configurable
     var facebookAppId = $('meta[name=facebook-app-id]').attr("content");
 
     Iznik.Views.FBLoad = Iznik.View.extend({
