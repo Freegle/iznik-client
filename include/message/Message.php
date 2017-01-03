@@ -984,7 +984,7 @@ class Message
                 'offer', 'offering', 'reoffer', 're offer', 're-offer', 'reoffered', 're offered', 're-offered',
                 'offfer', 'offeed', 'available'],
             Message::TYPE_TAKEN => ['collected', 'take', 'stc', 'gone', 'withdrawn', 'ta ke n', 'promised',
-                'cymeryd', 'cymerwyd', 'takln', 'taken'],
+                'cymeryd', 'cymerwyd', 'takln', 'taken', 'cymryd'],
             Message::TYPE_WANTED => ['wnted', 'requested', 'rquested', 'request', 'would like', 'want',
                 'anted', 'wated', 'need', 'needed', 'wamted', 'require', 'required', 'watnted', 'wented',
                 'sought', 'seeking', 'eisiau', 'wedi eisiau', 'eisiau', 'wnated', 'wanted', 'looking', 'waned'],
