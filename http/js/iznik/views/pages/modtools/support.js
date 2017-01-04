@@ -862,8 +862,9 @@ define([
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 var usersite = $('meta[name=iznikusersite]').attr("content");
-                var group = self.model.get('onhere') ? ('https://' + usersite + '/explore/' + self.model.get('id')) : ('https://groups.yahoo.com/group/' + self.model.get('nameshort'));
+                var group = self.model.get('onhere') ? ('https://' + usersite + '/explore/' + self.model.get('nameshort')) : ('https://groups.yahoo.com/group/' + self.model.get('nameshort'));
                 self.$('.js-group').attr('href', group);
+
                 var m = new moment(self.model.get('added'));
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));
 
