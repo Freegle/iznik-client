@@ -193,11 +193,12 @@ define([
                         _.each(fromuser.messagehistory, function (message) {
                             message.dupage = dupage;
 
-                            //console.log("Check message", message.id, id, message.daysago, canonSubj(message.subject), subj);
+                            // console.log("Check message", message.id, id, message.daysago, canonSubj(message.subject), subj);
                             // The id of the message might have been manipulated in user.js to make sure it's unique per
                             // posting.
-                            var p = message.id.indexOf('.');
-                            var i = p == -1 ? message.id : message.id.substring(0, p);
+
+                            var p = (message.id + '').indexOf('.');
+                            var i = p == -1 ? message.id : (message.id + '').substring(0, p);
                             if (i != id && message.daysago < 60) {
                                 if (canonSubj(message.subject) == subj) {
                                     // No point displaying any group tag in the duplicate.
