@@ -71,13 +71,14 @@ class RelevantTest extends IznikTestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         error_log("Created user $uid");
-        $u->addEmail('test@test.com');
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $u->addEmail($email, 0, FALSE);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
         # Post a WANTED, an OFFER and a search.
         $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
         $g->setPrivate('lat', 8.53333);
         $g->setPrivate('lng', 179.2167);
         $g->setPrivate('poly', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
@@ -87,6 +88,7 @@ class RelevantTest extends IznikTestCase
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
         error_log("Created message $id");
@@ -96,6 +98,7 @@ class RelevantTest extends IznikTestCase
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'WANTED: Another thing (location)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
         error_log("Created message $id");
@@ -110,7 +113,7 @@ class RelevantTest extends IznikTestCase
 
         # This should produce three terms we're interested in.
         $rl = new Relevant($this->dbhr, $this->dbhm);
-        $ints = $rl->interestedIn($uid, Group::GROUP_REUSE);
+        $ints = $rl->interestedIn($uid, Group::GROUP_FREEGLE);
         error_log("Found interested " . var_export($ints, TRUE));
         assertEquals(3, count($ints));
 
@@ -134,16 +137,29 @@ class RelevantTest extends IznikTestCase
         $msg = str_replace('Basic test', "OFFER: objets d'art (location)", $msg);
         $msg = str_ireplace('Date: Sat, 22 Aug 2015 10:45:58 +0000', 'Date: ' . gmdate(DATE_RFC822, time()), $msg);
         $id2 = $r->received(Message::YAHOO_APPROVED, 'from2@test.com', 'to2@test.com', $msg, $gid);
-        assertNotNull($id);
+        assertNotNull($id2);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        # Now search again - should find these.
-        $msgs = $rl->getMessages($uid, $ints);
-        error_log("Should be two " . var_export($msgs, TRUE));
-        assertEquals(2, count($msgs));
-        self::assertEquals($id2, $msgs[0]['id']);
-        self::assertEquals($id1, $msgs[1]['id']);
+        # Now send messages - should find these.
+        $u->setPrivate('lastrelevantcheck', NULL);
+        $mock = $this->getMockBuilder('Relevant')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
+            ->setMethods(array('sendOne'))
+            ->getMock();
+        $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->setPrivate('lastrelevantcheck', NULL);
+        self::assertEquals(1, $mock->sendMessages($uid));
+
+        $msgs = $this->msgsSent;
+        error_log("Should return $id1 and $id2 " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        self::assertNotFalse(strpos($msgs[0], $id1));
+        self::assertNotFalse(strpos($msgs[0], $id2));
 
         # Record the check.  Sleep to ensure that the messages we already have are longer ago than when we
         # say the check happened, otherwise we might get them back again - which is ok in real messages
