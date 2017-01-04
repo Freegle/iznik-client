@@ -71,7 +71,8 @@ class Message
         "update your records",
         "has now left",
         "please note his new address",
-        "Sorry, we were unable to deliver your message"
+        "Sorry, we were unable to deliver your message",
+        "this email address is no longer in use"
     ];
     
     // Autoreply checks.
@@ -102,7 +103,9 @@ class Message
         "out of the office",
         "Thank you so much for your email enquiry",
         "I am away",
-        "I am currently away"
+        "I am currently away",
+        "Thanks for your email enquiry",
+        "don't check this very often"
     ];
     
     static public function checkType($type) {
