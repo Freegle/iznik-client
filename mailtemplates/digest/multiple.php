@@ -112,8 +112,8 @@ EOT;
 
     if ($unavailable != '') {
         $html .= '<tr><td colspan="2" class="mobile" valign="top">';
-        $html .= '<h2><span style=\"color:green\">Missed Posts</span></h2></td></tr>';
-        $html .= '<tr><td colspan="2"><p>These posts came and went since your last mail.  If this happens a lot, click <a href=\"$siteurl/settings\">here</a> and choose more frequent mails.</p></td></tr>';
+        $html .= '<h2><span style=\"color:green\">Completed Posts</span></h2></td></tr>';
+        $html .= '<tr><td colspan="2"><p>These posts have been completed.</p></td></tr>';
         $html .= '<tr><td colspan="2">' . $unavailable . '</td></tr>';
     }
     
