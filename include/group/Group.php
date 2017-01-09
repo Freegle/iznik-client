@@ -172,7 +172,12 @@ class Group extends Entity
                 return(NULL);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded) VALUES (?, ?, NOW())", [$shortname, $type]);
+            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded, licenserequired) VALUES (?, ?, NOW(),?)", [
+                $shortname,
+                $type,
+                $type != Group::GROUP_FREEGLE ? 0 : 1
+            ]);
+
             $id = $this->dbhm->lastInsertId();
 
             if ($type == Group::GROUP_FREEGLE) {
