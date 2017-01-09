@@ -271,6 +271,10 @@ define([
                     self.$('.js-adminonly').removeClass('hidden');
                 }
 
+                if (Iznik.Session.isAdminOrSupport()) {
+                    self.$('.js-adminsupportonly').removeClass('hidden');
+                }
+
                 // Group search uses a typehead.
                 $.ajax({
                     type: 'GET',
