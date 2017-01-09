@@ -11,8 +11,8 @@ if (count($opts) < 1) {
     echo "Usage: hhvm user_email.php -e <email to find> (-a <email to add> -r <email to remove>\n";
 } else {
     $find = $opts['e'];
-    $add = $opts['a'];
-    $remove = $opts['r'];
+    $add = presdef('a', $opts, NULL);
+    $remove = presdef('r', $opts, NULL);
     $u = User::get($dbhr, $dbhm);
     $uid = $u->findByEmail($find);
 
