@@ -85,7 +85,7 @@ class ChatMessage extends Entity
 
             foreach ($matches as $val) {
                 foreach ($val as $url) {
-                    if (strlen($url) > 0 && stripos($url, 'http') !== FALSE) {
+                    if (strlen($url) > 0) {
                         $url = substr($url, strpos($url, '://') + 3);
                         $count++;
                         $trusted = FALSE;
