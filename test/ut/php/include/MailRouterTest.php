@@ -1397,13 +1397,6 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testS() {
-        $m = new Message($this->dbhr, $this->dbhm, 13262173);
-        $m->notSpam();
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->route($m, TRUE);
-    }
-
 //    public function testSpecial() {
 //        error_log(__METHOD__);
 //
