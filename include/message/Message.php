@@ -90,6 +90,8 @@ class Message
         "Automated reply",
         "Auto-Reply",
         "Out of Office",
+        "annual leave",
+        "on holiday",
         "vacation reply"
     ];
 
