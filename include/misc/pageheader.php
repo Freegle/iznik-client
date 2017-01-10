@@ -251,7 +251,8 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <meta name="izniksitedesc" content="<?php echo SITE_DESC; ?>">
     <meta name="iznikusersite" content="<?php echo USER_SITE; ?>">
     <meta name="iznikmodsite" content="<?php echo MOD_SITE; ?>">
-    
+    <meta name="iznikmodtools" content="<?php echo MODTOOLS ? 1 : 0; ?>">
+
     <!-- And then some custom styles for our different apps -->
     <?php
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {

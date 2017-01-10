@@ -176,6 +176,14 @@ define([
                     waitOpen = self;
                     waitPromise = self.open(self.template);
 
+                    var modtools = parseInt($('meta[name=iznikmodtools]').attr("content"));
+
+                    // Loader depends on which site we are.
+                    waitPromise.then(function() {
+                        $('#js-modalloader').attr('src', modtools ? '/images/loadermodal.gif' : '/images/userloader.gif');
+                        $('#js-modalloader').show();
+                    });
+
                     // Start backstop timeout to close the modal - there are various error cases which could leave
                     // it stuck forever, which looks silly.
                     self.closeTimeout = setTimeout(function() {
