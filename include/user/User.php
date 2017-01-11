@@ -66,6 +66,8 @@ class User extends Entity
     const SRC_FORGOT_PASSWORD = 'forgotpass';
     const SRC_PUSHNOTIF = 'pushnotif'; // From JS
     const SRC_TWITTER = 'twitter';
+    const SRC_EVENT_DIGEST = 'eventdigest';
+    const SRC_NEWSLETTER = 'newsletter';
 
     /** @var  $log Log */
     private $log;

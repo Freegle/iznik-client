@@ -146,7 +146,7 @@ class EventDigest
                     if ($this->errorlog) { error_log("Send to them"); }
                     $replacements[$email] = [
                         '{{toname}}' => $u->getName(),
-                        '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
+                        '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_EVENT_DIGEST),
                         '{{email}}' => $email,
                         '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                         '{{post}}' => "https://" . USER_SITE,

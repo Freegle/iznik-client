@@ -149,7 +149,7 @@ class Newsletter extends Entity
                 $replacements[$email] = [
                     '{{id}}' => $user['userid'],
                     '{{toname}}' => $u->getName(),
-                    '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
+                    '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_NEWSLETTER),
                     '{{email}}' => $email,
                     '{{noemail}}' => 'newslettersoff-' . $user['userid'] . "@" . USER_DOMAIN
                 ];
