@@ -1901,7 +1901,7 @@ class Message
         $this->maybeMail($groupid, $subject, $body, 'Reject');
     }
 
-    public function approve($groupid, $subject, $body, $stdmsgid, $yahooonly = FALSE) {
+    public function approve($groupid, $subject = NULL, $body = NULL, $stdmsgid = NULL, $yahooonly = FALSE) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
         $me = whoAmI($this->dbhr, $this->dbhm);
