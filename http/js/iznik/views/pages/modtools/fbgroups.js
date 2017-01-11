@@ -77,19 +77,23 @@ define([
                 fbgroups.push($(this).data('groupid'));
             });
 
-            console.log("Groups to share", fbgroups);
-
             FB.login(function(){
                 _.each(fbgroups, function(fbgroup) {
                     _.each(msgs, function(id) {
                         var msg = self.collection.get(id);
-                        console.log("Got message", msg);
                         FB.api('/' + fbgroup + '/feed', 'post', {
                             link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup',
                             description: 'Please click to view and reply - no PMs please.  Everything on Freegle is completely free.'
                         }, function(response) {
                             console.log("Share returned", response);
-                            self.$('.js-share').fadeOut('slow');
+                            if (response.hasOwnProperty('error')) {
+                                console.log("Error", self.$('.js-error'));
+                                self.$('.js-error').html(response.error);
+                                self.$el.show();
+                            } else {
+                                console.log("Success");
+                                self.$el.fadeOut('slow');
+                            }
                         });
                     });
                 });
