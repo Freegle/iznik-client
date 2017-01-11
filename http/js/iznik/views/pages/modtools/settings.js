@@ -1442,7 +1442,11 @@ define([
                 data: {
                     action: 'Create',
                     name: self.diff[self.$('.js-grouplist').val()],
-                    grouptype: self.$('.js-type').val()
+                    grouptype: self.$('.js-type').val(),
+                    lat: self.$('.js-addlat').val(),
+                    lng: self.$('.js-addlng').val(),
+                    corearea: self.$('.js-addcore').val(),
+                    catchmentarea: self.$('.js-addcatchment').val()
                 }, success: function(ret) {
                     if (ret.ret == 0) {
                         var v = new Iznik.Views.ModTools.Settings.CreateSucceeded();
