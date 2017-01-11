@@ -190,9 +190,20 @@ define([
 
                                     if (Persist.size == -1 || data.length < Persist.size) {
                                         // Don't cache stuff that's too big.
-                                        Storage.set(key, data);
-                                        Storage.set(key + '.time', (new Date()).getTime());
-                                        // console.log("Stored length", key, Storage.get(key).length);
+                                        try {
+                                            Storage.set(key, data);
+                                            Storage.set(key + '.time', (new Date()).getTime());
+                                            // console.log("Stored length", key, Storage.get(key).length);
+                                        } catch (e) {
+                                            // Failed.  Most likely quota - tidy some stuff up.
+                                            console.log("Failed to set", e.message);
+                                            Storage.iterate(function(k,v) {
+                                                if (v.length > 10000) {
+                                                    console.log("Remove", k, v.length);
+                                                    Storage.remove(k);
+                                                }
+                                            });
+                                        }
                                     } else {
                                         // We can't cache this, as it's too big.  Remove any previously cached data
                                         // which might be below this limit, as otherwise it will persist forever and

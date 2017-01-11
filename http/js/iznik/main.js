@@ -135,6 +135,4 @@ require([
 
     // Bootstrap adds body padding which we don't want.
     $('body').css('padding-right', '');
-
-    (new Iznik.Views.PleaseWait()).render();
 });
