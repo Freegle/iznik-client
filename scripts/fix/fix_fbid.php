@@ -15,7 +15,7 @@ use Facebook\FacebookRequestException;
 $groups = $dbhr->preQuery("SELECT * FROM groups_facebook;");
 
 $f = new GroupFacebook($dbhr, $dbhm);
-$fb = $f->getFB();
+$fb = $f->getFB(FALSE);
 
 foreach ($groups as $group) {
     try {
