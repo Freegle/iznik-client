@@ -12,7 +12,7 @@ use Facebook\FacebookRequest;
 use Facebook\FacebookRequestException;
 
 class GroupFacebook {
-    var $publicatts = ['name', 'token', 'type', 'authdate', 'valid', 'msgid', 'eventid', 'sharefrom', 'token', 'groupid', 'id' ];
+    var $publicatts = ['name', 'token', 'type', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'sharefrom', 'token', 'groupid', 'id' ];
 
     const TYPE_PAGE = 'Page';
     const TYPE_GROUP = 'Group';
@@ -215,12 +215,11 @@ class GroupFacebook {
 
     public function postMessages() {
         # We want to post any messages since the last one, with a max of 1 hour ago to avoid flooding things.
-        $mysqltime = date ("Y-m-d", strtotime("1 hour ago"));
-        $msgid = $this->msgid ? $this->msgid : 0;
-        $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser WHERE messages_groups.groupid = ? AND messages_groups.arrival >= ? AND msgid > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') ORDER BY messages_groups.msgid ASC;";
+        $mysqltime = date ("Y-m-d H:i:s", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
+        $sql = "SELECT messages_groups.msgid, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') ORDER BY messages_groups.arrival ASC;";
 
-        $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime, $msgid ]);
-        error_log($sql . var_export([ $this->groupid, $mysqltime, $msgid ], TRUE));
+        $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime ]);
+        error_log($sql . var_export([ $this->groupid, $mysqltime  ], TRUE));
         $msgid = NULL;
         $worked = 0;
 
