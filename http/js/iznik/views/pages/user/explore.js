@@ -519,16 +519,13 @@ define([
                         self.$('.js-founded').show();
                     }
 
-                    // Add the description
+                    // Add the description.  We use a default because that helps with SEO.
                     var desc = self.model.get('description');
+                    desc = desc ? desc : "Give and get stuff for free with " + self.model.get('namedisplay') + ".  Offer things you don't need, and ask for things you'd like.  Don't just recycle - reuse with Freegle!";
+                    self.$('.js-description').html(desc);
 
-                    if (desc) {
-                        self.$('.js-gotdesc').show();
-                        self.$('.js-description').html(desc);
-
-                        // Any links in here are real.
-                        self.$('.js-description a').attr('data-realurl', true);
-                    }
+                    // Any links in here are real.
+                    self.$('.js-description a').attr('data-realurl', true);
 
                     self.collection = new Iznik.Collections.Message(null, {
                         modtools: false,

@@ -55,7 +55,7 @@ function bulkop() {
                     }
 
                     # Clear cache.
-                    $_SESSION['modconfigs'] = NULL;
+                    $_SESSION['configs'] = NULL;
                 }
 
                 break;
@@ -90,7 +90,7 @@ function bulkop() {
                     ];
 
                     # Clear cache.
-                    $_SESSION['modconfigs'] = NULL;
+                    $_SESSION['configs'] = NULL;
                 }
                 break;
             }
@@ -112,7 +112,7 @@ function bulkop() {
                     ];
 
                     # Clear cache.
-                    $_SESSION['modconfigs'] = NULL;
+                    $_SESSION['configs'] = NULL;
                 }
 
                 break;

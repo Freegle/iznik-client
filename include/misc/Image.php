@@ -35,14 +35,18 @@ class Image {
 
         if (($width != NULL && $sw != $width) || ($height != NULL && $sh != $height)) {
             # We might have been asked to scale either or both of the width and height.
+            #
+            # We want to return even values - if we use the images with ffmpeg, they need to be.
             if ($width) {
                 $height = intval($sh * $width / $sw + 0.5);
+                $height = $height + ($height % 2);
             } else {
                 $width = $sw;
             }
 
             if ($height) {
                 $width = intval($sw * $height / $sh + 0.5);
+                $width = $width + ($width % 2);
             } else {
                 $height = $sh;
             }

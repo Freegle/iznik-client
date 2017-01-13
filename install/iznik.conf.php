@@ -1,5 +1,7 @@
 <?php
 # This file should be suitably modified, then go into /etc/iznik.conf
+define('SQLHOST', '127.0.0.1');
+define('SQLPORT', 3306);
 define('SQLDB', 'iznik');
 define('SQLUSER', 'zzzz');
 define('SQLPASSWORD', 'zzzz');

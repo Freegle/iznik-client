@@ -193,8 +193,13 @@ define([
                         _.each(fromuser.messagehistory, function (message) {
                             message.dupage = dupage;
 
-                            //console.log("Check message", message.id, id, message.daysago, canonSubj(message.subject), subj);
-                            if (message.id != id && message.daysago < 60) {
+                            // console.log("Check message", message.id, id, message.daysago, canonSubj(message.subject), subj);
+                            // The id of the message might have been manipulated in user.js to make sure it's unique per
+                            // posting.
+
+                            var p = (message.id + '').indexOf('.');
+                            var i = p == -1 ? message.id : (message.id + '').substring(0, p);
+                            if (i != id && message.daysago < 60) {
                                 if (canonSubj(message.subject) == subj) {
                                     // No point displaying any group tag in the duplicate.
                                     message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
@@ -589,8 +594,8 @@ define([
                 }
 
                 text = text.replace(/\$groupname/g, group.nameshort);
-                text = text.replace(/\$owneremail/g, group.nameshort + "-owner@yahoogroups.com");
-                text = text.replace(/\$groupemail/g, group.nameshort + "@yahoogroups.com");
+                text = text.replace(/\$owneremail/g, group.modsemail);
+                text = text.replace(/\$groupemail/g, group.groupemail);
                 text = text.replace(/\$groupurl/g, group.url);
                 text = text.replace(/\$myname/g, Iznik.Session.get('me').displayname);
                 text = text.replace(/\$nummembers/g, group.membercount);

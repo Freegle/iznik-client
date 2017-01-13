@@ -464,6 +464,8 @@ define([
                 if (groupoverride) {
                     self.$('.js-groupoverridename').html(groupoverride);
                     self.$('.js-groupoverride').fadeIn('slow');
+                } else {
+                    self.$('.js-groupoverride').remove();
                 }
             });
 

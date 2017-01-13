@@ -9,6 +9,7 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 class Location extends Entity
 {
     const NEARBY = 50; // In miles.
+    const QUITENEARBY = 15; // In miles.
     const TOO_LARGE = 0.3;
 
     /** @var  $dbhm LoggedPDO */

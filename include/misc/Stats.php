@@ -324,7 +324,7 @@ class Stats
         return ($ret);
     }
 
-    function getMulti($date, $groupids, $startdate = "30 days ago", $enddate = "today") {
+    function getMulti($date, $groupids, $startdate = "30 days ago", $enddate = "today", $systemwide = FALSE) {
         # Get stats across multiple groups.
         $me = whoAmI($this->dbhr, $this->dbhm);
 
@@ -333,35 +333,46 @@ class Stats
         $start = date('Y-m-d', strtotime($startdate, strtotime($date)));
         $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
 
-        $types = [
-            Stats::APPROVED_MESSAGE_COUNT,
-            Stats::APPROVED_MEMBER_COUNT,
-            Stats::SEARCHES,
-            Stats::ACTIVITY,
-            Stats::WEIGHT
-        ];
-
-        if ($me && $me->isModerator()) {
-            # Mods can see more info.
+        if (!MODTOOLS && $systemwide) {
+            # Get a restricted set of stats for performance.
+            $types = [
+                Stats::ACTIVITY,
+                Stats::WEIGHT
+            ];
+        } else {
             $types = [
                 Stats::APPROVED_MESSAGE_COUNT,
                 Stats::APPROVED_MEMBER_COUNT,
-                Stats::SPAM_MESSAGE_COUNT,
-                Stats::SPAM_MEMBER_COUNT,
-                Stats::SUPPORTQUERIES_COUNT,
-                Stats::FEEDBACK_HAPPY,
-                Stats::FEEDBACK_FINE,
-                Stats::FEEDBACK_UNHAPPY,
                 Stats::SEARCHES,
                 Stats::ACTIVITY,
                 Stats::WEIGHT
             ];
+
+            if ($me && $me->isModerator()) {
+                # Mods can see more info.
+                $types = [
+                    Stats::APPROVED_MESSAGE_COUNT,
+                    Stats::APPROVED_MEMBER_COUNT,
+                    Stats::SPAM_MESSAGE_COUNT,
+                    Stats::SPAM_MEMBER_COUNT,
+                    Stats::SUPPORTQUERIES_COUNT,
+                    Stats::FEEDBACK_HAPPY,
+                    Stats::FEEDBACK_FINE,
+                    Stats::FEEDBACK_UNHAPPY,
+                    Stats::SEARCHES,
+                    Stats::ACTIVITY,
+                    Stats::WEIGHT
+                ];
+            }
         }
 
         foreach ($types as $type) {
             $ret[$type] = [];
+            #error_log("Check type $type " . "SELECT SUM(count) AS count, date FROM stats WHERE date >= '$start' AND date < '$end' AND groupid IN (" . implode(',', $groupids) . ") AND type = '$type' GROUP BY date;");
 
-            $counts = $this->dbhr->preQuery("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ? GROUP BY date;",
+            # For many group values it's more efficient to use an index on date and type, so order the query accordingly.
+            $sql = count($groupids) > 10 ? ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND type = ? AND groupid IN (" . implode(',', $groupids) . ") GROUP BY date;") : ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ? GROUP BY date;");
+            $counts = $this->dbhr->preQuery($sql,
                 [
                     $start,
                     $end,
@@ -379,7 +390,7 @@ class Stats
 
         $types = [ Stats::MESSAGE_BREAKDOWN ];
 
-        if ($me && $me->isModerator()) {
+        if (MODTOOLS && $me && $me->isModerator()) {
             $types = [
                 Stats::MESSAGE_BREAKDOWN,
                 Stats::POST_METHOD_BREAKDOWN,

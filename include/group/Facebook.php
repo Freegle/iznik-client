@@ -12,7 +12,10 @@ use Facebook\FacebookRequest;
 use Facebook\FacebookRequestException;
 
 class GroupFacebook {
-    var $publicatts = ['name', 'token', 'authdate', 'valid', 'msgid', 'eventid', 'sharefrom', 'token', 'groupid', 'id' ];
+    var $publicatts = ['name', 'token', 'type', 'authdate', 'valid', 'msgid', 'eventid', 'sharefrom', 'token', 'groupid', 'id' ];
+
+    const TYPE_PAGE = 'Page';
+    const TYPE_GROUP = 'Group';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
@@ -55,14 +58,18 @@ class GroupFacebook {
         return($fb);
     }
 
-    public function set($groupid, $token, $name, $id) {
-        $this->dbhm->preExec("INSERT INTO groups_facebook (groupid, name, id, token, authdate) VALUES (?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE token = ?, authdate = NOW(), valid = 1;",
+    public function set($groupid, $token, $name, $id, $type = GroupFacebook::TYPE_PAGE) {
+        $this->dbhm->preExec("INSERT INTO groups_facebook (groupid, name, id, token, authdate, type) VALUES (?,?,?,?,NOW(), ?) ON DUPLICATE KEY UPDATE name = ?, id = ?, token = ?, authdate = NOW(), valid = 1, type = ?;",
             [
                 $groupid,
                 $name,
                 $id,
                 $token,
-                $token
+                $type,
+                $name,
+                $id,
+                $token,
+                $type
             ]);
 
         $this->token = $token;
@@ -162,29 +169,29 @@ class GroupFacebook {
 
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.* FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groups_facebook_toshare.id = ?;";
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groups_facebook_toshare.id = ?;";
                 $actions = $this->dbhr->preQuery($sql, [ $id ]);
                 foreach ($actions as $action) {
                     try {
                         # Whether or not this worked, remember that we've tried, so that we don't try again.
-                        #
-                        # TODO should we handle transient errors better?
                         $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (groupid, postid) VALUES (?,?);", [
                             $this->groupid,
                             $action['postid']
                         ]);
 
-                        # Like the original post.
-                        $res = $fb->post($action['postid'] . '/likes', [], $this->token);
-                        #error_log("Like returned " . var_export($res, true));
+                        if ($action['facebooktype'] == GroupFacebook::TYPE_PAGE) {
+                            # Like the original post.
+                            $res = $fb->post($action['postid'] . '/likes', [], $this->token);
+                            #error_log("Like returned " . var_export($res, true));
+                        }
 
                         # We want to share the post out with the existing details - but we need to remove the id, otherwise
                         # it's an invalid op.
                         $params = json_decode($action['data'], TRUE);
                         unset($params['id']);
-                        #error_log("Post to {$this->name} with {$this->token} action " . var_export($params, TRUE));
+                        error_log("Post to {$this->name} {$this->id} with {$this->token} action " . var_export($params, TRUE));
                         $result = $fb->post($this->id . '/feed', $params, $this->token);
-                        #error_log("Post returned " . var_export($result, true));
+                        error_log("Post returned " . var_export($result, true));
                     } catch (Exception $e) {
                         $code = $e->getCode();
                         error_log("Failed on {$this->groupid} code $code message " . $e->getMessage() . " token " . $this->token);

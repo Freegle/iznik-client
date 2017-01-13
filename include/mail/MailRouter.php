@@ -385,7 +385,7 @@ class MailRouter
                         $notify = FALSE;
 
                         # Now add them as a pending member.
-                        if ($u->addMembership($gid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING)) {
+                        if ($u->addMembership($gid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING, NULL, NULL, FALSE)) {
                             $u->setYahooMembershipAtt($gid, $emailid, 'yahooapprove', $approve);
                             $u->setYahooMembershipAtt($gid, $emailid, 'yahooreject', $reject);
                             $u->setYahooMembershipAtt($gid, $emailid, 'joincomment', $comment);
@@ -529,7 +529,8 @@ class MailRouter
 
                 $ret = MailRouter::TO_SYSTEM;
             }
-        } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches)) {
+        } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches) ||
+            preg_match('/(.*)-auto@' . GROUP_DOMAIN . '/', $to, $matches)) {
             # Mail to our owner address.  First check if it's spam.
             if ($this->log) { error_log("To volunteers"); }
             $rc = $this->spam->check($this->msg);
@@ -555,23 +556,28 @@ class MailRouter
                         if ($this->log) { error_log("From user $uid to group $gid"); }
                         $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-                        # Create/get a change between the sender and the group mods.
-                        $r = new ChatRoom($this->dbhr, $this->dbhm);
-                        $chatid = $r->createUser2Mod($uid, $gid);
-                        if ($this->log) { error_log("Chatid is $chatid"); }
+                        $ret = MailRouter::DROPPED;
 
-                        # Now add this message into the chat
-                        $textbody = $this->msg->stripQuoted();
+                        # Don't want to pass on OOF etc.
+                        if (!$this->msg->isAutoreply()) {
+                            # Create/get a change between the sender and the group mods.
+                            $r = new ChatRoom($this->dbhr, $this->dbhm);
+                            $chatid = $r->createUser2Mod($uid, $gid);
+                            if ($this->log) { error_log("Chatid is $chatid"); }
 
-                        $m = new ChatMessage($this->dbhr, $this->dbhm);
-                        $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
-                        if ($this->log) { error_log("Created message $mid"); }
+                            # Now add this message into the chat
+                            $textbody = $this->msg->stripQuoted();
 
-                        # The user sending this is up to date with this conversation.  This prevents us
-                        # notifying her about other messages
-                        $r->mailedLastForUser($uid);
+                            $m = new ChatMessage($this->dbhr, $this->dbhm);
+                            $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+                            if ($this->log) { error_log("Created message $mid"); }
 
-                        $ret = MailRouter::TO_VOLUNTEERS;
+                            # The user sending this is up to date with this conversation.  This prevents us
+                            # notifying her about other messages
+                            $r->mailedLastForUser($uid);
+
+                            $ret = MailRouter::TO_VOLUNTEERS;
+                        }
                     }
                 }
             }
@@ -788,13 +794,15 @@ class MailRouter
                             $ret = MailRouter::APPROVED;
                         }
                     } else if ($this->msg->getSource() == Message::EMAIL) {
-                        if ($log) { error_log("Email source"); }
                         $uid = $this->msg->getFromuser();
+                        if ($log) { error_log("Email source, user $uid"); }
 
                         if ($uid) {
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
                             foreach ($groups as $group) {
-                                if ($u->isApprovedMember($group['groupid'])) {
+                                $appmemb = $u->isApprovedMember($group['groupid']);
+                                if ($log) { error_log("Approved member? $appmemb"); }
+                                if ($appmemb) {
                                     $ps = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
                                     $ps = $ps ? $ps : Group::POSTING_MODERATED;
                                     if ($log) { error_log("Member, Our PS is $ps"); }

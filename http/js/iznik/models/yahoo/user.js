@@ -31,7 +31,9 @@ define([
                 console.log("Remove member", self.get('userId'), crumb);
 
                 if (self.get('moderatorStatus')) {
+                    // Don't remove mod.  Pretend we did to zap the work.
                     console.error("Refused to remove mod/owner", self);
+                    self.trigger('removesucceeded');
                 } else {
                     var data = [{
                         userId: self.get('userId')

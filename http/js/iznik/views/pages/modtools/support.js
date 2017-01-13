@@ -271,6 +271,10 @@ define([
                     self.$('.js-adminonly').removeClass('hidden');
                 }
 
+                if (Iznik.Session.isAdminOrSupport()) {
+                    self.$('.js-adminsupportonly').removeClass('hidden');
+                }
+
                 // Group search uses a typehead.
                 $.ajax({
                     type: 'GET',
@@ -619,6 +623,8 @@ define([
         },
 
         render: function () {
+            var self = this;
+
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
                 if (Iznik.Session.isAdmin()) {
@@ -635,7 +641,7 @@ define([
                 _.each(self.model.get('memberof'), function (group) {
                     _.each(emails, function(email) {
                         if (email.id == group.emailid) {
-                            group.email = email.email
+                            group.email = email.email;
                             remaining = _.without(remaining, _.findWhere(remaining, {
                                 email: email.email
                             }));
@@ -674,7 +680,10 @@ define([
                 });
 
                 // Add any sessions.
-                self.sessionCollection = new Iznik.Collection(self.model.get('sessions'));
+                var sessions = self.model.get('sessions');
+                console.log("Sessions", sessions);
+                self.sessionCollection = new Iznik.Collection(sessions);
+                console.log("Session collection", self.sessionCollection);
 
                 if (self.sessionCollection.length == 0) {
                     self.$('.js-sessionsnone').show();
@@ -857,8 +866,9 @@ define([
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 var usersite = $('meta[name=iznikusersite]').attr("content");
-                var group = self.model.get('onhere') ? ('https://' + usersite + '/explore/' + self.model.get('id')) : ('https://groups.yahoo.com/group/' + self.model.get('nameshort'));
+                var group = self.model.get('onhere') ? ('https://' + usersite + '/explore/' + self.model.get('nameshort')) : ('https://groups.yahoo.com/group/' + self.model.get('nameshort'));
                 self.$('.js-group').attr('href', group);
+
                 var m = new moment(self.model.get('added'));
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));
 

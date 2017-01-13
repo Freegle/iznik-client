@@ -1333,8 +1333,96 @@ body {
 
 /*==========  Mobile First Method  ==========*/
 
+@media only screen and (max-width : 319px) {
+    .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 {
+        padding-left: 3px;
+        padding-right: 3px;
+    }
+
+    .row {
+        margin-right: -3px;
+        margin-left: -3px;
+    }
+
+    ol, ul {
+        margin-top: 0;
+        margin-bottom: 3px;
+    }
+
+    .panel-heading {
+        padding: 3px;
+    }
+
+    .panel-body {
+        padding: 3px;
+    }
+
+    .panel {
+        margin-bottom: 3px;
+    }
+
+    .botspace {
+        margin-bottom: 3px !important;
+    }
+
+    .footer {
+        height: 40px;
+    }
+
+    #notifchatdropdown {
+        min-width: 80vw;
+        z-index: 20000;
+        height: 90vh;
+    }
+
+    #notifchatdropdownlist {
+        width: 80vw;
+    }
+
+    #notifchatdropdownactions {
+        background-color: white !important;
+        border-bottom: none !important;
+        /*position: fixed;*/
+    }
+
+    .notifaction {
+        padding: 5px;
+        border-radius: 3px;
+        border: 1px black solid;
+        width: 130px;
+    }
+
+    #notifchatdropdownlist {
+        background-color: white !important;
+        overflow-y: scroll;
+        /*top: 150px;*/
+        max-height: 80vh;
+        /*position: fixed;*/
+        -webkit-backface-visibility: hidden;
+    }
+}
+
 /* Custom, iPhone Retina */
 @media only screen and (min-width : 320px) {
+    .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .row {
+        margin-right: -5px;
+        margin-left: -5px;
+    }
+
+    ol, ul {
+        margin-top: 0;
+        margin-bottom: 5px;
+    }
+
+    .panel-heading {
+        padding: 5px;
+    }
+
     .panel-body {
         padding: 5px;
     }
@@ -1397,6 +1485,10 @@ body {
 
 /* Small Devices, Tablets */
 @media only screen and (min-width : 768px) {
+    .panel-heading {
+        padding: 10px 15px;
+    }
+
     .panel-body {
         padding: 10px;
     }

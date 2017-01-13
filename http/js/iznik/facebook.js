@@ -6,8 +6,7 @@ define([
     'iznik/base',
     'iznik/openfb'
 ], function ($, _, Backbone, Iznik) {
-  // TODO Make configurable
-  var facebookAppId = 134980666550322;
+  var facebookAppId = $('meta[name=facebook-app-id]').attr("content");
 
   var tryingFacebookLogin = false;
 

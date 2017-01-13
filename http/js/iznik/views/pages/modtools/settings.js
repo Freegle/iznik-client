@@ -173,7 +173,8 @@ define([
                     });
 
                     self.$('.js-twitterauth').attr('href', '/twitter/twitter_request.php?groupid=' + self.selected);
-                    self.$('.js-facebookauth').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected);
+                    self.$('.js-facebookauthpage').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected + '&type=Page');
+                    self.$('.js-facebookauthgroup').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected + '&type=Group');
 
                     self.group.fetch().then(function() {
                         // Because we switch the form based on our group select we need to remove old events to avoid saving new
@@ -377,10 +378,10 @@ define([
                             },
                             {
                                 name: 'spammers.chatreview',
-                                label: 'Check for spam messages to members?',
+                                label: '(Freegle only) Check for spam messages to members?',
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
-                                helpMessage: "(Freegle only) Messages to members come through the system.  It can flag suspicious ones for review so you can check if they are spam or not.  If you turn this off, such replies (some of which may be fine) will be dropped and members won't see them."
+                                helpMessage: "Messages to members come through the system.  It can flag suspicious ones for review so you can check if they are spam or not.  If you turn this off, such replies (some of which may be fine) will be dropped and members won't see them."
                             },
                             {
                                 name: 'spammers.messagereview',
@@ -435,29 +436,38 @@ define([
                             },
                             {
                                 name: 'reposts.chaseups',
-                                label: 'Chaseup after',
+                                label: '(Freegle only) Chaseup after',
                                 control: 'input',
                                 type: 'number',
                                 helpMessage: 'Ask what\'s happening with the item this number of days after the last reply (0 to disable)'
                             },
                             {
+                                name: 'relevant',
+                                label: '(Freegle only) Send relevant messages to members?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "Email specific messages to members based on their searches and posting history.  Members can turn this on/off themselves, so you would only turn this off if you want to override their decision."
+                            },
+                            {
                                 name: 'reposts.max',
-                                label: 'Max auto-reposts',
+                                label: '(Freegle only) Max auto-reposts',
                                 control: 'input',
                                 type: 'number',
                                 helpMessage: '0 to disable'
                             },
                             {
                                 name: 'reposts.offer',
-                                label: 'OFFER auto-repost (days)',
+                                label: '(Freegle only) OFFER auto-repost (days)',
                                 control: 'input',
-                                type: 'number'
+                                type: 'number',
+                                helpMessage: 'Also controls when the user can manually repost using the button on FD.'
                             },
                             {
                                 name: 'reposts.wanted',
-                                label: 'WANTED auto-repost (days)',
+                                label: '(Freegle only) WANTED auto-repost (days)',
                                 control: 'input',
-                                type: 'number'
+                                type: 'number',
+                                helpMessage: 'Also controls when the user can manually repost using the button on FD.'
                             },
                             {
                                 name: 'map.zoom',
@@ -642,6 +652,13 @@ define([
                         if (facebook) {
                             self.$('.js-facebookname').html(facebook.name);
                             self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
+                            if (facebook.type == 'Page') {
+                                self.$('.js-facebookpage').show();
+                                self.$('.js-facebookgroup').hide();
+                            } else {
+                                self.$('.js-facebookpage').hide();
+                                self.$('.js-facebookgroup').show();
+                            }
 
                             if (!facebook.valid) {
                                 self.$('.js-facebooknotlinked').show();
@@ -1425,7 +1442,11 @@ define([
                 data: {
                     action: 'Create',
                     name: self.diff[self.$('.js-grouplist').val()],
-                    grouptype: self.$('.js-type').val()
+                    grouptype: self.$('.js-type').val(),
+                    lat: self.$('.js-addlat').val(),
+                    lng: self.$('.js-addlng').val(),
+                    corearea: self.$('.js-addcore').val(),
+                    catchmentarea: self.$('.js-addcatchment').val()
                 }, success: function(ret) {
                     if (ret.ret == 0) {
                         var v = new Iznik.Views.ModTools.Settings.CreateSucceeded();

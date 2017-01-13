@@ -22,10 +22,6 @@ class dashboardTest extends IznikAPITestCase {
     public function testAdmin() {
         error_log(__METHOD__);
 
-        # Logged out
-        $ret = $this->call('dashboard', 'GET', []);
-        assertEquals(1, $ret['ret']);
-
         # Now log in
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);

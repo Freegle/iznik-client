@@ -236,7 +236,7 @@ class groupTest extends IznikTestCase {
         $u->setPrivate('yahooUserId', '-testyahoouserid');
         assertNotNull($u->addEmail('test@test.com'));
         $u->split('test@test.com');
-        assertNull($u->findByEmail('test@test.com'));
+        assertNotNull($u->findByEmail('test@test.com'));
         assertNull($u->findByYahooId('-testyahooid'));
         assertNull($u->findByYahooUserId('-testyahoouserid'));
 

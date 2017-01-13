@@ -2,7 +2,7 @@
     <div class="col-md-2 forcebreak">
         <% if (role == 'Moderator' || role == 'Owner') { %><div class="glyphicons glyphicons-crown warning" /><% } else { %><div class="glyphicons glyphicons-user success" /><% } %>&nbsp;
         <a data-realurl="true" target="_blank" class="inline js-group">{{nameshort}}</a>
-        <a data-realurl="true" target="_blank" href="mailto:{{nameshort}}-owner@yahoogroups.com">
+        <a data-realurl="true" target="_blank" class="js-mailowner" href="mailto:{{nameshort}}<% if (obj.onyahoo) { %>-owner@yahoogroups.com<% } else { %>groups.ilovefreegle.org<% } %>">
             <span class="glyphicon glyphicon-envelope" />
         </a>
         <br />

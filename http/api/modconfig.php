@@ -50,7 +50,7 @@ function modconfig() {
                         ];
 
                         # Clear cache.
-                        $_SESSION['modconfigs'] = NULL;
+                        $_SESSION['configs'] = NULL;
                     }
                 }
 
@@ -75,7 +75,7 @@ function modconfig() {
                     ];
 
                     # Clear cache.
-                    $_SESSION['modconfigs'] = NULL;
+                    $_SESSION['configs'] = NULL;
                 }
 
                 break;
@@ -98,7 +98,7 @@ function modconfig() {
                     ];
 
                     # Clear cache.
-                    $_SESSION['modconfigs'] = NULL;
+                    $_SESSION['configs'] = NULL;
                 }
 
                 break;

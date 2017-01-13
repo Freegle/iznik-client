@@ -420,7 +420,8 @@ define([
                     smartDays: true,
                     yearDescending: false,
                     minYear: new Date().getFullYear(),
-                    maxYear: new Date().getFullYear() + 1
+                    maxYear: new Date().getFullYear() + 1,
+                    customClass: 'inline'
                 };
 
                 self.$('.js-start, .js-end').combodate(opts);

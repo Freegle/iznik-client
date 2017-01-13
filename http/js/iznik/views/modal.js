@@ -38,6 +38,8 @@ define([
             this.remove();
             this.undelegateEvents();
             $(this.el).removeData().unbind();
+
+            $('body').css('padding-right', '');
         },
 
         close: function(){
@@ -55,6 +57,8 @@ define([
             this.remove();
             this.undelegateEvents();
             this.$el.removeData().unbind();
+
+            $('body').css('padding-right', '');
         },
 
         attach: function() {
@@ -109,7 +113,9 @@ define([
             self.$('.modal').one('hidden.bs.modal', function () {
                 $('body').css('padding-right', '');
             })
-            $('body').css('padding-right', '');
+            self.$('.modal').one('shown.bs.modal', function () {
+                $('body').css('padding-right', '');
+            });
 
             return(p);
         },
@@ -169,6 +175,14 @@ define([
                     // console.log("Open wait", self.options.label);
                     waitOpen = self;
                     waitPromise = self.open(self.template);
+
+                    var modtools = parseInt($('meta[name=iznikmodtools]').attr("content"));
+
+                    // Loader depends on which site we are.
+                    waitPromise.then(function() {
+                        $('#js-modalloader').attr('src', modtools ? '/images/loadermodal.gif' : '/images/userloader.gif');
+                        $('#js-modalloader').show();
+                    });
 
                     // Start backstop timeout to close the modal - there are various error cases which could leave
                     // it stuck forever, which looks silly.

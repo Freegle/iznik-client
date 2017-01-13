@@ -2,11 +2,20 @@
     <a class="nodecor js-caret" data-toggle="collapse" href="#offer-{{id}}">
         <div class="msgsubj panel-title">
             <div class="row">
-                <div class="col-xs-8 col-sm-10 col-md-8">
+                <div class="col-xs-8 col-sm-10 col-md-9">
                     <div class="js-rejected glyphicon glyphicon-warning-sign glyphicon-larger error" style="display: none" title="This message has been sent back to you by the volunteers." />
-                    {{subject}}
+                    <span class="hidden-xs">
+                        {{subject}}
+                    </span>
+                    <span class="visible-xs">
+                        <% if (obj.item && obj.keyword) { %>
+                        <span class="keyword">{{obj.keyword}}</span>: <span class="js-item">{{obj.item.name}}</span>
+                        <% } else { %>
+                        <span class="subject">{{subject}}</span>
+                        <% } %>
+                    </span>
                 </div>
-                <div class="col-xs-2 col-sm-1 col-md-2 nopad">
+                <div class="col-xs-2 col-sm-1 col-md-1 nopad">
                     <ul class="list-unstyled list-inline">
                         <li>
                             <span class="badge js-replycount <% if (obj.replies.length == 0) { %> faded<% } %>" title="The number of people who've replied.">
@@ -22,11 +31,11 @@
                                 </span>
                             </div>
                         </li>
+                        <% if (obj.promises && promises.length > 0) { %>
                         <li>
-                            <% if (obj.promises && promises.length > 0) { %>
                             <span class="glyphicons glyphicons-handshake" title="You've promised this item to someone" />
-                            <% } %>
                         </li>
+                        <% } %>
                     </ul>
                 </div>
                 <div class="col-xs-2 col-sm-1 col-md-2">
@@ -108,6 +117,9 @@
                     </button>
                 </a>
                 <% } %>
+                <div class="btn btn-success fbshare js-sharefb" style="display: none">
+                    <div class="glyphicon glyphicon-share-alt" />&nbsp;Share on Facebook
+                </div>
                 <div class="pull-right text-muted">#{{id}}</div>
             </div>
         </div>

@@ -21,6 +21,16 @@ define([
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
+                require(['iznik/facebook'], function(FBLoad) {
+                    self.listenToOnce(FBLoad(), 'fbloaded', function () {
+                        if (!FBLoad().isDisabled()) {
+                            self.$('.js-facebookonly').show();
+                        }
+                    });
+
+                    FBLoad().render();
+                });
+
                 var v = new Iznik.Views.Help.Box();
                 v.template = 'modtools_socialactions_help';
                 v.render().then(function(v) {
@@ -75,14 +85,21 @@ define([
                 groups.sort();
                 
                 groups.each(function(group) {
-                    var v = new Iznik.Views.ModTools.SocialAction.FacebookShare({
-                        model: group,
-                        actionid: self.model.get('id')
-                    });
+                    var facebook = group.get('facebook');
 
-                    v.render().then(function() {
-                        self.$('.js-buttons').append(v.$el);
-                    });
+                    // Page shares happen on the server.  Group ones don't yet so need a Facebook session.
+                    // TODO Move to server too.
+                    if (facebook.type == 'Page' || (facebook.type == 'Group' && Iznik.Session.hasFacebook())) {
+                        var v = new Iznik.Views.ModTools.SocialAction.FacebookPageShare({
+                            model: group,
+                            actionid: self.model.get('id'),
+                            action: self.model
+                        });
+
+                        v.render().then(function() {
+                            self.$('.js-buttons').append(v.$el);
+                        });
+                    }
                 });
             });
 
@@ -90,7 +107,7 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.SocialAction.FacebookShare = Iznik.View.extend({
+    Iznik.Views.ModTools.SocialAction.FacebookPageShare = Iznik.View.extend({
         template: 'modtools_socialactions_facebookshare',
 
         tagName: 'li',
@@ -102,14 +119,39 @@ define([
         share: function() {
             var self = this;
 
-            $.ajax({
-                url: API + 'socialactions',
-                type: 'POST',
-                data: {
-                    id: self.options.actionid,
-                    groupid: self.model.get('id')
-                }
-            });
+            if (self.model.get('facebook').type == 'Page') {
+                $.ajax({
+                    url: API + 'socialactions',
+                    type: 'POST',
+                    data: {
+                        id: self.options.actionid,
+                        groupid: self.model.get('id')
+                    }
+                });
+            } else {
+                // TODO Move to server too.
+                FB.login(function(){
+                    var params = JSON.parse(self.options.action.get('data'));
+                    var params2;
+                    var usersite = $('meta[name=iznikusersite]').attr("content");
+
+                    if (params.hasOwnProperty('link')) {
+                        params2 = {
+                            link: params.link
+                        };
+                    }
+
+                    params2.message = params.message;
+
+                    console.log("Params for post", params2);
+                    FB.api('/' + self.model.get('facebook').id + '/feed', 'post', params2, function(response) {
+                        console.log("Share returned", response);
+                        self.$('.js-share').fadeOut('slow');
+                    });
+                }, {
+                    scope: 'user_managed_groups, publish_actions'
+                });
+            }
 
             self.$el.fadeOut('slow');
         }
