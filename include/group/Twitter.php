@@ -181,7 +181,7 @@ class Twitter {
 
     public function tweetMessages() {
         # We want to tweet any messages since the last one, with a max of the 24 hours ago to avoid flooding things.
-        $mysqltime = date ("Y-m-d H:i:s", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
+        $mysqltime = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
         $sql = "SELECT messages_groups.msgid, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') ORDER BY messages_groups.arrival ASC;";
 
         $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime ]);
@@ -209,7 +209,7 @@ class Twitter {
 
             # Whether the tweet works or not, we might as well assume it does - tweets are ephemeral so there's no
             # point getting too het up if they don't work.
-            $msgid = $msgid ? max($msg['msgid'], $msgid) : $msgid;
+            $msgid = $msgid ? max($msg['msgid'], $msgid) : $msg['msgid'];
             $msgarrival = $msg['arrival'];
         }
 

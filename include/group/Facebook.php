@@ -215,7 +215,7 @@ class GroupFacebook {
 
     public function postMessages() {
         # We want to post any messages since the last one, with a max of 1 hour ago to avoid flooding things.
-        $mysqltime = date ("Y-m-d H:i:s", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
+        $mysqltime = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
         $sql = "SELECT messages_groups.msgid, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') ORDER BY messages_groups.arrival ASC;";
 
         $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime ]);
@@ -232,7 +232,7 @@ class GroupFacebook {
 
             # Whether the post works or not, we might as well assume it does.  If it fails it's most likely because
             # we are rate-limited, and we'd never get out of that state.
-            $msgid = $msgid ? max($msg['msgid'], $msgid) : $msgid;
+            $msgid = $msgid ? max($msg['msgid'], $msgid) : $msg['msgid'];
             $msgarrival = $msg['arrival'];
 
             try {
@@ -258,8 +258,8 @@ class GroupFacebook {
             }
         }
 
-        if ($msgid) {
-            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE groupid = ?;", [ $msgid, $this->groupid, $msgarrival ]);
+        if ($msgarrival) {
+            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE groupid = ?;", [ $msgid, $msgarrival, $this->groupid ]);
             error_log("UPDATE groups_facebook SET msgid = $msgid, msgarrival = $msgarrival WHERE groupid = {$this->groupid};");
         }
 
