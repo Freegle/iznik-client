@@ -120,7 +120,7 @@ class Relevant {
             $allowed = [];
             foreach ($groups as $group) {
                 $g = Group::get($this->dbhr, $this->dbhm, $group);
-                if ($g->getSetting('relevant', 1)) {
+                if ($g->getSetting('relevant', 1) && $g->getPrivate('onhere')) {
                     $allowed[] = $group;
                 }
             }
