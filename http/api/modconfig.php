@@ -91,14 +91,21 @@ function modconfig() {
                         'status' => 'You don\'t have rights to delete this config',
                     ];
                 } else {
-                    $c->delete();
                     $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
+                        'ret' => 5,
+                        'status' => 'Config is still in use, cannot delete',
                     ];
 
-                    # Clear cache.
-                    $_SESSION['configs'] = NULL;
+                    if (!$c->inUse()) {
+                        $c->delete();
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                        ];
+
+                        # Clear cache.
+                        $_SESSION['configs'] = NULL;
+                    }
                 }
 
                 break;
