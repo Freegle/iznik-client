@@ -186,6 +186,7 @@ class Twitter {
 
         $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime ]);
         $msgid = NULL;
+        $msgarrival = NULL;
         $worked = 0;
 
         foreach ($msgs as $msg) {
@@ -208,11 +209,12 @@ class Twitter {
 
             # Whether the tweet works or not, we might as well assume it does - tweets are ephemeral so there's no
             # point getting too het up if they don't work.
-            $msgid = $msg['msgid'];
+            $msgid = $msgid ? max($msg['msgid'], $msgid) : $msgid;
+            $msgarrival = $msg['arrival'];
         }
 
         if ($msgid) {
-            $this->dbhm->preExec("UPDATE groups_twitter SET msgid = ? WHERE groupid = ?;", [ $msgid, $this->groupid ]);
+            $this->dbhm->preExec("UPDATE groups_twitter SET msgid = ?, msgarrival = ? WHERE groupid = ?;", [ $msgid, $msgarrival, $this->groupid ]);
         }
         
         return($worked);

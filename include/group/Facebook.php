@@ -221,6 +221,7 @@ class GroupFacebook {
         $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime ]);
         error_log($sql . var_export([ $this->groupid, $mysqltime  ], TRUE));
         $msgid = NULL;
+        $msgarrival = NULL;
         $worked = 0;
 
         foreach ($msgs as $msg) {
@@ -231,7 +232,8 @@ class GroupFacebook {
 
             # Whether the post works or not, we might as well assume it does.  If it fails it's most likely because
             # we are rate-limited, and we'd never get out of that state.
-            $msgid = $msg['msgid'];
+            $msgid = $msgid ? max($msg['msgid'], $msgid) : $msgid;
+            $msgarrival = $msg['arrival'];
 
             try {
                 $fb = $this->getFB(FALSE);
@@ -257,8 +259,8 @@ class GroupFacebook {
         }
 
         if ($msgid) {
-            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ? WHERE groupid = ?;", [ $msgid, $this->groupid ]);
-            error_log("UPDATE groups_facebook SET msgid = $msgid WHERE groupid = {$this->groupid};");
+            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE groupid = ?;", [ $msgid, $this->groupid, $msgarrival ]);
+            error_log("UPDATE groups_facebook SET msgid = $msgid, msgarrival = $msgarrival WHERE groupid = {$this->groupid};");
         }
 
         return($worked);
