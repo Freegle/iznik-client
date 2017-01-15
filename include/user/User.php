@@ -26,7 +26,7 @@ class User extends Entity
     const CACHE_SIZE = 100;
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent', 'bouncing');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -66,6 +66,8 @@ class User extends Entity
     const SRC_FORGOT_PASSWORD = 'forgotpass';
     const SRC_PUSHNOTIF = 'pushnotif'; // From JS
     const SRC_TWITTER = 'twitter';
+    const SRC_EVENT_DIGEST = 'eventdigest';
+    const SRC_NEWSLETTER = 'newsletter';
 
     /** @var  $log Log */
     private $log;
@@ -101,7 +103,7 @@ class User extends Entity
                     # zapped the SQL read cache.
                     #error_log("Zapped, refetch " . $id);
                     $u->fetch($u->dbhr, $u->dbhm, $id, 'users', 'user', $u->publicatts);
-                    #error_log("Fetched $id as " . $u->getId());
+                    #error_log("Fetched $id as " . $u->getId() . " mod " . $u->isModerator());
                     User::$cache[$id] = $u;
                     User::$cacheDeleted[$id] = FALSE;
                     return($u);
@@ -523,6 +525,7 @@ class User extends Entity
     }
 
     private function updateSystemRole($role) {
+        #error_log("Update systemrole $role on {$this->id}");
         User::clearCache($this->id);
 
         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {

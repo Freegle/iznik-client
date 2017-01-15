@@ -29,7 +29,7 @@ class Dashboard {
             }
         } else if ($groupid) {
             $groupids[] = $groupid;
-        } else if ($allgroups) {
+        } else if ($this->me && $allgroups) {
             $groupids = $this->me->getModeratorships();
         }
 

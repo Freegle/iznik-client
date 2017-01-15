@@ -225,6 +225,11 @@ class ModConfig extends Entity
         ]);
     }
 
+    public function inUse() {
+        $uses = $this->dbhr->preQuery("SELECT * FROM memberships WHERE configid = ?;", [ $this->id ]);
+        return(count($uses) > 0);
+    }
+
     public function canModify() {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;

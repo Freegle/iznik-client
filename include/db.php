@@ -41,7 +41,11 @@ class DBResults implements Iterator {
     public function __construct($results, $sql, $expiry) {
         $this->sql = $sql;
         $this->expiry = $expiry;
-        $this->time = microtime(TRUE);
+
+        # Later versions of redis (or PHP) seem to spot that we are storing a float and lose precision.  Turn
+        # it into a string to avoid this.
+        $this->time = 't' . microtime(TRUE);
+        #error_log("Store results $sql {$this->time} " . gettype($this->time) );
 
         if ($results) {
             $this->array = $results;
@@ -289,8 +293,7 @@ class LoggedPDO {
 
                         # We must check whether this cache entry has been invalidated by a subsequent modification op
                         # within this session.
-                        if ($cached->checkValid($mget[1])) {
-                            #error_log("Valid");
+                        if ($cached->checkValid(substr($mget[1], 1))) {
                             if (!$cached->checkExpired()) {
                                 #error_log("Found valid entry in cache $cachekey");
                                 $gotcache = TRUE;

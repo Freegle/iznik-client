@@ -434,7 +434,7 @@ define([
             var self = this;
 
             $.ajax({
-                url: API + '/memberships',
+                url: API + 'memberships',
                 type: 'DELETE',
                 data: {
                     groupid: self.model.get('id'),
@@ -633,9 +633,12 @@ define([
                     id: self.options.id
                 });
                 self.model.fetch().then(function () {
-                    // We might fail to fetch, or fetch a deleted message, or fetch a paired message.  In all these
+                    // We might fail to fetch, or fetch a deleted message, or fetch a completed message.  In all these
                     // cases the message shouldn't show.
-                    if (self.model.get('subject') && !self.model.get('deleted')) {
+                    if (self.model.get('subject') &&
+                        !self.model.get('deleted') &&
+                        (!self.model.get('outcomes') || self.model.get('outcomes').length == 0)
+                    ) {
                         var v = new Iznik.Views.User.Message.Replyable({
                             model: self.model
                         });

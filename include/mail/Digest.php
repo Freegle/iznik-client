@@ -162,7 +162,7 @@ class Digest
                     #
                     # Anything that is per-group is passed in as a parameter here.  Anything that is or might
                     # become per-user is in the template as a {{...}} substitution.
-                    $msghtml = digest_message($msg, $msg['id']);
+                    $msghtml = digest_message($msg, $msg['id'], TRUE);
                     $html = digest_single($msghtml,
                         'https://' . USER_SITE,
                         USER_DOMAIN,
@@ -200,7 +200,7 @@ class Digest
                 $subjinfo = '';
 
                 foreach ($available as $msg) {
-                    $availablehtml .= $msghtml = digest_message($msg, $msg['id']);
+                    $availablehtml .= $msghtml = digest_message($msg, $msg['id'], TRUE);
                     $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
 
@@ -220,7 +220,7 @@ class Digest
                 $unavailablehtml = '';
 
                 foreach ($unavailable as $msg) {
-                    $unavailablehtml .= digest_message($msg, $msg['id']);
+                    $unavailablehtml .= digest_message($msg, $msg['id'], FALSE);
                     $textsumm .= $msg['subject'] . " (post completed, no longer active)\r\n";
                 }
 

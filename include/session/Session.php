@@ -107,7 +107,7 @@ function whoAmI(LoggedPDO $dbhr, $dbhm)
     if ($id) {
         # We are logged in.  Get our details
         $ret = User::get($dbhr, $dbhm, $id);
-        #error_log("Found " . $ret->getId());
+        #error_log("Found " . $ret->getId() . " role " . $ret->isModerator());
     }
 
     return($ret);

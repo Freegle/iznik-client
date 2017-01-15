@@ -1,10 +1,10 @@
 <?php
 
-function digest_message($msg, $msgid) {
+function digest_message($msg, $msgid, $available) {
     $text = htmlentities($msg['textbody']);
     $text = nl2br($text);
     $date = date("D, jS F g:ia", strtotime($msg['date']));
-    $replyweb = "https://" . USER_SITE . "/message/$msgid";
+    $replyweb = $available ? "https://" . USER_SITE . "/message/$msgid" : '';
     $replyemail = "mailto:{$msg['fromaddr']}?subject=" . rawurlencode("Re: " . $msg['subject']);
 
     $html = <<<EOT
@@ -32,6 +32,9 @@ EOT;
     $html .= <<<EOT
             </td>
         </tr>
+EOT;
+    if ($available) {
+        $html .= <<<EOT
         <tr>
             <td colspan="2">
                 <table class="button" width="300" cellpadding="0" cellspacing="0" align="left" border="0">
@@ -51,6 +54,10 @@ EOT;
                 </table>    
             </td>
         </tr>
+EOT;
+    }
+
+    $html .= <<<EOT
         <tr>
             <td colspan="2">
                 <font color=gray><hr></font>

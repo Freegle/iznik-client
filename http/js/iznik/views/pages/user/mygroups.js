@@ -102,7 +102,7 @@ define([
             var self = this;
 
             $.ajax({
-                url: API + '/memberships',
+                url: API + 'memberships',
                 type: 'DELETE',
                 data: {
                     groupid: self.model.get('id'),
