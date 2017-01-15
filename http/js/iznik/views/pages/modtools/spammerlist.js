@@ -236,7 +236,7 @@ define([
                         }
 
                         var mom = new moment(self.model.get('added'));
-                        self.$('.js-added').html(mom.format('ll'));
+                        self.$('.js-spamadded').html(mom.format('ll'));
 
                         var v = new Iznik.Views.ModTools.User({
                             model: new Iznik.Models.ModTools.User(user)

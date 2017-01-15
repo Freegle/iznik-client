@@ -137,8 +137,10 @@ define([
                 } catch (e) {}
 
                 self.$(".js-searchoffers").bootstrapSwitch({
-                    onText: 'Search OFFERs',
-                    offText: 'Search WANTEDs',
+                    onText: 'Only OFFERs',
+                    offText: 'Only WANTEDs',
+                    onColor: 'default',
+                    offColor: 'default',
                     state: self.searchtype == 'Offer'
                 });
 
@@ -175,14 +177,23 @@ define([
                 } else {
                     // We've not searched yet.
                     var mygroups = Iznik.Session.get('groups');
+                    var myhomegroup = Storage.get('myhomegroup');
 
                     if (mygroups && mygroups.length > 0) {
-                        self.$('.js-browse').show();
-
                         self.collection = new Iznik.Collections.Message(null, {
                             modtools: false,
                             collection: 'Approved'
                         });
+
+                        self.$('.js-browse').show();
+                    } else if (myhomegroup) {
+                        self.collection = new Iznik.Collections.Message(null, {
+                            modtools: false,
+                            collection: 'Approved',
+                            groupid: myhomegroup
+                        });
+
+                        self.$('.js-browse').show();
                     }
 
                     data = {

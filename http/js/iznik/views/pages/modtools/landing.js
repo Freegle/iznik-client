@@ -45,7 +45,8 @@ define([
                         v.close();
 
                         if (ret.dashboard) {
-                            if (Iznik.Session.isFreegleMod()) {
+                            if (Iznik.Session.isFreegleMod() &&
+                                (ret.dashboard.Happy.length + ret.dashboard.Unhappy.length + ret.dashboard.Fine.length > 0)) {
                                 self.$('.js-freegleonly').show();
                                 var happy = new Iznik.Collections.DateCounts(ret.dashboard.Happy);
                                 var fine = new Iznik.Collections.DateCounts(ret.dashboard.Fine);
@@ -81,6 +82,8 @@ define([
                                 });
 
                                 graph.render();
+                            } else {
+                                self.$('.js-freegleonly').hide();
                             }
 
                             var coll = new Iznik.Collections.DateCounts(ret.dashboard.ApprovedMessageCount);

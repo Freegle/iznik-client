@@ -37,7 +37,7 @@ define([
                     if (chat.model.get('unseen') > 0) {
                         chat.allseen();
 
-                        if (!chat.minimised) {
+                        if (!chat.minimised && typeof chat.statusWithOverride == 'function') {
                             // This may exist for open chats but not minimised.
                             chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
                         }
@@ -891,6 +891,7 @@ define([
             'click .js-remove, touchstart .js-remove': 'removeIt',
             'click .js-minimise, touchstart .js-minimise': 'minimise',
             'click .js-report, touchstart .js-report': 'report',
+            'click .js-enter': 'enter',
             'focus .js-message': 'messageFocus',
             'click .js-promise': 'promise',
             'click .js-send': 'send',
@@ -903,6 +904,14 @@ define([
         removed: false,
 
         minimised: true,
+
+        enter: function(e) {
+            var v = new Iznik.Views.Chat.Enter();
+            v.render();
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        },
 
         keyUp: function (e) {
             var self = this;

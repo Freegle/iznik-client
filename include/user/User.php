@@ -26,7 +26,7 @@ class User extends Entity
     const CACHE_SIZE = 100;
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'publishconsent', 'ripaconsent', 'bouncing');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -55,6 +55,19 @@ class User extends Entity
     const NOTIFS_PUSH = 'push';
     const NOTIFS_FACEBOOK = 'facebook';
     const NOTIFS_APP = 'app';
+
+    # Traffic sources
+    const SRC_DIGEST = 'digest';
+    const SRC_RELEVANT = 'relevant';
+    const SRC_CHASEUP = 'chaseup';
+    const SRC_CHASEUP_IDLE = 'beenawhile';
+    const SRC_CHATNOTIF = 'chatnotif';
+    const SRC_REPOST_WARNING = 'repostwarn';
+    const SRC_FORGOT_PASSWORD = 'forgotpass';
+    const SRC_PUSHNOTIF = 'pushnotif'; // From JS
+    const SRC_TWITTER = 'twitter';
+    const SRC_EVENT_DIGEST = 'eventdigest';
+    const SRC_NEWSLETTER = 'newsletter';
 
     /** @var  $log Log */
     private $log;
@@ -90,7 +103,7 @@ class User extends Entity
                     # zapped the SQL read cache.
                     #error_log("Zapped, refetch " . $id);
                     $u->fetch($u->dbhr, $u->dbhm, $id, 'users', 'user', $u->publicatts);
-                    #error_log("Fetched $id as " . $u->getId());
+                    #error_log("Fetched $id as " . $u->getId() . " mod " . $u->isModerator());
                     User::$cache[$id] = $u;
                     User::$cacheDeleted[$id] = FALSE;
                     return($u);
@@ -292,17 +305,33 @@ class User extends Entity
         # - the preferred flag, which gets set by end user action
         # - the date added, as most recently added emails are most likely to be right
         # - exclude our own invented mails
+        # - exclude any yahoo groups mails which have snuck in.
         $emails = $emails ? $emails : $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",
             [$this->id]);
         $ret = NULL;
 
         foreach ($emails as $email) {
-            if (!ourDomain($email['email'])) {
+            if (!ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE) {
                 $ret = $email['email'];
                 break;
             } 
         }
         
+        return($ret);
+    }
+
+    public function getOurEmail($emails = NULL) {
+        $emails = $emails ? $emails : $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",
+            [$this->id]);
+        $ret = NULL;
+
+        foreach ($emails as $email) {
+            if (ourDomain($email['email'])) {
+                $ret = $email['email'];
+                break;
+            }
+        }
+
         return($ret);
     }
 
@@ -496,6 +525,7 @@ class User extends Entity
     }
 
     private function updateSystemRole($role) {
+        #error_log("Update systemrole $role on {$this->id}");
         User::clearCache($this->id);
 
         if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
@@ -530,7 +560,7 @@ class User extends Entity
         return($coll);
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL) {
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE) {
         $this->memberships = NULL;
         $me = whoAmI($this->dbhr, $this->dbhm);
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
@@ -591,7 +621,8 @@ class User extends Entity
             list ($transport, $mailer) = getMailer();
             $message = Swift_Message::newInstance()
                 ->setSubject("Welcome to " . $g->getPrivate('nameshort'))
-                ->setFrom($g->getModsEmail())
+                ->setFrom($g->getAutoEmail())
+                ->setReplyTo($g->getModsEmail())
                 ->setTo($byemail)
                 ->setDate(time())
                 ->setBody("Pleased to meet you.");
@@ -602,23 +633,27 @@ class User extends Entity
         // @codeCoverageIgnoreStart
         
         if ($rc) {
-            # The membership didn't already exist.
+            # The membership didn't already exist.  We might want to send a welcome mail.
             $atts = $g->getPublic();
 
-            if ($atts['welcomemail'] || $message) {
+            if (($addedhere) && ($atts['welcomemail'] || $message)) {
                 # We need to send a per-group welcome mail.
                 $to = $this->getEmailPreferred();
-                $welcome = $message ? $message : $atts['welcomemail'];
-                $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($welcome));
-                list ($transport, $mailer) = getMailer();
-                $message = Swift_Message::newInstance()
-                    ->setSubject("Welcome to " . $atts['namedisplay'])
-                    ->setFrom([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
-                    ->setTo($to)
-                    ->setDate(time())
-                    ->setBody($welcome)
-                    ->addPart($html, 'text/html');
-                $mailer->send($message);
+
+                if ($to) {
+                    $welcome = $message ? $message : $atts['welcomemail'];
+                    $html = welcome_group(USER_SITE, $atts['profile'] ? $atts['profile'] : USERLOGO, $to, $atts['namedisplay'], nl2br($welcome));
+                    list ($transport, $mailer) = getMailer();
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("Welcome to " . $atts['namedisplay'])
+                        ->setFrom([$g->getAutoEmail() => $atts['namedisplay'] . ' Volunteers'])
+                        ->setReplyTo([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
+                        ->setTo($to)
+                        ->setDate(time())
+                        ->setBody($welcome)
+                        ->addPart($html, 'text/html');
+                    $mailer->send($message);
+                }
             }
 
             $l = new Log($this->dbhr, $this->dbhm);
@@ -717,7 +752,8 @@ class User extends Entity
             list ($transport, $mailer) = getMailer();
             $message = Swift_Message::newInstance()
                 ->setSubject("Farewell from " . $g->getPrivate('nameshort'))
-                ->setFrom($g->getModsEmail())
+                ->setFrom($g->getAutoEmail())
+                ->setReplyTo($g->getModsEmail())
                 ->setTo($byemail)
                 ->setDate(time())
                 ->setBody("Parting is such sweet sorrow.");
@@ -1154,6 +1190,7 @@ class User extends Entity
             # Add in private attributes for our own entry.
             $atts['emails'] = $me->getEmails();
             $atts['email'] = $me->getEmailPreferred($atts['emails']);
+            $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
         }
 
         if ($me && $me->isModerator()) {
@@ -1173,10 +1210,10 @@ class User extends Entity
                 if ($groupids && count($groupids) > 0) {
                     # On these groups
                     $groupq = implode(',', $groupids);
-                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
+                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
                 } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
                     # We can see all groups.
-                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
+                    $sql = "SELECT messages.id, messages.fromaddr, messages.arrival, messages.date, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.collection = ? AND fromuser = ? AND messages_groups.deleted = 0 LEFT JOIN messages_postings ON messages.id = messages_postings.msgid ORDER BY messages.arrival DESC;";
                 }
 
                 if ($sql) {
@@ -2239,10 +2276,8 @@ class User extends Entity
         return($rc);
     }
 
-    public function split($email) {
+    public function split($email, $name = NULL) {
         # We want to ensure that the current user has no reference to these values.
-        #
-        # This will leave logs pointing to the old user, but there's no way to recover that.
         $me = whoAmI($this->dbhr, $this->dbhm);
         $l = new Log($this->dbhr, $this->dbhm);
         if ($email) {
@@ -2260,6 +2295,56 @@ class User extends Entity
             'byuser' => $me ? $me->getId() : NULL,
             'text' => "Split out $email"
         ]);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, $name);
+        $u->addEmail($email);
+
+        # We might be able to move some messages over.
+        $this->dbhm->preExec("UPDATE messages SET fromuser = ? WHERE fromaddr = ?;", [
+            $uid2,
+            $email
+        ]);
+        $this->dbhm->preExec("UPDATE messages_history SET fromuser = ? WHERE fromaddr = ?;", [
+            $uid2,
+            $email
+        ]);
+
+        # Chats which reference the messages sent from that email must also be intended for the split user.
+        $chats = $this->dbhr->preQuery("SELECT DISTINCT chat_rooms.* FROM chat_rooms INNER JOIN chat_messages ON chat_messages.chatid = chat_rooms.id WHERE refmsgid IN (SELECT id FROM messages WHERE fromaddr = ?);", [
+            $email
+        ]);
+
+        foreach ($chats as $chat) {
+            if ($chat['user1'] == $this->id) {
+                $this->dbhm->preExec("UPDATE chat_rooms SET user1 = ? WHERE id = ?;", [
+                    $uid2,
+                    $chat['id']
+                ]);
+            }
+            if ($chat['user2'] == $this->id) {
+                $this->dbhm->preExec("UPDATE chat_rooms SET user2 = ? WHERE id = ?;", [
+                    $uid2,
+                    $chat['id']
+                ]);
+            }
+        }
+
+        # We might have a name.
+        $this->dbhm->preExec("UPDATE users SET fullname = (SELECT fromname FROM messages WHERE fromaddr = ? LIMIT 1) WHERE id = ?;", [
+            $email,
+            $uid2
+        ]);
+
+        # Zap any existing sessions for either.
+        $this->dbhm->preExec("DELETE FROM sessions WHERE userid IN (?, ?);", [ $this->id, $uid2 ]);
+
+        # We can't tell which user any existing logins relate to.  So remove them all.  If they log in with native,
+        # then they'll have to get a new password.  If they use social login, then it should hook the user up again
+        # when they next do.
+        $this->dbhm->preExec("DELETE FROM users_logins WHERE userid = ?;", [ $this->id ]);
+
+        return($uid2);
     }
 
     public function welcome($email, $password) {
@@ -2277,7 +2362,7 @@ class User extends Entity
     }
 
     public function forgotPassword($email) {
-        $link = $this->loginLink(USER_SITE, $this->id, '/settings');
+        $link = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FORGOT_PASSWORD);
         $html = forgot_password(USER_SITE, USERLOGO, $email, $link);
 
         $message = Swift_Message::newInstance()
@@ -2492,17 +2577,17 @@ class User extends Entity
         return($rc);
     }
 
-    public function getUnsubLink($domain, $id) {
-        return(User::loginLink($domain, $id, "/unsubscribe/$id"));
+    public function getUnsubLink($domain, $id, $type = NULL) {
+        return(User::loginLink($domain, $id, "/unsubscribe/$id", $type));
     }
 
-    public function listUnsubscribe($domain, $id) {
+    public function listUnsubscribe($domain, $id, $type = NULL) {
         # Generates the value for the List-Unsubscribe header field.
-        $ret = "<mailto:unsubscribe-$id@" . USER_SITE . ">, <" . $this->getUnsubLink($domain, $id) .">";
+        $ret = "<mailto:unsubscribe-$id@" . USER_SITE . ">, <" . $this->getUnsubLink($domain, $id, $type) .">";
         return($ret);
     }
 
-    public function loginLink($domain, $id, $url = '/') {
+    public function loginLink($domain, $id, $url = '/', $type = NULL) {
         # Get a per-user link we can use to log in without a password.
         $key = NULL;
         $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
@@ -2524,7 +2609,8 @@ class User extends Entity
         }
 
         $p = strpos($url, '?');
-        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key") : ("https://$domain$url&u=$id&k=$key");
+        $src = $type ? "&src=$type" : "";
+        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key$src") : ("https://$domain$url&u=$id&k=$key$src");
 
         return($url);
     }

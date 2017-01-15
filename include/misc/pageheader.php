@@ -42,13 +42,20 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             $atts = $m->getPublic();
             $icon = (count($atts['attachments']) > 0) ? $atts['attachments'][0]['path'] : USERLOGO;
 
+            $rsptext = '';
+            if ($m->getType() == Message::TYPE_OFFER) {
+                $rsptext = "Interested?  Click here to reply.  Everything on Freegle is free.  ";
+            } else if ($m->getType() == Message::TYPE_WANTED) {
+                $rsptext = "Got one?  Click here to reply.  Everything on Freegle is free.  ";
+            }
+
             ?>
             <title><?php echo $atts['subject']; ?></title>
             <meta itemprop="title" content="<?php echo $atts['subject']; ?>"/>
-            <meta itemprop="description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
-            <meta name="description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
+            <meta itemprop="description" content="<?php echo $rsptext; ?>"/>
+            <meta name="description" content="<?php echo $rsptext; ?>"/>
             <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
-            <meta property="og:description" content="<?php if ($m->getType() == Message::TYPE_OFFER || $m->getType() == Message::TYPE_WANTED) { ?>Interested?  Click here to reply.<?php } ?>"/>
+            <meta property="og:description" content="<?php echo $rsptext; ?>"/>
             <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
@@ -229,7 +236,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=107">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=114">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -240,9 +247,12 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <?php if (defined('USER_GROUP_OVERRIDE')) { ?>
     <meta name="iznikusergroupoverride" content="<?php echo USER_GROUP_OVERRIDE; ?>">
     <?php } ?>
+    <meta name="izniksitename" content="<?php echo SITE_NAME; ?>">
+    <meta name="izniksitedesc" content="<?php echo SITE_DESC; ?>">
     <meta name="iznikusersite" content="<?php echo USER_SITE; ?>">
     <meta name="iznikmodsite" content="<?php echo MOD_SITE; ?>">
-    
+    <meta name="iznikmodtools" content="<?php echo MODTOOLS ? 1 : 0; ?>">
+
     <!-- And then some custom styles for our different apps -->
     <?php
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {

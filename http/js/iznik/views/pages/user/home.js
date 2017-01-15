@@ -70,10 +70,10 @@ define([
             if (count == 0) {
                 container.hide();
             } else if (count == 1) {
-                countel.html("1 old " + type.toUpperCase());
+                countel.html("1 old" + (isXS() ? '' : (' ' + type.toUpperCase())));
                 container.show();
             } else {
-                countel.html(count + " old " + type.toUpperCase() + "s");
+                countel.html(count + " old" + (isXS() ? '' : (' ' + type.toUpperCase() + "s")));
                 container.show();
             }
         },
@@ -464,7 +464,7 @@ define([
             switch (this.$('.js-outcome').val()) {
                 case 'Taken': text = 'Thanks, this has now been taken.'; break;
                 case 'Received': text = 'Thanks, this has now been received.'; break;
-                case 'Withdrawn': text = 'Sorry, this is no longer available.'; break;
+                case 'Withdrawn': text = this.model.get('type') == 'Offer' ? 'Sorry, this is no longer available.' : 'Thanks, I\'m no longer looking for this.'; break;
             }
 
             self.$('.js-comment').val(text);

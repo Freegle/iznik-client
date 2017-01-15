@@ -112,6 +112,7 @@ define([
             "modtools/members/happiness": "happinessMembers",
             "modtools/events/pending": "pendingEvents",
             "modtools/publicity": "socialActions",
+            "modtools/fbgroups": "facebookGroups",
             "modtools/admins": "admins",
             "modtools/conversations/spam": "chatReview",
             "modtools/conversations/reported": "chatReport",
@@ -149,7 +150,7 @@ define([
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
-            "stats/:id": "userStatsGroup",
+            "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
             "communityevent(/:id)": "userCommunityEvent",
             "newuser": "newUser",
@@ -870,6 +871,24 @@ define([
             });
         },
 
+        facebookGroups: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/fbgroups"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.FacebookGroups();
+                    self.loadRoute({
+                        page: page,
+                        modtools: true
+                    });
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
         admins: function () {
             var self = this;
 
@@ -1308,15 +1327,6 @@ define([
     	      root: root,	// CC
               pushState: true
         });
-
-        try {
-            // Make sure Storage works
-            Storage.set('enabled', true);
-            console.log("Storage active");
-        } catch (e) {
-            // We don't.
-            Router.navigate('/localstorage', true);
-        }
     } catch (e) {
         // We've got an uncaught exception.
         // TODO Log it to the server.

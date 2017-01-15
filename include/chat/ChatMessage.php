@@ -28,7 +28,7 @@ class ChatMessage extends Entity
     private $log;
 
     # Use matching from https://gist.github.com/gruber/249502 .
-    private $urlPattern = '#(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))#m';
+    private $urlPattern = '#(?i)\b(((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))|(\.com\/))#m';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -85,7 +85,7 @@ class ChatMessage extends Entity
 
             foreach ($matches as $val) {
                 foreach ($val as $url) {
-                    if (strlen($url) > 0 && stripos($url, 'http') !== FALSE) {
+                    if (strlen($url) > 0) {
                         $url = substr($url, strpos($url, '://') + 3);
                         $count++;
                         $trusted = FALSE;

@@ -103,64 +103,68 @@ function message() {
                     if ($collection == MessageCollection::DRAFT) {
                         # Draft messages are created by users, rather than parsed out from emails.  We might be
                         # creating one, or updating one.
-                        if (!$id) {
-                            $id = $m->createDraft();
-                            $m = new Message($dbhr, $dbhm, $id);
+                        $locationid = intval(presdef('locationid', $_REQUEST, NULL));
 
-                            # Record the last message we created in our session.  We use this to give access to
-                            # this message even if we're not logged in - for example when setting the FOP after
-                            # message submission.
-                            $_SESSION['lastmessage'] = $id;
-                        } else {
-                            # The message should be ours.
-                            $sql = "SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid IS NOT NULL AND userid = ?);";
-                            $drafts = $dbhr->preQuery($sql, [ $id, session_id(), $myid ]);
-                            $m = NULL;
-                            foreach ($drafts as $draft) {
-                                $m = new Message($dbhr, $dbhm, $draft['msgid']);
+                        $ret = [ 'ret' => 2, 'Missing location - client error' ];
+
+                        if ($locationid) {
+                            if (!$id) {
+                                $id = $m->createDraft();
+                                $m = new Message($dbhr, $dbhm, $id);
+
+                                # Record the last message we created in our session.  We use this to give access to
+                                # this message even if we're not logged in - for example when setting the FOP after
+                                # message submission.
+                                $_SESSION['lastmessage'] = $id;
+                            } else {
+                                # The message should be ours.
+                                $sql = "SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid IS NOT NULL AND userid = ?);";
+                                $drafts = $dbhr->preQuery($sql, [ $id, session_id(), $myid ]);
+                                $m = NULL;
+                                foreach ($drafts as $draft) {
+                                    $m = new Message($dbhr, $dbhm, $draft['msgid']);
+                                }
                             }
-                        }
 
-                        if ($m) {
-                            # Drafts have:
-                            # - a locationid
-                            # - a groupid (optional)
-                            # - a type
-                            # - an item
-                            # - a subject constructed from the type, item and location.
-                            # - a fromuser if known (we might not have logged in yet)
-                            # - a textbody
-                            # - zero or more attachments
-                            $locationid = intval(presdef('locationid', $_REQUEST, NULL));
+                            if ($m) {
+                                # Drafts have:
+                                # - a locationid
+                                # - a groupid (optional)
+                                # - a type
+                                # - an item
+                                # - a subject constructed from the type, item and location.
+                                # - a fromuser if known (we might not have logged in yet)
+                                # - a textbody
+                                # - zero or more attachments
+                                if ($groupid) {
+                                    $dbhm->preExec("UPDATE messages_drafts SET groupid = ? WHERE msgid = ?;", [$groupid, $m->getID()]);
+                                }
 
-                            if ($groupid) {
-                                $dbhm->preExec("UPDATE messages_drafts SET groupid = ? WHERE msgid = ?;", [$groupid, $m->getID()]);
+                                $type = presdef('messagetype', $_REQUEST, NULL);
+
+                                # Associated the item with the message.
+                                $item = presdef('item', $_REQUEST, NULL);
+                                $i = new Item($dbhr, $dbhm);
+                                $itemid = $i->create($item);
+                                $m->addItem($itemid);
+
+                                $fromuser = $me ? $me->getId() : NULL;
+                                $textbody = presdef('textbody', $_REQUEST, NULL);
+                                $attachments = presdef('attachments', $_REQUEST, []);
+                                $m->setPrivate('locationid', $locationid);
+                                $m->setPrivate('type', $type);
+                                $m->setPrivate('subject', $item);
+                                $m->setPrivate('fromuser', $fromuser);
+                                $m->setPrivate('textbody', $textbody);
+                                $m->setPrivate('fromip', presdef('REMOTE_ADDR', $_SERVER, NULL));
+                                $m->replaceAttachments($attachments);
+
+                                $ret = [
+                                    'ret' => 0,
+                                    'status' => 'Success',
+                                    'id' => $id
+                                ];
                             }
-                            
-                            $type = presdef('messagetype', $_REQUEST, NULL);
-
-                            # Associated the item with the message.
-                            $item = presdef('item', $_REQUEST, NULL);
-                            $i = new Item($dbhr, $dbhm);
-                            $itemid = $i->create($item);
-                            $m->addItem($itemid);
-
-                            $fromuser = $me ? $me->getId() : NULL;
-                            $textbody = presdef('textbody', $_REQUEST, NULL);
-                            $attachments = presdef('attachments', $_REQUEST, []);
-                            $m->setPrivate('locationid', $locationid);
-                            $m->setPrivate('type', $type);
-                            $m->setPrivate('subject', $item);
-                            $m->setPrivate('fromuser', $fromuser);
-                            $m->setPrivate('textbody', $textbody);
-                            $m->setPrivate('fromip', presdef('REMOTE_ADDR', $_SERVER, NULL));
-                            $m->replaceAttachments($attachments);
-
-                            $ret = [
-                                'ret' => 0,
-                                'status' => 'Success',
-                                'id' => $id
-                            ];
                         }
                     }
                 } else if ($_REQUEST['type'] == 'DELETE') {
@@ -382,15 +386,15 @@ function message() {
 
                                     $m->constructSubject($groupid);
 
-                                    # Make sure it's attached to this group.
-                                    $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
-                                        $draft['msgid'],
-                                        $groupid,
-                                        $u->postToCollection($groupid),
-                                        $m->getType()
-                                    ]);
-
                                     if ($fromemail) {
+                                        # Make sure it's attached to this group.
+                                        $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
+                                            $draft['msgid'],
+                                            $groupid,
+                                            $u->postToCollection($groupid),
+                                            $m->getType()
+                                        ]);
+
                                         $ret = ['ret' => 7, 'status' => 'Failed to submit'];
 
                                         if ($m->submit($u, $fromemail, $groupid)) {

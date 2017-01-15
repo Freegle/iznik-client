@@ -71,7 +71,8 @@ class Message
         "update your records",
         "has now left",
         "please note his new address",
-        "Sorry, we were unable to deliver your message"
+        "Sorry, we were unable to deliver your message",
+        "this email address is no longer in use"
     ];
     
     // Autoreply checks.
@@ -89,6 +90,8 @@ class Message
         "Automated reply",
         "Auto-Reply",
         "Out of Office",
+        "annual leave",
+        "on holiday",
         "vacation reply"
     ];
 
@@ -102,7 +105,9 @@ class Message
         "out of the office",
         "Thank you so much for your email enquiry",
         "I am away",
-        "I am currently away"
+        "I am currently away",
+        "Thanks for your email enquiry",
+        "don't check this very often"
     ];
     
     static public function checkType($type) {
@@ -984,7 +989,7 @@ class Message
                 'offer', 'offering', 'reoffer', 're offer', 're-offer', 'reoffered', 're offered', 're-offered',
                 'offfer', 'offeed', 'available'],
             Message::TYPE_TAKEN => ['collected', 'take', 'stc', 'gone', 'withdrawn', 'ta ke n', 'promised',
-                'cymeryd', 'cymerwyd', 'takln', 'taken'],
+                'cymeryd', 'cymerwyd', 'takln', 'taken', 'cymryd'],
             Message::TYPE_WANTED => ['wnted', 'requested', 'rquested', 'request', 'would like', 'want',
                 'anted', 'wated', 'need', 'needed', 'wamted', 'require', 'required', 'watnted', 'wented',
                 'sought', 'seeking', 'eisiau', 'wedi eisiau', 'eisiau', 'wnated', 'wanted', 'looking', 'waned'],
@@ -1131,7 +1136,8 @@ class Message
                     $groupname = $matches[1];
                     #error_log("Got $groupname from {$t['address']}");
                 } else if (preg_match('/(.*)@' . GROUP_DOMAIN . '/', $t['address'], $matches) &&
-                    strpos($t['address'], '-volunteers@') === FALSE) {
+                    strpos($t['address'], '-volunteers@') === FALSE &&
+                    strpos($t['address'], '-auto@') === FALSE) {
                     # Native group.
                     $groupname = $matches[1];
                     #error_log("Got $groupname from {$t['address']}");
@@ -1459,7 +1465,7 @@ class Message
                     # Make sure we have a membership for the originator of this message; they were a member
                     # at the time they sent this.  If they have since left we'll pick that up later via a sync.
                     if (!$u->isApprovedMember($this->groupid)) {
-                        $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
+                        $u->addMembership($this->groupid, User::ROLE_MEMBER, $emailid, MembershipCollection::APPROVED, NULL, NULL, FALSE);
                     }
                 }
             }
@@ -1895,7 +1901,7 @@ class Message
         $this->maybeMail($groupid, $subject, $body, 'Reject');
     }
 
-    public function approve($groupid, $subject, $body, $stdmsgid, $yahooonly = FALSE) {
+    public function approve($groupid, $subject = NULL, $body = NULL, $stdmsgid = NULL, $yahooonly = FALSE) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -2440,8 +2446,10 @@ class Message
         return(trim($textbody));
     }
     
-    public static function canonSubj($subj) {
-        $subj = strtolower($subj);
+    public static function canonSubj($subj, $lower = TRUE) {
+        if ($lower) {
+            $subj = strtolower($subj);
+        }
 
         // Remove any group tag
         $subj = preg_replace('/^\[.*?\](.*)/', "$1", $subj);
@@ -2566,8 +2574,11 @@ class Message
                 $sql = "INSERT IGNORE INTO messages_related (id1, id2) VALUES (?,?);";
                 $this->dbhm->preExec($sql, [ $this->id, $matchmsg['id']] );
 
-                if ($this->type == Message::TYPE_TAKEN || $this->type == Message::TYPE_RECEIVED) {
-                    # Also record an outcome on the original message.
+                if ($this->getSourceheader() != Message::PLATFORM &&
+                    ($this->type == Message::TYPE_TAKEN || $this->type == Message::TYPE_RECEIVED)) {
+                    # Also record an outcome on the original message.  We only need to do this when the message didn't
+                    # come from our platform, because if it did that has already happened.  This also avoids the
+                    # situation where we match against the wrong message because of the order messages arrive from Yahoo.
                     $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, userid, comments) VALUES (?,?,?,?,?);", [
                         $matchmsg['id'],
                         $this->type == Message::TYPE_TAKEN ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED,
@@ -2782,7 +2793,6 @@ class Message
 
         $atts = $this->getPublic(FALSE, FALSE, TRUE);
         $items = $this->dbhr->preQuery("SELECT * FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
-        #error_log("Items " . var_export($items, TRUE));
 
         if (pres('location', $atts) && count($items) > 0) {
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
@@ -3239,8 +3249,8 @@ class Message
                                             # Remove any group tag.
                                             $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                            $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed");
-                                            $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw");
+                                            $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_REPOST_WARNING);
+                                            $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
                                             $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                             $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
                                             $html = autorepost_warning(USER_SITE,
@@ -3258,7 +3268,8 @@ class Message
                                             if (Swift_Validate::email($to)) {
                                                 $message = Swift_Message::newInstance()
                                                     ->setSubject("Re: " . $subj)
-                                                    ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                                    ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
+                                                    ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
                                                     ->setTo($to)
                                                     ->setBody($text)
                                                     ->addPart($html, 'text/html');
@@ -3317,9 +3328,9 @@ class Message
                         $replies = $this->dbhr->preQuery($sql, [ $message['msgid'] ]);
                         $lastreply = $replies[0]['latest'];
                         $age = ($now - strtotime($lastreply)) / (60 * 60);
-                        $interval = pres('chaseups', $reposts) ? $reposts['chaseups'] : 2;
+                        $interval = array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2;
 
-                        if ($age > $interval * 24) {
+                        if ($interval > 0 && $age > $interval * 24) {
                             # We can chase up.
                             $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                             $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
@@ -3336,9 +3347,9 @@ class Message
                                 # Remove any group tag.
                                 $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed");
-                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw");
-                                $repost = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/repost");
+                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_CHASEUP);
+                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_CHASEUP);
+                                $repost = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/repost", User::SRC_CHASEUP);
                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                 $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
                                 $html = chaseup(USER_SITE,
@@ -3357,7 +3368,8 @@ class Message
                                 if (Swift_Validate::email($to)) {
                                     $message = Swift_Message::newInstance()
                                         ->setSubject("Re: " . $subj)
-                                        ->setFrom([$g->getModsEmail() => $gatts['namedisplay']])
+                                        ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
+                                        ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
                                         ->setTo($to)
                                         ->setBody($text)
                                         ->addPart($html, 'text/html');
@@ -3395,9 +3407,7 @@ class Message
                     $m->withdraw(NULL, NULL);
                     break;
                 case 'Repost':
-                    # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
-                    # near the top, and get mailed out again.
-                    $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?;", [ $intended['msgid'] ]);
+                    $m->repost();
                     break;
             }
 
@@ -3432,7 +3442,7 @@ class Message
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
             $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
             $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-            $interval = max($interval, (pres('chaseups', $reposts) ? $reposts['chaseups'] : 2) * 24);
+            $interval = max($interval, (array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2) * 24);
 
             $ret = TRUE;
 
@@ -3446,12 +3456,27 @@ class Message
     }
 
     public function repost() {
+        # Make sure we don't keep doing this.
+        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
+
         # All we need to do to repost is update the arrival time - that will cause the message to appear on the site
         # near the top, and get mailed out again.
-        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), autoreposts = autoreposts + 1 WHERE msgid = ?;", [ $this->id ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?;", [ $this->id ]);
 
         # ...and update the search index.
         $this->s->bump($this->id, time());
+
+        # Record that we've done this.
+        $groups = $this->getGroups();
+        foreach ($groups as $groupid) {
+            $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
+            $this->dbhm->preExec($sql, [
+                $this->id,
+                $groupid,
+                1,
+                0
+            ]);
+        }
     }
 
     public function autoRepost($reposts, $max) {
@@ -3472,6 +3497,18 @@ class Message
             'user' => $this->getFromuser(),
             'text' => "$reposts / $max"
         ]);
+
+        # Record that we've done this.
+        $groups = $this->getGroups();
+        foreach ($groups as $groupid) {
+            $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
+            $this->dbhm->preExec($sql, [
+                $this->id,
+                $groupid,
+                1,
+                0
+            ]);
+        }
     }
 
     public function isBounce()

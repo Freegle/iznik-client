@@ -1105,6 +1105,7 @@ class messageAPITest extends IznikAPITestCase
             'messagetype' => 'Offer',
             'item' => 'a thing',
             'textbody' => 'Text body',
+            'locationid' => 1,
             'attachments' => [ $attid ]
         ]);
         error_log(var_export($ret, TRUE));
@@ -1118,6 +1119,7 @@ class messageAPITest extends IznikAPITestCase
             'messagetype' => 'Offer',
             'item' => 'a thing',
             'textbody' => 'Text body',
+            'locationid' => 1,
             'groupid' => $group1,
             'attachments' => [ $attid ]
         ]);
@@ -1153,6 +1155,7 @@ class messageAPITest extends IznikAPITestCase
             'collection' => 'Draft',
             'messagetype' => 'Wanted',
             'item' => 'a thing2',
+            'locationid' => 1,
             'textbody' => 'Text body2',
             'attachments' => [ $attid2 ]
         ]);
@@ -1180,6 +1183,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'collection' => 'Draft',
             'messagetype' => 'Wanted',
+            'locationid' => 1,
             'item' => 'a thing2',
             'textbody' => 'Text body2'
         ]);

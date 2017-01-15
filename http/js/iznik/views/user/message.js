@@ -11,7 +11,21 @@ define([
 
         events: {
             'click .js-caret': 'carettoggle',
-            'click .js-fop': 'fop'
+            'click .js-fop': 'fop',
+            'click .js-sharefb': 'sharefb'
+        },
+
+        sharefb: function() {
+            var self = this;
+            var params = {
+                method: 'share',
+                href: window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbshare',
+                image: self.image
+            };
+
+            FB.ui(params, function (response) {
+                self.$('.js-fbshare').fadeOut('slow');
+            });
         },
 
         expanded: false,
@@ -172,6 +186,19 @@ define([
 
                 self.rendering = new Promise(function(resolve, reject) {
                     Iznik.View.prototype.render.call(self).then(function() {
+                        if (Iznik.Session.hasFacebook()) {
+
+                            require(['iznik/facebook'], function(FBLoad) {
+                                self.listenToOnce(FBLoad(), 'fbloaded', function () {
+                                    if (!FBLoad().isDisabled()) {
+                                        self.$('.js-sharefb').show();
+                                    }
+                                });
+
+                                FBLoad().render();
+                            });
+                        }
+
                         if (self.expanded) {
                             self.$('.panel-collapse').collapse('show');
                             self.$('.js-snippet').hide();

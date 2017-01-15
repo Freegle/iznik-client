@@ -109,10 +109,13 @@
                     </div>
                     <div class="js-facebook js-facebookvalid" style="display: none">
                         <div class="glyphicon glyphicon-ok success" />&nbsp;
-                        Linked to <a class="js-facebookurl" data-realurl="true" target="_blank"><span class="js-facebookname" /></a> on <span class="js-facebookauthdate" />
+                        Linked to <a class="js-facebookurl" data-realurl="true" target="_blank"><span class="glyphicons glyphicons-flag js-facebookpage" alt="Page" title="Page" style="display:none"/><span class="glyphicons glyphicons-group js-facebookgroup" alt="Group" title="Group" style="display:none"/>&nbsp;<span class="js-facebookname" /></a> on <span class="js-facebookauthdate" />
                     </div>
-                    <a data-realurl="true" class="js-facebookauth topspace" target="_blank">
-                        <span class="btn btn-default">Link to Facebook</span>
+                    <a data-realurl="true" class="js-facebookauthpage topspace" target="_blank">
+                        <span class="btn btn-default">Link to Facebook Page</span>
+                    </a>
+                    <a data-realurl="true" class="js-facebookauthgroup topspace" target="_blank">
+                        <span class="btn btn-default">Link to Facebook Group (don't - under development)</span>
                     </a>
                 </div>
             </div>
@@ -207,16 +210,16 @@
                         <h4>Copy this config</h4>
                         <div class="input-group">
                             <input type="text" class="form-control js-copyconfigname" placeholder="Enter new config name" aria-describedby="configcopy" />
-                        <span class="input-group-addon js-copyconfig" id="configcopy">
-                            <div class="glyphicon glyphicon-plus-sign" />&nbsp;Copy
-                        </span>
+                            <span class="input-group-addon clickme js-copyconfig" id="configcopy">
+                                <div class="glyphicon glyphicon-plus-sign" />&nbsp;Copy
+                            </span>
                         </div>
                         <h4>Add new config</h4>
                         <div class="input-group">
                             <input type="text" class="form-control js-addconfigname" placeholder="Enter new config name" aria-describedby="configadd" />
-                        <span class="input-group-addon js-addconfig" id="configadd">
-                            <div class="glyphicon glyphicon-plus" />&nbsp;Add
-                        </span>
+                            <span class="input-group-addon clickme js-addconfig" id="configadd">
+                                <div class="glyphicon glyphicon-plus" />&nbsp;Add
+                            </span>
                         </div>
                         <h4>Delete this config</h4>
                         <button class="btn btn-danger botspace js-deleteconfig">

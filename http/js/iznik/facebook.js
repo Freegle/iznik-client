@@ -6,72 +6,67 @@ define([
     'iznik/base',
     'iznik/openfb'
 ], function ($, _, Backbone, Iznik) {
-    // TODO Make configurable
-    var facebookAppId = 134980666550322;
+  var facebookAppId = $('meta[name=facebook-app-id]').attr("content");
 
-    var tryingFacebookLogin = false;
+  var tryingFacebookLogin = false;
 
-    Iznik.Views.FBLoad = Iznik.View.extend({
-        FBLoaded: false,
-        FBLoading: false,
-        FBDisabled: false,
+  Iznik.Views.FBLoad = Iznik.View.extend({
+    FBLoaded: false,
+    FBLoading: false,
+    FBDisabled: false,
 
-        isDisabled: function () {
-            return this.FBDisabled;
-        },
-        /* // CC render: function () {
-          var self = this;
-          // console.log("Render FBLoad");
-    
-          if (self.FBLoaded) {
-            // console.log("Already loaded");
-            this.trigger('fbloaded');
-          } else if ((!self.FBLoaded) && (!self.FBLoading)) {
-            // console.log("Load FB API");
-            self.FBLoading = true;
-    
-            // The load might fail if we have a blocker.  The only way to deal with this is via a timeout.
-            // CC self.timeout = window.setTimeout(function () {
-            // CC   console.error("Facebook API load failed - blocked?");
-            // CC   self.FBLoading = false;
-            // CC   self.FBLoaded = true;
-            // CC   self.FBDisabled = true;
-            // CC   $('.js-privacy').show();
-            // CC   self.trigger('fbloaded');
-            // CC }, 30000);
-    
-            // Load the SDK asynchronously
-            (function (d, s, id) {
-              var js, fjs = d.getElementsByTagName(s)[0];
-              if (d.getElementById(id)) return;
-              js = d.createElement(s);
-              js.id = id;
-              js.src = "https://connect.facebook.net/en_US/sdk.js";
-              fjs.parentNode.insertBefore(js, fjs);
-            }(document, 'script', 'facebook-jssdk'));
-    
-            window.fbAsyncInit = function () {
-              // console.log("FB asyncInit");
-              self.FBLoading = false;
-              self.FBLoaded = true;
-              // CC clearTimeout(self.timeout);
-    
-              try {
-                FB.init({
-                  appId: facebookAppId,
-                  cookie: true,  // enable cookies to allow the server to access the session
-                  version: 'v2.2' // use version 2.2
-                });
-    
-                self.trigger('fbloaded');
-                // console.log("FB Loaded");
-              } catch (e) {
-                console.log("Facebook init failed");
-                console.log(e);
-              }
-            }
-          } else {
-            // console.log("FB still loading...");
+    isDisabled: function () {
+      return this.FBDisabled;
+    },
+    /* // CC render: function () {
+      var self = this;
+      // console.log("Render FBLoad");
+
+      if (self.FBLoaded) {
+        // console.log("Already loaded");
+        this.trigger('fbloaded');
+      } else if ((!self.FBLoaded) && (!self.FBLoading)) {
+        // console.log("Load FB API");
+        self.FBLoading = true;
+
+        // The load might fail if we have a blocker.  The only way to deal with this is via a timeout.
+        // CC self.timeout = window.setTimeout(function () {
+        // CC   console.error("Facebook API load failed - blocked?");
+        // CC   self.FBLoading = false;
+        // CC   self.FBLoaded = true;
+        // CC   self.FBDisabled = true;
+        // CC   $('.js-privacy').show();
+        // CC   self.trigger('fbloaded');
+        // CC }, 30000);
+
+        // Load the SDK asynchronously
+        (function (d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s);
+          js.id = id;
+          js.src = "https://connect.facebook.net/en_US/sdk.js";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        window.fbAsyncInit = function () {
+          // console.log("FB asyncInit");
+          self.FBLoading = false;
+          self.FBLoaded = true;
+          // CC clearTimeout(self.timeout);
+
+          try {
+            FB.init({
+              appId: facebookAppId,
+              cookie: true,  // enable cookies to allow the server to access the session
+              version: 'v2.2' // use version 2.2
+            });
+
+            self.trigger('fbloaded');
+            // console.log("FB Loaded");
+          } catch (e) {
+            console.log("Facebook init failed");
+            console.log(e);
           }
         },*/
 

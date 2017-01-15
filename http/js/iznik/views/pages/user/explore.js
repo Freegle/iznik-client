@@ -434,7 +434,7 @@ define([
             var self = this;
 
             $.ajax({
-                url: API + '/memberships',
+                url: API + 'memberships',
                 type: 'DELETE',
                 data: {
                     groupid: self.model.get('id'),
@@ -519,16 +519,13 @@ define([
                         self.$('.js-founded').show();
                     }
 
-                    // Add the description
+                    // Add the description.  We use a default because that helps with SEO.
                     var desc = self.model.get('description');
+                    desc = desc ? desc : "Give and get stuff for free with " + self.model.get('namedisplay') + ".  Offer things you don't need, and ask for things you'd like.  Don't just recycle - reuse with Freegle!";
+                    self.$('.js-description').html(desc);
 
-                    if (desc) {
-                        self.$('.js-gotdesc').show();
-                        self.$('.js-description').html(desc);
-
-                        // Any links in here are real.
-                        self.$('.js-description a').attr('data-realurl', true);
-                    }
+                    // Any links in here are real.
+                    self.$('.js-description a').attr('data-realurl', true);
 
                     self.collection = new Iznik.Collections.Message(null, {
                         modtools: false,
@@ -636,9 +633,12 @@ define([
                     id: self.options.id
                 });
                 self.model.fetch().then(function () {
-                    // We might fail to fetch, or fetch a deleted message, or fetch a paired message.  In all these
+                    // We might fail to fetch, or fetch a deleted message, or fetch a completed message.  In all these
                     // cases the message shouldn't show.
-                    if (self.model.get('subject') && !self.model.get('deleted')) {
+                    if (self.model.get('subject') &&
+                        !self.model.get('deleted') &&
+                        (!self.model.get('outcomes') || self.model.get('outcomes').length == 0)
+                    ) {
                         var v = new Iznik.Views.User.Message.Replyable({
                             model: self.model
                         });

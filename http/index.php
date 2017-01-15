@@ -81,6 +81,13 @@ if (!pres('id', $_SESSION)) {
     }
 }
 
+if (pres('src', $_REQUEST)) {
+    $dbhm->preExec("INSERT INTO logs_src (src, userid) VALUES (?, ?);", [
+        $_REQUEST['src'],
+        presdef('id', $_SESSION, NULL)
+    ]);
+}
+
 $default = TRUE;
 
 if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {

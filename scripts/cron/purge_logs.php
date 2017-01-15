@@ -55,6 +55,22 @@ $keys = [
 //    } while ($count > 0);
 //}
 
+# Src logs.
+$start = date('Y-m-d', strtotime("midnight 30 days ago"));
+error_log("Purge src logs before $start");
+
+try {
+    error_log("Src logs:");
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM logs_src WHERE `date` < '$start' LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete src logs " . $e->getMessage());
+}
+
 $start = date('Y-m-d', strtotime("midnight 1 day ago"));
 error_log("Purge detailed logs before $start");
 

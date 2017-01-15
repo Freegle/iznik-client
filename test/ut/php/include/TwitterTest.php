@@ -56,7 +56,8 @@ class twitterTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
-        $msg = $this->unique(file_get_contents('msgs/attachment'));
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);

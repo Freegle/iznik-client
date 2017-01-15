@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function relevant_wrapper($domain, $logo, $subject, $htmloffers, $htmlwanteds, $email, $noemail, $post, $unsubscribe) {
+function relevant_wrapper($domain, $logo, $subject, $htmloffers, $htmlwanteds, $email, $noemail, $post, $visit, $unsubscribe) {
     $siteurl = "https://$domain";
     $sitename = SITE_NAME;
 
@@ -53,7 +53,7 @@ EOT;
                                                                 </table>               
                                                             </td>    
                                                             <td>
-                                                                <p>You've received this mail because you're a member of <a href="$siteurl">$sitename</a>.</p>
+                                                                <p>You've received this automated mail because you're a member of <a href="$siteurl">$sitename</a>.</p>
                                                                 <table width="100%">
                                                                     <tr>
                                                                         <td>
@@ -67,6 +67,17 @@ EOT;
                                                                                 </tr>
                                                                             </table>
                                                                          </td>
+                                                                        <td>
+                                                                            <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
+                                                                                <tr>
+                                                                                    <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
+                                                                                        style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
+                                                                                            line-height:18px; border-radius:3px;">
+                                                                                        <a href="$visit" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Browse&nbsp;the&nbsp;group&nbsp;</a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
                                                                         <td>
                                                                             <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
                                                                                 <tr>
@@ -107,7 +118,7 @@ EOT;
                                                         </tr>    
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
-                                                                <p>This mail was sent to $email.  You can change your settings by clicking <a href="$siteurl/settings">here</a>, or turn these suggestion mails off by emailing <a href="mailto:$noemail">$noemail</a>.</p>
+                                                                <p>This mail was sent to $email.  These suggestions are automated, so they won't always be right.  If you don't find them useful, you can change your settings by clicking <a href="$siteurl/settings">here</a>, or turn these suggestion mails off by emailing <a href="mailto:$noemail">$noemail</a>.</p>
                                                                 <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
                                                             </td>
                                                         </tr>        

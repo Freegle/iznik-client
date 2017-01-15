@@ -167,9 +167,9 @@ define([
                 //
                 // This avoids doing syncs which will definitely do nothing, which can be the case for people with a lot
                 // of groups.
-                console.log("Worthit", group.get('nameshort'));
-                console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
-                console.log("Work on MT", group.get('work'));
+                // console.log("Worthit", group.get('nameshort'));
+                // console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
+                // console.log("Work on MT", group.get('work'));
     
                 var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
                         presdef(countname, group.get('work'), 0);

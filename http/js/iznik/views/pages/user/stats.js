@@ -16,16 +16,36 @@ define([
 
         render: function () {
             var self = this;
-            self.model = new Iznik.Models.Group({
-                id: self.options.id
-            });
+            var p;
 
-            var p = self.model.fetch();
+            if (self.options.id) {
+                // Called for a specific group
+                self.model = new Iznik.Models.Group({
+                    id: self.options.id
+                });
+
+                p = self.model.fetch();
+            } else {
+                // We want all of them.
+                var sitename = $('meta[name=izniksitename]').attr("content");
+                var sitedesc = $('meta[name=izniksitedesc]').attr("content");
+
+                self.model = new Iznik.Model({
+                    'namedisplay': sitename,
+                    'tagline': sitedesc
+                });
+
+                p = resolvedPromise(self);
+            }
+
             p.then(function() {
                 Iznik.Views.Page.prototype.render.call(self, {
                     model: self.model
                 }).then(function () {
-                    self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
+                    var count = self.model.get('membercount');
+                    if (count) {
+                        self.$('.js-membercount').html(count.toLocaleString());
+                    }
 
                     var founded = self.model.get('founded');
                     if (founded) {
@@ -54,7 +74,9 @@ define([
                         url: API + 'dashboard',
                         data: {
                             group: self.model.get('id'),
-                            start: '13 months ago'
+                            start: '13 months ago',
+                            grouptype: 'Freegle',
+                            systemwide: self.options.id ? false : true
                         },
                         success: function (ret) {
                             v.close();
@@ -69,16 +91,20 @@ define([
 
                                 graph.render();
 
-                                var coll = new Iznik.Collections.DateCounts(ret.dashboard.ApprovedMemberCount);
-                                var graph = new Iznik.Views.DateGraph({
-                                    target: self.$('.js-membergraph').get()[0],
-                                    data: coll,
-                                    title: 'Members'
-                                });
+                                if (ret.dashboard.hasOwnProperty('ApprovedMemberCount')) {
+                                    self.$('.js-membergraphholder').show();
+                                    var coll = new Iznik.Collections.DateCounts(ret.dashboard.ApprovedMemberCount);
+                                    var graph = new Iznik.Views.DateGraph({
+                                        target: self.$('.js-membergraph').get()[0],
+                                        data: coll,
+                                        title: 'Members'
+                                    });
 
-                                graph.render();
+                                    graph.render();
+                                }
 
                                 // We only want to show Offer vs Wanted.
+                                delete ret.dashboard.MessageBreakdown.Admin;
                                 delete ret.dashboard.MessageBreakdown.Other;
                                 delete ret.dashboard.MessageBreakdown.Received;
                                 delete ret.dashboard.MessageBreakdown.Taken;

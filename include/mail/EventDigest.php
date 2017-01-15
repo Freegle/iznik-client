@@ -113,7 +113,7 @@ class EventDigest
 
             $tosend = [
                 'subject' => '[' . $gatts['namedisplay'] . "] Community Event Roundup",
-                'from' => $g->getModsEmail(),
+                'from' => $g->getAutoEmail(),
                 'fromname' => $gatts['namedisplay'],
                 'replyto' => $g->getModsEmail(),
                 'replytoname' => $gatts['namedisplay'],
@@ -146,7 +146,7 @@ class EventDigest
                     if ($this->errorlog) { error_log("Send to them"); }
                     $replacements[$email] = [
                         '{{toname}}' => $u->getName(),
-                        '{{unsubscribe}}' => 'https://direct.ilovefreegle.org/unsubscribe.php?email=' . urlencode($email),
+                        '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_EVENT_DIGEST),
                         '{{email}}' => $email,
                         '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                         '{{post}}' => "https://" . USER_SITE,

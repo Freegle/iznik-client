@@ -250,6 +250,16 @@ class chatMessagesAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+    public function testLink() {
+        error_log(__METHOD__);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);;
+
+        assertTrue($m->checkReview("Hi ↵↵repetitionbowie.com/sportscapping.php?meant=mus2x216xkrn0mpb↵↵↵↵↵Thank you!"));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testReview() {
         error_log(__METHOD__);
 

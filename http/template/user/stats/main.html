@@ -1,10 +1,12 @@
 <div class="panel panel-white">
     <div class="row">
-        <% if (obj.profile) { %>
         <div class="col-xs-2">
+            <% if (obj.profile) { %>
             <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded" />
+            <% } else { %>
+            <img alt="Logo" src="/images/user_logo.png" class="img-thumbnail img-rounded" />
+            <% } %>
         </div>
-        <% } %>
         <% if (obj.profile) { %>
         <div class="col-xs-8">
             <% } else { %>
@@ -14,14 +16,17 @@
                     {{namedisplay}} - Statistics
                 </h1>
                 <p class="text-larger">{{obj.tagline}}</p>
-                <div class="text-muted">
-                <span class="js-founded">
-                    Founded <span class="js-foundeddate" />.
-                </span>
-                    <span class="js-membercount" /> current freeglers.
-                </div>
+                <% if (obj.id) { %>
+                    <div class="text-muted">
+                    <span class="js-founded">
+                        Founded <span class="js-foundeddate" />.
+                    </span>
+                        <span class="js-membercount" /> current freeglers.
+                    </div>
+                <% } %>
             </div>
             <div class="col-xs-2">
+                <% if (obj.id) { %>
                 <br />
                 <div class="btn btn-success pull-right margright js-join" style="display: none;">
                     <div class="glyphicon glyphicon-plus" /><span class="topspace">&nbsp;Join</span>
@@ -29,6 +34,7 @@
                 <div class="btn btn-white pull-right margright js-leave" style="display: none;">
                     <div class="glyphicon glyphicon-trash" /><span class="topspace">&nbsp;Leave</span>
                 </div>
+                <% } %>
             </div>
         </div>
         <div class="row js-gotdesc" style="display: none">
@@ -70,7 +76,7 @@
             <div class="panel-body">
                 <p>
                     These charts show how often people are successful in giving something away or getting something
-                    they ask for - when they let us know!
+                     - when they let us know!
                 </p>
                 <div class="row">
                     <div class="col-md-6">
@@ -90,14 +96,14 @@
         <h3>Weights</h3>
         <p>This is an estimate of the weight of items we have diverted from the waste stream.  People don't always
             tell us when things have worked - so this is likely to be an underestimate.  Figures are only
-        available since September 2016.</p>
+        available since September 2016.  These may change as we improve our estimates.</p>
         <div class="js-weightgraph" />
     </div>
 </div>
-<div class="row">
+<div class="row js-membergraphholder" style="display: none;">
     <div class="col-xs-12">
         <h3>Members</h3>
-        <p>Here you can see how many members are on the group.</p>
+        <p>Here you can see how many members there are.</p>
         <div class="js-membergraph" />
     </div>
 </div>

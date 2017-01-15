@@ -83,7 +83,8 @@ class Group extends Entity
                 'wanted' => 14,
                 'max' => 10,
                 'chaseups' => 2
-            ]
+            ],
+            'relevant' => 1
         ];
 
         if (!$this->group['settings'] || strlen($this->group['settings']) == 0) {
@@ -171,7 +172,12 @@ class Group extends Entity
                 return(NULL);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded) VALUES (?, ?, NOW())", [$shortname, $type]);
+            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded, licenserequired) VALUES (?, ?, NOW(),?)", [
+                $shortname,
+                $type,
+                $type != Group::GROUP_FREEGLE ? 0 : 1
+            ]);
+
             $id = $this->dbhm->lastInsertId();
 
             if ($type == Group::GROUP_FREEGLE) {
@@ -213,6 +219,7 @@ class Group extends Entity
     }
 
     public function getModsEmail() {
+        # This is an address used when we are sending to volunteers, or in response to an action by a volunteer.
         if ($this->group['contactmail']) {
             $ret = $this->group['contactmail'];
         } else if ($this->group['onyahoo']) {
@@ -224,11 +231,22 @@ class Group extends Entity
         return($ret);
     }
 
+    public function getAutoEmail() {
+        # This is an address used when we are sending automatic emails for a group.
+        if ($this->group['contactmail']) {
+            $ret = $this->group['contactmail'];
+        } else {
+            $ret = $this->group['nameshort'] . "-auto@" . GROUP_DOMAIN;
+        }
+
+        return($ret);
+    }
+
     public function getGroupEmail() {
         if ($this->group['onyahoo']) {
             $ret = $this->group['nameshort'] . "@yahoogroups.com";
         } else {
-            $ret = $this->group['nameshort'] . GROUP_DOMAIN;
+            $ret = $this->group['nameshort'] . '@' . GROUP_DOMAIN;
         }
 
         return($ret);
@@ -320,6 +338,11 @@ class Group extends Entity
 
     public function getPublic() {
         $atts = parent::getPublic();
+
+        # Contact mails
+        $atts['modsemail'] = $this->getModsEmail();
+        $atts['autoemail'] = $this->getAutoEmail();
+        $atts['groupemail'] = $this->getGroupEmail();
 
         # Add in derived properties.
         $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];

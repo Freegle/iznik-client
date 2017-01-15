@@ -13,13 +13,10 @@ if ($handle = opendir(IZNIK_BASE . "/events")) {
     while (false !== ($file = readdir($handle))) {
         $fn = IZNIK_BASE . "/events/$file";
 
-        # Skip index files.
-        if (is_file($fn) && strpos($file, '.') === FALSE) {
-            $modified = filemtime($fn);
+        $modified = filemtime($fn);
 
-            if (time() - filemtime($fn) > 4 * 3600) {
-                unlink($fn);
-            }
+        if (time() - filemtime($fn) > 4 * 3600) {
+            unlink($fn);
         }
     }
     closedir($handle);

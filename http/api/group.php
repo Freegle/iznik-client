@@ -171,6 +171,11 @@ function group() {
                         if ($me) {
                             $name = presdef('name', $_REQUEST, NULL);
                             $type = presdef('grouptype', $_REQUEST, NULL);
+                            $lat = presdef('lat', $_REQUEST, NULL);
+                            $lng = presdef('lng', $_REQUEST, NULL);
+                            $core = presdef('corearea', $_REQUEST, NULL);
+                            $catchment = presdef('atchmentarea', $_REQUEST, NULL);
+
                             $id = $g->create($name, $type);
 
                             $ret = ['ret' => 2, 'status' => 'Create failed'];
@@ -181,6 +186,15 @@ function group() {
                                     'status' => 'Success',
                                     'id' => $id
                                 ];
+
+                                if ($me && $me->isAdminOrSupport()) {
+                                    # Admin or support can say where a group is. Not normal mods otherwise people might
+                                    # trample on each other's toes.
+                                    $g->setPrivate('lat', $lat);
+                                    $g->setPrivate('lng', $lng);
+                                    $g->setPrivate('polyofficial', $core);
+                                    $g->setPrivate('poly', $catchment);
+                                }
                             }
                         }
 

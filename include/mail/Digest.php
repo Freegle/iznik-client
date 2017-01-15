@@ -162,7 +162,7 @@ class Digest
                     #
                     # Anything that is per-group is passed in as a parameter here.  Anything that is or might
                     # become per-user is in the template as a {{...}} substitution.
-                    $msghtml = digest_message($msg, $msg['id']);
+                    $msghtml = digest_message($msg, $msg['id'], TRUE);
                     $html = digest_single($msghtml,
                         'https://' . USER_SITE,
                         USER_DOMAIN,
@@ -173,10 +173,14 @@ class Digest
                         $msg['fromaddr']
                     );
 
-                    # We have to send from the mods email, because of DMARC.
+                    $u = User::get($this->dbhr, $this->dbhm, $msg['fromuser']['id']);
+
+                    # If we have an email on our domain, we use it; otherwise we have to send from the mods email, because of DMARC.
+                    $ouremail = $u->getOurEmail();
+
                     $tosend[] = [
                         'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
-                        'from' => $g->getModsEmail(),
+                        'from' => $ouremail ? $ouremail : $g->getAutoEmail(),
                         'fromname' => $msg['fromname'],
                         'replyto' => $msg['fromaddr'],
                         'replytoname' => $msg['fromname'],
@@ -196,7 +200,7 @@ class Digest
                 $subjinfo = '';
 
                 foreach ($available as $msg) {
-                    $availablehtml .= $msghtml = digest_message($msg, $msg['id']);
+                    $availablehtml .= $msghtml = digest_message($msg, $msg['id'], TRUE);
                     $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
 
@@ -216,7 +220,7 @@ class Digest
                 $unavailablehtml = '';
 
                 foreach ($unavailable as $msg) {
-                    $unavailablehtml .= digest_message($msg, $msg['id']);
+                    $unavailablehtml .= digest_message($msg, $msg['id'], FALSE);
                     $textsumm .= $msg['subject'] . " (post completed, no longer active)\r\n";
                 }
 
@@ -229,12 +233,12 @@ class Digest
                     $gatts['namedisplay'],
                     $subject,
                     $gatts['namedisplay'],
-                    $g->getModsEmail()
+                    $g->getAutoEmail()
                 );
 
                 $tosend[] = [
                     'subject' => $subject,
-                    'from' => $g->getModsEmail(),
+                    'from' => $g->getAutoEmail(),
                     'fromname' => $gatts['namedisplay'],
                     'replyto' => $g->getModsEmail(),
                     'replytoname' => $gatts['namedisplay'],
@@ -263,18 +267,18 @@ class Digest
                     if ($this->errorlog) { error_log("Preferred $email"); }
 
                     if ($email && $email != MODERATOR_EMAIL && $u->sendOurMails($g)) {
-                        $t = $u->loginLink(USER_SITE, $u->getId(), '/');
+                        $t = $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST);
                         $creds = substr($t, strpos($t, '?'));
 
                         $replacements[$email] = [
                             '{{toname}}' => $u->getName(),
                             '{{bounce}}' => $u->getBounce(),
-                            '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe'),
+                            '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_DIGEST),
                             '{{email}}' => $email,
                             '{{frequency}}' => $this->freqText[$frequency],
                             '{{noemail}}' => 'digestoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
-                            '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/'),
-                            '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups'),
+                            '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST),
+                            '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups', User::SRC_DIGEST),
                             '{{creds}}' => $creds
                         ];
                     }

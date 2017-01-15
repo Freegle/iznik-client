@@ -379,6 +379,8 @@ require([
         });
     }
 
+    // Bootstrap adds body padding which we don't want.
+    $('body').css('padding-right', '');
 });
 }, 250);
 

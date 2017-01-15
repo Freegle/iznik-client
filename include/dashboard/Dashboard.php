@@ -22,14 +22,14 @@ class Dashboard {
         $groupids = [];
 
         # Get the possible groups.
-        if ($systemwide && $this->me->isAdminOrSupport()) {
+        if ($systemwide) {
             $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE publish = 1;");
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];
             }
         } else if ($groupid) {
             $groupids[] = $groupid;
-        } else if ($allgroups) {
+        } else if ($this->me && $allgroups) {
             $groupids = $this->me->getModeratorships();
         }
 
@@ -43,7 +43,7 @@ class Dashboard {
             }
         }
 
-        $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids, $start);
+        $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids, $start, "today", $systemwide);
 
         if ($groupid) {
             if ($this->me && $this->me->isModerator()) {
@@ -75,19 +75,19 @@ class Dashboard {
 
                 $ret['modinfo'] = $active;
             }
-
-            # We also want to get the recent outcomes, where we know them.
-            $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
-            foreach ([Message::TYPE_OFFER, Message::TYPE_WANTED] as $type) {
-                $outcomes = $this->dbhr->preQuery("SELECT messages_outcomes.outcome, COUNT(*) AS count FROM messages_groups INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid WHERE messages_groups.arrival >= ? AND groupid = ? AND msgtype = ? GROUP BY outcome;", [
-                    $mysqltime,
-                    $groupid,
-                    $type
-                ]);
-
-                $ret['Outcomes'][$type] = $outcomes;
-            }
         }
+
+        # We also want to get the recent outcomes, where we know them.
+        $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
+        foreach ([Message::TYPE_OFFER, Message::TYPE_WANTED] as $type) {
+            $outcomes = $this->dbhr->preQuery("SELECT messages_outcomes.outcome, COUNT(*) AS count FROM messages_groups INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid WHERE messages_groups.arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") AND msgtype = ? GROUP BY outcome;", [
+                $mysqltime,
+                $type
+            ]);
+
+            $ret['Outcomes'][$type] = $outcomes;
+        }
+
 
         return($ret);
     }

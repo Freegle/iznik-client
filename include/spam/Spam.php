@@ -154,8 +154,7 @@ class Spam {
 
         # Check if this is a greetings spam.
         $text = $msg->getTextbody();
-        if (stripos($text, 'http')) {
-            error_log("Got http");
+        if (stripos($text, 'http') || stripos($text, '.php')) {
             $p = strpos($text, "\n");
             $q = strpos($text, "\n", $p + 1);
             $r = strpos($text, "\n", $q + 1);
@@ -279,6 +278,7 @@ class Spam {
                 $spammer['byuser'] = $u->getPublic();
             }
 
+            $spammer['added'] = ISODate($spammer['added']);
             $context['id'] = $spammer['id'];
         }
 
