@@ -197,7 +197,7 @@ define([
                                 Iznik.Session.unset('loggedintoyahooas');
                             }
                         }, error: function () {
-                            self.$('.js-yahooinfo').html("You aren't connected to Yahoo.");
+                            self.$('.js-yahooinfo').html("You aren't connected to Yahoo. (If the app has been updated then you may need to uninstall and install again to be able to sign in and connect.");
                             Iznik.Session.unset('loggedintoyahooas');
                         }
                     });
