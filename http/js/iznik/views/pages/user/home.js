@@ -232,7 +232,10 @@ define([
                 self.searchView = new Backbone.CollectionView({
                     el: self.$('.js-searchlist'),
                     modelView: Iznik.Views.User.Home.Search,
-                    collection: self.searches
+                    collection: self.searches,
+                    modelViewOptions: {
+                        collection: self.searches
+                    }
                 });
 
                 self.searchView.render();
@@ -578,7 +581,10 @@ define([
                 },
                 success: function(ret) {
                     if (ret.ret == 0) {
-                        self.$el.fadeOut('slow');
+                        // Fetch to update our view and cache.
+                        self.options.collection.fetch({
+                            cached: function() {}
+                        });
                     }
                 }
             });
