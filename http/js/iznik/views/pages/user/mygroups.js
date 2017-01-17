@@ -7,6 +7,7 @@ define([
     'iznik/selectpersist',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
+    'iznik/views/group/communityevents',
     'iznik/views/pages/user/post',
     'iznik/views/pages/user/group',
     'iznik/views/group/select',
@@ -30,7 +31,7 @@ define([
                     });
 
                     self.collectionView = new Backbone.CollectionView({
-                        el: self.$('.js-list'),
+                        el: self.$('.js-msglist'),
                         modelView: Iznik.Views.User.Message.Replyable,
                         modelViewOptions: {
                             collection: self.collection,
@@ -71,11 +72,19 @@ define([
                                 });
                             }
                         }
+
+                        // Left menu is community events
+                        var v = new Iznik.Views.User.CommunityEventsSidebar({
+                            groupid: selected == -1 ? null : selected
+                        });
+                        v.render().then(function () {
+                            $('#js-eventcontainer').html(v.$el);
+                        });
                     });
 
                     // Render after the listen to as that are called during render.
                     v.render().then(function(v) {
-                        self.$('.js-groupselect').html(v.el);
+                        self.$('.js-msggroupselect').html(v.el);
                     });
 
                     // Add a type selector.  The parent class has an event and method to re-render if we change that.
