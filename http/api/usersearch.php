@@ -4,8 +4,6 @@ function usersearch() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
-    $me = whoAmI($dbhr, $dbhm);
-
     $id = presdef('id', $_REQUEST, NULL);
     $s = new UserSearch($dbhr, $dbhm, $id);
     $me = whoAmI($dbhr, $dbhm);
