@@ -171,6 +171,7 @@ define([
             "plugins/group/:id": "groupPlugin",
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
+            "stories": "userStories",
             "*path": "userHome"
         },
 
@@ -278,6 +279,15 @@ define([
             });
 
             Iznik.Session.forceLogin();
+        },
+
+        userStories: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/stories"], function() {
+                var page = new Iznik.Views.User.Pages.Stories();
+                self.loadRoute({page: page});
+            });
         },
 
         userChat: function(chatid) {
