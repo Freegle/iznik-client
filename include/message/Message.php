@@ -2422,6 +2422,7 @@ class Message
 
         # Get rid of sigs
         $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my phone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my .*smartphone./ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
