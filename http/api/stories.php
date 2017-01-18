@@ -15,8 +15,8 @@ function stories() {
             if ($id) {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                # Can see our own, or all if we have permissions.
-                if ($s->getPrivate('userid') == $myid || $me->isAdminOrSupport()) {
+                # Can see our own, or all if we have permissions, or if it's public
+                if ($s->getPrivate('public') || $s->getPrivate('userid') == $myid || ($me && $me->isAdminOrSupport())) {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
@@ -31,7 +31,11 @@ function stories() {
         case 'PUT':
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
             if ($me) {
-                $id = $s->create($me->getId(), presdef('headline', $_REQUEST, NULL), presdef('story', $_REQUEST, NULL));
+                $id = $s->create($me->getId(),
+                    presdef('public', $_REQUEST, 1),
+                    presdef('headline', $_REQUEST, NULL),
+                    presdef('story', $_REQUEST,
+                    NULL));
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
@@ -54,7 +58,7 @@ function stories() {
 
         case 'DELETE': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            if ($s->getPrivate('userid') == $myid || $me->isAdminOrSupport()) {
+            if ($s->getPrivate('public') || $s->getPrivate('userid') == $myid || ($me && $me->isAdminOrSupport())) {
                 $s->delete();
 
                 $ret = [

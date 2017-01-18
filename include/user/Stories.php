@@ -6,18 +6,19 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 class Story extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'userid', 'date', 'headline', 'story');
-    var $settableatts = array('headline', 'story');
+    var $publicatts = array('id', 'userid', 'date', 'public', 'headline', 'story');
+    var $settableatts = array('public', 'headline', 'story');
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'users_stories', 'story', $this->publicatts);
     }
 
-    public function create($userid, $headline, $story) {
+    public function create($userid, $public, $headline, $story) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO users_stories (userid, headline, story) VALUES (?,?,?);", [
+        $rc = $this->dbhm->preExec("INSERT INTO users_stories (public, userid, headline, story) VALUES (?,?,?,?);", [
+            $public,
             $userid,
             $headline,
             $story

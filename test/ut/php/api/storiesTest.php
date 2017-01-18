@@ -74,13 +74,28 @@ class storiesAPITest extends IznikAPITestCase {
         $ret = $this->call('stories', 'PATCH', [
             'id' => $id,
             'headline' => 'Test2',
-            'story' => 'Test2'
+            'story' => 'Test2',
+            'public' => 0
         ]);
         assertEquals(0, $ret['ret']);
 
         $ret = $this->call('stories', 'GET', [ 'id' => $id ]);
         self::assertEquals('Test2', $ret['story']['headline']);
         self::assertEquals('Test2', $ret['story']['story']);
+
+        $_SESSION['id'] = NULL;
+
+        # Get logged out - should fail, not public
+        $ret = $this->call('stories', 'GET', [ 'id' => $id ]);
+        assertEquals(2, $ret['ret']);
+
+        # Delete - should fail
+        $ret = $this->call('stories', 'DELETE', [
+            'id' => $id
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        assertTrue($this->user->login('testpw'));
 
         # Delete - should work
         $ret = $this->call('stories', 'DELETE', [
