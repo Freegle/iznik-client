@@ -2395,6 +2395,10 @@ class Message
         $p = strpos($textbody, '________________________________');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Some group sigs
+        $p = strpos($textbody, '~*~*~*~*~*~*');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # A reply from us.
         $p = strpos($textbody, "You can respond by just replying to this email");
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
@@ -2422,6 +2426,7 @@ class Message
 
         # Get rid of sigs
         $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Xperia.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my phone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my .*smartphone./ms', '', $textbody);
