@@ -180,7 +180,7 @@ define([
 
                     // Loader depends on which site we are.
                     waitPromise.then(function() {
-                        $('#js-modalloader').attr('src', modtools ? '/images/loadermodal.gif' : '/images/userloader.gif');
+                        $('#js-modalloader').attr('src', iznikroot + (modtools ? 'images/loadermodal.gif' : 'images/userloader.gif'));    // CC
                         $('#js-modalloader').show();
                     });
 
