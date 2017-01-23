@@ -1,11 +1,11 @@
 <?php
 
-function digest_message($msg, $msgid, $available) {
+function digest_message($msg, $msgid, $available, $replyto) {
     $text = htmlentities($msg['textbody']);
     $text = nl2br($text);
     $date = date("D, jS F g:ia", strtotime($msg['date']));
     $replyweb = $available ? "https://" . USER_SITE . "/message/$msgid" : '';
-    $replyemail = "mailto:{$msg['fromaddr']}?subject=" . rawurlencode("Re: " . $msg['subject']);
+    $replyemail = "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']);
 
     $html = <<<EOT
     <table width="100%">

@@ -692,6 +692,7 @@ define([
                     el: self.$('.js-chats'),
                     modelView: Iznik.Views.Chat.Active,
                     collection: Iznik.Session.chats,
+                    reuseModelViews: false, // Solves some weird problems with messages being repeated
                     modelViewOptions: {
                         organise: _.bind(self.organise, self),
                         updateCounts: _.bind(self.updateCounts, self),
