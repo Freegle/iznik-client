@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
-$messages = $dbhr->preQuery("SELECT * FROM messages WHERE id = 14170415;");
+$messages = $dbhr->preQuery("SELECT * FROM messages WHERE id = 14423344;");
 $m = new ChatMessage($dbhr, $dbhm);
 
 foreach ($messages as $message) {
