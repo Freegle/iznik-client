@@ -115,7 +115,7 @@ class MailRouter
     }
 
     # Public for UT
-    public function markPending($force) {
+    public function markPending($force, $onyahoo) {
         # Set the message as pending.
         #
         # If we're forced we just do it.  The force is to allow us to move from Spam to Pending.
@@ -133,7 +133,10 @@ class MailRouter
             #error_log("MarkPending " . $this->msg->getID() . " from collection $overq");
         }
 
-        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ? $overq;", [ $this->msg->getID() ]);
+        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending', senttoyahoo = ? WHERE msgid = ? $overq;", [
+            $onyahoo ? 1 : 0,
+            $this->msg->getID()
+        ]);
 
         # Notify mods of new work
         $groups = $this->msg->getGroups();
@@ -784,7 +787,7 @@ class MailRouter
                                 error_log("Mark as pending");
                             }
 
-                            if ($this->markPending($notspam)) {
+                            if ($this->markPending($notspam, TRUE)) {
                                 $ret = MailRouter::PENDING;
                             }
                         }
@@ -809,7 +812,7 @@ class MailRouter
 
                                     if ($ps == Group::POSTING_MODERATED) {
                                         if ($log) { error_log("Mark as pending"); }
-                                        if ($this->markPending($notspam)) {
+                                        if ($this->markPending($notspam, FALSE)) {
                                             $ret = MailRouter::PENDING;
                                         }
                                     } else {
@@ -833,9 +836,12 @@ class MailRouter
                         }
                     }
                 } else {
-                    # It's not to one of our groups - but it could be a reply to one of our users - either directly
-                    # (which happens after posting on a group) or in reply to an email notification (which happens
-                    # in subsequent exchanges).
+                    # It's not to one of our groups - but it could be a reply to one of our users, in several ways:
+                    # - to the reply address we put in our What's New mails
+                    # - directly to their USER_DOMAIN address, which happens after their message has been posted
+                    #   on a Yahoo group and we get a reply through that route
+                    # - in response to an email chat notification, which happens as a result of subsequent
+                    #   communications after the previous two
                     $u = User::get($this->dbhr, $this->dbhm);
                     $to = $this->msg->getEnvelopeto();
                     $to = $to ? $to : $this->msg->getHeader('to');
@@ -843,7 +849,43 @@ class MailRouter
                     $uid = NULL;
                     $ret = MailRouter::DROPPED;
 
-                    if (preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
+                    if (preg_match('/replyto-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
+                        if (!$this->msg->isBounce() && !$this->msg->isAutoreply()) {
+                            $msgid = intval($matches[1]);
+                            $fromid = intval($matches[2]);
+
+                            $m = new Message($this->dbhr, $this->dbhm, $msgid);
+                            $u = User::get($this->dbhr, $this->dbhm, $fromid);
+
+                            if ($m->getID() && $u->getId() && $m->getFromuser()) {
+                                # The email address that we replied from might not currently be attached to the
+                                # other user, for example if someone has email forwarding set up.  So make sure we
+                                # have it.
+                                $u->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
+
+                                $fromu = User::get($this->dbhr, $this->dbhm, $m->getFromuser());
+
+                                # The sender of this reply will always be on our platform, because otherwise we
+                                # wouldn't have generated a What's New mail to them.  So we want to set up a chat
+                                # between them and the sender of the message (who might or might not be on our
+                                # platform).
+                                $r = new ChatRoom($this->dbhr, $this->dbhm);
+                                $chatid = $r->createConversation($fromid, $m->getFromuser());
+
+                                # Now add this into the conversation as a message.  This will notify them.
+                                $textbody = $this->msg->stripQuoted();
+
+                                $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                $mid = $m->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
+
+                                # The user sending this is up to date with this conversation.  This prevents us
+                                # notifying her about other messages.
+                                $r->mailedLastForUser($fromid);
+
+                                $ret = MailRouter::TO_USER;
+                            }
+                        }
+                    } else if (preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
                         # It's a reply to an email notification.
                         if (!$this->msg->isBounce()) {
                             $chatid = intval($matches[1]);
