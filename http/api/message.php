@@ -455,45 +455,51 @@ function message() {
                         $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
                         break;
                     case 'OutcomeIntended':
-                        $outcome = presdef('outcome', $_REQUEST, NULL);
-                        $m->intendedOutcome($outcome);
+                        # Ignore duplicate attempts by user to supply an outcome.
+                        if (!$m->hasOutcome()) {
+                            $outcome = presdef('outcome', $_REQUEST, NULL);
+                            $m->intendedOutcome($outcome);
+                        }
                         break;
                     case 'Outcome':
-                        $outcome = presdef('outcome', $_REQUEST, NULL);
-                        $h = presdef('happiness', $_REQUEST, NULL);
-                        $happiness = NULL;
-                        
-                        switch ($h) {
-                            case User::HAPPY:
-                            case User::FINE:
-                            case User::UNHAPPY:
-                                $happiness = $h;
-                                break;
-                        }
-                        
-                        $comment = presdef('comment', $_REQUEST, NULL);
-                        
-                        $ret = ['ret' => 1, 'status' => 'Odd action'];
+                        # Ignore duplicate attempts by user to supply an outcome.
+                        if (!$m->hasOutcome()) {
+                            $outcome = presdef('outcome', $_REQUEST, NULL);
+                            $h = presdef('happiness', $_REQUEST, NULL);
+                            $happiness = NULL;
 
-                        switch ($outcome) {
-                            case Message::OUTCOME_TAKEN: {
-                                if ($m->getType() == Message::TYPE_OFFER) {
-                                    $m->mark($outcome, $comment, $happiness, $userid);
-                                    $ret = ['ret' => 0, 'status' => 'Success'];
-                                };
-                                break;
+                            switch ($h) {
+                                case User::HAPPY:
+                                case User::FINE:
+                                case User::UNHAPPY:
+                                    $happiness = $h;
+                                    break;
                             }
-                            case Message::OUTCOME_RECEIVED: {
-                                if ($m->getType() == Message::TYPE_WANTED) {
-                                    $m->mark($outcome, $comment, $happiness, $userid);
+
+                            $comment = presdef('comment', $_REQUEST, NULL);
+
+                            $ret = ['ret' => 1, 'status' => 'Odd action'];
+
+                            switch ($outcome) {
+                                case Message::OUTCOME_TAKEN: {
+                                    if ($m->getType() == Message::TYPE_OFFER) {
+                                        $m->mark($outcome, $comment, $happiness, $userid);
+                                        $ret = ['ret' => 0, 'status' => 'Success'];
+                                    };
+                                    break;
+                                }
+                                case Message::OUTCOME_RECEIVED: {
+                                    if ($m->getType() == Message::TYPE_WANTED) {
+                                        $m->mark($outcome, $comment, $happiness, $userid);
+                                        $ret = ['ret' => 0, 'status' => 'Success'];
+                                    };
+                                    break;
+                                }
+                                case Message::OUTCOME_WITHDRAWN: {
+                                    $m->withdraw($comment, $happiness, $userid);
                                     $ret = ['ret' => 0, 'status' => 'Success'];
-                                };
-                                break;
-                            }
-                            case Message::OUTCOME_WITHDRAWN: {
-                                $m->withdraw($comment, $happiness, $userid);
-                                $ret = ['ret' => 0, 'status' => 'Success'];
-                                break;
+                                    break;
+                                }
                             }
                         }
                         break;

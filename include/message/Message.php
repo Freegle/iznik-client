@@ -3402,22 +3402,24 @@ class Message
         foreach ($intendeds as $intended) {
             $m = new Message($this->dbhr, $this->dbhm, $intended['msgid']);
 
-            switch ($intended['outcome']) {
-                case 'Taken':
-                    $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);
-                    break;
-                case 'Received':
-                    $m->mark(Message::OUTCOME_RECEIVED, NULL, NULL, NULL);
-                    break;
-                case 'Withdrawn':
-                    $m->withdraw(NULL, NULL);
-                    break;
-                case 'Repost':
-                    $m->repost();
-                    break;
-            }
+            if (!$m->hasOutcome()) {
+                switch ($intended['outcome']) {
+                    case 'Taken':
+                        $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);
+                        break;
+                    case 'Received':
+                        $m->mark(Message::OUTCOME_RECEIVED, NULL, NULL, NULL);
+                        break;
+                    case 'Withdrawn':
+                        $m->withdraw(NULL, NULL);
+                        break;
+                    case 'Repost':
+                        $m->repost();
+                        break;
+                }
 
-            $count++;
+                $count++;
+            }
         }
 
         return($count);
@@ -3557,5 +3559,11 @@ class Message
         }
 
         return ($autoreply);
+    }
+
+    public function hasOutcome() {
+        $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
+        $outcomes = $this->dbhr->preQuery($sql, [ $this->id ]);
+        return(count($outcomes) > 0);
     }
 }
