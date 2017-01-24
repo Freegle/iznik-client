@@ -64,11 +64,11 @@ define([
                             var group = Iznik.Session.getGroup(selected);
 
                             if (group) {
-                                var v = new Iznik.Views.User.Pages.MyGroups.GroupInfo({
+                                var w = new Iznik.Views.User.Pages.MyGroups.GroupInfo({
                                     model: group
                                 });
-                                v.render().then(function() {
-                                    self.$('.js-groupinfo').html(v.$el);
+                                w.render().then(function() {
+                                    self.$('.js-groupinfo').html(w.$el);
                                 });
                             }
                         }
