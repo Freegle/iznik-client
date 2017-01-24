@@ -911,7 +911,7 @@ class ChatRoom extends Entity
             # This is a conversation between two users.  They're both in the roster so we can see what their last
             # seen message was and decide who to chase.
             #
-            # Used to remail - but that never stops if they don't visit the site.
+            # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
             $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
@@ -1020,7 +1020,7 @@ class ChatRoom extends Entity
         # members - which is a much smaller set.
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND chattype = ? $chatq;";
+        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND chattype = ? $chatq AND chatid = 1268215;";
         #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
         #error_log("Chats " . var_export($chats, TRUE));
@@ -1198,6 +1198,9 @@ class ChatRoom extends Entity
                                     error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
                                     try {
                                         #$to = 'log@ehibbert.org.uk';
+                                        # We only include the HTML part if this is a user on our platform; otherwise
+                                        # we just send a text bodypart containing the replies.  This means that our
+                                        # messages to users who aren't on here look less confusing.
                                         $message = $this->constructMessage($thisu,
                                             $member['userid'],
                                             $thisu->getName(),
@@ -1206,7 +1209,7 @@ class ChatRoom extends Entity
                                             $replyto,
                                             $subject,
                                             $textsummary,
-                                            $html);
+                                            $thisu->getOurEmail() ? $html : NULL);
                                         $this->mailer($message);
 
                                         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
