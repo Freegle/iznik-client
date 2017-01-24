@@ -1002,7 +1002,8 @@ class User extends Entity
         }
 
         # If the login with this type already exists in the table, that's fine.
-        $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE credentials = ?;",
+        $sql = "INSERT INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE credentials = ?;";
+        $rc = $this->dbhm->preExec($sql,
             [$this->id, $uid, $type, $creds, $creds]);
 
         # If we add a login, we might be about to log in.
