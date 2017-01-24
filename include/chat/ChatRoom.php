@@ -1178,13 +1178,16 @@ class ChatRoom extends Entity
                                     case ChatRoom::TYPE_USER2USER:
                                         $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
                                             $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
+                                        $sendname = $fromname;
                                         break;
                                     case ChatRoom::TYPE_USER2MOD:
                                         if ($member['role'] == User::ROLE_MEMBER) {
                                             $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
                                                 $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
+                                            $sendname = $fromname;
                                         } else {
                                             $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
+                                            $sendname = 'Reply All';
                                         }
                                         break;
                                 }
@@ -1205,7 +1208,7 @@ class ChatRoom extends Entity
                                             $member['userid'],
                                             $thisu->getName(),
                                             $to,
-                                            $fromname,
+                                            $sendname,
                                             $replyto,
                                             $subject,
                                             $textsummary,
