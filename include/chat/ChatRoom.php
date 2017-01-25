@@ -333,7 +333,7 @@ class ChatRoom extends Entity
 
     public function mailedLastForUser($userid)
     {
-        $sql = "UPDATE chat_roster SET lastmsgemailed = (SELECT MAX(id) FROM chat_messages WHERE chatid = ?) WHERE userid = ? AND chatid = ?;";
+        $sql = "UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = (SELECT MAX(id) FROM chat_messages WHERE chatid = ?) WHERE userid = ? AND chatid = ?;";
         $this->dbhm->preExec($sql, [
             $this->id,
             $userid,
@@ -555,7 +555,7 @@ class ChatRoom extends Entity
     public function upToDate($userid) {
         $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
         foreach ($msgs as $msg) {
-            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ?;",
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;",
                 [
                     $msg['max'],
                     $msg['max'],
@@ -911,7 +911,7 @@ class ChatRoom extends Entity
             # This is a conversation between two users.  They're both in the roster so we can see what their last
             # seen message was and decide who to chase.
             #
-            # Used to remail - but that never stops if they don't visit the site.
+            # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
             $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
@@ -1178,13 +1178,16 @@ class ChatRoom extends Entity
                                     case ChatRoom::TYPE_USER2USER:
                                         $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
                                             $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
+                                        $sendname = $fromname;
                                         break;
                                     case ChatRoom::TYPE_USER2MOD:
                                         if ($member['role'] == User::ROLE_MEMBER) {
                                             $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
                                                 $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
+                                            $sendname = $fromname;
                                         } else {
                                             $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
+                                            $sendname = 'Reply All';
                                         }
                                         break;
                                 }
@@ -1198,15 +1201,18 @@ class ChatRoom extends Entity
                                     error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
                                     try {
                                         #$to = 'log@ehibbert.org.uk';
+                                        # We only include the HTML part if this is a user on our platform; otherwise
+                                        # we just send a text bodypart containing the replies.  This means that our
+                                        # messages to users who aren't on here look less confusing.
                                         $message = $this->constructMessage($thisu,
                                             $member['userid'],
                                             $thisu->getName(),
                                             $to,
-                                            $fromname,
+                                            $sendname,
                                             $replyto,
                                             $subject,
                                             $textsummary,
-                                            $html);
+                                            $thisu->getOurEmail() ? $html : NULL);
                                         $this->mailer($message);
 
                                         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [

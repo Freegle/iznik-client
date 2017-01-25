@@ -24,6 +24,11 @@ class chatMessagesTest extends IznikTestCase {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
+        $users = $dbhr->preQuery("SELECT userid FROM users_emails WHERE email = 'from2@test.com'");
+        foreach ($users as $user) {
+            $dbhm->preExec("DELETE FROM users WHERE id = ?;", [ $user['userid']]);
+        }
+
 
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
@@ -95,7 +100,7 @@ class chatMessagesTest extends IznikTestCase {
         assertEquals(MailRouter::TO_USER, $rc);
 
         # Check got flagged.
-        $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com')");
+        $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
         assertEquals(1, $msgs[0]['reviewrequired']);
 
         error_log(__METHOD__ . " end");

@@ -1327,6 +1327,13 @@ body {
     white-space: nowrap;
 }
 
+.margtrans {
+    -webkit-transition: margin-left 0.5s linear;
+    -moz-transition: margin-left 0.5s linear;
+    -o-transition: margin-left 0.5s linear;
+    transition: margin-left 0.5s linear;
+}
+
 /*==================================================
 =            Bootstrap 3 Media Queries             =
 ==================================================*/

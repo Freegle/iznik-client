@@ -169,9 +169,11 @@ define([
         render: function() {
             var self = this;
 
+            console.log("Render message", self.model.get('id'), self.rendering);
             if (!self.rendering) {
                 var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
+                console.log("Got replies", replies.length, replies);
 
                 // Make safe and decent for display.
                 this.model.stripGumf('textbody');
@@ -329,6 +331,7 @@ define([
                 // data which we would otherwise fail to display.
                 //
                 // Don't tight loop by using then().
+                console.log("Already rendering - wait");
                 _.delay(_.bind(self.render, self), 200);
             }
 

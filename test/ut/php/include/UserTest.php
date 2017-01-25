@@ -518,6 +518,27 @@ class userTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testMergeForbidden()
+    {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $id2 = $u->create(NULL, NULL, 'Test User');
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
+        $settings = $u1->getPublic()['settings'];
+        $settings['canmerge'] = FALSE;
+        $u1->setPrivate('settings', json_encode($settings));
+        assertFalse($u1->merge($id1, $id2, "Should fail"));
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
+        assertEquals($id1, $u1->getId());
+        assertEquals($id2, $u2->getId());
+    }
+
     public function testSystemRoleMax() {
 
         error_log(__METHOD__);

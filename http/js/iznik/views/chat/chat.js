@@ -716,6 +716,7 @@ define([
                     el: self.$('.js-chats'),
                     modelView: Iznik.Views.Chat.Active,
                     collection: Iznik.Session.chats,
+                    reuseModelViews: false, // Solves some weird problems with messages being repeated
                     modelViewOptions: {
                         organise: _.bind(self.organise, self),
                         updateCounts: _.bind(self.updateCounts, self),
@@ -1711,7 +1712,8 @@ define([
 
     Iznik.Views.Chat.Message = Iznik.View.extend({
         events: {
-            'click .js-viewchat': 'viewChat'
+            'click .js-viewchat': 'viewChat',
+            'click .chat-when': 'msgZoom'
         },
 
         viewChat: function () {
@@ -1728,6 +1730,14 @@ define([
 
                 v.render();
             });
+        },
+
+        msgZoom: function() {
+            var self = this;
+            var v = new Iznik.Views.Chat.Message.Zoom({
+                model: self.model
+            });
+            v.render();
         },
 
         render: function () {
@@ -1841,6 +1851,21 @@ define([
             } else {
                 p = resolvedPromise(this);
             }
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.Chat.Message.Zoom = Iznik.Views.Modal.extend({
+        template: 'chat_messagezoom',
+
+        render: function() {
+            var self = this;
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+            p.then(function () {
+                var date = new moment(self.model.get('date'));
+                self.$('.js-date').html(date.format('DD-MMM-YY HH:mm'));
+            });
 
             return (p);
         }

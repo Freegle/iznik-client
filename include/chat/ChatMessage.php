@@ -30,6 +30,9 @@ class ChatMessage extends Entity
     # Use matching from https://gist.github.com/gruber/249502 .
     private $urlPattern = '#(?i)\b(((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))|(\.com\/))#m';
 
+    # ...but this matches some bad character patterns.
+    private $urlBad = [ '%', '{', ';', '#', ':' ];
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
@@ -52,7 +55,16 @@ class ChatMessage extends Entity
 
             foreach ($matches as $val) {
                 foreach ($val as $url) {
-                    if (strlen($url) > 0 && stripos($url, 'http') !== FALSE) {
+                    $bad = FALSE;
+                    $url2 = str_replace('http:', '', $url);
+                    $url2 = str_replace('https:', '', $url2);
+                    foreach ($this->urlBad as $badone) {
+                        if (strpos($url2, $badone) !== FALSE) {
+                            $bad = TRUE;
+                        }
+                    }
+
+                    if (!$bad && strlen($url) > 0) {
                         $url = substr($url, strpos($url, '://') + 3);
                         $p = strpos($url, '/');
                         $domain = $p ? substr($url, 0, $p) : $url;
@@ -85,7 +97,16 @@ class ChatMessage extends Entity
 
             foreach ($matches as $val) {
                 foreach ($val as $url) {
-                    if (strlen($url) > 0) {
+                    $bad = FALSE;
+                    $url2 = str_replace('http:', '', $url);
+                    $url2 = str_replace('https:', '', $url2);
+                    foreach ($this->urlBad as $badone) {
+                        if (strpos($url2, $badone) !== FALSE) {
+                            $bad = TRUE;
+                        }
+                    }
+
+                    if (!$bad && strlen($url) > 0) {
                         $url = substr($url, strpos($url, '://') + 3);
                         $count++;
                         $trusted = FALSE;
@@ -99,6 +120,9 @@ class ChatMessage extends Entity
                         }
 
                         $badurl = $trusted ? $badurl : $url;
+//                        if (!$trusted) {
+//                            error_log("Bad url $url");
+//                        }
                     }
                 }
             }

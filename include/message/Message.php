@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
+require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
@@ -204,7 +205,9 @@ class Message
         ]);
     }
     
-    public function edit($subject, $textbody, $htmlbody) {
+    public function edit($subject, $textbody, $htmlbody, $type, $item, $location) {
+        $ret = TRUE;
+
         if ($htmlbody && !$textbody) {
             # In the interests of accessibility, let's create a text version of the HTML
             $html = new \Html2Text\Html2Text($htmlbody);
@@ -213,21 +216,50 @@ class Message
 
         $me = whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');
+        $text .= ($type ? "New type $type " : '');
+        $text .= ($item ? "New item $item " : '');
+        $text .= ($location ? "New location $location" : '');
         $text .= "Text body changed to len " . strlen($textbody);
         $text .= " HTML body changed to len " . strlen($htmlbody);
 
         # Make sure we have a text value, otherwise we might return a missing body.
         $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
 
-        $this->log->log([
-            'type' => Log::TYPE_MESSAGE,
-            'subtype' => Log::SUBTYPE_EDIT,
-            'msgid' => $this->id,
-            'byuser' => $me ? $me->getId() : NULL,
-            'text' => $text
-        ]);
+        if ($type) {
+            $this->setPrivate('type', $type);
+        }
 
-        if ($subject) {
+        if ($item) {
+            # Remove any old item and add this one.
+            $i = new Item($this->dbhr, $this->dbhm);
+            $iid = $i->create($item);
+
+            $ret = FALSE;
+
+            if ($iid) {
+                $ret = TRUE;
+                $this->dbhm->preExec("DELETE FROM messages_items WHERE msgid = ?;", [ $this->id ]);
+                $this->addItem($iid);
+            }
+        }
+
+        if ($location) {
+            $l = new Location($this->dbhr, $this->dbhm);
+            $lid = $l->findByName($location);
+
+            $ret = FALSE;
+            if ($lid) {
+                $ret = TRUE;
+                $this->setPrivate('locationid', $lid);
+            }
+        }
+
+        if ($ret && ($type || $item || $location)) {
+            # Construct a new subject from the edited values.
+            $groupids = $this->getGroups();
+            $this->constructSubject($groupids[0]);
+            $this->setPrivate('suggestedsubject', $this->subject);
+        } else if ($subject) {
             # If the subject has been edited, then that edit is more important than any suggestion we might have
             # come up with.
             $this->setPrivate('subject', $subject);
@@ -242,18 +274,30 @@ class Message
             $this->setPrivate('htmlbody', $htmlbody);
         }
 
-        $sql = "UPDATE messages SET editedby = ?, editedat = NOW() WHERE id = ?;";
-        $this->dbhm->preExec($sql, [
-            $me ? $me->getId() : NULL,
-            $this->id
-        ]);
+        if ($ret) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_EDIT,
+                'msgid' => $this->id,
+                'byuser' => $me ? $me->getId() : NULL,
+                'text' => $text
+            ]);
 
-        # If we edit a message and then approve it by email, Yahoo breaks the message.  So prevent that happening by
-        # removing the email approval info.
-        $sql = "UPDATE messages_groups SET yahooapprove = NULL, yahooreject = NULL WHERE msgid = ?;";
-        $this->dbhm->preExec($sql, [
-            $this->id
-        ]);
+            $sql = "UPDATE messages SET editedby = ?, editedat = NOW() WHERE id = ?;";
+            $this->dbhm->preExec($sql, [
+                $me ? $me->getId() : NULL,
+                $this->id
+            ]);
+
+            # If we edit a message and then approve it by email, Yahoo breaks the message.  So prevent that happening by
+            # removing the email approval info.
+            $sql = "UPDATE messages_groups SET yahooapprove = NULL, yahooreject = NULL WHERE msgid = ?;";
+            $this->dbhm->preExec($sql, [
+                $this->id
+            ]);
+        }
+
+        return($ret);
     }
 
     /**
@@ -410,13 +454,13 @@ class Message
         }
     }
 
-    public function getRoleForMessage($overrides = TRUE) {
+    public function getRoleForMessage($overrides = TRUE, $me = NULL) {
         # Our role for a message is the highest role we have on any group that this message is on.  That means that
         # we have limited access to information on other groups of which we are not a moderator, but that is legitimate
         # if the message is on our group.
         #
         # We might also be a partner.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
         $role = pres('partner', $_SESSION) ? User::ROLE_MEMBER : User::ROLE_NONMEMBER;
 
         if ($me) {
@@ -2395,6 +2439,10 @@ class Message
         $p = strpos($textbody, '________________________________');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Some group sigs
+        $p = strpos($textbody, '~*~*~*~*~*~*');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # A reply from us.
         $p = strpos($textbody, "You can respond by just replying to this email");
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
@@ -2422,6 +2470,8 @@ class Message
 
         # Get rid of sigs
         $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Xperia.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my phone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my .*smartphone./ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
@@ -2810,7 +2860,7 @@ class Message
                 $loc = $l->ensureVague();
             }
 
-            $subject = presdef(strtolower($this->type), $keywords, $this->type) . ': ' . $items[0]['name'] . " ($loc)";
+            $subject = presdef(strtolower($this->type), $keywords, strtoupper($this->type)) . ': ' . $items[0]['name'] . " ($loc)";
             $this->setPrivate('subject', $subject);
         }
     }
@@ -3396,22 +3446,24 @@ class Message
         foreach ($intendeds as $intended) {
             $m = new Message($this->dbhr, $this->dbhm, $intended['msgid']);
 
-            switch ($intended['outcome']) {
-                case 'Taken':
-                    $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);
-                    break;
-                case 'Received':
-                    $m->mark(Message::OUTCOME_RECEIVED, NULL, NULL, NULL);
-                    break;
-                case 'Withdrawn':
-                    $m->withdraw(NULL, NULL);
-                    break;
-                case 'Repost':
-                    $m->repost();
-                    break;
-            }
+            if (!$m->hasOutcome()) {
+                switch ($intended['outcome']) {
+                    case 'Taken':
+                        $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);
+                        break;
+                    case 'Received':
+                        $m->mark(Message::OUTCOME_RECEIVED, NULL, NULL, NULL);
+                        break;
+                    case 'Withdrawn':
+                        $m->withdraw(NULL, NULL);
+                        break;
+                    case 'Repost':
+                        $m->repost();
+                        break;
+                }
 
-            $count++;
+                $count++;
+            }
         }
 
         return($count);
@@ -3551,5 +3603,11 @@ class Message
         }
 
         return ($autoreply);
+    }
+
+    public function hasOutcome() {
+        $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
+        $outcomes = $this->dbhr->preQuery($sql, [ $this->id ]);
+        return(count($outcomes) > 0);
     }
 }

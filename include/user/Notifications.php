@@ -131,7 +131,7 @@ class Notifications
 
                     break;
             }
-            #error_log("Returned " . var_export($rc, TRUE) . " for {$notif['subscription']}");
+            error_log("Returned " . var_export($rc, TRUE) . " for $userid type $notiftype $endpoint");
             $rc = $this->uthook($rc);
         } catch (Exception $e) {
             $rc = [ 'exception' => $e->getMessage() ];

@@ -26,8 +26,48 @@ define([
             this.$('.js-postcode').tooltip('destroy');
         },
 
+        showButt: function() {
+            var self = this;
+
+            self.$('.js-hidepcpc').removeClass('col-lg-offset-3');
+            self.$('.js-hidepcpc').addClass('col-lg-offset-7 col-lg-5');
+            _.delay(function() {
+                self.$('.js-hidepcpc').removeClass('margtrans');
+                self.$('.js-hidepcpc').removeClass('col-lg-offset-7 col-lg-6');
+                self.$('.js-hidepcbutt').removeClass('hidden');
+                self.$('.js-hidepcor').removeClass('hidden');
+            }, 1100);
+        },
+
+        hideButt: function() {
+            var self = this;
+            self.$('.js-hidepcbutt').addClass('hidden');
+            self.$('.js-hidepcor').addClass('hidden');
+            self.$('.js-hidepcpc').addClass('col-lg-offset-7');
+            _.defer(function() {
+                self.$('.js-hidepcpc').removeClass('col-lg-offset-7 col-lg-5');
+                self.$('.js-hidepcpc').addClass('col-lg-offset-3 col-lg-6 margtrans');
+            });
+        },
+
+        showHideButt: function() {
+            var self = this;
+
+            var val = self.$('.js-postcode').typeahead('val');
+            console.log("Postcode", val);
+
+            if (val.length == 0) {
+                self.showButt();
+            } else {
+                self.hideButt();
+            }
+        },
+
         keyUp: function(e) {
             var self = this;
+
+            self.showHideButt();
+
             if (e.which === 13) {
                 if (self.firstMatch) {
                     // We choose the first match on enter.
@@ -53,8 +93,10 @@ define([
         },
             
         scrollTo: function() {
-            // Make sure they can see the typeahead by scrolling.  Delay because an on-screen keyboard might open.
             var self = this;
+            self.showHideButt();
+
+            // Make sure they can see the typeahead by scrolling.  Delay because an on-screen keyboard might open.
             _.delay(function() {
                 var top = self.$('.tt-input').offset().top ;
                 $('body').scrollTo(top - $('.navbar').height(), 'slow');

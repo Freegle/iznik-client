@@ -666,7 +666,7 @@ And something after it.', $stripped);
         $g->setSettings([ 'includearea' => FALSE ]);
 
         $m->constructSubject($gid);
-        self::assertEquals('Offer: xmas decorations (TV13)', $m->getSubject());
+        self::assertEquals('OFFER: xmas decorations (TV13)', $m->getSubject());
 
         error_log(__METHOD__ . " end");
     }

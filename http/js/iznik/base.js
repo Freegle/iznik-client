@@ -137,20 +137,20 @@ define([
             if (options && options.cached) {
                 // We would like a cached fetch.
                 var key = cacheKey(url, options.data);
-                //console.log("Fetch key", key);
+                console.log("Fetch key", url, key);
 
                 try {
                     var cached = Storage.get(key);
-                    // console.log("Cache get returned", cached ? cached.length : null);
+                    console.log("Cache get returned", cached ? cached.length : null);
                     var expires = Storage.get(key + '.time');
-                    // console.log("Expires", expires);
+                    console.log("Expires", expires);
 
                     if (cached && expires) {
                         // We have some cached data.  Put it into the collection.
-                        // console.log("Got cached data");
+                        console.log("Got cached data");
                         var data = JSON.parse(cached);
                         self.set(data);
-                        // console.log("Collection after set", self);
+                        console.log("Collection after set", self);
 
                         // Now invoke our callback to show we've completed.
                         options.cached();
@@ -158,7 +158,7 @@ define([
                         var now = (new Date()).getTime();
                         var age = now - expires;
                         var expiry = options.hasOwnProperty('cacheExpiry') ? options.cacheExpiry : 60 * 60 * 48;
-                        //console.log("Compare expire", age, expiry);
+                        console.log("Compare expire", age, expiry);
 
                         // We want to fetch if our cache has expired, or if it is valid but we don't just want the
                         // cached value.
@@ -178,12 +178,12 @@ define([
                 self.promise = new Promise(function(resolve, reject) {
                     // We don't have a cached value.  Fetch it.
                     function issueFetch() {
-                        // console.log("Issue fetch", options);
+                        console.log("Issue fetch", options);
                         Backbone.Collection.prototype.fetch.call(self, options).then(function() {
                             // TODO Error handling?
                             if (options && options.cached) {
                                 // We have fetched it - save it in our cache (before the caller can mess with it).
-                                // console.log("Fetched, save it", url);
+                                console.log("Fetched, save it", url);
                                 try {
                                     var key = cacheKey(url, options.data);
                                     var data = JSON.stringify(self.toJSON());
@@ -193,9 +193,13 @@ define([
                                         try {
                                             Storage.set(key, data);
                                             Storage.set(key + '.time', (new Date()).getTime());
-                                            // console.log("Stored length", key, Storage.get(key).length);
+                                            console.log("Stored length", key, Storage.get(key).length);
                                         } catch (e) {
-                                            // Failed.  Most likely quota - tidy some stuff up.
+                                            // Failed.  Most likely quota - tidy some stuff up, including
+                                            // this value so that it doesn't stay out of date.
+                                            Storage.remove(key);
+                                            Storage.remove(key + '.time');
+
                                             console.log("Failed to set", e.message);
                                             Storage.iterate(function(k,v) {
                                                 if (v.length > 10000) {
@@ -216,17 +220,17 @@ define([
                             }
 
                             // Now tell the caller the fetch has completed.
-                            //console.log("Resolve fetch");
+                            console.log("Resolve fetch");
                             resolve();
                         });
                     }
 
                     // Now fetch - immediately or after a delay.
                     if (fetchDelay > 0) {
-                        //console.log("Delay fetch for", fetchDelay);
+                        console.log("Delay fetch for", fetchDelay);
                         window.setTimeout(issueFetch, fetchDelay);
                     } else {
-                        //console.log("Immediate fetch");
+                        console.log("Immediate fetch");
                         issueFetch();
                     }
                 });

@@ -43,7 +43,7 @@ define([
 
             if (!self.fetched) {
                 self.fetched = true;
-                self.$('.js-list').fadeIn('slow');
+                self.$('.js-eventslist').fadeIn('slow');
 
                 self.containerHeight();
                 $(window).resize(self.containerHeight);
@@ -63,7 +63,7 @@ define([
                 self.events = new Iznik.Collections.CommunityEvent();
 
                 self.eventsView = new Backbone.CollectionView({
-                    el: self.$('.js-list'),
+                    el: self.$('.js-eventslist'),
                     modelView: Iznik.Views.User.CommunityEvent,
                     collection: self.events
                 });
@@ -72,7 +72,10 @@ define([
 
                 var cb = _.bind(self.eventsFetched, self);
                 self.events.fetch({
-                    cached: cb
+                    cached: cb,
+                    data: {
+                        groupid: self.options.groupid
+                    }
                 }).then(cb);
             });
 
