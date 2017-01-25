@@ -974,12 +974,10 @@ class messageAPITest extends IznikAPITestCase
 
         # Create an attachment
         $cwd = getcwd();
-        error_log("Initial $cwd");
         $data = file_get_contents('images/chair.jpg');
         $msg = $this->unique(file_get_contents('msgs/basic'));
         file_put_contents("/tmp/chair.jpg", $data);
         chdir($cwd);
-        error_log("After " . getcwd());
 
         $ret = $this->call('image', 'POST', [
             'photo' => [
@@ -995,6 +993,14 @@ class messageAPITest extends IznikAPITestCase
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_OTHER);
+        $g->setPrivate('onyahoo', 1);
+        $g->setPrivate('lat', 8.5);
+        $g->setPrivate('lng', 179.3);
+        $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $g->setPrivate('publish', 1);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
@@ -1042,9 +1048,36 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id
         ]);
+
         assertEquals('Test edit', $ret['message']['subject']);
         assertEquals('Test edit', $ret['message']['suggestedsubject']);
 
+        # Now edit a platform subject.
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $id,
+            'groupid' => $group1,
+            'msgtype' => 'Offer',
+            'item' => 'Test item',
+            'location' => 'TV1 1AA'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals('OFFER: Test item (TV1)', $ret['message']['subject']);
+        assertEquals($ret['message']['subject'], $ret['message']['suggestedsubject']);
+
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $id,
+            'groupid' => $group1,
+            'msgtype' => 'Offer',
+            'item' => 'Test item',
+            'location' => 'TV1 1BB'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Attachments
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,

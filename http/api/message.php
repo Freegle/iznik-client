@@ -196,14 +196,22 @@ function message() {
                     $ret = ['ret' => 2, 'status' => 'Permission denied'];
                 } else {
                     $subject = presdef('subject', $_REQUEST, NULL);
+                    $msgtype = presdef('msgtype', $_REQUEST, NULL);
+                    $item = presdef('item', $_REQUEST, NULL);
+                    $location = presdef('location', $_REQUEST, NULL);
                     $textbody = presdef('textbody', $_REQUEST, NULL);
                     $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
                     $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
                     $attachments = presdef('attachments', $_REQUEST, []);
 
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
 
-                    if ($subject || $textbody || $htmlbody) {
-                        $m->edit($subject, $textbody, $htmlbody);
+                    if ($subject || $textbody || $htmlbody || $msgtype || $item || $location) {
+                        $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location);
+                        $ret = $rc ? $ret : [ 'ret' => 2, 'status' => 'Edit failed' ];
                     }
 
                     if ($fop !== NULL) {
@@ -214,10 +222,6 @@ function message() {
                         $m->replaceAttachments($attachments);
                     }
 
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
                 }
             }
         }

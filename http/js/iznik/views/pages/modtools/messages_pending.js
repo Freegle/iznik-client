@@ -7,6 +7,7 @@ define([
     'iznik/views/pages/pages',
     "iznik/views/pages/modtools/messages",
     'iznik/views/infinite',
+    'typeahead',
     'iznik/views/group/select'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.ModTools.Pages.PendingMessages = Iznik.Views.Infinite.extend({
@@ -94,6 +95,7 @@ define([
             'click .js-excludelocation': 'excludeLocation',
             'click .js-rarelyused': 'rarelyUsed',
             'click .js-savesubj': 'saveSubject',
+            'click .js-saveplatsubj': 'savePlatSubject',
             'click .js-editnotstd': 'editNotStd',
             'click .js-spam': 'spam'
         },
@@ -128,15 +130,34 @@ define([
                 self.rendering = new Promise(function(resolve, reject) {
                     var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
                     p.then(function(self) {
-                        // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different
-                        var sugg = self.model.get('suggestedsubject');
-                        if (sugg && sugg.toLocaleLowerCase() != self.model.get('subject').toLocaleLowerCase()) {
-                            self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
-                        } else {
-                            self.$('.js-subject').closest('.input-group').removeClass('subjectdifference');
-                        }
+                        // For platform messages we don't need to suggest an alternative subject, and the edit
+                        // box isn't free-form.
+                        if (self.model.get('item')) {
+                            self.$('.js-type').val(self.model.get('type'));
+                            self.$('.js-item').val(self.model.get('item').name);
+                            self.$('.js-location').val(self.model.get('location').name);
+                            self.$('.js-postcode').html(self.model.get('postcode').name);
+                            self.$('.js-area').html(self.model.get('area').name);
 
-                        self.$('.js-subject').val(sugg ? sugg : self.model.get('subject'));
+                            self.$('.js-location').typeahead({
+                                minLength: 2,
+                                hint: false,
+                                highlight: true
+                            }, {
+                                name: 'postcodes',
+                                source: _.bind(self.postcodeSource, self)
+                            });
+                        } else {
+                            // Set the suggested subject here to avoid escaping issues.  Highlight it if it's different
+                            var sugg = self.model.get('suggestedsubject');
+                            if (sugg && sugg.toLocaleLowerCase() != self.model.get('subject').toLocaleLowerCase()) {
+                                self.$('.js-subject').closest('.input-group').addClass('subjectdifference');
+                            } else {
+                                self.$('.js-subject').closest('.input-group').removeClass('subjectdifference');
+                            }
+
+                            self.$('.js-subject').val(sugg ? sugg : self.model.get('subject'));
+                        }
 
                         _.each(self.model.get('groups'), function (group) {
                             var mod = new Iznik.Model(group);

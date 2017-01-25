@@ -140,7 +140,7 @@ define([
                             if (item.hasOwnProperty('item')) {
                                 matches.push(item.item.name);
                             }
-                        })
+                        });
 
                         asyncResults(matches);
                     }

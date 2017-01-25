@@ -156,6 +156,38 @@ define([
             });
         },
 
+        editPlatformSubject: function(type, item, location) {
+            var self = this;
+
+            $.ajax({
+                type: 'PATCH',
+                url: API + 'message',
+                data: {
+                    id: self.get('id'),
+                    msgtype: type,
+                    item: item,
+                    location: location
+                },
+                success: function (ret) {
+                    if (ret.ret == 0) {
+                        // Make sure we're up to date.
+                        self.fetch({
+                            data: {
+                                messagehistory: true
+                            }
+                        }).then(function () {
+                            self.trigger('editsucceeded');
+                        });
+                    } else {
+                        self.trigger('editfailed');
+                    }
+                }, error: function (request, status, error) {
+                    console.error("Server edit failed", request, status, error);
+                    self.trigger('editfailed');
+                }
+            });
+        },
+
         serverEdit: function(subject, textbody, htmlbody) {
             // We also drop the text part here, because the server will (in its absence)
             // convert the HTML variant to text - and do a better job than we may have done on the client.
