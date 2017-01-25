@@ -128,6 +128,7 @@ define([
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
             "replay/(:id)": "replay",
+            "mobiledebug": "mobiledebug",
             "find": "userFindWhereAmI",
             "find/whereami": "userFindWhereAmI",
             "find/search/(:search)": "userSearched",
@@ -1129,6 +1130,14 @@ define([
                     modtools: true
                 });
             });
+        },
+
+        mobiledebug: function () {  // CC 
+            var self = this; 
+               require(["iznik/views/pages/user/mobiledebug"], function () { 
+                   var page = new Iznik.Views.User.Pages.MobileDebug(); 
+                   self.loadRoute({ page: page });
+               });
         },
 
         alertViewed: function(alertid) {

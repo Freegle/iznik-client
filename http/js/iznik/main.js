@@ -125,6 +125,11 @@ window.Storage = {
 
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
+if (typeof alllog === 'undefined') { 
+    var alllog = "Log started: "+(new Date()).toISOString(); 
+} 
+var logtog = false; 
+
 function mainOnAppStart() { // CC
 console.log("main boot");	// CC
 isiOS = (window.device.platform === 'iOS'); // CC
@@ -151,6 +156,39 @@ require([
         // Something has gone unpleasantly wrong.
         console.error("Backbone failed to fetch");
         panicReload();
+    }
+
+    var entityMap = { 
+        "&": "&amp;", 
+        "<": "&lt;", 
+        ">": "&gt;", 
+        '"': '&quot;', 
+        "'": '&#39;', 
+        "/": '&#x2F;' 
+    };
+ 
+    function escapeHtml(string) { 
+        return String(string).replace(/[&<>"'\/]/g, function (s) { 
+            return entityMap[s]; 
+        }); 
+    }
+
+    var oldconsolelog = console.log; 
+    console.log = function () {
+        var msg = '';
+        for (var i = 0; i < arguments.length; i++) {
+            var arg = arguments[i];
+            if (typeof arg !== "string") {
+                arg = JSON.stringify(arg);
+            }
+            msg += arg + ' ';
+        }
+        //msg = escapeHtml(msg);
+        msg += "\r\n";
+        logtog = !logtog;
+        alllog = msg + alllog;
+        $('#js-mobilelog').val(alllog);
+        //oldconsolelog(msg); 
     }
 
     // http://hammerjs.github.io/getting-started/
@@ -347,7 +385,8 @@ require([
         });
 
         mobilePush.on('error', function (e) {
-            alert("error: " + e.message);
+            //alert("error: " + e.message);
+            console.log("mobilePush error " + e.message);
         });
     }
 
