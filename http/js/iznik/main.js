@@ -158,21 +158,7 @@ require([
         panicReload();
     }
 
-    var entityMap = { 
-        "&": "&amp;", 
-        "<": "&lt;", 
-        ">": "&gt;", 
-        '"': '&quot;', 
-        "'": '&#39;', 
-        "/": '&#x2F;' 
-    };
- 
-    function escapeHtml(string) { 
-        return String(string).replace(/[&<>"'\/]/g, function (s) { 
-            return entityMap[s]; 
-        }); 
-    }
-
+    // Template to add link to /mobiledebug is in template/user/layout/layout.html
     var oldconsolelog = console.log; 
     console.log = function () {
         var msg = '';
@@ -183,7 +169,6 @@ require([
             }
             msg += arg + ' ';
         }
-        //msg = escapeHtml(msg);
         msg += "\r\n";
         logtog = !logtog;
         alllog = msg + alllog;
