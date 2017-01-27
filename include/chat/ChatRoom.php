@@ -1088,6 +1088,11 @@ class ChatRoom extends Entity
                                     break;
                                 }
 
+                                case ChatMessage::TYPE_REPORTEDUSER: {
+                                    $thisone = "This member reported another member with the comment: {$unmailedmsg['message']}";
+                                    break;
+                                }
+
                                 default: {
                                     # Use the text in the message.
                                     $thisone = $unmailedmsg['message'];
