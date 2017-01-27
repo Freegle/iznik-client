@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
     # We serve up different og: tags to allow preview.
     if (preg_match('/\/explore\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
-        # Individual group - preview with name, tagline, and image.
+        # Individual group - preview with name, tagline, image.
         require_once(BASE_DIR . '/include/config.php');
         require_once(IZNIK_BASE . '/include/db.php');
         require_once(IZNIK_BASE . '/include/group/Group.php');
