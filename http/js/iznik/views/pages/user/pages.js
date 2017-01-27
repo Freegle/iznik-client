@@ -276,9 +276,9 @@ define([
 
         recordLocation: function(location) {
             var self = this;
-            console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name); console.trace();
 
             if (!_.isUndefined(location)) {
+                // console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name); console.trace();
                 this.$('.js-postcode').typeahead('val', location.name);
                 self.$('.js-next').fadeIn('slow');
                 self.$('.js-ok').fadeIn('slow');
