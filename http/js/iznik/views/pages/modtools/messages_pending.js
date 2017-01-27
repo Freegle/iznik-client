@@ -132,7 +132,7 @@ define([
                     p.then(function(self) {
                         // For platform messages we don't need to suggest an alternative subject, and the edit
                         // box isn't free-form.
-                        if (self.model.get('item') && self.model.get('location')) {
+                        if (self.model.get('sourceheader') == 'Platform') {
                             self.$('.js-type').val(self.model.get('type'));
                             self.$('.js-item').val(self.model.get('item').name);
                             self.$('.js-location').val(self.model.get('location').name);
