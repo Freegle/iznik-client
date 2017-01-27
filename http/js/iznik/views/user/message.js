@@ -768,15 +768,24 @@ define([
                                 });
 
                                 // If we were replying, we might have forced a login and shown the message in
-                                // isolation, in which case we need to return to where we were.
+                                // isolation, in which case we need to return to where we were.  But fetch
+                                // the chat messages first, as otherwise we might have a cached version which
+                                // doesn't have our latest one in it which we then display.
                                 try {
-                                    var ret = Storage.get('replyreturn');
-                                    console.log("Return after reply", ret);
+                                    var messages = new Iznik.Collections.Chat.Messages({
+                                        roomid: chatid
+                                    });
+                                    messages.fetch({
+                                        remove: true
+                                    }).then(function () {
+                                        var ret = Storage.get('replyreturn');
+                                        console.log("Return after reply", ret);
 
-                                    if (ret) {
-                                        Storage.remove('replyreturn');
-                                        Router.navigate(ret, true);
-                                    }
+                                        if (ret) {
+                                            Storage.remove('replyreturn');
+                                            Router.navigate(ret, true);
+                                        }
+                                    });
                                 } catch (e) {};
                             }
                         });
