@@ -1042,26 +1042,25 @@ class User extends Entity
             }
         }
 
-        if ($role === User::ROLE_NONMEMBER) {
-            # Now find if we have any membership of the group which might also give us a role.
-            $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;", [
-                $this->id,
-                $groupid
-            ]);
+        # Now find if we have any membership of the group which might also give us a role.
+        $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;", [
+            $this->id,
+            $groupid
+        ]);
 
-            foreach ($membs as $memb) {
-                switch ($memb['role']) {
-                    case 'Moderator':
-                        $role = User::ROLE_MODERATOR;
-                        break;
-                    case 'Owner':
-                        $role = User::ROLE_OWNER;
-                        break;
-                    case 'Member':
-                        # Upgrade from none to member.
-                        $role = $role == User::ROLE_NONMEMBER ? User::ROLE_MEMBER : $role;
-                        break;
-                }
+        foreach ($membs as $memb) {
+            switch ($memb['role']) {
+                case 'Moderator':
+                    # Don't downgrade from owner if we have that by virtue of an override.
+                    $role = $role == User::ROLE_OWNER ? $role : User::ROLE_MODERATOR;
+                    break;
+                case 'Owner':
+                    $role = User::ROLE_OWNER;
+                    break;
+                case 'Member':
+                    # Don't downgrade if we already have a role by virtue of an override.
+                    $role = $role == User::ROLE_NONMEMBER ? User::ROLE_MEMBER : $role;
+                    break;
             }
         }
 
