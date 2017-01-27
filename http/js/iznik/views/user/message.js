@@ -173,7 +173,6 @@ define([
             if (!self.rendering) {
                 var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
-                console.log("Got replies", replies.length, replies);
 
                 // Make safe and decent for display.
                 this.model.stripGumf('textbody');
