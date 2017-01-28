@@ -15,7 +15,10 @@
                 <h3>Can we share?</h3>
                 <p>Finally, click to let us know whether it's ok for us to share your story - on here, on social media and so on.  This helps get more people freegling.</p>
                 <p>If you don't want us to do this, that's fine - we'll just show it to your local volunteers.</p>
-                <input type="checkbox" class="form-control js-public" />
+                <div class="alert alert-warning text-center">
+                    <label class="radio-inline"><input type="radio" name="js-public" value="1">Yes, you can share this</label>
+                    <label class="radio-inline"><input type="radio" name="js-public" value="0" checked>No, keep it private</label>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-success js-add">Add Your Story</button>

@@ -345,6 +345,13 @@ define([
                                 helpMessage: '(Freegle only) Whether members can post local community events on this group.'
                             },
                             {
+                                name: 'stories',
+                                label: 'Allow stories?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: '(Freegle only) Whether members are prompted to tell us their story.'
+                            },
+                            {
                                 name: 'showchat',
                                 label: 'Show chat window for mods?',
                                 control: 'radio',

@@ -1,0 +1,48 @@
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <div class="row">
+            <div class="col-md-1">
+                <% if (obj.public) { %>
+                <span class="glyphicon glyphicon-globe" alt="Public" title="The member says this story can be used in public" />
+                <% } else { %>
+                <span class="glyphicon glyphicon-lock" alt="Private" title="The member says this story cannot be used in public" />
+                <% } %>
+            </div>
+            <div class="col-md-2 forcebreak">
+                <b>{{user.email}}</b>
+            </div>
+            <div class="col-md-2">
+                (#{{user.id}})
+            </div>
+            <div class="col-md-2">
+                <abbr class="timeago" title="{{date}}" />
+            </div>
+            <div class="col-md-2 text-muted">
+                #{{id}}
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-12 forcebreak">
+                <h3><%-headline%></h3>
+                <%-story%>
+            </div>
+        </div>
+    </div>
+    <div class="panel-footer">
+        <ul class="list-inline list-unstyled">
+            <% if (obj.public) { %>
+            <div class="btn btn-success js-use">
+                <span class="glyphicons glyphicons-ok vcenter" />&nbsp;Good for publicity
+            </div>
+            <% } %>
+            <div class="btn btn-warning js-dont">
+                <span class="glyphicons glyphicons-remove vcenter" /> Hide
+            </div>
+            <div class="btn btn-white js-chat">
+                <div class="glyphicons glyphicons-conversation vcenter" />&nbsp;Chat
+            </div>
+        </ul>
+    </div>
+</div>

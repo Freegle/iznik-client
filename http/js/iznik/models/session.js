@@ -345,6 +345,13 @@ define([
                                         ev: 'spammerpendingremovecountschanged',
                                         window: admin,
                                         sound: false
+                                    },
+                                    {
+                                        fi: 'stories',
+                                        el: '.js-storiescount',
+                                        ev: 'storiescountchanged',
+                                        window: false,
+                                        sound: false
                                     }
                                 ];
 

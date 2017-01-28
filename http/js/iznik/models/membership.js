@@ -197,4 +197,61 @@ define([
             return(ret.members);
         }
     });
+
+    Iznik.Models.Membership.Story = Iznik.Model.extend({
+        dontUseForPublicity: function() {
+            // By marking it reviewed and not public, it will not be visible.
+            var p = $.ajax({
+                url: API + 'stories',
+                type: 'PATCH',
+                data: {
+                    id: this.get('id'),
+                    reviewed: 1,
+                    public: 0
+                }
+            });
+
+            return(p);
+        },
+
+        useForPublicity: function() {
+            // By marking it public (if it was) and reviewed, it becomes visible.
+            var p = $.ajax({
+                url: API + 'stories',
+                type: 'PATCH',
+                data: {
+                    id: this.get('id'),
+                    reviewed: 1,
+                    public: this.get('public')
+                }
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Collections.Members.Stories = Iznik.Collection.extend({
+        model: Iznik.Models.Membership.Story,
+
+        ret: null,
+
+        initialize: function (models, options) {
+            this.options = options;
+
+            // Use a comparator to show in most recent first order
+            this.comparator = function(a, b) {
+                var ret = (new Date(b.get('timestamp'))).getTime() - (new Date(a.get('timestamp'))).getTime();
+                return(ret);
+            }
+        },
+
+        url: function() {
+            return (API + 'stories?' + (this.options && this.options.groupid > 0 ? ('groupid=' + this.options.groupid) : ''))
+        },
+
+        parse: function(ret) {
+            this.ret = ret;
+            return(ret.stories);
+        }
+    });
 });

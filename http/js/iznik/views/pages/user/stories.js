@@ -3,7 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'iznik/models/membership'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Stories = Iznik.Views.Page.extend({
         template: "user_stories_main",
@@ -29,6 +30,18 @@ define([
             var p = Iznik.Views.Page.prototype.render.call(this);
 
             p.then(function(self) {
+                self.collection = new Iznik.Collections.Members.Stories();
+
+                // CollectionView handles adding/removing/sorting for us.
+                self.collectionView = new Backbone.CollectionView({
+                    el: self.$('.js-list'),
+                    modelView: Iznik.Views.User.Pages.Stories.One,
+                    collection: self.collection
+                });
+
+                self.collectionView.render();
+
+                self.collection.fetch();
             });
 
             return(p);
@@ -58,7 +71,7 @@ define([
                 if (story.length == 0) {
                     self.$('.js-story').addClass('error');
                 } else {
-                    var public = self.$('.js-public').is(':checked');
+                    var public = self.$('input[name=js-public]:checked').val();
 
                     $.ajax({
                         url: API + 'stories',
@@ -78,5 +91,9 @@ define([
                 }
             }
         }
+    });
+
+    Iznik.Views.User.Pages.Stories.One = Iznik.View.extend({
+        template: 'user_stories_one'
     });
 });

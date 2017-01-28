@@ -24,6 +24,8 @@ class storiesAPITest extends IznikAPITestCase {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $dbhm->preExec("DELETE FROM users_stories WHERE headline LIKE 'Test%';");
     }
 
     protected function tearDown() {
@@ -40,6 +42,10 @@ class storiesAPITest extends IznikAPITestCase {
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        $u->addMembership($this->groupid);
 
         # Create logged out - should fail
         $ret = $this->call('stories', 'PUT', [
@@ -58,10 +64,6 @@ class storiesAPITest extends IznikAPITestCase {
 
         $id = $ret['id'];
         assertNotNull($id);
-
-        # Get without id - should fail
-        $ret = $this->call('stories', 'GET', []);
-        assertEquals(3, $ret['ret']);
 
         # Get with id - should work
         $ret = $this->call('stories', 'GET', [ 'id' => $id ]);
@@ -83,13 +85,49 @@ class storiesAPITest extends IznikAPITestCase {
         self::assertEquals('Test2', $ret['story']['headline']);
         self::assertEquals('Test2', $ret['story']['story']);
 
-        $_SESSION['id'] = NULL;
+        # List stories - should be none as we're not a mod.
+        $ret = $this->call('stories', 'GET', [ 'groupid' => $this->groupid ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['stories']));
 
         # Get logged out - should fail, not public
+        $_SESSION['id'] = NULL;
         $ret = $this->call('stories', 'GET', [ 'id' => $id ]);
         assertEquals(2, $ret['ret']);
 
-        # Delete - should fail
+        # Make us a mod
+        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('stories', 'GET', [
+            'reviewed' => 0
+        ]);
+        error_log("Get as mod " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['stories']));
+        self::assertEquals($id, $ret['stories'][0]['id']);
+
+        # Mark reviewed
+        $ret = $this->call('stories', 'PATCH', [
+            'id' => $id,
+            'reviewed' => 1,
+            'public' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Get logged out - should work.
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('stories', 'GET', [ 'id' => $id ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['story']['id']);
+
+        # List for this group - should work.
+        $ret = $this->call('stories', 'GET', [ 'groupid' => $this->groupid ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['stories'][0]['id']);
+
+        # Delete logged out - should fail
+        $_SESSION['id'] = NULL;
         $ret = $this->call('stories', 'DELETE', [
             'id' => $id
         ]);
