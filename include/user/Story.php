@@ -2,12 +2,16 @@
 
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/mailtemplates/story.php');
 
 class Story extends Entity
 {
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'date', 'public', 'headline', 'story', 'reviewed');
     var $settableatts = array('public', 'headline', 'story', 'reviewed');
+
+    const ASK_THRESHOLD = 10;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -126,6 +130,59 @@ class Story extends Entity
         }
 
         return($ret);
+    }
+
+    public function askForStories($earliest, $userid = NULL, $threshold = Story::ASK_THRESHOLD, $groupid = NULL) {
+        $userq = $userid ? " AND fromuser = $userid " : "";
+        $sql = "SELECT DISTINCT fromuser FROM messages INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id LEFT OUTER JOIN users_stories_requested ON users_stories_requested.userid = messages.fromuser WHERE  messages_outcomes.timestamp > ? AND messages_outcomes.outcome IN ('Taken', 'Received') AND fromuser IS NOT NULL AND users_stories_requested.date IS NULL $userq;";
+        $users = $this->dbhr->preQuery($sql, [ $earliest ]);
+        $asked = 0;
+
+        foreach ($users as $user) {
+            $outcomes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes WHERE userid = ? AND outcome IN ('Taken', 'Received');", [ $user['fromuser'] ]);
+            $count = $outcomes[0]['count'];
+
+            if ($count > $threshold) {
+                # Record that we've thought about asking.  This means we won't ask them repeatedly.
+                $this->dbhm->preExec("INSERT INTO users_stories_requested (userid) VALUES (?);", [ $user['fromuser'] ]);
+
+                # We only want to ask if they are a member of a group which has stories enabled.
+                $u = new User($this->dbhr, $this->dbhm, $user['fromuser']);
+                $membs = $u->getMemberships();
+                $ask = FALSE;
+                foreach ($membs as $memb) {
+                    $g = Group::get($this->dbhr, $this->dbhm, $memb['id']);
+                    $stories = $g->getSetting('stories', 1);
+                    #error_log("Consider send for " . $u->getEmailPreferred() . " stories $stories, groupid $groupid vs {$memb['id']}");
+                    if ($stories && (!$groupid || $groupid == $memb['id'])) {
+                        $ask = TRUE;
+                    }
+                }
+
+                if ($ask) {
+                    $asked++;
+                    $url = $u->loginLink(USER_DOMAIN, $user['fromuser'], '/stories');
+
+                    $html = story($u->getName(), $u->getEmailPreferred(), $url);
+                    error_log("..." . $u->getEmailPreferred());
+
+                    try {
+                        $message = Swift_Message::newInstance()
+                            ->setSubject("Tell us your Freegle story!")
+                            ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                            ->setReturnPath($u->getBounce())
+                            ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                            ->setBody("We'd love to hear your Freegle story.  Tell us at $url")
+                            ->addPart($html, 'text/html');
+
+                        list ($transport, $mailer) = getMailer();
+                        $mailer->send($message);
+                    } catch (Exception $e) {}
+                }
+            }
+        }
+
+        return($asked);
     }
 
     public function delete() {

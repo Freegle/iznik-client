@@ -5,7 +5,8 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/user/Search.php';
+require_once IZNIK_BASE . '/include/user/Story.php';
+require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
@@ -146,6 +147,43 @@ class storiesAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
         assertEquals(2, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    function testAsk() {
+        error_log(__METHOD__);
+
+        # Create the sending user
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created user $uid");
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        # Send a message.
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($origid);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Shouldn't yet appear.
+        $s = new Story($this->dbhr, $this->dbhm);
+        self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, NULL));
+
+        # Now mark the message as complete
+        error_log("Mark $origid as TAKEN");
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
+        $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, $uid);
+
+        # Now should ask.
+        self::assertEquals(1, $s->askForStories('2017-01-01', $uid, 0, NULL));
+
+        # But not a second time
+        self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, NULL));
 
         error_log(__METHOD__ . " end");
     }
