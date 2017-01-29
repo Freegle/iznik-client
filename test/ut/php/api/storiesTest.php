@@ -172,7 +172,7 @@ class storiesAPITest extends IznikAPITestCase {
 
         # Shouldn't yet appear.
         $s = new Story($this->dbhr, $this->dbhm);
-        self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, NULL));
+        self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, 0, NULL));
 
         # Now mark the message as complete
         error_log("Mark $origid as TAKEN");
@@ -180,10 +180,10 @@ class storiesAPITest extends IznikAPITestCase {
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, $uid);
 
         # Now should ask.
-        self::assertEquals(1, $s->askForStories('2017-01-01', $uid, 0, NULL));
+        self::assertEquals(1, $s->askForStories('2017-01-01', $uid, 0, 0, NULL));
 
         # But not a second time
-        self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, NULL));
+        self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, 0, NULL));
 
         error_log(__METHOD__ . " end");
     }

@@ -11,7 +11,8 @@ class Story extends Entity
     var $publicatts = array('id', 'date', 'public', 'headline', 'story', 'reviewed');
     var $settableatts = array('public', 'headline', 'story', 'reviewed');
 
-    const ASK_THRESHOLD = 10;
+    const ASK_OUTCOME_THRESHOLD = 3;
+    const ASK_OFFER_THRESHOLD = 5;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -132,7 +133,7 @@ class Story extends Entity
         return($ret);
     }
 
-    public function askForStories($earliest, $userid = NULL, $threshold = Story::ASK_THRESHOLD, $groupid = NULL) {
+    public function askForStories($earliest, $userid = NULL, $outcomethreshold = Story::ASK_OUTCOME_THRESHOLD, $offerthreshold = Story::ASK_OFFER_THRESHOLD, $groupid = NULL) {
         $userq = $userid ? " AND fromuser = $userid " : "";
         $sql = "SELECT DISTINCT fromuser FROM messages INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id LEFT OUTER JOIN users_stories_requested ON users_stories_requested.userid = messages.fromuser WHERE  messages_outcomes.timestamp > ? AND messages_outcomes.outcome IN ('Taken', 'Received') AND fromuser IS NOT NULL AND users_stories_requested.date IS NULL $userq;";
         $users = $this->dbhr->preQuery($sql, [ $earliest ]);
@@ -140,10 +141,13 @@ class Story extends Entity
 
         foreach ($users as $user) {
             $outcomes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes WHERE userid = ? AND outcome IN ('Taken', 'Received');", [ $user['fromuser'] ]);
-            $count = $outcomes[0]['count'];
+            $outcomecount = $outcomes[0]['count'];
+            $offers = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND type = 'Offer';", [ $user['fromuser'] ]);
+            $offercount = $outcomes[0]['count'];
+            #error_log("Userid {$user['fromuser']} outcome count $outcomecount offer count $offercount");
 
-            if ($count > $threshold) {
-                # Record that we've thought about asking.  This means we won't ask them repeatedly.
+            if ($outcomecount > $outcomethreshold || $offercount > $offerthreshold) {
+                # Record that we've thought about asking.  This means we won't consider them repeatedly.
                 $this->dbhm->preExec("INSERT INTO users_stories_requested (userid) VALUES (?);", [ $user['fromuser'] ]);
 
                 # We only want to ask if they are a member of a group which has stories enabled.
