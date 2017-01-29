@@ -135,7 +135,7 @@ class Story extends Entity
 
     public function askForStories($earliest, $userid = NULL, $outcomethreshold = Story::ASK_OUTCOME_THRESHOLD, $offerthreshold = Story::ASK_OFFER_THRESHOLD, $groupid = NULL) {
         $userq = $userid ? " AND fromuser = $userid " : "";
-        $sql = "SELECT DISTINCT fromuser FROM messages INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id LEFT OUTER JOIN users_stories_requested ON users_stories_requested.userid = messages.fromuser WHERE  messages_outcomes.timestamp > ? AND messages_outcomes.outcome IN ('Taken', 'Received') AND fromuser IS NOT NULL AND users_stories_requested.date IS NULL $userq;";
+        $sql = "SELECT DISTINCT fromuser FROM messages LEFT OUTER JOIN users_stories_requested ON users_stories_requested.userid = messages.fromuser WHERE  messages.arrival > ? AND fromuser IS NOT NULL AND users_stories_requested.date IS NULL $userq;";
         $users = $this->dbhr->preQuery($sql, [ $earliest ]);
         $asked = 0;
 
