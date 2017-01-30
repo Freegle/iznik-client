@@ -182,7 +182,7 @@ class Story extends Entity
 
                 if ($ask) {
                     $asked++;
-                    $url = $u->loginLink(USER_DOMAIN, $user['fromuser'], '/stories');
+                    $url = $u->loginLink(USER_SITE, $user['fromuser'], '/stories');
 
                     $html = story($u->getName(), $u->getEmailPreferred(), $url);
                     error_log("..." . $u->getEmailPreferred());
