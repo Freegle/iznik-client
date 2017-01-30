@@ -135,15 +135,18 @@ class Story extends Entity
 
     public function askForStories($earliest, $userid = NULL, $outcomethreshold = Story::ASK_OUTCOME_THRESHOLD, $offerthreshold = Story::ASK_OFFER_THRESHOLD, $groupid = NULL) {
         $userq = $userid ? " AND fromuser = $userid " : "";
-        $sql = "SELECT DISTINCT fromuser FROM messages LEFT OUTER JOIN users_stories_requested ON users_stories_requested.userid = messages.fromuser WHERE  messages.arrival > ? AND fromuser IS NOT NULL AND users_stories_requested.date IS NULL $userq;";
+        $groupq = $groupid ? " INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.groupid = $groupid " : "";
+        $sql = "SELECT DISTINCT fromuser FROM messages $groupq LEFT OUTER JOIN users_stories_requested ON users_stories_requested.userid = messages.fromuser WHERE  messages.arrival > ? AND fromuser IS NOT NULL AND users_stories_requested.date IS NULL $userq;";
         $users = $this->dbhr->preQuery($sql, [ $earliest ]);
         $asked = 0;
+
+        error_log("Found " . count($users) . " possible users");
 
         foreach ($users as $user) {
             $outcomes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes WHERE userid = ? AND outcome IN ('Taken', 'Received');", [ $user['fromuser'] ]);
             $outcomecount = $outcomes[0]['count'];
             $offers = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND type = 'Offer';", [ $user['fromuser'] ]);
-            $offercount = $outcomes[0]['count'];
+            $offercount = $offers[0]['count'];
             #error_log("Userid {$user['fromuser']} outcome count $outcomecount offer count $offercount");
 
             if ($outcomecount > $outcomethreshold || $offercount > $offerthreshold) {

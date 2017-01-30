@@ -14,10 +14,12 @@ $lockh = lockScript(basename(__FILE__));
 
 $s = new Story($dbhr, $dbhm);
 $mysqltime = date("Y-m-d", max(strtotime("06-sep-2016"), strtotime("Midnight 90 days ago")));
-foreach ([21623, 21354, 21589, 21406, 21423, 21306] as $groupid) {
-    $count = $s->askForStories($mysqltime, NULL, 3, 5, $groupid);
+$groups = $dbhr->preQuery("SELECT groups.id, groups.nameshort FROM groups WHERE groups.type = 'Freegle' AND publish = 1 ORDER BY LOWER(nameshort) ASC;");
+$count = 0;
+foreach ($groups as $group) {
+    error_log("Check group {$group['nameshort']}");
+    $count += $s->askForStories($mysqltime, NULL, 3, 5, $group['id']);
 }
-#$count = $s->askForStories($mysqltime, NULL, Story::ASK_OUTCOME_THRESHOLD, Story::ASK_OFFER_THRESHOLD, NULL);
 error_log("Sent $count requests");
 
 unlockScript($lockh);
