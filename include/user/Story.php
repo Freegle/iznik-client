@@ -14,6 +14,9 @@ class Story extends Entity
     const ASK_OUTCOME_THRESHOLD = 3;
     const ASK_OFFER_THRESHOLD = 5;
 
+    # TODO Generic
+    private $exclude = [ 'freecycle', 'freecycling' ];
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'users_stories', 'story', $this->publicatts);
@@ -127,7 +130,18 @@ class Story extends Entity
 
         foreach ($ids as $id) {
             $s = new Story($this->dbhr, $this->dbhm, $id['id']);
-            $ret[] = $s->getPublic();
+            $thisone = $s->getPublic();
+            $include = TRUE;
+
+            foreach ($this->exclude as $word) {
+                if (stripos($thisone['headline'], $word) !== FALSE || stripos($thisone['story'], $word) !== FALSE) {
+                    $include = FALSE;
+                }
+            }
+
+            if ($include) {
+                $ret[] = $thisone;
+            }
         }
 
         return($ret);
