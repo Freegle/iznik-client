@@ -61,7 +61,11 @@ class Story extends Entity
 
         if (count($membs) > 0) {
             shuffle($membs);
-            $groupname = $membs[0]['namedisplay'];
+            foreach ($membs as $memb) {
+                if ($memb['type'] == Group::GROUP_FREEGLE) {
+                    $groupname = $membs[0]['namedisplay'];
+                }
+            }
         }
 
         $ret['groupname'] = $groupname;
