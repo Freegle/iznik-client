@@ -144,6 +144,11 @@ define([
                     $('#bodyContent').html(window.template(tpl));
                     $('.js-pageContent').html(self.$el);
 
+                    if (self.appButtons) {
+                        // Show app buttons.
+                        $('#js-appbuttons').show();
+                    }
+
                     ChatHolder().createMinimised();
 
                     $('#botleft').empty();

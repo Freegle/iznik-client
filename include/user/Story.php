@@ -125,9 +125,10 @@ class Story extends Entity
         return($ids[0]['count']);
     }
 
-    public function getStories($groupid) {
-        $sql1 = "SELECT DISTINCT users_stories.id FROM users_stories WHERE reviewed = 1 AND public = 1 AND userid IS NOT NULL ORDER BY date DESC LIMIT 20;";
-        $sql2 = "SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid = $groupid AND reviewed = 1 AND public = 1 AND users_stories.userid IS NOT NULL ORDER BY date DESC LIMIT 20;";
+    public function getStories($groupid, $story, $limit = 20) {
+        $limit = intval($limit);
+        $sql1 = "SELECT DISTINCT users_stories.id FROM users_stories WHERE reviewed = 1 AND public = 1 AND userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
+        $sql2 = "SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid = $groupid AND reviewed = 1 AND public = 1 AND users_stories.userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
         $sql = $groupid ? $sql2 : $sql1;
         $ids = $this->dbhr->preQuery($sql);
         $ret = [];
@@ -135,6 +136,9 @@ class Story extends Entity
         foreach ($ids as $id) {
             $s = new Story($this->dbhr, $this->dbhm, $id['id']);
             $thisone = $s->getPublic();
+            if (!$story) {
+                unset($thisone['story']);
+            }
             $include = TRUE;
 
             foreach ($this->exclude as $word) {

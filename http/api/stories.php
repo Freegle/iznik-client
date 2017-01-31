@@ -7,6 +7,8 @@ function stories() {
     $id = presdef('id', $_REQUEST, NULL);
     $groupid = presdef('groupid', $_REQUEST, NULL);
     $reviewed = intval(array_key_exists('reviewed', $_REQUEST) ? $_REQUEST['reviewed'] : 1);
+    $story = array_key_exists('story', $_REQUEST) ? filter_var($_REQUEST['story'], FILTER_VALIDATE_BOOLEAN) : TRUE;
+    $limit = intval(presdef('limit', $_REQUEST, 20));
     $s = new Story($dbhr, $dbhm, $id);
     $me = whoAmI($dbhr, $dbhm);
     $myid = $me ? $me->getId() : NULL;
@@ -53,7 +55,7 @@ function stories() {
                 ];
             } else {
                 # We want to see the most recent few
-                $stories = $s->getStories($groupid);
+                $stories = $s->getStories($groupid, $story, $limit);
 
                 $ret = [
                     'ret' => 0,
