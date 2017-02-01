@@ -1193,7 +1193,7 @@ class User extends Entity
             $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
         }
 
-        if ($me && $me->isModerator()) {
+        if ($me && ($me->isModerator() || $this->id == $me->getId())) {
             # Mods can see email settings, no matter which group.
             $atts['onholidaytill'] = $this->user['onholidaytill'] ? ISODate($this->user['onholidaytill']) : NULL;
         }
