@@ -194,7 +194,7 @@ define([
                         // Update our map if we have one.
                         var map = self.$('.js-locmap');
                         if (map.length > 0) {
-                            var width = self.$('.js-postcode').width();
+                            var width = Math.floor(self.$('.js-postcode').width());
                             map.css('width', width);
                             map.css('height', width);
                             var mapicon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif';
@@ -467,10 +467,12 @@ define([
 
                         if (!mylocation) {
                             mylocation = Iznik.Session.getSetting('mylocation', null);
+                        } else {
+                            mylocation = JSON.parse(mylocation);
                         }
 
                         if (mylocation) {
-                            var postcode = JSON.parse(mylocation).name;
+                            var postcode = mylocation.name;
                             self.$('.js-postcode').typeahead('val', postcode);
                             self.locChange.call(self);
                         }
