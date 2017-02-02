@@ -172,7 +172,7 @@ class storiesAPITest extends IznikAPITestCase {
 
         # Shouldn't yet appear.
         $s = new Story($this->dbhr, $this->dbhm);
-        self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, 0, NULL));
+        self::assertEquals(0, $s->askForStories('2017-01-01', $uid, 0, 2, NULL));
 
         # Now mark the message as complete
         error_log("Mark $origid as TAKEN");

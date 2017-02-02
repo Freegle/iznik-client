@@ -17,7 +17,7 @@ class CommunityEvent extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'communityevents', 'event', $this->publicatts);
     }
 
-    public function create($userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $photo) {
+    public function create($userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $photo = NULL) {
         $id = NULL;
 
         $rc = $this->dbhm->preExec("INSERT INTO communityevents (`userid`, `pending`, `title`, `location`, `contactname`, `contactphone`, `contactemail`, `contacturl`, `description`) VALUES (?,1,?,?,?,?,?,?,?);", [

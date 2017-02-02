@@ -693,11 +693,17 @@ class Group extends Entity
                     # Now merge any different ones.
                     if ($emailid && $yuid && $emailid != $yuid) {
                         $mergerc = $u->merge($emailid, $yuid, $reason);
+
+                        # If the merge failed then zap the id to stop us setting it below.
+                        $memb['yahooid'] = $mergerc ? $memb['yahooid'] : NULL;
                         #error_log($reason);
                     }
 
                     if ($emailid && $yiduid && $emailid != $yiduid && $yiduid != $yuid) {
                         $mergerc = $u->merge($emailid, $yiduid, $reason);
+
+                        # If the merge failed then zap the id to stop us setting it below.
+                        $memb['yahooUserId'] = $mergerc ? $memb['yahooUserId'] : NULL;
                         #error_log($reason);
                     }
 
@@ -728,7 +734,7 @@ class Group extends Entity
 
                     # If we don't have a yahooid for this user, update it.  If we already have one, then stick with it
                     # to avoid updating a user with an old Yahoo id
-                    if (pres('yahooid', $memb) && !$u->getPrivate('yahooid')) {
+                    if (pres('yahooid', $memb) && !$u->getPrivate('yahooid') && (!$yuid)) {
                         $u->setPrivate('yahooid', $memb['yahooid']);
                     }
 
