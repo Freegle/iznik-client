@@ -203,7 +203,7 @@ define([
                 // File upload
                 self.$('#fileupload').fileinput({
                     uploadExtraData: {
-                        type: 'Message',
+                        imgtype: 'Message',
                         identify: true
                     },
                     showUpload: false,

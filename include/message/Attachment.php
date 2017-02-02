@@ -89,7 +89,6 @@ class Attachment
             case Attachment::TYPE_COMMUNITY_EVENT: $this->table = 'communityevents_images'; $this->idatt = 'eventid'; break;
         }
 
-        error_log("Get attachment $id from {$this->table}");
         if ($id) {
             $sql = "SELECT contenttype, hash FROM {$this->table} WHERE id = ?;";
             $atts = $this->dbhr->preQuery($sql, [$id]);
@@ -251,8 +250,6 @@ class Attachment
         # Identify text in an attachment using Google Vision API.
         $data = $this->getData();
         $base64 = base64_encode($data);
-        error_log("Data len " . strlen($data));
-        file_put_contents('/tmp/data', $data);
 
         $r_json ='{
             "requests": [
@@ -288,7 +285,7 @@ class Attachment
                 $rsps = $rsp['responses'][0]['textAnnotations'];
 
                 foreach ($rsps as $rsp) {
-                    error_log($rsp['description']);
+                    #error_log($rsp['description']);
                     $text .= $rsp['description'] . "\n";
                 }
             }

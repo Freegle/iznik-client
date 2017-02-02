@@ -375,16 +375,22 @@ define([
                         var url = !_.isUndefined(photo) ? photo.path : "https://placehold.it/150x150";
                         self.$('.js-photopreview').attr('src',  url);
                         self.$('.js-photo').fileinput({
+                            uploadExtraData: {
+                                imgtype: 'CommunityEvent',
+                                communityevent: 1,
+                                ocr: true
+                            },
                             showUpload: false,
                             allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-                            uploadUrl: API + 'image?imgtype=CommunityEvent&communityevent=1&ocr=true',
-                            showPreview: false,
+                            uploadUrl: API + 'image',
                             resizeImage: true,
                             maxImageWidth: 800,
                             browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
                             browseLabel: 'Upload photo',
                             browseClass: 'btn btn-primary nowrap',
                             showCaption: false,
+                            showRemove: false,
+                            showUploadedThumbs: false,
                             dropZoneEnabled: false,
                             buttonLabelClass: '',
                             fileActionSettings: {
@@ -397,19 +403,21 @@ define([
                                 '    {actions}\n' +
                                 '</div>'
                             },
-                            showRemove: false
+                            elErrorContainer: '#js-uploaderror'
                         });
 
                         // Upload as soon as we have it.
-                        self.$('.js-photo').on('fileloaded', function (event) {
+                        self.$('.js-photo').on('fileimagesresized', function (event) {
+                            self.$('.file-input').hide();
+                            self.$('.js-photopreview').hide();
                             self.$('.js-photo').fileinput('upload');
                         });
 
                         self.$('.js-photo').on('fileuploaded', function (event, data) {
                             // Once it's uploaded, hide the controls.  This means we can't edit, but that's ok for
                             // this.
-                            self.$('.file-input').hide();
                             self.$('.js-photopreview').attr('src', data.response.path);
+                            self.$('.js-photopreview').show();
                             self.model.set('photo', data.response.id);
 
                             if (data.response.ocr && data.response.ocr.length > 10) {
@@ -418,13 +426,19 @@ define([
                                 var title = p !== -1 ? data.response.ocr.substring(0, p): null;
                                 var desc = p !== -1 ? data.response.ocr.substring(p + 1) : data.response.ocr;
 
-                                if (title) {
+                                if (title && self.$('.js-title').val().length === 0) {
                                     self.$('.js-title').val(title);
                                 }
 
-                                // Put the rezt in the description for them to sort out.
-                                self.$('.js-description').val(desc);
+                                // Put the rest in the description for them to sort out.
+                                if (self.$('.js-description').val().length === 0) {
+                                    self.$('.js-description').val(desc);
+                                }
                             }
+
+                            _.delay(function() {
+                                self.$('.file-preview-frame').remove();
+                            }, 500);
                         });
                     });
                 });
