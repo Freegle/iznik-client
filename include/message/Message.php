@@ -2973,6 +2973,8 @@ class Message
             }
 
             $htmlbody = str_replace("\r\n", "<br>", $htmlbody);
+            $htmlbody = str_replace("\r", "<br>", $htmlbody);
+            $htmlbody = str_replace("\n", "<br>", $htmlbody);
 
             $this->setPrivate('textbody', $txtbody);
             $this->setPrivate('htmlbody', $htmlbody);
@@ -3073,10 +3075,19 @@ class Message
         $keywords = Message::keywords()[$type];
 
         foreach ($keywords as $keyword) {
-            if (preg_match('/^' . preg_quote($keyword) . '\b(.*)/i', $subj, $matches)) {
+            if (preg_match('/ ' . preg_quote($keyword) . '\:(.*)/i', $subj, $matches)) {
                 $subj = $matches[1];
             }
-            if (preg_match('/ ' . preg_quote($keyword) . '\:(.*)/i', $subj, $matches)) {
+        }
+
+        foreach ($keywords as $keyword) {
+            if (preg_match('/.*' . preg_quote($keyword) . '.*\:(.*)/i', $subj, $matches)) {
+                $subj = $matches[1];
+            }
+        }
+
+        foreach ($keywords as $keyword) {
+            if (preg_match('/^' . preg_quote($keyword) . '\b(.*)/i', $subj, $matches)) {
                 $subj = $matches[1];
             }
         }

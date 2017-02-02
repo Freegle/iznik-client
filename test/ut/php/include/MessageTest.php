@@ -342,6 +342,12 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         assertEquals('TAKEN: compost bin (Bexley DA5)', $m->reverseSubject());
 
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $msg = str_replace('Basic test', 'OFFER/CYNNIG: Windows 95 & 98 on DVD (Criccieth LL52)', $msg);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertEquals('TAKEN: Windows 95 & 98 on DVD (Criccieth LL52)', $m->reverseSubject());
+
         error_log(__METHOD__ . " end");
     }
 
