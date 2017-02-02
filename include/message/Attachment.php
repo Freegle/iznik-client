@@ -27,6 +27,7 @@ class Attachment
     const TYPE_MESSAGE = 'Message';
     const TYPE_GROUP = 'Group';
     const TYPE_NEWSLETTER = 'Newsletter';
+    const TYPE_COMMUNITY_EVENT = 'CommunityEvent';
 
     /**
      * @return mixed
@@ -51,6 +52,7 @@ class Attachment
             case Attachment::TYPE_MESSAGE: $name = 'img'; break;
             case Attachment::TYPE_GROUP: $name = 'gimg'; break;
             case Attachment::TYPE_NEWSLETTER: $name = 'nimg'; break;
+            case Attachment::TYPE_COMMUNITY_EVENT: $name = 'cimg'; break;
         }
 
         $name = $thumb ? "t$name" : $name;
@@ -84,8 +86,10 @@ class Attachment
             case Attachment::TYPE_MESSAGE: $this->table = 'messages_attachments'; $this->idatt = 'msgid'; break;
             case Attachment::TYPE_GROUP: $this->table = 'groups_images'; $this->idatt = 'groupid'; break;
             case Attachment::TYPE_NEWSLETTER: $this->table = 'newsletters_images'; $this->idatt = 'articleid'; break;
+            case Attachment::TYPE_COMMUNITY_EVENT: $this->table = 'communityevents_images'; $this->idatt = 'eventid'; break;
         }
 
+        error_log("Get attachment $id from {$this->table}");
         if ($id) {
             $sql = "SELECT contenttype, hash FROM {$this->table} WHERE id = ?;";
             $atts = $this->dbhr->preQuery($sql, [$id]);
@@ -241,6 +245,58 @@ class Attachment
         }
 
         return($items);
+    }
+
+    public function ocr() {
+        # Identify text in an attachment using Google Vision API.
+        $data = $this->getData();
+        $base64 = base64_encode($data);
+        error_log("Data len " . strlen($data));
+        file_put_contents('/tmp/data', $data);
+
+        $r_json ='{
+            "requests": [
+                {
+                  "image": {
+                    "content":"' . $base64. '"
+                  },
+                  "features": [
+                      {
+                        "type": "TEXT_DETECTION"
+                      }
+                  ]
+                }
+            ]
+        }';
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
+        $json_response = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        $text = '';
+
+        if ($status) {
+            $rsp = json_decode($json_response, TRUE);
+            #error_log("Decoded " . var_export($rsp, TRUE));
+
+            if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
+                $rsps = $rsp['responses'][0]['textAnnotations'];
+
+                foreach ($rsps as $rsp) {
+                    error_log($rsp['description']);
+                    $text .= $rsp['description'] . "\n";
+                }
+            }
+        }
+
+        curl_close($curl);
+
+        return($text);
     }
 
     public function setPrivate($att, $val) {

@@ -7,23 +7,33 @@
             </div>
             <div class="modal-body js-modal-body">
                 <form>
-                    <div class="js-grouplist">
-                        <div class="form-group">
-                            <label for="group">For which group?</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="js-grouplist">
+                                <div class="form-group">
+                                    <label for="group">For which group?</label>
 
-                            <div class="input-group">
-                                <div id="group" class="groupselect js-groupselect">
-                                    <select id="groupid"></select>
+                                    <div class="input-group">
+                                        <div id="group" class="groupselect js-groupselect">
+                                            <select id="groupid"></select>
+                                        </div>
+                                    </div>
+                                    <div class="topspace alert alert-danger js-eventsdisabled" style="display: none">
+                                        This group has chosen not to allow community events.
+                                    </div>
                                 </div>
                             </div>
-                            <div class="topspace alert alert-danger js-eventsdisabled" style="display: none">
-                                This group has chosen not to allow community events.
+                            <div class="form-group">
+                                <label>Title:</label>
+                                <input type="text" class="form-control js-title" name="title" placeholder="Give the event a short title." required/>
                             </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Title:</label>
-                        <input type="text" class="form-control js-title" name="title" placeholder="Give the event a short title." required/>
+                        <div class="col-md-6">
+                            <div class="pull-right">
+                                <img class="img-thumbnail js-photopreview botspace" width="150" />
+                                <input class="js-photo" type="file" name="photo">
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>What is it?</label>

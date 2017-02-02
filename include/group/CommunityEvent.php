@@ -17,7 +17,7 @@ class CommunityEvent extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'communityevents', 'event', $this->publicatts);
     }
 
-    public function create($userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description) {
+    public function create($userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $photo) {
         $id = NULL;
 
         $rc = $this->dbhm->preExec("INSERT INTO communityevents (`userid`, `pending`, `title`, `location`, `contactname`, `contactphone`, `contactemail`, `contacturl`, `description`) VALUES (?,1,?,?,?,?,?,?,?);", [
@@ -27,6 +27,10 @@ class CommunityEvent extends Entity
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
             $this->fetch($this->dbhr, $this->dbhm, $id, 'communityevents', 'event', $this->publicatts);
+
+            if ($photo) {
+                $this->dbhm->preExec("UPDATE communityevents_images SET eventid = ? WHERE id = ?;", [ $id, $photo ]);
+            }
         }
 
         return($id);
@@ -138,6 +142,15 @@ class CommunityEvent extends Entity
         foreach ($atts['dates'] as &$date) {
             $date['start'] = ISODate($date['start']);
             $date['end'] = ISODate($date['end']);
+        }
+
+        $photos = $this->dbhr->preQuery("SELECT id FROM communityevents_images WHERE eventid = ?;", [ $this->id ]);
+        foreach ($photos as $photo) {
+            $atts['photo'] = [
+                'id' => $photo['id'],
+                'path' => Attachment::getPath($photo['id'], Attachment::TYPE_COMMUNITY_EVENT, FALSE),
+                'paththumb' => Attachment::getPath($photo['id'], Attachment::TYPE_COMMUNITY_EVENT, TRUE)
+            ];
         }
 
         return($atts);

@@ -162,4 +162,25 @@ class imageAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testOCR() {
+        error_log(__METHOD__);
+
+        $data = file_get_contents('images/giveandtake.jpg');
+        file_put_contents("/tmp/giveandtake.jpg", $data);
+
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/giveandtake.jpg',
+                'type' => 'image/jpeg'
+            ],
+            'ocr' => TRUE
+        ]);
+
+        var_dump($ret);
+
+        assertTrue(strpos($ret['ocr'], 'GIVE OR TAKE') !== FALSE);
+
+        error_log(__METHOD__ . " end");
+    }
 }

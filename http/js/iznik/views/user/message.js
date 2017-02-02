@@ -169,7 +169,7 @@ define([
         render: function() {
             var self = this;
 
-            console.log("Render message", self.model.get('id'), self.rendering);
+            // console.log("Render message", self.model.get('id'), self.rendering);
             if (!self.rendering) {
                 var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
