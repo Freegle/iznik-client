@@ -188,7 +188,7 @@ class Twitter {
         # - any story which hasn't been tweeted, or
         # - a random one
         $idq = $id ? " AND id = $id " : "";
-        $sql = "SELECT id FROM users_stories WHERE public = 1 $idq ORDER BY tweeted ASC LIMIT 1;";
+        $sql = "SELECT id FROM users_stories WHERE public = 1 and reviewed = 1 $idq ORDER BY tweeted ASC LIMIT 1;";
         $stories = $this->dbhr->preQuery($sql);
         foreach ($stories as $story) {
             $s = new Story($this->dbhr, $this->dbhm, $story['id']);
