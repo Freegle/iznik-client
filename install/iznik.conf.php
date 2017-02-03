@@ -109,6 +109,7 @@ define('GEEKS_ADDR', 'geeks@zzz');
 define('BOARD_ADDR', 'board@zzz');
 define('MENTORS_ADDR', 'mentors@zzz');
 define('NEWGROUPS_ADDR', 'newgroups@zzz');
+define('VOLUNTEERS_ADDR', 'volunteers@zzz');
 
 define('NOREPLY_ADDR', 'noreply@zzz');
 
@@ -118,3 +119,4 @@ define('MINIFY', TRUE);
 # For test scripts
 define('USER_TEST_SITE', 'https://iznik.ilovefreegle.org');
 define('MOD_TEST_SITE', 'https://iznik.modtools.org');
+
