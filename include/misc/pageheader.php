@@ -66,8 +66,11 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
         global $dbhr, $dbhm;
         $e = new CommunityEvent($dbhr, $dbhm, intval($matches[1]));
+
         if ($e->getID()) {
             $atts = $e->getPublic();
+            $photo = presdef('photo', $atts, NULL);
+            $icon = $photo ? $photo['path'] : USERLOGO;
 
             ?>
             <title><?php echo $atts['title']; ?></title>
@@ -76,6 +79,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             <meta property="og:description" content="<?php echo $atts['title']; ?>"/>
             <meta property="og:title" content="<?php echo $atts['title']; ?>"/>
             <meta property="og:description" content=""/>
+            <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
     } else {
