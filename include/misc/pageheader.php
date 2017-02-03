@@ -94,7 +94,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             $atts = $s->getPublic();
             $photo = presdef('photo', $atts, NULL);
             $icon = $photo ? $photo['path'] : USERLOGO;
-            $headline = $atts['headline'] . " #LoveFreegle"
+            $headline = $atts['headline'];
 
             ?>
             <title><?php echo $headline; ?></title>

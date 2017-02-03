@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+require_once(IZNIK_BASE . '/include/user/Story.php');
 
 use Abraham\TwitterOAuth\TwitterOAuth;
 
@@ -177,6 +178,34 @@ class Twitter {
         }
 
         return($worked);
+    }
+
+    public function tweetStory($id = NULL) {
+        # We tweet from the central account.
+        $this->tw = new TwitterOAuth(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_ACCOUNT_TOKEN, TWITTER_ACCOUNT_SECRET);
+
+        # We want to tweet:
+        # - any story which hasn't been tweeted, or
+        # - a random one
+        $idq = $id ? " AND id = $id " : "";
+        $sql = "SELECT id FROM users_stories WHERE public = 1 $idq ORDER BY tweeted ASC LIMIT 1;";
+        $stories = $this->dbhr->preQuery($sql);
+        foreach ($stories as $story) {
+            $s = new Story($this->dbhr, $this->dbhm, $story['id']);
+
+            # We tweet the title, first date later than now, and a link.
+            $atts = $s->getPublic();
+
+            $status = 'A freegle story: "' . substr($atts['headline'], 0, 90) . '"';
+            $status .= ' #LoveFreegle read more...';
+
+            $link = 'https://' . USER_SITE . "/story/{$story['id']}?src=tweetstory&t=". time();
+
+            $status .= " $link";
+            $rc = $this->tweet($status, NULL);
+
+            $this->dbhm->preExec("UPDATE users_stories SET tweeted = 1 WHERE id = ?;", [ $story['id'] ]);
+        }
     }
 
     public function tweetMessages() {

@@ -232,8 +232,11 @@ define([
         },
 
         parse: function(ret) {
-            this.ret = ret;
-            return(ret.story);
+            if (ret.hasOwnProperty('story') && ret.story.hasOwnProperty('id')) {
+                return(ret.story);
+            } else {
+                return(ret);
+            }
         }
     });
 

@@ -37,6 +37,8 @@ define('FBGRAFFITIAPP_SECRET', 'zzz');
 # We post to Twitter
 define('TWITTER_CONSUMER_KEY', 'zzzz');
 define('TWITTER_CONSUMER_SECRET', 'zzzz');
+define('TWITTER_ACCOUNT_TOKEN', 'zzz');
+define('TWITTER_ACCOUNT_SECRET', 'zzz');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
