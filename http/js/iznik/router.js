@@ -173,6 +173,7 @@ define([
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
             "stories": "userStories",
+            "story/:id": "userStory",
             "*path": "userHome"
         },
 
@@ -287,6 +288,17 @@ define([
 
             require(["iznik/views/pages/user/stories"], function() {
                 var page = new Iznik.Views.User.Pages.Stories();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStory: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stories"], function() {
+                var page = new Iznik.Views.User.Pages.Stories.Single({
+                    id: id
+                });
                 self.loadRoute({page: page});
             });
         },

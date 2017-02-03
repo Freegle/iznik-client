@@ -82,6 +82,30 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
+    } else if (preg_match('/\/story\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # Story - preview with headline and description
+        require_once(BASE_DIR . '/include/config.php');
+        require_once(IZNIK_BASE . '/include/db.php');
+        require_once(IZNIK_BASE . '/include/user/Story.php');
+        global $dbhr, $dbhm;
+        $s = new Story($dbhr, $dbhm, intval($matches[1]));
+
+        if ($s->getID()) {
+            $atts = $s->getPublic();
+            $photo = presdef('photo', $atts, NULL);
+            $icon = $photo ? $photo['path'] : USERLOGO;
+            $headline = $atts['headline'] . " #LoveFreegle"
+
+            ?>
+            <title><?php echo $headline; ?></title>
+            <meta itemprop="title" content="<?php echo $headline; ?>"/>
+            <meta name="description" content="<?php echo $headline; ?>"/>
+            <meta property="og:description" content="<?php echo $headline; ?>"/>
+            <meta property="og:title" content="<?php echo $headline; ?>"/>
+            <meta property="og:description" content="Click to read more"/>
+            <meta property="og:image" content="<?php echo $icon; ?>"/>
+            <?php
+        }
     } else {
         ?>
         <title><?php echo SITE_NAME; ?></title>

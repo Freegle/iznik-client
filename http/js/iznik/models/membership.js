@@ -199,6 +199,8 @@ define([
     });
 
     Iznik.Models.Membership.Story = Iznik.Model.extend({
+        urlRoot: API + 'stories',
+
         dontUseForPublicity: function() {
             // By marking it reviewed and not public, it will not be visible.
             var p = $.ajax({
@@ -227,6 +229,11 @@ define([
             });
 
             return(p);
+        },
+
+        parse: function(ret) {
+            this.ret = ret;
+            return(ret.story);
         }
     });
 

@@ -48,6 +48,26 @@ define([
         }
     });
 
+    Iznik.Views.User.Pages.Stories.Single = Iznik.Views.Page.extend({
+        template: "user_stories_single",
+
+        render: function () {
+            var self = this;
+
+            self.model = new Iznik.Models.Membership.Story({
+                id: self.options.id
+            });
+
+            var p = self.model.fetch();
+
+            p.then(function() {
+                Iznik.Views.Page.prototype.render.call(self);
+            });
+
+            return(p);
+        }
+    });
+
     Iznik.Views.User.Pages.Stories.Thankyou = Iznik.Views.Modal.extend({
         template: 'user_stories_thankyou'
     });
