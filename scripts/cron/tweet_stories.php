@@ -12,7 +12,7 @@ $lockh = lockScript(basename(__FILE__));
 
 error_log("Start at " . date("Y-m-d H:i:s"));
 
-$t = new Twitter($dbhr, $dbhm, $group['id']);
+$t = new Twitter($dbhr, $dbhm, NULL);
 $t->tweetStory();
 
 error_log("Finish at " . date("Y-m-d H:i:s"));
