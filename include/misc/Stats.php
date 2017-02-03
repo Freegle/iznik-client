@@ -371,12 +371,12 @@ class Stats
             #error_log("Check type $type " . "SELECT SUM(count) AS count, date FROM stats WHERE date >= '$start' AND date < '$end' AND groupid IN (" . implode(',', $groupids) . ") AND type = '$type' GROUP BY date;");
 
             # For many group values it's more efficient to use an index on date and type, so order the query accordingly.
-            $sql = count($groupids) > 10 ? ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND type = ? AND groupid IN (" . implode(',', $groupids) . ") GROUP BY date;") : ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ? GROUP BY date;");
+            $sql = count($groupids) > 10 ? ("SELECT SUM(count) AS count, date FROM stats WHERE type = ? AND date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") GROUP BY date;") : ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ? GROUP BY date;");
             $counts = $this->dbhr->preQuery($sql,
                 [
+                    $type,
                     $start,
-                    $end,
-                    $type
+                    $end
                 ]);
 
             foreach ($counts as $count) {
@@ -402,11 +402,11 @@ class Stats
         foreach ($types as $type) {
             $ret[$type] = [];
 
-            $sql = "SELECT breakdown FROM stats WHERE date = ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ?;";
+            $sql = "SELECT breakdown FROM stats WHERE type = ? AND date = ? AND groupid IN (" . implode(',', $groupids) . ");";
             $breakdowns = $this->dbhr->preQuery($sql,
                 [
-                    $start,
-                    $type
+                    $type,
+                    $start
                 ]);
 
             foreach ($breakdowns as $breakdown) {
