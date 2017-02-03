@@ -253,7 +253,7 @@ define([
                         // Hosted externally on a different site.
                         self.$('.js-toexternal').attr('href', first.external);
                         self.$('.js-external').fadeIn('slow');
-                        self.$('.js-homegroup').hide();
+                        self.$('.js-homegroup').fadeIn('slow');
                     } else if (first.onyahoo && first.showonyahoo) {
                         // But Yahoo does and we want to show it.
                         self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);

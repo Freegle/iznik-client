@@ -48,20 +48,29 @@
 <div class="row-fluid js-homegroup" style="display: none">
     <div class="col-md-3"></div>
     <div class="col-md-6 text-center">
-        <p class="text-center">Freegle has local groups for each area.  We'll show your offer on this group</p>
+        <p class="text-center">Freegle has local groups for each area.  We'll show your offer on this group:</p>
         <select class="form-control js-groups"></select>
-        <p class="text-nuted">Click on the name above to choose a different group.</p>
+        <p class="text-muted">Click on the name above to choose a different group.</p>
     </div>
     <div class="col-md-3"></div>
+</div>
+<div class="row-fluid js-external" style="display: none">
+    <div class="topspace row-fluid">
+        <div class="col-md-6 col-md-offset-3 text-center">
+            <div class="alert alert-warning">
+                This group is on another site.   You can proceed or choose a different group using the dropdown above.
+            </div>
+            <a href="" data-realurl="true" class="js-toexternal">
+                <div class="btn btn-success topspace btn-lg btn-block">
+                    Proceed >>
+                </div>
+            </a>
+        </div>
+    </div>
 </div>
 <div class="topspace row-fluid js-onyahoo" style="display: none">
     <div class="topspace alert alert-warning col-md-6 col-md-offset-3 text-center">
         This will take you to Yahoo Groups.  You can also choose another group on this site using the dropdown above.
-    </div>
-</div>
-<div class="topspace row-fluid js-groupoverride" style="display: none">
-    <div class="alert alert-danger col-md-6 col-md-offset-3 text-center">
-        We're in testing mode, so any messages will actually go to <span class="js-groupoverridename" />.
     </div>
 </div>
 <div class="row-fluid">
@@ -75,18 +84,6 @@
                 Proceed to Yahoo >>
             </div>
         </a>
-    </div>
-</div>
-<div class="row-fluid js-external" style="display: none">
-    <div class="topspace row-fluid">
-        <div class="col-md-6 col-md-offset-3 text-center">
-            Your closest Freegle group is on another site.
-            <a href="" data-realurl="true" class="js-toexternal">
-                <div class="btn btn-success topspace btn-lg btn-block">
-                    Proceed >>
-                </div>
-            </a>
-        </div>
     </div>
 </div>
 <div class="row-fluid js-yahootoo" style="display: none">
