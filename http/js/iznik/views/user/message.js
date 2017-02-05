@@ -674,15 +674,15 @@ define([
             this.listenToOnce(this, 'confirmed', this.promised);
             var p = this.open(this.template);
             p.then(function() {
-                var msgid = self.model.get('message').id;
-
                 self.options.offers.each(function(offer) {
                     self.$('.js-offers').append('<option value="' + offer.get('id') + '" />');
                     self.$('.js-offers option:last').html(offer.get('subject'));
                 });
 
-                self.$('.js-offers').val(msgid);
-
+                var msg = self.model.get('message');
+                if (msg) {
+                    self.$('.js-offers').val(msg.id);
+                }
             });
 
             return(p);
