@@ -906,7 +906,15 @@ class Group extends Entity
             # Delete any residual Yahoo memberships.
             #$resid = $this->dbhm->preQuery("SELECT memberships_yahoo.id, emailid FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);", [$this->id, $collection]);
             #error_log(var_export($resid, TRUE));
-            $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);", [$this->id, $collection]);
+            $emailids = $this->dbhm->preQuery("SELECT emailid FROM syncdelete;");
+            foreach ($emailids as $emailid) {
+                $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid = ? AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);",
+                    [
+                        $emailid['emailid'],
+                        $this->id,
+                        $collection
+                    ]);
+            }
             #error_log("Deleted $rc Yahoo Memberships");
 
             #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
