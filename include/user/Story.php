@@ -142,7 +142,7 @@ class Story extends Entity
             $include = TRUE;
 
             foreach ($this->exclude as $word) {
-                if (stripos($thisone['headline'], $word) !== FALSE || stripos($thisone['story'], $word) !== FALSE) {
+                if (stripos($thisone['headline'], $word) !== FALSE || (pres('story', $thisone) && stripos($thisone['story'], $word) !== FALSE)) {
                     $include = FALSE;
                 }
             }
