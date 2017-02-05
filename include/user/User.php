@@ -26,7 +26,7 @@ class User extends Entity
     const CACHE_SIZE = 100;
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -871,6 +871,10 @@ class User extends Entity
                     # Give a summary of outstanding work.
                     $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
                 }
+
+                # See if there is a membersync pending
+                $syncpendings = $this->dbhr->preQuery("SELECT lastupdated, lastprocessed FROM memberships_yahoo_dump WHERE groupid = ? AND (lastprocessed IS NULL OR lastupdated > lastprocessed);", [ $group['groupid'] ]);
+                $one['syncpending'] = count($syncpendings) > 0;
             }
 
             $ret[] = $one;
@@ -1171,6 +1175,34 @@ class User extends Entity
         return($rc);
     }
 
+    public function getInfo() {
+        # Extra user info.
+        $ret = [];
+        $start = date('Y-m-d', strtotime("90 days ago"));
+
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL;", [
+            $this->id,
+            $start
+        ]);
+
+        $ret['replies'] = $replies[0]['count'];
+
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND arrival > ? AND type = 'Offer';", [
+            $this->id,
+            $start
+        ]);
+
+        $ret['offers'] = $replies[0]['count'];
+
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND arrival > ? AND type = 'Wanted';", [
+            $this->id,
+            $start
+        ]);
+
+        $ret['wanteds'] = $replies[0]['count'];
+        return($ret);
+    }
+
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE) {
         $atts = parent::getPublic();
 
@@ -1180,6 +1212,7 @@ class User extends Entity
         $myid = $me ? $me->getId() : NULL;
 
         $atts['displayname'] = $this->getName();
+        $atts['added'] = ISODate($atts['added']);
 
         foreach(['fullname', 'firstname', 'lastname'] as $att) {
             # Make sure we don't return an email if somehow one has snuck in.

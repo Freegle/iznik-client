@@ -234,7 +234,7 @@ define([
                         var last = moment(lastsync);
                         var hoursago = moment.duration(now.diff(last)).asHours();
     
-                        if ((_.isUndefined(lastsync) || hoursago >= 24) && doSync(group, 'showmembers')) {
+                        if ((_.isUndefined(lastsync) || hoursago >= 24) && !group.get('membersyncpending') && doSync(group, 'showmembers')) {
                             self.collection.add(new Iznik.Models.Plugin.Work({
                                 id: group.get('nameshort') + '.SyncMembers.Approved',
                                 subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({
