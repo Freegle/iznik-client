@@ -671,6 +671,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     color: green !important;
 }
 
+.primary {
+    color: #00A1CB !important;
+}
+
 .error-border {
     border-color: red !important;
     outline-coor: red !important;
@@ -836,6 +840,11 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 .glyphicon-behemoth {
     font-size: 100px;
 }
+
+.gi-2x{font-size: 2em;}
+.gi-3x{font-size: 3em;}
+.gi-4x{font-size: 4em;}
+.gi-5x{font-size: 5em;}
 
 .fileinput-button {
     position: relative;
@@ -1056,6 +1065,12 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     bottom: 0;
     left: 0;
     padding-left: 5px;
+    border-radius: 0px;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    border-bottom-width: 0px;
+    box-shadow: none;
+    resize: none
 }
 
 .chat-mine .chat-message {

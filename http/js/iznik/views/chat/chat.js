@@ -7,6 +7,7 @@ define([
     'moment',
     'iznik/models/chat/chat',
     'iznik/models/message',
+    'iznik/models/user/user',
     'jquery-resizable',
     'jquery-visibility'
 ], function ($, _, Backbone, Iznik, autosize, moment) {
@@ -406,10 +407,12 @@ define([
         updateCounts: function () {
             var self = this;
             var unseen = 0;
+            console.log("updateCounts");
             if (Iznik.activeChats) {
                 Iznik.Session.chats.each(function (chat) {
                     var chatView = Iznik.activeChats.viewManager.findByModel(chat);
                     unseen += chat.get('unseen');
+                    console.log("Unseen", unseen, chat);
                 });
             }
 
@@ -871,6 +874,7 @@ define([
             'click .js-enter': 'enter',
             'focus .js-message': 'messageFocus',
             'click .js-promise': 'promise',
+            'click .js-info': 'info',
             'click .js-send': 'send',
             'click .js-large': 'large',
             'click .js-small': 'small',
@@ -1110,6 +1114,17 @@ define([
             });
         },
 
+        info: function () {
+            var self = this;
+
+            var v = new Iznik.Views.Chat.UserInfo({
+                model: new Iznik.Model(self.model.get('user1').id != Iznik.Session.get('me').id ?
+                        self.model.get('user1') : self.model.get('user2'))
+            });
+
+            v.render();
+        },
+
         allseen: function () {
             if (this.messages.length > 0) {
                 this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
@@ -1176,6 +1191,7 @@ define([
 
         adjust: function () {
             var self = this;
+
             // The text area shouldn't grow too high, but should go above a single line if there's room.
             var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
             var mininpheight = Math.round(self.$el.innerHeight() * .15);
@@ -1183,9 +1199,11 @@ define([
             self.$('textarea').css('min-height', mininpheight);
 
             var chatwarning = this.$('.js-chatwarning');
-            var warningheight = chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight();
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - warningheight - 20;
-            // console.log("Height", newHeight, this.$el.innerHeight() ,this.$('.js-chatheader'), this.$('.js-chatheader').outerHeight() , this.$('.js-chatfooter input').outerHeight());
+            var warningheight = chatwarning.length > 0 ? (chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight()) : 0;
+            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - warningheight;
+            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter textarea').outerHeight() - this.$('.js-chatfooter .js-buttons').outerHeight() - warningheight;
+            // console.log("Adjust on", this.$el, newHeight);
+            // console.log("Height", newHeight, this.$el.innerHeight(), this.$('.js-chatheader').outerHeight(), this.$('.js-chatfooter textarea').outerHeight(), this.$('.js-chatfooter .js-buttons').outerHeight(), warningheight);
             this.$('.js-leftpanel, .js-roster').height(newHeight);
 
             var width = self.$el.width();
@@ -1394,23 +1412,19 @@ define([
                     // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
                     clearTimeout(self.scrollTimer);
                     self.scrollTimer = null;
+                    self.scrollToStopAt = null;
                 }
 
-                // We want to scroll immediately, and add a fallback a few seconds later for when things haven't quite
+                // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
                 // finished rendering yet.
                 msglist.scrollTop(height);
                 // console.log("Scroll now to ", self.model.get('id'), height);
 
-                if (!self.scrollTimer) {
-                    // We don't already have a fallback scroll running.
-                    self.scrollTo = height;
-                    self.scrollTimer = setTimeout(_.bind(function () {
-                        // console.log("Scroll later", this);
-                        var msglist = this.$('.js-messages');
-                        var height = msglist[0].scrollHeight;
-                        msglist.scrollTop(height);
-                        // console.log("Scroll later to ", this.model.get('id'), height);
-                    }, self), 5000);
+                self.scrollTo = height;
+                self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : (new Date()).getTime() + 5000;
+
+                if ((new Date()).getTime() < self.scrollToStopAt) {
+                    self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
                 }
             }
         },
@@ -1969,6 +1983,34 @@ define([
                 self.collectionView.render();
                 self.messages.fetch({
                     remove: true
+                });
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.Chat.UserInfo = Iznik.Views.Modal.extend({
+        template: 'chat_userinfo',
+
+        render: function () {
+            var self = this;
+            var userid = self.model.get('id');
+
+            self.model = new Iznik.Models.ModTools.User({
+                id: userid
+            });
+
+            var p = self.model.fetch({
+                data: {
+                    info: true
+                }
+            });
+
+            p.then(function() {
+                Iznik.Views.Modal.prototype.render.call(self).then(function () {
+                    var mom = new moment(self.model.get('added'));
+                    self.$('.js-since').html(mom.format('DD-MMM-YY'));
                 });
             });
 

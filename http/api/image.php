@@ -26,8 +26,6 @@ function image() {
         $shorttype = '';
     }
 
-    error_log("Type is $type");
-
     switch ($_REQUEST['type']) {
         case 'GET': {
             # We cache the data to files to avoid the DB queries where we can.

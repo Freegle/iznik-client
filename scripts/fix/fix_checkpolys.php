@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
 
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND publish = 1 AND nameshort NOT LIKE '%playground%' AND nameshort NOT LIKE '%test%';");
+$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND publish = 1 AND nameshort NOT LIKE '%playground%' AND nameshort NOT LIKE '%test%' ORDER BY LOWER(nameshort);");
 $found = 0;
 $notfound = 0;
 $maxoverlap = 0;
@@ -14,19 +14,20 @@ $maxpoly = NULL;
 
 foreach ($groups as $group) {
     try {
-        $overlaps = $dbhr->preQuery("SELECT id, nameshort, (ST_Area(ST_Intersection(GeomFromText(polyofficial), GeomFromText(?)))/LEAST(ST_Area(GeomFromText(polyofficial)), ST_Area(GeomFromText(?)))) AS area, AsText(ST_Intersection(GeomFromText(polyofficial), GeomFromText(?))) AS overlap FROM groups WHERE id != ? AND ST_Overlaps(GeomFromText(polyofficial), GeomFromText(?));",
+        $poly = $group['poly'] ? $group['poly'] : $group['polyofficial'];
+        $overlaps = $dbhr->preQuery("SELECT id, nameshort, (ST_Area(ST_Intersection(GeomFromText(polyofficial), GeomFromText(?)))/LEAST(ST_Area(GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END)), ST_Area(GeomFromText(?)))) AS area, AsText(ST_Intersection(GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END), GeomFromText(?))) AS overlap FROM groups WHERE id != ? AND ST_Overlaps(GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END), GeomFromText(?));",
             [
-                $group['polyofficial'],
-                $group['polyofficial'],
-                $group['polyofficial'],
+                $poly,
+                $poly,
+                $poly,
                 $group['id'],
-                $group['polyofficial']
+                $poly
             ]);
 
         foreach ($overlaps as $overlap) {
             if ($overlap['area'] > 0.05)
             {
-                error_log("#{$group['id']} {$group['nameshort']} overlaps #{$overlap['id']} {$overlap['nameshort']} with {$overlap['area']}");
+                error_log("#{$group['id']}, {$group['nameshort']}, overlaps, #{$overlap['id']}, {$overlap['nameshort']}, with, {$overlap['area']}");
                 if ($overlap['area'] > $maxoverlap && $overlap['id'] > $group['id']) {
                     $maxoverlap = $overlap['area'];
                     $maxpoly = $overlap['overlap'];
