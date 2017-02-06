@@ -265,7 +265,7 @@ class Stats
 
             $weight = 0;
             foreach ($msgs as $msg) {
-                error_log("{$msg['msgid']} {$msg['subject']} {$msg['weight']}");
+                #error_log("{$msg['msgid']} {$msg['subject']} {$msg['weight']}");
                 $weight += $msg['weight'] ? $msg['weight'] : $avg;
             }
             $this->setCount($date, Stats::WEIGHT, $weight);
@@ -348,7 +348,7 @@ class Stats
                 Stats::WEIGHT
             ];
 
-            if ($me && $me->isModerator()) {
+            if ($me && ($me->isModerator() || $me->isAdmin())) {
                 # Mods can see more info.
                 $types = [
                     Stats::APPROVED_MESSAGE_COUNT,
@@ -371,12 +371,12 @@ class Stats
             #error_log("Check type $type " . "SELECT SUM(count) AS count, date FROM stats WHERE date >= '$start' AND date < '$end' AND groupid IN (" . implode(',', $groupids) . ") AND type = '$type' GROUP BY date;");
 
             # For many group values it's more efficient to use an index on date and type, so order the query accordingly.
-            $sql = count($groupids) > 10 ? ("SELECT SUM(count) AS count, date FROM stats WHERE type = ? AND date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") GROUP BY date;") : ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ? GROUP BY date;");
+            $sql = count($groupids) > 10 ? ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND type = ? AND groupid IN (" . implode(',', $groupids) . ") GROUP BY date;") : ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ? GROUP BY date;");
             $counts = $this->dbhr->preQuery($sql,
                 [
-                    $type,
                     $start,
-                    $end
+                    $end,
+                    $type
                 ]);
 
             foreach ($counts as $count) {
@@ -386,11 +386,9 @@ class Stats
 
         # Breakdowns we have to parse and sum the individual values.  Start from yesterday as we might not have complete
         # data for today.
-        $start = date('Y-m-d', strtotime("yesterday", strtotime($date)));
-
         $types = [ Stats::MESSAGE_BREAKDOWN ];
 
-        if (MODTOOLS && $me && $me->isModerator()) {
+        if (MODTOOLS && $me && ($me->isModerator() || $me->isAdmin())) {
             $types = [
                 Stats::MESSAGE_BREAKDOWN,
                 Stats::POST_METHOD_BREAKDOWN,
@@ -402,11 +400,13 @@ class Stats
         foreach ($types as $type) {
             $ret[$type] = [];
 
-            $sql = "SELECT breakdown FROM stats WHERE type = ? AND date = ? AND groupid IN (" . implode(',', $groupids) . ");";
+            $sql = "SELECT breakdown FROM stats WHERE type = ? AND date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ");";
+            #error_log("SELECT breakdown FROM stats WHERE type = '$type' AND date >= '$start' AND date < '$end' AND groupid IN (" . implode(',', $groupids) . ");");
             $breakdowns = $this->dbhr->preQuery($sql,
                 [
                     $type,
-                    $start
+                    $start,
+                    $end
                 ]);
 
             foreach ($breakdowns as $breakdown) {
