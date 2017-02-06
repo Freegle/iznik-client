@@ -110,7 +110,7 @@ define([
                         _.delay(_.bind(function() {
                             this.setMap(null);
                             console.log("Clear marker", this);
-                        }, marker), 60000);
+                        }, marker), 300000);
                     });
 
                     marker.setFlat(true);

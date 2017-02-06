@@ -412,7 +412,7 @@ define([
                 Iznik.Session.chats.each(function (chat) {
                     var chatView = Iznik.activeChats.viewManager.findByModel(chat);
                     unseen += chat.get('unseen');
-                    // console.log("Unseen", unseen, chat);
+                    console.log("Unseen", unseen, chat);
                 });
             }
 
