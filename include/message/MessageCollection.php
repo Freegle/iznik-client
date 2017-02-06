@@ -34,7 +34,7 @@ class MessageCollection
         return $this->collection;
     }
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $collection)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $collection = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -282,5 +282,43 @@ class MessageCollection
         } else {
             return NULL;
         }
+    }
+
+    function getRecentMessages($type = Group::GROUP_FREEGLE) {
+        $groupq = $type ? " AND groups.type = '$type' " : "";
+        $mysqltime = date("Y-m-d H:i:s", strtotime('5 minutes ago'));
+        $messages = $this->dbhr->preQuery("SELECT messages.id, messages_groups.arrival, messages_groups.groupid, messages.subject FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid INNER JOIN groups ON messages_groups.groupid = groups.id INNER JOIN users ON messages.fromuser = users.id WHERE messages_groups.arrival > ? AND publishconsent = 1 $groupq ORDER BY messages_groups.arrival ASC;", [
+            $mysqltime
+        ]);
+
+        $ret = [];
+
+        $last = NULL;
+        foreach ($messages as $message) {
+            $g = Group::get($this->dbhr, $this->dbhm, $message['groupid']);
+            $namedisplay = $g->getPrivate('namefull') ? $g->getPrivate('namefull') : $g->getPrivate('nameshort');
+            $arrival = strtotime($message['arrival']);
+            $delta = $last !== NULL ? ($arrival - $last) : 0;
+            $last = $arrival;
+
+            $ret[] = [
+                'id' => $message['id'],
+                'message' => [
+                    'id' => $message['id'],
+                    'subject' => $message['subject'],
+                    'arrival' => ISODate($message['arrival']),
+                    'delta' => $delta,
+                ],
+                'group' => [
+                    'id' => $g->getId(),
+                    'nameshort' => $g->getPrivate('nameshort'),
+                    'namedisplay' => $namedisplay,
+                    'lat' => $g->getPrivate('lat'),
+                    'lng' => $g->getPrivate('lng')
+                ]
+            ];
+        }
+
+        return($ret);
     }
 }
