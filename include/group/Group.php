@@ -57,6 +57,7 @@ class Group extends Entity
             'communityevents' => 1,
             'stories' => 1,
             'includearea' => 1,
+            'includepc' => 1,
             'autoapprove' => [
                 'members' => 0,
                 'messages' => 0

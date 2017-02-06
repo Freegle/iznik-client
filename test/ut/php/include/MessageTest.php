@@ -674,6 +674,10 @@ And something after it.', $stripped);
         $m->constructSubject($gid);
         self::assertEquals('OFFER: xmas decorations (TV13)', $m->getSubject());
 
+        $g->setSettings([ 'includepc' => FALSE ]);
+        $m->constructSubject($gid);
+        self::assertEquals('OFFER: xmas decorations (Tuvalu Central)', $m->getSubject());
+
         error_log(__METHOD__ . " end");
     }
 

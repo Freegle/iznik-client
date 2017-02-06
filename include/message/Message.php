@@ -2848,12 +2848,16 @@ class Message
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
             if (pres('area', $atts) && pres('postcode', $atts)) {
                 $includearea = $g->getSetting('includearea', TRUE);
-                if ($includearea) {
+                $includepc = $g->getSetting('includepc', TRUE);
+                if ($includearea && $includepc) {
                     # We want the area in the group, e.g. Edinburgh EH4.
                     $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
-                } else {
-                    # We have it, but don't want it, e.g. EH4.
+                } else if ($includepc) {
+                    # Just postcode, e.g. EH4
                     $loc = $atts['postcode']['name'];
+                } else  {
+                    # Just area or foolish settings, e.g. Edinburgh
+                    $loc = $atts['area']['name'];
                 }
             } else {
                 $l = new Location($this->dbhr, $this->dbhm, $atts['location']['id']);

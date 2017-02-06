@@ -489,6 +489,12 @@ define([
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                             },
                             {
+                                name: 'includepc',
+                                label: 'Include postcode in locations?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                            },
+                            {
                                 control: 'button',
                                 label: 'Save changes',
                                 type: 'submit',
