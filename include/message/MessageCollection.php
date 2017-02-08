@@ -286,9 +286,10 @@ class MessageCollection
 
     function getRecentMessages($type = Group::GROUP_FREEGLE) {
         $groupq = $type ? " AND groups.type = '$type' " : "";
-        $mysqltime = date("Y-m-d H:i:s", strtotime('5 minutes ago'));
-        $messages = $this->dbhr->preQuery("SELECT messages.id, messages_groups.arrival, messages_groups.groupid, messages.subject FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid INNER JOIN groups ON messages_groups.groupid = groups.id INNER JOIN users ON messages.fromuser = users.id WHERE messages_groups.arrival > ? AND publishconsent = 1 $groupq ORDER BY messages_groups.arrival ASC;", [
-            $mysqltime
+        $mysqltime = date("Y-m-d H:i:s", strtotime('30 minutes ago'));
+        $messages = $this->dbhr->preQuery("SELECT messages.id, messages_groups.arrival, messages_groups.groupid, messages.subject FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid INNER JOIN groups ON messages_groups.groupid = groups.id INNER JOIN users ON messages.fromuser = users.id WHERE messages_groups.arrival > ? AND collection = ? AND publishconsent = 1 $groupq ORDER BY messages_groups.arrival ASC;", [
+            $mysqltime,
+            MessageCollection::APPROVED
         ]);
 
         $ret = [];
