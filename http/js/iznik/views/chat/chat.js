@@ -1980,6 +1980,7 @@ define([
                     }
                 });
 
+                console.log("Chat modal", self.$('.js-messages').length, self.messages, self.model);
                 self.collectionView.render();
                 self.messages.fetch({
                     remove: true
