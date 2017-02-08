@@ -186,7 +186,10 @@ class MailRouter
             $fromheader = mailparse_rfc822_parse_addresses($fromheader);
         }
 
-        if ($this->msg->getSource() == Message::YAHOO_SYSTEM) {
+        if ($this->spam->isSpammer($from)) {
+            # Mail from spammer. Drop it.
+            $ret = MailRouter::DROPPED;
+        } else if ($this->msg->getSource() == Message::YAHOO_SYSTEM) {
             $ret = MailRouter::DROPPED;
 
             # This is a message which is from Yahoo's system, rather than a message for a group.
@@ -651,7 +654,7 @@ class MailRouter
                 $spammers = $g->getSetting('spammers', $defs['spammers']);
                 $check = array_key_exists('messagereview', $spammers) ? $spammers['messagereview'] : $defs['spammers']['messagereview'];
                 $notspam = $check ? $notspam : TRUE;
-                error_log("Consider spam review $notspam from $check, " . var_export($spammers, TRUE));
+                #error_log("Consider spam review $notspam from $check, " . var_export($spammers, TRUE));
             }
 
             if (!$notspam) {

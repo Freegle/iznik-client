@@ -459,4 +459,26 @@ class Spam {
 
         return($rc);
     }
+
+    public function isSpammer($email) {
+        $ret = FALSE;
+
+        if ($email) {
+            $u = new User($this->dbhr, $this->dbhm);
+            $uid = $u->findByEmail($email);
+
+            if ($uid) {
+                $spammers = $this->dbhr->preQuery("SELECT id FROM spam_users WHERE userid = ? AND collection = ?;", [
+                    $uid,
+                    Spam::TYPE_SPAMMER
+                ]);
+
+                foreach ($spammers as $spammer) {
+                    $ret = TRUE;
+                }
+            }
+        }
+
+        return($ret);
+    }
 }
