@@ -86,7 +86,7 @@ class userAPITest extends IznikAPITestCase {
         ]);
         error_log(var_export($ret, TRUE));
         assertEquals($email, $ret['user']['emails'][0]['email']);
-        assertTrue(array_key_exists('numreplies', $ret['user']['info']));
+        assertTrue(array_key_exists('replies', $ret['user']['info']));
 
         # Register with email already taken and wrong password
         $ret = $this->call('user', 'PUT', [

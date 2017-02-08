@@ -1487,7 +1487,7 @@ class User extends Entity
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
-                        'ourPostingStatus' => $group['ourPostingStatus'],
+                        'ourpostingstatus' => $group['ourPostingStatus'],
                         'type' => $group['type'],
                         'onyahoo' => $group['onyahoo']
                     ];
