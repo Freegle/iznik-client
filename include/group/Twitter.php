@@ -160,7 +160,7 @@ class Twitter {
                 $link = 'https://' . USER_SITE . "/communityevent/{$event['eventid']}?t=". time();
 
                 $status .= " $link";
-                $rc = $this->tweet($status, NULL);
+                $rc = $this->tweet($status, pres('photo', $atts) ? file_get_contents($atts['photo']['path']) : NULL);
                 error_log($status);
 
                 if ($rc) {
@@ -202,7 +202,7 @@ class Twitter {
             $link = 'https://' . USER_SITE . "/story/{$story['id']}?src=tweetstory&t=". time();
 
             $status .= " $link";
-            $rc = $this->tweet($status, NULL);
+            $rc = $this->tweet($status, file_get_contents(IZNIK_BASE . '/http/images/story.png'));
 
             $this->dbhm->preExec("UPDATE users_stories SET tweeted = 1 WHERE id = ?;", [ $story['id'] ]);
         }
