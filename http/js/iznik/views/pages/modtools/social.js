@@ -60,6 +60,17 @@ define([
 
                 self.collectionView.render();
                 self.fetch();
+
+                self.requests = new Iznik.Collections.Requests();
+
+                self.requestCollectionView = new Backbone.CollectionView({
+                    el: self.$('.js-requestlist'),
+                    modelView: Iznik.Views.ModTools.SocialAction.Request,
+                    collection: self.requests
+                });
+
+                self.requestCollectionView.render();
+                self.requests.fetch();
             });
 
             return(p);
@@ -153,7 +164,6 @@ define([
 
                     params2.message = params.message;
 
-                    console.log("Params for post", params2);
                     FB.api('/' + self.model.get('facebook').id + '/feed', 'post', params2, function(response) {
                         console.log("Share returned", response);
                         self.$('.js-share').fadeOut('slow');
@@ -226,15 +236,11 @@ define([
                             data[att] = self.$('.js-' + att).val();
                         });
 
-                        console.log("Adress data", data);
-
                         $.ajax({
                             url: API + '/address',
                             type: 'PUT',
                             data: data,
                             success: function(ret) {
-                                console.log("Address create", ret);
-
                                 if (ret.ret === 0) {
                                     $.ajax({
                                         url: API + '/request',
@@ -244,8 +250,6 @@ define([
                                             addressid: ret.id
                                         },
                                         success: function(ret) {
-                                            console.log("Request create", ret);
-
                                             if (ret.ret === 0) {
                                                 self.close();
                                                 var v = new Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou();
@@ -281,5 +285,26 @@ define([
 
     Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou = Iznik.Views.Modal.extend({
         template: 'modtools_socialactions_businesscardsthanks'
+    });
+
+    Iznik.Views.ModTools.SocialAction.Request = Iznik.View.Timeago.extend({
+        template: 'modtools_socialactions_request',
+
+        tagName: 'li',
+
+        events: {
+            'click .js-delete': 'deleteIt'
+        },
+
+        deleteIt: function() {
+            var self = this;
+            this.model.destroy().then(self.$el.fadeOut('slow'));
+        },
+
+        render: function() {
+            var self = this;
+            var p = Iznik.View.Timeago.prototype.render.call(self);
+            return(p);
+        }
     });
 });

@@ -31,4 +31,32 @@ define([
             return ret.socialactions;
         }
     });
+
+    Iznik.Models.Request = Iznik.Model.extend({
+        urlRoot: API + 'request',
+
+        parse: function (ret) {
+            if (ret.hasOwnProperty('request')) {
+                return(ret.request);
+            } else {
+                return(ret);
+            }
+        }
+    });
+
+    Iznik.Collections.Requests = Iznik.Collection.extend({
+        model: Iznik.Models.Request,
+
+        url: API + 'request',
+
+        ret: null,
+
+        initialize: function (models, options) {
+            this.options = options;
+        },
+
+        parse: function(ret) {
+            return ret.requests;
+        }
+    });
 });

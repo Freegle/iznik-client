@@ -38,18 +38,19 @@ class Request extends Entity
         return($id);
     }
 
-    public function getPublic()
+    public function getPublic($getaddress = TRUE)
     {
         $ret = parent::getPublic();
 
-        if (pres('addressid', $ret)) {
+        if ($getaddress && pres('addressid', $ret)) {
             $a = new Address($this->dbhr, $this->dbhm, $ret['addressid']);
 
             # We can see the address when we're allowed to see a request.
             $ret['address'] = $a->getPublic(FALSE);
-
-            unset($ret['addressid']);
         }
+
+        unset($ret['addressid']);
+        $ret['date'] = ISODate($ret['date']);
 
         return($ret);
     }
@@ -57,13 +58,13 @@ class Request extends Entity
     public function listForUser($userid) {
         $ret = [];
 
-        $requests = $this->dbhr->preQuery("SELECT id FROM users_requests WHERE userid = ? AND completed IS NULL;", [
+        $requests = $this->dbhr->preQuery("SELECT id FROM users_requests WHERE userid = ?;", [
             $userid
         ]);
 
         foreach ($requests as $request) {
             $r = new Request($this->dbhr, $this->dbhm, $request['id']);
-            $ret[] = $r->getPublic();
+            $ret[] = $r->getPublic(FALSE);
         }
 
         return($ret);

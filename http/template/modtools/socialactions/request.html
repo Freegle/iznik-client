@@ -1,0 +1,10 @@
+<% if (obj.type == 'BusinessCards') { %>
+<p>
+    You asked for business cards <abbr class="timeago" title="{{date}}" />.
+    <% if (obj.completed) { %>
+    They have been sent.
+    <% } else { %>
+    <span class="btn btn-white btn-sm clickme js-delete"><span class="glyphicon glyphicon-trash" />&nbsp;Cancel</span>
+    <% } %>
+</p>
+<% } %>
