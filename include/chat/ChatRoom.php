@@ -1020,7 +1020,7 @@ class ChatRoom extends Entity
         # members - which is a much smaller set.
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND chattype = ? $chatq;";
+        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND chattype = ? AND $chatq;";
         #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
         #error_log("Chats " . var_export($chats, TRUE));
@@ -1069,6 +1069,7 @@ class ChatRoom extends Entity
                         $justmine = TRUE;
 
                         foreach ($unmailedmsgs as $unmailedmsg) {
+                            $unmailedmsg = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
                             $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
 
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
