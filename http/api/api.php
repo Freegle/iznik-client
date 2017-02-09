@@ -42,6 +42,7 @@ require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');
+require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
@@ -66,6 +67,7 @@ require_once(IZNIK_BASE . '/include/config/BulkOp.php');
 require_once(IZNIK_BASE . '/http/api/activity.php');
 require_once(IZNIK_BASE . '/http/api/alert.php');
 require_once(IZNIK_BASE . '/http/api/admin.php');
+require_once(IZNIK_BASE . '/http/api/address.php');
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/modconfig.php');
 require_once(IZNIK_BASE . '/http/api/stdmsg.php');
@@ -189,6 +191,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             switch ($call) {
                 case 'activity':
                     $ret = activity();
+                    break;
+                case 'address':
+                    $ret = address();
                     break;
                 case 'alert':
                     $ret = alert();
