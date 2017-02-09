@@ -372,7 +372,7 @@ define([
 
                         // Photo.  We ask for OCR because it is common for this to be a poster.
                         var photo = self.model.get('photo');
-                        var url = !_.isUndefined(photo) ? photo.path : "https://placehold.it/150x150";
+                        var url = !_.isUndefined(photo) ? photo.paththumb : "https://placehold.it/150x150";
                         self.$('.js-photopreview').attr('src',  url);
                         self.$('.js-photo').fileinput({
                             uploadExtraData: {
@@ -416,7 +416,7 @@ define([
                         self.$('.js-photo').on('fileuploaded', function (event, data) {
                             // Once it's uploaded, hide the controls.  This means we can't edit, but that's ok for
                             // this.
-                            self.$('.js-photopreview').attr('src', data.response.path);
+                            self.$('.js-photopreview').attr('src', data.response.paththumb);
                             self.$('.js-photopreview').show();
                             self.model.set('photo', data.response.id);
 
