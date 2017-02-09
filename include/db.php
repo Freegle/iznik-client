@@ -449,6 +449,9 @@ class LoggedPDO {
         $worked = false;
         $start = microtime(true);
 
+        # Make sure we have a connection.
+        $this->_db = $this->_db ? $this->_db : new PDO($this->dsn, $this->username, $this->password);
+
         do {
             try {
                 $ret = $this->parentExec($sql);
@@ -500,6 +503,9 @@ class LoggedPDO {
         $worked = false;
         $start = microtime(true);
         $msg = '';
+
+        # Make sure we have a connection.
+        $this->_db = $this->_db ? $this->_db : new PDO($this->dsn, $this->username, $this->password);
 
         do {
             try {
