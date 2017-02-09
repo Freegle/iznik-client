@@ -81,7 +81,11 @@ define([
                             }
                         }, error: function(a,b,c) {
                             console.log("DELETE error", a, b, c);
-                            self.trigger('removefailed');
+                            if (b == 'Forbidden') {
+                                self.trigger('removeprohibited');
+                            } else {
+                                self.trigger('removefailed');
+                            }
                         }
                     });
                 }
@@ -132,7 +136,11 @@ define([
                         }
                     }, error: function (a, b, c) {
                         console.log("DELETE error", a, b, c);
-                        self.trigger('banfailed');
+                        if (b == 'Forbidden') {
+                            self.trigger('banprohibited');
+                        } else {
+                            self.trigger('banfailed');
+                        }
                     }
                 });
             }
