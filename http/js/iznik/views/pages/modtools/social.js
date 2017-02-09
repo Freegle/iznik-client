@@ -4,6 +4,7 @@ define([
     'backbone',
     'moment',
     'iznik/base',
+    'typeahead',
     "iznik/modtools",
     "iznik/models/social",
     'iznik/views/pages/pages',
@@ -15,6 +16,15 @@ define([
         template: "modtools_socialactions_main",
 
         retField: 'socialactions',
+
+        events: {
+            'click .js-businesscards': 'businessCards'
+        },
+
+        businessCards: function() {
+            var v = new Iznik.Views.ModTools.SocialAction.BusinessCards();
+            v.render();
+        },
 
         render: function () {
             var self = this;
@@ -155,5 +165,121 @@ define([
 
             self.$el.fadeOut('slow');
         }
+    });
+
+    Iznik.Views.ModTools.SocialAction.BusinessCards = Iznik.Views.Modal.extend({
+        template: 'modtools_socialactions_businesscards',
+
+        tagName: 'li',
+
+        events: {
+            'click .js-submit': 'submit'
+        },
+
+        postcodeSource: function(query, syncResults, asyncResults) {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: query.trim()
+                }, success: function(ret) {
+                    var matches = [];
+                    _.each(ret.locations, function(location) {
+                        matches.push(location.name);
+                    });
+
+                    asyncResults(matches);
+
+                    _.delay(function() {
+                        self.$('.js-postcode').tooltip('destroy');
+                    }, 10000);
+
+                    if (matches.length == 0) {
+                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode (including the space)'});
+                        self.$('.js-postcode').tooltip('show');
+                    } else {
+                        self.firstMatch = matches[0];
+                    }
+                }
+            })
+        },
+
+        submit: function() {
+            var self = this;
+            // First get the postcode id.
+            var val = self.$('.js-postcode').typeahead('val');
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: val
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        var data = {
+                            postcodeid: ret.locations[0].id
+                        };
+
+                        _.each(['line1', 'line2', 'line3', 'line4', 'town', 'county'], function(att) {
+                            data[att] = self.$('.js-' + att).val();
+                        });
+
+                        console.log("Adress data", data);
+
+                        $.ajax({
+                            url: API + '/address',
+                            type: 'PUT',
+                            data: data,
+                            success: function(ret) {
+                                console.log("Address create", ret);
+
+                                if (ret.ret === 0) {
+                                    $.ajax({
+                                        url: API + '/request',
+                                        type: 'PUT',
+                                        data: {
+                                            reqtype: 'BusinessCards',
+                                            addressid: ret.id
+                                        },
+                                        success: function(ret) {
+                                            console.log("Request create", ret);
+
+                                            if (ret.ret === 0) {
+                                                self.close();
+                                                var v = new Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou();
+                                                v.render();
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        },
+
+        render: function() {
+            var self = this;
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+            p.then(function () {
+                self.$('.js-postcode').typeahead({
+                    minLength: 2,
+                    hint: false,
+                    highlight: true
+                }, {
+                    name: 'postcodes',
+                    source: _.bind(self.postcodeSource, self)
+                });
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou = Iznik.Views.Modal.extend({
+        template: 'modtools_socialactions_businesscardsthanks'
     });
 });

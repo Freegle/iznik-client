@@ -3,7 +3,6 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/mailtemplates/story.php');
 
 class Address extends Entity
 {
@@ -22,7 +21,7 @@ class Address extends Entity
     public function create($userid, $line1, $line2, $line3, $line4, $town, $county, $postcodeid, $instructions) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO users_addresses (userid, line1, line2, line3, line4, town, county, postcodeid, instructions) VALUES (?,?,?,?,?,?,?,?,?);", [
+        $rc = $this->dbhm->preExec("REPLACE INTO users_addresses (userid, line1, line2, line3, line4, town, county, postcodeid, instructions) VALUES (?,?,?,?,?,?,?,?,?);", [
             $userid,
             $line1, 
             $line2, 
@@ -45,7 +44,7 @@ class Address extends Entity
         return($id);
     }
 
-    public function getPublic()
+    public function getPublic($mask = TRUE)
     {
         $ret = parent::getPublic();
 
@@ -54,9 +53,11 @@ class Address extends Entity
         $atts = $this->settableatts;
         unset($atts['postcodeid']);
 
-        foreach ($atts as $key => $val) {
-            $len = strlen($val);
-            $ret[$key] = substr($val, 0, 1) . str_repeat('*', $len - 2) . substr($val, $len - 1, 1);
+        if ($mask) {
+            foreach ($atts as $key => $val) {
+                $len = strlen($val);
+                $ret[$key] = substr($val, 0, 1) . str_repeat('*', $len - 2) . substr($val, $len - 1, 1);
+            }
         }
 
         if (pres('postcodeid', $ret)) {

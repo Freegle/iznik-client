@@ -41,6 +41,7 @@ require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/Search.php');
+require_once(IZNIK_BASE . '/include/user/Request.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
@@ -94,6 +95,7 @@ require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/event.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
+require_once(IZNIK_BASE . '/http/api/request.php');
 require_once(IZNIK_BASE . '/http/api/stories.php');
 
 $includetime = microtime(true) - $scriptstart;
@@ -281,6 +283,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'poll':
                     $ret = poll();
+                    break;
+                case 'request':
+                    $ret = request();
                     break;
                 case 'stories':
                     $ret = stories();

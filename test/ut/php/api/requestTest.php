@@ -5,14 +5,14 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
-require_once IZNIK_BASE . '/include/user/Address.php';
+require_once IZNIK_BASE . '/include/user/Request.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class addressAPITest extends IznikAPITestCase {
+class requestAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
     private $count = 0;
@@ -45,8 +45,8 @@ class addressAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create logged out - should fail
-        $ret = $this->call('address', 'PUT', [
-            'line1' => 'Test'
+        $ret = $this->call('request', 'PUT', [
+            'reqtype' => Request::TYPE_BUSINESS_CARDS
         ]);
         assertEquals(1, $ret['ret']);
 
@@ -61,34 +61,32 @@ class addressAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $id = $ret['id'];
-        assertNotNull($id);
+        $aid = $ret['id'];
+        assertNotNull($aid);
 
-        # Get with id - should work
-        $ret = $this->call('address', 'GET', [ 'id' => $id ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals($id, $ret['address']['id']);
-        assertEquals('Test', $ret['address']['line1']);
-
-        # List
-        $ret = $this->call('address', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        self::assertEquals(1, count($ret['addresses']));
-        assertEquals($id, $ret['addresses'][0]['id']);
-        assertEquals('Test', $ret['addresses'][0]['line1']);
-
-        # Edit
-        $ret = $this->call('address', 'PATCH', [
-            'id' => $id,
-            'line1' => 'Test2'
+        $ret = $this->call('request', 'PUT', [
+            'reqtype' => Request::TYPE_BUSINESS_CARDS,
+            'addressid' => $aid
         ]);
         assertEquals(0, $ret['ret']);
-        $ret = $this->call('address', 'GET', [ 'id' => $id ]);
+        $id = $ret['id'];
+
+        # Get with id - should work
+        $ret = $this->call('request', 'GET', [ 'id' => $id ]);
         assertEquals(0, $ret['ret']);
-        assertEquals('Test2', $ret['address']['line1']);
+        assertEquals($id, $ret['request']['id']);
+        assertEquals(Request::TYPE_BUSINESS_CARDS, $ret['request']['type']);
+        self::assertEquals($aid, $ret['request']['address']['id']);
+
+        # List
+        $ret = $this->call('request', 'GET', []);
+        error_log("List " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(1, count($ret['requests']));
+        assertEquals($aid, $ret['requests'][0]['address']['id']);
 
         # Delete
-        $ret = $this->call('address', 'DELETE', [
+        $ret = $this->call('request', 'DELETE', [
             'id' => $id
         ]);
         assertEquals(0, $ret['ret']);

@@ -1,5 +1,5 @@
 <?php
-function address() {
+function request() {
     global $dbhr, $dbhm;
 
     $me = whoAmI($dbhr, $dbhm);
@@ -9,18 +9,20 @@ function address() {
 
     if ($myid) {
         $id = intval(presdef('id', $_REQUEST, NULL));
-        $a = new Address($dbhr, $dbhm, $id);
+        $r = new Request($dbhr, $dbhm, $id);
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
         switch ($_REQUEST['type']) {
             case 'GET': {
                 if ($id) {
                     $ret = [ 'ret' => 3, 'status' => 'Access denied' ];
-                    if ($a->getPrivate('userid') == $myid) {
+
+                    # We can see those if they are our own, or we're a mod for that user.
+                    if ($r->getPrivate('userid') == $myid || $me->moderatorForUser($r->getPrivate('userid')) || $me->isAdmin()) {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'address' => $a->getPublic()
+                            'request' => $r->getPublic()
                         ];
                     }
                 } else {
@@ -28,22 +30,16 @@ function address() {
                     $ret = [
                         'status' => 'Success',
                         'ret' => 0,
-                        'addresses' => $a->listForUser($me->getId())
+                        'requests' => $r->listForUser($me->getId())
                     ];
                 }
                 break;
             }
 
             case 'PUT':
-                $id = $a->create($me->getId(),
-                    presdef('line1', $_REQUEST, NULL),
-                    presdef('line2', $_REQUEST, NULL),
-                    presdef('line3', $_REQUEST, NULL),
-                    presdef('line4', $_REQUEST, NULL),
-                    presdef('town', $_REQUEST, NULL),
-                    presdef('county', $_REQUEST, NULL),
-                    presdef('postcodeid', $_REQUEST, NULL),
-                    presdef('instructions', $_REQUEST, NULL));
+                $id = $r->create($me->getId(),
+                    presdef('reqtype', $_REQUEST, NULL),
+                    presdef('addressid', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 0,
@@ -55,8 +51,8 @@ function address() {
             case 'PATCH': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($a->getPrivate('userid') == $myid) {
-                    $a->setAttributes($_REQUEST);
+                if ($r->getPrivate('userid') == $myid || $me->moderatorForUser($r->getPrivate('userid')) || $me->isAdmin()) {
+                    $r->setAttributes($_REQUEST);
 
                     $ret = [
                         'ret' => 0,
@@ -69,8 +65,8 @@ function address() {
             case 'DELETE': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($a->getPrivate('userid') == $myid) {
-                    $a->delete();
+                if ($r->getPrivate('userid') == $myid) {
+                    $r->delete();
 
                     $ret = [
                         'ret' => 0,
