@@ -830,6 +830,16 @@ class Message
             }
         }
 
+        if ($myid && $this->fromuser == $myid) {
+            # For our own messages, return the posting history.
+            $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid = ? ORDER BY date ASC;", [ $this->id ]);
+            $ret['postings'] = [];
+            foreach ($posts as &$post) {
+                $post['date'] = ISODate($post['date']);
+                $ret['postings'][] = $post;
+            }
+        }
+
         return($ret);
     }
 

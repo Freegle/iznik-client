@@ -238,6 +238,25 @@ define([
                             });
                         });
 
+                        // Repost time.
+                        var repost = self.model.get('canrepostat');
+
+                        if (repost && self.$('.js-repostat').length > 0) {
+                            if (moment().diff(repost) >=  0) {
+                                // Autorepost due.
+                                self.$('.js-repostat').html('soon');
+                            } else {
+                                self.$('.js-repostat').html(moment(repost).fromNow());
+                            }
+                        }
+
+                        // Show when it was first posted - some people like to use this to decide when to give up.
+                        var postings = self.model.get('postings');
+                        if (postings && postings.length > 1) {
+                            self.$('.js-firstdate').html((new moment(postings[0].date)).format('DD-MMM-YY'));
+                            self.$('.js-firstpost').show();
+                        }
+
                         if (approved || pending) {
                             self.$('.js-taken').show();
                             self.$('.js-received').show();
@@ -296,18 +315,6 @@ define([
                                 } else {
                                     self.$('.js-noreplies').show();
                                 }
-                            }
-                        }
-
-                        // Repost time.
-                        var repost = self.model.get('canrepostat');
-
-                        if (repost && self.$('.js-repostat').length > 0) {
-                            if (moment().diff(repost) >=  0) {
-                                // Autorepost due.
-                                self.$('.js-repostat').html('soon');
-                            } else {
-                                self.$('.js-repostat').html(moment(repost).fromNow());
                             }
                         }
 
