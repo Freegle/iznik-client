@@ -34,6 +34,9 @@ class User extends Entity
     const ROLE_MODERATOR = 'Moderator';
     const ROLE_OWNER = 'Owner';
 
+    # Permissions
+    const PERM_BUSINESS_CARDS = 'BusinessCards';
+
     const HAPPY = 'Happy';
     const FINE = 'Fine';
     const UNHAPPY = 'Unhappy';
@@ -1224,6 +1227,7 @@ class User extends Entity
             $atts['emails'] = $me->getEmails();
             $atts['email'] = $me->getEmailPreferred($atts['emails']);
             $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
+            $atts['permissions'] = $me->getPrivate('permissions');
         }
 
         if ($me && ($me->isModerator() || $this->id == $me->getId())) {
@@ -2924,5 +2928,10 @@ class User extends Entity
         }
 
         return([$count, $title, $message, $chatids, $route]);
+    }
+
+    public function hasPermission($perm) {
+        $perms = $this->user['permissions'];
+        return($perms && stripos($perms, $perm) !== FALSE);
     }
 }

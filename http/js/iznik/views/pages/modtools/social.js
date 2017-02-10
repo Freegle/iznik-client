@@ -74,6 +74,24 @@ define([
 
                 self.requestCollectionView.render();
                 self.requests.fetch();
+
+                if (Iznik.Session.hasPermission('BusinessCardsAdmin')) {
+                    self.outstanding = new Iznik.Collections.Requests();
+
+                    self.outstandingCollectionView = new Backbone.CollectionView({
+                        el: self.$('.js-outstandinglist'),
+                        modelView: Iznik.Views.ModTools.SocialAction.Outstanding,
+                        collection: self.outstanding
+                    });
+
+                    self.outstandingCollectionView.render();
+                    self.outstanding.fetch({
+                        data: {
+                            outstanding: true
+                        }
+                    });
+
+                }
             });
 
             return(p);
@@ -311,12 +329,21 @@ define([
         deleteIt: function() {
             var self = this;
             this.model.destroy().then(self.$el.fadeOut('slow'));
+        }
+    });
+
+    Iznik.Views.ModTools.SocialAction.Outstanding = Iznik.View.Timeago.extend({
+        template: 'modtools_socialactions_outstanding',
+
+        tagName: 'li',
+
+        events: {
+            'click .js-delete': 'deleteIt'
         },
 
-        render: function() {
+        deleteIt: function() {
             var self = this;
-            var p = Iznik.View.Timeago.prototype.render.call(self);
-            return(p);
+            this.model.destroy().then(self.$el.fadeOut('slow'));
         }
     });
 });

@@ -50,6 +50,11 @@ class Request extends Entity
         }
 
         unset($ret['addressid']);
+
+        $u = User::get($this->dbhr, $this->dbhm, $ret['userid']);
+        $ret['user'] = $u->getPublic();
+        unset($ret['userid']);
+
         $ret['date'] = ISODate($ret['date']);
 
         return($ret);
@@ -65,6 +70,19 @@ class Request extends Entity
         foreach ($requests as $request) {
             $r = new Request($this->dbhr, $this->dbhm, $request['id']);
             $ret[] = $r->getPublic(FALSE);
+        }
+
+        return($ret);
+    }
+
+    public function listOutstanding() {
+        $ret = [];
+
+        $requests = $this->dbhr->preQuery("SELECT id FROM users_requests WHERE completed IS NULL;");
+
+        foreach ($requests as $request) {
+            $r = new Request($this->dbhr, $this->dbhm, $request['id']);
+            $ret[] = $r->getPublic(TRUE);
         }
 
         return($ret);
