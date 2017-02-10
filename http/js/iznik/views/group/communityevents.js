@@ -8,7 +8,8 @@ define([
     'jquery.validate.min',
     'jquery.validate.additional-methods',
     'iznik/models/communityevent',
-    'iznik/views/group/select'
+    'iznik/views/group/select',
+    'iznik/customvalidate'
 ], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.CommunityEventsSidebar = Iznik.View.extend({
         template: "communityevents_list",

@@ -5,8 +5,11 @@ define([
     'moment',
     'iznik/base',
     'typeahead',
-    "iznik/modtools",
-    "iznik/models/social",
+    'jquery.validate.min',
+    'jquery.validate.additional-methods',
+    'iznik/customvalidate',
+    'iznik/modtools',
+    'iznik/models/social',
     'iznik/views/pages/pages',
     'iznik/views/infinite'
 ], function($, _, Backbone, moment, Iznik) {
@@ -218,64 +221,73 @@ define([
 
         submit: function() {
             var self = this;
-            // First get the postcode id.
-            var val = self.$('.js-postcode').typeahead('val');
 
-            $.ajax({
-                type: 'GET',
-                url: API + 'locations',
-                data: {
-                    typeahead: val
-                }, success: function(ret) {
-                    if (ret.ret == 0) {
-                        var data = {
-                            postcodeid: ret.locations[0].id
-                        };
+            if (self.$('form').valid()) {
+                var data = {
+                    postcodeid: self.postcodeid
+                };
 
-                        _.each(['line1', 'line2', 'line3', 'line4', 'town', 'county'], function(att) {
-                            data[att] = self.$('.js-' + att).val();
-                        });
+                _.each(['line1', 'line2', 'line3', 'line4', 'town', 'county'], function(att) {
+                    data[att] = self.$('.js-' + att).val();
+                });
 
-                        $.ajax({
-                            url: API + '/address',
-                            type: 'PUT',
-                            data: data,
-                            success: function(ret) {
-                                if (ret.ret === 0) {
-                                    $.ajax({
-                                        url: API + '/request',
-                                        type: 'PUT',
-                                        data: {
-                                            reqtype: 'BusinessCards',
-                                            addressid: ret.id
-                                        },
-                                        success: function(ret) {
-                                            if (ret.ret === 0) {
-                                                self.close();
-                                                var v = new Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou();
-                                                v.render();
-                                            }
-                                        }
-                                    });
+                $.ajax({
+                    url: API + '/address',
+                    type: 'PUT',
+                    data: data,
+                    success: function(ret) {
+                        if (ret.ret === 0) {
+                            $.ajax({
+                                url: API + '/request',
+                                type: 'PUT',
+                                data: {
+                                    reqtype: 'BusinessCards',
+                                    addressid: ret.id
+                                },
+                                success: function(ret) {
+                                    if (ret.ret === 0) {
+                                        self.close();
+                                        var v = new Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou();
+                                        v.render();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
-                }
-            });
+                });
+            }
         },
 
         render: function() {
             var self = this;
             var p = Iznik.Views.Modal.prototype.render.call(self);
             p.then(function () {
-                self.$('.js-postcode').typeahead({
-                    minLength: 2,
-                    hint: false,
-                    highlight: true
-                }, {
-                    name: 'postcodes',
-                    source: _.bind(self.postcodeSource, self)
+                // self.$('.js-postcode').typeahead({
+                //     minLength: 2,
+                //     hint: false,
+                //     highlight: true
+                // }, {
+                //     name: 'postcodes',
+                //     source: _.bind(self.postcodeSource, self)
+                // });
+
+                self.waitDOM(self, function() {
+                    self.validator = self.$('form').validate({
+                        rules: {
+                            line1: {
+                                required: true,
+                                minlength: 2
+                            },
+                            town: {
+                                required: true,
+                                minlength: 2
+                            },
+                            postcode: {
+                                required: true,
+                                ourPostcode: self
+                            }
+                        }
+                    });
                 });
             });
 
