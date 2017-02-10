@@ -2474,6 +2474,10 @@ class Message
             $textbody = $matches[1];
         }
 
+        if (preg_match('/(.*)__._,_.___(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1];
+        }
+
         # Or we might have some headers
         $textbody = preg_replace('/^From:.*?$/mi', '', $textbody);
         $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
