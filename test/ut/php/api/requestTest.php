@@ -83,7 +83,6 @@ class requestAPITest extends IznikAPITestCase {
         error_log("List " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(1, count($ret['requests']));
-        assertEquals($aid, $ret['requests'][0]['address']['id']);
 
         # Delete
         $ret = $this->call('request', 'DELETE', [
