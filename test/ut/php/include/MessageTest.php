@@ -372,8 +372,6 @@ class messageTest extends IznikTestCase {
         $stripped = $m->stripQuoted();
         assertEquals('Ok, here\'s a reply.
 
-
-
 And something after it.', $stripped);
 
         $msg = $this->unique(file_get_contents('msgs/notif_reply_text4'));
@@ -400,6 +398,12 @@ And something after it.', $stripped);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
         assertEquals("Ok, here's a reply with https://" . USER_SITE ." an url and https://" . USER_SITE, $stripped);
+
+        $msg = $this->unique(file_get_contents('msgs/notif_reply_text8'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $stripped = $m->stripQuoted();
+        assertEquals('Ok, here\'s a reply.', $stripped);
 
         error_log(__METHOD__ . " end");
     }

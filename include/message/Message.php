@@ -2470,17 +2470,20 @@ class Message
             $textbody = $matches[1] . $matches[2];
         }
 
-        if (preg_match('/(.*)__,_._,___(.*)/ms', $textbody, $matches)) {
+        if (preg_match('/(.*?)__,_._,___(.*)/ms', $textbody, $matches)) {
             $textbody = $matches[1];
         }
 
-        if (preg_match('/(.*)__._,_.___(.*)/ms', $textbody, $matches)) {
+        if (preg_match('/(.*?)__._,_.___(.*)/ms', $textbody, $matches)) {
             $textbody = $matches[1];
         }
 
         # Or we might have some headers
-        $textbody = preg_replace('/^From:.*?$/mi', '', $textbody);
-        $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
+        $textbody = preg_replace('/To:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/From:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/Sent:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/Date:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/Subject:.*?$/is', '', $textbody);
 
         # Get rid of sigs
         $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
@@ -2506,6 +2509,9 @@ class Message
 
         // We might have links to our own site.  Strip these in case they contain login information.
         $textbody = preg_replace('/https:\/\/' . USER_SITE . '\S*/', 'https://' . USER_SITE, $textbody);
+
+        // Redundant line breaks.
+        $textbody = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\r\n\r\n", $textbody);
 
         return(trim($textbody));
     }
