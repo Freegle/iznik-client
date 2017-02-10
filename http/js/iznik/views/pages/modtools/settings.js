@@ -1938,7 +1938,7 @@ define([
             });
         },
     
-        mapWKT: function(wktstr, area) {
+        mapWKT: function(wktstr, area, colour) {
             var self = this;
             var wkt = new self.Wkt.Wkt();
     
@@ -1985,7 +1985,7 @@ define([
                         position: new google.maps.LatLng(area.get('lat'), area.get('lng')),
                         map: self.map,
                         fontSize: 20,
-                        fontColor: 'red',
+                        fontColor: colour ? colour : 'red',
                         align: 'right'
                     });
 
@@ -2160,7 +2160,6 @@ define([
                                 self.areas = new Iznik.Collections.Locations();
                                 self.listenTo(self.areas, 'add', function(area) {
                                     var poly = area.get('polygon');
-                                    console.log("Poly", poly);
                                     var lat = area.get('lat');
                                     var lng = area.get('lng');
 
@@ -2197,15 +2196,31 @@ define([
                                         self.allGroups = new Iznik.Collections.Group();
                                         self.allGroups.fetch({
                                             data: {
-                                                grouptype: 'Freegle'
+                                                grouptype: 'Freegle',
+                                                official: true
                                             }
                                         }).then(function() {
                                             self.fetched = true;
 
                                             // Add a polygon for each
                                             self.allGroups.each(function(group) {
-                                                group.set('name', group.get('nameshort'))
-                                                self.mapWKT(group.get('poly'), group);
+                                                var poly = group.get('poly');
+                                                var polyofficial = group.get('polyofficial');
+                                                var diff = polyofficial && polyofficial != poly;
+
+                                                if (diff) {
+                                                    group.set('name', group.get('nameshort') + ' Default Posting Area')
+                                                } else {
+                                                    group.set('name', group.get('nameshort'))
+                                                }
+
+                                                self.mapWKT(poly, group);
+
+                                                if (diff) {
+                                                    var group2 = group.clone();
+                                                    group2.set('name', group.get('nameshort') + ' Core Group Area')
+                                                    self.mapWKT(polyofficial, group2, 'blue');
+                                                }
                                             })
                                         });
                                     }
