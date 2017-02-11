@@ -324,7 +324,7 @@ class Group extends Entity
                 $this->id,
                 MembershipCollection::PENDING
             ])[0]['count'] : 0,
-            'pendingevents' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ?;", [
+            'pendingevents' => $this->dbhr->preQuery("SELECT COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ?;", [
                 $this->id,
                 $eventsqltime
             ])[0]['count'],
