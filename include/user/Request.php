@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/Address.php');
+require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards.php');
 
 class Request extends Entity
 {
@@ -86,6 +87,40 @@ class Request extends Entity
         }
 
         return($ret);
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function completed($userid) {
+//        $this->dbhm->preExec("UPDATE users_requests SET completed = NOW(), completedby = ? WHERE id = ?;", [
+//            $userid,
+//            $this->id
+//        ]);
+
+        switch ($this->request['type']) {
+            case Request::TYPE_BUSINESS_CARDS: {
+                $u = User::get($this->dbhr, $this->dbhm, $this->request['userid']);
+
+                $html = business_cards($u->getName(), $u->getEmailPreferred());
+
+                try {
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("Your cards are on their way...")
+                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setReturnPath($u->getBounce())
+                        ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                        ->setBody("Thanks for asking for some cards to promote Freegle.  They should now be on their way.  Please allow a week or so for them to arrive.")
+                        ->addPart($html, 'text/html');
+
+                    list ($transport, $mailer) = getMailer();
+                    $this->sendIt($mailer, $message);
+                } catch (Exception $e) {}
+
+                break;
+            }
+        }
     }
 
     public function delete() {

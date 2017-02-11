@@ -57,6 +57,19 @@ function request() {
                 ];
                 break;
 
+            case 'POST':
+                $action = presdef('action', $_REQUEST, NULL);
+                switch ($action) {
+                    case 'Completed': $r->completed($myid); break;
+                }
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'id' => $id
+                ];
+                break;
+
             case 'PATCH': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 

@@ -12,7 +12,7 @@ require_once IZNIK_BASE . '/include/user/Story.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class StoriesTest extends IznikTestCase {
+class StoryTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() {

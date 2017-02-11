@@ -338,7 +338,14 @@ define([
         tagName: 'li',
 
         events: {
-            'click .js-delete': 'deleteIt'
+            'click .js-delete': 'deleteIt',
+            'click .js-sent': 'sent'
+        },
+
+        sent: function() {
+            var self = this;
+            console.log("Sent", this.model);
+            this.model.completed().then(self.$el.fadeOut('slow'));
         },
 
         deleteIt: function() {
