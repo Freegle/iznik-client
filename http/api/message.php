@@ -87,25 +87,58 @@ function message() {
 
             if ($m) {
                 if ($_REQUEST['type'] == 'GET') {
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'groups' => [],
-                        'message' => $m->getPublic($messagehistory, FALSE)
-                    ];
+                    $atts = $m->getPublic($messagehistory, FALSE);
 
-                    foreach ($ret['message']['groups'] as &$group) {
-                        $g = Group::get($dbhr, $dbhm, $group['groupid']);
-                        $ret['groups'][$group['groupid']] = $g->getPublic();
+                    # Check we're allowed to see it.
+                    #
+                    # We can see messages if:
+                    # - we're a mod or an owner
+                    # - for Freegle groups which use this platform
+                    #   - we're a member, or
+                    #   - we have publish consent
+                    #
+                    # See similar code in MessageCollection.
+                    $role = $atts['myrole'];
+                    $cansee = FALSE;
+
+                    foreach ($atts['groups'] as $group) {
+                        if ($role == User::ROLE_MODERATOR ||
+                            $role == User::ROLE_OWNER ||
+                            ($collection != MessageCollection::PENDING &&
+                                $atts['type'] == Group::GROUP_FREEGLE && $group['onhere'] &&
+                                ($atts['publishconsent'] || $role == User::ROLE_MEMBER))
+                        ) {
+                            $cansee = TRUE;
+                        }
                     }
 
+                    $ret = [
+                        'ret' => 2,
+                        'status' => 'Permission denied'
+                    ];
+
+                    if ($cansee) {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'groups' => [],
+                            'message' => $atts
+                        ];
+
+                        foreach ($ret['message']['groups'] as &$group) {
+                            # The groups info returned in the message is not enough - doesn't include settings, for
+                            # example.
+                            $g = Group::get($dbhr, $dbhm, $group['groupid']);
+                            $ret['groups'][$group['groupid']] = $g->getPublic();
+                        }
+                    }
                 } else if ($_REQUEST['type'] == 'PUT') {
                     if ($collection == MessageCollection::DRAFT) {
                         # Draft messages are created by users, rather than parsed out from emails.  We might be
                         # creating one, or updating one.
                         $locationid = intval(presdef('locationid', $_REQUEST, NULL));
 
-                        $ret = [ 'ret' => 2, 'Missing location - client error' ];
+                        $ret = [ 'ret' => 3, 'Missing location - client error' ];
 
                         if ($locationid) {
                             if (!$id) {

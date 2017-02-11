@@ -189,6 +189,8 @@ class MessageCollection
                         # - for Freegle groups which use this platform
                         #   - we're a member, or
                         #   - we have publish consent
+                        #
+                        # See similar code in message.php.
                         if ($role == User::ROLE_MODERATOR ||
                             $role == User::ROLE_OWNER ||
                             ($this->collection != MessageCollection::PENDING &&

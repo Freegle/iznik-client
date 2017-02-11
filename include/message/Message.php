@@ -355,7 +355,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr', 'publishconsent'
     ];
 
     public $memberAtts = [
@@ -381,7 +381,7 @@ class Message
         $this->notif = new Notifications($this->dbhr, $this->dbhm);
 
         if ($id) {
-            $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id WHERE id = ?;", [$id]);
+            $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, users.publishconsent FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser WHERE messages.id = ?;", [$id]);
             foreach ($msgs as $msg) {
                 $this->id = $id;
 
@@ -767,27 +767,24 @@ class Message
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);
         }
 
-        $ret['publishconsent'] = FALSE;
+        # Publish consent was returned in the construct.
+        $ret['publishconsent'] = $this->publishconsent ? TRUE : FALSE;
 
-        if ($this->fromuser) {
+        if ($this->fromuser && pres('fromuser', $ret)) {
             # We know who sent this.  We may be able to return this (depending on the role we have for the message
             # and hence the attributes we have already filled in).  We also want to know if we have consent
             # to republish it.
             $u = User::get($this->dbhr, $this->dbhm, $this->fromuser);
 
-            if (pres('fromuser', $ret)) {
-                # Get the user details, relative to the groups this message appears on.
-                $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
+            # Get the user details, relative to the groups this message appears on.
+            $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
 
-                if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
-                    # We can see their emails.
-                    $ret['fromuser']['emails'] = $u->getEmails();
-                }
-
-                filterResult($ret['fromuser']);
+            if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                # We can see their emails.
+                $ret['fromuser']['emails'] = $u->getEmails();
             }
 
-            $ret['publishconsent'] = $u->getPrivate('publishconsent');
+            filterResult($ret['fromuser']);
         }
 
         if ($related) {

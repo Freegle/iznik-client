@@ -599,6 +599,7 @@ define([
                     id: self.options.id
                 });
                 self.model.fetch().then(function () {
+                    console.log("Fetched", self.model);
                     // We might fail to fetch, or fetch a deleted message, or fetch a completed message.  In all these
                     // cases the message shouldn't show.
                     if (self.model.get('subject') &&
