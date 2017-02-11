@@ -73,13 +73,13 @@ do {
     }
 } while (count($msgs) > 0);
 
-# Now purge messages which are stranded, not on any groups.
+# Now purge messages which are stranded, not on any groups and not referenced from any chats or drafts.
 $start = date('Y-m-d', strtotime("midnight 2 days ago"));
 error_log("Purge stranded messages before $start");
 $total = 0;
 
 do {
-    $sql = "SELECT messages.id FROM messages WHERE arrival <= '$start' AND id NOT IN (SELECT DISTINCT msgid FROM messages_groups) LIMIT 1000;";
+    $sql = "SELECT messages.id FROM messages WHERE arrival <= '$start' AND id NOT IN (SELECT DISTINCT msgid FROM messages_groups) AND id NOT IN (SELECT DISTINCT refmsgid FROM chat_messages) AND id NOT IN (SELECT DISTINCT msgid FROM messages_drafts) LIMIT 1000;";
     $msgs = $dbhm->query($sql)->fetchAll();
     foreach ($msgs as $msg) {
         $dbhm->exec("DELETE FROM messages WHERE id = {$msg['id']};");
