@@ -317,7 +317,7 @@ class Message
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
-        $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP;
+        $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP, $publishconsent;
 
     /**
      * @return mixed
@@ -652,10 +652,12 @@ class Message
             $group['arrival'] = ISODate($group['arrival']);
             #error_log("{$this->id} approved by {$group['approvedby']}");
 
-            if (pres('approvedby', $group)) {
-                $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
-                $ctx = NULL;
-                $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
+                if (pres('approvedby', $group)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
+                    $ctx = NULL;
+                    $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                }
             }
 
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);

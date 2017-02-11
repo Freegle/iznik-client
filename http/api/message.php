@@ -95,6 +95,7 @@ function message() {
                     # - we're a mod or an owner
                     # - for Freegle groups which use this platform
                     #   - we're a member, or
+                    #   - it was posted from the platform
                     #   - we have publish consent
                     #
                     # See similar code in MessageCollection.
@@ -102,11 +103,13 @@ function message() {
                     $cansee = FALSE;
 
                     foreach ($atts['groups'] as $group) {
+                        $g = Group::get($dbhr, $dbhm, $group['groupid']);
+                        # error_log("Consider show " . $m->getID() . " role $role coll $collection type " . $g->getPrivate('type') . " onhere " . $g->getPrivate('onhere') . " consent {$atts['publishconsent']} source " . $m->getSourceheader());
                         if ($role == User::ROLE_MODERATOR ||
                             $role == User::ROLE_OWNER ||
                             ($collection != MessageCollection::PENDING &&
-                                $atts['type'] == Group::GROUP_FREEGLE && $group['onhere'] &&
-                                ($atts['publishconsent'] || $role == User::ROLE_MEMBER))
+                                $g->getPrivate('type') == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
+                                ($atts['publishconsent'] || $m->getSourceheader() == Message::PLATFORM || $role == User::ROLE_MEMBER))
                         ) {
                             $cansee = TRUE;
                         }
