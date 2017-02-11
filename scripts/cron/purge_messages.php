@@ -6,6 +6,7 @@
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
@@ -13,6 +14,26 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
+
+# Purge messages which have been stuck waiting for Yahoo users for ages.
+$start = date('Y-m-d', strtotime("midnight 31 days ago"));
+error_log("Purge waiting for Yahoo before $start");
+
+$total = 0;
+do {
+    $sql = "SELECT msgid FROM messages_groups WHERE collection = '" . MessageCollection::QUEUED_YAHOO_USER . "' AND arrival < '$start' LIMIT 1000;";
+    $msgs = $dbhm->query($sql)->fetchAll();
+    foreach ($msgs as $msg) {
+        $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
+        $total++;
+
+        if ($total % 1000 == 0) {
+            error_log("...$total");
+        }
+    }
+} while (count($msgs) > 0);
+
+error_log("Deleted $total");
 
 # Purge old non-Freegle messages
 $start = date('Y-m-d', strtotime("midnight 31 days ago"));
