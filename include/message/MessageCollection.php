@@ -132,7 +132,7 @@ class MessageCollection
                     $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
                 }
 
-                error_log("Messages get $sql");
+                #error_log("Messages get $sql");
 
                 $msglist = $this->dbhr->preQuery($sql);
 

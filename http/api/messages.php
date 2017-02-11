@@ -102,8 +102,11 @@ function messages() {
                             $groups = $l->groupsNear();
                         }
 
-                        $msgs = $m->search($search, $ctx, $limit, NULL, $groups, $nearlocation, $exactonly);
-                        list($groups, $msgs) = $c->fillIn($msgs, $limit, $messagetype, NULL);
+                        do {
+                            $searched = $m->search($search, $ctx, $limit, NULL, $groups, $nearlocation, $exactonly);
+                            list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, NULL);
+                            # We might have excluded all the messages we found; if so, keep going.
+                        } while (count($searched) > 0 && count($msgs) == 0);
                     }
 
                     break;
