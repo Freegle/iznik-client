@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function story($toname, $to, $storyurl) {
+function story_ask($toname, $to, $storyurl) {
     $siteurl = "https://" . USER_SITE;
     $sitename = SITE_NAME;
     $logo = USERLOGO;

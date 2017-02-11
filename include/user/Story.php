@@ -3,7 +3,9 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/mailtemplates/story.php');
+require_once(IZNIK_BASE . '/mailtemplates/stories/story_ask.php');
+require_once(IZNIK_BASE . '/mailtemplates/stories/story_digest.php');
+require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
 
 class Story extends Entity
 {
@@ -192,7 +194,7 @@ class Story extends Entity
                     $asked++;
                     $url = $u->loginLink(USER_SITE, $user['fromuser'], '/stories');
 
-                    $html = story($u->getName(), $u->getEmailPreferred(), $url);
+                    $html = story_ask($u->getName(), $u->getEmailPreferred(), $url);
                     error_log("..." . $u->getEmailPreferred());
 
                     try {
@@ -217,5 +219,52 @@ class Story extends Entity
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM users_stories WHERE id = ?;", [ $this->id ]);
         return($rc);
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function sendToCentral($id = NULL) {
+        $idq = $id ? " AND id = $id " : "";
+        $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE mailedtocentral = 0 AND public = 1 AND reviewed = 1 $idq;");
+        $html = '';
+        $text = '';
+        $count = 0;
+
+        foreach ($stories as $story) {
+            $s = new Story($this->dbhr, $this->dbhm, $story['id']);
+            $atts = $s->getPublic();
+
+            $include = TRUE;
+
+            foreach ($this->exclude as $word) {
+                if (stripos($atts['headline'], $word) !== FALSE || (pres('story', $atts) && stripos($atts['story'], $word) !== FALSE)) {
+                    $include = FALSE;
+                }
+            }
+
+            if ($include) {
+                $html .= story_one($atts['groupname'], $atts['headline'], $atts['story']);
+                $text = $atts['headline'] . "\nFrom a freegler on {$atts['groupname']}\n\n{$atts['story']}\n\n";
+                $this->dbhm->preExec("UPDATE users_stories SET mailedtocentral = 1 WHERE id = ?;", [ $story['id'] ]);
+                $count++;
+            }
+        }
+
+        $url = 'https://' . USER_SITE . '/stories';
+        $html = story_digest(CENTRAL_MAIL_TO, CENTRAL_MAIL_TO, $url, $html);
+
+        $message = Swift_Message::newInstance()
+            ->setSubject("Recent stories from freeglers")
+            ->setFrom([CENTRAL_MAIL_FROM => SITE_NAME])
+            ->setReturnPath(CENTRAL_MAIL_FROM)
+            ->setTo(CENTRAL_MAIL_TO)
+            ->setBody($text)
+            ->addPart($html, 'text/html');
+
+        list ($transport, $mailer) = getMailer();
+        $this->sendIt($mailer, $message);
+        return($count);
     }
 }

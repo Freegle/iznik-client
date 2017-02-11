@@ -113,6 +113,10 @@ define('VOLUNTEERS_ADDR', 'volunteers@zzz');
 
 define('NOREPLY_ADDR', 'noreply@zzz');
 
+# Central mods mailing list, where we send periodic mails
+define('CENTRAL_MAIL_TO', 'FreegleUK-Central@yahoogroups.com');
+define('CENTRAL_MAIL_FROM', 'geeks@ilovefreegle.org');
+
 # This speeds up load time
 define('MINIFY', TRUE);
 
