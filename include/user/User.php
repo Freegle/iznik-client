@@ -1485,7 +1485,7 @@ class User extends Entity
                 # allows us to spot abuse) and any which are on our groups.
                 $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
                 $modids = array_merge([0], $me->getModeratorships());
-                $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 $memberof = [];
 
@@ -1498,7 +1498,7 @@ class User extends Entity
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
                         'added' => ISODate($group['added']),
-                        'collection' => $group['collection'],
+                        'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
