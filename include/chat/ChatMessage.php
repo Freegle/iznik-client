@@ -33,11 +33,12 @@ class ChatMessage extends Entity
     # ...but this matches some bad character patterns.
     private $urlBad = [ '%', '{', ';', '#', ':' ];
 
+    private $spamwords = NULL;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
-        $this->spamwords = $dbhr->preQuery("SELECT * FROM spam_keywords;");
     }
 
     /**
@@ -46,6 +47,12 @@ class ChatMessage extends Entity
     public function setDbhm($dbhm)
     {
         $this->dbhm = $dbhm;
+    }
+
+    private function getSpamWords() {
+        if (!$this->spamwords) {
+            $this->spamwords = $this->dbhr->preQuery("SELECT * FROM spam_keywords;");
+        }
     }
 
     public function whitelistURLs($message) {
@@ -134,6 +141,7 @@ class ChatMessage extends Entity
         }
 
         # Check keywords
+        $this->getSpamWords();
         foreach ($this->spamwords as $word) {
             if ($word['action'] == 'Review' &&
                 preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
@@ -149,6 +157,7 @@ class ChatMessage extends Entity
         $spam = FALSE;
 
         # Check keywords
+        $this->getSpamWords();
         foreach ($this->spamwords as $word) {
             if ($word['action'] == 'Spam' &&
                 preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
@@ -283,8 +292,8 @@ class ChatMessage extends Entity
         # that the recipient of the message (i.e. the chat member who isn't the one who sent it) is on.
         #
         # For some of these groups we may be set not to show messages - so we need to honour that.
-        $show = [0];
-        $dontshow = [0];
+        $show = [];
+        $dontshow = [];
 
         $groupids = $me->getModeratorships();
         foreach ($groupids as $groupid) {
@@ -303,8 +312,8 @@ class ChatMessage extends Entity
         # an inefficient query.
         # TODO This uses INSTR to check a json-encoded field.  In MySQL 5.7 we can do better.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
-        $showcount = $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'];
-        $dontshowcount = $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($dontshowq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'];
+        $showcount = count($show) > 0 ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'] : 0;
+        $dontshowcount = count($dontshow) > 0 ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($dontshowq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'] : 0;
 
         return([
             'showgroups' => $showq,

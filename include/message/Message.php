@@ -1162,7 +1162,7 @@ class Message
             $id = $rc ? $id : NULL;
         }
 
-        error_log("Created draft $id");
+        #error_log("Created draft $id");
         return($id);
     }
 

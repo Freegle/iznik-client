@@ -1136,7 +1136,9 @@ class User extends Entity
 
                 if (!$configid && ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR)) {
                     $c = new ModConfig($this->dbhr, $this->dbhm);
-                    $settings['configid'] = $c->getForGroup($this->id, $groupid);
+
+                    # We might have an explicit configid - if so, use it to save on DB calls.
+                    $settings['configid'] = $set['configid'] ? $set['configid'] : $c->getForGroup($this->id, $groupid);
                 }
             }
 
