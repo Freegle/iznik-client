@@ -910,11 +910,11 @@ class Group extends Entity
             #error_log(var_export($resid, TRUE));
             $emailids = $this->dbhm->preQuery("SELECT emailid FROM syncdelete;");
             foreach ($emailids as $emailid) {
-                $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid = ? AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);",
+                #error_log("Check for delete {$emailid['emailid']}");
+                $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid = ? AND membershipid IN (SELECT id FROM memberships WHERE groupid = ?);",
                     [
                         $emailid['emailid'],
-                        $this->id,
-                        $collection
+                        $this->id
                     ]);
             }
             #error_log("Deleted $rc Yahoo Memberships");
