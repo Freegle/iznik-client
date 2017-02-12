@@ -315,6 +315,8 @@ require([
         //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
         mobilePush.on('notification', function (data) {
             //alert("push notification");
+            console.log("push notification");
+            console.log(data);
             var foreground = data.additionalData.foreground.toString() == 'true';
             var msgid = data.additionalData['google.message_id'];
             var doubleEvent = (!isiOS) && (msgid == lastPushMsgid);
@@ -330,8 +332,6 @@ require([
             $('#badgeconsole').html(badgeconsole);*/
             if (data.count > 0) {
                 //alert(JSON.stringify(data));
-                console.log("push notification");
-                console.log(data);
                 var showChat = (isiOS && !foreground) || doubleEvent;
                 if (showChat) {
                     var chatids = data.additionalData.chatids;
