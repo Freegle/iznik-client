@@ -639,8 +639,8 @@ class User extends Entity
             # The membership didn't already exist.  We might want to send a welcome mail.
             $atts = $g->getPublic();
 
-            if (($addedhere) && ($atts['welcomemail'] || $message)) {
-                # We need to send a per-group welcome mail.
+            if (($addedhere) && ($atts['welcomemail'] || $message) && $collection == MembershipCollection::APPROVED) {
+                # They are now approved.  We need to send a per-group welcome mail.
                 $to = $this->getEmailPreferred();
 
                 if ($to) {
