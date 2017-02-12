@@ -134,7 +134,6 @@ function memberships() {
                                             $member['sessions'] = $u->getSessions($dbhr, $dbhm, $member['userid']);
                                         }
                                     }
-
                                 }
 
                                 # Get some/all.

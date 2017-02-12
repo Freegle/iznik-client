@@ -1440,8 +1440,9 @@ class User extends Entity
                 $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
                 $memberof = [];
 
-                # Check the groups.
-                $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
+                # the case where you have two emails and one is approved and the other pending.
+                $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
@@ -1453,7 +1454,7 @@ class User extends Entity
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
                         'added' => ISODate($group['added']),
-                        'collection' => $group['collection'],
+                        'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
