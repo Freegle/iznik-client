@@ -288,10 +288,7 @@ class ChatMessage extends Entity
 
         $groupids = $me->getModeratorships();
         foreach ($groupids as $groupid) {
-            $mysettings = $me->getGroupSettings($groupid);
-            $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
-
-            if ($showmessages) {
+            if ($me->activeModForGroup($groupid)) {
                 $show[] = $groupid;
             } else {
                 $dontshow[] = $groupid;

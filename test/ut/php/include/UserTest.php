@@ -345,7 +345,7 @@ class userTest extends IznikTestCase {
         $settings = [ 'test' => 1];
         $u2->setGroupSettings($group2, $settings);
         $u1->clearMembershipCache();
-        assertEquals([ 'showmessages' => 1, 'showmembers' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1 ], $u1->getGroupSettings($group2));
+        assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1 ], $u1->getGroupSettings($group2));
 
         # We should get the group back and a default config.
         assertEquals(1, $u2->getGroupSettings($group2)['test'] );

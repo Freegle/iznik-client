@@ -41,7 +41,7 @@ function messages() {
                     $mygroups = $me->getMemberships($modtools, $grouptype);
                     foreach ($mygroups as $group) {
                         $settings = $me->getGroupSettings($group['id']);
-                        if (!MODTOOLS || !array_key_exists('showmessages', $settings) || $settings['showmessages']) {
+                        if (!MODTOOLS || !array_key_exists('active', $settings) || $settings['active']) {
                             $groups[] = $group['id'];
                         }
                     }

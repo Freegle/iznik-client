@@ -72,8 +72,7 @@ define([
     
                 membership.fetch().then(function() {
                     var mod = new Iznik.Model(membership.get('settings'));
-                    mod.set('showmessages', 0);
-                    mod.set('showmembers', 0);
+                    mod.set('active', 0);
                     mod.set('pushnotify', 0);
                     var newdata = mod.toJSON();
                     membership.save({
@@ -244,11 +243,11 @@ define([
                                     options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                                 },
                                 {
-                                    name: 'showmessages',
-                                    label: 'Show messages in All Groups?',
+                                    name: 'active',
+                                    label: 'Are you actively moderating this group?',
                                     control: 'radio',
                                     extraClasses: [ 'row' ],
-                                    options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                                    options: [{label: 'Active', value: 1}, {label: 'Backup', value:0 }]
                                 },
                                 {
                                     name: 'showmembers',

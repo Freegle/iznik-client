@@ -95,7 +95,7 @@ class User extends Entity
                 # @var User
                 $u = User::$cache[$id];
                 #error_log("Found $id in cache with " . $u->getId());
-                
+
                 if (!User::$cacheDeleted[$id]) {
                     # And it's not zapped - so we can use it.
                     #error_log("Not zapped");
@@ -274,7 +274,7 @@ class User extends Entity
         $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
 
         $pw = '';
-        
+
         do {
             $length = \Wordle\array_weighted_rand($lengths);
             $start  = \Wordle\array_weighted_rand($bigrams);
@@ -317,9 +317,9 @@ class User extends Entity
             if (!ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE) {
                 $ret = $email['email'];
                 break;
-            } 
+            }
         }
-        
+
         return($ret);
     }
 
@@ -634,7 +634,7 @@ class User extends Entity
             $mailer->send($message);
         }
         // @codeCoverageIgnoreStart
-        
+
         if ($rc) {
             # The membership didn't already exist.  We might want to send a welcome mail.
             $atts = $g->getPublic();
@@ -861,11 +861,9 @@ class User extends Entity
 
             if ($getwork) {
                 # We only need finding out how much work there is if we are interested in seeing it.
-                $showmessages = !array_key_exists('showmessages', $one['mysettings']) || $one['mysettings']['showmessages'];
-                $showmembers = !array_key_exists('showmembers', $one['mysettings']) || $one['mysettings']['showmembers'];
+                $active = $this->activeModForGroup($group['groupid'], $one['mysettings']);
 
-                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) &&
-                    ($showmessages || $showmembers)) {
+                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) && $active) {
                     if (!$g) {
                         # We need to have an actual group object for this.
                         $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
@@ -1014,7 +1012,7 @@ class User extends Entity
             [$this->id, $uid, $type, $creds, $creds]);
 
         # If we add a login, we might be about to log in.
-        # TODO This is a bit hacky.  
+        # TODO This is a bit hacky.
         global $sessionPrepared;
         $sessionPrepared = FALSE;
 
@@ -1106,14 +1104,23 @@ class User extends Entity
         ]));
     }
 
+    public function activeModForGroup($groupid, $mysettings = NULL) {
+        $mysettings = $mysettings ? $mysettings : $this->getGroupSettings($groupid);
+
+        # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
+        # to active.
+        # TODO Retire showmessages entirely and remove from user configs.
+        $active = array_key_exists('active', $mysettings) ? $mysettings['active'] : (!array_key_exists('showmessages', $mysettings) || $mysettings['showmessages']);
+        return($active);
+    }
+
     public function getGroupSettings($groupid, $configid = NULL) {
         # We have some parameters which may give us some info which saves queries
         $this->cacheMemberships();
 
         # Defaults match memberships ones in Group.php.
         $defaults = [
-            'showmessages' => 1,
-            'showmembers' => 1,
+            'active' => 1,
             'showchat' => 1,
             'pushnotify' => 1,
             'eventsallowed' => 1
@@ -1133,6 +1140,11 @@ class User extends Entity
                 }
             }
 
+            # Base active setting on legacy showmessages setting if not present.
+            # TODO Migrate data across.
+            $settings['active'] = array_key_exists('active', $settings) ? $settings['active'] : (!array_key_exists('showmessages', $settings) || $settings['showmessages']);
+            $settings['active'] = $settings['active'] ? 1 : 0;
+
             foreach ($defaults as $key => $val) {
                 if (!array_key_exists($key, $settings)) {
                     $settings[$key] = $val;
@@ -1143,13 +1155,12 @@ class User extends Entity
             $settings['eventsallowed'] = $set['eventsallowed'];
         }
 
-
         return($settings);
     }
 
     public function setRole($role, $groupid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        
+
         Session::clearSessionCache();
 
         $l = new Log($this->dbhr, $this->dbhm);

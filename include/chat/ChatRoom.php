@@ -779,10 +779,7 @@ class ChatRoom extends Entity
 
         foreach ($msgs as $msg) {
             # This might be for a group which we are a mod on but don't actually want to see.
-            $mysettings = $user->getGroupSettings($msg['groupid']);
-            $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
-
-            if ($showmessages) {
+            if ($user->activeModForGroup($msg['groupid'])) {
                 $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
                 $thisone = $m->getPublic();
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
