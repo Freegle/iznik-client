@@ -66,16 +66,15 @@ class MessageCollection
         do {
             $msgids = [];
 
-
             if (in_array(MessageCollection::DRAFT, $this->collection)) {
                 # Draft messages are handled differently, as they're not attached to any group.
                 $me = whoAmI($this->dbhr, $this->dbhm);
-                $sql = "SELECT msgid FROM messages_drafts WHERE session = ? OR (userid = ? AND userid IS NOT NULL);";
+                $userids = $userids ? $userids : ($me ? [ $me->getId() ] : NULL);
+
+                $sql = (count($userids) > 0) ? ("SELECT msgid FROM messages_drafts WHERE session = ? OR userid IN (" . implode(',', $userids) . ");") : "SELECT msgid FROM messages_drafts WHERE session = ?;";
                 $msgs = $this->dbhr->preQuery($sql, [
-                    session_id(),
-                    $me ? $me->getId() : NULL
+                    session_id()
                 ]);
-                #error_log($sql . " " . ($me ? $me->getId() : NULL));
 
                 foreach ($msgs as $msg) {
                     $msgids[] = ['id' => $msg['msgid']];
@@ -153,7 +152,6 @@ class MessageCollection
             }
 
             list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL);
-            #error_log("Counts " . count($msgids) . " vs " . count($msgs));
 
             # We might have excluded all the messages we found; if so, keep going.
         } while (count($msgids) > 0 && count($msgs) == 0);
@@ -179,35 +177,15 @@ class MessageCollection
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
                 $role = $m->getRoleForMessage(FALSE);
-                #error_log("Role $role for {$msg['id']}");
+                $cansee = $m->canSee($public);
 
-                $thisgroups = $m->getGroups();
-                $cansee = ($role == User::ROLE_MODERATOR) || ($role == User::ROLE_OWNER);
+                if ($cansee) {
+                    $thisgroups = $m->getGroups(TRUE);
 
-                foreach ($thisgroups as $groupid) {
-                    if (!array_key_exists($groupid, $groups)) {
+                    foreach ($thisgroups as $groupid) {
                         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-                        $atts = $g->getPublic();
-
-                        # We can see messages if:
-                        # - we're a mod or an owner
-                        # - for Freegle groups which use this platform
-                        #   - we're a member, or
-                        #   - it was posted from the platform
-                        #   - we have publish consent
-                        #
-                        # See similar code in message.php.
-                        if ($role == User::ROLE_MODERATOR ||
-                            $role == User::ROLE_OWNER ||
-                            ($this->collection != MessageCollection::PENDING &&
-                                $g->getPrivate('type') == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
-                                ($publishconsent || $m->getSourceheader() == Message::PLATFORM || $role == User::ROLE_MEMBER))
-                        ) {
-                            $groups[$groupid] = $g->getPublic();
-                        }
+                        $groups[$groupid] = $g->getPublic();
                     }
-
-                    $cansee = array_key_exists($groupid, $groups);
                 }
 
                 if ($cansee) {

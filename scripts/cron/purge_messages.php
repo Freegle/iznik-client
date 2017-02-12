@@ -35,6 +35,26 @@ do {
 
 error_log("Deleted $total");
 
+# Purge old drafts.
+$start = date('Y-m-d', strtotime("midnight 31 days ago"));
+error_log("Purge old drafts before $start");
+
+$total = 0;
+do {
+    $sql = "SELECT msgid FROM messages_drafts WHERE timestamp < '$start' LIMIT 1000;";
+    $msgs = $dbhm->query($sql)->fetchAll();
+    foreach ($msgs as $msg) {
+        $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
+        $total++;
+
+        if ($total % 1000 == 0) {
+            error_log("...$total");
+        }
+    }
+} while (count($msgs) > 0);
+
+error_log("Deleted $total");
+
 # Purge old non-Freegle messages
 $start = date('Y-m-d', strtotime("midnight 31 days ago"));
 error_log("Purge non-Freegle before $start");

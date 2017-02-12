@@ -88,32 +88,7 @@ function message() {
             if ($m) {
                 if ($_REQUEST['type'] == 'GET') {
                     $atts = $m->getPublic($messagehistory, FALSE);
-
-                    # Check we're allowed to see it.
-                    #
-                    # We can see messages if:
-                    # - we're a mod or an owner
-                    # - for Freegle groups which use this platform
-                    #   - we're a member, or
-                    #   - it was posted from the platform
-                    #   - we have publish consent
-                    #
-                    # See similar code in MessageCollection.
-                    $role = $atts['myrole'];
-                    $cansee = FALSE;
-
-                    foreach ($atts['groups'] as $group) {
-                        $g = Group::get($dbhr, $dbhm, $group['groupid']);
-                        # error_log("Consider show " . $m->getID() . " role $role coll $collection type " . $g->getPrivate('type') . " onhere " . $g->getPrivate('onhere') . " consent {$atts['publishconsent']} source " . $m->getSourceheader());
-                        if ($role == User::ROLE_MODERATOR ||
-                            $role == User::ROLE_OWNER ||
-                            ($collection != MessageCollection::PENDING &&
-                                $g->getPrivate('type') == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
-                                ($atts['publishconsent'] || $m->getSourceheader() == Message::PLATFORM || $role == User::ROLE_MEMBER))
-                        ) {
-                            $cansee = TRUE;
-                        }
-                    }
+                    $cansee = $m->canSee($atts);
 
                     $ret = [
                         'ret' => 2,
@@ -267,7 +242,6 @@ function message() {
             $m = new Message($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $m ? $m->getRoleForMessage() : User::ROLE_NONMEMBER;
-            #error_log("Role for $id is $role");
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];

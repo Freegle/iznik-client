@@ -94,10 +94,10 @@ class Request extends Entity
     }
 
     public function completed($userid) {
-//        $this->dbhm->preExec("UPDATE users_requests SET completed = NOW(), completedby = ? WHERE id = ?;", [
-//            $userid,
-//            $this->id
-//        ]);
+        $this->dbhm->preExec("UPDATE users_requests SET completed = NOW(), completedby = ? WHERE id = ?;", [
+            $userid,
+            $this->id
+        ]);
 
         switch ($this->request['type']) {
             case Request::TYPE_BUSINESS_CARDS: {
