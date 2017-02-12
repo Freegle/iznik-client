@@ -101,6 +101,9 @@ class EventDigest
                         $datestr = $datetime->format('D, jS F g:ia');
 
                         $textsumm .= $atts['title'] . " starts $datestr at " . $atts['location'] . "\r\n";
+
+                        # Only send the first occurrence that happens in this period.
+                        break;
                     }
                 }
             }

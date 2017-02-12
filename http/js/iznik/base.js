@@ -30,6 +30,7 @@ define([
 
     var Iznik = {
         Models: {
+            Activity: {},
             ModTools: {},
             Yahoo: {},
             Plugin: {},
@@ -38,6 +39,7 @@ define([
             User: {}
         },
         Views: {
+            Activity: {},
             ModTools: {
                 Pages: {},
                 Message: {},
@@ -70,6 +72,7 @@ define([
             Help: {}
         },
         Collections: {
+            Activity: {},
             Messages: {},
             Members: {},
             ModTools: {},

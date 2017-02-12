@@ -110,6 +110,7 @@ define([
             "modtools/members/approved(/:search)": "approvedMembers",
             "modtools/members/spam": "spamMembers",
             "modtools/members/happiness": "happinessMembers",
+            "modtools/members/stories": "storiesMembers",
             "modtools/events/pending": "pendingEvents",
             "modtools/publicity": "socialActions",
             "modtools/fbgroups": "facebookGroups",
@@ -150,6 +151,7 @@ define([
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
+            "livemap": "liveMap",
             "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
             "communityevent(/:id)": "userCommunityEvent",
@@ -173,6 +175,7 @@ define([
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
             "stories": "userStories",
+            "story/:id": "userStory",
             "*path": "userHome"
         },
 
@@ -293,6 +296,17 @@ define([
 
             require(["iznik/views/pages/user/stories"], function() {
                 var page = new Iznik.Views.User.Pages.Stories();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStory: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stories"], function() {
+                var page = new Iznik.Views.User.Pages.Stories.Single({
+                    id: id
+                });
                 self.loadRoute({page: page});
             });
         },
@@ -544,6 +558,15 @@ define([
 
             require(["iznik/views/pages/user/explore"], function() {
                 var page = new Iznik.Views.User.Pages.Explore();
+                self.loadRoute({page: page});
+            });
+        },
+
+        liveMap: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/livemap"], function() {
+                var page = new Iznik.Views.User.Pages.LiveMap();
                 self.loadRoute({page: page});
             });
         },
@@ -972,6 +995,21 @@ define([
             require(["iznik/views/pages/modtools/members_happiness"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.HappinessMembers();
+                    self.loadRoute({page: page, modtools: true});
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        storiesMembers: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/members_stories"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.StoriesMembers();
                     self.loadRoute({page: page, modtools: true});
                 });
 

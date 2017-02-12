@@ -378,6 +378,13 @@ define([
                                         ev: 'spammerpendingremovecountschanged',
                                         window: admin,
                                         sound: false
+                                    },
+                                    {
+                                        fi: 'stories',
+                                        el: '.js-storiescount',
+                                        ev: 'storiescountchanged',
+                                        window: false,
+                                        sound: false
                                     }
                                 ];
 
@@ -788,6 +795,12 @@ define([
             });
 
             return(facebook);
+        },
+
+        hasPermission: function(perm) {
+            var perms = this.get('me').permissions;
+            console.log("Check permission", perms, perm, this);
+            return(perms && perms.indexOf(perm) !== -1);
         }
     });
 });

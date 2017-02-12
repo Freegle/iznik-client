@@ -830,6 +830,16 @@ class Message
             }
         }
 
+        if ($myid && $this->fromuser == $myid) {
+            # For our own messages, return the posting history.
+            $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid = ? ORDER BY date ASC;", [ $this->id ]);
+            $ret['postings'] = [];
+            foreach ($posts as &$post) {
+                $post['date'] = ISODate($post['date']);
+                $ret['postings'][] = $post;
+            }
+        }
+
         return($ret);
     }
 
@@ -2460,13 +2470,20 @@ class Message
             $textbody = $matches[1] . $matches[2];
         }
 
-        if (preg_match('/(.*)__,_._,___(.*)/ms', $textbody, $matches)) {
+        if (preg_match('/(.*?)__,_._,___(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1];
+        }
+
+        if (preg_match('/(.*?)__._,_.___(.*)/ms', $textbody, $matches)) {
             $textbody = $matches[1];
         }
 
         # Or we might have some headers
-        $textbody = preg_replace('/^From:.*?$/mi', '', $textbody);
-        $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
+        $textbody = preg_replace('/To:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/From:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/Sent:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/Date:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/Subject:.*?$/is', '', $textbody);
 
         # Get rid of sigs
         $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
@@ -2492,6 +2509,9 @@ class Message
 
         // We might have links to our own site.  Strip these in case they contain login information.
         $textbody = preg_replace('/https:\/\/' . USER_SITE . '\S*/', 'https://' . USER_SITE, $textbody);
+
+        // Redundant line breaks.
+        $textbody = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\r\n\r\n", $textbody);
 
         return(trim($textbody));
     }
@@ -2848,12 +2868,16 @@ class Message
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
             if (pres('area', $atts) && pres('postcode', $atts)) {
                 $includearea = $g->getSetting('includearea', TRUE);
-                if ($includearea) {
+                $includepc = $g->getSetting('includepc', TRUE);
+                if ($includearea && $includepc) {
                     # We want the area in the group, e.g. Edinburgh EH4.
                     $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
-                } else {
-                    # We have it, but don't want it, e.g. EH4.
+                } else if ($includepc) {
+                    # Just postcode, e.g. EH4
                     $loc = $atts['postcode']['name'];
+                } else  {
+                    # Just area or foolish settings, e.g. Edinburgh
+                    $loc = $atts['area']['name'];
                 }
             } else {
                 $l = new Location($this->dbhr, $this->dbhm, $atts['location']['id']);
@@ -2973,6 +2997,8 @@ class Message
             }
 
             $htmlbody = str_replace("\r\n", "<br>", $htmlbody);
+            $htmlbody = str_replace("\r", "<br>", $htmlbody);
+            $htmlbody = str_replace("\n", "<br>", $htmlbody);
 
             $this->setPrivate('textbody', $txtbody);
             $this->setPrivate('htmlbody', $htmlbody);
@@ -3073,10 +3099,19 @@ class Message
         $keywords = Message::keywords()[$type];
 
         foreach ($keywords as $keyword) {
-            if (preg_match('/^' . preg_quote($keyword) . '\b(.*)/i', $subj, $matches)) {
+            if (preg_match('/ ' . preg_quote($keyword) . '\:(.*)/i', $subj, $matches)) {
                 $subj = $matches[1];
             }
-            if (preg_match('/ ' . preg_quote($keyword) . '\:(.*)/i', $subj, $matches)) {
+        }
+
+        foreach ($keywords as $keyword) {
+            if (preg_match('/.*' . preg_quote($keyword) . '.*\:(.*)/i', $subj, $matches)) {
+                $subj = $matches[1];
+            }
+        }
+
+        foreach ($keywords as $keyword) {
+            if (preg_match('/^' . preg_quote($keyword) . '\b(.*)/i', $subj, $matches)) {
                 $subj = $matches[1];
             }
         }

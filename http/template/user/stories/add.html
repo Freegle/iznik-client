@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger" class="close" data-dismiss="modal" />
-                <h2 class="modal-title js-modal-title">Add Your Story</h2>
+                <h2 class="modal-title js-modal-title js-pagetitle">Your Stories</h2>
             </div>
             <div class="modal-body js-modal-body">
                 <h3>Your soundbite</h3>
@@ -13,9 +13,12 @@
                 <p>Ok, now tell us why you freegle!  What have you given, what have you received, how does it feel, who have you met...</p>
                 <textarea class="form-control js-story"  spellcheck="true" rows="10" />
                 <h3>Can we share?</h3>
-                <p>Finally, click to let us know whether it's ok for us to share your story - on here, on social media and so on.  This helps get more people freegling.</p>
+                <p>Finally, click to let us know whether it's ok for us to share your story - on here, on social media and so on.  This helps get more people freegling.  We won't use your name or email address.</p>
                 <p>If you don't want us to do this, that's fine - we'll just show it to your local volunteers.</p>
-                <input type="checkbox" class="form-control js-public" />
+                <div class="alert alert-warning text-center">
+                    <label class="radio-inline"><input type="radio" name="js-public" value="1">Yes, you can share this</label>
+                    <label class="radio-inline"><input type="radio" name="js-public" value="0" checked>No, keep it private</label>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-success js-add">Add Your Story</button>

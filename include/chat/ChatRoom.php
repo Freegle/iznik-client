@@ -1045,10 +1045,12 @@ class ChatRoom extends Entity
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
 
-                # We email them if they have mails turned on, and if they have a membership - if they don't, then we
-                # don't want to annoy them.
+                # We email them if they have mails turned on, and even if they don't have any current memberships.
+                # Although that runs the risk of annoying them if they've left, we also have to be able to handle
+                # the case where someone replies from a different email which isn't a group membership, and we
+                # want to notify that email.
                 #error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
-                if ($thisu->notifsOn(User::NOTIFS_EMAIL) && count($thisu->getMemberships()) > 0) {
+                if ($thisu->notifsOn(User::NOTIFS_EMAIL)) {
                     # Now collect a summary of what they've missed.
                     $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                         [
@@ -1067,6 +1069,7 @@ class ChatRoom extends Entity
                         $justmine = TRUE;
 
                         foreach ($unmailedmsgs as $unmailedmsg) {
+                            $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
                             $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
 
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
@@ -1085,6 +1088,11 @@ class ChatRoom extends Entity
 
                                 case ChatMessage::TYPE_RENEGED: {
                                     $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You cancelled your promise to " . $otheru->getName()) : ("Sorry, this is no longer promised to you.");
+                                    break;
+                                }
+
+                                case ChatMessage::TYPE_REPORTEDUSER: {
+                                    $thisone = "This member reported another member with the comment: {$unmailedmsg['message']}";
                                     break;
                                 }
 

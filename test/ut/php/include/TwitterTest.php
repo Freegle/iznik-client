@@ -8,6 +8,7 @@ require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/group/Group.php';
 require_once IZNIK_BASE . '/include/group/Twitter.php';
 require_once IZNIK_BASE . '/include/group/CommunityEvent.php';
+require_once IZNIK_BASE . '/include/user/Story.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
 
 /**
@@ -141,6 +142,25 @@ class twitterTest extends IznikTestCase {
 
         $count = $t->tweetEvents();
         assertGreaterThanOrEqual(1, $count);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testStories() {
+        error_log(__METHOD__);
+
+        $this->dbhm->preExec("DELETE FROM users_stories WHERE headline LIKE 'Test%';");
+
+        $s = new Story($this->dbhr, $this->dbhm);
+        $sid = $s->create(NULL, 1, 'Test Story', 'Test Story');
+
+        $mock = $this->getMockBuilder('Twitter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, NULL))
+            ->setMethods(['tweet'])
+            ->getMock();
+        $mock->method('tweet')->willReturn(true);
+
+        $mock->tweetStory($sid);
 
         error_log(__METHOD__ . " end");
     }

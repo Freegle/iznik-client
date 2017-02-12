@@ -7,10 +7,15 @@ function image() {
     $msgid = pres('msgid', $_REQUEST) ? intval($_REQUEST['msgid']) : NULL;
     $fn = presdef('filename', $_REQUEST, NULL);
     $identify = array_key_exists('identify', $_REQUEST) ? filter_var($_REQUEST['identify'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $ocr = array_key_exists('ocr', $_REQUEST) ? filter_var($_REQUEST['ocr'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $group = presdef('group', $_REQUEST, NULL);
     $newsletter = presdef('newsletter', $_REQUEST, NULL);
+    $communityevent = presdef('communityevent', $_REQUEST, NULL);
 
-    if ($newsletter) {
+    if ($communityevent) {
+        $type = Attachment::TYPE_COMMUNITY_EVENT;
+        $shorttype = '_c';
+    } else if ($newsletter) {
         $type = Attachment::TYPE_NEWSLETTER;
         $shorttype = '_n';
     } else if ($group) {
@@ -161,6 +166,11 @@ function image() {
                         if ($identify) {
                             $a = new Attachment($dbhr, $dbhm, $id);
                             $ret['items'] = $a->identify();
+                        }
+
+                        if ($ocr) {
+                            $a = new Attachment($dbhr, $dbhm, $id, $type);
+                            $ret['ocr'] = $a->ocr();
                         }
                     }
                 }

@@ -62,7 +62,7 @@ define([
                 type: 'GET',
                 url: API + 'locations',
                 data: {
-                    typeahead: query
+                    typeahead: query.trim()
                 }, success: function(ret) {
                     var matches = [];
                     _.each(ret.locations, function(location) {

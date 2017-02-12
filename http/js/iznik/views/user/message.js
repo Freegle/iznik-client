@@ -169,11 +169,10 @@ define([
         render: function() {
             var self = this;
 
-            console.log("Render message", self.model.get('id'), self.rendering);
+            // console.log("Render message", self.model.get('id'), self.rendering);
             if (!self.rendering) {
                 var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
-                console.log("Got replies", replies.length, replies);
 
                 // Make safe and decent for display.
                 this.model.stripGumf('textbody');
@@ -239,6 +238,25 @@ define([
                             });
                         });
 
+                        // Repost time.
+                        var repost = self.model.get('canrepostat');
+
+                        if (repost && self.$('.js-repostat').length > 0) {
+                            if (moment().diff(repost) >=  0) {
+                                // Autorepost due.
+                                self.$('.js-repostat').html('soon');
+                            } else {
+                                self.$('.js-repostat').html(moment(repost).fromNow());
+                            }
+                        }
+
+                        // Show when it was first posted - some people like to use this to decide when to give up.
+                        var postings = self.model.get('postings');
+                        if (postings && postings.length > 1) {
+                            self.$('.js-firstdate').html((new moment(postings[0].date)).format('DD-MMM-YY'));
+                            self.$('.js-firstpost').show();
+                        }
+
                         if (approved || pending) {
                             self.$('.js-taken').show();
                             self.$('.js-received').show();
@@ -297,18 +315,6 @@ define([
                                 } else {
                                     self.$('.js-noreplies').show();
                                 }
-                            }
-                        }
-
-                        // Repost time.
-                        var repost = self.model.get('canrepostat');
-
-                        if (repost && self.$('.js-repostat').length > 0) {
-                            if (moment().diff(repost) >=  0) {
-                                // Autorepost due.
-                                self.$('.js-repostat').html('soon');
-                            } else {
-                                self.$('.js-repostat').html(moment(repost).fromNow());
                             }
                         }
 
@@ -675,15 +681,15 @@ define([
             this.listenToOnce(this, 'confirmed', this.promised);
             var p = this.open(this.template);
             p.then(function() {
-                var msgid = self.model.get('message').id;
-
                 self.options.offers.each(function(offer) {
                     self.$('.js-offers').append('<option value="' + offer.get('id') + '" />');
                     self.$('.js-offers option:last').html(offer.get('subject'));
                 });
 
-                self.$('.js-offers').val(msgid);
-
+                var msg = self.model.get('message');
+                if (msg) {
+                    self.$('.js-offers').val(msg.id);
+                }
             });
 
             return(p);
@@ -769,15 +775,24 @@ define([
                                 });
 
                                 // If we were replying, we might have forced a login and shown the message in
-                                // isolation, in which case we need to return to where we were.
+                                // isolation, in which case we need to return to where we were.  But fetch
+                                // the chat messages first, as otherwise we might have a cached version which
+                                // doesn't have our latest one in it which we then display.
                                 try {
-                                    var ret = Storage.get('replyreturn');
-                                    console.log("Return after reply", ret);
+                                    var messages = new Iznik.Collections.Chat.Messages({
+                                        roomid: chatid
+                                    });
+                                    messages.fetch({
+                                        remove: true
+                                    }).then(function () {
+                                        var ret = Storage.get('replyreturn');
+                                        console.log("Return after reply", ret);
 
-                                    if (ret) {
-                                        Storage.remove('replyreturn');
-                                        Router.navigate(ret, true);
-                                    }
+                                        if (ret) {
+                                            Storage.remove('replyreturn');
+                                            Router.navigate(ret, true);
+                                        }
+                                    });
                                 } catch (e) {};
                             }
                         });

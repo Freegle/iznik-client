@@ -1,4 +1,3 @@
 #!/bin/bash
 php /var/www/iznik/scripts/checkapp.php
 exit $?
-k

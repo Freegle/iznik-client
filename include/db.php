@@ -130,6 +130,9 @@ class LoggedPDO {
     private $pheanstalk = NULL;
     private $readconn;
     private $querying = false;
+    private $dsn = NULL;
+    private $username = NULL;
+    private $password = NULL;
 
     const DUPLICATE_KEY = 1062;
     const MAX_LOG_SIZE = 100000;
@@ -449,6 +452,11 @@ class LoggedPDO {
         $worked = false;
         $start = microtime(true);
 
+        # Make sure we have a connection.
+        if ($this->dsn) {
+            $this->_db = $this->_db ? $this->_db : new PDO($this->dsn, $this->username, $this->password);
+        }
+
         do {
             try {
                 $ret = $this->parentExec($sql);
@@ -500,6 +508,11 @@ class LoggedPDO {
         $worked = false;
         $start = microtime(true);
         $msg = '';
+
+        # Make sure we have a connection.
+        if ($this->dsn) {
+            $this->_db = $this->_db ? $this->_db : new PDO($this->dsn, $this->username, $this->password);
+        }
 
         do {
             try {

@@ -41,7 +41,9 @@ require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/Search.php');
-require_once(IZNIK_BASE . '/include/user/Stories.php');
+require_once(IZNIK_BASE . '/include/user/Request.php');
+require_once(IZNIK_BASE . '/include/user/Story.php');
+require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
@@ -63,8 +65,10 @@ require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/config/BulkOp.php');
 
 # Include each API call
+require_once(IZNIK_BASE . '/http/api/activity.php');
 require_once(IZNIK_BASE . '/http/api/alert.php');
 require_once(IZNIK_BASE . '/http/api/admin.php');
+require_once(IZNIK_BASE . '/http/api/address.php');
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/modconfig.php');
 require_once(IZNIK_BASE . '/http/api/stdmsg.php');
@@ -91,6 +95,7 @@ require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/event.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
+require_once(IZNIK_BASE . '/http/api/request.php');
 require_once(IZNIK_BASE . '/http/api/stories.php');
 
 $includetime = microtime(true) - $scriptstart;
@@ -186,6 +191,12 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             # call_user_func doesn't scale well on multicores with HHVM, so we need can't figure out the function from
             # the call name - use a switch instead.
             switch ($call) {
+                case 'activity':
+                    $ret = activity();
+                    break;
+                case 'address':
+                    $ret = address();
+                    break;
                 case 'alert':
                     $ret = alert();
                     break;
@@ -272,6 +283,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'poll':
                     $ret = poll();
+                    break;
+                case 'request':
+                    $ret = request();
                     break;
                 case 'stories':
                     $ret = stories();

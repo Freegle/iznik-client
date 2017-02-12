@@ -40,6 +40,7 @@ function user() {
         case 'GET': {
             $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+            $info = array_key_exists('info', $_REQUEST) ? filter_var($_REQUEST['info'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $ctx = presdef('logcontext', $_REQUEST, NULL);
 
             $u = User::get($dbhr, $dbhm, $id);
@@ -67,6 +68,10 @@ function user() {
 
                     $ret['user'] = $u->getPublic(NULL, TRUE, $logs, $ctx, TRUE, TRUE, TRUE, $modmailsonly);
                     $ret['logcontext'] = $ctx;
+
+                    if ($info) {
+                        $ret['user']['info'] = $u->getInfo();
+                    }
                 }
             }
 

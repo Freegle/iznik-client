@@ -55,7 +55,9 @@ class Group extends Entity
         $this->defaultSettings = [
             'showchat' => 1,
             'communityevents' => 1,
+            'stories' => 1,
             'includearea' => 1,
+            'includepc' => 1,
             'autoapprove' => [
                 'members' => 0,
                 'messages' => 0
@@ -356,8 +358,10 @@ class Group extends Entity
         }
 
         # Images
-        $atts['profile'] = $atts['profile'] ? Attachment::getPath($atts['profile'], Attachment::TYPE_GROUP) : NULL;
-        $atts['cover'] = $atts['cover'] ? Attachment::getPath($atts['cover'], Attachment::TYPE_GROUP) : NULL;
+        if (defined('IMAGE_DOMAIN')) {
+            $atts['profile'] = $atts['profile'] ? Attachment::getPath($atts['profile'], Attachment::TYPE_GROUP) : NULL;
+            $atts['cover'] = $atts['cover'] ? Attachment::getPath($atts['cover'], Attachment::TYPE_GROUP) : NULL;
+        }
 
         $atts['url'] = $atts['onhere'] ? ('https://' . USER_SITE . '/explore/' . $atts['nameshort']) : ("https://groups.yahoo.com/neo/groups/" . $atts['nameshort'] . "/info");
 
@@ -690,11 +694,17 @@ class Group extends Entity
                     # Now merge any different ones.
                     if ($emailid && $yuid && $emailid != $yuid) {
                         $mergerc = $u->merge($emailid, $yuid, $reason);
+
+                        # If the merge failed then zap the id to stop us setting it below.
+                        $memb['yahooid'] = $mergerc ? $memb['yahooid'] : NULL;
                         #error_log($reason);
                     }
 
                     if ($emailid && $yiduid && $emailid != $yiduid && $yiduid != $yuid) {
                         $mergerc = $u->merge($emailid, $yiduid, $reason);
+
+                        # If the merge failed then zap the id to stop us setting it below.
+                        $memb['yahooUserId'] = $mergerc ? $memb['yahooUserId'] : NULL;
                         #error_log($reason);
                     }
 
@@ -725,7 +735,7 @@ class Group extends Entity
 
                     # If we don't have a yahooid for this user, update it.  If we already have one, then stick with it
                     # to avoid updating a user with an old Yahoo id
-                    if (pres('yahooid', $memb) && !$u->getPrivate('yahooid')) {
+                    if (pres('yahooid', $memb) && !$u->getPrivate('yahooid') && (!$yuid)) {
                         $u->setPrivate('yahooid', $memb['yahooid']);
                     }
 
@@ -897,7 +907,15 @@ class Group extends Entity
             # Delete any residual Yahoo memberships.
             #$resid = $this->dbhm->preQuery("SELECT memberships_yahoo.id, emailid FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);", [$this->id, $collection]);
             #error_log(var_export($resid, TRUE));
-            $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);", [$this->id, $collection]);
+            $emailids = $this->dbhm->preQuery("SELECT emailid FROM syncdelete;");
+            foreach ($emailids as $emailid) {
+                $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid = ? AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);",
+                    [
+                        $emailid['emailid'],
+                        $this->id,
+                        $collection
+                    ]);
+            }
             #error_log("Deleted $rc Yahoo Memberships");
 
             #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
@@ -1166,15 +1184,11 @@ class Group extends Entity
    public function listByType($type) {
        $me = whoAmI($this->dbhr, $this->dbhm);
        $typeq = $type ? "type = ?" : '1=1';
-        $sql = "SELECT id, nameshort, region, namefull, lat, lng, poly, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $sql = "SELECT id, nameshort, region, namefull, lat, lng, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
             $group['profile'] = $group['profile'] ? Attachment::getPath($group['profile'], Attachment::TYPE_GROUP) : NULL;
-
-            if (!$me || !$me->isModerator()) {
-                $group['polygon'] = NULL;
-            }
         }
 
         return($groups);

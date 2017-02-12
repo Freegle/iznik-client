@@ -195,7 +195,7 @@ class Digest
                 $subjinfo = '';
 
                 foreach ($available as $msg) {
-                    $availablehtml .= $msghtml = digest_message($msg, $msg['id'], TRUE, "replyto-{$msg['id']}-{{userid}}@" . USER_DOMAIN);
+                    $availablehtml .= $msghtml = digest_message($msg, $msg['id'], TRUE, "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN);
                     $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
 

@@ -15,6 +15,13 @@
             </div>
             <hr class="nomargin"/>
         </div>
+        <% if (obj.photo) { %>
+        <div class="row text-center">
+            <div class="col-xs-12">
+                <img class="img-thumbnail botspace js-info clickme" src="{{photo.paththumb}}" />
+            </div>
+        </div>
+        <% } %>
         <div class="row text-center">
             <div class="col-xs-12">
                 <button class="js-info btn btn-white"><div class="glyphicon glyphicon-info-sign inline" /><div class="inline padleft">More info</div></button>

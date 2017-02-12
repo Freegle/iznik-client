@@ -145,6 +145,10 @@ define([
 
                     if (!useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
                     showNetworkStatus(); // CC
+                    if (self.appButtons) {
+                        // Show app buttons.
+                        $('#js-appbuttons').show();
+                    }
 
                     ChatHolder().createMinimised();
 

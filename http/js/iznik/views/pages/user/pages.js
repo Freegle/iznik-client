@@ -53,9 +53,6 @@ define([
         showHideButt: function() {
             var self = this;
 
-            var val = self.$('.js-postcode').typeahead('val');
-            console.log("Postcode", val);
-
             if (val.length == 0) {
                 self.showButt();
             } else {
@@ -198,7 +195,7 @@ define([
                         // Update our map if we have one.
                         var map = self.$('.js-locmap');
                         if (map.length > 0) {
-                            var width = self.$('.js-postcode').width();
+                            var width = Math.floor(self.$('.js-postcode').width());
                             map.css('width', width);
                             map.css('height', width);
                             var mapicon = 'https://www.ilovefreegle.org/images/mapmarker.gif';	// CC
@@ -257,7 +254,7 @@ define([
                         // Hosted externally on a different site.
                         self.$('.js-toexternal').attr('href', first.external);
                         self.$('.js-external').fadeIn('slow');
-                        self.$('.js-homegroup').hide();
+                        self.$('.js-homegroup').fadeIn('slow');
                     } else if (first.onyahoo && first.showonyahoo) {
                         // But Yahoo does and we want to show it.
                         self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
@@ -280,9 +277,9 @@ define([
 
         recordLocation: function(location) {
             var self = this;
-            console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name); console.trace();
 
             if (!_.isUndefined(location)) {
+                // console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name); console.trace();
                 this.$('.js-postcode').typeahead('val', location.name);
                 self.$('.js-next').fadeIn('slow');
                 self.$('.js-ok').fadeIn('slow');
@@ -492,10 +489,12 @@ define([
 
                         if (!mylocation) {
                             mylocation = Iznik.Session.getSetting('mylocation', null);
+                        } else {
+                            mylocation = JSON.parse(mylocation);
                         }
 
                         if (mylocation) {
-                            var postcode = JSON.parse(mylocation).name;
+                            var postcode = mylocation.name;
                             self.$('.js-postcode').typeahead('val', postcode);
                             self.locChange.call(self);
                         }

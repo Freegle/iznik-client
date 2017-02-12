@@ -351,7 +351,8 @@ define([
                     autoselect: false
                 }, {
                     name: 'items',
-                    source: self.itemSource
+                    source: self.itemSource,
+                    limit: 3
                 });
 
                 if (self.options.item) {

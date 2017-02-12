@@ -90,6 +90,9 @@ function session() {
 
                     $c = new ChatMessage($dbhr, $dbhm);
                     $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
+
+                    $s = new Story($dbhr, $dbhm);
+                    $ret['work']['stories'] = $s->getReviewCount();
                 }
 
                 $ret['logins'] = $me->getLogins(FALSE);
