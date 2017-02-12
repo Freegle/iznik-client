@@ -207,36 +207,6 @@ define([
             'click .js-submit': 'submit'
         },
 
-        postcodeSource: function(query, syncResults, asyncResults) {
-            var self = this;
-
-            $.ajax({
-                type: 'GET',
-                url: API + 'locations',
-                data: {
-                    typeahead: query.trim()
-                }, success: function(ret) {
-                    var matches = [];
-                    _.each(ret.locations, function(location) {
-                        matches.push(location.name);
-                    });
-
-                    asyncResults(matches);
-
-                    _.delay(function() {
-                        self.$('.js-postcode').tooltip('destroy');
-                    }, 10000);
-
-                    if (matches.length == 0) {
-                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode (including the space)'});
-                        self.$('.js-postcode').tooltip('show');
-                    } else {
-                        self.firstMatch = matches[0];
-                    }
-                }
-            })
-        },
-
         submit: function() {
             var self = this;
 
@@ -280,15 +250,6 @@ define([
             var self = this;
             var p = Iznik.Views.Modal.prototype.render.call(self);
             p.then(function () {
-                // self.$('.js-postcode').typeahead({
-                //     minLength: 2,
-                //     hint: false,
-                //     highlight: true
-                // }, {
-                //     name: 'postcodes',
-                //     source: _.bind(self.postcodeSource, self)
-                // });
-
                 self.waitDOM(self, function() {
                     self.validator = self.$('form').validate({
                         rules: {
