@@ -352,6 +352,13 @@ define([
                                         ev: 'storiescountchanged',
                                         window: false,
                                         sound: false
+                                    },
+                                    {
+                                        fi: 'newsletterstories',
+                                        el: '.js-newsletterstoriescount',
+                                        ev: 'newsletterstoriescountchanged',
+                                        window: false,
+                                        sound: false
                                     }
                                 ];
 

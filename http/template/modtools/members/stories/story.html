@@ -9,10 +9,16 @@
                 <% } %>
             </div>
             <div class="col-md-2 forcebreak">
+                <% if (obj.user) { %>
                 <b>{{user.email}}</b>
+                <% } else { %>
+                Unknown user
+                <% } %>
             </div>
             <div class="col-md-2">
+                <% if (obj.user) { %>
                 (#{{user.id}})
+                <% } %>
             </div>
             <div class="col-md-2">
                 <abbr class="timeago" title="{{date}}" />
@@ -21,10 +27,10 @@
                 #{{id}}
             </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-12">
-            <span class="text-muted">From a member of {{groupname}}</span>
+        <div class="row">
+            <div class="col-xs-12">
+                <span class="text-muted">From a member of {{groupname}}</span>
+            </div>
         </div>
     </div>
     <div class="panel-body">

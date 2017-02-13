@@ -111,6 +111,7 @@ define([
             "modtools/members/spam": "spamMembers",
             "modtools/members/happiness": "happinessMembers",
             "modtools/members/stories": "storiesMembers",
+            "modtools/members/newsletter": "storiesNewsletter",
             "modtools/events/pending": "pendingEvents",
             "modtools/publicity": "socialActions",
             "modtools/fbgroups": "facebookGroups",
@@ -1004,6 +1005,23 @@ define([
             require(["iznik/views/pages/modtools/members_stories"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.StoriesMembers();
+                    self.loadRoute({page: page, modtools: true});
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        storiesNewsletter: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/members_stories"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.StoriesMembers({
+                        newsletter: true
+                    });
                     self.loadRoute({page: page, modtools: true});
                 });
 

@@ -121,7 +121,9 @@ function session() {
                     $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
 
                     $s = new Story($dbhr, $dbhm);
-                    $ret['work']['stories'] = $s->getReviewCount();
+                    $ret['work']['stories'] = $s->getReviewCount(FALSE);
+
+                    $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
                 }
 
                 $ret['logins'] = $me->getLogins(FALSE);

@@ -4,14 +4,14 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_ask.php');
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_digest.php');
+require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
 
 class Story extends Entity
 {
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'date', 'public', 'headline', 'story', 'reviewed');
-    var $settableatts = array('public', 'headline', 'story', 'reviewed');
+    var $settableatts = array('public', 'headline', 'story', 'reviewed', 'newsletterreviewed', 'newsletter');
 
     const ASK_OUTCOME_THRESHOLD = 3;
     const ASK_OFFER_THRESHOLD = 5;
@@ -104,8 +104,8 @@ class Story extends Entity
         return($ret);
     }
 
-    public function getForReview($groupids) {
-        $sql = "SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (" . implode(',', $groupids) . ") AND reviewed = 0 ORDER BY date DESC";
+    public function getForReview($groupids, $newsletter) {
+        $sql = $newsletter ? ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC") : ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (" . implode(',', $groupids) . ") AND reviewed = 0 ORDER BY date DESC");
         $ids = $this->dbhr->preQuery($sql);
         $ret = [];
 
@@ -117,8 +117,8 @@ class Story extends Entity
         return($ret);
     }
 
-    public function getReviewCount() {
-        $sql = "SELECT COUNT(DISTINCT users_stories.id) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner')) AND reviewed = 0 ORDER BY date DESC";
+    public function getReviewCount($newsletter) {
+        $sql = $newsletter ? "SELECT COUNT(DISTINCT(users_stories.id)) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC" : ("SELECT COUNT(DISTINCT users_stories.id) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner')) AND reviewed = 0 ORDER BY date DESC;");
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $ids = $this->dbhr->preQuery($sql, [

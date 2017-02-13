@@ -407,12 +407,12 @@ define([
         updateCounts: function () {
             var self = this;
             var unseen = 0;
-            console.log("updateCounts");
+            // console.log("updateCounts");
             if (Iznik.activeChats) {
                 Iznik.Session.chats.each(function (chat) {
                     var chatView = Iznik.activeChats.viewManager.findByModel(chat);
                     unseen += chat.get('unseen');
-                    console.log("Unseen", unseen, chat);
+                    // console.log("Unseen", unseen, chat);
                 });
             }
 

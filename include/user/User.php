@@ -36,6 +36,7 @@ class User extends Entity
 
     # Permissions
     const PERM_BUSINESS_CARDS = 'BusinessCards';
+    const PERM_NEWSLETTER = 'Newsletter';
 
     const HAPPY = 'Happy';
     const FINE = 'Fine';

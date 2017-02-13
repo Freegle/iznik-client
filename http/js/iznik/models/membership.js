@@ -231,6 +231,34 @@ define([
             return(p);
         },
 
+        dontUseForNewsletter: function() {
+            var p = $.ajax({
+                url: API + 'stories',
+                type: 'PATCH',
+                data: {
+                    id: this.get('id'),
+                    newsletterreviewed: 1,
+                    newsletter: 0
+                }
+            });
+
+            return(p);
+        },
+
+        useForNewsletter: function() {
+            var p = $.ajax({
+                url: API + 'stories',
+                type: 'PATCH',
+                data: {
+                    id: this.get('id'),
+                    newsletterreviewed: 1,
+                    newsletter: 1
+                }
+            });
+
+            return(p);
+        },
+
         parse: function(ret) {
             if (ret.hasOwnProperty('story') && ret.story.hasOwnProperty('id')) {
                 return(ret.story);
