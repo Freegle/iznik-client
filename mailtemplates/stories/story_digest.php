@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 function story_digest($toname, $to, $storyurl, $stories) {
     $siteurl = "https://" . USER_SITE;
     $sitename = SITE_NAME;
+    $imgurl = "https://" . USER_SITE . "/images/story.png";
     $logo = USERLOGO;
 
     $html = <<<EOT
@@ -42,18 +43,19 @@ EOT;
                                                 <table width="95%" cellpadding="0" cellspacing="0" border="0" class="container">
                                                     <tbody>
                                                         <tr>
-                                                            <td width="150" class="mobileOff">
-                                                                <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
+                                                            <td colspan="2">
+                                                                <table width="90%" cellpadding="00" cellspacing="0" align="left" border="0">
                                                                     <tr>
                                                                         <td>                                                           
                                                                             <a href="$siteurl">
-                                                                                <img src="$logo" width="100" height="100" style="border-radius:3px; margin:0; padding:0; border:none; display:block;" alt="" class="imgClass" />
+                                                                                <img src="$imgurl" width="100%" style="border-radius:3px; margin:0; padding:0; border:none; display:block;" alt="" class="imgClass" />
                                                                             </a>
                                                                         </td>
                                                                     </tr>
                                                                 </table>               
                                                             </td>    
-                                                            <td class="mobile" align="left" valign="top">
+                                                        <tr>
+                                                            <td colspan="2" class="mobile" align="left" valign="top">
                                                                 <p>Dear $toname,</p>
                                                                 <p>We love to hear why people freegle.  It keeps our volunteers volunteering, and it helps show new freeglers what it's all about.  Here are some recent stories from other freeglers.</p>
                                                                 <p>Thanks for freegling!</p>
