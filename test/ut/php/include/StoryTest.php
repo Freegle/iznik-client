@@ -52,5 +52,24 @@ class StoryTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testNewsletter() {
+        error_log(__METHOD__);
+
+        $s = new Story($this->dbhr, $this->dbhm);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+
+        $sid = $s->create($uid, 1, "Freecycle", "Test");
+        $sid = $s->create($uid, 1, "Test", "Test");
+        $this->dbhm->preExec("UPDATE users_stories SET newsletterreviewed = 1, newsletter = 1 WHERE id = ?;", [ $sid ]);
+
+        $nid = $s->generateNewsletter(1, 10, $sid);
+        assertNotNull($nid);
+        #$this->dbhm->preExec("DELETE FROM newsletters WHERE id = ?;", [ $nid ]);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

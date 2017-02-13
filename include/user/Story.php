@@ -3,9 +3,11 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_ask.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
+require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
 
 class Story extends Entity
 {
@@ -266,5 +268,49 @@ class Story extends Entity
         list ($transport, $mailer) = getMailer();
         $this->sendIt($mailer, $message);
         return($count);
+    }
+
+    public function generateNewsletter($min = 3, $max = 10, $id = NULL) {
+        # We generate a newsletter from stories which have been marked as suitable for publication.
+        $nid = NULL;
+        $count = 0;
+
+        # Get unsent stories
+        $idq = $id ? " AND id = $id " : "";
+        $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE newsletterreviewed = 1 AND newsletter = 1 $idq ORDER BY id ASC LIMIT $max;");
+
+        if (count($stories) >= $min) {
+            # Enough to be worth sending a newsletter.
+            $n = new Newsletter($this->dbhr, $this->dbhm);
+            $nid = $n->create(NULL,
+                "Lovely stories from other freeglers!",
+                "This is a selection of recent stories from other freeglers.  If you can't read the HTML version, have a look at https://" . USER_SITE . '/stories');
+
+            # Heading intro.
+            $header = story_newsletter();
+            $n->addArticle(Newsletter::TYPE_HEADER, 0, $header, NULL);
+
+            foreach ($stories as $story) {
+                $s = new Story($this->dbhr, $this->dbhm, $story['id']);
+                $atts = $s->getPublic();
+
+                $include = TRUE;
+
+                foreach ($this->exclude as $word) {
+                    if (stripos($atts['headline'], $word) !== FALSE || (pres('story', $atts) && stripos($atts['story'], $word) !== FALSE)) {
+                        $include = FALSE;
+                    }
+                }
+
+                if ($include) {
+                    $count++;
+                }
+
+                $n->addArticle(Newsletter::TYPE_ARTICLE, $count, story_one($atts['groupname'], $atts['headline'], $atts['story'], FALSE), NULL);
+                $this->dbhm->preExec("UPDATE users_stories SET mailedtomembers = 1 WHERE id = ?;", [ $story['id'] ]);
+            }
+        }
+
+        return ($count >= $min ? $nid : NULL);
     }
 }
