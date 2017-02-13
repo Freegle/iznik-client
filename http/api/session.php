@@ -288,6 +288,10 @@ function session() {
                     $me->setPrivate('relevantallowed', $_REQUEST['relevantallowed']);
                 }
 
+                if (array_key_exists('newslettersallowed', $_REQUEST)) {
+                    $me->setPrivate('newslettersallowed', $_REQUEST['newslettersallowed']);
+                }
+
                 Session::clearSessionCache();
             }
             break;
