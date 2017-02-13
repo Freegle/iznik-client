@@ -226,13 +226,15 @@ define([
                                 Storage.set('lastloggedinas', ret.me.id);
                                 Storage.set('myemail', ret.me.email);
 
-                                if (ret.me.id != lastloggedinas) {
+                                if (lastloggedinas && ret.me.id && ret.me.id != lastloggedinas) {
                                     // We have logged in as someone else.  Zap our fetch cache.
                                     Storage.iterate(function(key,value) {
                                         if (key.indexOf('cache.') === 0) {
                                             Storage.remove(key);
                                         }
                                     });
+
+                                    window.location.reload(true);
                                 }
 
                                 // We use this to decide whether to show sign up or sign in.
