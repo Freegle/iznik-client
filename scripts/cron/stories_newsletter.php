@@ -19,6 +19,7 @@ $n = new Newsletter($dbhr, $dbhm, $nid);
 
 if ($n->getId() == $nid) {
     $n->send(21354, NULL);
+    #$n->send(NULL, 1093072);
 }
 
 
