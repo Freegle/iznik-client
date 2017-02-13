@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function story_digest($toname, $to, $storyurl, $stories) {
+function story_central($toname, $to, $storyurl, $stories) {
     $siteurl = "https://" . USER_SITE;
     $sitename = SITE_NAME;
     $imgurl = "https://" . USER_SITE . "/images/story.png";
@@ -56,19 +56,7 @@ EOT;
                                                             </td>    
                                                         <tr>
                                                             <td colspan="2" class="mobile" align="left" valign="top">
-                                                                <p>Dear $toname,</p>
-                                                                <p>We love to hear why people freegle.  It keeps our volunteers volunteering, and it helps show new freeglers what it's all about.  Here are some recent stories from other freeglers.</p>
-                                                                <p>Thanks for freegling!</p>
-                                                                
-                                                                <table width="350" cellpadding="10" cellspacing="10" align="left" border="0">
-                                                                    <tr>
-                                                                        <td width="170" height="36" bgcolor="#006400" align="center" valign="middle"
-                                                                            style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
-                                                                                line-height:18px; border-radius:3px;">
-                                                                            <a href="$storyurl" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Tell us your story!</a>
-                                                                        </td>
-                                                                    </tr>
-                                                                </table>                                                                
+                                                                <p>Here are some recent stories from freeglers.</p>
                                                             </td>
                                                         </tr>        
                                                         <tr>

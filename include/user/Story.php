@@ -253,7 +253,7 @@ class Story extends Entity
         }
 
         $url = 'https://' . USER_SITE . '/stories';
-        $html = story_digest(CENTRAL_MAIL_TO, CENTRAL_MAIL_TO, $url, $html);
+        $html = story_central(CENTRAL_MAIL_TO, CENTRAL_MAIL_TO, $url, $html);
 
         $message = Swift_Message::newInstance()
             ->setSubject("Recent stories from freeglers")
