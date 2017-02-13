@@ -40,6 +40,11 @@ define('TWITTER_CONSUMER_SECRET', 'zzzz');
 define('TWITTER_ACCOUNT_TOKEN', 'zzz');
 define('TWITTER_ACCOUNT_SECRET', 'zzz');
 
+# We access PayPal to retrieve info on donations
+define('PAYPAL_USERNAME', 'zzzz');
+define('PAYPAL_PASSWORD', 'zzzz');
+define('PAYPAL_SIGNATURE', 'zzzz');
+
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
 
