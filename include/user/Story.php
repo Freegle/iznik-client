@@ -52,7 +52,7 @@ class Story extends Entity
         $u = User::get($this->dbhr, $this->dbhm, $this->story['userid']);
 
         if ($me && $me->isModerator() && $this->story['userid']) {
-            if ($me->moderatorForUser($this->story['userid'])) {
+            if ($me->hasPermission(User::PERM_NEWSLETTER) || $me->moderatorForUser($this->story['userid'])) {
                 $ret['user'] = $u->getPublic();
                 $ret['user']['email'] = $u->getEmailPreferred();
             }
