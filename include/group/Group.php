@@ -86,7 +86,8 @@ class Group extends Entity
                 'max' => 10,
                 'chaseups' => 2
             ],
-            'relevant' => 1
+            'relevant' => 1,
+            'newsletter' => 1
         ];
 
         if (!$this->group['settings'] || strlen($this->group['settings']) == 0) {
