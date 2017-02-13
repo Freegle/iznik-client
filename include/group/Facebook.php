@@ -122,8 +122,10 @@ class GroupFacebook {
 
             foreach ($groups as $group) {
                 # Only show social actions where we're an active mod.
+                error_log($me->getId() . "Consider group {$group['groupid']}");
                 if ($me->activeModForGroup($group['groupid'])) {
                     $modships[] = $group['groupid'];
+                    error_log($me->getId() . "Add it");
                 }
             }
 
@@ -139,21 +141,21 @@ class GroupFacebook {
                 foreach ($posts as &$post) {
                     $ctx['id'] = $post['id'];
 
-                    if (!array_key_exists($post['groupid'], $remaining)) {
-                        $remaining[$post['groupid']] = $post;
-                        unset($remaining[$post['groupid']]['groupid']);
-                        $remaining[$post['groupid']]['groups'] = [];
+                    if (!array_key_exists($post['id'], $remaining)) {
+                        $remaining[$post['id']] = $post;
+                        unset($remaining[$post['id']]['groupid']);
+                        $remaining[$post['id']]['groups'] = [];
 
                         if (preg_match('/(.*)_(.*)/', $post['postid'], $matches)) {
                             # Create the iframe version of the Facebook plugin.
                             $pageid = $matches[1];
                             $postid = $matches[2];
-                            $remaining[$post['groupid']]['iframe'] = '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>';
+                            $remaining[$post['id']]['iframe'] = '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>';
                         }
                     }
 
                     # Add this group
-                    $remaining[$post['groupid']]['groups'][] = $post['groupid'];
+                    $remaining[$post['id']]['groups'][] = $post['groupid'];
                 }
 
                 foreach ($remaining as $groupid => $post) {
