@@ -153,6 +153,13 @@ class CommunityEvent extends Entity
             ];
         }
 
+        if ($atts['userid']) {
+            $u = User::get($this->dbhr, $this->dbhm, $atts['userid']);
+            $atts['user'] = $u->getPublic();
+        }
+
+        unset($atts['userid']);
+
         return($atts);
     }
 
