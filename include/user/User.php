@@ -15,6 +15,7 @@ require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
+require_once(IZNIK_BASE . '/mailtemplates/donations/thank.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
@@ -632,7 +633,7 @@ class User extends Entity
                 ->setBody("Pleased to meet you.");
             $headers = $message->getHeaders();
             $headers->addTextHeader('X-Freegle-Mail-Type', 'Added');
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreStart
 
@@ -656,7 +657,7 @@ class User extends Entity
                         ->setDate(time())
                         ->setBody($welcome)
                         ->addPart($html, 'text/html');
-                    $mailer->send($message);
+                    $this->sendIt($mailer, $message);
                 }
             }
 
@@ -763,7 +764,7 @@ class User extends Entity
                 ->setBody("Parting is such sweet sorrow.");
             $headers = $message->getHeaders();
             $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreEnd
 
@@ -800,7 +801,7 @@ class User extends Entity
                                 ->setTo($g->getGroupUnsubscribe())
                                 ->setDate(time())
                                 ->setBody('Let me go');
-                            $mailer->send($message);
+                            $this->sendIt($mailer, $message);
                         }
                     }
                 }
@@ -2420,7 +2421,7 @@ class User extends Entity
             ->addPart($html, 'text/html');
 
         list ($transport, $mailer) = getMailer();
-        $mailer->send($message);
+        $this->sendIt($mailer, $message);
     }
 
     public function forgotPassword($email) {
@@ -2435,7 +2436,7 @@ class User extends Entity
             ->addPart($html, 'text/html');
 
         list ($transport, $mailer) = getMailer();
-        $mailer->send($message);
+        $this->sendIt($mailer, $message);
     }
 
     public function verifyEmail($email) {
@@ -2474,7 +2475,7 @@ class User extends Entity
                 ->setBody("Someone, probably you, has said that $email is their email address.\n\nIf this was you, please click on the link below to verify the address; if this wasn't you, please just ignore this mail.\n\n$confirm")
                 ->addPart($html, 'text/html');
 
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
 
         return($handled);
@@ -2578,7 +2579,7 @@ class User extends Entity
                 ->setTo($g->getGroupSubscribe())
                 ->setDate(time())
                 ->setBody('Pretty please');
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
 
         if ($log) {
@@ -2949,5 +2950,26 @@ class User extends Entity
     public function hasPermission($perm) {
         $perms = $this->user['permissions'];
         return($perms && stripos($perms, $perm) !== FALSE);
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function thankDonation() {
+        list ($transport, $mailer) = getMailer();
+        $message = Swift_Message::newInstance()
+            ->setSubject("Thank you for supporting Freegle!")
+            ->setFrom(PAYPAL_THANKS_FROM)
+            ->setReplyTo(PAYPAL_THANKS_FROM)
+            ->setTo($this->getEmailPreferred())
+            ->setBody("Thank you for donating to freegle");
+        $headers = $message->getHeaders();
+        $headers->addTextHeader('X-Freegle-Mail-Type', 'ThankDonation');
+
+        $html = donation_thank($this->getName(), $this->getEmailPreferred(), $this->loginLink(USER_SITE , $this->id, '/?src=thankdonation'), $this->loginLink(USER_SITE, $this->id, '/settings?src=thankdonation'));
+
+        $message->addPart($html, 'text/html');
+        $this->sendIt($mailer, $message);
     }
 }

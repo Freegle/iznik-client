@@ -44,6 +44,7 @@ define('TWITTER_ACCOUNT_SECRET', 'zzz');
 define('PAYPAL_USERNAME', 'zzzz');
 define('PAYPAL_PASSWORD', 'zzzz');
 define('PAYPAL_SIGNATURE', 'zzzz');
+define('PAYPAL_THANKS_FROM', 'zzzz');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');

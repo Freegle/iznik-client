@@ -836,6 +836,23 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testThank() {
+        error_log(__METHOD__);
+
+        $s = $this->getMockBuilder('User')
+            ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $s->method('sendIt')->willReturn(TRUE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->thankDonation();
+
+        error_log(__METHOD__ . " end");
+    }
 //
 //    public function testSpecial() {
 //        error_log(__METHOD__);
