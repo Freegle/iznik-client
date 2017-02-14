@@ -140,19 +140,21 @@ class Newsletter extends Entity
         foreach ($users as $user) {
             $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
 
-            # We are only interested in sending events to users for whom we have a preferred address -
-            # otherwise where would we send them?
-            $email = $u->getEmailPreferred();
+            if (!$u->getPrivate('bouncing')) {
+                # We are only interested in sending events to users for whom we have a preferred address -
+                # otherwise where would we send them?
+                $email = $u->getEmailPreferred();
 
-            if ($email) {
-                # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
-                $replacements[$email] = [
-                    '{{id}}' => $user['userid'],
-                    '{{toname}}' => $u->getName(),
-                    '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_NEWSLETTER),
-                    '{{email}}' => $email,
-                    '{{noemail}}' => 'newslettersoff-' . $user['userid'] . "@" . USER_DOMAIN
-                ];
+                if ($email) {
+                    # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
+                    $replacements[$email] = [
+                        '{{id}}' => $user['userid'],
+                        '{{toname}}' => $u->getName(),
+                        '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_NEWSLETTER),
+                        '{{email}}' => $email,
+                        '{{noemail}}' => 'newslettersoff-' . $user['userid'] . "@" . USER_DOMAIN
+                    ];
+                }
             }
 
             if ($scan % 1000 === 0) {
