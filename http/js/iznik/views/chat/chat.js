@@ -9,7 +9,8 @@ define([
     'iznik/models/message',
     'iznik/models/user/user',
     'jquery-resizable',
-    'jquery-visibility'
+    'jquery-visibility',
+    'fileinput'
 ], function ($, _, Backbone, Iznik, autosize, moment) {
     // This is a singleton view.
     var instance;
@@ -90,7 +91,7 @@ define([
                         global: false, // don't trigger ajaxStart
                         success: function (ret) {
                             self.waiting = false;
-                            //console.log("Received notif", ret);
+                            console.log("Received notif", ret);
 
                             if (ret && ret.hasOwnProperty('text')) {
                                 var data = ret.text;
@@ -875,6 +876,7 @@ define([
             'focus .js-message': 'messageFocus',
             'click .js-promise': 'promise',
             'click .js-info': 'info',
+            'click .js-photo': 'photo',
             'click .js-send': 'send',
             'click .js-large': 'large',
             'click .js-small': 'small',
@@ -1608,6 +1610,8 @@ define([
         render: function () {
             var self = this;
 
+            console.log("Render chat", self.model.get('id'), self); console.trace();
+
             if (!self.rendered) {
                 self.rendered = true;
                 self.$el.attr('id', 'chat-active-' + self.model.get('id'));
@@ -1691,6 +1695,73 @@ define([
 
                     // Get the roster to see who's there.
                     self.roster();
+
+                    // Photo upload button
+                    self.$('.js-photo').fileinput({
+                        uploadExtraData: {
+                            imgtype: 'ChatMessage',
+                            chatmessage: 1
+                        },
+                        showUpload: false,
+                        allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                        uploadUrl: API + 'image',
+                        resizeImage: true,
+                        maxImageWidth: 800,
+                        browseIcon: '',
+                        browseLabel: '',
+                        browseClass: 'clickme glyphicons glyphicons-camera text-muted gi-2x',
+                        showCaption: false,
+                        showRemove: false,
+                        showCancel: false,
+                        showPreview: true,
+                        showUploadedThumbs: false,
+                        dropZoneEnabled: false,
+                        buttonLabelClass: '',
+                        fileActionSettings: {
+                            showZoom: false,
+                            showRemove: false,
+                            showUpload: false
+                        },
+                        layoutTemplates: {
+                            footer: '<div class="file-thumbnail-footer">\n' +
+                            '    {actions}\n' +
+                            '</div>'
+                        },
+                    });
+
+                    self.$('.js-photo').on('fileimagesresized', function (event) {
+                        // Upload as soon as we have it.  Add an entry for the progress bar.
+                        $('.file-preview, .kv-upload-progress').hide();
+                        var prelast = self.messages.last();
+                        var nextid = prelast ? (prelast.get('id') + 1) : 1;
+                        nextid = _.isNaN(nextid) ? 1 : nextid;
+                        var tempmod = new Iznik.Models.Chat.Message({
+                            id: nextid,
+                            roomid: self.model.get('id'),
+                            date: (new Date()).toISOString(),
+                            type: 'Progress',
+                            user: Iznik.Session.get('me')
+                        });
+
+                        self.messages.add(tempmod);
+                        self.$('.js-photo').fileinput('upload');
+                    });
+
+                    self.$('.js-photo').on('fileuploaded', function (event, data) {
+                        console.log("Uploaded", event, data);
+                        var ret = data.response;
+
+                        // Create a chat message to hold it.
+                        var tempmod = new Iznik.Models.Chat.Message({
+                            roomid: self.model.get('id'),
+                            imageid: ret.id
+                        });
+
+                        tempmod.save().then(function() {
+                            // Fetch the messages again to pick up this new one.
+                            self.messages.fetch();
+                        });
+                    });
                 });
             } else {
                 return(resolvedPromise(self));
@@ -1703,7 +1774,17 @@ define([
     Iznik.Views.Chat.Message = Iznik.View.extend({
         events: {
             'click .js-viewchat': 'viewChat',
-            'click .chat-when': 'msgZoom'
+            'click .chat-when': 'msgZoom',
+            'click .js-imgzoom': 'imageZoom'
+        },
+
+        imageZoom: function() {
+            var self = this;
+            var v = new Iznik.Views.Chat.Message.PhotoZoom({
+                model: self.model
+            });
+
+            v.render();
         },
 
         viewChat: function () {
@@ -1806,6 +1887,12 @@ define([
                     case 'ReportedUser':
                         tpl = 'chat_reported';
                         break;
+                    case 'Progress':
+                        tpl = 'chat_progress';
+                        break;
+                    case 'Image':
+                        tpl = 'chat_image';
+                        break;
                     default:
                         tpl = 'chat_message';
                         break;
@@ -1859,6 +1946,10 @@ define([
 
             return (p);
         }
+    });
+
+    Iznik.Views.Chat.Message.PhotoZoom = Iznik.Views.Modal.extend({
+        template: 'chat_photozoom'
     });
 
     Iznik.Views.Chat.Roster = Iznik.View.extend({

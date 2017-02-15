@@ -28,6 +28,7 @@ class Attachment
     const TYPE_GROUP = 'Group';
     const TYPE_NEWSLETTER = 'Newsletter';
     const TYPE_COMMUNITY_EVENT = 'CommunityEvent';
+    const TYPE_CHAT_MESSAGE = 'ChatMessage';
 
     /**
      * @return mixed
@@ -53,6 +54,7 @@ class Attachment
             case Attachment::TYPE_GROUP: $name = 'gimg'; break;
             case Attachment::TYPE_NEWSLETTER: $name = 'nimg'; break;
             case Attachment::TYPE_COMMUNITY_EVENT: $name = 'cimg'; break;
+            case Attachment::TYPE_CHAT_MESSAGE: $name = 'mimg'; break;
         }
 
         $name = $thumb ? "t$name" : $name;
@@ -87,6 +89,7 @@ class Attachment
             case Attachment::TYPE_GROUP: $this->table = 'groups_images'; $this->idatt = 'groupid'; break;
             case Attachment::TYPE_NEWSLETTER: $this->table = 'newsletters_images'; $this->idatt = 'articleid'; break;
             case Attachment::TYPE_COMMUNITY_EVENT: $this->table = 'communityevents_images'; $this->idatt = 'eventid'; break;
+            case Attachment::TYPE_CHAT_MESSAGE: $this->table = 'chat_images'; $this->idatt = 'chatmsgid'; break;
         }
 
         if ($id) {

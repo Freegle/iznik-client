@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
@@ -20,6 +20,7 @@ class ChatMessage extends Entity
     const TYPE_RENEGED = 'Reneged';
     const TYPE_REPORTEDUSER = 'ReportedUser';
     const TYPE_COMPLETED = 'Completed';
+    const TYPE_IMAGE = 'Image';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_REJECT = 'Reject';
@@ -169,7 +170,7 @@ class ChatMessage extends Entity
         return($spam);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid) {
         try {
             $review = 0;
             $spam = 0;
@@ -181,7 +182,7 @@ class ChatMessage extends Entity
                 $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid) VALUES (?,?,?,?,?,?,?,?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
                 $chatid,
                 $userid,
                 $message,
@@ -192,7 +193,8 @@ class ChatMessage extends Entity
                 $spam,
                 $spamscore,
                 $reportreason,
-                $refchatid
+                $refchatid,
+                $imageid
             ]);
 
             $id = $this->dbhm->lastInsertId();
@@ -235,6 +237,16 @@ class ChatMessage extends Entity
             unset($ret['refmsg']['textbody']);
             unset($ret['refmsg']['htmlbody']);
             unset($ret['refmsg']['message']);
+        }
+
+        if (pres('imageid', $ret)) {
+            # There is an image attached
+            $ret['image'] = [
+                'id' => $ret['imageid'],
+                'path' => Attachment::getPath($ret['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE),
+                'paththumb' => Attachment::getPath($ret['imageid'], Attachment::TYPE_CHAT_MESSAGE, TRUE)
+            ];
+            unset($ret['imageid']);
         }
 
         # Strip any remaining quoted text in replies.

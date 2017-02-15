@@ -122,10 +122,8 @@ class GroupFacebook {
 
             foreach ($groups as $group) {
                 # Only show social actions where we're an active mod.
-                error_log($me->getId() . "Consider group {$group['groupid']}");
                 if ($me->activeModForGroup($group['groupid'])) {
                     $modships[] = $group['groupid'];
-                    error_log($me->getId() . "Add it");
                 }
             }
 

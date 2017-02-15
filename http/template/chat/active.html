@@ -58,6 +58,7 @@
     <div class="chat-content col-xs-12 nopad">
         <div class="chat-messages-panel js-leftpanel">
             <ul class="overscrolly list-unstyled chat-messages js-messages nopad" />
+            <div id="js-uploadpreview-{{id}}" />
         </div>
         <% if (obj.group) { %>
         <div class="splitter" />
@@ -83,15 +84,18 @@
     <div class="row-fluid">
         <div class="col-xs-6">
             <div class="row">
+                <% if (chattype == 'User2User') { %>
                 <div class="col-xs-4">
-                    <% if (chattype == 'User2User') { %>
                     <span class="clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
-                    <% } %>
                 </div>
+                <% } %>
+                <% if (chattype == 'User2User') { %>
                 <div class="col-xs-4">
-                    <% if (chattype == 'User2User') { %>
                     <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x js-info" alt="Info" title="Info about this member" />
-                    <% } %>
+                </div>
+                <% } %>
+                <div class="col-xs-4">
+                    <input type="file" class="js-photo" name="photo" multiple="" />
                 </div>
             </div>
         </div>
