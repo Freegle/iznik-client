@@ -96,7 +96,7 @@ class ChatMessage extends Entity
         # Check for URLs.
         if (preg_match_all($this->urlPattern, $message, $matches)) {
             # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
-            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3;");
+            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5;");
 
             $valid = 0;
             $count = 0;
