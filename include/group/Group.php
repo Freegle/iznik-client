@@ -499,8 +499,10 @@ class Group extends Entity
             $thisone['joined'] = ISODate($member['added']);
 
             # Defaults match ones in User.php
+            #error_log("Settings " . var_export($member, TRUE));
             $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [
-                'active' => 0,
+                'active' => 1,
+                'showchat' => 1,
                 'pushnotify' => 1,
                 'eventsallowed' => 1
             ];
