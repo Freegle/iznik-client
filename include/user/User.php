@@ -2056,12 +2056,13 @@ class User extends Entity
             }
         }
 
-        $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $this->dbhr->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
-
         $this->notif->notifyGroupMods($groupid);
 
         $this->maybeMail($groupid, $subject, $body, 'Reject Member');
+
+        # Delete from memberships - after emailing, otherwise we won't find the right email for this grup.
+        $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
+        $this->dbhr->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
     }
 
     public function approve($groupid, $subject, $body, $stdmsgid) {
