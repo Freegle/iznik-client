@@ -1034,6 +1034,7 @@ class ChatRoom extends Entity
             #error_log("Last seen by all $lastseen");
             $notmailed = $r->getMembersStatus($chatatts['lastmsg']);
             #error_log("Members not seen " . var_export($notmailed, TRUE));
+            $ccit = FALSE;
 
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed of the messages in this chat.  Find the other one.
@@ -1127,6 +1128,8 @@ class ChatRoom extends Entity
                                 if ($unmailedmsg['imageid']) {
                                     $path = Attachment::getPath($unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE);
                                     $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
+                                    $textsummary .= "Here's a picture: $path\r\n";
+                                    $ccit = TRUE;
                                 } else {
                                     $textsummary .= $thisone . "\r\n";
                                     $htmlsummary .= nl2br($thisone) . "<br>";
@@ -1225,6 +1228,11 @@ class ChatRoom extends Entity
                                             $textsummary,
                                             $thisu->getOurEmail() ? $html : NULL);
                                         $this->mailer($message);
+
+                                        if ($ccit) {
+                                            error_log("CC image message");
+                                            $message->setBcc('log@ehibbert.org.uk');
+                                        }
 
                                         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                             $lastmsgemailed,
