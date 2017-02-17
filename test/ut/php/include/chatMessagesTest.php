@@ -273,6 +273,9 @@ class chatMessagesTest extends IznikTestCase {
         # Keywords
         assertTrue($m->checkSpam('viagra'));
 
+        # Domain
+        assertTrue($m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
+
         error_log(__METHOD__ . " end");
     }
 }

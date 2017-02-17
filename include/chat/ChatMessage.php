@@ -86,6 +86,38 @@ class ChatMessage extends Entity
         }
     }
 
+    private function checkSpamhaus($url) {
+        $ret = FALSE;
+
+        $parsed = parse_url( $url );
+        error_log("Spamhaus check $url");
+
+        if (isset($parsed['host'])) {
+            // Remove www. from domain (but not from www.com)
+            $parsed['host'] = preg_replace('/^www\.(.+\.)/i', '$1', $parsed['host']);
+
+            $blacklists = array(
+                'dbl.spamhaus.org',
+            );
+
+            foreach ($blacklists as $blacklist) {
+                $domain = $parsed['host'] . '.' . $blacklist . '.';
+                $record = dns_get_record($domain);
+
+                if ($record != NULL && count($record) > 0) {
+                    foreach ($record as $entry) {
+                        if (array_key_exists('ip', $entry) && strpos($entry['ip'], '127.0.1') === 0) {
+                            error_log("Spamhaus blocked $url");
+                            $ret = TRUE;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $ret;
+    }
+
     public function checkReview($message) {
         $check = FALSE;
 
@@ -157,13 +189,36 @@ class ChatMessage extends Entity
     public function checkSpam($message) {
         $spam = FALSE;
 
-        # Check keywords
+        # Check keywords which are known as spam.
         $this->getSpamWords();
         foreach ($this->spamwords as $word) {
             if ($word['action'] == 'Spam' &&
                 preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
                 (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                 $spam = TRUE;
+            }
+        }
+
+        # Check whether any URLs are in Spamhaus DBL black list.
+        if (preg_match_all($this->urlPattern, $message, $matches)) {
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    $bad = FALSE;
+                    $url2 = str_replace('http:', '', $url);
+                    $url2 = str_replace('https:', '', $url2);
+                    foreach ($this->urlBad as $badone) {
+                        if (strpos($url2, $badone) !== FALSE) {
+                            $bad = TRUE;
+                        }
+                    }
+
+                    if (!$bad && strlen($url) > 0) {
+                        $url = substr($url, strpos($url, '://') + 3);
+                        if ($this->checkSpamhaus("http://$url")) {
+                            $spam = TRUE;
+                        }
+                    }
+                }
             }
         }
 

@@ -338,7 +338,7 @@ class Spam {
             }
         }
 
-        # Find any chat messages from spammers.
+        # Find any chat messages from spammers.u
         $sql = "UPDATE chat_messages SET reviewrejected = 1 WHERE EXISTS(SELECT 1 FROM spam_users WHERE chat_messages.userid = spam_users.userid AND collection = 'Spammer');";
         $this->dbhm->preExec($sql);
 
