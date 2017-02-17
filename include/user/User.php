@@ -2571,17 +2571,18 @@ class User extends Entity
 
         $headers = "From: $email>\r\n";
 
-        # Yahoo is not very reliable; if we subscribe multiple times it seems to be more likely to react.
-        for ($i = 0; $i < 10; $i++) {
-            list ($transport, $mailer) = getMailer();
-            $message = Swift_Message::newInstance()
-                ->setSubject('Please let me join')
-                ->setFrom([$email])
-                ->setTo($g->getGroupSubscribe())
-                ->setDate(time())
-                ->setBody('Pretty please');
-            $this->sendIt($mailer, $message);
-        }
+        # Yahoo isn't very reliable, so it's tempting to send the subscribe multiple times.  But this can lead
+        # to a situation where we subscribe, the member is rejected on Yahoo, then a later subscribe attempt
+        # that was greylisted gets through again.  This annoys mods.  So we only subscribe once, and rely on
+        # the cron jobs to retry if this doesn't work.
+        list ($transport, $mailer) = getMailer();
+        $message = Swift_Message::newInstance()
+            ->setSubject('Please let me join')
+            ->setFrom([$email])
+            ->setTo($g->getGroupSubscribe())
+            ->setDate(time())
+            ->setBody('Pretty please');
+        $this->sendIt($mailer, $message);
 
         if ($log) {
             $this->log->log([
