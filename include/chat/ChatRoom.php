@@ -1107,7 +1107,6 @@ class ChatRoom extends Entity
                             if (!$lastmsg || $lastmsg != $thisone) {
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
-                                $textsummary .= $thisone . "\r\n";
 
                                 #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
                                 if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
@@ -1125,7 +1124,14 @@ class ChatRoom extends Entity
 
                                 $lastfrom = $unmailedmsg['userid'];
 
-                                $htmlsummary .= nl2br($thisone) . "<br>";
+                                if ($unmailedmsg['imageid']) {
+                                    $path = Attachment::getPath($unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE);
+                                    $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
+                                } else {
+                                    $textsummary .= $thisone . "\r\n";
+                                    $htmlsummary .= nl2br($thisone) . "<br>";
+                                }
+
                                 $htmlsummary .= '</span>';
 
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
@@ -1135,7 +1141,7 @@ class ChatRoom extends Entity
 
                         #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
                         if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
-                            if ($textsummary != '') {
+                            if ($htmlsummary != '') {
                                 # As a subject, we should use the last referenced message in this chat.
                                 $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                                 #error_log($sql . $chat['chatid']);
