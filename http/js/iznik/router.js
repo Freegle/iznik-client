@@ -157,6 +157,7 @@ define([
             "communityevent(/:id)": "userCommunityEvent",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
+            "chats": "userChats",
             "chat/:id": "userChat",
             "alert/viewed/:id": "alertViewed",
             "mobile": "userMobile",
@@ -301,6 +302,14 @@ define([
                 var page = new Iznik.Views.User.Pages.Stories.Single({
                     id: id
                 });
+                self.loadRoute({page: page});
+            });
+        },
+
+        userChats: function() {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                var page = new Iznik.Views.Chat.Page();
                 self.loadRoute({page: page});
             });
         },

@@ -255,7 +255,7 @@ $namemap = [
     [ 253439,'newburyfreegle','S. East: Newbury' ],
     [ 253517,'Newham-Reuse-Group','London: Newham' ],
     [ 171793,'newquay-freegle','S. West: Newquay' ],
-    [ 21546,'North_Shropshire_Freegle','N. West: N. Shropshire [Market Drayton, Whitchurch & Wem]' ],
+    [ 21546,'North_Shropshire_Freegle','N. West: North Shropshire [Market Drayton, Whitchurch & Wem]' ],
     [ 126545,'North_Tyneside','N. East: North Tyneside' ],
     [ 126617,'North-Warwickshire-Freegle','W. Mids: North Warwickshire' ],
     [ 21540,'Northampton_East_Freegle','E. Mids: Northampton East Freegle' ],

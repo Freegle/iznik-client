@@ -113,6 +113,12 @@ define([
                 monitor.start();
             }
 
+            if (self.fullheight) {
+                $('body').addClass('bodyfullheight');
+            } else {
+                $('body').removeClass('bodyfullheight');
+            }
+
             if (currentPage) {
                 // We have previous rendered a page.  Kill that off, so that it is not listening for events and
                 // messing about with the DOM.
