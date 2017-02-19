@@ -16,7 +16,7 @@ $namemap = [
     [ 21232,'ascot-freegle','S. East: Ascot' ],
     [ 126527,'Ashfield-freegle','E. Mids: Ashfield [District Council]' ],
     [ 70146,'Ashford-Freegle','S. East: Ashford [Borough Council]' ],
-    [ 253535,'Axe-Seat-n-Lyme-Freegle','"S. West: Ax, Seat n Lyme"' ],
+    [ 253535,'Axe-Seat-n-Lyme-Freegle','S. West: Ax, Seat n Lyme' ],
     [ 21233,'Aylesbury_Recycle','S. East: Aylesbury' ],
     [ 43534,'BallymenaFreegle','Northern Ireland: Ballymena' ],
     [ 21235,'banbury_Freegle','S. East: Banbury Freegle' ],
@@ -74,7 +74,7 @@ $namemap = [
     [ 253559,'camborne_redruth_freegle','S. West: Camborne & Redruth' ],
     [ 21301,'Cambridge-Freegle','East: Cambridge-Freegle' ],
     [ 45523,'CAMDENSOUTH_FREEGLE','London: Camden South' ],
-    [ 21305,'cannockfreegleuk','W. Mids: Cannock [Chase District Council]' ],
+    [ 21305,'cannockfreegleuk','W. Mids: Cannock' ],
     [ 21306,'canterburyfreegle','S. East: Canterbury' ],
     [ 21308,'Cardiff-Freegle','Wales: Cardiff' ],
     [ 126755,'Cardigan-Freegle','Wales: Cardigan Freegle' ],
@@ -133,7 +133,7 @@ $namemap = [
     [ 253571,'Falmouth-Freegle','S. West: Falmouth' ],
     [ 21364,'fareham_freegle','S. East: Fareham' ],
     [ 21365,'Farnborough-Aldershot-Freegle','S. East Farnborough and Aldershot' ],
-    [ 21367,'Feltham-Bedfont-Hanworth-Freegle','"London: Feltham, Bedfont and Hanwoth"' ],
+    [ 21367,'Feltham-Bedfont-Hanworth-Freegle','London: Feltham, Bedfont and Hanwoth' ],
     [ 21368,'FenlandFreegle','East: fenlandfreegle' ],
     [ 126731,'FermanaghFreegle','Northern Ireland: Fermanagh' ],
     [ 21370,'Filton-Patchway-Stokes-Freegle','S. West: Filton-Patchway-Stokes-Freegle' ],
@@ -255,7 +255,7 @@ $namemap = [
     [ 253439,'newburyfreegle','S. East: Newbury' ],
     [ 253517,'Newham-Reuse-Group','London: Newham' ],
     [ 171793,'newquay-freegle','S. West: Newquay' ],
-    [ 21546,'North_Shropshire_Freegle','"N. West: N. Shropshire [Market Drayton, Whitchurch & Wem]"' ],
+    [ 21546,'North_Shropshire_Freegle','N. West: N. Shropshire [Market Drayton, Whitchurch & Wem]' ],
     [ 126545,'North_Tyneside','N. East: North Tyneside' ],
     [ 126617,'North-Warwickshire-Freegle','W. Mids: North Warwickshire' ],
     [ 21540,'Northampton_East_Freegle','E. Mids: Northampton East Freegle' ],
@@ -334,7 +334,7 @@ $namemap = [
     [ 21632,'st_albans_reuse','East: st_albans_reuse' ],
     [ 21619,'St-Austell-Freegle','S.West: St Austell' ],
     [ 126653,'St-Neots-Freegle','East: St-Neots-Freegle' ],
-    [ 21621,'Stafford_Freegle','W. Mids: Stafford [Borough Council]' ],
+    [ 21621,'Stafford_Freegle','W. Mids: Stafford' ],
     [ 21623,'StevenageFreegle','East: stevenagefreegle' ],
     [ 126656,'Steyning-Freegle','S. East: Steyning' ],
     [ 21625,'stirlingcityfreegle','Scotland: Stirling [Council]' ],
@@ -365,7 +365,7 @@ $namemap = [
     [ 21662,'TowerHamletsRecycle','London: Tower Hamlets' ],
     [ 21665,'trafford_freegle','N. West: Trafford' ],
     [ 21666,'Truro-Freegle','S. West: Truro' ],
-    [ 21667,'TunbridgeWellsFreegle','S. East: Tunbridge Wells [Borough Council]' ],
+    [ 21667,'TunbridgeWellsFreegle','S. East: Tunbridge Wells' ],
     [ 21668,'UckfieldFreegle','S. East: Uckfield' ],
     [ 21670,'Vale-of-Glamorgan-Freegle','Wales: Vale of Glamorgan' ],
     [ 21671,'ValeWhiteHorse-Freegle','S. East: Vale of White Horse' ],
@@ -392,7 +392,7 @@ $namemap = [
     [ 21691,'windsor-maidenhead-freegle','S. East: Windsor and Maidenhead' ],
     [ 21693,'Wirral-Freegle','N. West: Wirral' ],
     [ 21694,'Witney-Freegle','S. East: Witney' ],
-    [ 21695,'WNM_Freegle','"Wales: Welshpool, Newtown & Montgomery"' ],
+    [ 21695,'WNM_Freegle','Wales: Welshpool, Newtown & Montgomery' ],
     [ 21696,'woking-freegle','S. East: Woking' ],
     [ 21698,'Wokingham-Freegle','S. East: Wokingham [Borough Council]' ],
     [ 21699,'WolvesFreegle','W. Mids: Wolverhampton [City Council]' ],
@@ -425,7 +425,7 @@ if ($kml) {
                 foreach ($namemap as $name) {
                     #error_log("Compare {$name[2]} vs $kname");
                     if (strpos($kname, $name[2]) === 0) {
-                        error_log("Found $kname as {$name[0]} {$name[1]}");
+                        #error_log("Found $kname as {$name[0]} {$name[1]}");
                         $found = TRUE;
                         $dbhm->preExec("UPDATE groups SET polyofficial = ? WHERE id = ?;", [ $wkt, $name[0]] );
                     }
