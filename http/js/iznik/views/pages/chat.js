@@ -105,6 +105,20 @@ define([
             })
         },
 
+        allseen: function() {
+            var self = this;
+            self.chatsCV.viewManager.each(function (chat) {
+                try {
+                    if (chat.model.get('unseen') > 0) {
+                        chat.allseen();
+                        chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
+                    }
+                } catch (e) {
+                    console.error("Failed to process chat", chat, e.message);
+                }
+            });
+        },
+
         render: function () {
             var self = this;
 
@@ -142,6 +156,7 @@ define([
                     }).then(_.bind(self.fetchedChats, self));
 
                     $('.js-leftsidebar .js-search').on('keyup', _.bind(self.searchKey, self));
+                    $('.js-leftsidebar .js-allseen').on('click', _.bind(self.allseen, self));
                 });
             });
 

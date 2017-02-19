@@ -1,7 +1,16 @@
 <div class="padleft bordright chat-page-pane overscrolly">
     <div class="panel panel-default margright">
         <div class="panel-body">
-            <input class="form-control js-search" type="text" placeholder="Search chats" />
+            <div class="row">
+                <div class="col-sm-8">
+                    <input class="form-control js-search" type="text" placeholder="Search chats" />
+                </div>
+                <div class="col-sm-4">
+                    <div class="btn btn-white js-allseen">
+                        <span class="glyphicon glyphicon-ok" />&nbsp;Mark all read
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <ul id="js-chatlist" class="list-unstyled" />
