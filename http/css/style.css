@@ -1690,6 +1690,10 @@ fieldset[disabled] .twitter-typeahead .tt-input {
         /*position: fixed;*/
         -webkit-backface-visibility: hidden;
     }
+
+    .chat-page-pane {
+        height: calc(100vh - 65px - 36px);
+    }
 }
 
 /* Custom, iPhone Retina */

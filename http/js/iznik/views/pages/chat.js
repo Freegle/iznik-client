@@ -117,6 +117,42 @@ define([
             })
         },
 
+        changeDropdown: function() {
+            var self = this;
+            var val = self.$('#js-chatdropdown').val();
+            var chat = self.chats.get(val);
+
+            if (chat) {
+                self.loadChat(chat);
+            }
+        },
+
+        setupDropdown: function() {
+            var self = this;
+            var sel = self.$('#js-chatdropdown');
+            sel.empty();
+            console.log("Setup dropdown");
+
+            self.chats.each(function(chat) {
+                var title = chat.get('name');
+                var unseen = chat.get('unseen');
+
+                if (unseen) {
+                    title = '(' + unseen + ') ' + title;
+                }
+
+                sel.append('<option value="' + chat.get('id') + '" />');
+                var last = sel.find('option:last');
+                last.html(title);
+
+                if (chat.get('id') == self.options.chatid) {
+                    last.attr('selected', true);
+                } else {
+                    last.removeAttr('selected');
+                }
+            });
+        },
+
         allseen: function() {
             this.chats.allseen();
         },
@@ -134,7 +170,12 @@ define([
                 // We use a single global collection for our chats.
                 self.chats = Iznik.Session.chats;
 
-                // Left sidebar is the chat list.
+                // There is a select drop-down to change chats.  This is only visible on mobile.
+                self.setupDropdown();
+                self.$('#js-chatdropdown').on('change', _.bind(self.changeDropdown, self));
+                self.chats.on('add', _.bind(self.setupDropdown, self));
+
+                // Left sidebar is the chat list.  It may not be visible on mobile, but we have it there anyway.
                 templateFetch('chat_page_list').then(function() {
                     $('.js-leftsidebar').html(window.template('chat_page_list'));
 
@@ -150,6 +191,7 @@ define([
 
                     // When we click to select, we want to load that chat.
                     self.chatsCV.on('selectionChanged', function() {
+                        console.log("selectionChanged");
                         var selectedModel = self.chatsCV.getSelectedModel();
                         self.loadChat(selectedModel);
                     });
@@ -174,19 +216,6 @@ define([
         className: 'hoverDiv clickme',
 
         tagName: 'li',
-
-        // events: {
-        //     'click': 'click'
-        // },
-        //
-        // click: function (e) {
-        //     console.log("Click trigger");
-        //     this.trigger('selected', this);
-        //     console.log("Click trigger exit");
-        //     e.preventDefault();
-        //     e.stopPropagation();
-        //     e.stopImmediatePropagation();
-        // },
 
         allseen: function () {
             var self = this;
