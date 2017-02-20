@@ -77,7 +77,7 @@ define([
                 // We have seen the last message, and there are no unseen ones left.
                 var messages = self.get('messages');
 
-                if (messages.length > 0) {
+                if (messages && messages.length > 0) {
                     self.set('lastmsgseen', messages.at(messages.length - 1).get('id'));
                 }
 

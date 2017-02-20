@@ -79,18 +79,16 @@ define([
 
                 if (self.options.chatid) {
                     // We've been asked to select a specific chat.
-                    var chat = Iznik.Session.chats.get(self.options.chatid);
-                    first = self.chatsCV.viewManager.findByModel(chat);
+                    first = Iznik.Session.chats.get(self.options.chatid);
                 }
 
                 if (!first) {
                     // Select the most recent.
-                    first = self.chatsCV.viewManager.first();
+                    first = Iznik.Session.chats.first();
                 }
 
                 if (first) {
-                    first.$el.addClass('selected');
-                    first.click();
+                    self.chatsCV.setSelectedModel(first);
                 }
             }
         },
@@ -98,13 +96,6 @@ define([
         loadChat: function(chat) {
             // We have selected a chat.  Mark it as selected.
             var self = this;
-            self.chatsCV.viewManager.each(function(view) {
-                view.$el.removeClass('selected');
-
-                if (view.model.get('id') == chat.get('id')) {
-                    view.$el.addClass('selected');
-                }
-            })
 
             self.selectedModel = chat;
             self.activeChat = new Iznik.Views.Chat.Page.Pane({
@@ -155,21 +146,12 @@ define([
                         visibleModelsFilter: _.bind(self.searchFilter, self)
                     });
 
-                    // We want to know when we click to select one.  We have to do this both initially (because
-                    // the chats may already exist in the collection) and when we add a later one.
-                    self.chatsCV.on('add', function(view) {
-                        self.listenTo(view, 'selected', function(view) {
-                            self.loadChat(view.model);
-                        });
-                    });
-
                     self.chatsCV.render();
 
-                    self.chatsCV.viewManager.each(function(view) {
-                        self.listenTo(view, 'selected', function(view) {
-                            console.log("Selected chat", view);
-                            self.loadChat(view.model);
-                        });
+                    // When we click to select, we want to load that chat.
+                    self.chatsCV.on('selectionChanged', function() {
+                        var selectedModel = self.chatsCV.getSelectedModel();
+                        self.loadChat(selectedModel);
                     });
 
                     self.selectedFirst = false;
@@ -193,13 +175,18 @@ define([
 
         tagName: 'li',
 
-        events: {
-            'click': 'click'
-        },
-
-        click: function () {
-            this.trigger('selected', this);
-        },
+        // events: {
+        //     'click': 'click'
+        // },
+        //
+        // click: function (e) {
+        //     console.log("Click trigger");
+        //     this.trigger('selected', this);
+        //     console.log("Click trigger exit");
+        //     e.preventDefault();
+        //     e.stopPropagation();
+        //     e.stopImmediatePropagation();
+        // },
 
         allseen: function () {
             var self = this;
@@ -356,7 +343,6 @@ define([
                         self.getLatestMessages();
                     } else {
                         // console.log("Fetched and no more");
-                        self.options.updateCounts();
                         self.scrollBottom();
                     }
                 });
@@ -405,7 +391,6 @@ define([
 
                 // We have initiated the send, so set up for the next one.
                 self.$('.js-message').val('');
-                self.$('.js-message').focus();
                 self.messageFocus();
 
                 // If we've grown the textarea, shrink it.
@@ -502,15 +487,19 @@ define([
         messageFocus: function () {
             var self = this;
 
-            self.$('.js-message').focus();
+            var msg = self.$('.js-message');
 
-            // We've seen all the messages.
-            _.delay(_.bind(self.allseen, self), 30000);
+            if (!msg.is(':focus')) {
+                msg.focus();
 
-            // Tell the server now, in case they navigate away before the next roster timer.
-            Iznik.Session.chats.setStatus('Online', true);
+                // We've seen all the messages.
+                _.delay(_.bind(self.allseen, self), 30000);
 
-            this.updateCount();
+                // Tell the server now, in case they navigate away before the next roster timer.
+                Iznik.Session.chats.setStatus('Online', true);
+
+                this.updateCount();
+            }
         },
 
         report: function () {
@@ -669,7 +658,6 @@ define([
 
         render: function () {
             var self = this;
-            console.log("Render chat", self.model.get('id'), self);
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function (self) {
