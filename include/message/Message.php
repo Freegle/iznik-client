@@ -91,6 +91,10 @@ class Message
         "Automated reply",
         "Auto-Reply",
         "Out of Office",
+        "maternity leave",
+        "paternity leave",
+        "return to the office",
+        "due to return",
         "annual leave",
         "on holiday",
         "vacation reply"
