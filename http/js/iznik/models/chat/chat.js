@@ -131,14 +131,25 @@ define([
                 self.tabActive = true;
             });
 
-            // Start our poll for new info.
-            self.wait();
+            self.startup();
+        },
 
-            // Start our fallback fetch for new info in case the poll doesn't tell us.
-            _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+        startup: function() {
+            var self = this;
 
-            // Start our periodic roster update.
-            _.delay(_.bind(self.bulkUpdateRoster, self), self.rosterUpdateInterval);
+            if (Iznik.Session) {
+                // Start our poll for new info.
+                self.wait();
+
+                // Start our fallback fetch for new info in case the poll doesn't tell us.
+                _.delay(_.bind(self.fallback, self), self.fallbackInterval);
+
+                // Start our periodic roster update.
+                _.delay(_.bind(self.bulkUpdateRoster, self), self.rosterUpdateInterval);
+            } else {
+                // We're still starting up.
+                _.delay(_.bind(self.startup, self), 200);
+            }
         },
 
         comparator: function(a, b) {
@@ -205,6 +216,9 @@ define([
             var self = this;
             log("Start chat wait");
 
+            if (Iznik.Session) {
+
+            }
             var me = Iznik.Session.get('me');
             var myid = me ? me.id : null;
 

@@ -21,7 +21,7 @@ define([
         id: "chatHolder",
 
         minimiseall: function () {
-            Iznik.activeChats.viewManager.each(function (chat) {
+            Iznik.openChats.viewManager.each(function (chat) {
                 chat.minimise();
             });
 
@@ -58,8 +58,8 @@ define([
             var windowInnerHeight = $(window).innerHeight();
             var navbarOuterHeight = $('.navbar').outerHeight();
 
-            if (Iznik.activeChats) {
-                Iznik.activeChats.viewManager.each(function (chat) {
+            if (Iznik.openChats) {
+                Iznik.openChats.viewManager.each(function (chat) {
                     if (chat.minimised) {
                         // Not much to do - either just count, or create if we're asked to.
                         minimised++;
@@ -117,7 +117,7 @@ define([
                         var toclose = null;
                         var oldest = null;
                         var count = 0;
-                        Iznik.activeChats.viewManager.each(function (chat) {
+                        Iznik.openChats.viewManager.each(function (chat) {
                             if (!chat.minimised) {
                                 count++;
                                 if (!oldest || chat.restoredAt < oldest) {
@@ -135,7 +135,7 @@ define([
                             _.defer(_.bind(self.organise, self));
                         }
                     } else {
-                        Iznik.activeChats.viewManager.each(function (chat) {
+                        Iznik.openChats.viewManager.each(function (chat) {
                             if (!chat.minimised) {
                                 if (chat.$el.css('width') != width) {
                                     // console.log("Set new width ", chat.$el.css('width'), width);
@@ -151,7 +151,7 @@ define([
 
                 // Now consider changing the margins on the top to ensure the chat window is at the bottom of the
                 // screen.
-                Iznik.activeChats.viewManager.each(function (chat) {
+                Iznik.openChats.viewManager.each(function (chat) {
                     if (!chat.minimised) {
                         var height = parseInt(chat.$el.css('height').replace('px', ''));
                         var newmargin = (maxHeight - height).toString() + 'px';
@@ -242,7 +242,7 @@ define([
 
                     if (user1 && user1.id === userid || user2 && user2.id === userid) {
                         // We do.  Open it.
-                        var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                        var chatView = Iznik.openChats.viewManager.findByModel(chat);
                         v.close();
                         chatView.restore();
                         found = true;
@@ -392,7 +392,7 @@ define([
             var chat = Iznik.Session.chats.get(chatid);
 
             if (chat) {
-                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                var chatView = Iznik.openChats.viewManager.findByModel(chat);
                 // console.log("Looked for view", chatid, chatView, chat);
 
                 if (chatView) {
@@ -431,7 +431,7 @@ define([
             // This can be called multiple times.
             if (!self.chatsFetched) {
                 self.chatsFetched = true;
-                Iznik.activeChats = new Backbone.CollectionView({
+                Iznik.openChats = new Backbone.CollectionView({
                     el: self.$('.js-chats'),
                     modelView: Iznik.Views.Chat.Active,
                     collection: Iznik.Session.chats,
@@ -443,7 +443,7 @@ define([
                     }
                 });
 
-                Iznik.activeChats.render();
+                Iznik.openChats.render();
 
                 self.waitDOM(self, function () {
                     self.createMinimised();
@@ -464,10 +464,6 @@ define([
             // page to page.
             if ($('#chatHolder').length == 0) {
                 self.$el.css('visibility', 'hidden');
-
-                Iznik.Session.chats = new Iznik.Collections.Chat.Rooms({
-                    modtools: Iznik.Session.get('modtools')
-                });
 
                 p = Iznik.View.prototype.render.call(self).then(function (self) {
                     $("#bodyEnvelope").append(self.$el);
@@ -1215,47 +1211,6 @@ define([
             require(['iznik/views/chat/chat'], function(ChatHolder) {
                 ChatHolder().fetchAndRestore(chatid);
             });
-        },
-
-        rosterUpdated: function (ret) {
-            var self = this;
-
-            if (ret.ret === 0) {
-                if (!_.isUndefined(ret.roster)) {
-                    self.$('.js-roster').empty();
-                    // console.log("Roster", ret.roster);
-                    _.each(ret.roster, function (rost) {
-                        var mod = new Iznik.Model(rost);
-                        var v = new Iznik.Views.Chat.RosterEntry({
-                            model: mod,
-                            modtools: self.options.modtools
-                        });
-                        self.listenTo(v, 'openchat', self.openChat);
-                        v.render().then(function (v) {
-                            self.$('.js-roster').append(v.el);
-                        })
-                    });
-                }
-
-                if (!_.isUndefined(ret.unseen)) {
-                    // console.log("Set unseen from", self.model.get('unseen'), ret.unseen, ret);
-                    self.model.set('unseen', ret.unseen);
-                }
-            }
-
-            _.delay(_.bind(self.roster, self), 30000);
-        },
-
-        roster: function () {
-            // We update our presence and get the roster for the chat regularly if the chat is open.  If it's
-            // minimised, we don't - the server will time us out as away.  We'll still; pick up any new messages on
-            // minimised chats via the long poll, and the fallback.
-            var self = this;
-
-            if (!self.removed && !self.minimised) {
-                self.updateRoster(self.statusWithOverride('Online'),
-                    _.bind(self.rosterUpdated, self));
-            }
         },
 
         countHidden: true,
