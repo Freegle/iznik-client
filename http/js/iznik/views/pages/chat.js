@@ -69,15 +69,24 @@ define([
         },
 
         fetchedChats: function() {
-            // Select the first chat.
+            // Select a default chat.
             var self = this;
-            console.log("fetchedChats", self.selectedFirst, self.chats);
 
             if (!self.selectedFirst) {
                 self.selectedFirst = true;
 
-                var first = self.chatsCV.viewManager.first();
-                console.log("Click?", first);
+                var first = null;
+
+                if (self.options.chatid) {
+                    // We've been asked to select a specific chat.
+                    var chat = Iznik.Session.chats.get(self.options.chatid);
+                    first = self.chatsCV.viewManager.findByModel(chat);
+                }
+
+                if (!first) {
+                    // Select the most recent.
+                    first = self.chatsCV.viewManager.first();
+                }
 
                 if (first) {
                     first.$el.addClass('selected');
@@ -117,7 +126,10 @@ define([
 
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function () {
+                // We need the space.
                 $('#botleft').hide();
+
+                $('#js-notifchat').closest('li').addClass('active');
 
                 // We use a single global collection for our chats.
                 self.chats = Iznik.Session.chats;

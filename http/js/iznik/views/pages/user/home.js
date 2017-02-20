@@ -107,8 +107,7 @@ define([
                     el: self.$('.js-offers'),
                     modelViewOptions: {
                         offers: self.offers,
-                        page: self,
-                        chatid: self.options.chatid
+                        page: self
                     },
                     modelView: Iznik.Views.User.Home.Offer,
                     collection: self.offers,
@@ -122,8 +121,7 @@ define([
                     modelView: Iznik.Views.User.Home.Wanted,
                     modelViewOptions: {
                         wanteds: self.wanteds,
-                        page: self,
-                        chatid: self.options.chatid
+                        page: self
                     },
                     collection: self.wanteds,
                     visibleModelsFilter: _.bind(self.filter, self)
