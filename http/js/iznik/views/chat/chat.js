@@ -20,10 +20,6 @@ define([
 
         id: "chatHolder",
 
-        bulkUpdateRunning: false,
-
-        tabActive: true,
-
         minimiseall: function () {
             Iznik.activeChats.viewManager.each(function (chat) {
                 chat.minimise();
@@ -34,233 +30,7 @@ define([
         },
 
         allseen: function () {
-            Iznik.minimisedChats.viewManager.each(function (chat) {
-                try {
-                    if (chat.model.get('unseen') > 0) {
-                        chat.allseen();
-
-                        if (!chat.minimised && typeof chat.statusWithOverride == 'function') {
-                            // This may exist for open chats but not minimised.
-                            chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
-                        }
-                    }
-                } catch (e) {
-                    console.error("Failed to process chat", chat, e.message);
-                }
-            });
-            $('#notifchatdropdownlist').empty();
-            Iznik.minimisedChats.render();
-        },
-
-        waitError: function () {
-            // This can validly happen when we switch pages, because we abort outstanding requests
-            // and hence our long poll.  So before restarting, check that this view is still in the
-            // DOM.
-            console.log("Wait error", this);
-            if (this.inDOM()) {
-                // Probably a network glitch.  Retry later.
-                this.wait();
-            } else {
-                this.destroyIt();
-            }
-        },
-
-        wait: function () {
-            // We have a long poll open to the server, which when it completes may prompt us to do some work on a
-            // chat.  That way we get zippy messaging.
-            //
-            // TODO use a separate domain name to get round client-side limits on the max number of HTTP connections
-            // to a single host.  We use a single connection rather than a per chat one for the same reason.
-            var self = this;
-
-            if (self.inDOM()) {
-                // This view is still in the DOM.  If not, then we need to die.
-                var me = Iznik.Session.get('me');
-                var myid = me ? me.id : null;
-
-                if (!myid) {
-                    // Not logged in, try later;
-                    _.delay(self.wait, 5000);
-                } else if (!self.waiting) {
-                    self.waiting = true;
-
-                    var chathost = $('meta[name=iznikchat]').attr("content");
-
-                    $.ajax({
-                        url: window.location.protocol + '//' + chathost + '/subscribe/' + myid,
-                        global: false, // don't trigger ajaxStart
-                        success: function (ret) {
-                            self.waiting = false;
-                            console.log("Received notif", ret);
-
-                            if (ret && ret.hasOwnProperty('text')) {
-                                var data = ret.text;
-
-                                if (data) {
-                                    if (data.hasOwnProperty('newroom')) {
-                                        // We have been notified that we are now in a new chat.  Pick it up.
-                                        Iznik.Session.chats.fetch().then(function () {
-                                            // Now that we have the chat, update our status in it.
-                                            var chat = Iznik.Session.chats.get(data.newroom);
-
-                                            // If the unread message count changes in the new chat, we want to update.
-                                            self.listenTo(chat, 'change:unseen', self.updateCounts);
-                                            self.updateCounts();
-
-                                            if (chat) {
-                                                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-                                                if (!chatView.minimised) {
-                                                    chatView.updateRoster(chatView.statusWithOverride('Online'), chatView.noop);
-                                                }
-                                            }
-
-                                            Iznik.Session.chats.trigger('newroom', data.newroom);
-                                        });
-                                    } else if (data.hasOwnProperty('roomid')) {
-                                        // Activity on this room.  If the chat is active, then we refetch the messages
-                                        // within it so that they are displayed.  If it's not, then we don't want
-                                        // to keep fetching messages - the notification count will get updated by
-                                        // the roster poll.
-                                        var chat = new Iznik.Models.Chat.Room({
-                                            id: data.roomid
-                                        });
-
-                                        chat.fetch({
-                                            remove: true
-                                        }).then(function() {
-                                            // Make sure we have this chat in our collection - might not have picked
-                                            // it up yet.
-                                            Iznik.Session.chats.add(chat, { merge: true });
-
-                                            // View should now be present.
-                                            var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-
-                                            if (chatView && !chatView.minimised) {
-                                                self.waiting = true;
-                                                chatView.messages.fetch();
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-
-                            if (!self.waiting) {
-                                self.wait();
-                            }
-                        }, error: _.bind(self.waitError, self)
-                    });
-                }
-            } else {
-                self.destroyIt();
-            }
-        },
-
-        fallbackInterval: 300000,
-
-        fallback: function () {
-            var self = this;
-
-            if (self.inDOM()) {
-                // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
-                // we have a fallback poll to pick up any lost messages.  This will return the last message we've seen
-                // in each chat - so we scan first to remember the old ones.  That way we can decide whether we need
-                // to refetch the chat.
-                var lastseens = [];
-                Iznik.Session.chats.each(function (chat) {
-                    lastseens[chat.get('id')] = chat.get('lastmsgseen');
-                });
-
-                Iznik.Session.chats.fetch().then(function () {
-                    // First make sure that the minimised chat list and counts are up to date.
-                    self.updateCounts();
-
-                    self.createMinimised();
-
-                    // Now work out which chats if any we need to refetch.
-                    self.fallbackFetch = [];
-                    Iznik.Session.chats.each(function (chat) {
-                        if (lastseens[chat.get('id')] != chat.get('lastmsgseen')) {
-                            console.log("Need to refresh", chat);
-                            self.fallbackFetch.push(chat);
-                        }
-                    });
-
-                    if (self.fallbackFetch.length > 0) {
-                        // Don't want to fetch them all in a single blat, though, as that is mean to the server and
-                        // not needed for a background fallback.
-                        var delay = 30000;
-                        var i = 0;
-
-                        (function fallbackOne() {
-                            if (i < self.fallbackFetch.length) {
-                                self.fallbackFetch[i].fetch();
-                                i++;
-                                _.delay(fallbackOne, delay);
-                            } else {
-                                // Reached end.
-                                _.delay(_.bind(self.fallback, self), self.fallbackInterval);
-                            }
-                        })();
-                    } else {
-                        // None to fetch - just wait for next time.
-                        _.delay(_.bind(self.fallback, self), self.fallbackInterval);
-                    }
-                });
-            } else {
-                self.destroyIt();
-            }
-        },
-
-        bulkUpdateRoster: function () {
-            var self = this;
-
-            if (self.tabActive) {
-                var updates = [];
-                Iznik.Session.chats.each(function (chat) {
-                    var status = chat.get('rosterstatus');
-
-                    if (status && status != 'Away') {
-                        // There's no real need to tell the server that we're in Away status - it will time us out into
-                        // that anyway.  This saves a lot of update calls in the case where we're loading the page
-                        // and minimising many chats, e.g. if we're a mod on many groups.
-                        updates.push({
-                            id: chat.get('id'),
-                            status: status,
-                            lastmsgseen: chat.get('lastmsgseen')
-                        });
-                    }
-                });
-
-                if (updates.length > 0) {
-                    // We put the restart of the timer into success/error as complete can get called
-                    // multiple times in the event of retry, leading to timer explosion.
-                    $.ajax({
-                        url: API + 'chatrooms',
-                        type: 'POST',
-                        data: {
-                            'rosters': updates
-                        }, success: function (ret) {
-                            // Update the returned roster into each active chat.
-                            Iznik.activeChats.viewManager.each(function (chat) {
-                                var roster = ret.rosters[chat.model.get('id')];
-                                if (!_.isUndefined(roster)) {
-                                    chat.lastRoster = roster;
-                                }
-                            });
-
-                            _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
-                        }, error: function (a,b,c) {
-                            _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
-                        }
-                    });
-                } else {
-                    // No statuses to update.
-                    _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
-                }
-            } else {
-                // Tab not active - nothing to do.
-                _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
-            }
+            Iznik.Session.chats.allseen();
         },
 
         organise: function () {
@@ -408,14 +178,10 @@ define([
         updateCounts: function () {
             var self = this;
             var unseen = 0;
-            // console.log("updateCounts");
-            if (Iznik.activeChats) {
-                Iznik.Session.chats.each(function (chat) {
-                    var chatView = Iznik.activeChats.viewManager.findByModel(chat);
-                    unseen += chat.get('unseen');
-                    // console.log("Unseen", unseen, chat);
-                });
-            }
+
+            Iznik.Session.chats.each(function (chat) {
+                unseen += chat.get('unseen');
+            });
 
             // We'll adjust the count in the window title.
             var title = document.title;
@@ -438,33 +204,6 @@ define([
 
                 this.showMin();
             }
-        },
-
-        reportPerson: function (groupid, chatid, reason, message) {
-            var self = this;
-
-            $.ajax({
-                type: 'PUT',
-                url: API + 'chat/rooms',
-                data: {
-                    chattype: 'User2Mod',
-                    groupid: groupid
-                }, success: function (ret) {
-                    if (ret.ret == 0) {
-                        // Now create a report message.
-                        var msg = new Iznik.Models.Chat.Message({
-                            roomid: ret.id,
-                            message: message,
-                            reportreason: reason,
-                            refchatid: chatid
-                        });
-                        msg.save().then(function () {
-                            // Now open the chat so that the user sees what's happening.
-                            self.fetchAndRestore(ret.id);
-                        });
-                    }
-                }
-            });
         },
 
         openChatToMods: function (groupid) {
@@ -743,16 +482,6 @@ define([
                     Iznik.Session.chats.fetch({
                         cached: cb
                     }).then(cb);
-
-                    if (!self.bulkUpdateRunning) {
-                        // We update the roster for all chats periodically.
-                        self.bulkUpdateRunning = true;
-                        _.delay(_.bind(self.bulkUpdateRoster, self), 25000);
-                    }
-
-                    // Now ensure we are told about new messages.
-                    self.wait();
-                    _.delay(_.bind(self.fallback, self), self.fallbackInterval);
                 });
 
                 $(document).on('hide', function () {
@@ -1610,7 +1339,7 @@ define([
         render: function () {
             var self = this;
 
-            console.log("Render chat", self.model.get('id'), self); console.trace();
+            // console.log("Render chat", self.model.get('id'), self); console.trace();
 
             if (!self.rendered) {
                 self.rendered = true;
@@ -2020,7 +1749,9 @@ define([
             var groupid = self.groupSelect.get();
 
             if (reason != '' && message != '') {
-                instance.reportPerson(groupid, self.options.chatid, reason, message);
+                Iznik.Session.chats.reportPerson(groupid, self.options.chatid, reason, message).then(function(chatid) {
+                    instance.fetchAndRestore(chatid);
+                });
                 self.close();
             }
         },

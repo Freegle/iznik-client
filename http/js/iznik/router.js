@@ -1373,20 +1373,6 @@ define([
                 Storage.set('version', localStorage.getItem('version'));
             } catch (e) {}
 
-            try {
-                // Copy over any old data from localStorage.
-                // TODO Remove after 2017-01-31
-                for (var i = 0; i < localStorage.length; i++){
-                    var key = localStorage.key(i);
-
-                    if (key.indexOf('Iznik>') === -1) {
-                        console.log("Copy old local storage", key);
-                        Storage.set(key, localStorage.getItem(key));
-                        localStorage.removeItem(key);
-                    }
-                }
-            } catch (e) {}
-
             Backbone.history.start({
                 pushState: true
             });

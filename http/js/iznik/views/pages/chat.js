@@ -7,6 +7,7 @@ define([
     'moment',
     'iznik/models/chat/chat',
     'iznik/views/pages/pages',
+    'iznik/views/group/select',
     'jquery-resizable',
     'jquery-visibility',
     'fileinput'
@@ -35,12 +36,12 @@ define([
                     clearTimeout(self.searchTimer);
                 }
 
-                self.chats = new Iznik.Collections.Chat.Rooms({
-                    search: self.filter
-                });
-
                 self.searchTimer = setTimeout(function() {
-                    self.chats.fetch().then(function() {
+                    self.chats.fetch({
+                        data: {
+                            search: self.filter
+                        }
+                    }).then(function() {
                         self.chatsCV.reapplyFilter('visibleModels');
                     });
                 }, 500);
@@ -70,11 +71,13 @@ define([
         fetchedChats: function() {
             // Select the first chat.
             var self = this;
+            console.log("fetchedChats", self.selectedFirst, self.chats);
 
             if (!self.selectedFirst) {
                 self.selectedFirst = true;
 
                 var first = self.chatsCV.viewManager.first();
+                console.log("Click?", first);
 
                 if (first) {
                     first.$el.addClass('selected');
@@ -106,17 +109,7 @@ define([
         },
 
         allseen: function() {
-            var self = this;
-            self.chatsCV.viewManager.each(function (chat) {
-                try {
-                    if (chat.model.get('unseen') > 0) {
-                        chat.allseen();
-                        chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
-                    }
-                } catch (e) {
-                    console.error("Failed to process chat", chat, e.message);
-                }
-            });
+            this.chats.allseen();
         },
 
         render: function () {
@@ -126,7 +119,8 @@ define([
             p.then(function () {
                 $('#botleft').hide();
 
-                self.chats = new Iznik.Collections.Chat.Rooms();
+                // We use a single global collection for our chats.
+                self.chats = Iznik.Session.chats;
 
                 // Left sidebar is the chat list.
                 templateFetch('chat_page_list').then(function() {
@@ -140,15 +134,22 @@ define([
                         visibleModelsFilter: _.bind(self.searchFilter, self)
                     });
 
-                    // We want to know when we click to select one.
+                    // We want to know when we click to select one.  We have to do this both initially (because
+                    // the chats may already exist in the collection) and when we add a later one.
                     self.chatsCV.on('add', function(view) {
                         self.listenTo(view, 'selected', function(view) {
-                            console.log("Selected chat", view);
                             self.loadChat(view.model);
                         });
                     });
 
                     self.chatsCV.render();
+
+                    self.chatsCV.viewManager.each(function(view) {
+                        self.listenTo(view, 'selected', function(view) {
+                            console.log("Selected chat", view);
+                            self.loadChat(view.model);
+                        });
+                    });
 
                     self.selectedFirst = false;
                     self.chats.fetch({
@@ -484,7 +485,7 @@ define([
             _.delay(_.bind(self.allseen, self), 30000);
 
             // Tell the server now, in case they navigate away before the next roster timer.
-            self.updateRoster(self.statusWithOverride('Online'), self.noop, true);
+            Iznik.Session.chats.updateRoster('Online', true);
 
             this.updateCount();
         },
@@ -544,97 +545,7 @@ define([
             } catch (e) {
             }
 
-            this.updateRoster(status, this.noop);
-        },
-
-        updateRoster: function (status, callback, force) {
-            var self = this;
-            // console.log("Update roster", self.model.get('id'), status, force);
-
-            // Save the current status in the chat for the next bulk roster update to the server.
-            // console.log("Set roster status", status, self.model.get('id'));
-            self.model.set('rosterstatus', status);
-
-            if (force) {
-                // We want to make sure the server knows right now.
-                $.ajax({
-                    url: API + 'chat/rooms/' + self.model.get('id'),
-                    type: 'POST',
-                    data: {
-                        lastmsgseen: self.model.get('lastmsgseen'),
-                        status: status
-                    }, success: function (ret) {
-                        if (ret.ret === 0) {
-                            self.lastRoster = ret.roster;
-                            self.lastUnseen = ret.lastunseen
-                        }
-
-                        callback(ret);
-                    }
-                });
-            } else {
-                // console.log("Suppress update", self.lastRoster);
-                callback({
-                    ret: 0,
-                    status: 'Update delayed',
-                    roster: self.lastRoster,
-                    unseen: self.lastUnseen
-                });
-            }
-        },
-
-        statusWithOverride: function (status) {
-            if (status == 'Online') {
-                // We are online, but may have overridden this to appear something else.
-                try {
-                    var savestatus = Storage.get('mystatus');
-                    status = savestatus ? savestatus : status;
-                } catch (e) {
-                }
-            }
-
-            return (status);
-        },
-
-        rosterUpdated: function (ret) {
-            var self = this;
-
-            if (ret.ret === 0) {
-                if (!_.isUndefined(ret.roster)) {
-                    self.$('.js-roster').empty();
-                    // console.log("Roster", ret.roster);
-                    _.each(ret.roster, function (rost) {
-                        var mod = new Iznik.Model(rost);
-                        var v = new Iznik.Views.Chat.RosterEntry({
-                            model: mod,
-                            modtools: self.options.modtools
-                        });
-                        self.listenTo(v, 'openchat', self.openChat);
-                        v.render().then(function (v) {
-                            self.$('.js-roster').append(v.el);
-                        })
-                    });
-                }
-
-                if (!_.isUndefined(ret.unseen)) {
-                    // console.log("Set unseen from", self.model.get('unseen'), ret.unseen, ret);
-                    self.model.set('unseen', ret.unseen);
-                }
-            }
-
-            _.delay(_.bind(self.roster, self), 30000);
-        },
-
-        roster: function () {
-            // We update our presence and get the roster for the chat regularly if the chat is open.  If it's
-            // minimised, we don't - the server will time us out as away.  We'll still; pick up any new messages on
-            // minimised chats via the long poll, and the fallback.
-            var self = this;
-
-            if (!self.removed && !self.minimised) {
-                self.updateRoster(self.statusWithOverride('Online'),
-                    _.bind(self.rosterUpdated, self));
-            }
+            Iznik.Session.chats.updateRoster(status, true);
         },
 
         countHidden: true,
@@ -766,14 +677,13 @@ define([
                     self.scrollBottom();
                 });
 
+                // Show any warning for a while.
                 self.$('.js-chatwarning').show();
-
                 window.setTimeout(_.bind(function () {
-                    this.$('.js-chatwarning').slideUp('slow', _.bind(function() {
-                        this.adjust();
-                    }, this));
+                    this.$('.js-chatwarning').slideUp('slow');
                 }, self), 30000);
 
+                // Set any roster status.
                 try {
                     var status = Storage.get('mystatus');
 
