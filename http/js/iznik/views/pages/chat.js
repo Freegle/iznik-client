@@ -485,7 +485,7 @@ define([
             _.delay(_.bind(self.allseen, self), 30000);
 
             // Tell the server now, in case they navigate away before the next roster timer.
-            Iznik.Session.chats.updateRoster('Online', true);
+            Iznik.Session.chats.setStatus('Online', true);
 
             this.updateCount();
         },
@@ -717,9 +717,6 @@ define([
                 });
 
                 self.messageViews.render();
-
-                // Get the roster to see who's there.
-                self.roster();
 
                 self.photoUpload();
             });

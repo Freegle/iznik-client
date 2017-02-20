@@ -870,9 +870,6 @@ define([
             // We've seen all the messages.
             self.allseen();
 
-            // Tell the server now, in case they navigate away before the next roster timer.
-            self.updateRoster(self.statusWithOverride('Online'), self.noop, true);
-
             this.updateCount();
         },
 
@@ -894,7 +891,7 @@ define([
 
             this.options.updateCounts();
 
-            self.updateRoster('Away', self.noop);
+            Iznik.Session.chats.setStatus('Away', false);
 
             try {
                 // Remove the local storage, otherwise it will clog up with info for chats we don't look at.
@@ -1054,7 +1051,7 @@ define([
                 self.adjust();
             });
 
-            self.updateRoster(self.statusWithOverride('Online'), self.noop);
+            Iznik.Session.chats.setStatus('Online', false);
 
             try {
                 Storage.set(self.lsID() + '-open', 1);
@@ -1211,56 +1208,7 @@ define([
             } catch (e) {
             }
 
-            this.updateRoster(status, this.noop);
-        },
-
-        updateRoster: function (status, callback, force) {
-            var self = this;
-            // console.log("Update roster", self.model.get('id'), status, force);
-
-            // Save the current status in the chat for the next bulk roster update to the server.
-            // console.log("Set roster status", status, self.model.get('id'));
-            self.model.set('rosterstatus', status);
-
-            if (force) {
-                // We want to make sure the server knows right now.
-                $.ajax({
-                    url: API + 'chat/rooms/' + self.model.get('id'),
-                    type: 'POST',
-                    data: {
-                        lastmsgseen: self.model.get('lastmsgseen'),
-                        status: status
-                    }, success: function (ret) {
-                        if (ret.ret === 0) {
-                            self.lastRoster = ret.roster;
-                            self.lastUnseen = ret.lastunseen
-                        }
-
-                        callback(ret);
-                    }
-                });
-            } else {
-                // console.log("Suppress update", self.lastRoster);
-                callback({
-                    ret: 0,
-                    status: 'Update delayed',
-                    roster: self.lastRoster,
-                    unseen: self.lastUnseen
-                });
-            }
-        },
-
-        statusWithOverride: function (status) {
-            if (status == 'Online') {
-                // We are online, but may have overridden this to appear something else.
-                try {
-                    var savestatus = Storage.get('mystatus');
-                    status = savestatus ? savestatus : status;
-                } catch (e) {
-                }
-            }
-
-            return (status);
+            Iznik.Session.chats.setStatus(status, true);
         },
 
         openChat: function (chatid) {
@@ -1421,9 +1369,6 @@ define([
                     self.listenTo(self.model, 'restore', self.restore);
 
                     self.trigger('rendered');
-
-                    // Get the roster to see who's there.
-                    self.roster();
 
                     // Photo upload button
                     self.$('.js-photo').fileinput({
