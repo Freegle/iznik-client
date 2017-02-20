@@ -382,6 +382,9 @@ define([
             $('.js-minimiseall').on('click', self.minimiseall);
             $('.js-allseen').on('click', self.allseen);
             $('.js-search').on('keyup', _.bind(self.searchKey, self));
+            $('.js-fullscreen').on('click', function() {
+                Router.navigate('/chats', true);
+            });
 
             self.showMin();
         },
@@ -603,8 +606,7 @@ define([
             'click .js-info': 'info',
             'click .js-photo': 'photo',
             'click .js-send': 'send',
-            'click .js-large': 'large',
-            'click .js-small': 'small',
+            'click .js-fullscreen': 'fullscreen',
             'keyup .js-message': 'keyUp',
             'change .js-status': 'status'
         },
@@ -984,26 +986,20 @@ define([
             }
         },
 
-        large: function () {
-            this.$el.width($(window).innerWidth());
-            this.$el.height($(window).innerHeight() - $('.navbar').outerHeight());
+        fullscreen: function () {
+            // Save off any chat text.
+            var message = this.$('.js-message').val();
 
-            this.$('.js-large').hide();
-            this.$('.js-small').show();
+            if (message) {
+                // Save this off so we can restore it in the fullscreen.
+                try {
+                    Storage.set('lastchatmsg', message);
+                    Storage.set('lastchatid', this.model.get('id'));
+                } catch (e) {}
+            }
 
-            this.adjust();
-            this.scrollBottom();
-        },
-
-        small: function () {
-            this.$el.width(Math.floor(0.3 * $(window).innerWidth()));
-            this.$el.height(Math.floor(0.3 * $(window).innerHeight()));
-
-            this.$('.js-large').show();
-            this.$('.js-small').hide();
-
-            this.adjust();
-            this.scrollBottom();
+            this.minimise();
+            Router.navigate('/chat/' + this.model.get('id'), true);
         },
 
         restore: function (large) {

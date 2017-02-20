@@ -107,12 +107,21 @@ define([
             })
 
             self.selectedModel = chat;
-            console.log("Selected", self.selectedModel);
             self.activeChat = new Iznik.Views.Chat.Page.Pane({
                 model: self.selectedModel
             });
             self.activeChat.render().then(function() {
                 $('#js-msgpane').html(self.activeChat.$el);
+
+                try {
+                    var lastchatmsg = Storage.get('lastchatmsg');
+                    var lastchatid = Storage.get('lastchatid');
+
+                    if (lastchatid == chat.get('id')) {
+                        self.$('.js-message').val(lastchatmsg);
+                    }
+                } catch (e) {}
+
                 self.activeChat.messageFocus();
             })
         },
@@ -492,6 +501,8 @@ define([
 
         messageFocus: function () {
             var self = this;
+
+            self.$('.js-message').focus();
 
             // We've seen all the messages.
             _.delay(_.bind(self.allseen, self), 30000);
