@@ -46,7 +46,7 @@
         <% } %>
     </div>
 </div>
-<div class="chat-page-content completefull js-scroll">
+<div class="chat-page-content completefull easeheight js-scroll">
     <div class="row fullheight completefull">
         <div class="col-xs-12 nopad">
             <ul class="list-unstyled js-messages nopad fullholder" />
@@ -65,14 +65,12 @@
             <div class="row">
                 <% if (chattype == 'User2User') { %>
                 <div class="col-xs-4">
-                    <span class="hidden-xs clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
-                    <span class="visible-xs clickme success glyphicons glyphicons-handshake js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
+                    <span class="clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
                 </div>
                 <% } %>
                 <% if (chattype == 'User2User') { %>
                 <div class="col-xs-4">
-                    <span class="hidden-xs clickme glyphicons glyphicons-info-sign text-muted gi-2x js-info" alt="Info" title="Info about this member" />
-                    <span class="visible-xs clickme glyphicons glyphicons-info-sign text-muted js-info" alt="Info" title="Info about this member" />
+                    <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x js-info" alt="Info" title="Info about this member" />
                 </div>
                 <% } %>
                 <div class="col-xs-4">
@@ -82,8 +80,7 @@
         </div>
         <div class="col-xs-3"></div>
         <div class="col-xs-3 nopad js-buttons">
-            <span class="hidden-xs clickme primary pull-right glyphicons glyphicons-chevron-right gi-2x js-send" alt="Send" title="Send this message" />
-            <span class="visible-xs clickme primary pull-right glyphicons glyphicons-chevron-right gi-2x js-send" alt="Send" title="Send this message" />
+            <span class="clickme primary pull-right glyphicons glyphicons-chevron-right gi-2x js-send" alt="Send" title="Send this message" />
         </div>
     </div>
 </div>

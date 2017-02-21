@@ -288,6 +288,9 @@ define([
 
         className: 'chat-page-pane bordleft bordright',
 
+        maxAdjustDelay: 300,
+        currentAdjustDelay: 10,
+
         events: {
             'click .js-report, touchstart .js-report': 'report',
             'click .js-enter': 'enter',
@@ -688,21 +691,27 @@ define([
             var self = this;
 
             var windowInnerHeight = $(window).innerHeight();
-            var navbarOuterHeight = $('.navbar').outerHeight();
-            var chatPaneHeight = $('.chat-page-pane').outerHeight();
             var pageContentTop = parseInt($('.pageContent').css('top').replace('px', ''));
-            var chatHeaderOuterHeight = self.$('#js-chatheader').is(':visible') ? self.$('#js-chatheader').outerHeight() : 0;
             var chatDropdownHeight = $('#js-chatdropdown').outerHeight();
             var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
             var footerHeight = self.$('.js-chatfooter').outerHeight();
 
-            var height = windowInnerHeight - navbarOuterHeight - chatDropdownHeight;
-            var str = "Heights " + height + " " + windowInnerHeight + " " + navbarOuterHeight+ " " + " " + chatDropdownHeight;
-            console.log(str);
-            self.$('.js-msgpane').css('height', height + 'px');
-            self.$('.js-message').val(str);
+            var height = windowInnerHeight - pageContentTop - chatDropdownHeight - chatWarningHeight - footerHeight;
+            var str = "Heights " + height + " " + windowInnerHeight + " " + pageContentTop + " " + " " + chatDropdownHeight + " " + chatWarningHeight + " " + footerHeight;
+            var currHeight = self.$('.js-scroll').css('height').replace('px', '');
 
-            _.delay(_.bind(self.adjust, self), 500);
+            if (currHeight != height) {
+                self.$('.js-scroll').css('height', height + 'px');
+                self.currentAdjustDelay = 10;
+            } else {
+                self.currentAdjustDelay *= 2;
+                self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
+            }
+
+            // console.log(str);
+            // self.$('.js-message').val(str);
+
+            _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
         },
 
         render: function () {
