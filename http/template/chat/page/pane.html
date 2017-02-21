@@ -32,14 +32,14 @@
         <% } %>
     </div>
 </div>
-<div class="row">
+<div class="row js-chatwarning">
     <div class="col-xs-12">
         <% if (obj.chattype == 'User2Mod') { %>
-        <div class="js-chatwarning topspace alert alert-info">
+        <div class="topspace alert alert-info">
             Our lovely volunteers have lives and are not online 24/7.  Please be patient until you receive a reply.
         </div>
         <% } else if (obj.chattype == 'Group') { %>
-        <div class="js-chatwarning topspace alert alert-info">
+        <div class="topspace alert alert-info">
             What you put on here will be seen by lots of people, so please don't put your phone number or details of
             your love life.  Be nice!
         </div>
@@ -57,20 +57,22 @@
 <div class="chat-page-footer js-chatfooter">
     <div class="row nomargin">
         <div class="col-xs-12 nopad">
-            <textarea rows="2" maxlength="1024" class="chat-page-input form-control js-message" aria-describedby="chat-promise-{{id}}" placeholder="Type here..." />
+            <textarea rows="2" maxlength="1024" class="chat-page-input padleftonlysm form-control js-message" aria-describedby="chat-promise-{{id}}" placeholder="Type here..." />
         </div>
     </div>
-    <div class="row">
+    <div class="row completefull nomargin">
         <div class="col-xs-6">
             <div class="row">
                 <% if (chattype == 'User2User') { %>
                 <div class="col-xs-4">
-                    <span class="clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
+                    <span class="hidden-xs clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
+                    <span class="visible-xs clickme success glyphicons glyphicons-handshake js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
                 </div>
                 <% } %>
                 <% if (chattype == 'User2User') { %>
                 <div class="col-xs-4">
-                    <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x js-info" alt="Info" title="Info about this member" />
+                    <span class="hidden-xs clickme glyphicons glyphicons-info-sign text-muted gi-2x js-info" alt="Info" title="Info about this member" />
+                    <span class="visible-xs clickme glyphicons glyphicons-info-sign text-muted js-info" alt="Info" title="Info about this member" />
                 </div>
                 <% } %>
                 <div class="col-xs-4">
@@ -80,7 +82,8 @@
         </div>
         <div class="col-xs-3"></div>
         <div class="col-xs-3 nopad js-buttons">
-            <span class="clickme primary pull-right glyphicons glyphicons-chevron-right gi-2x js-send" alt="Send" title="Send this message" />
+            <span class="hidden-xs clickme primary pull-right glyphicons glyphicons-chevron-right gi-2x js-send" alt="Send" title="Send this message" />
+            <span class="visible-xs clickme primary pull-right glyphicons glyphicons-chevron-right gi-2x js-send" alt="Send" title="Send this message" />
         </div>
     </div>
 </div>

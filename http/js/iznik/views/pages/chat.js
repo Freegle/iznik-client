@@ -131,7 +131,6 @@ define([
             var self = this;
             var sel = self.$('#js-chatdropdown');
             sel.empty();
-            console.log("Setup dropdown");
 
             self.chats.each(function(chat) {
                 var title = chat.get('name');
@@ -287,7 +286,7 @@ define([
     Iznik.Views.Chat.Page.Pane = Iznik.View.extend({
         template: 'chat_page_pane',
 
-        className: 'chat-page-pane flexbot bordleft bordright',
+        className: 'chat-page-pane bordleft bordright',
 
         events: {
             'click .js-report, touchstart .js-report': 'report',
@@ -685,6 +684,27 @@ define([
             });
         },
 
+        adjust: function() {
+            var self = this;
+
+            var windowInnerHeight = $(window).innerHeight();
+            var navbarOuterHeight = $('.navbar').outerHeight();
+            var chatPaneHeight = $('.chat-page-pane').outerHeight();
+            var pageContentTop = parseInt($('.pageContent').css('top').replace('px', ''));
+            var chatHeaderOuterHeight = self.$('#js-chatheader').is(':visible') ? self.$('#js-chatheader').outerHeight() : 0;
+            var chatDropdownHeight = $('#js-chatdropdown').outerHeight();
+            var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
+            var footerHeight = self.$('.js-chatfooter').outerHeight();
+
+            var height = windowInnerHeight - navbarOuterHeight - chatDropdownHeight;
+            var str = "Heights " + height + " " + windowInnerHeight + " " + navbarOuterHeight+ " " + " " + chatDropdownHeight;
+            console.log(str);
+            self.$('.js-msgpane').css('height', height + 'px');
+            self.$('.js-message').val(str);
+
+            _.delay(_.bind(self.adjust, self), 500);
+        },
+
         render: function () {
             var self = this;
 
@@ -692,6 +712,8 @@ define([
             p.then(function (self) {
                 // Input text autosize
                 autosize(self.$('textarea'));
+
+                self.adjust();
 
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();
