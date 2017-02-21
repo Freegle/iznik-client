@@ -122,6 +122,9 @@ define([
             var val = self.$('#js-chatdropdown').val();
             var chat = self.chats.get(val);
 
+            // Record for when we updat the dropdown.
+            self.options.chatid = val;
+
             if (chat) {
                 self.loadChat(chat);
             }
@@ -152,6 +155,12 @@ define([
             });
         },
 
+        dropdownTimer: function() {
+            var self = this;
+            self.setupDropdown();
+            _.delay(_.bind(self.dropdownTimer, self), 30000);
+        },
+
         allseen: function() {
             this.chats.allseen();
         },
@@ -173,6 +182,10 @@ define([
                 self.setupDropdown();
                 self.$('#js-chatdropdown').on('change', _.bind(self.changeDropdown, self));
                 self.chats.on('add', _.bind(self.setupDropdown, self));
+
+                // The titles in the dropdown may change due to unread counts.  Update periodically - not as
+                // good as event driven but will do.
+                self.dropdownTimer();
 
                 // Left sidebar is the chat list.  It may not be visible on mobile, but we have it there anyway.
                 templateFetch('chat_page_list').then(function() {
