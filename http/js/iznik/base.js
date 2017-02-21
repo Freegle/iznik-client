@@ -205,7 +205,7 @@ define([
 
                                             console.log("Failed to set", e.message);
                                             Storage.iterate(function(k,v) {
-                                                if (k.indexOf('cache') === 0) {
+                                                if (k.indexOf('cache.') === 0) {
                                                     console.log("Remove", k, v.length);
                                                     Storage.remove(k);
                                                 }

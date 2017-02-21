@@ -205,6 +205,7 @@ define([
             self.each(function (chat) {
                 chat.seen();
             });
+            self.setStatus('Online', true);
         },
 
         wait: function () {
