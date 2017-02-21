@@ -110,6 +110,8 @@ define([
 
                         if (lastchatid == chat.get('id')) {
                             self.$('.js-message').val(lastchatmsg);
+                            Storage.clear('lastchatmsg');
+                            Storage.clear('lastchatid');
                         }
                     } catch (e) {}
 
@@ -163,6 +165,7 @@ define([
         },
 
         allseen: function() {
+            this.chats.setStatus('Online');
             this.chats.allseen();
         },
 
@@ -311,7 +314,7 @@ define([
         events: {
             'click .js-report, touchstart .js-report': 'report',
             'click .js-enter': 'enter',
-            'focus .js-message': 'messageFocus',
+            'focus .js-message': 'messageFocused',
             'click .js-promise': 'promise',
             'click .js-info': 'info',
             'click .js-photo': 'photo',
@@ -532,22 +535,24 @@ define([
             this.model.set('unseen', 0);
         },
 
-        messageFocus: function () {
+        messageFocused: function () {
             var self = this;
+            console.log("Message focus");
 
-            var msg = self.$('.js-message');
+            // We've seen all the messages.
+            console.log("Start seen timer");
+            _.delay(_.bind(self.allseen, self), 30000);
 
-            if (!msg.is(':focus')) {
-                msg.focus();
+            // Tell the server now, in case they navigate away before the next roster timer.
+            Iznik.Session.chats.setStatus('Online', true);
+            console.log("Set status");
 
-                // We've seen all the messages.
-                _.delay(_.bind(self.allseen, self), 30000);
+            this.updateCount();
+            console.log("Updated count");
+        },
 
-                // Tell the server now, in case they navigate away before the next roster timer.
-                Iznik.Session.chats.setStatus('Online', true);
-
-                this.updateCount();
-            }
+        messageFocus: function() {
+            this.$('.js-message').focus();
         },
 
         report: function () {

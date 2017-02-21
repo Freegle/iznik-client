@@ -10,7 +10,7 @@ define([
     var instance;
 
     function log() {
-        // console.log.apply(this, arguments);
+        console.log.apply(this, arguments);
     }
 
     Iznik.Models.Chat.Room = Iznik.Model.extend({
@@ -353,7 +353,7 @@ define([
         bulkUpdateRoster: function () {
             var self = this;
 
-            log("bulkUpdateRoster");
+            log("bulkUpdateRoster", self.status);
 
             if (!self.rosterUpdating) {
                 if (self.tabActive) {
