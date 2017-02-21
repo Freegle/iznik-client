@@ -776,8 +776,9 @@ define([
 
             var chatwarning = this.$('.js-chatwarning');
             var warningheight = chatwarning.length > 0 ? (chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight()) : 0;
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter').outerHeight() - warningheight;
             var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter textarea').outerHeight() - this.$('.js-chatfooter .js-buttons').outerHeight() - warningheight;
+            newHeight = Math.round(newHeight);
+            
             // console.log("Adjust on", this.$el, newHeight);
             // console.log("Height", newHeight, this.$el.innerHeight(), this.$('.js-chatheader').outerHeight(), this.$('.js-chatfooter textarea').outerHeight(), this.$('.js-chatfooter .js-buttons').outerHeight(), warningheight);
             this.$('.js-leftpanel, .js-roster').height(newHeight);
