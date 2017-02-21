@@ -20,19 +20,6 @@ define([
 
         id: "chatHolder",
 
-        minimiseall: function () {
-            Iznik.openChats.viewManager.each(function (chat) {
-                chat.minimise();
-            });
-
-            // Close the dropdown.  This helps if there is nothing to do - at least something happens.
-            $('#notifchatdropdown').hide();
-        },
-
-        allseen: function () {
-            Iznik.Session.chats.allseen();
-        },
-
         organise: function () {
             // This organises our chat windows so that:
             // - they're at the bottom, padded at the top to ensure that
@@ -188,7 +175,7 @@ define([
             var match = /\(.*\) (.*)/.exec(title);
             title = match ? match[1] : title;
 
-            // This if text improves browser performance by avoiding unnecessary show/hides.
+            // This if test improves browser performance by avoiding unnecessary show/hides.
             if (self.unseenCount != unseen) {
                 self.unseenCount = unseen;
 
@@ -204,6 +191,13 @@ define([
 
                 this.showMin();
             }
+        },
+
+        updateCountTimer: function() {
+            // Fallback to ensure the count gets updated.
+            var self = this;
+            self.updateCounts();
+            _.delay(_.bind(self.updateCountTimer, self), 30000);
         },
 
         openChatToMods: function (groupid) {
@@ -275,53 +269,6 @@ define([
             } else {
                 $('#js-notifchat').hide();
             }
-        },
-
-        filter: '',
-        searchChats: null,
-        searchTimer: null,
-
-        searchKey: function () {
-            var self = this;
-
-            self.filter = $('#notifchatdropdown').find('.js-search').val();
-
-            // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
-            Iznik.minimisedChats.reapplyFilter('visibleModels');
-
-            if (self.filter.length > 2) {
-                // Now search on the sever.  But delay this to allow for extra keystrokes - avoids hitting
-                // the server many times.
-                if (self.searchTimer) {
-                    clearTimeout(self.searchTimer);
-                }
-
-                self.searchChats = new Iznik.Collections.Chat.Rooms({
-                    search: self.filter
-                });
-
-                self.searchTimer = setTimeout(function() {
-                    self.searchChats.fetch().then(function() {
-                        Iznik.minimisedChats.reapplyFilter('visibleModels');
-                    });
-                }, 500);
-            }
-        },
-
-        searchFilter: function (model) {
-            var self = this;
-            var filt = self.filter.toLowerCase();
-            var snippet = model.get('snippet') ? model.get('snippet') : '';
-
-            var ret = (self.filter.length === 0 ||
-            snippet.toLowerCase().indexOf(filt) !== -1 ||
-            model.get('name').toLowerCase().indexOf(filt) !== -1);
-
-            if (!ret && self.searchChats) {
-                ret = self.searchChats.get(model.get('id'));
-            }
-
-            return (ret);
         },
 
         waitForView: function(chatid) {
@@ -436,9 +383,15 @@ define([
                 });
             }
 
+            if (!self.countTimerRunning) {
+                self.countTimerRunning = true;
+                _.delay(_.bind(self.updateCountTimer, self), 30000);
+            }
+
             return (p);
         }
     });
+
     Iznik.Views.Chat.Active = Iznik.View.extend({
         template: 'chat_active',
 
@@ -778,7 +731,7 @@ define([
             var warningheight = chatwarning.length > 0 ? (chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight()) : 0;
             var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter textarea').outerHeight() - this.$('.js-chatfooter .js-buttons').outerHeight() - warningheight;
             newHeight = Math.round(newHeight);
-            
+
             // console.log("Adjust on", this.$el, newHeight);
             // console.log("Height", newHeight, this.$el.innerHeight(), this.$('.js-chatheader').outerHeight(), this.$('.js-chatfooter textarea').outerHeight(), this.$('.js-chatfooter .js-buttons').outerHeight(), warningheight);
             this.$('.js-leftpanel, .js-roster').height(newHeight);

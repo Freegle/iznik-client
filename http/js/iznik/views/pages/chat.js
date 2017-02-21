@@ -22,7 +22,6 @@ define([
         searchKey: function () {
             var self = this;
             self.filter = $(self.listContainer).find('.js-search').val();
-            console.log("Search filter", self.filter);
 
             // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
             self.chatsCV.reapplyFilter('visibleModels');
