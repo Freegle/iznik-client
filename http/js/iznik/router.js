@@ -100,6 +100,8 @@ define([
             "localstorage": "localstorage",
             "yahoologin": "yahoologin",
             "modtools": "modtools",
+            "modtools/chat/{id}": "modChat",
+            "modtools/chats": "modChats",
             "modtools/supporters": "supporters",
             "modtools/messages/pending": "pendingMessages",
             "modtools/messages/approved/messagesearch/:search": "approvedMessagesSearchMessages",
@@ -1239,6 +1241,30 @@ define([
                 Iznik.Session.forceLogin({
                     modtools: true
                 });
+            });
+        },
+
+        modChats: function() {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page();
+                    page.modtools = true;
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
+            });
+        },
+
+        modChat: function(chatid) {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                var page = new Iznik.Views.Chat.Page({
+                    chatid: chatid
+                });
+                page.modtools = true;
+                self.loadRoute({page: page});
             });
         },
         

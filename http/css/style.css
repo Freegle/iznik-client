@@ -979,7 +979,16 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     overflow-y: scroll;
 }
 
+.backwhite {
+    background-color: white;
+}
+
 /* Chat */
+.chat-list-holder {
+    height: calc(100vh - 65px);
+    overflow-y: scroll;
+}
+
 .chat-name {
     color: white;
     background-color: #4895DD;
@@ -1680,38 +1689,6 @@ fieldset[disabled] .twitter-typeahead .tt-input {
         height: 40px;
     }
 
-    #notifchatdropdown {
-        min-width: 80vw;
-        z-index: 20000;
-        height: 90vh;
-    }
-
-    #notifchatdropdownlist {
-        width: 80vw;
-    }
-
-    #notifchatdropdownactions {
-        background-color: white !important;
-        border-bottom: none !important;
-        /*position: fixed;*/
-    }
-
-    .notifaction {
-        padding: 5px;
-        border-radius: 3px;
-        border: 1px black solid;
-        width: 130px;
-    }
-
-    #notifchatdropdownlist {
-        background-color: white !important;
-        overflow-y: scroll;
-        /*top: 150px;*/
-        max-height: 80vh;
-        /*position: fixed;*/
-        -webkit-backface-visibility: hidden;
-    }
-
     .chat-page-pane {
         /*height: calc(100vh - 65px - 36px);*/
     }
@@ -1759,43 +1736,10 @@ fieldset[disabled] .twitter-typeahead .tt-input {
         z-index: 20000;
         height: 90vh;
     }
-
-    #notifchatdropdownlist {
-        width: 80vw;
-    }
-
-    #notifchatdropdownactions {
-        background-color: white !important;
-        border-bottom: none !important;
-        /*position: fixed;*/
-    }
-
-    .notifaction {
-        padding: 5px;
-        border-radius: 3px;
-        border: 1px black solid;
-        width: 130px;
-    }
-
-    #notifchatdropdownlist {
-        background-color: white !important;
-        overflow-y: scroll;
-        /*top: 150px;*/
-        max-height: 80vh;
-        /*position: fixed;*/
-        -webkit-backface-visibility: hidden;
-    }
 }
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {
-    #notifchatdropdown {
-        min-width: 400px;
-    }
-
-    #notifchatdropdownlist {
-        width: 400px;
-    }
 }
 
 /* Small Devices, Tablets */
@@ -1814,14 +1758,6 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 
     .botspace {
         margin-bottom: 7px !important;
-    }
-
-    #notifchatdropdown {
-        min-width: 500px;
-    }
-
-    #notifchatdropdownlist {
-        width: 500px;
     }
 
     .footer {

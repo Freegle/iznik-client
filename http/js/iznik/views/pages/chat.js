@@ -13,8 +13,6 @@ define([
     'fileinput'
 ], function ($, _, Backbone, Iznik, autosize, moment) {
     Iznik.Views.Chat.Page = Iznik.Views.Page.extend({
-        template: 'chat_page_main',
-
         noback: true,
 
         filter: null,
@@ -23,7 +21,7 @@ define([
 
         searchKey: function () {
             var self = this;
-            self.filter = $('.js-leftsidebar').find('.js-search').val();
+            self.filter = $(self.listContainer).find('.js-search').val();
             console.log("Search filter", self.filter);
 
             // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
@@ -96,25 +94,29 @@ define([
         loadChat: function(chat) {
             // We have selected a chat.  Mark it as selected.
             var self = this;
+            console.log("Load chat", chat);
 
-            self.selectedModel = chat;
-            self.activeChat = new Iznik.Views.Chat.Page.Pane({
-                model: self.selectedModel
-            });
-            self.activeChat.render().then(function() {
-                $('#js-msgpane').html(self.activeChat.$el);
+            if (chat)
+            {
+                self.selectedModel = chat;
+                self.activeChat = new Iznik.Views.Chat.Page.Pane({
+                    model: self.selectedModel
+                });
+                self.activeChat.render().then(function() {
+                    $('#js-msgpane').html(self.activeChat.$el);
 
-                try {
-                    var lastchatmsg = Storage.get('lastchatmsg');
-                    var lastchatid = Storage.get('lastchatid');
+                    try {
+                        var lastchatmsg = Storage.get('lastchatmsg');
+                        var lastchatid = Storage.get('lastchatid');
 
-                    if (lastchatid == chat.get('id')) {
-                        self.$('.js-message').val(lastchatmsg);
-                    }
-                } catch (e) {}
+                        if (lastchatid == chat.get('id')) {
+                            self.$('.js-message').val(lastchatmsg);
+                        }
+                    } catch (e) {}
 
-                self.activeChat.messageFocus();
-            })
+                    self.activeChat.messageFocus();
+                })
+            }
         },
 
         changeDropdown: function() {
@@ -168,12 +170,13 @@ define([
         render: function () {
             var self = this;
 
+            self.template = self.modtools ? 'chat_page_mainmodtools' : 'chat_page_mainuser';
+            self.listContainer = self.modtools ? '#js-chatlistholder' : '.js-leftsidebar';
+
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function () {
                 // We need the space.
                 $('#botleft').hide();
-
-                $('#js-notifchat').closest('li').addClass('active');
 
                 // We use a single global collection for our chats.
                 self.chats = Iznik.Session.chats;
@@ -189,7 +192,8 @@ define([
 
                 // Left sidebar is the chat list.  It may not be visible on mobile, but we have it there anyway.
                 templateFetch('chat_page_list').then(function() {
-                    $('.js-leftsidebar').html(window.template('chat_page_list'));
+                    $(self.listContainer).html(window.template('chat_page_list'));
+                    $(self.listContainer).addClass('chat-list-holder');
 
                     // Now set up a collection view to list the chats.
                     self.chatsCV = new Backbone.CollectionView({
@@ -202,10 +206,11 @@ define([
                     self.chatsCV.render();
 
                     // When we click to select, we want to load that chat.
-                    self.chatsCV.on('selectionChanged', function() {
-                        console.log("selectionChanged");
-                        var selectedModel = self.chatsCV.getSelectedModel();
-                        self.loadChat(selectedModel);
+                    self.chatsCV.on('selectionChanged', function(selected) {
+                        console.log("selectionChanged", selected);
+                        if (selected.length > 0) {
+                            self.loadChat(selected[0]);
+                        }
                     });
 
                     self.selectedFirst = false;
@@ -213,8 +218,8 @@ define([
                         cached: _.bind(self.fetchedChats, self)
                     }).then(_.bind(self.fetchedChats, self));
 
-                    $('.js-leftsidebar .js-search').on('keyup', _.bind(self.searchKey, self));
-                    $('.js-leftsidebar .js-allseen').on('click', _.bind(self.allseen, self));
+                    $(self.listContainer + ' .js-search').on('keyup', _.bind(self.searchKey, self));
+                    $(self.listContainer + ' .js-allseen').on('click', _.bind(self.allseen, self));
                 });
             });
 

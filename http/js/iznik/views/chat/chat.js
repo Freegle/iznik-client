@@ -324,71 +324,6 @@ define([
             return (ret);
         },
 
-        createMinimised: function () {
-            var self = this;
-
-            $('#notifchatdropdownlist').empty();
-            Iznik.minimisedChats = new Backbone.CollectionView({
-                el: $('#notifchatdropdownlist'),
-                modelView: Iznik.Views.Chat.Minimised,
-                collection: Iznik.Session.chats,
-                visibleModelsFilter: _.bind(self.searchFilter, self),
-                modelViewOptions: {
-                    organise: _.bind(self.organise, self),
-                    updateCounts: _.bind(self.updateCounts, self),
-                    modtools: self.options.modtools
-                }
-            });
-
-            self.listenTo(Iznik.Session.chats, 'change:lastdate', function(model) {
-                // We want to reach to this by making sure the changed chat is near the top of the list of
-                // minimised chats, so that it's easier to find.  This achieves that...but it's a bit of a
-                // hack.  Probably the architecturally right way to do this would be to trigger a sort
-                // on the collection, which ought to sort the collectionview.  But what seems to happen
-                // is that this causes any open chats to be closed when they're detached.  I've spent enough
-                // time failing to work out why - so we do it this way.
-                var view = Iznik.minimisedChats.viewManager.findByModel(model);
-                view.$el.detach();
-                $('#notifchatdropdownlist').prepend(view.$el);
-            });
-
-            $('#notifchatdropdownlist').empty();
-            Iznik.minimisedChats.render();
-
-            $('#js-notifchat').click(function (e) {
-                var display = $('#notifchatdropdown').css('display');
-
-                if (display === 'none') {
-                    $('#notifchatdropdown').show();
-                } else {
-                    $('#notifchatdropdown').hide();
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-            });
-
-            $(document).click(function (e) {
-                // If we click outside the chat dropdown, hide it.
-                if (!$(e.target).closest('#notifchatdropdown').length) {
-                    $('#notifchatdropdown').hide();
-                }
-
-                // If we click outside the dropdown menu, hide that.
-                $('.navbar-collapse').collapse('hide');
-            });
-
-            // Not within this DOM.
-            $('.js-minimiseall').on('click', self.minimiseall);
-            $('.js-allseen').on('click', self.allseen);
-            $('.js-search').on('keyup', _.bind(self.searchKey, self));
-            $('.js-fullscreen').on('click', function() {
-                Router.navigate('/chats', true);
-            });
-
-            self.showMin();
-        },
-
         waitForView: function(chatid) {
             var self = this;
             var retry = true;
@@ -449,7 +384,6 @@ define([
                 Iznik.openChats.render();
 
                 self.waitDOM(self, function () {
-                    self.createMinimised();
                     self.organise();
                     Iznik.Session.trigger('chatsfetched');
                 });
@@ -505,90 +439,6 @@ define([
             return (p);
         }
     });
-
-    Iznik.Views.Chat.Minimised = Iznik.View.Timeago.extend({
-        template: 'chat_minimised',
-
-        tagName: 'li',
-
-        className: 'clickme padleftsm',
-
-        events: {
-            'click': 'click'
-        },
-
-        click: function () {
-            // The maximised chat view is listening on this.
-            this.model.trigger('restore', this.model.get('id'));
-        },
-
-        allseen: function () {
-            var self = this;
-
-            if (self.model.get('unseen') > 0) {
-                // We have to get the messages to find out which the last one is.
-                self.messages = new Iznik.Collections.Chat.Messages({
-                    roomid: self.model.get('id')
-                });
-                self.messages.fetch({
-                    remove: true
-                }).then(function () {
-                    if (self.messages.length > 0) {
-                        var lastmsgseen = self.messages.at(self.messages.length - 1).get('id');
-                        $.ajax({
-                            url: API + 'chat/rooms/' + self.model.get('id'),
-                            type: 'POST',
-                            data: {
-                                lastmsgseen: lastmsgseen,
-                                status: 'Away'
-                            }
-                        });
-
-                        self.model.set('unseen', 0);
-                        self.model.set('lastmsgseen', lastmsgseen);
-                    }
-                });
-            }
-        },
-
-        updateCount: function () {
-            var self = this;
-            var unseen = self.model.get('unseen');
-            var current = self.$('.js-count').html();
-
-            // Don't do DOM manipulations unless we need to as that's a performance killer.
-            if (unseen != current) {
-                if (unseen > 0) {
-                    self.$('.js-count').html(unseen).show();
-                } else {
-                    self.$('.js-count').html(unseen).hide();
-                }
-            }
-
-            self.trigger('countupdated', unseen);
-        },
-
-        render: function () {
-            var p = Iznik.View.Timeago.prototype.render.call(this);
-            p.then(function (self) {
-                self.updateCount();
-
-                // If the unread message count changes, we want to update it.
-                if (!self.unseenListen) {
-                    self.unseenListen = true;
-                    self.listenTo(self.model, 'change:unseen', self.updateCount);
-                }
-
-                if (!self.snippetListen) {
-                    self.snippetListen = true;
-                    self.listenTo(self.model, 'change:snippet', self.render);
-                }
-            });
-
-            return (p);
-        }
-    });
-
     Iznik.Views.Chat.Active = Iznik.View.extend({
         template: 'chat_active',
 
