@@ -153,13 +153,21 @@ define([
         },
 
         comparator: function(a, b) {
-            // Sort by date of last message, if exists.
-            if (!a.get('lastdate')) {
-                return 1
-            } else if (!b.get('lastdate')) {
-                return -1
+            // Sort by unseen, and then date of last message, if exists.
+            var aunseen = a.get('unseen');
+            var bunseen = b.get('unseen');
+            if (aunseen && !bunseen) {
+                return -1;
+            } else if (bunseen && !aunseen) {
+                return 1;
             } else {
-                return (new Date(b.get('lastdate')).getTime()) - new Date(a.get('lastdate')).getTime()
+                if (!a.get('lastdate')) {
+                    return 1
+                } else if (!b.get('lastdate')) {
+                    return -1
+                } else {
+                    return (new Date(b.get('lastdate')).getTime()) - new Date(a.get('lastdate')).getTime()
+                }
             }
         },
 
@@ -203,9 +211,26 @@ define([
         allseen: function () {
             var self = this;
             self.each(function (chat) {
-                chat.seen();
+                if (chat.get('unseen') > 0) {
+                    // We need to find the last message.
+                    chat.fetch().then(_.bind(function(id) {
+                        var chat = this.get(id);
+                        chat.set('unseen', 0);
+                        chat.set('lastmsgseen', chat.get('lastmsg'));
+                        $.ajax({
+                            url: API + 'chatrooms',
+                            type: 'POST',
+                            data: {
+                                id: chat.get('id'),
+                                'lastmsgseen': chat.get('lastmsg')
+                            }
+                        });
+                    }, self, chat.get('id')));
+                }
             });
-            self.setStatus('Online', true);
+
+            // Fetch again to update our cached version.
+            self.fetch();
         },
 
         wait: function () {
@@ -354,7 +379,7 @@ define([
         bulkUpdateRoster: function () {
             var self = this;
 
-            log("bulkUpdateRoster", self.status);
+            log("bulkUpdateRoster", self.status, self.rosterUpdating, self.tabActive);
 
             if (!self.rosterUpdating) {
                 if (self.tabActive) {
@@ -368,13 +393,15 @@ define([
                                 status: self.status,
                                 lastmsgseen: chat.get('lastmsgseen')
                             });
+                            // console.log("Update", chat.get('id'), chat.get('lastmsgseen'));
                         }
                     });
+
+                    log("Got updates", updates);
 
                     if (updates.length > 0) {
                         // We put the restart of the timer into success/error as complete can get called
                         // multiple times in the event of retry, leading to timer explosion.
-                        log("Got updates", updates);
                         self.rosterUpdating = true;
 
                         $.ajax({

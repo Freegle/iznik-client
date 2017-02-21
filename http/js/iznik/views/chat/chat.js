@@ -657,21 +657,10 @@ define([
             v.render();
         },
 
-        allseen: function () {
-            if (this.messages.length > 0) {
-                this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
-                // console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
-            }
-            this.model.set('unseen', 0);
-        },
-
         messageFocus: function () {
             var self = this;
-
-            // We've seen all the messages.
-            self.allseen();
-
-            this.updateCount();
+            self.model.allseen();
+            self.updateCount();
         },
 
         stayHidden: function() {
