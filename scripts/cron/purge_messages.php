@@ -120,7 +120,17 @@ error_log("Purge HTML body for messages before $start");
 $total = 0;
 
 do {
-    $sql = "UPDATE messages SET htmlbody = NULL WHERE arrival <= '$start' LIMIT 1000;";
+    $sql = "UPDATE messages SET htmlbody = NULL WHERE arrival <= '$start' AND htmlbody IS NOT NULL LIMIT 1000;";
+    $count = $dbhm->exec($sql);
+    $total += $count;
+    error_log("...$total");
+} while ($count > 0);
+
+error_log("Purge message for messages before $start");
+$total = 0;
+
+do {
+    $sql = "UPDATE messages SET message = NULL WHERE arrival <= '$start' AND message IS NOT NULL LIMIT 1000;";
     $count = $dbhm->exec($sql);
     $total += $count;
     error_log("...$total");
