@@ -138,7 +138,7 @@ class Attachment
 
     public function archive() {
         $rc = file_put_contents(IZNIK_BASE . "/http/attachments/img_{$this->id}.jpg", $this->getData());
-        error_log("$rc for img_{$this->id}.jpg");
+        #error_log("$rc for img_{$this->id}.jpg");
         if ($rc) {
             $sql = "UPDATE messages_attachments SET archived = 1, data = NULL WHERE id = {$this->id};";
             $this->dbhm->exec($sql);

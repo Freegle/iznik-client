@@ -118,20 +118,38 @@ error_log("Deleted $total");
 $start = date('Y-m-d', strtotime("midnight 2 days ago"));
 error_log("Purge HTML body for messages before $start");
 $total = 0;
+$id = NULL;
 
 do {
-    $sql = "UPDATE messages SET htmlbody = NULL WHERE arrival <= '$start' AND htmlbody IS NOT NULL LIMIT 1000;";
-    $count = $dbhm->exec($sql);
-    $total += $count;
-    error_log("...$total");
+    $idq = $id ? " id < $id AND " : "";
+    $sql = "SELECT id FROM messages WHERE $idq arrival <= '$start' AND htmlbody IS NOT NULL ORDER BY id DESC LIMIT 1;";
+    error_log($sql);
+    $msgs = $dbhr->preQuery($sql);
+    foreach ($msgs as $msg) {
+        $id = !$id ? $msg['id'] : min($id, $msg['id']);
+        $sql = "UPDATE messages SET htmlbody = NULL WHERE id <= {$msg['id']} AND htmlbody IS NOT NULL LIMIT 1000;";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$total");
+    }
 } while ($count > 0);
 
 error_log("Purge message for messages before $start");
+$start = date('Y-m-d', strtotime("midnight 30 days ago"));
 $total = 0;
+$id = NULL;
 
 do {
-    $sql = "UPDATE messages SET message = NULL WHERE arrival <= '$start' AND message IS NOT NULL LIMIT 1000;";
-    $count = $dbhm->exec($sql);
-    $total += $count;
-    error_log("...$total");
+    $idq = $id ? " id < $id AND " : "";
+    $sql = "SELECT id FROM messages WHERE $idq arrival <= '$start' AND message IS NOT NULL ORDER BY id DESC LIMIT 1;";
+    error_log($sql);
+    $msgs = $dbhr->preQuery($sql);
+    foreach ($msgs as $msg) {
+        $id = !$id ? $msg['id'] : min($id, $msg['id']);
+        $sql = "UPDATE messages SET message = NULL WHERE id <= {$msg['id']} AND message IS NOT NULL LIMIT 1000;";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$total");
+    }
 } while ($count > 0);
+
