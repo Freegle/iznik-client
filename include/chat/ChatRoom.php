@@ -1037,7 +1037,7 @@ class ChatRoom extends Entity
             $ccit = FALSE;
 
             foreach ($notmailed as $member) {
-                # Now we have a member who has not been mailed of the messages in this chat.  Find the other one.
+                # Now we have a member who has not been mailed of the messages in this chat.
                 #error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
@@ -1048,7 +1048,7 @@ class ChatRoom extends Entity
                 # the case where someone replies from a different email which isn't a group membership, and we
                 # want to notify that email.
                 #error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
-                if ($thisu->notifsOn(User::NOTIFS_EMAIL)) {
+                if ($thisu->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'))) {
                     # Now collect a summary of what they've missed.
                     $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                         [
