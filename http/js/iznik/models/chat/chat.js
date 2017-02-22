@@ -10,7 +10,9 @@ define([
     var instance;
 
     function log() {
-        console.log.apply(this, arguments);
+        try {
+            console.log.apply(this, arguments);
+        } catch (e) {}
     }
 
     Iznik.Models.Chat.Room = Iznik.Model.extend({
