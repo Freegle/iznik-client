@@ -2084,6 +2084,9 @@ define([
                                     style: google.maps.ZoomControlStyle.SMALL
                                 }
                             };
+                            
+                            // Set square.
+                            $('#map').css('height', $('#map').innerWidth());
 
                             self.map = new google.maps.Map(document.getElementById("map"), options);
 

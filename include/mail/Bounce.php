@@ -122,7 +122,7 @@ class Bounce
 
     public function suspendMail($id = NULL, $permthreshold = 3, $allthreshold = 50) {
         $idq = $id ? " AND userid = $id " : "";
-        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE permanent = 1 AND reset = 0 GROUP BY userid ORDER BY count DESC;");
+        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE permanent = 1 AND users_emails.preferred = 1 AND reset = 0 GROUP BY userid ORDER BY count DESC;");
 
         foreach ($users as $user) {
             if ($user['count'] >= $permthreshold) {
@@ -130,7 +130,7 @@ class Bounce
             }
         }
 
-        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE reset = 0 GROUP BY userid ORDER BY count DESC;");
+        $users = $this->dbhr->preQuery("SELECT COUNT(*) AS count, userid, emailid, reason FROM bounces_emails INNER JOIN users_emails ON users_emails.id = bounces_emails.emailid INNER JOIN users ON users.id = users_emails.userid $idq AND users.bouncing = 0 WHERE reset = 0 AND users_emails.preferred = 1 GROUP BY userid ORDER BY count DESC;");
 
         foreach ($users as $user) {
             if ($user['count'] >= $allthreshold) {

@@ -7,13 +7,12 @@ define([
     'moment',
     'iznik/models/chat/chat',
     'iznik/views/pages/pages',
+    'iznik/views/group/select',
     'jquery-resizable',
     'jquery-visibility',
     'fileinput'
 ], function ($, _, Backbone, Iznik, autosize, moment) {
     Iznik.Views.Chat.Page = Iznik.Views.Page.extend({
-        template: 'chat_page_main',
-
         noback: true,
 
         filter: null,
@@ -22,8 +21,7 @@ define([
 
         searchKey: function () {
             var self = this;
-            self.filter = $('.js-leftsidebar').find('.js-search').val();
-            console.log("Search filter", self.filter);
+            self.filter = $(self.listContainer).find('.js-search').val();
 
             // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
             self.chatsCV.reapplyFilter('visibleModels');
@@ -35,12 +33,12 @@ define([
                     clearTimeout(self.searchTimer);
                 }
 
-                self.chats = new Iznik.Collections.Chat.Rooms({
-                    search: self.filter
-                });
-
                 self.searchTimer = setTimeout(function() {
-                    self.chats.fetch().then(function() {
+                    self.chats.fetch({
+                        data: {
+                            search: self.filter
+                        }
+                    }).then(function() {
                         self.chatsCV.reapplyFilter('visibleModels');
                     });
                 }, 500);
@@ -68,17 +66,26 @@ define([
         },
 
         fetchedChats: function() {
-            // Select the first chat.
+            // Select a default chat.
             var self = this;
 
             if (!self.selectedFirst) {
                 self.selectedFirst = true;
 
-                var first = self.chatsCV.viewManager.first();
+                var first = null;
+
+                if (self.options.chatid) {
+                    // We've been asked to select a specific chat.
+                    first = Iznik.Session.chats.get(self.options.chatid);
+                }
+
+                if (!first) {
+                    // Select the most recent.
+                    first = Iznik.Session.chats.first();
+                }
 
                 if (first) {
-                    first.$el.addClass('selected');
-                    first.click();
+                    self.chatsCV.setSelectedModel(first);
                 }
             }
         },
@@ -86,51 +93,109 @@ define([
         loadChat: function(chat) {
             // We have selected a chat.  Mark it as selected.
             var self = this;
-            self.chatsCV.viewManager.each(function(view) {
-                view.$el.removeClass('selected');
+            console.log("Load chat", chat);
 
-                if (view.model.get('id') == chat.get('id')) {
-                    view.$el.addClass('selected');
+            if (chat)
+            {
+                self.selectedModel = chat;
+                self.activeChat = new Iznik.Views.Chat.Page.Pane({
+                    model: self.selectedModel
+                });
+                self.activeChat.render().then(function() {
+                    $('#js-msgpane').html(self.activeChat.$el);
+
+                    try {
+                        var lastchatmsg = Storage.get('lastchatmsg');
+                        var lastchatid = Storage.get('lastchatid');
+
+                        if (lastchatid == chat.get('id')) {
+                            self.$('.js-message').val(lastchatmsg);
+                            Storage.clear('lastchatmsg');
+                            Storage.clear('lastchatid');
+                        }
+                    } catch (e) {}
+
+                    self.activeChat.messageFocus();
+                })
+            }
+        },
+
+        changeDropdown: function() {
+            var self = this;
+            var val = self.$('#js-chatdropdown').val();
+            var chat = self.chats.get(val);
+
+            // Record for when we updat the dropdown.
+            self.options.chatid = val;
+
+            if (chat) {
+                self.loadChat(chat);
+            }
+        },
+
+        setupDropdown: function() {
+            var self = this;
+            var sel = self.$('#js-chatdropdown');
+            sel.empty();
+
+            self.chats.each(function(chat) {
+                var title = chat.get('name');
+                var unseen = chat.get('unseen');
+
+                if (unseen) {
+                    title = '(' + unseen + ') ' + title;
                 }
-            })
 
-            self.selectedModel = chat;
-            console.log("Selected", self.selectedModel);
-            self.activeChat = new Iznik.Views.Chat.Page.Pane({
-                model: self.selectedModel
+                sel.append('<option value="' + chat.get('id') + '" />');
+                var last = sel.find('option:last');
+                last.html(title);
+
+                if (chat.get('id') == self.options.chatid) {
+                    last.attr('selected', true);
+                } else {
+                    last.removeAttr('selected');
+                }
             });
-            self.activeChat.render().then(function() {
-                $('#js-msgpane').html(self.activeChat.$el);
-                self.activeChat.messageFocus();
-            })
+        },
+
+        dropdownTimer: function() {
+            var self = this;
+            self.setupDropdown();
+            _.delay(_.bind(self.dropdownTimer, self), 30000);
         },
 
         allseen: function() {
-            var self = this;
-            self.chatsCV.viewManager.each(function (chat) {
-                try {
-                    if (chat.model.get('unseen') > 0) {
-                        chat.allseen();
-                        chat.updateRoster(chat.statusWithOverride('Online'), chat.noop, true);
-                    }
-                } catch (e) {
-                    console.error("Failed to process chat", chat, e.message);
-                }
-            });
+            this.chats.setStatus('Online');
+            this.chats.allseen();
         },
 
         render: function () {
             var self = this;
 
+            self.template = self.modtools ? 'chat_page_mainmodtools' : 'chat_page_mainuser';
+            self.listContainer = self.modtools ? '#js-chatlistholder' : '.js-leftsidebar';
+
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function () {
+                // We need the space.
                 $('#botleft').hide();
 
-                self.chats = new Iznik.Collections.Chat.Rooms();
+                // We use a single global collection for our chats.
+                self.chats = Iznik.Session.chats;
 
-                // Left sidebar is the chat list.
+                // There is a select drop-down to change chats.  This is only visible on mobile.
+                self.setupDropdown();
+                self.$('#js-chatdropdown').on('change', _.bind(self.changeDropdown, self));
+                self.chats.on('add', _.bind(self.setupDropdown, self));
+
+                // The titles in the dropdown may change due to unread counts.  Update periodically - not as
+                // good as event driven but will do.
+                self.dropdownTimer();
+
+                // Left sidebar is the chat list.  It may not be visible on mobile, but we have it there anyway.
                 templateFetch('chat_page_list').then(function() {
-                    $('.js-leftsidebar').html(window.template('chat_page_list'));
+                    $(self.listContainer).html(window.template('chat_page_list'));
+                    $(self.listContainer).addClass('chat-list-holder');
 
                     // Now set up a collection view to list the chats.
                     self.chatsCV = new Backbone.CollectionView({
@@ -140,23 +205,23 @@ define([
                         visibleModelsFilter: _.bind(self.searchFilter, self)
                     });
 
-                    // We want to know when we click to select one.
-                    self.chatsCV.on('add', function(view) {
-                        self.listenTo(view, 'selected', function(view) {
-                            console.log("Selected chat", view);
-                            self.loadChat(view.model);
-                        });
-                    });
-
                     self.chatsCV.render();
+
+                    // When we click to select, we want to load that chat.
+                    self.chatsCV.on('selectionChanged', function(selected) {
+                        console.log("selectionChanged", selected);
+                        if (selected.length > 0) {
+                            self.loadChat(selected[0]);
+                        }
+                    });
 
                     self.selectedFirst = false;
                     self.chats.fetch({
                         cached: _.bind(self.fetchedChats, self)
                     }).then(_.bind(self.fetchedChats, self));
 
-                    $('.js-leftsidebar .js-search').on('keyup', _.bind(self.searchKey, self));
-                    $('.js-leftsidebar .js-allseen').on('click', _.bind(self.allseen, self));
+                    $(self.listContainer + ' .js-search').on('keyup', _.bind(self.searchKey, self));
+                    $(self.listContainer + ' .js-allseen').on('click', _.bind(self.allseen, self));
                 });
             });
 
@@ -170,14 +235,6 @@ define([
         className: 'hoverDiv clickme',
 
         tagName: 'li',
-
-        events: {
-            'click': 'click'
-        },
-
-        click: function () {
-            this.trigger('selected', this);
-        },
 
         allseen: function () {
             var self = this;
@@ -249,12 +306,15 @@ define([
     Iznik.Views.Chat.Page.Pane = Iznik.View.extend({
         template: 'chat_page_pane',
 
-        className: 'chat-page-pane flexbot bordleft bordright',
+        className: 'chat-page-pane bordleft bordright',
+
+        maxAdjustDelay: 300,
+        currentAdjustDelay: 10,
 
         events: {
             'click .js-report, touchstart .js-report': 'report',
             'click .js-enter': 'enter',
-            'focus .js-message': 'messageFocus',
+            'focus .js-message': 'messageFocused',
             'click .js-promise': 'promise',
             'click .js-info': 'info',
             'click .js-photo': 'photo',
@@ -334,7 +394,6 @@ define([
                         self.getLatestMessages();
                     } else {
                         // console.log("Fetched and no more");
-                        self.options.updateCounts();
                         self.scrollBottom();
                     }
                 });
@@ -383,7 +442,6 @@ define([
 
                 // We have initiated the send, so set up for the next one.
                 self.$('.js-message').val('');
-                self.$('.js-message').focus();
                 self.messageFocus();
 
                 // If we've grown the textarea, shrink it.
@@ -477,16 +535,24 @@ define([
             this.model.set('unseen', 0);
         },
 
-        messageFocus: function () {
+        messageFocused: function () {
             var self = this;
+            console.log("Message focus");
 
             // We've seen all the messages.
+            console.log("Start seen timer");
             _.delay(_.bind(self.allseen, self), 30000);
 
             // Tell the server now, in case they navigate away before the next roster timer.
-            self.updateRoster(self.statusWithOverride('Online'), self.noop, true);
+            Iznik.Session.chats.setStatus('Online', true);
+            console.log("Set status");
 
             this.updateCount();
+            console.log("Updated count");
+        },
+
+        messageFocus: function() {
+            this.$('.js-message').focus();
         },
 
         report: function () {
@@ -544,97 +610,7 @@ define([
             } catch (e) {
             }
 
-            this.updateRoster(status, this.noop);
-        },
-
-        updateRoster: function (status, callback, force) {
-            var self = this;
-            // console.log("Update roster", self.model.get('id'), status, force);
-
-            // Save the current status in the chat for the next bulk roster update to the server.
-            // console.log("Set roster status", status, self.model.get('id'));
-            self.model.set('rosterstatus', status);
-
-            if (force) {
-                // We want to make sure the server knows right now.
-                $.ajax({
-                    url: API + 'chat/rooms/' + self.model.get('id'),
-                    type: 'POST',
-                    data: {
-                        lastmsgseen: self.model.get('lastmsgseen'),
-                        status: status
-                    }, success: function (ret) {
-                        if (ret.ret === 0) {
-                            self.lastRoster = ret.roster;
-                            self.lastUnseen = ret.lastunseen
-                        }
-
-                        callback(ret);
-                    }
-                });
-            } else {
-                // console.log("Suppress update", self.lastRoster);
-                callback({
-                    ret: 0,
-                    status: 'Update delayed',
-                    roster: self.lastRoster,
-                    unseen: self.lastUnseen
-                });
-            }
-        },
-
-        statusWithOverride: function (status) {
-            if (status == 'Online') {
-                // We are online, but may have overridden this to appear something else.
-                try {
-                    var savestatus = Storage.get('mystatus');
-                    status = savestatus ? savestatus : status;
-                } catch (e) {
-                }
-            }
-
-            return (status);
-        },
-
-        rosterUpdated: function (ret) {
-            var self = this;
-
-            if (ret.ret === 0) {
-                if (!_.isUndefined(ret.roster)) {
-                    self.$('.js-roster').empty();
-                    // console.log("Roster", ret.roster);
-                    _.each(ret.roster, function (rost) {
-                        var mod = new Iznik.Model(rost);
-                        var v = new Iznik.Views.Chat.RosterEntry({
-                            model: mod,
-                            modtools: self.options.modtools
-                        });
-                        self.listenTo(v, 'openchat', self.openChat);
-                        v.render().then(function (v) {
-                            self.$('.js-roster').append(v.el);
-                        })
-                    });
-                }
-
-                if (!_.isUndefined(ret.unseen)) {
-                    // console.log("Set unseen from", self.model.get('unseen'), ret.unseen, ret);
-                    self.model.set('unseen', ret.unseen);
-                }
-            }
-
-            _.delay(_.bind(self.roster, self), 30000);
-        },
-
-        roster: function () {
-            // We update our presence and get the roster for the chat regularly if the chat is open.  If it's
-            // minimised, we don't - the server will time us out as away.  We'll still; pick up any new messages on
-            // minimised chats via the long poll, and the fallback.
-            var self = this;
-
-            if (!self.removed && !self.minimised) {
-                self.updateRoster(self.statusWithOverride('Online'),
-                    _.bind(self.rosterUpdated, self));
-            }
+            Iznik.Session.chats.updateRoster(status, true);
         },
 
         countHidden: true,
@@ -733,14 +709,42 @@ define([
             });
         },
 
+        adjust: function() {
+            var self = this;
+
+            var windowInnerHeight = $(window).innerHeight();
+            var pageContentTop = parseInt($('.pageContent').css('top').replace('px', ''));
+            var chatDropdownHeight = $('#js-chatdropdown').outerHeight();
+            var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
+            var footerHeight = self.$('.js-chatfooter').outerHeight();
+
+            var height = windowInnerHeight - pageContentTop - chatDropdownHeight - chatWarningHeight - footerHeight;
+            var str = "Heights " + height + " " + windowInnerHeight + " " + pageContentTop + " " + " " + chatDropdownHeight + " " + chatWarningHeight + " " + footerHeight;
+            var currHeight = self.$('.js-scroll').css('height').replace('px', '');
+
+            if (currHeight != height) {
+                self.$('.js-scroll').css('height', height + 'px');
+                self.currentAdjustDelay = 10;
+            } else {
+                self.currentAdjustDelay *= 2;
+                self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
+            }
+
+            // console.log(str);
+            // self.$('.js-message').val(str);
+
+            _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
+        },
+
         render: function () {
             var self = this;
-            console.log("Render chat", self.model.get('id'), self);
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function (self) {
                 // Input text autosize
                 autosize(self.$('textarea'));
+
+                self.adjust();
 
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();
@@ -766,14 +770,13 @@ define([
                     self.scrollBottom();
                 });
 
+                // Show any warning for a while.
                 self.$('.js-chatwarning').show();
-
                 window.setTimeout(_.bind(function () {
-                    this.$('.js-chatwarning').slideUp('slow', _.bind(function() {
-                        this.adjust();
-                    }, this));
+                    this.$('.js-chatwarning').slideUp('slow');
                 }, self), 30000);
 
+                // Set any roster status.
                 try {
                     var status = Storage.get('mystatus');
 
@@ -807,9 +810,6 @@ define([
                 });
 
                 self.messageViews.render();
-
-                // Get the roster to see who's there.
-                self.roster();
 
                 self.photoUpload();
             });

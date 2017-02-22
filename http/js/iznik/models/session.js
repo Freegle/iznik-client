@@ -2,6 +2,7 @@ define([
     'jquery',
     'backbone',
     'iznik/base',
+    'iznik/models/chat/chat',
     'jquery-visibility'
 ], function($, Backbone, Iznik) {
     Iznik.Models.Session = Iznik.Model.extend({
@@ -33,6 +34,9 @@ define([
                 // when we're not.
                 self.testLoggedIn();
             });
+
+            // Make sure that the chats are set up, even if not yet fetched - used all over.
+            self.chats = new Iznik.Collections.Chat.Rooms();
         },
 
         save: function(attrs, options) {
@@ -700,7 +704,7 @@ define([
 
         hasPermission: function(perm) {
             var perms = this.get('me').permissions;
-            console.log("Check permission", perms, perm, this);
+            // console.log("Check permission", perms, perm, this);
             return(perms && perms.indexOf(perm) !== -1);
         }
     });

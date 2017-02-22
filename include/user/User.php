@@ -1145,7 +1145,6 @@ class User extends Entity
             }
 
             # Base active setting on legacy showmessages setting if not present.
-            # TODO Migrate data across.
             $settings['active'] = array_key_exists('active', $settings) ? $settings['active'] : (!array_key_exists('showmessages', $settings) || $settings['showmessages']);
             $settings['active'] = $settings['active'] ? 1 : 0;
 
@@ -2864,7 +2863,7 @@ class User extends Entity
         return(array_key_exists('canmerge', $settings) ? $settings['canmerge'] : TRUE);
     }
 
-    public function notifsOn($type) {
+    public function notifsOn($type, $groupid = NULL) {
         $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
         $notifs = pres('notifications', $settings);
 
@@ -2877,6 +2876,12 @@ class User extends Entity
         ];
 
         $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
+
+        if ($ret && $groupid) {
+            # Check we're an active mod on this group - if not then we don't want the notifications.
+            $ret = $this->activeModForGroup($groupid);
+        }
+
         #error_log("Notifs on for type $type ? $ret from " . var_export($notifs, TRUE));
         return($ret);
     }

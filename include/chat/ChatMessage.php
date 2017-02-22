@@ -72,6 +72,7 @@ class ChatMessage extends Entity
                         }
                     }
 
+                    #error_log("Whitelist $url bad $bad");
                     if (!$bad && strlen($url) > 0) {
                         $url = substr($url, strpos($url, '://') + 3);
                         $p = strpos($url, '/');
@@ -179,6 +180,7 @@ class ChatMessage extends Entity
             if ($word['action'] == 'Review' &&
                 preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
                 (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
+                #error_log("Spam keyword {$word['word']}");
                 $check = TRUE;
             }
         }

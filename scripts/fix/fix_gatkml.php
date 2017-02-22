@@ -138,6 +138,7 @@ $namemap = [
     [ 126731,'FermanaghFreegle','Northern Ireland: Fermanagh' ],
     [ 21370,'Filton-Patchway-Stokes-Freegle','S. West: Filton-Patchway-Stokes-Freegle' ],
     [ 253424,'FlintshireFreegle','Wales: Flintshire' ],
+    [ 386145, 'flitwick-and-ampthill-freegle', 'East: Flitwick and Ampthill'],
     [ 126665,'FolkestoneFreegle','S. East: Folkestone' ],
     [ 253457,'foylefreegle','Northern Ireland: Foyle' ],
     [ 253427,'FreebleAyr','Scotland: Ayr' ],

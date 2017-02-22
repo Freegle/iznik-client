@@ -155,8 +155,6 @@ define([
                         $('#js-appbuttons').show();
                     }
 
-                    ChatHolder().createMinimised();
-
                     $('#botleft').empty();
 
                     if (self.modtools) {
@@ -379,7 +377,9 @@ define([
                 // We need to create a hidden signin button because otherwise the Google logout method doesn't
                 // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
                 var GoogleLoad = new Iznik.Views.GoogleLoad();
-                GoogleLoad.buttonShim('googleshim');
+                if (GoogleLoad) {
+                    GoogleLoad.buttonShim('googleshim');
+                }
 
                 // Events site is special.
                 var eventsite = $('meta[name=iznikevent]').attr("content");

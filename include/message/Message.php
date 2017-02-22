@@ -112,7 +112,8 @@ class Message
         "I am away",
         "I am currently away",
         "Thanks for your email enquiry",
-        "don't check this very often"
+        "don't check this very often",
+        "below to complete the verification process"
     ];
     
     static public function checkType($type) {

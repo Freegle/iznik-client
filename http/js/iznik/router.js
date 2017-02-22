@@ -100,6 +100,8 @@ define([
             "localstorage": "localstorage",
             "yahoologin": "yahoologin",
             "modtools": "modtools",
+            "modtools/chat/{id}": "modChat",
+            "modtools/chats": "modChats",
             "modtools/supporters": "supporters",
             "modtools/messages/pending": "pendingMessages",
             "modtools/messages/approved/messagesearch/:search": "approvedMessagesSearchMessages",
@@ -220,19 +222,17 @@ define([
             });
         },
 
-        userHome: function (chatid) {
+        userHome: function () {
             var self = this;
 
             if (document.URL.indexOf('modtools') !== -1) {
                 Router.navigate('/modtools', true);
             } else {
                 function f(loggedIn) {
-                    console.log("Logged in", loggedIn);
+                    // console.log("Logged in", loggedIn);
                     if (loggedIn || _.isUndefined(loggedIn)) {
                         require(["iznik/views/pages/user/home"], function() {
-                            var page = new Iznik.Views.User.Pages.Home({
-                                chatid: chatid
-                            });
+                            var page = new Iznik.Views.User.Pages.Home();
                             self.loadRoute({page: page});
                         });
                     } else {
@@ -244,14 +244,8 @@ define([
                     }
                 }
 
-                if (chatid) {
-                    // We need to be logged in to see this.
-                    self.listenToOnce(Iznik.Session, 'loggedIn', f);
-                    Iznik.Session.forceLogin();
-                } else {
-                    self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
-                    Iznik.Session.testLoggedIn();
-                }
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+                Iznik.Session.testLoggedIn();
             }
         },
 
@@ -309,23 +303,23 @@ define([
         userChats: function() {
             var self = this;
             require(["iznik/views/pages/chat"], function() {
-                var page = new Iznik.Views.Chat.Page();
-                self.loadRoute({page: page});
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page();
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
             });
         },
 
         userChat: function(chatid) {
             var self = this;
-
-            try {
-                // Force the chat code to open this chat, even if we're on mobile.
-                // TODO This is a horrid way of signalling.
-                Storage.set('chat-' + chatid + '-open', 2);
-            } catch (e) {
-                console.error(e.message);
-            }
-
-            self.userHome(chatid);
+            require(["iznik/views/pages/chat"], function() {
+                var page = new Iznik.Views.Chat.Page({
+                    chatid: chatid
+                });
+                self.loadRoute({page: page});
+            });
         },
 
         userFindWhereAmI: function () {
@@ -1249,6 +1243,30 @@ define([
                 });
             });
         },
+
+        modChats: function() {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page();
+                    page.modtools = true;
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
+            });
+        },
+
+        modChat: function(chatid) {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                var page = new Iznik.Views.Chat.Page({
+                    chatid: chatid
+                });
+                page.modtools = true;
+                self.loadRoute({page: page});
+            });
+        },
         
         replay: function(sessionid) {
             var self = this;
@@ -1371,20 +1389,6 @@ define([
             try {
                 // The version may have been put in localStorage.
                 Storage.set('version', localStorage.getItem('version'));
-            } catch (e) {}
-
-            try {
-                // Copy over any old data from localStorage.
-                // TODO Remove after 2017-01-31
-                for (var i = 0; i < localStorage.length; i++){
-                    var key = localStorage.key(i);
-
-                    if (key.indexOf('Iznik>') === -1) {
-                        console.log("Copy old local storage", key);
-                        Storage.set(key, localStorage.getItem(key));
-                        localStorage.removeItem(key);
-                    }
-                }
             } catch (e) {}
 
             Backbone.history.start({

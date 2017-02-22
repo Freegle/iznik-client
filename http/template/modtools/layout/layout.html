@@ -1,26 +1,3 @@
-<div id="notifchatdropdown" class="pull-right" style="display: none">
-    <ul class="list-unstyled">
-        <li id="notifchatdropdownactions">
-            <div class="row padleft">
-                <div class="margleft notifaction clickme col-xs-4 js-minimiseall">
-                    <span class="glyphicon glyphicon-remove" />&nbsp;Close all chats
-                </div>
-                <div class="margleft notifaction col-xs-4 clickme js-allseen">
-                    <span class="glyphicon glyphicon-ok" />&nbsp;Mark all read
-                </div>
-            </div>
-            <div class="row padleft padright">
-                <div class="tbspace clickme col-xs-12">
-                    <input class="form-control js-search" type="text" placeholder="Search chats" />
-                </div>
-            </div>
-        </li>
-        <li>
-            <ul id="notifchatdropdownlist" class="list-unstyled">
-            </ul>
-        </li>
-    </ul>
-</div>
 <div class="navbar navbar-fixed-top navbar-custom">
     <div class="container completefull nopad nomargin">
         <div class="navbar-header">
@@ -37,7 +14,7 @@
                         <ul class="list-inline">
                             <li>
                                 <div class="clickme ">
-                                    <a href="#" id="js-notifchat">
+                                    <a href="/modtools/chats" id="js-notifchat">
                                         <div class="notifchat glyphicon glyphicon-larger glyphicon-comment white" type="button">
                                             <span class="js-totalcount badge badge-unread" style="display: none;" />
                                         </div>
@@ -48,7 +25,6 @@
                                 <button class="btn-default navbar-toggle collapse in" data-toggle="collapse"
                                         id="menu-toggle">
                                     <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"><span class="hidden-xs">&nbsp;Menu</span></span>
-                                    <span class="js-totalcount badge badge-unread" style="display: none;" />
                                 </button>
                             </li>
                         </ul>
@@ -58,7 +34,7 @@
         </div>
     </div>
 </div>
-<div id="wrapper">
+<div id="wrapper" >
     <div id="sidebar-wrapper" class="js-leftsidebar">
     </div>
     <div id="page-content-wrapper nopad">
@@ -67,7 +43,7 @@
                 <span class="glyphicon glyphicon-chevron-up inline" />&nbsp;Top
             </div>
         </div>
-        <div class="container-fluid xyz">
+        <div class="container-fluid xyz nopad">
             <div class="row">
                 <div class="col-lg-10 pageContent">
                     <div id="js-pluginbuildup" class="alert alert-danger" role="alert" style="display: none">
