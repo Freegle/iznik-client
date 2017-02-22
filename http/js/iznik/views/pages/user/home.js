@@ -487,8 +487,6 @@ define([
                 this.$('.js-private').hide();
                 this.$('.js-public').fadeIn('slow');
             }
-
-            this.defaultText();
         },
 
         confirm: function () {
