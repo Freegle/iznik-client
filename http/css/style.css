@@ -139,6 +139,10 @@
     color: #d3d3d3;
 }
 
+.nolinkcolour {
+    color: inherit;
+}
+
 /* Allow maps autocomplete to show inside modals */
 .pac-container {
     background-color: #FFF;
