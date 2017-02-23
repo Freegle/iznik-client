@@ -17,8 +17,6 @@ define([
 
         filter: null,
 
-        fullheight: true,
-
         searchKey: function () {
             var self = this;
             self.filter = $(self.listContainer).find('.js-search').val();
@@ -679,13 +677,13 @@ define([
             var self = this;
 
             var windowInnerHeight = $(window).innerHeight();
-            var pageContentTop = parseInt($('.pageContent').css('top').replace('px', ''));
-            var chatDropdownHeight = $('#js-chatdropdown').outerHeight();
+            var bodyMargin = parseInt($('body').css('margin-top').replace('px', ''));
             var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
+            var chatHeaderHeight = self.$('.js-chatheader').outerHeight();
             var footerHeight = self.$('.js-chatfooter').outerHeight();
 
-            var height = windowInnerHeight - pageContentTop - chatDropdownHeight - chatWarningHeight - footerHeight;
-            var str = "Heights " + height + " " + windowInnerHeight + " " + pageContentTop + " " + " " + chatDropdownHeight + " " + chatWarningHeight + " " + footerHeight;
+            var height = windowInnerHeight - bodyMargin - chatWarningHeight - chatHeaderHeight - footerHeight;
+            var str = "Heights " + height + " " + windowInnerHeight + " " + bodyMargin + " " + " " + " " + chatWarningHeight + " " + chatHeaderHeight + " " + footerHeight;
             var currHeight = self.$('.js-scroll').css('height').replace('px', '');
 
             if (currHeight != height) {
@@ -696,7 +694,7 @@ define([
                 self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
             }
 
-            // console.log(str);
+            console.log(str);
             // self.$('.js-message').val(str);
 
             _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);

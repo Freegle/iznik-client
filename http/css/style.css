@@ -2,9 +2,8 @@
     font-family: 'Trebuchet MS', Helvetica, sans-serif; !important;
 }
 
-.bodyfullheight {
-    height: 100vh;
-    overflow-y: hidden;
+body {
+    margin-top: 60px;
 }
 
 .introanimation {
@@ -362,6 +361,10 @@
     top: 0px;
 }
 
+.padtoplg {
+    padding-top: 20px;
+}
+
 .padtop {
     padding-top: 10px;
 }
@@ -556,10 +559,6 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 .modal-content, #bodyContent {
     padding-left: 10px;
     padding-right: 10px;
-}
-
-.belowNavbar {
-    margin-top: 60px;
 }
 
 .darken {
@@ -988,7 +987,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 /* Chat */
 .chat-list-holder {
-    height: calc(100vh - 65px);
+    height: calc(100vh - 60px);
     overflow-y: scroll;
 }
 
@@ -1302,9 +1301,6 @@ html {
     position: relative;
     min-height: 100%;
     -ms-overflow-style: scrollbar;
-}
-body {
-    margin-bottom: 80px;
 }
 
 .footer {

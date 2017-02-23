@@ -1,90 +1,86 @@
-<div class="fixedfull">
-    <div class="belowNavbar">
-        <div class="row hidden-xs hidden-sm belowNavbar js-chatheader">
-            <div class="col-xs-12">
-                <div class="chat-name">
-                    <div class="dropdown pull-right">
-                        <% if (obj.chattype != 'Mod2Mod') { %>
-                        <span class="glyphicon glyphicon-menu-down dropdown-toggle clickme" type="button" id="chat-dropdown-{{id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" />
-                        <ul class="dropdown-menu" aria-labelledby="chat-dropdown-{{id}}">
-                            <li title="Remove this conversation from your list."><a class="js-remove" href="#">Remove this chat</a></li>
-                            <% if (!obj.group) { %>
-                            <li title="Report this person to our volunteers."><a class="js-report" href="#">Report this person</a></li>
-                            <% } %>
-                            <li title="Enter inserts new line?"><a class="js-enter" href="#">Enter inserts new line?</a></li>
-                        </ul>
-                        <% } %>
-                    </div>
-                    {{name}}
-                    <span class="js-count badge badge-unread" style="display: none;"></span>
-                    &nbsp;
-                    <div class="js-privacy inline">
-                        <% if (chattype == 'User2User') { %>
-                        <div class="glyphicon glyphicon-lock" title="This chat is private." />
-                        <% } else if (chattype == 'Mod2Mod') { %>
-                        <div class="glyphicon glyphicon-lock" title="This chat is restricted to moderators of {{group.namedisplay}}." />
-                        <% } else if (chattype == 'User2Mod') { %>
-                        <div class="glyphicon glyphicon-lock" title="This chat is private." />
-                        <% } %>
-                    </div>
-                </div>
-                <% if (obj.description) { %>
-                <div class="padleft text-muted">{{description}}</div>
-                <hr class="nomargin" />
+<div class="row hidden-xs hidden-sm js-chatheader">
+    <div class="col-xs-12">
+        <div class="chat-name">
+            <div class="dropdown pull-right">
+                <% if (obj.chattype != 'Mod2Mod') { %>
+                <span class="glyphicon glyphicon-menu-down dropdown-toggle clickme" type="button" id="chat-dropdown-{{id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" />
+                <ul class="dropdown-menu" aria-labelledby="chat-dropdown-{{id}}">
+                    <li title="Remove this conversation from your list."><a class="js-remove" href="#">Remove this chat</a></li>
+                    <% if (!obj.group) { %>
+                    <li title="Report this person to our volunteers."><a class="js-report" href="#">Report this person</a></li>
+                    <% } %>
+                    <li title="Enter inserts new line?"><a class="js-enter" href="#">Enter inserts new line?</a></li>
+                </ul>
+                <% } %>
+            </div>
+            {{name}}
+            <span class="js-count badge badge-unread" style="display: none;"></span>
+            &nbsp;
+            <div class="js-privacy inline">
+                <% if (chattype == 'User2User') { %>
+                <div class="glyphicon glyphicon-lock" title="This chat is private." />
+                <% } else if (chattype == 'Mod2Mod') { %>
+                <div class="glyphicon glyphicon-lock" title="This chat is restricted to moderators of {{group.namedisplay}}." />
+                <% } else if (chattype == 'User2Mod') { %>
+                <div class="glyphicon glyphicon-lock" title="This chat is private." />
                 <% } %>
             </div>
         </div>
-        <div class="row js-chatwarning">
-            <div class="col-xs-12">
-                <% if (obj.chattype == 'User2Mod') { %>
-                <div class="topspace alert alert-info">
-                    Our lovely volunteers have lives and are not online 24/7.  Please be patient until you receive a reply.
-                </div>
-                <% } else if (obj.chattype == 'Group') { %>
-                <div class="topspace alert alert-info">
-                    What you put on here will be seen by lots of people, so please don't put your phone number or details of
-                    your love life.  Be nice!
+        <% if (obj.description) { %>
+        <div class="padleft text-muted">{{description}}</div>
+        <hr class="nomargin" />
+        <% } %>
+    </div>
+</div>
+<div class="row js-chatwarning">
+    <div class="col-xs-12">
+        <% if (obj.chattype == 'User2Mod') { %>
+        <div class="topspace alert alert-info">
+            Our lovely volunteers have lives and are not online 24/7.  Please be patient until you receive a reply.
+        </div>
+        <% } else if (obj.chattype == 'Group') { %>
+        <div class="topspace alert alert-info">
+            What you put on here will be seen by lots of people, so please don't put your phone number or details of
+            your love life.  Be nice!
+        </div>
+        <% } %>
+    </div>
+</div>
+<div class="chat-page-content completefull easeheight js-scroll">
+    <div class="row fullheight completefull">
+        <div class="col-xs-12 nopad">
+            <ul class="list-unstyled js-messages nopad fullholder" />
+            <div id="js-uploadpreview-{{id}}" />
+        </div>
+    </div>
+</div>
+<div class="chat-page-footer backwhite js-chatfooter">
+    <div class="row nomargin">
+        <div class="col-xs-12 nopad">
+            <textarea rows="2" maxlength="1024" class="chat-page-input padleftonlysm form-control js-message" aria-describedby="chat-promise-{{id}}" placeholder="Type here..." />
+        </div>
+    </div>
+    <div class="row completefull nomargin">
+        <div class="col-xs-6">
+            <div class="row">
+                <% if (chattype == 'User2User') { %>
+                <div class="col-xs-4">
+                    <span class="clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
                 </div>
                 <% } %>
-            </div>
-        </div>
-        <div class="chat-page-content completefull easeheight js-scroll">
-            <div class="row fullheight completefull">
-                <div class="col-xs-12 nopad">
-                    <ul class="list-unstyled js-messages nopad fullholder" />
-                    <div id="js-uploadpreview-{{id}}" />
+                <% if (chattype == 'User2User') { %>
+                <div class="col-xs-4">
+                    <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x js-info" alt="Info" title="Info about this member" />
+                </div>
+                <% } %>
+                <div class="col-xs-4">
+                    <input type="file" class="js-photo" name="photo" multiple="" />
                 </div>
             </div>
         </div>
-        <div class="chat-page-footer backwhite padbot js-chatfooter">
-            <div class="row nomargin">
-                <div class="col-xs-12 nopad">
-                    <textarea rows="2" maxlength="1024" class="chat-page-input padleftonlysm form-control js-message" aria-describedby="chat-promise-{{id}}" placeholder="Type here..." />
-                </div>
-            </div>
-            <div class="row completefull nomargin">
-                <div class="col-xs-6">
-                    <div class="row">
-                        <% if (chattype == 'User2User') { %>
-                        <div class="col-xs-4">
-                            <span class="clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
-                        </div>
-                        <% } %>
-                        <% if (chattype == 'User2User') { %>
-                        <div class="col-xs-4">
-                            <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x js-info" alt="Info" title="Info about this member" />
-                        </div>
-                        <% } %>
-                        <div class="col-xs-4">
-                            <input type="file" class="js-photo" name="photo" multiple="" />
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xs-3"></div>
-                <div class="col-xs-3 nopad js-buttons">
-                    <span class="clickme primary pull-right glyphicons glyphicons-chevron-right gi-2x js-send" alt="Send" title="Send this message" />
-                </div>
-            </div>
+        <div class="col-xs-3"></div>
+        <div class="col-xs-3 nopad js-buttons">
+            <span class="clickme primary pull-right glyphicons glyphicons-chevron-right gi-2x js-send" alt="Send" title="Send this message" />
         </div>
     </div>
 </div>
