@@ -300,7 +300,7 @@ class ChatRoom extends Entity
             $ret['refmsgids'][] = $refmsg['refmsgid'];
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
+        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND message IS NOT NULL AND LENGTH(message) > 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
         $ret['lastmsg'] = 0;
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
@@ -779,10 +779,7 @@ class ChatRoom extends Entity
 
         foreach ($msgs as $msg) {
             # This might be for a group which we are a mod on but don't actually want to see.
-            $mysettings = $user->getGroupSettings($msg['groupid']);
-            $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
-
-            if ($showmessages) {
+            if ($user->activeModForGroup($msg['groupid'])) {
                 $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
                 $thisone = $m->getPublic();
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
@@ -1037,9 +1034,10 @@ class ChatRoom extends Entity
             #error_log("Last seen by all $lastseen");
             $notmailed = $r->getMembersStatus($chatatts['lastmsg']);
             #error_log("Members not seen " . var_export($notmailed, TRUE));
+            $ccit = FALSE;
 
             foreach ($notmailed as $member) {
-                # Now we have a member who has not been mailed of the messages in this chat.  Find the other one.
+                # Now we have a member who has not been mailed of the messages in this chat.
                 #error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
@@ -1050,7 +1048,7 @@ class ChatRoom extends Entity
                 # the case where someone replies from a different email which isn't a group membership, and we
                 # want to notify that email.
                 #error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
-                if ($thisu->notifsOn(User::NOTIFS_EMAIL)) {
+                if ($thisu->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'))) {
                     # Now collect a summary of what they've missed.
                     $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                         [
@@ -1110,7 +1108,6 @@ class ChatRoom extends Entity
                             if (!$lastmsg || $lastmsg != $thisone) {
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
-                                $textsummary .= $thisone . "\r\n";
 
                                 #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
                                 if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
@@ -1128,7 +1125,16 @@ class ChatRoom extends Entity
 
                                 $lastfrom = $unmailedmsg['userid'];
 
-                                $htmlsummary .= nl2br($thisone) . "<br>";
+                                if ($unmailedmsg['imageid']) {
+                                    $path = Attachment::getPath($unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE);
+                                    $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
+                                    $textsummary .= "Here's a picture: $path\r\n";
+                                    $ccit = TRUE;
+                                } else {
+                                    $textsummary .= $thisone . "\r\n";
+                                    $htmlsummary .= nl2br($thisone) . "<br>";
+                                }
+
                                 $htmlsummary .= '</span>';
 
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
@@ -1138,7 +1144,7 @@ class ChatRoom extends Entity
 
                         #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
                         if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
-                            if ($textsummary != '') {
+                            if ($htmlsummary != '') {
                                 # As a subject, we should use the last referenced message in this chat.
                                 $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                                 #error_log($sql . $chat['chatid']);
@@ -1222,6 +1228,11 @@ class ChatRoom extends Entity
                                             $textsummary,
                                             $thisu->getOurEmail() ? $html : NULL);
                                         $this->mailer($message);
+
+                                        if ($ccit) {
+                                            error_log("CC image message");
+                                            $message->setBcc('log@ehibbert.org.uk');
+                                        }
 
                                         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                             $lastmsgemailed,

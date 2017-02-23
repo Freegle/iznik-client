@@ -250,6 +250,61 @@ class chatMessagesAPITest extends IznikAPITestCase
         error_log(__METHOD__ . " end");
     }
 
+    public function testImage() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $this->uid2
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $this->cid = $ret['id'];
+        assertNotNull($this->cid);
+
+        # Create a chat to the second user with a referenced image
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        file_put_contents("/tmp/chair.jpg", $data);
+
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/pan.jpg',
+                'type' => 'image/jpeg'
+            ],
+            'chatmessage' => 1,
+            'imgtype' => 'ChatMessage'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $iid = $ret['id'];
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'imageid' => $iid
+        ]);
+        error_log("Create image " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $mid1 = $ret['id'];
+
+        # Now log in as the other user.
+        assertTrue($this->user2->login('testpw'));
+
+        # Should see the messages
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $this->cid,
+            'id' => $mid1
+        ]);
+        error_log("Get message " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals($mid1, $ret['chatmessage']['id']);
+        assertEquals($iid, $ret['chatmessage']['image']['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testLink() {
         error_log(__METHOD__);
 
@@ -339,7 +394,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(2, $ret['work']['chatreview']);
 
         # Test the 'other' variant.
-        $this->user2->setGroupSettings($this->groupid, [ 'showmessages' => 0 ]);
+        $this->user2->setGroupSettings($this->groupid, [ 'active' => 0 ]);
         $ret = $this->call('session', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertEquals(0, $ret['work']['chatreviewother']);

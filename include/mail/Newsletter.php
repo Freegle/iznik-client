@@ -118,7 +118,7 @@ class Newsletter extends Entity
         $tosend = [
             'subject' => $this->newsletter['subject'],
             'from' => $g ? $g->getAutoEmail() : NOREPLY_ADDR,
-            'replyto' => $g->getModsEmail(),
+            'replyto' => $g ? $g->getModsEmail() : NOREPLY_ADDR,
             'fromname' => $g ? $gatts['namedisplay'] : SITE_NAME,
             'html' => newsletter(USER_SITE, SITE_NAME, $html),
             'text' => $this->newsletter['textbody']
@@ -127,9 +127,9 @@ class Newsletter extends Entity
         # Now find the users that we want to send to:
         # - an override to a single user
         # - users on a group
-        # - all users on a group type where the group hasn't disabled central mails.
+        # - all users on a group type where the group hasn't disabled newsletters
         $startfrom = presdef('uptouser', $this->newsletter, 0);
-        $sql = $uid ? "SELECT DISTINCT userid FROM memberships WHERE userid = $uid;" : ($groupid ? "SELECT DISTINCT userid FROM memberships INNER JOIN users ON users.id = memberships.userid WHERE groupid = $groupid AND newslettersallowed = 1 AND userid > $startfrom ORDER BY userid ASC;" : "SELECT DISTINCT userid FROM users INNER JOIN memberships ON memberships.userid = users.id INNER JOIN groups ON groups.id = memberships.groupid AND type = '$grouptype' WHERE LOCATE('\"centralmailsdisabled\":0', groups.settings) > 0 AND newslettersallowed = 1 AND users.id > $startfrom ORDER BY users.id ASC;");
+        $sql = $uid ? "SELECT DISTINCT userid FROM memberships WHERE userid = $uid;" : ($groupid ? "SELECT DISTINCT userid FROM memberships INNER JOIN users ON users.id = memberships.userid WHERE groupid = $groupid AND newslettersallowed = 1 AND userid > $startfrom ORDER BY userid ASC;" : "SELECT DISTINCT userid FROM users INNER JOIN memberships ON memberships.userid = users.id INNER JOIN groups ON groups.id = memberships.groupid AND type = '$grouptype' WHERE LOCATE('\"newsletter\":0', groups.settings) = 0 AND newslettersallowed = 1 AND users.id > $startfrom ORDER BY users.id ASC;");
         $replacements = [];
 
         error_log("Query for users");
@@ -140,19 +140,21 @@ class Newsletter extends Entity
         foreach ($users as $user) {
             $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
 
-            # We are only interested in sending events to users for whom we have a preferred address -
-            # otherwise where would we send them?
-            $email = $u->getEmailPreferred();
+            if (!$u->getPrivate('bouncing')) {
+                # We are only interested in sending events to users for whom we have a preferred address -
+                # otherwise where would we send them?
+                $email = $u->getEmailPreferred();
 
-            if ($email) {
-                # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
-                $replacements[$email] = [
-                    '{{id}}' => $user['userid'],
-                    '{{toname}}' => $u->getName(),
-                    '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_NEWSLETTER),
-                    '{{email}}' => $email,
-                    '{{noemail}}' => 'newslettersoff-' . $user['userid'] . "@" . USER_DOMAIN
-                ];
+                if ($email) {
+                    # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
+                    $replacements[$email] = [
+                        '{{id}}' => $user['userid'],
+                        '{{toname}}' => $u->getName(),
+                        '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_NEWSLETTER),
+                        '{{email}}' => $email,
+                        '{{noemail}}' => 'newslettersoff-' . $user['userid'] . "@" . USER_DOMAIN
+                    ];
+                }
             }
 
             if ($scan % 1000 === 0) {

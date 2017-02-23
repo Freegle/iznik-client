@@ -40,24 +40,27 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         $m = new Message($dbhr, $dbhm, intval($matches[1]));
         if ($m->getID()) {
             $atts = $m->getPublic();
-            $icon = (count($atts['attachments']) > 0) ? $atts['attachments'][0]['path'] : USERLOGO;
 
-            $rsptext = '';
-            if ($m->getType() == Message::TYPE_OFFER) {
-                $rsptext = "Interested?  Click here to reply.  Everything on Freegle is free.  ";
-            } else if ($m->getType() == Message::TYPE_WANTED) {
-                $rsptext = "Got one?  Click here to reply.  Everything on Freegle is free.  ";
+            if ($m->canSee($atts)) {
+                $icon = (count($atts['attachments']) > 0) ? $atts['attachments'][0]['path'] : USERLOGO;
+
+                $rsptext = '';
+                if ($m->getType() == Message::TYPE_OFFER) {
+                    $rsptext = "Interested?  Click here to reply.  Everything on Freegle is free.  ";
+                } else if ($m->getType() == Message::TYPE_WANTED) {
+                    $rsptext = "Got one?  Click here to reply.  Everything on Freegle is free.  ";
+                }
+
+                ?>
+                <title><?php echo $atts['subject']; ?></title>
+                <meta itemprop="title" content="<?php echo $atts['subject']; ?>"/>
+                <meta itemprop="description" content="<?php echo $rsptext; ?>"/>
+                <meta name="description" content="<?php echo $rsptext; ?>"/>
+                <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
+                <meta property="og:description" content="<?php echo $rsptext; ?>"/>
+                <meta property="og:image" content="<?php echo $icon; ?>"/>
+                <?php
             }
-
-            ?>
-            <title><?php echo $atts['subject']; ?></title>
-            <meta itemprop="title" content="<?php echo $atts['subject']; ?>"/>
-            <meta itemprop="description" content="<?php echo $rsptext; ?>"/>
-            <meta name="description" content="<?php echo $rsptext; ?>"/>
-            <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
-            <meta property="og:description" content="<?php echo $rsptext; ?>"/>
-            <meta property="og:image" content="<?php echo $icon; ?>"/>
-            <?php
         }
     } else if (preg_match('/\/communityevent\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
         # Community event - preview with title and description
@@ -284,7 +287,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=121">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=155">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -304,7 +307,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <!-- And then some custom styles for our different apps -->
     <?php
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
-        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=10"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=12"><?php
     } else {
         ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=132"><?php
     }

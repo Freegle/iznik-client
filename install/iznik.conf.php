@@ -40,6 +40,12 @@ define('TWITTER_CONSUMER_SECRET', 'zzzz');
 define('TWITTER_ACCOUNT_TOKEN', 'zzz');
 define('TWITTER_ACCOUNT_SECRET', 'zzz');
 
+# We access PayPal to retrieve info on donations
+define('PAYPAL_USERNAME', 'zzzz');
+define('PAYPAL_PASSWORD', 'zzzz');
+define('PAYPAL_SIGNATURE', 'zzzz');
+define('PAYPAL_THANKS_FROM', 'zzzz');
+
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
 
@@ -112,6 +118,10 @@ define('NEWGROUPS_ADDR', 'newgroups@zzz');
 define('VOLUNTEERS_ADDR', 'volunteers@zzz');
 
 define('NOREPLY_ADDR', 'noreply@zzz');
+
+# Central mods mailing list, where we send periodic mails
+define('CENTRAL_MAIL_TO', 'FreegleUK-Central@yahoogroups.com');
+define('CENTRAL_MAIL_FROM', 'geeks@ilovefreegle.org');
 
 # This speeds up load time
 define('MINIFY', TRUE);

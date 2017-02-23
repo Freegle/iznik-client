@@ -100,6 +100,8 @@ define([
             "localstorage": "localstorage",
             "yahoologin": "yahoologin",
             "modtools": "modtools",
+            "modtools/chat/{id}": "modChat",
+            "modtools/chats": "modChats",
             "modtools/supporters": "supporters",
             "modtools/messages/pending": "pendingMessages",
             "modtools/messages/approved/messagesearch/:search": "approvedMessagesSearchMessages",
@@ -111,6 +113,7 @@ define([
             "modtools/members/spam": "spamMembers",
             "modtools/members/happiness": "happinessMembers",
             "modtools/members/stories": "storiesMembers",
+            "modtools/members/newsletter": "storiesNewsletter",
             "modtools/events/pending": "pendingEvents",
             "modtools/publicity": "socialActions",
             "modtools/fbgroups": "facebookGroups",
@@ -157,6 +160,7 @@ define([
             "communityevent(/:id)": "userCommunityEvent",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
+            "chats": "userChats",
             "chat/:id": "userChat",
             "alert/viewed/:id": "alertViewed",
             "mobile": "userMobile",
@@ -223,7 +227,7 @@ define([
             window.location.href = initialURL;  // Could add ?route=Xxx
         },
 
-        userHome: function (chatid) {
+        userHome: function () {
             var self = this;
 
             if (document.URL.indexOf('modtools') !== -1) {
@@ -235,9 +239,7 @@ define([
                         console.log("Don't load home or landing as in maintenanceMode");
                     } else if (loggedIn || _.isUndefined(loggedIn)) {
                         require(["iznik/views/pages/user/home"], function () {
-                            var page = new Iznik.Views.User.Pages.Home({
-                                chatid: chatid
-                            });
+                            var page = new Iznik.Views.User.Pages.Home();
                             self.loadRoute({ page: page });
                         });
                     } else {
@@ -249,14 +251,8 @@ define([
                     }
                 }
 
-                if (chatid) {
-                    // We need to be logged in to see this.
-                    self.listenToOnce(Iznik.Session, 'loggedIn', f);
-                    Iznik.Session.forceLogin();
-                } else {
-                    self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
-                    Iznik.Session.testLoggedIn();
-                }
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+                Iznik.Session.testLoggedIn();
             }
         },
 
@@ -311,18 +307,26 @@ define([
             });
         },
 
+        userChats: function() {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page();
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
+            });
+        },
+
         userChat: function(chatid) {
             var self = this;
-
-            try {
-                // Force the chat code to open this chat, even if we're on mobile.
-                // TODO This is a horrid way of signalling.
-                Storage.set('chat-' + chatid + '-open', 2);
-            } catch (e) {
-                console.error(e.message);
-            }
-
-            self.userHome(chatid);
+            require(["iznik/views/pages/chat"], function() {
+                var page = new Iznik.Views.Chat.Page({
+                    chatid: chatid
+                });
+                self.loadRoute({page: page});
+            });
         },
 
         userFindWhereAmI: function () {
@@ -1019,6 +1023,23 @@ define([
             });
         },
 
+        storiesNewsletter: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/members_stories"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.StoriesMembers({
+                        newsletter: true
+                    });
+                    self.loadRoute({page: page, modtools: true});
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
         spammerListPendingAdd: function (search) {
             var self = this;
 
@@ -1236,6 +1257,30 @@ define([
                 });
             });
         },
+
+        modChats: function() {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page();
+                    page.modtools = true;
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
+            });
+        },
+
+        modChat: function(chatid) {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                var page = new Iznik.Views.Chat.Page({
+                    chatid: chatid
+                });
+                page.modtools = true;
+                self.loadRoute({page: page});
+            });
+        },
         
         replay: function(sessionid) {
             var self = this;
@@ -1355,6 +1400,7 @@ define([
     var Router = new IznikRouter();
 
     try {
+<<<<<<< HEAD
     	  var root = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
     	  root = decodeURI(root.replace(/%25/g, '%2525'));	// CC
     	  console.log("Backbone root", root);	// CC
@@ -1362,6 +1408,29 @@ define([
     	      root: root,	// CC
               pushState: true
         });
+=======
+        try {
+            // Set up storage.
+            console.log("Set up storage");
+            Storage = new Persist.Store("Iznik");
+
+            // Make sure it works
+            Storage.set('enabled', true);
+            console.log("Storage active");
+
+            try {
+                // The version may have been put in localStorage.
+                Storage.set('version', localStorage.getItem('version'));
+            } catch (e) {}
+
+            Backbone.history.start({
+                pushState: true
+            });
+        } catch (e) {
+            // We don't.
+            Router.navigate('/localstorage', true);
+        }
+>>>>>>> master
     } catch (e) {
         // We've got an uncaught exception.
         // TODO Log it to the server.

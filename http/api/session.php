@@ -12,6 +12,9 @@ function session() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             # Check if we're logged in
+//            $dbhr->setErrorLog(TRUE);
+//            $dbhm->setErrorLog(TRUE);
+
             if ($me && $me->getId()) {
                 $ret = array('ret' => 0, 'status' => 'Success', 'me' => $me->getPublic());
 
@@ -45,6 +48,28 @@ function session() {
                     # Tell them what mod work there is.  Similar code in Notifications.
                     $ret['work'] = [];
 
+                    # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
+                    # Facebook, even though that makes the code hackier.
+                    $gids = [];
+                    foreach ($ret['groups'] as $group) {
+                        $gids[] = $group['id'];
+                    }
+
+                    $twitters = [];
+                    $facebooks = [];
+                    
+                    if (count($gids) > 0) {
+                        $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ");");
+                        foreach ($tws as $tw) {
+                            $twitters[$tw['groupid']] = $tw;
+                        }
+    
+                        $fbs = $dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid IN (" . implode(',', $gids) . ");");
+                        foreach ($fbs as $fb) {
+                            $facebooks[$fb['groupid']] = $fb;
+                        }
+                    }
+                    
                     foreach ($ret['groups'] as &$group) {
                         if (pres('work', $group)) {
                             foreach ($group['work'] as $key => $work) {
@@ -62,19 +87,23 @@ function session() {
                             # fetching it.
                             #
                             # Similar code in group.php.
-                            $t = new Twitter($dbhr, $dbhm, $group['id']);
-                            $atts = $t->getPublic();
-                            unset($atts['token']);
-                            unset($atts['secret']);
-                            $atts['authdate'] = ISODate($atts['authdate']);
-                            $group['twitter'] =  $atts;
+                            if (array_key_exists($group['id'], $twitters)) {
+                                $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
+                                $atts = $t->getPublic();
+                                unset($atts['token']);
+                                unset($atts['secret']);
+                                $atts['authdate'] = ISODate($atts['authdate']);
+                                $group['twitter'] =  $atts;
+                            }
 
                             # Ditto Facebook.
-                            $f = new GroupFacebook($dbhr, $dbhm, $group['id']);
-                            $atts = $f->getPublic();
-                            unset($atts['token']);
-                            $atts['authdate'] = ISODate($atts['authdate']);
-                            $group['facebook'] =  $atts;
+                            if (array_key_exists($group['id'], $facebooks)) {
+                                $f = new GroupFacebook($dbhr, $dbhm, $group['id'], $facebooks[$group['id']]);
+                                $atts = $f->getPublic();
+                                unset($atts['token']);
+                                $atts['authdate'] = ISODate($atts['authdate']);
+                                $group['facebook'] = $atts;
+                            }
                         }
                     }
 
@@ -92,7 +121,9 @@ function session() {
                     $ret['work'] = array_merge($ret['work'], $c->getReviewCount($me));
 
                     $s = new Story($dbhr, $dbhm);
-                    $ret['work']['stories'] = $s->getReviewCount();
+                    $ret['work']['stories'] = $s->getReviewCount(FALSE);
+
+                    $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
                 }
 
                 $ret['logins'] = $me->getLogins(FALSE);
@@ -257,6 +288,10 @@ function session() {
 
                 if (array_key_exists('relevantallowed', $_REQUEST)) {
                     $me->setPrivate('relevantallowed', $_REQUEST['relevantallowed']);
+                }
+
+                if (array_key_exists('newslettersallowed', $_REQUEST)) {
+                    $me->setPrivate('newslettersallowed', $_REQUEST['newslettersallowed']);
                 }
 
                 Session::clearSessionCache();

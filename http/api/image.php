@@ -11,8 +11,12 @@ function image() {
     $group = presdef('group', $_REQUEST, NULL);
     $newsletter = presdef('newsletter', $_REQUEST, NULL);
     $communityevent = presdef('communityevent', $_REQUEST, NULL);
+    $chatmessage = presdef('chatmessage', $_REQUEST, NULL);
 
-    if ($communityevent) {
+    if ($chatmessage) {
+        $type = Attachment::TYPE_CHAT_MESSAGE;
+        $shorttype = '_m';
+    } else if ($communityevent) {
         $type = Attachment::TYPE_COMMUNITY_EVENT;
         $shorttype = '_c';
     } else if ($newsletter) {

@@ -140,15 +140,15 @@ define([
             var now = moment();
             var self = this;
 
-            function doSync(group, key) {
-                // Whether we start a sync depends on whether we are showing the group in All Groups.  This allows people
+            function doSync(group) {
+                // Whether we start a sync depends on whether we are an active mod.  This allows people
                 // who are on many groups as a backup not to have absurdly large numbers of syncs going on.
                 var sync = false;
     
                 if (group.get('onyahoo') && (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
                     var settings = group.get('mysettings');
                     //console.log("doSync", key, group, settings);
-                    sync = !settings.hasOwnProperty(key) || settings[key];
+                    sync = !settings.hasOwnProperty('active') || settings['active'];
                 }
     
                 // We rely on groupid being present when we get the crumb.
@@ -186,7 +186,7 @@ define([
                 Iznik.Session.get('groups').each(function (group) {
                     // We know from our Yahoo scan whether there is any work to do.
                     if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
-                        doSync(group, 'showmessages')) {
+                        doSync(group)) {
                         console.log("Sync pending messages for", group.get('nameshort'));
                         self.collection.add(new Iznik.Models.Plugin.Work({
                             id: group.get('nameshort') + '.SyncMessages.Pending',
@@ -198,7 +198,7 @@ define([
                     }
     
                     if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMembers, group, 'pendingmembers') &&
-                        doSync(group, 'showmembers')) {
+                        doSync(group)) {
                         self.collection.add(new Iznik.Models.Plugin.Work({
                             id: group.get('nameshort') + '.SyncMembers.Pending',
                             subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Pending({
@@ -210,12 +210,12 @@ define([
                 });
     
                 Iznik.Session.get('groups').each(function (group) {
-                    if (doSync(group, 'showmessages')) {
+                    if (doSync(group)) {
                         var lastsync = group.get('lastyahoomessagesync');
                         var last = moment(lastsync);
                         var hoursago = moment.duration(now.diff(last)).asHours();
     
-                        if ((_.isUndefined(lastsync) || hoursago >= 1) && doSync(group, 'showmessages')) {
+                        if ((_.isUndefined(lastsync) || hoursago >= 1) && doSync(group)) {
                             self.collection.add(new Iznik.Models.Plugin.Work({
                                 id: group.get('nameshort') + '.SyncMessages.Approved',
                                 subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({

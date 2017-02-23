@@ -2,6 +2,11 @@
     font-family: 'Trebuchet MS', Helvetica, sans-serif; !important;
 }
 
+.bodyfullheight {
+    height: 100vh;
+    overflow-y: hidden;
+}
+
 .introanimation {
     /* TODO make pretty before we show it */
     display: none;
@@ -60,8 +65,36 @@
     display: block;
 }
 
+.bordright {
+    border-right: 1px solid lightgrey;
+}
+
+.bordleft {
+    border-left: 1px solid lightgrey;
+}
+
+.hoverDiv {
+    background: #fff;
+}
+
+.hoverDiv:hover {
+    background: #f5f5f5;
+}
+
+.hoverDiv.selected {
+    background: #f5f5f5;
+}
+
 .ddChild {
     min-height: 200px !important;
+}
+
+.easeheight {
+    -webkit-transition: height 1s ease;
+    -moz-transition: height 1s ease;
+    -o-transition: height 1s ease;
+    -ms-transition: height 1s ease;
+    transition: height 1s ease;
 }
 
 .text-larger {
@@ -92,6 +125,10 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+.fullheight {
+    height: 100% !important;
 }
 
 .loginbutton {
@@ -333,6 +370,13 @@
     padding-left: 10px;
 }
 
+.padleftonlysm {
+    padding-left: 5px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
 .padleftsm {
     padding-left: 5px;
 }
@@ -481,6 +525,10 @@
     text-decoration: none;
 }
 
+.panel-borderless {
+    border: 0;
+    box-shadow: none;
+}
 .changehover a {
     text-decoration: none;
 }
@@ -504,6 +552,11 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 .modal-content, #bodyContent {
     padding-left: 10px;
     padding-right: 10px;
+}
+
+.belowNavbar {
+    top: 60px;
+    position: absolute;
 }
 
 .darken {
@@ -926,7 +979,16 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     overflow-y: scroll;
 }
 
+.backwhite {
+    background-color: white;
+}
+
 /* Chat */
+.chat-list-holder {
+    height: calc(100vh - 65px);
+    overflow-y: scroll;
+}
+
 .chat-name {
     color: white;
     background-color: #4895DD;
@@ -948,6 +1010,43 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 .chat-footer .btn {
     max-height: 34px !important;
+}
+
+.flexbot {
+    /*display: flex;*/
+    flex: 1 0 auto;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.chat-page-pane {
+    /*height: calc(100vh - 65px);*/
+}
+
+.chat-page-content {
+    /*height: calc(100vh - 80px - 60px);*/
+    overflow-x: hidden;
+    overflow-y: scroll;
+    background-color: #f3f0da;
+}
+
+/*.chat-page-footer {*/
+    /*position: relative;*/
+    /*height: 20vh;*/
+    /*top: 100vh;*/
+    /*transform: translateY(-100vh);*/
+/*}*/
+
+.chat-page-input {
+    bottom: 0;
+    left: 0;
+    padding-left: 5px;
+    border-radius: 0px;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    border-bottom-width: 0px;
+    box-shadow: none;
+    resize: none
 }
 
 #chatHolder {
@@ -1015,8 +1114,6 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 }
 
 .chat-content {
-    display: flex;
-    flex-direction: row;
     border: 1px solid silver;
     overflow: hidden;
     background-color: #f3f0da;
@@ -1592,36 +1689,8 @@ fieldset[disabled] .twitter-typeahead .tt-input {
         height: 40px;
     }
 
-    #notifchatdropdown {
-        min-width: 80vw;
-        z-index: 20000;
-        height: 90vh;
-    }
-
-    #notifchatdropdownlist {
-        width: 80vw;
-    }
-
-    #notifchatdropdownactions {
-        background-color: white !important;
-        border-bottom: none !important;
-        /*position: fixed;*/
-    }
-
-    .notifaction {
-        padding: 5px;
-        border-radius: 3px;
-        border: 1px black solid;
-        width: 130px;
-    }
-
-    #notifchatdropdownlist {
-        background-color: white !important;
-        overflow-y: scroll;
-        /*top: 150px;*/
-        max-height: 80vh;
-        /*position: fixed;*/
-        -webkit-backface-visibility: hidden;
+    .chat-page-pane {
+        /*height: calc(100vh - 65px - 36px);*/
     }
 }
 
@@ -1667,43 +1736,10 @@ fieldset[disabled] .twitter-typeahead .tt-input {
         z-index: 20000;
         height: 90vh;
     }
-
-    #notifchatdropdownlist {
-        width: 80vw;
-    }
-
-    #notifchatdropdownactions {
-        background-color: white !important;
-        border-bottom: none !important;
-        /*position: fixed;*/
-    }
-
-    .notifaction {
-        padding: 5px;
-        border-radius: 3px;
-        border: 1px black solid;
-        width: 130px;
-    }
-
-    #notifchatdropdownlist {
-        background-color: white !important;
-        overflow-y: scroll;
-        /*top: 150px;*/
-        max-height: 80vh;
-        /*position: fixed;*/
-        -webkit-backface-visibility: hidden;
-    }
 }
 
 /* Extra Small Devices, Phones */
 @media only screen and (min-width : 480px) {
-    #notifchatdropdown {
-        min-width: 400px;
-    }
-
-    #notifchatdropdownlist {
-        width: 400px;
-    }
 }
 
 /* Small Devices, Tablets */
@@ -1722,14 +1758,6 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 
     .botspace {
         margin-bottom: 7px !important;
-    }
-
-    #notifchatdropdown {
-        min-width: 500px;
-    }
-
-    #notifchatdropdownlist {
-        width: 500px;
     }
 
     .footer {

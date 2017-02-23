@@ -8,6 +8,7 @@ function chatmessages() {
     $message = presdef('message', $_REQUEST, NULL);
     $refmsgid = presdef('refmsgid', $_REQUEST, NULL);
     $refchatid = presdef('refchatid', $_REQUEST, NULL);
+    $imageid = presdef('imageid', $_REQUEST, NULL);
     $reportreason = presdef('reportreason', $_REQUEST, NULL);
     $ctx = presdef('context', $_REQUEST, NULL);
 
@@ -83,11 +84,13 @@ function chatmessages() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
-                } else if ($message && $roomid && $r->canSee($me->getId())) {
+                } else if (($message || $imageid) && $roomid && $r->canSee($me->getId())) {
                     if ($refmsgid) {
                         $type = ChatMessage::TYPE_INTERESTED;
                     } else if ($refchatid) {
                         $type = ChatMessage::TYPE_REPORTEDUSER;
+                    } else if ($imageid) {
+                        $type = ChatMessage::TYPE_IMAGE;
                     } else {
                         $type = ChatMessage::TYPE_DEFAULT;
                     }
@@ -100,7 +103,8 @@ function chatmessages() {
                         TRUE,
                         NULL,
                         $reportreason,
-                        $refchatid);
+                        $refchatid,
+                        $imageid);
                     $ret = ['ret' => 3, 'status' => 'Message create failed'];
 
                     if ($id) {

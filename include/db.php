@@ -226,8 +226,8 @@ class LoggedPDO {
         return($this->prex($sql, $params, FALSE, $log));
     }
 
-    public function preQuery($sql, $params = NULL, $log = FALSE) {
-        return($this->prex($sql, $params, TRUE, $log));
+    public function preQuery($sql, $params = NULL, $log = FALSE, $usecache = TRUE) {
+        return($this->prex($sql, $params, TRUE, $log, $usecache));
     }
 
     public function parentPrepare($sql) {
@@ -258,7 +258,7 @@ class LoggedPDO {
         return($this->getRedis()->setex($this->sessionKey(), LoggedPDO::CACHE_EXPIRY, microtime(TRUE)));
     }
 
-    private function prex($sql, $params = NULL, $select, $log) {
+    private function prex($sql, $params = NULL, $select, $log, $usecache = TRUE) {
         #error_log($sql);
         $try = 0;
         $ret = NULL;
@@ -274,7 +274,7 @@ class LoggedPDO {
                 # Ok, this is a modification op.  Zap our SQL cache.
                 #error_log("Invalidate cache with $sql");
                 $rc = $this->clearCache();
-            } else if ($this->readonly) {
+            } else if ($this->readonly && $usecache) {
                 # This is a readonly connection, so it's acceptable for the data to be slightly out of date.  We can
                 # query our redis cache.
                 $this->cachequeries++;
@@ -354,7 +354,7 @@ class LoggedPDO {
                         $ret = $select ? $sth->fetchAll() : $rc;
                         $worked = true;
                         
-                        if ($select) {
+                        if ($select && $usecache) {
                             # Convert to our results to store in the cache.  We can store something in the cache
                             # even if this is not a readonly connection - once we've read it, we might as well
                             # have the most up to date value.

@@ -345,7 +345,7 @@ class userTest extends IznikTestCase {
         $settings = [ 'test' => 1];
         $u2->setGroupSettings($group2, $settings);
         $u1->clearMembershipCache();
-        assertEquals([ 'showmessages' => 1, 'showmembers' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1 ], $u1->getGroupSettings($group2));
+        assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1 ], $u1->getGroupSettings($group2));
 
         # We should get the group back and a default config.
         assertEquals(1, $u2->getGroupSettings($group2)['test'] );
@@ -833,6 +833,23 @@ class userTest extends IznikTestCase {
         $email2 = $u->inventEmail();
         error_log("Other email again, invented $email2");
         assertEquals($email, $email2);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testThank() {
+        error_log(__METHOD__);
+
+        $s = $this->getMockBuilder('User')
+            ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $s->method('sendIt')->willReturn(TRUE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->thankDonation();
 
         error_log(__METHOD__ . " end");
     }

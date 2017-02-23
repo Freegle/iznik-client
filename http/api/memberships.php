@@ -134,7 +134,6 @@ function memberships() {
                                             $member['sessions'] = $u->getSessions($dbhr, $dbhm, $member['userid']);
                                         }
                                     }
-
                                 }
 
                                 # Get some/all.
@@ -196,9 +195,10 @@ function memberships() {
                             # This group is on Yahoo too, so we should trigger a membership application to there if we
                             # don't already have one of our emails on the group.
                             #
-                            # TODO Need to handle the case where this application is rejected.  In FDv1-2 this could
-                            # not occur as FBUser members were pre-approved, but it can now.
-                            list ($eid, $alreadymail) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
+                            # If this application is rejected then we will get removed from this group on the next sync.
+                            # Any message we submit will get queued for Yahoo, and then eventually purged if the
+                            # membership is not accepted.
+                            list ($eid, $alreadymail) = $u->getEmailForYahooGroup($groupid, TRUE, FALSE);
 
                             if (!$eid) {
                                 $u->triggerYahooApplication($groupid);

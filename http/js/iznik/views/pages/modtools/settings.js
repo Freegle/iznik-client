@@ -72,8 +72,7 @@ define([
     
                 membership.fetch().then(function() {
                     var mod = new Iznik.Model(membership.get('settings'));
-                    mod.set('showmessages', 0);
-                    mod.set('showmembers', 0);
+                    mod.set('active', 0);
                     mod.set('pushnotify', 0);
                     var newdata = mod.toJSON();
                     membership.save({
@@ -244,11 +243,11 @@ define([
                                     options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
                                 },
                                 {
-                                    name: 'showmessages',
-                                    label: 'Show messages in All Groups?',
+                                    name: 'active',
+                                    label: 'Are you actively moderating this group?',
                                     control: 'radio',
                                     extraClasses: [ 'row' ],
-                                    options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }]
+                                    options: [{label: 'Active', value: 1}, {label: 'Backup', value:0 }]
                                 },
                                 {
                                     name: 'showmembers',
@@ -454,6 +453,13 @@ define([
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
                                 helpMessage: "Email specific messages to members based on their searches and posting history.  Members can turn this on/off themselves, so you would only turn this off if you want to override their decision."
+                            },
+                            {
+                                name: 'newsletter',
+                                label: '(Freegle only) Send newsletters to members?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "Email occasional newsletters to members.  Members can turn this on/off themselves, so you would only turn this off if you want to override their decision."
                             },
                             {
                                 name: 'reposts.max',
@@ -2078,6 +2084,9 @@ define([
                                     style: google.maps.ZoomControlStyle.SMALL
                                 }
                             };
+                            
+                            // Set square.
+                            $('#map').css('height', $('#map').innerWidth());
 
                             self.map = new google.maps.Map(document.getElementById("map"), options);
 

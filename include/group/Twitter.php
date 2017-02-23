@@ -11,7 +11,7 @@ use Abraham\TwitterOAuth\TwitterOAuth;
 class Twitter {
     var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'lasterror', 'lasterrortime'];
     
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid, $fetched = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -22,7 +22,7 @@ class Twitter {
             $this->$att = NULL;
         }
 
-        $groups = $this->dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid = ?;", [ $groupid ]);
+        $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid = ?;", [ $groupid ]);
         foreach ($groups as $group) {
             foreach ($this->publicatts as $att) {
                 $this->$att = $group[$att];

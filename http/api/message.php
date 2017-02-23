@@ -87,25 +87,36 @@ function message() {
 
             if ($m) {
                 if ($_REQUEST['type'] == 'GET') {
+                    $atts = $m->getPublic($messagehistory, FALSE);
+                    $cansee = $m->canSee($atts);
+
                     $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'groups' => [],
-                        'message' => $m->getPublic($messagehistory, FALSE)
+                        'ret' => 2,
+                        'status' => 'Permission denied'
                     ];
 
-                    foreach ($ret['message']['groups'] as &$group) {
-                        $g = Group::get($dbhr, $dbhm, $group['groupid']);
-                        $ret['groups'][$group['groupid']] = $g->getPublic();
-                    }
+                    if ($cansee) {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'groups' => [],
+                            'message' => $atts
+                        ];
 
+                        foreach ($ret['message']['groups'] as &$group) {
+                            # The groups info returned in the message is not enough - doesn't include settings, for
+                            # example.
+                            $g = Group::get($dbhr, $dbhm, $group['groupid']);
+                            $ret['groups'][$group['groupid']] = $g->getPublic();
+                        }
+                    }
                 } else if ($_REQUEST['type'] == 'PUT') {
                     if ($collection == MessageCollection::DRAFT) {
                         # Draft messages are created by users, rather than parsed out from emails.  We might be
                         # creating one, or updating one.
                         $locationid = intval(presdef('locationid', $_REQUEST, NULL));
 
-                        $ret = [ 'ret' => 2, 'Missing location - client error' ];
+                        $ret = [ 'ret' => 3, 'Missing location - client error' ];
 
                         if ($locationid) {
                             if (!$id) {
@@ -231,7 +242,6 @@ function message() {
             $m = new Message($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $m ? $m->getRoleForMessage() : User::ROLE_NONMEMBER;
-            #error_log("Role for $id is $role");
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];

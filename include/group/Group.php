@@ -86,7 +86,8 @@ class Group extends Entity
                 'max' => 10,
                 'chaseups' => 2
             ],
-            'relevant' => 1
+            'relevant' => 1,
+            'newsletter' => 1
         ];
 
         if (!$this->group['settings'] || strlen($this->group['settings']) == 0) {
@@ -292,10 +293,12 @@ class Group extends Entity
     public function getWorkCounts($mysettings, $myid) {
         # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
         # less prominently in the client.
-        #error_log("Getworkcounts " . error_log(var_export($mysettings, true)));
-        $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
-        $showmembers = !array_key_exists('showmembers', $mysettings) || $mysettings['showmembers'];
-        $spam = $showmessages ? 'spam' : 'spamother';
+        #
+        # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
+        # to active.
+        # TODO Retire showmessages entirely and remove from user configs.
+        $active = array_key_exists('active', $mysettings) ? $mysettings['active'] : (!array_key_exists('showmessages', $mysettings) || $mysettings['showmessages']);
+        $spam = $active ? 'spam' : 'spamother';
 
         # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
         #
@@ -304,27 +307,27 @@ class Group extends Entity
         $eventsqltime = date("Y-m-d H:i:s", time());
 
         $ret = [
-            'pending' => $showmessages ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL;", [
+            'pending' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL;", [
                 $this->id,
                 MessageCollection::PENDING
             ])[0]['count'] : 0,
-            'pendingother' => $showmessages ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NOT NULL;", [
+            'pendingother' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NOT NULL;", [
                 $this->id,
                 MessageCollection::PENDING
             ])[0]['count'] : 0,
-            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.arrival >= '$mysqltime' AND messages_groups.deleted = 0 " . ($showmessages ? "AND messages.heldby IS NULL" : "") . ";", [
+            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.arrival >= '$mysqltime' AND messages_groups.deleted = 0 " . ($active ? "AND messages.heldby IS NULL" : "") . ";", [
                 $this->id,
                 MessageCollection::SPAM
             ])[0]['count'],
-            'pendingmembers' => $showmembers ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NULL;", [
+            'pendingmembers' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NULL;", [
                 $this->id,
                 MembershipCollection::PENDING
             ])[0]['count'] : 0,
-            'pendingmembersother' => $showmembers ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NOT NULL;", [
+            'pendingmembersother' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NOT NULL;", [
                 $this->id,
                 MembershipCollection::PENDING
             ])[0]['count'] : 0,
-            'pendingevents' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ?;", [
+            'pendingevents' => $this->dbhr->preQuery("SELECT COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ?;", [
                 $this->id,
                 $eventsqltime
             ])[0]['count'],
@@ -496,9 +499,10 @@ class Group extends Entity
             $thisone['joined'] = ISODate($member['added']);
 
             # Defaults match ones in User.php
+            #error_log("Settings " . var_export($member, TRUE));
             $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [
-                'showmessages' => 1,
-                'showmembers' => 1,
+                'active' => 1,
+                'showchat' => 1,
                 'pushnotify' => 1,
                 'eventsallowed' => 1
             ];
@@ -909,11 +913,11 @@ class Group extends Entity
             #error_log(var_export($resid, TRUE));
             $emailids = $this->dbhm->preQuery("SELECT emailid FROM syncdelete;");
             foreach ($emailids as $emailid) {
-                $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid = ? AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);",
+                #error_log("Check for delete {$emailid['emailid']}");
+                $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid = ? AND membershipid IN (SELECT id FROM memberships WHERE groupid = ?);",
                     [
                         $emailid['emailid'],
-                        $this->id,
-                        $collection
+                        $this->id
                     ]);
             }
             #error_log("Deleted $rc Yahoo Memberships");

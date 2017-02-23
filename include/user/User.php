@@ -15,6 +15,7 @@ require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
+require_once(IZNIK_BASE . '/mailtemplates/donations/thank.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
@@ -36,6 +37,7 @@ class User extends Entity
 
     # Permissions
     const PERM_BUSINESS_CARDS = 'BusinessCards';
+    const PERM_NEWSLETTER = 'Newsletter';
 
     const HAPPY = 'Happy';
     const FINE = 'Fine';
@@ -95,7 +97,7 @@ class User extends Entity
                 # @var User
                 $u = User::$cache[$id];
                 #error_log("Found $id in cache with " . $u->getId());
-                
+
                 if (!User::$cacheDeleted[$id]) {
                     # And it's not zapped - so we can use it.
                     #error_log("Not zapped");
@@ -274,7 +276,7 @@ class User extends Entity
         $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
 
         $pw = '';
-        
+
         do {
             $length = \Wordle\array_weighted_rand($lengths);
             $start  = \Wordle\array_weighted_rand($bigrams);
@@ -317,9 +319,9 @@ class User extends Entity
             if (!ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE) {
                 $ret = $email['email'];
                 break;
-            } 
+            }
         }
-        
+
         return($ret);
     }
 
@@ -631,16 +633,16 @@ class User extends Entity
                 ->setBody("Pleased to meet you.");
             $headers = $message->getHeaders();
             $headers->addTextHeader('X-Freegle-Mail-Type', 'Added');
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreStart
-        
+
         if ($rc) {
             # The membership didn't already exist.  We might want to send a welcome mail.
             $atts = $g->getPublic();
 
-            if (($addedhere) && ($atts['welcomemail'] || $message)) {
-                # We need to send a per-group welcome mail.
+            if (($addedhere) && ($atts['welcomemail'] || $message) && $collection == MembershipCollection::APPROVED) {
+                # They are now approved.  We need to send a per-group welcome mail.
                 $to = $this->getEmailPreferred();
 
                 if ($to) {
@@ -655,7 +657,7 @@ class User extends Entity
                         ->setDate(time())
                         ->setBody($welcome)
                         ->addPart($html, 'text/html');
-                    $mailer->send($message);
+                    $this->sendIt($mailer, $message);
                 }
             }
 
@@ -762,7 +764,7 @@ class User extends Entity
                 ->setBody("Parting is such sweet sorrow.");
             $headers = $message->getHeaders();
             $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreEnd
 
@@ -799,7 +801,7 @@ class User extends Entity
                                 ->setTo($g->getGroupUnsubscribe())
                                 ->setDate(time())
                                 ->setBody('Let me go');
-                            $mailer->send($message);
+                            $this->sendIt($mailer, $message);
                         }
                     }
                 }
@@ -861,11 +863,9 @@ class User extends Entity
 
             if ($getwork) {
                 # We only need finding out how much work there is if we are interested in seeing it.
-                $showmessages = !array_key_exists('showmessages', $one['mysettings']) || $one['mysettings']['showmessages'];
-                $showmembers = !array_key_exists('showmembers', $one['mysettings']) || $one['mysettings']['showmembers'];
+                $active = $this->activeModForGroup($group['groupid'], $one['mysettings']);
 
-                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) &&
-                    ($showmessages || $showmembers)) {
+                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) && $active) {
                     if (!$g) {
                         # We need to have an actual group object for this.
                         $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
@@ -1014,7 +1014,7 @@ class User extends Entity
             [$this->id, $uid, $type, $creds, $creds]);
 
         # If we add a login, we might be about to log in.
-        # TODO This is a bit hacky.  
+        # TODO This is a bit hacky.
         global $sessionPrepared;
         $sessionPrepared = FALSE;
 
@@ -1106,14 +1106,23 @@ class User extends Entity
         ]));
     }
 
+    public function activeModForGroup($groupid, $mysettings = NULL) {
+        $mysettings = $mysettings ? $mysettings : $this->getGroupSettings($groupid);
+
+        # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
+        # to active.
+        # TODO Retire showmessages entirely and remove from user configs.
+        $active = array_key_exists('active', $mysettings) ? $mysettings['active'] : (!array_key_exists('showmessages', $mysettings) || $mysettings['showmessages']);
+        return($active);
+    }
+
     public function getGroupSettings($groupid, $configid = NULL) {
         # We have some parameters which may give us some info which saves queries
         $this->cacheMemberships();
 
         # Defaults match memberships ones in Group.php.
         $defaults = [
-            'showmessages' => 1,
-            'showmembers' => 1,
+            'active' => 1,
             'showchat' => 1,
             'pushnotify' => 1,
             'eventsallowed' => 1
@@ -1129,9 +1138,15 @@ class User extends Entity
 
                 if (!$configid && ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR)) {
                     $c = new ModConfig($this->dbhr, $this->dbhm);
-                    $settings['configid'] = $c->getForGroup($this->id, $groupid);
+
+                    # We might have an explicit configid - if so, use it to save on DB calls.
+                    $settings['configid'] = $set['configid'] ? $set['configid'] : $c->getForGroup($this->id, $groupid);
                 }
             }
+
+            # Base active setting on legacy showmessages setting if not present.
+            $settings['active'] = array_key_exists('active', $settings) ? $settings['active'] : (!array_key_exists('showmessages', $settings) || $settings['showmessages']);
+            $settings['active'] = $settings['active'] ? 1 : 0;
 
             foreach ($defaults as $key => $val) {
                 if (!array_key_exists($key, $settings)) {
@@ -1143,13 +1158,12 @@ class User extends Entity
             $settings['eventsallowed'] = $set['eventsallowed'];
         }
 
-
         return($settings);
     }
 
     public function setRole($role, $groupid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        
+
         Session::clearSessionCache();
 
         $l = new Log($this->dbhr, $this->dbhm);
@@ -1429,8 +1443,9 @@ class User extends Entity
                 $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
                 $memberof = [];
 
-                # Check the groups.
-                $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
+                # the case where you have two emails and one is approved and the other pending.
+                $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
@@ -1442,7 +1457,7 @@ class User extends Entity
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
                         'added' => ISODate($group['added']),
-                        'collection' => $group['collection'],
+                        'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
@@ -1473,7 +1488,7 @@ class User extends Entity
                 # allows us to spot abuse) and any which are on our groups.
                 $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
                 $modids = array_merge([0], $me->getModeratorships());
-                $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 $memberof = [];
 
@@ -1486,7 +1501,7 @@ class User extends Entity
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
                         'added' => ISODate($group['added']),
-                        'collection' => $group['collection'],
+                        'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
@@ -1817,6 +1832,7 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET user2 = $id1 WHERE user2 = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE chat_messages SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_searches SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_donations SET userid = $id1 WHERE userid = $id2;");
                     }
 
                     # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
@@ -2039,12 +2055,13 @@ class User extends Entity
             }
         }
 
-        $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $this->dbhr->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
-
         $this->notif->notifyGroupMods($groupid);
 
         $this->maybeMail($groupid, $subject, $body, 'Reject Member');
+
+        # Delete from memberships - after emailing, otherwise we won't find the right email for this grup.
+        $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
+        $this->dbhr->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
     }
 
     public function approve($groupid, $subject, $body, $stdmsgid) {
@@ -2404,7 +2421,7 @@ class User extends Entity
             ->addPart($html, 'text/html');
 
         list ($transport, $mailer) = getMailer();
-        $mailer->send($message);
+        $this->sendIt($mailer, $message);
     }
 
     public function forgotPassword($email) {
@@ -2419,7 +2436,7 @@ class User extends Entity
             ->addPart($html, 'text/html');
 
         list ($transport, $mailer) = getMailer();
-        $mailer->send($message);
+        $this->sendIt($mailer, $message);
     }
 
     public function verifyEmail($email) {
@@ -2458,7 +2475,7 @@ class User extends Entity
                 ->setBody("Someone, probably you, has said that $email is their email address.\n\nIf this was you, please click on the link below to verify the address; if this wasn't you, please just ignore this mail.\n\n$confirm")
                 ->addPart($html, 'text/html');
 
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
 
         return($handled);
@@ -2553,17 +2570,18 @@ class User extends Entity
 
         $headers = "From: $email>\r\n";
 
-        # Yahoo is not very reliable; if we subscribe multiple times it seems to be more likely to react.
-        for ($i = 0; $i < 10; $i++) {
-            list ($transport, $mailer) = getMailer();
-            $message = Swift_Message::newInstance()
-                ->setSubject('Please let me join')
-                ->setFrom([$email])
-                ->setTo($g->getGroupSubscribe())
-                ->setDate(time())
-                ->setBody('Pretty please');
-            $mailer->send($message);
-        }
+        # Yahoo isn't very reliable, so it's tempting to send the subscribe multiple times.  But this can lead
+        # to a situation where we subscribe, the member is rejected on Yahoo, then a later subscribe attempt
+        # that was greylisted gets through again.  This annoys mods.  So we only subscribe once, and rely on
+        # the cron jobs to retry if this doesn't work.
+        list ($transport, $mailer) = getMailer();
+        $message = Swift_Message::newInstance()
+            ->setSubject('Please let me join')
+            ->setFrom([$email])
+            ->setTo($g->getGroupSubscribe())
+            ->setDate(time())
+            ->setBody('Pretty please');
+        $this->sendIt($mailer, $message);
 
         if ($log) {
             $this->log->log([
@@ -2845,7 +2863,7 @@ class User extends Entity
         return(array_key_exists('canmerge', $settings) ? $settings['canmerge'] : TRUE);
     }
 
-    public function notifsOn($type) {
+    public function notifsOn($type, $groupid = NULL) {
         $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
         $notifs = pres('notifications', $settings);
 
@@ -2858,6 +2876,12 @@ class User extends Entity
         ];
 
         $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
+
+        if ($ret && $groupid) {
+            # Check we're an active mod on this group - if not then we don't want the notifications.
+            $ret = $this->activeModForGroup($groupid);
+        }
+
         #error_log("Notifs on for type $type ? $ret from " . var_export($notifs, TRUE));
         return($ret);
     }
@@ -2933,5 +2957,26 @@ class User extends Entity
     public function hasPermission($perm) {
         $perms = $this->user['permissions'];
         return($perms && stripos($perms, $perm) !== FALSE);
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function thankDonation() {
+        list ($transport, $mailer) = getMailer();
+        $message = Swift_Message::newInstance()
+            ->setSubject("Thank you for supporting Freegle!")
+            ->setFrom(PAYPAL_THANKS_FROM)
+            ->setReplyTo(PAYPAL_THANKS_FROM)
+            ->setTo($this->getEmailPreferred())
+            ->setBody("Thank you for donating to freegle");
+        $headers = $message->getHeaders();
+        $headers->addTextHeader('X-Freegle-Mail-Type', 'ThankDonation');
+
+        $html = donation_thank($this->getName(), $this->getEmailPreferred(), $this->loginLink(USER_SITE , $this->id, '/?src=thankdonation'), $this->loginLink(USER_SITE, $this->id, '/settings?src=thankdonation'));
+
+        $message->addPart($html, 'text/html');
+        $this->sendIt($mailer, $message);
     }
 }

@@ -54,6 +54,7 @@ class imageAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
+        $a->setPrivate('sourceheader', Message::PLATFORM);
 
         # Should be able to see this message even logged out.
         $ret = $this->call('message', 'GET', [

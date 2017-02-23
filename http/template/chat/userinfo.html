@@ -11,7 +11,7 @@
                     <p><span class="glyphicon glyphicon-calendar" />&nbsp;{{displayname}} has been a freegler since <span class="js-since" />.</p>
                     <p>
                         <% if (obj.info.replies) { %>
-                            They have recently replied to {{info.replies}} post<% if (info.replies != 1) { %>s<% } %>.
+                            <span class="glyphicon glyphicon-envelope" />&nbsp;They have recently replied to {{info.replies}} post<% if (info.replies != 1) { %>s<% } %>.
                         <% } %>
                     </p>
                     <% if (obj.info.offers + obj.info.wanteds == 0) { %>

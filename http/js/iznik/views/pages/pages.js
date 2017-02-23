@@ -112,6 +112,12 @@ define([
                 // CC monitor.start();
             }
 
+            if (self.fullheight) {
+                $('body').addClass('bodyfullheight');
+            } else {
+                $('body').removeClass('bodyfullheight');
+            }
+
             if (currentPage) {
                 // We have previous rendered a page.  Kill that off, so that it is not listening for events and
                 // messing about with the DOM.
@@ -149,8 +155,6 @@ define([
                         // Show app buttons.
                         $('#js-appbuttons').show();
                     }
-
-                    ChatHolder().createMinimised();
 
                     $('#botleft').empty();
 
@@ -367,14 +371,18 @@ define([
                     self.$('.js-adminsupportonly').removeClass('hidden');
                 }
 
-                if (Iznik.Session.isAdmin()) {
-                    self.$('.js-adminonly').removeClass('hidden');
+                if (Iznik.Session.hasPermission('Newsletter')) {
+                    self.$('.js-newsletter').removeClass('hidden');
                 }
+
+                if (Iznik.Session.hasP)
 
                 // We need to create a hidden signin button because otherwise the Google logout method doesn't
                 // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
                 var GoogleLoad = new Iznik.Views.GoogleLoad();
-                GoogleLoad.buttonShim('googleshim');
+                if (GoogleLoad) {
+                    GoogleLoad.buttonShim('googleshim');
+                }
 
                 // Events site is special.
                 var eventsite = $('meta[name=iznikevent]').attr("content");

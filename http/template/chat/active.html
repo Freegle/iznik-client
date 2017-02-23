@@ -12,11 +12,8 @@
                 <li title="Enter inserts new line?"><a class="js-enter" href="#">Enter inserts new line?</a></li>
             </ul>
             <% } %>
-            <div class="js-large clickme inline padleftlg padright hidden-xs hidden-sm" title="Make this window larger">
+            <div class="js-fullscreen clickme inline padleftlg padright hidden-xs hidden-sm" title="View this chat full screen">
                 <div class="glyphicon glyphicon-resize-full"/>
-            </div>
-            <div class="js-small clickme inline padleftlg padright" title="Make this window smaller" style="display: none">
-                <div class="glyphicon glyphicon-resize-small"/>
             </div>
             <div class="js-minimise clickme inline padleftlg padright" title="Close this chat window. It'll still show in your list on the Chat button" >
                 <div class="glyphicon glyphicon-remove"/>
@@ -58,6 +55,7 @@
     <div class="chat-content col-xs-12 nopad">
         <div class="chat-messages-panel js-leftpanel">
             <ul class="overscrolly list-unstyled chat-messages js-messages nopad" />
+            <div id="js-uploadpreview-{{id}}" />
         </div>
         <% if (obj.group) { %>
         <div class="splitter" />
@@ -83,15 +81,18 @@
     <div class="row-fluid">
         <div class="col-xs-6">
             <div class="row">
+                <% if (chattype == 'User2User') { %>
                 <div class="col-xs-4">
-                    <% if (chattype == 'User2User') { %>
                     <span class="clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
-                    <% } %>
                 </div>
+                <% } %>
+                <% if (chattype == 'User2User') { %>
                 <div class="col-xs-4">
-                    <% if (chattype == 'User2User') { %>
                     <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x js-info" alt="Info" title="Info about this member" />
-                    <% } %>
+                </div>
+                <% } %>
+                <div class="col-xs-4">
+                    <input type="file" class="js-photo" name="photo" multiple="" />
                 </div>
             </div>
         </div>

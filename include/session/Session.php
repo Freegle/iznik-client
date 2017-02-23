@@ -126,6 +126,7 @@ class Session {
 
     public static function clearSessionCache() {
         # We cache some information.
+        $_SESSION['notification'] = [];
         $_SESSION['modorowner'] = [];
     }
 

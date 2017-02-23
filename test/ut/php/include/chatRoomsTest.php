@@ -131,9 +131,14 @@ class chatRoomsTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         list($msgid, $already) = $m->save();
-        
+
+        $data = file_get_contents('images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
+        $attid = $a->create(NULL, 'image/jpeg', $data);
+        assertNotNull($attid);
+
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, $msgid, TRUE);
+        $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_IMAGE, $msgid, TRUE, NULL, NULL, NULL, $attid);
         error_log("Created chat message $cm");
 
         # Exception first for coverage.

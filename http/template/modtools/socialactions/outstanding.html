@@ -16,11 +16,11 @@
         <% if (address.line4) { %>{{address.line4}}<br /><% } %>
         <% if (address.town) { %>{{address.town}}<br /><% } %>
         <% if (address.county) { %>{{address.county}}<br /><% } %>
-        <% if (address.postcode.name) { %>{{address.postcode.name}}<br /><% } %>
+        <% if (address.postcode && address.postcode.name) { %>{{address.postcode.name}}<br /><% } %>
     </div>
     <div class="panel-footer">
-        <span class="btn btn-white clickme js-delete"><span class="glyphicons glyphicons-trash" />&nbsp;Cancel</span>
-        <span class="btn btn-success clickme js-delete"><span class="glyphicons glyphicons-tick" />&nbsp;Sent</span>
+        <span class="btn btn-white clickme js-delete"><span class="glyphicons glyphicons-bin" />&nbsp;Cancel</span>
+        <span class="btn btn-success clickme js-sent"><span class="glyphicons glyphicons-tick" />&nbsp;Sent</span>
     </div>
 </div>
 <% } %>

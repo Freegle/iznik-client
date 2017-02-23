@@ -95,6 +95,9 @@ class membershipsAPITest extends IznikAPITestCase {
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('sourceheader', Message::PLATFORM);
+
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         error_log("Approved id $id");

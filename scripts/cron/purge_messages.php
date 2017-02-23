@@ -6,6 +6,7 @@
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
@@ -13,6 +14,46 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
+
+# Purge messages which have been stuck waiting for Yahoo users for ages.
+$start = date('Y-m-d', strtotime("midnight 31 days ago"));
+error_log("Purge waiting for Yahoo before $start");
+
+$total = 0;
+do {
+    $sql = "SELECT msgid FROM messages_groups WHERE collection = '" . MessageCollection::QUEUED_YAHOO_USER . "' AND arrival < '$start' LIMIT 1000;";
+    $msgs = $dbhm->query($sql)->fetchAll();
+    foreach ($msgs as $msg) {
+        $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
+        $total++;
+
+        if ($total % 1000 == 0) {
+            error_log("...$total");
+        }
+    }
+} while (count($msgs) > 0);
+
+error_log("Deleted $total");
+
+# Purge old drafts.
+$start = date('Y-m-d', strtotime("midnight 31 days ago"));
+error_log("Purge old drafts before $start");
+
+$total = 0;
+do {
+    $sql = "SELECT msgid FROM messages_drafts WHERE timestamp < '$start' LIMIT 1000;";
+    $msgs = $dbhm->query($sql)->fetchAll();
+    foreach ($msgs as $msg) {
+        $dbhm->exec("DELETE FROM messages WHERE id = {$msg['msgid']};");
+        $total++;
+
+        if ($total % 1000 == 0) {
+            error_log("...$total");
+        }
+    }
+} while (count($msgs) > 0);
+
+error_log("Deleted $total");
 
 # Purge old non-Freegle messages
 $start = date('Y-m-d', strtotime("midnight 31 days ago"));
@@ -52,13 +93,13 @@ do {
     }
 } while (count($msgs) > 0);
 
-# Now purge messages which are stranded, not on any groups.
+# Now purge messages which are stranded, not on any groups and not referenced from any chats or drafts.
 $start = date('Y-m-d', strtotime("midnight 2 days ago"));
 error_log("Purge stranded messages before $start");
 $total = 0;
 
 do {
-    $sql = "SELECT messages.id FROM messages WHERE arrival <= '$start' AND id NOT IN (SELECT DISTINCT msgid FROM messages_groups) LIMIT 1000;";
+    $sql = "SELECT messages.id FROM messages WHERE arrival <= '$start' AND id NOT IN (SELECT DISTINCT msgid FROM messages_groups) AND id NOT IN (SELECT DISTINCT refmsgid FROM chat_messages) AND id NOT IN (SELECT DISTINCT msgid FROM messages_drafts) LIMIT 1000;";
     $msgs = $dbhm->query($sql)->fetchAll();
     foreach ($msgs as $msg) {
         $dbhm->exec("DELETE FROM messages WHERE id = {$msg['id']};");
@@ -77,10 +118,38 @@ error_log("Deleted $total");
 $start = date('Y-m-d', strtotime("midnight 2 days ago"));
 error_log("Purge HTML body for messages before $start");
 $total = 0;
+$id = NULL;
 
 do {
-    $sql = "UPDATE messages SET htmlbody = NULL WHERE arrival <= '$start' LIMIT 1000;";
-    $count = $dbhm->exec($sql);
-    $total += $count;
-    error_log("...$total");
+    $idq = $id ? " id < $id AND " : "";
+    $sql = "SELECT id FROM messages WHERE $idq arrival <= '$start' AND htmlbody IS NOT NULL ORDER BY id DESC LIMIT 1;";
+    error_log($sql);
+    $msgs = $dbhr->preQuery($sql);
+    foreach ($msgs as $msg) {
+        $id = !$id ? $msg['id'] : min($id, $msg['id']);
+        $sql = "UPDATE messages SET htmlbody = NULL WHERE id <= {$msg['id']} AND htmlbody IS NOT NULL LIMIT 1000;";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$total");
+    }
 } while ($count > 0);
+
+error_log("Purge message for messages before $start");
+$start = date('Y-m-d', strtotime("midnight 30 days ago"));
+$total = 0;
+$id = NULL;
+
+do {
+    $idq = $id ? " id < $id AND " : "";
+    $sql = "SELECT id FROM messages WHERE $idq arrival <= '$start' AND message IS NOT NULL ORDER BY id DESC LIMIT 1;";
+    error_log($sql);
+    $msgs = $dbhr->preQuery($sql);
+    foreach ($msgs as $msg) {
+        $id = !$id ? $msg['id'] : min($id, $msg['id']);
+        $sql = "UPDATE messages SET message = NULL WHERE id <= {$msg['id']} AND message IS NOT NULL LIMIT 1000;";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$total");
+    }
+} while ($count > 0);
+

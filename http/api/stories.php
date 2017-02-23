@@ -8,6 +8,7 @@ function stories() {
     $groupid = presdef('groupid', $_REQUEST, NULL);
     $reviewed = intval(array_key_exists('reviewed', $_REQUEST) ? $_REQUEST['reviewed'] : 1);
     $story = array_key_exists('story', $_REQUEST) ? filter_var($_REQUEST['story'], FILTER_VALIDATE_BOOLEAN) : TRUE;
+    $newsletter = array_key_exists('newsletter', $_REQUEST) ? filter_var($_REQUEST['newsletter'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $limit = intval(presdef('limit', $_REQUEST, 20));
     $s = new Story($dbhr, $dbhm, $id);
     $me = whoAmI($dbhr, $dbhm);
@@ -28,8 +29,9 @@ function stories() {
                 }
             } else if ($me && $reviewed === 0) {
                 $groupids = [ $groupid ];
+                $newsletter = $me->hasPermission(User::PERM_NEWSLETTER) ? $newsletter : FALSE;
 
-                if (!$groupid) {
+                if (!$newsletter && !$groupid) {
                     # We want to see the ones on groups we mod.
                     $mygroups = $me->getMemberships(TRUE);
                     $groupids = [];
@@ -44,8 +46,8 @@ function stories() {
 
                 $stories = [];
 
-                if (count($groupids) > 0) {
-                    $stories = $s->getForReview($groupids);
+                if ($newsletter || count($groupids) > 0) {
+                    $stories = $s->getForReview($groupids, $newsletter);
                 }
 
                 $ret = [

@@ -1,26 +1,3 @@
-<div id="notifchatdropdown" class="pull-right" style="display: none">
-    <ul class="list-unstyled">
-        <li id="notifchatdropdownactions">
-            <div class="row padleft">
-                <div class="margleft notifaction clickme col-xs-4 js-minimiseall">
-                    <span class="glyphicon glyphicon-remove" />&nbsp;Close all chats
-                </div>
-                <div class="margleft notifaction col-xs-4 clickme js-allseen">
-                    <span class="glyphicon glyphicon-ok" />&nbsp;Mark all read
-                </div>
-            </div>
-            <div class="row padleft padright">
-                <div class="tbspace clickme col-xs-12">
-                    <input class="form-control js-search" type="text" placeholder="Search chats" />
-                </div>
-            </div>
-        </li>
-        <li>
-            <ul id="notifchatdropdownlist" class="list-unstyled">
-            </ul>
-        </li>
-    </ul>
-</div>
 <nav class="navbar navbar-custom navbar-fixed-top">
     <div class="nopad completefull container-fluid">
         <div class="nopad nomargin completefull navbar-header">
@@ -89,7 +66,7 @@
                 </ul>
                 <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly">
                     <li>
-                        <a href="#" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a href="/chats" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers">
                             <div class="fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button" />
                             <br />
                             <span>
@@ -128,9 +105,8 @@
 </div>
     </div>
 </nav>
-<!--div id="badgeconsole" style="background-color:yellow;margin:5px;"></div-->
-<div class="container completefull margtopbig nopad">
-    <div class="row-fluid margtop">
+<div class="container completefull belowNavbar nopad">
+    <div class="row-fluid">
         <div class="col-md-3 hidden-sm hidden-xs js-leftsidebar ">
             <div class="sidebar-nav-fixed fullholder pull-left affix">
                 <div class="nopad js-loggedinonly">
@@ -143,7 +119,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 nopad">
             <div class="js-alerts" />
             <div class="pageContent img-rounded js-pageContent" />
         </div>

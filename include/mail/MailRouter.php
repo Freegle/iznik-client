@@ -273,24 +273,40 @@ class MailRouter
                 $this->mail($fromheader[0]['address'], $to, "Yes please", "I confirm this");
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
-                # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
+                # This is a request by Yahoo to confirm a subscription for one of our members.  We do that if the
+                # member is still pending; if not then this might be an earlier subscription request which has
+                # finally found its way to Yahoo.  Confirming this might lead to a resubscribe after a rejection.
                 if ($log) { error_log("Confirm subscription"); }
 
-                for ($i = 0; $i < 10; $i++) {
-                    # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
+                if (preg_match('/Please confirm your request to join (.*)/', $this->msg->getSubject(), $matches)) {
+                    $groupname = $matches[1];
+                    if ($log) { error_log("For group $groupname"); }
+                    $g = new Group($this->dbhr, $this->dbhm);
+                    $gid = $g->findByShortName($groupname);
+                    $g = new Group($this->dbhr, $this->dbhm, $gid);
+                    if ($log) { error_log("Found group $gid"); }
+
+                    $u = User::get($this->dbhr, $this->dbhm);
+                    $uid = $u->findByEmail($to);
+                    $u = User::get($this->dbhr, $this->dbhm, $uid);
+                    if ($log) { error_log("Found $uid for $to, onhere " . $g->getPrivate('onhere') . ", pending " . $u->isPending($gid)); }
+
+                    if ($g->getPrivate('onhere') && $u->isPending($gid)) {
+                        for ($i = 0; $i < 10; $i++) {
+                            # Yahoo is sluggish - sending the confirm multiple times helps.
+                            $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
+                        }
+
+                        $this->log->log([
+                            'type' => Log::TYPE_USER,
+                            'subtype' => Log::SUBTYPE_YAHOO_CONFIRMED,
+                            'user' => $uid,
+                            'text' => $to
+                        ]);
+
+                        $ret = MailRouter::TO_SYSTEM;
+                    }
                 }
-
-                $u = User::get($this->dbhr, $this->dbhm);
-                $uid = $u->findByEmail($to);
-                $this->log->log([
-                    'type' => Log::TYPE_USER,
-                    'subtype' => Log::SUBTYPE_YAHOO_CONFIRMED,
-                    'user' => $uid,
-                    'text' => $to
-                ]);
-
-                $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-invite-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is an invitation by Yahoo to join a group, triggered by us in triggerYahooApplication.
                 if ($log) { error_log("Confirm invitation"); }

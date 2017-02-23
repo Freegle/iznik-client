@@ -858,6 +858,23 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents('msgs/application');
         $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
+
+        # Should be dropped - member not pending
+        assertEquals(MailRouter::DROPPED, $rc);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+        $u = new User($this->dbhr, $this->dbhm);
+
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addEmail('to@test.com'));
+        $u->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::PENDING);
+
+        $msg = file_get_contents('msgs/application');
+        $id = $r->received(Message::YAHOO_SYSTEM, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+
+        # Should be to system - member now pending
         assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         error_log(__METHOD__ . " end");
