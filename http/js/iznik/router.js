@@ -1400,7 +1400,6 @@ define([
     var Router = new IznikRouter();
 
     try {
-<<<<<<< HEAD
     	  var root = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
     	  root = decodeURI(root.replace(/%25/g, '%2525'));	// CC
     	  console.log("Backbone root", root);	// CC
@@ -1408,29 +1407,6 @@ define([
     	      root: root,	// CC
               pushState: true
         });
-=======
-        try {
-            // Set up storage.
-            console.log("Set up storage");
-            Storage = new Persist.Store("Iznik");
-
-            // Make sure it works
-            Storage.set('enabled', true);
-            console.log("Storage active");
-
-            try {
-                // The version may have been put in localStorage.
-                Storage.set('version', localStorage.getItem('version'));
-            } catch (e) {}
-
-            Backbone.history.start({
-                pushState: true
-            });
-        } catch (e) {
-            // We don't.
-            Router.navigate('/localstorage', true);
-        }
->>>>>>> master
     } catch (e) {
         // We've got an uncaught exception.
         // TODO Log it to the server.

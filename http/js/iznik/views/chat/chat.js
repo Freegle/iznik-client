@@ -167,10 +167,13 @@ define([
             var unseen = 0;
             console.log("updateCounts");
             Iznik.Session.chats.each(function (chat) {
+                unseen += chat.get('unseen');
+            });
+            /* CC Iznik.Session.chats.each(function (chat) {
                 var chatView = Iznik.activeChats.viewManager.findByModel(chat);
                 unseen += chat.get('unseen');
                 console.log("Unseen", unseen, chat);
-            });
+            });*/
 
             // We'll adjust the count in the window title.
             var title = document.title;

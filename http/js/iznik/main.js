@@ -1,4 +1,5 @@
-var API = 'https://www.ilovefreegle.org/api/'; // CC
+//var API = 'https://www.ilovefreegle.org/api/'; // CC
+var API = 'https://dev.ilovefreegle.org/api/'; // CC
 //var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
@@ -338,15 +339,23 @@ require([
                     chatids = _.uniq(chatids);
 
                     if (chatids.length > 0) {
-                        require(['iznik/views/chat/chat'], function (ChatHolder) {
+
+                        var chatid = chatids[0];
+                        (function waitUntilLoggedIn(retry) {
+                            if (Iznik.Session.loggedIn) {
+                                //ChatHolder().fetchAndRestore(chatid);
+                                setTimeout(function () { Router.navigate('/chat' + chatid, true); }, 500);
+                            } else {
+                                setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
+                            }
+                        })(10);
+
+                        /*require(['iznik/views/chat/chat'], function (ChatHolder) {
                             //_.each(chatids, function (chatid) {
                             //    ChatHolder().fetchAndRestore(chatid);
                             //});
                             // Just open first chat - when logged in
                             var chatid = chatids[0];
-                            /*Iznik.Session.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                                ChatHolder().fetchAndRestore(chatid);
-                            });*/
                             (function waitUntilLoggedIn(i) {
                                 if (Iznik.Session.loggedIn) {
                                     //ChatHolder().fetchAndRestore(chatid);
@@ -355,13 +364,13 @@ require([
                                     setTimeout(function () { if (--i) { waitUntilLoggedIn(i); } }, 1000);
                                 }
                             })(10);
-                        });
+                        });*/
                     }
                 }
             }
-            require(['iznik/views/chat/chat'], function (ChatHolder) {
+            /*require(['iznik/views/chat/chat'], function (ChatHolder) {
                 ChatHolder().fallback();
-            });
+            });*/
 
             mobilePush.finish(function () {
                 console.log("push finished");
