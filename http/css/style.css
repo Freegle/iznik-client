@@ -555,8 +555,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 }
 
 .belowNavbar {
-    top: 60px;
-    position: absolute;
+    margin-top: 60px;
 }
 
 .darken {
