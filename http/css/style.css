@@ -48,9 +48,6 @@ body {
 .navbar-collapse li {
     display: inline-block !important;
 }
-.pageContent, .rightSidebar {
-    top: 66px;
-}
 
 .inlineblock {
     display: inline-block;
