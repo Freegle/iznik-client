@@ -96,7 +96,7 @@ function chatrooms() {
                     foreach ($rosters as $roster) {
                         $r = new ChatRoom($dbhr, $dbhm, $roster['id']);
                         if ($r->canSee($myid)) {
-                            $r->updateRoster($myid, presdef('lastmsgseen', $roster, NULL), $roster['status']);
+                            $r->updateRoster($myid, presdef('lastmsgseen', $roster, NULL), presdef('status', $roster, ChatRoom::STATUS_ONLINE));
                             $ret['rosters'][$roster['id']] = $r->getRoster();
                             $ret['unseen'][$roster['id']] = $r->unseenCountForUser($myid);
                         }

@@ -169,6 +169,7 @@ define([
                     if (!self.options.chatid) {
                         // Specific chats have the chat in the centre - not the list.
                         self.$('#js-msgpane').addClass('hidden-xs hidden-sm');
+                        self.$('.js-chatsearchholder').removeClass('hidden-xs hidden-sm')
                         self.chatsCV2 = new Backbone.CollectionView({
                             el: $('#js-chatlist2'),
                             modelView: Iznik.Views.Chat.Page.One,
@@ -177,9 +178,13 @@ define([
                         });
 
                         self.chatsCV2.render();
-                    } else {
-                        // Specific chat - for small screens we don't want the search box.
-                        self.$('.js-chatsearchholder').addClass('hidden-xs hidden-sm')
+
+                        // When we click on this one, we want to route to the chat/id.  This is so that the user
+                        // can use the back button to return to the chat list.
+                        self.chatsCV2.on('selectionChanged', function(selected) {
+                            console.log("selectionChanged 2", selected);
+                            Router.navigate((self.modtools ? '/modtools' : '') + '/chat/' + selected[0].get('id'), true);
+                        });
                     }
 
                     self.selectedFirst = false;
@@ -250,6 +255,9 @@ define([
         },
 
         render: function () {
+            var self = this;
+            self.model.set('modtools', self.options.modtools);
+
             var p = Iznik.View.Timeago.prototype.render.call(this);
             p.then(function (self) {
                 self.updateCount();
@@ -679,29 +687,33 @@ define([
         adjust: function() {
             var self = this;
 
-            var windowInnerHeight = $(window).innerHeight();
-            var bodyMargin = parseInt($('body').css('margin-top').replace('px', ''));
-            var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
-            var chatHeaderHeight = self.$('.js-chatheader').outerHeight();
-            var footerHeight = self.$('.js-chatfooter').outerHeight();
-            var chatSearchHolderHeight = self.$('.js-chatsearchholder').is(':visible') ? self.$('.js-chatsearchholder').outerHeight() : 0;
+            if (self.inDOM()) {
+                var windowInnerHeight = $(window).innerHeight();
+                var bodyMargin = parseInt($('body').css('margin-top').replace('px', ''));
+                var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
+                var chatHeaderHeight = self.$('.js-chatheader').outerHeight();
+                var footerHeight = self.$('.js-chatfooter').outerHeight();
+                var chatSearchHolderHeight = self.$('.js-chatsearchholder').is(':visible') ? self.$('.js-chatsearchholder').outerHeight() : 0;
 
-            var height = windowInnerHeight - bodyMargin - chatWarningHeight - chatSearchHolderHeight - chatHeaderHeight - footerHeight;
-            var str = "Heights " + height + " " + windowInnerHeight + " " + bodyMargin + " " + chatSearchHolderHeight + " " + chatWarningHeight + " " + chatHeaderHeight + " " + footerHeight;
-            var currHeight = self.$('.js-scroll').css('height').replace('px', '');
+                var height = windowInnerHeight - bodyMargin - chatWarningHeight - chatSearchHolderHeight - chatHeaderHeight - footerHeight;
+                var str = "Heights " + height + " " + windowInnerHeight + " " + bodyMargin + " " + chatSearchHolderHeight + " " + chatWarningHeight + " " + chatHeaderHeight + " " + footerHeight;
+                var currHeight = self.$('.js-scroll').css('height').replace('px', '');
 
-            if (currHeight != height) {
-                self.$('.js-scroll').css('height', height + 'px');
-                self.currentAdjustDelay = 10;
+                if (currHeight != height) {
+                    self.$('.js-scroll').css('height', height + 'px');
+                    self.currentAdjustDelay = 10;
+                    console.log(str);
+                } else {
+                    self.currentAdjustDelay *= 2;
+                    self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
+                }
+
+                // self.$('.js-message').val(str);
+
+                _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
             } else {
-                self.currentAdjustDelay *= 2;
-                self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
+                console.log("Not in DOM");
             }
-
-            console.log(str);
-            // self.$('.js-message').val(str);
-
-            _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
         },
 
         render: function () {
@@ -712,7 +724,9 @@ define([
                 // Input text autosize
                 autosize(self.$('textarea'));
 
-                self.adjust();
+                self.waitDOM(self, function() {
+                    self.adjust();
+                });
 
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();
