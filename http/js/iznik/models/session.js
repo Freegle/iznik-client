@@ -448,9 +448,9 @@ define([
                                 document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
 
                                 if (total) {
-                                    $('#menu-toggle .js-totalcount').html(total).show();
+                                    $('.js-chattotalcount').html(total).show();
                                 } else {
-                                    $('#menu-toggle .js-totalcount').empty().hide();
+                                    $('.js-chattotalcount').empty().hide();
                                 }
                                 if (mobilePush) {
                                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);

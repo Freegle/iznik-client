@@ -579,7 +579,11 @@ class ChatRoom extends Entity
             ],
             FALSE);
 
-        if ($lastmsgseen) {
+        if ($lastmsgseen && is_nan($lastmsgseen)) {
+            error_log("Bad request " . var_export($_REQUEST, TRUE));
+        }
+
+        if ($lastmsgseen && !is_nan($lastmsgseen)) {
             # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
             # windows open.
             $rc = $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);", [

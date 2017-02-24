@@ -154,18 +154,14 @@ define([
                 console.log("No chats to organise");
             }
 
-            // The drop-down menu needs to be scrollable, and so we put a max-height on it.
-            $('#notifchatdropdown').css('max-height', windowInnerHeight - navbarOuterHeight);
-
             // console.log("Organised", (new Date()).getMilliseconds() - start);
         },
-
-        unseenCount: -1,
 
         updateCounts: function () {
             var self = this;
             var unseen = 0;
-            console.log("updateCounts");
+            console.log("update Chat counts");
+
             Iznik.Session.chats.each(function (chat) {
                 unseen += chat.get('unseen');
             });
@@ -181,28 +177,26 @@ define([
             title = match ? match[1] : title;
 
             // This if test improves browser performance by avoiding unnecessary show/hides.
-            if (self.unseenCount != unseen) {
-                self.unseenCount = unseen;
-
-                if (unseen > 0) {
-                    $('#dropdownmenu').find('.js-totalcount').html(unseen).show();
-                    $('#js-notifchat').find('.js-totalcount').html(unseen).show();
-                    document.title = '(' + unseen + ') ' + title;
-                } else {
-                    $('#dropdownmenu').find('.js-totalcount').html(unseen).hide();
-                    $('#js-notifchat').find('.js-totalcount').html(unseen).hide();
-                    document.title = title;
+            $('.js-chattotalcount').each(function() {
+                if ($(this).html() != unseen) {
+                    if (unseen > 0) {
+                        $(this).html(unseen).show();
+                        document.title = '(' + unseen + ') ' + title;
+                    } else {
+                        $(this).html().hide();
+                        document.title = title;
+                    }
                 }
+            });
 
-                this.showMin();
+            self.showMin();
 
-                if (mobilePush) {
-                    mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
-                    /*var msg = new Date();
-                    msg = msg.toLocaleTimeString() + " C " + unseen + "<br/>";
-                    badgeconsole += msg;
-                    $('#badgeconsole').html(badgeconsole);*/
-                }
+            if (mobilePush) {
+                mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
+                /*var msg = new Date();
+                msg = msg.toLocaleTimeString() + " C " + unseen + "<br/>";
+                badgeconsole += msg;
+                $('#badgeconsole').html(badgeconsole);*/
             }
         },
 
@@ -349,7 +343,7 @@ define([
                 });
 
                 self.organise();
-
+                self.updateCounts();
             }
         },
 
@@ -359,6 +353,7 @@ define([
 
             // We might already be rendered, as we're outside the body content that gets zapped when we move from
             // page to page.
+            console.log("Page render - got holder?", $('#chatHolder').length);
             if ($('#chatHolder').length == 0) {
                 self.$el.css('visibility', 'hidden');
 
@@ -385,6 +380,7 @@ define([
                     self.tabActive = true;
                 });
             } else {
+                self.updateCounts();
                 p = resolvedPromise(self);
             }
 
@@ -723,32 +719,34 @@ define([
         adjust: function () {
             var self = this;
 
-            // The text area shouldn't grow too high, but should go above a single line if there's room.
-            var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
-            var mininpheight = Math.round(self.$el.innerHeight() * .15);
-            self.$('textarea').css('max-height', maxinpheight);
-            self.$('textarea').css('min-height', mininpheight);
+            if (self.inDOM()) {
+                // The text area shouldn't grow too high, but should go above a single line if there's room.
+                var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
+                var mininpheight = Math.round(self.$el.innerHeight() * .15);
+                self.$('textarea').css('max-height', maxinpheight);
+                self.$('textarea').css('min-height', mininpheight);
 
-            var chatwarning = this.$('.js-chatwarning');
-            var warningheight = chatwarning.length > 0 ? (chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight()) : 0;
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter textarea').outerHeight() - this.$('.js-chatfooter .js-buttons').outerHeight() - warningheight;
-            newHeight = Math.round(newHeight);
+                var chatwarning = this.$('.js-chatwarning');
+                var warningheight = chatwarning.length > 0 ? (chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight()) : 0;
+                var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter textarea').outerHeight() - this.$('.js-chatfooter .js-buttons').outerHeight() - warningheight;
+                newHeight = Math.round(newHeight);
 
-            // console.log("Adjust on", this.$el, newHeight);
-            // console.log("Height", newHeight, this.$el.innerHeight(), this.$('.js-chatheader').outerHeight(), this.$('.js-chatfooter textarea').outerHeight(), this.$('.js-chatfooter .js-buttons').outerHeight(), warningheight);
-            this.$('.js-leftpanel, .js-roster').height(newHeight);
+                // console.log("Adjust on", this.$el, newHeight);
+                // console.log("Height", newHeight, this.$el.innerHeight(), this.$('.js-chatheader').outerHeight(), this.$('.js-chatfooter textarea').outerHeight(), this.$('.js-chatfooter .js-buttons').outerHeight(), warningheight);
+                this.$('.js-leftpanel, .js-roster').height(newHeight);
 
-            var width = self.$el.width();
+                var width = self.$el.width();
 
-            if (self.model.get('chattype') == 'Mod2Mod' || self.model.get('chattype') == 'Group') {
-                // Group chats have a roster.
-                var lpwidth = self.$('.js-leftpanel').width();
-                lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;
-                lpwidth = Math.max(self.$el.width() - 250, lpwidth);
-                self.$('.js-leftpanel').width(lpwidth);
-            } else {
-                // Others
-                self.$('.js-leftpanel').width('100%');
+                if (self.model.get('chattype') == 'Mod2Mod' || self.model.get('chattype') == 'Group') {
+                    // Group chats have a roster.
+                    var lpwidth = self.$('.js-leftpanel').width();
+                    lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;
+                    lpwidth = Math.max(self.$el.width() - 250, lpwidth);
+                    self.$('.js-leftpanel').width(lpwidth);
+                } else {
+                    // Others
+                    self.$('.js-leftpanel').width('100%');
+                }
             }
         },
 
@@ -812,9 +810,6 @@ define([
             var self = this;
             self.restoredAt = (new Date()).getTime();
             self.minimised = false;
-
-            // Hide the chat list if it's open.
-            $('#notifchatdropdown').hide();
 
             // Input text autosize
             // console.log("Autosize on " + self.model.get('id') + " " + self.doneAutosize);

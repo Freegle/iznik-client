@@ -2,9 +2,8 @@
     font-family: 'Trebuchet MS', Helvetica, sans-serif; !important;
 }
 
-.bodyfullheight {
-    height: 100vh;
-    overflow-y: hidden;
+body {
+    margin-top: 60px;
 }
 
 .introanimation {
@@ -48,9 +47,6 @@
 
 .navbar-collapse li {
     display: inline-block !important;
-}
-.pageContent, .rightSidebar {
-    top: 66px;
 }
 
 .inlineblock {
@@ -137,6 +133,10 @@
 
 .lightgrey {
     color: #d3d3d3;
+}
+
+.nolinkcolour {
+    color: inherit;
 }
 
 /* Allow maps autocomplete to show inside modals */
@@ -358,6 +358,10 @@
     top: 0px;
 }
 
+.padtoplg {
+    padding-top: 20px;
+}
+
 .padtop {
     padding-top: 10px;
 }
@@ -552,11 +556,6 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 .modal-content, #bodyContent {
     padding-left: 10px;
     padding-right: 10px;
-}
-
-.belowNavbar {
-    top: 60px;
-    position: absolute;
 }
 
 .darken {
@@ -985,7 +984,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 /* Chat */
 .chat-list-holder {
-    height: calc(100vh - 65px);
+    height: calc(100vh - 60px);
     overflow-y: scroll;
 }
 
@@ -1067,18 +1066,6 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 #js-notifchat li {
     border: 1px solid lightblue;
     padding: 2px;
-}
-
-#notifchatdropdown {
-    background-color: white;
-    position: absolute;
-    right: 0px;
-    padding: 0px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    text-shadow: 0 0 0 rgba(0, 0, 0, 0.59);
-    -webkit-font-smoothing: antialiased;
-    z-index: 1100;
 }
 
 .chat-min-username {
@@ -1299,9 +1286,6 @@ html {
     position: relative;
     min-height: 100%;
     -ms-overflow-style: scrollbar;
-}
-body {
-    margin-bottom: 80px;
 }
 
 .footer {
@@ -1729,12 +1713,6 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 
     .footer {
         height: 40px;
-    }
-
-    #notifchatdropdown {
-        min-width: 80vw;
-        z-index: 20000;
-        height: 90vh;
     }
 }
 

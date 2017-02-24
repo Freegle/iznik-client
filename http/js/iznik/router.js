@@ -99,8 +99,7 @@ define([
 
             "localstorage": "localstorage",
             "yahoologin": "yahoologin",
-            "modtools": "modtools",
-            "modtools/chat/{id}": "modChat",
+            "modtools/chat/:id": "modChat",
             "modtools/chats": "modChats",
             "modtools/supporters": "supporters",
             "modtools/messages/pending": "pendingMessages",
@@ -131,6 +130,7 @@ define([
             "modtools/support": "support",
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
+            "modtools": "modtools",
             "replay/(:id)": "replay",
             "mobiledebug": "mobiledebug",
             "find": "userFindWhereAmI",
@@ -322,10 +322,14 @@ define([
         userChat: function(chatid) {
             var self = this;
             require(["iznik/views/pages/chat"], function() {
-                var page = new Iznik.Views.Chat.Page({
-                    chatid: chatid
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page({
+                        chatid: chatid
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
+
+                Iznik.Session.forceLogin();
             });
         },
 
@@ -1273,15 +1277,20 @@ define([
 
         modChat: function(chatid) {
             var self = this;
+            console.log("Mod Chat");
             require(["iznik/views/pages/chat"], function() {
-                var page = new Iznik.Views.Chat.Page({
-                    chatid: chatid
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page({
+                        chatid: chatid
+                    });
+                    page.modtools = true;
+                    self.loadRoute({page: page});
                 });
-                page.modtools = true;
-                self.loadRoute({page: page});
+
+                Iznik.Session.forceLogin();
             });
         },
-        
+
         replay: function(sessionid) {
             var self = this;
 

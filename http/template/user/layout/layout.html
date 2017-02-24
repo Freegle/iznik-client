@@ -2,14 +2,26 @@
     <div class="nopad completefull container-fluid">
         <div class="nopad nomargin completefull navbar-header">
             <button class="reallyHide btn btn-white js-signin js-loggedoutonly margtopsm margright pull-right">Sign in</button>
-            <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
-              <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
-              <span class="js-totalcount badge badge-unread" style="display: none;" />
-            </button>
+            <ul class="list-inline nomargin pull-right visible-xs">
+                <li>
+                    <div class="clickme ">
+                        <a href="/chats" class="visible-xs visible-sm">
+                            <span class="white fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left padbot" type="button">
+                                <span class="js-chattotalcount badge badge-unread notifchat" />
+                            </span>
+                        </a>
+                    </div>
+                </li>
+                <li>
+                    <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
+                        <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
+                    </button>
+                </li>
+            </ul>
             <div id="nonetwork" class="margright pull-right">
               <span class="glyphicon glyphicon-cloud" aria-hidden="true" />
             </div>
-            <button id="refreshbutton" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();" >
+            <button id="refreshbutton" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();">
               <span class="glyphicon glyphicon-repeat" aria-hidden="true" />
             </button>
             <div id="refreshicon" class="margright pull-right">
@@ -71,9 +83,8 @@
                             <br />
                             <span>
                                 Chat
-                                <span class="js-totalcount badge badge-unread hidden-sm hidden-md hidden-lg" style="display: none;" />
+                                <span class="js-chattotalcount badge badge-unread" style="display: none;" />
                             </span>
-                            <span class="js-totalcount badge badge-unread hidden-xs" style="display: none;" />
                         </a>
                     </li>
                     <li>
@@ -105,9 +116,9 @@
 </div>
     </div>
 </nav>
-<div class="container completefull belowNavbar nopad">
+<div class="container completefull nopad">
     <div class="row-fluid">
-        <div class="col-md-3 hidden-sm hidden-xs js-leftsidebar ">
+        <div class="col-md-3 hidden-sm hidden-xs js-leftsidebar">
             <div class="sidebar-nav-fixed fullholder pull-left affix">
                 <div class="nopad js-loggedinonly">
                     <ul class="nav ">
@@ -119,7 +130,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6 nopad">
+        <div class="col-xs-12 col-sm-12 col-md-6 nopad">
             <div class="js-alerts" />
             <div class="pageContent img-rounded js-pageContent" />
         </div>

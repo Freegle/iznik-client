@@ -1,4 +1,4 @@
-<div class="row hidden-xs js-chatheader">
+<div class="row hidden-xs hidden-sm js-chatheader">
     <div class="col-xs-12">
         <div class="chat-name">
             <div class="dropdown pull-right">
@@ -54,7 +54,7 @@
         </div>
     </div>
 </div>
-<div class="chat-page-footer backwhite padbot js-chatfooter">
+<div class="chat-page-footer backwhite js-chatfooter">
     <div class="row nomargin">
         <div class="col-xs-12 nopad">
             <textarea rows="2" maxlength="1024" class="chat-page-input padleftonlysm form-control js-message" aria-describedby="chat-promise-{{id}}" placeholder="Type here..." />
@@ -62,7 +62,7 @@
     </div>
     <div class="row completefull nomargin">
         <div class="col-xs-6">
-            <div class="row">
+            <div class="row botspace">
                 <% if (chattype == 'User2User') { %>
                 <div class="col-xs-4">
                     <span class="clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />

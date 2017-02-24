@@ -11,20 +11,19 @@ define([
     'jquery-resizable',
     'jquery-visibility',
     'fileinput'
-], function ($, _, Backbone, Iznik, autosize, moment) {
+], function ($, _, Backbone, Iznik, autosize, moment, ChatHolder) {
     Iznik.Views.Chat.Page = Iznik.Views.Page.extend({
         noback: true,
 
         filter: null,
 
-        fullheight: true,
-
-        searchKey: function () {
+        searchKey: function (e) {
             var self = this;
-            self.filter = $(self.listContainer).find('.js-search').val();
+            self.filter = $(e.target).val();
 
             // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
-            self.chatsCV.reapplyFilter('visibleModels');
+            self.chatsCV1.reapplyFilter('visibleModels');
+            self.chatsCV2.reapplyFilter('visibleModels');
 
             if (self.filter.length > 2) {
                 // Now search on the sever.  But delay this to allow for extra keystrokes - avoids hitting
@@ -39,7 +38,8 @@ define([
                             search: self.filter
                         }
                     }).then(function() {
-                        self.chatsCV.reapplyFilter('visibleModels');
+                        self.chatsCV1.reapplyFilter('visibleModels');
+                        self.chatsCV2.reapplyFilter('visibleModels');
                     });
                 }, 500);
             }
@@ -85,7 +85,7 @@ define([
                 }
 
                 if (first) {
-                    self.chatsCV.setSelectedModel(first);
+                    self.chatsCV1.setSelectedModel(first);
                 }
             }
         },
@@ -120,50 +120,6 @@ define([
             }
         },
 
-        changeDropdown: function() {
-            var self = this;
-            var val = self.$('#js-chatdropdown').val();
-            var chat = self.chats.get(val);
-
-            // Record for when we updat the dropdown.
-            self.options.chatid = val;
-
-            if (chat) {
-                self.loadChat(chat);
-            }
-        },
-
-        setupDropdown: function() {
-            var self = this;
-            var sel = self.$('#js-chatdropdown');
-            sel.empty();
-
-            self.chats.each(function(chat) {
-                var title = chat.get('name');
-                var unseen = chat.get('unseen');
-
-                if (unseen) {
-                    title = '(' + unseen + ') ' + title;
-                }
-
-                sel.append('<option value="' + chat.get('id') + '" />');
-                var last = sel.find('option:last');
-                last.html(title);
-
-                if (chat.get('id') == self.options.chatid) {
-                    last.attr('selected', true);
-                } else {
-                    last.removeAttr('selected');
-                }
-            });
-        },
-
-        dropdownTimer: function() {
-            var self = this;
-            self.setupDropdown();
-            _.delay(_.bind(self.dropdownTimer, self), 30000);
-        },
-
         allseen: function() {
             this.chats.setStatus('Online');
             this.chats.allseen();
@@ -173,6 +129,9 @@ define([
             var self = this;
 
             self.template = self.modtools ? 'chat_page_mainmodtools' : 'chat_page_mainuser';
+
+            // For user, we put it in js-leftsidebar - which (hackily) may be a visible left sidebar for larger
+            // screens or the central pane for xs.
             self.listContainer = self.modtools ? '#js-chatlistholder' : '.js-leftsidebar';
 
             var p = Iznik.Views.Page.prototype.render.call(this);
@@ -183,45 +142,58 @@ define([
                 // We use a single global collection for our chats.
                 self.chats = Iznik.Session.chats;
 
-                // There is a select drop-down to change chats.  This is only visible on mobile.
-                self.setupDropdown();
-                self.$('#js-chatdropdown').on('change', _.bind(self.changeDropdown, self));
-                self.chats.on('add', _.bind(self.setupDropdown, self));
-
-                // The titles in the dropdown may change due to unread counts.  Update periodically - not as
-                // good as event driven but will do.
-                self.dropdownTimer();
-
-                // Left sidebar is the chat list.  It may not be visible on mobile, but we have it there anyway.
                 templateFetch('chat_page_list').then(function() {
                     $(self.listContainer).html(window.template('chat_page_list'));
                     $(self.listContainer).addClass('chat-list-holder');
 
-                    // Now set up a collection view to list the chats.
-                    self.chatsCV = new Backbone.CollectionView({
-                        el: $('#js-chatlist'),
+                    // Now set up a collection view to list the chats.  First one is for the left sidebar, which
+                    // then loads the chat in the centre panel.
+                    self.chatsCV1 = new Backbone.CollectionView({
+                        el: $('#js-chatlist1'),
                         modelView: Iznik.Views.Chat.Page.One,
                         collection: self.chats,
                         visibleModelsFilter: _.bind(self.searchFilter, self)
                     });
 
-                    self.chatsCV.render();
+                    self.chatsCV1.render();
 
                     // When we click to select, we want to load that chat.
-                    self.chatsCV.on('selectionChanged', function(selected) {
+                    self.chatsCV1.on('selectionChanged', function(selected) {
                         console.log("selectionChanged", selected);
                         if (selected.length > 0) {
                             self.loadChat(selected[0]);
                         }
                     });
 
+                    // Second one is for the centre panel, which shows the chat list or the actual messages.
+                    if (!self.options.chatid) {
+                        // Specific chats have the chat in the centre - not the list.
+                        self.$('#js-msgpane').addClass('hidden-xs hidden-sm');
+                        self.$('.js-chatsearchholder').removeClass('hidden-xs hidden-sm')
+                        self.chatsCV2 = new Backbone.CollectionView({
+                            el: $('#js-chatlist2'),
+                            modelView: Iznik.Views.Chat.Page.One,
+                            collection: self.chats,
+                            visibleModelsFilter: _.bind(self.searchFilter, self)
+                        });
+
+                        self.chatsCV2.render();
+
+                        // When we click on this one, we want to route to the chat/id.  This is so that the user
+                        // can use the back button to return to the chat list.
+                        self.chatsCV2.on('selectionChanged', function(selected) {
+                            console.log("selectionChanged 2", selected);
+                            Router.navigate((self.modtools ? '/modtools' : '') + '/chat/' + selected[0].get('id'), true);
+                        });
+                    }
+
                     self.selectedFirst = false;
                     self.chats.fetch({
                         cached: _.bind(self.fetchedChats, self)
                     }).then(_.bind(self.fetchedChats, self));
 
-                    $(self.listContainer + ' .js-search').on('keyup', _.bind(self.searchKey, self));
-                    $(self.listContainer + ' .js-allseen').on('click', _.bind(self.allseen, self));
+                    $('.js-search').on('keyup', _.bind(self.searchKey, self));
+                    $('.js-allseen').on('click', _.bind(self.allseen, self));
                 });
             });
 
@@ -283,6 +255,9 @@ define([
         },
 
         render: function () {
+            var self = this;
+            self.model.set('modtools', self.options.modtools);
+
             var p = Iznik.View.Timeago.prototype.render.call(this);
             p.then(function (self) {
                 self.updateCount();
@@ -712,28 +687,33 @@ define([
         adjust: function() {
             var self = this;
 
-            var windowInnerHeight = $(window).innerHeight();
-            var pageContentTop = parseInt($('.pageContent').css('top').replace('px', ''));
-            var chatDropdownHeight = $('#js-chatdropdown').outerHeight();
-            var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
-            var footerHeight = self.$('.js-chatfooter').outerHeight();
+            if (self.inDOM()) {
+                var windowInnerHeight = $(window).innerHeight();
+                var bodyMargin = parseInt($('body').css('margin-top').replace('px', ''));
+                var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
+                var chatHeaderHeight = self.$('.js-chatheader').is(':visible') ? self.$('.js-chatheader').outerHeight() : 0;
+                var footerHeight = self.$('.js-chatfooter').outerHeight();
+                var chatSearchHolderHeight = self.$('.js-chatsearchholder').is(':visible') ? self.$('.js-chatsearchholder').outerHeight() : 0;
 
-            var height = windowInnerHeight - pageContentTop - chatDropdownHeight - chatWarningHeight - footerHeight;
-            var str = "Heights " + height + " " + windowInnerHeight + " " + pageContentTop + " " + " " + chatDropdownHeight + " " + chatWarningHeight + " " + footerHeight;
-            var currHeight = self.$('.js-scroll').css('height').replace('px', '');
+                var height = windowInnerHeight - bodyMargin - chatWarningHeight - chatSearchHolderHeight - chatHeaderHeight - footerHeight;
+                var str = "Heights " + height + " " + windowInnerHeight + " " + bodyMargin + " " + chatSearchHolderHeight + " " + chatWarningHeight + " " + chatHeaderHeight + " " + footerHeight;
+                var currHeight = self.$('.js-scroll').css('height').replace('px', '');
 
-            if (currHeight != height) {
-                self.$('.js-scroll').css('height', height + 'px');
-                self.currentAdjustDelay = 10;
+                if (currHeight != height) {
+                    self.$('.js-scroll').css('height', height + 'px');
+                    self.currentAdjustDelay = 10;
+                    console.log(str);
+                } else {
+                    self.currentAdjustDelay *= 2;
+                    self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
+                }
+
+                // self.$('.js-message').val(str);
+
+                _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
             } else {
-                self.currentAdjustDelay *= 2;
-                self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
+                console.log("Not in DOM");
             }
-
-            // console.log(str);
-            // self.$('.js-message').val(str);
-
-            _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
         },
 
         render: function () {
@@ -744,7 +724,9 @@ define([
                 // Input text autosize
                 autosize(self.$('textarea'));
 
-                self.adjust();
+                self.waitDOM(self, function() {
+                    self.adjust();
+                });
 
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();

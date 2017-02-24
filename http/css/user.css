@@ -292,16 +292,10 @@ h1,h2,h3,h4 {
     line-height: normal;
 }
 
-#notifchatdropdown {
-    color: black !important;
-    background-color: white !important;
-    position: fixed;
-    top: 61px;
-}
-
-#notifchatdropdown li {
-    border-bottom: solid 1px black;
-    background-color: white;
+.notifchat {
+    position: absolute;
+    top: -3px;
+    right: 15px;
 }
 
 #js-notifchat ul, #js-notifchat li {
