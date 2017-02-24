@@ -17,9 +17,9 @@ define([
 
         filter: null,
 
-        searchKey: function () {
+        searchKey: function (e) {
             var self = this;
-            self.filter = $(self.listContainer).find('.js-search').val();
+            self.filter = $(e.target).val();
 
             // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
             self.chatsCV1.reapplyFilter('visibleModels');
@@ -184,8 +184,8 @@ define([
                         cached: _.bind(self.fetchedChats, self)
                     }).then(_.bind(self.fetchedChats, self));
 
-                    $(self.listContainer + ' .js-search').on('keyup', _.bind(self.searchKey, self));
-                    $(self.listContainer + ' .js-allseen').on('click', _.bind(self.allseen, self));
+                    $('.js-search').on('keyup', _.bind(self.searchKey, self));
+                    $('.js-allseen').on('click', _.bind(self.allseen, self));
                 });
             });
 
