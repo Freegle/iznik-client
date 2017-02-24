@@ -706,32 +706,34 @@ define([
         adjust: function () {
             var self = this;
 
-            // The text area shouldn't grow too high, but should go above a single line if there's room.
-            var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
-            var mininpheight = Math.round(self.$el.innerHeight() * .15);
-            self.$('textarea').css('max-height', maxinpheight);
-            self.$('textarea').css('min-height', mininpheight);
+            if (self.inDOM()) {
+                // The text area shouldn't grow too high, but should go above a single line if there's room.
+                var maxinpheight = self.$el.innerHeight() - this.$('.js-chatheader').outerHeight();
+                var mininpheight = Math.round(self.$el.innerHeight() * .15);
+                self.$('textarea').css('max-height', maxinpheight);
+                self.$('textarea').css('min-height', mininpheight);
 
-            var chatwarning = this.$('.js-chatwarning');
-            var warningheight = chatwarning.length > 0 ? (chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight()) : 0;
-            var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter textarea').outerHeight() - this.$('.js-chatfooter .js-buttons').outerHeight() - warningheight;
-            newHeight = Math.round(newHeight);
+                var chatwarning = this.$('.js-chatwarning');
+                var warningheight = chatwarning.length > 0 ? (chatwarning.css('display') == 'none' ? 0 : chatwarning.outerHeight()) : 0;
+                var newHeight = this.$el.innerHeight() - this.$('.js-chatheader').outerHeight() - this.$('.js-chatfooter textarea').outerHeight() - this.$('.js-chatfooter .js-buttons').outerHeight() - warningheight;
+                newHeight = Math.round(newHeight);
 
-            // console.log("Adjust on", this.$el, newHeight);
-            // console.log("Height", newHeight, this.$el.innerHeight(), this.$('.js-chatheader').outerHeight(), this.$('.js-chatfooter textarea').outerHeight(), this.$('.js-chatfooter .js-buttons').outerHeight(), warningheight);
-            this.$('.js-leftpanel, .js-roster').height(newHeight);
+                // console.log("Adjust on", this.$el, newHeight);
+                // console.log("Height", newHeight, this.$el.innerHeight(), this.$('.js-chatheader').outerHeight(), this.$('.js-chatfooter textarea').outerHeight(), this.$('.js-chatfooter .js-buttons').outerHeight(), warningheight);
+                this.$('.js-leftpanel, .js-roster').height(newHeight);
 
-            var width = self.$el.width();
+                var width = self.$el.width();
 
-            if (self.model.get('chattype') == 'Mod2Mod' || self.model.get('chattype') == 'Group') {
-                // Group chats have a roster.
-                var lpwidth = self.$('.js-leftpanel').width();
-                lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;
-                lpwidth = Math.max(self.$el.width() - 250, lpwidth);
-                self.$('.js-leftpanel').width(lpwidth);
-            } else {
-                // Others
-                self.$('.js-leftpanel').width('100%');
+                if (self.model.get('chattype') == 'Mod2Mod' || self.model.get('chattype') == 'Group') {
+                    // Group chats have a roster.
+                    var lpwidth = self.$('.js-leftpanel').width();
+                    lpwidth = self.$el.width() - 60 < lpwidth ? (width - 60) : lpwidth;
+                    lpwidth = Math.max(self.$el.width() - 250, lpwidth);
+                    self.$('.js-leftpanel').width(lpwidth);
+                } else {
+                    // Others
+                    self.$('.js-leftpanel').width('100%');
+                }
             }
         },
 
