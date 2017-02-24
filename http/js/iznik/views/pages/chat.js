@@ -691,7 +691,7 @@ define([
                 var windowInnerHeight = $(window).innerHeight();
                 var bodyMargin = parseInt($('body').css('margin-top').replace('px', ''));
                 var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
-                var chatHeaderHeight = self.$('.js-chatheader').outerHeight();
+                var chatHeaderHeight = self.$('.js-chatheader').is(':visible') ? self.$('.js-chatheader').outerHeight() : 0;
                 var footerHeight = self.$('.js-chatfooter').outerHeight();
                 var chatSearchHolderHeight = self.$('.js-chatsearchholder').is(':visible') ? self.$('.js-chatsearchholder').outerHeight() : 0;
 
