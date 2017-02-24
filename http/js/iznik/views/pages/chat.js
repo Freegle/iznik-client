@@ -11,7 +11,7 @@ define([
     'jquery-resizable',
     'jquery-visibility',
     'fileinput'
-], function ($, _, Backbone, Iznik, autosize, moment) {
+], function ($, _, Backbone, Iznik, autosize, moment, ChatHolder) {
     Iznik.Views.Chat.Page = Iznik.Views.Page.extend({
         noback: true,
 

@@ -157,11 +157,10 @@ define([
             // console.log("Organised", (new Date()).getMilliseconds() - start);
         },
 
-        unseenCount: -1,
-
         updateCounts: function () {
             var self = this;
             var unseen = 0;
+            console.log("update Chat counts");
 
             Iznik.Session.chats.each(function (chat) {
                 unseen += chat.get('unseen');
@@ -173,21 +172,19 @@ define([
             title = match ? match[1] : title;
 
             // This if test improves browser performance by avoiding unnecessary show/hides.
-            if (self.unseenCount != unseen) {
-                self.unseenCount = unseen;
-
-                if (unseen > 0) {
-                    $('.js-chattotalcount').html(unseen).show();
-                    $('.js-chattotalcount').html(unseen).show();
-                    document.title = '(' + unseen + ') ' + title;
-                } else {
-                    $('.js-chattotalcount').html(unseen).hide();
-                    $('.js-chattotalcount').html(unseen).hide();
-                    document.title = title;
+            $('.js-chattotalcount').each(function() {
+                if ($(this).html() != unseen) {
+                    if (unseen > 0) {
+                        $(this).html(unseen).show();
+                        document.title = '(' + unseen + ') ' + title;
+                    } else {
+                        $(this).html().hide();
+                        document.title = title;
+                    }
                 }
+            });
 
-                this.showMin();
-            }
+            self.showMin();
         },
 
         updateCountTimer: function() {
@@ -333,7 +330,7 @@ define([
                 });
 
                 self.organise();
-
+                self.updateCounts();
             }
         },
 
@@ -343,6 +340,7 @@ define([
 
             // We might already be rendered, as we're outside the body content that gets zapped when we move from
             // page to page.
+            console.log("Page render - got holder?", $('#chatHolder').length);
             if ($('#chatHolder').length == 0) {
                 self.$el.css('visibility', 'hidden');
 
@@ -369,6 +367,7 @@ define([
                     self.tabActive = true;
                 });
             } else {
+                self.updateCounts();
                 p = resolvedPromise(self);
             }
 
