@@ -177,6 +177,9 @@ define([
                         });
 
                         self.chatsCV2.render();
+                    } else {
+                        // Specific chat - for small screens we don't want the search box.
+                        self.$('.js-chatsearchholder').addClass('hidden-xs hidden-sm')
                     }
 
                     self.selectedFirst = false;
@@ -681,9 +684,10 @@ define([
             var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
             var chatHeaderHeight = self.$('.js-chatheader').outerHeight();
             var footerHeight = self.$('.js-chatfooter').outerHeight();
+            var chatSearchHolderHeight = self.$('.js-chatsearchholder').is(':visible') ? self.$('.js-chatsearchholder').outerHeight() : 0;
 
-            var height = windowInnerHeight - bodyMargin - chatWarningHeight - chatHeaderHeight - footerHeight;
-            var str = "Heights " + height + " " + windowInnerHeight + " " + bodyMargin + " " + " " + " " + chatWarningHeight + " " + chatHeaderHeight + " " + footerHeight;
+            var height = windowInnerHeight - bodyMargin - chatWarningHeight - chatSearchHolderHeight - chatHeaderHeight - footerHeight;
+            var str = "Heights " + height + " " + windowInnerHeight + " " + bodyMargin + " " + chatSearchHolderHeight + " " + chatWarningHeight + " " + chatHeaderHeight + " " + footerHeight;
             var currHeight = self.$('.js-scroll').css('height').replace('px', '');
 
             if (currHeight != height) {
