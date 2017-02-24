@@ -2,10 +2,22 @@
     <div class="nopad completefull container-fluid">
         <div class="nopad nomargin completefull navbar-header">
             <button class="reallyHide btn btn-white js-signin js-loggedoutonly margtopsm margright pull-right">Sign in</button>
-            <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
-                <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
-                <span class="js-totalcount badge badge-unread" style="display: none;" />
-            </button>
+            <ul class="list-inline nomargin pull-right visible-xs">
+                <li>
+                    <div class="clickme ">
+                        <a href="/chats" class="visible-xs visible-sm">
+                            <span class="white fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left padbot" type="button">
+                                <span class="js-chattotalcount badge badge-unread notifchat" />
+                            </span>
+                        </a>
+                    </div>
+                </li>
+                <li>
+                    <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
+                        <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
+                    </button>
+                </li>
+            </ul>
             <div class="notop js-home clickme padleft pull-left">
                 <img src="/images/user_logo.png" class="padmd img-responsive img-morerounded inline" />
             </div>
@@ -55,9 +67,8 @@
                             <br />
                             <span>
                                 Chat
-                                <span class="js-totalcount badge badge-unread hidden-sm hidden-md hidden-lg" style="display: none;" />
+                                <span class="js-chattotalcount badge badge-unread" style="display: none;" />
                             </span>
-                            <span class="js-totalcount badge badge-unread hidden-xs" style="display: none;" />
                         </a>
                     </li>
                     <li>

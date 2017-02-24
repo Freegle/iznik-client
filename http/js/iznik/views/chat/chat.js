@@ -154,9 +154,6 @@ define([
                 console.log("No chats to organise");
             }
 
-            // The drop-down menu needs to be scrollable, and so we put a max-height on it.
-            $('#notifchatdropdown').css('max-height', windowInnerHeight - navbarOuterHeight);
-
             // console.log("Organised", (new Date()).getMilliseconds() - start);
         },
 
@@ -180,12 +177,12 @@ define([
                 self.unseenCount = unseen;
 
                 if (unseen > 0) {
-                    $('#dropdownmenu').find('.js-totalcount').html(unseen).show();
-                    $('#js-notifchat').find('.js-totalcount').html(unseen).show();
+                    $('.js-chattotalcount').html(unseen).show();
+                    $('.js-chattotalcount').html(unseen).show();
                     document.title = '(' + unseen + ') ' + title;
                 } else {
-                    $('#dropdownmenu').find('.js-totalcount').html(unseen).hide();
-                    $('#js-notifchat').find('.js-totalcount').html(unseen).hide();
+                    $('.js-chattotalcount').html(unseen).hide();
+                    $('.js-chattotalcount').html(unseen).hide();
                     document.title = title;
                 }
 
@@ -799,9 +796,6 @@ define([
             var self = this;
             self.restoredAt = (new Date()).getTime();
             self.minimised = false;
-
-            // Hide the chat list if it's open.
-            $('#notifchatdropdown').hide();
 
             // Input text autosize
             // console.log("Autosize on " + self.model.get('id') + " " + self.doneAutosize);

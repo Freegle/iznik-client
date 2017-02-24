@@ -1068,18 +1068,6 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding: 2px;
 }
 
-#notifchatdropdown {
-    background-color: white;
-    position: absolute;
-    right: 0px;
-    padding: 0px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    text-shadow: 0 0 0 rgba(0, 0, 0, 0.59);
-    -webkit-font-smoothing: antialiased;
-    z-index: 1100;
-}
-
 .chat-min-username {
     color: #000080;
 }
@@ -1725,12 +1713,6 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 
     .footer {
         height: 40px;
-    }
-
-    #notifchatdropdown {
-        min-width: 80vw;
-        z-index: 20000;
-        height: 90vh;
     }
 }
 
