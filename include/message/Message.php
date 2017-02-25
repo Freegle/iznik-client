@@ -3641,17 +3641,18 @@ class Message
         # ...and update the search index.
         $this->s->bump($this->id, time());
 
-        $this->log->log([
-            'type' => Log::TYPE_MESSAGE,
-            'subtype' => Log::SUBTYPE_AUTO_REPOSTED,
-            'msgid' => $this->id,
-            'user' => $this->getFromuser(),
-            'text' => "$reposts / $max"
-        ]);
-
         # Record that we've done this.
         $groups = $this->getGroups();
         foreach ($groups as $groupid) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_AUTO_REPOSTED,
+                'msgid' => $this->id,
+                'groupid' => $groupid,
+                'user' => $this->getFromuser(),
+                'text' => "$reposts / $max"
+            ]);
+
             $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
             $this->dbhm->preExec($sql, [
                 $this->id,
