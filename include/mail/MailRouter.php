@@ -274,7 +274,7 @@ class MailRouter
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is a request by Yahoo to confirm a subscription for one of our members.  We do that if the
-                # member is still pending; if not then this might be an earlier subscription request which has
+                # member is still pending or approved; if not then this might be an earlier subscription request which has
                 # finally found its way to Yahoo.  Confirming this might lead to a resubscribe after a rejection.
                 if ($log) { error_log("Confirm subscription"); }
 
@@ -289,9 +289,9 @@ class MailRouter
                     $u = User::get($this->dbhr, $this->dbhm);
                     $uid = $u->findByEmail($to);
                     $u = User::get($this->dbhr, $this->dbhm, $uid);
-                    if ($log) { error_log("Found $uid for $to, onhere " . $g->getPrivate('onhere') . ", pending " . $u->isPending($gid)); }
+                    if ($log) { error_log("Found $uid for $to, onhere " . $g->getPrivate('onhere') . ", pending " . $u->isPendingMember($gid)); }
 
-                    if ($g->getPrivate('onhere') && $u->isPending($gid)) {
+                    if ($g->getPrivate('onhere') && ($u->isPendingMember($gid) || $u->isApprovedMember($gid))) {
                         for ($i = 0; $i < 10; $i++) {
                             # Yahoo is sluggish - sending the confirm multiple times helps.
                             $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
@@ -495,7 +495,7 @@ class MailRouter
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
 
                             # Membership might have disappeared in the mean time.
-                            if ($u->isPending($gid)) {
+                            if ($u->isPendingMember($gid)) {
                                 $eid = $u->getIdForEmail($to);
                                 $eid = $eid ? $eid['id'] : NULL;
                                 $u->markYahooApproved($gid, $eid);

@@ -678,7 +678,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function isPending($groupid) {
+    public function isPendingMember($groupid) {
         $ret = false;
         $sql = "SELECT userid FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
         $membs = $this->dbhr->preQuery($sql, [
@@ -778,7 +778,7 @@ class User extends Entity
             if ($ban) {
                 $type = 'BanApprovedMember';
             } else {
-                $type = $this->isPending($groupid) ? 'RejectPendingMember' : 'RemoveApprovedMember';
+                $type = $this->isPendingMember($groupid) ? 'RejectPendingMember' : 'RemoveApprovedMember';
             }
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
@@ -2059,9 +2059,16 @@ class User extends Entity
 
         $this->maybeMail($groupid, $subject, $body, 'Reject Member');
 
+        # We might have messages which are awaiting this membership.
+        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid IN (SELECT id FROM messages WHERE fromuser = ?) AND groupid = ?;", [
+            MessageCollection::REJECTED,
+            $this->id,
+            $groupid
+        ]);
+
         # Delete from memberships - after emailing, otherwise we won't find the right email for this grup.
         $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $this->dbhr->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
+        $this->dbhm->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
     }
 
     public function approve($groupid, $subject, $body, $stdmsgid) {
