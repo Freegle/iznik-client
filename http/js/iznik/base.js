@@ -167,6 +167,16 @@ define([
                         // cached value.
                         issueFetch = age >= expiry || !options.cacheOnly;
 
+                        if (issueFetch && age >= expiry) {
+                            // Our entry has expired and we are going to get a new one.  It's possible that this
+                            // might fail due to quota issues.  Zap our old one to avoid always showing data
+                            // that is too old.
+                            try {
+                                Storage.remove(key);
+                                Storage.remove(key + '.time');
+                            } catch (e) {}
+                        }
+
                         // We might want to delay it.
                         fetchDelay = options.hasOwnProperty('cacheFetchAfter') ? (options.cacheFetchAfter * 1000) :
                             (3000 + Math.floor(Math.random() * 7000));

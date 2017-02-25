@@ -178,7 +178,7 @@ define([
                         $(this).html(unseen).show();
                         document.title = '(' + unseen + ') ' + title;
                     } else {
-                        $(this).html().hide();
+                        $(this).empty().hide();
                         document.title = title;
                     }
                 }
