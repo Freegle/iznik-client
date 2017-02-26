@@ -678,6 +678,31 @@ class User extends Entity
         return($rc);
     }
 
+    public function isRejected($groupid) {
+        # We use this to check if a member has recently been rejected.  We call it when we are dealing with a
+        # member that we think should be pending, to check that they haven't been rejected and therefore
+        # we shouldn't continue processing them.
+        #
+        # This is rather than checking the current collection they're in, because there are some awkward timing
+        # windows.  For example:
+        # - Trigger Yahoo application
+        # - Member sync via plugin - not yet on Pending on Yahoo
+        # - Delete membership
+        # - Then asked to confirm application
+        #
+        # TODO This lasts forever.  Probably it shouldn't.
+        $logs = $this->dbhr->preQuery("SELECT id FROM logs WHERE user = ? AND groupid = ? AND type = ? AND subtype = ?;", [
+            $this->id,
+            $groupid,
+            Log::TYPE_USER,
+            Log::SUBTYPE_REJECTED
+        ]);
+
+        $ret = count($logs) > 0;
+
+        return($ret);
+    }
+
     public function isPendingMember($groupid) {
         $ret = false;
         $sql = "SELECT userid FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";

@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 # Look for messages which were queued and can now be sent.  This fallback catches cases where Yahoo doesn't let us know
 # that someone is now a member, but we find out via other means (e.g. plugin).
 
-$sql = "SELECT messages.id, messages.date, messages.subject, messages.fromaddr, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE collection =  'QueuedYahooUser' AND messages_outcomes.msgid IS NULL;";
+$sql = "SELECT messages.id, messages.date, messages.subject, messages.fromaddr, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE collection =  'QueuedYahooUser' AND messages_outcomes.msgid IS NULL AND messages.fromuser = 33492699;";
 $messages = $dbhr->preQuery($sql);
 
 $submitted = 0;
@@ -31,7 +31,7 @@ foreach ($messages as $message) {
                 $m->submit($u, $email, $message['groupid']);
                 $outcome = ' submitted';
                 $submitted++;
-            } else if ($u->isPendingMember($message['groupid']) || $u->isApprovedMember($message['groupid'])) {
+            } else if (!$u->isRejected($message['groupid'])) {
                 # Still pending - maybe Yahoo lost it.  Resend the application.
                 $u->triggerYahooApplication($message['groupid'], FALSE);
                 $outcome = ' still queued';

@@ -289,9 +289,10 @@ class MailRouter
                     $u = User::get($this->dbhr, $this->dbhm);
                     $uid = $u->findByEmail($to);
                     $u = User::get($this->dbhr, $this->dbhm, $uid);
-                    if ($log) { error_log("Found $uid for $to, onhere " . $g->getPrivate('onhere') . ", pending " . $u->isPendingMember($gid)); }
+                    if ($log) { error_log("Found $uid for $to, onhere " . $g->getPrivate('onhere') . ", pending " . $u->isPendingMember($gid) . " approved " . $u->isApprovedMember($gid)); }
 
-                    if ($g->getPrivate('onhere') && ($u->isPendingMember($gid) || $u->isApprovedMember($gid))) {
+                    if ($g->getPrivate('onhere') && !$u->isRejected($gid)) {
+                        if ($log) { error_log("Confirm it"); }
                         for ($i = 0; $i < 10; $i++) {
                             # Yahoo is sluggish - sending the confirm multiple times helps.
                             $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
