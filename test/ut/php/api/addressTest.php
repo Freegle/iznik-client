@@ -60,9 +60,14 @@ class addressAPITest extends IznikAPITestCase
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
 
         assertTrue($this->user->login('testpw'));
+
+        // This assumes some addresses are loaded, even if they're fake.
+        $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses LIMIT 1;");
+        self::assertEquals(1, count($pafadds));
+
         $ret = $this->call('address', 'PUT', [
             'line1' => 'Test',
-            'postcodeid' => $pcid
+            'pafid' => $pafadds[0]['id']
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -71,26 +76,29 @@ class addressAPITest extends IznikAPITestCase
 
         # Get with id - should work
         $ret = $this->call('address', 'GET', ['id' => $id]);
+        error_log("Got address " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['address']['id']);
-        assertEquals('Test', $ret['address']['line1']);
+
+        $p = new PAF($this->dbhr, $this->dbhm);
+        assertEquals($p->getSingleLine($pafadds[0]['id']), $ret['address']['singleline']);
+        assertEquals($p->getFormatted($pafadds[0]['id'], "\n"), $ret['address']['multiline']);
 
         # List
         $ret = $this->call('address', 'GET', []);
         assertEquals(0, $ret['ret']);
         self::assertEquals(1, count($ret['addresses']));
         assertEquals($id, $ret['addresses'][0]['id']);
-        assertEquals('Test', $ret['addresses'][0]['line1']);
 
         # Edit
         $ret = $this->call('address', 'PATCH', [
             'id' => $id,
-            'line1' => 'Test2'
+            'instructions' => 'Test2'
         ]);
         assertEquals(0, $ret['ret']);
         $ret = $this->call('address', 'GET', ['id' => $id]);
         assertEquals(0, $ret['ret']);
-        assertEquals('Test2', $ret['address']['line1']);
+        assertEquals('Test2', $ret['address']['instructions']);
 
         # Delete
         $ret = $this->call('address', 'DELETE', [

@@ -135,6 +135,10 @@ class PAF
     }
 
     public function getSingleLine($id) {
+        return($this->getFormatted($id, ', '));
+    }
+
+    public function getFormatted($id, $delimiter) {
         $str = NULL;
         $a = new AllenJB\PafUtils\Address;
         $sql = "SELECT locations.name AS postcode, paf_addresses.buildingnumber";
@@ -174,7 +178,7 @@ class PAF
 
             $addr = $a->getAddressLines();
 
-            $str = implode(', ', $addr) . ", " . $a->getPostTown() . " " . $address['postcode'];
+            $str = implode($delimiter, $addr) . $delimiter . $a->getPostTown() . " " . $address['postcode'];
         }
 
         return($str);

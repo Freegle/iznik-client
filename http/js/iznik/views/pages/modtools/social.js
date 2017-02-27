@@ -11,7 +11,8 @@ define([
     'iznik/modtools',
     'iznik/models/social',
     'iznik/views/pages/pages',
-    'iznik/views/infinite'
+    'iznik/views/infinite',
+    'iznik/views/postaladdress'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Pages.SocialActions = Iznik.Views.Infinite.extend({
         modtools: true,
@@ -209,20 +210,17 @@ define([
 
         submit: function() {
             var self = this;
+            var pafid = self.postalAddress.address();
+            var to = self.postalAddress.to();
 
-            if (self.$('form').valid()) {
-                var data = {
-                    postcodeid: self.postcodeid
-                };
-
-                _.each(['line1', 'line2', 'line3', 'line4', 'town', 'county'], function(att) {
-                    data[att] = self.$('.js-' + att).val();
-                });
+            if (pafid) {
 
                 $.ajax({
                     url: API + '/address',
                     type: 'PUT',
-                    data: data,
+                    data: {
+                        pafid: pafid
+                    },
                     success: function(ret) {
                         if (ret.ret === 0) {
                             $.ajax({
@@ -230,6 +228,7 @@ define([
                                 type: 'PUT',
                                 data: {
                                     reqtype: 'BusinessCards',
+                                    to: to,
                                     addressid: ret.id
                                 },
                                 success: function(ret) {
@@ -251,22 +250,18 @@ define([
             var p = Iznik.Views.Modal.prototype.render.call(self);
             p.then(function () {
                 self.waitDOM(self, function() {
-                    self.validator = self.$('form').validate({
-                        rules: {
-                            line1: {
-                                required: true,
-                                minlength: 2
-                            },
-                            town: {
-                                required: true,
-                                minlength: 2
-                            },
-                            postcode: {
-                                required: true,
-                                ourPostcode: self
-                            }
-                        }
+                    var me = Iznik.Session.get('me');
+                    var settings = me.hasOwnProperty('settings') ? me.settings : null;
+                    var location = settings ? (settings.hasOwnProperty('mylocation') ? settings.mylocation : null) : null;
+                    var postcode = location ? location.name : null;
+
+                    self.postalAddress = new Iznik.Views.PostalAddress({
+                        postcode: postcode,
+                        showTo: true,
+                        to: me.displayname
                     });
+                    self.postalAddress.render();
+                    self.$('.js-postaladdress').append(self.postalAddress.$el);
                 });
             });
 

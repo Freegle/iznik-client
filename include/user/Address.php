@@ -7,8 +7,8 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 class Address extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'line1', 'line2', 'line3', 'line4', 'town', 'county', 'postcodeid', 'instructions');
-    var $settableatts = array('line1', 'line2', 'line3', 'line4', 'town', 'county', 'postcodeid', 'instructions');
+    var $publicatts = array('id', 'pafid', 'to', 'instructions');
+    var $settableatts = array('pafid', 'fo', 'instructions');
 
     const ASK_OUTCOME_THRESHOLD = 3;
     const ASK_OFFER_THRESHOLD = 5;
@@ -18,18 +18,12 @@ class Address extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'users_addresses', 'address', $this->publicatts);
     }
 
-    public function create($userid, $line1, $line2, $line3, $line4, $town, $county, $postcodeid, $instructions) {
+    public function create($userid, $pafid, $instructions = NULL) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("REPLACE INTO users_addresses (userid, line1, line2, line3, line4, town, county, postcodeid, instructions) VALUES (?,?,?,?,?,?,?,?,?);", [
+        $rc = $this->dbhm->preExec("REPLACE INTO users_addresses (userid, pafid, instructions) VALUES (?,?,?);", [
             $userid,
-            $line1, 
-            $line2, 
-            $line3, 
-            $line4, 
-            $town, 
-            $county, 
-            $postcodeid,
+            $pafid,
             $instructions
         ]);
 
@@ -44,26 +38,16 @@ class Address extends Entity
         return($id);
     }
 
-    public function getPublic($mask = TRUE)
+    public function getPublic()
     {
         $ret = parent::getPublic();
 
-        # Mask out address - even when showing to the logged in user we don't want to show it all.  Remember that
-        # support staff can impersonate.
         $atts = $this->settableatts;
-        unset($atts['postcodeid']);
 
-        if ($mask) {
-            foreach ($atts as $key => $val) {
-                $len = strlen($val);
-                $ret[$key] = substr($val, 0, 1) . str_repeat('*', $len - 2) . substr($val, $len - 1, 1);
-            }
-        }
-
-        if (pres('postcodeid', $ret)) {
-            $l = new Location($this->dbhr, $this->dbhm, $ret['postcodeid']);
-            $ret['postcode'] = $l->getPublic();
-            unset($ret['postcodeid']);
+        if (pres('pafid', $ret)) {
+            $p = new PAF($this->dbhr, $this->dbhm);
+            $ret['singleline'] = $p->getSingleLine($ret['pafid']);
+            $ret['multiline'] = $p->getFormatted($ret['pafid'], "\n");
         }
 
         return($ret);

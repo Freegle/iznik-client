@@ -479,7 +479,7 @@ class Location extends Entity
         return($ret);
     }
 
-    public function typeahead($query, $limit = 10) {
+    public function typeahead($query, $limit = 10, $near = TRUE) {
         # We want to select full postcodes (with a space in them)
         $sql = "SELECT * FROM locations WHERE name LIKE ? AND name LIKE '% %' AND type = 'Postcode' LIMIT $limit;";
         $pcs = $this->dbhr->preQuery($sql, [ "$query%" ]);
@@ -490,8 +490,10 @@ class Location extends Entity
                 $thisone[$att] = $pc[$att];
             }
 
-            $l = new Location($this->dbhr, $this->dbhm, $pc['id']);
-            $thisone['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
+            if ($near) {
+                $l = new Location($this->dbhr, $this->dbhm, $pc['id']);
+                $thisone['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
+            }
 
             if ($thisone['areaid']) {
                 $l = new Location($this->dbhr, $this->dbhm, $thisone['areaid']);

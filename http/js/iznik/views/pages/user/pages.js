@@ -429,7 +429,7 @@ define([
                 }
 
                 self.$('.js-postcode').typeahead({
-                    minLength: 2,
+                    minLength: 3,
                     hint: false,
                     highlight: true
                 }, {
