@@ -99,15 +99,113 @@ class PAF
                 foreach ($this->idfields2 as $field) {
                     $csv[] = $this->getRefId("paf_$field", $field, $fields[$ix++]);
                 }
+
+                fputcsv($fhout, $csv);
             }
 
-            fputcsv($fhout, $csv);
             $count++;
 
             if ($count % 1000 === 0) { error_log("...$count"); }
         }
 
         error_log("Unknown " . var_export($unknowns, TRUE));
+    }
+
+    public function update($fn) {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $fh = fopen($fn,'r');
+        $count = 0;
+        $differs = 0;
+
+        while ($row = fgets($fh)){
+            # Parse the line.
+            $fields = str_getcsv($row);
+            $postcode = $l->findByName($fields[0]);
+            $udprn = $fields[12];
+            $buildingnumber = $fields[6];
+            $postcodetype = $fields[13];
+            $suorganisationindicator = $fields[14];
+            $deliverypointsuffix = $fields[15];
+
+            $ix = 1;
+
+            foreach ($this->idfields1 as $field) {
+                $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+            }
+
+            foreach ($this->idfields2 as $field) {
+                $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+            }
+
+            $addresses = $this->dbhr->preQuery("SELECT * FROM paf_addresses WHERE udprn = ?;", [ $udprn ]);
+            foreach ($addresses as $address) {
+                # Compare the values
+                foreach ($address as $key => $val) {
+                    if (!is_int($key) && $key != 'id') {
+                        $v = str_replace('id', '', $key);
+                        $$v = $$v == ' ' ? NULL : $$v;
+                        $$v = $$v == '' ? NULL : $$v;
+
+                        if ($val != $$v) {
+                            error_log("UDPRN $udprn differs in $key $val => {$$v}");
+                            $differs++;
+                            $this->dbhm->preExec("UPDATE paf_addresses SET $key = ? WHERE id = ?;", [
+                                $$v,
+                                $address['id']
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            if (count($addresses) === 0) {
+                # This is a new entry.
+                $sql = "INSERT INTO paf_addresses (postcodeid, buildingnumber, postcodetype, suorganisationindicator, deliverypointsuffix";
+                $values = [];
+                $ix = 1;
+
+                foreach ($this->idfields1 as $field) {
+                    $sql .= ", {$field}id";
+                    $v = $$field;
+                    $v = $v == ' ' ? NULL : $v;
+                    $v = $v == '' ? NULL : $v;
+
+                    $values[] = $v;
+                }
+
+                foreach ($this->idfields2 as $field) {
+                    $sql .= ", {$field}id";
+                    $v = $$field;
+                    $v = $v == ' ' ? NULL : $v;
+                    $v = $v == '' ? NULL : $v;
+
+                    $values[] = $v;
+                }
+
+                $sql .= ") VALUES ($postcode, " . $this->dbhm->quote($buildingnumber) . ", " . $this->dbhm->quote($postcodetype) . ", " . $this->dbhm->quote($suorganisationindicator) . ", " . $this->dbhm->quote($deliverypointsuffix);
+                $ix = 0;
+
+                foreach ($this->idfields1 as $field) {
+                    $val = $values[$ix++];
+                    $sql .= ", " . ($val ? $this->dbhm->quote($val) : 'NULL');
+                }
+
+                foreach ($this->idfields2 as $field) {
+                    $val = $values[$ix++];
+                    $sql .= ", " . ($val ? $this->dbhm->quote($val) : 'NULL');
+                }
+
+                $sql .= ");";
+                $differs++;
+                $this->dbhm->preExec($sql);
+            }
+
+            $count++;
+
+            if ($count % 1000 === 0) { error_log("...$count"); }
+        }
+
+        return($differs);
     }
 
     public function listForPostcode($pc) {

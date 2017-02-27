@@ -128,6 +128,7 @@ class LoggedPDO {
     private $cachequeries = 0;
     private $cachehits = 0;
     private $pheanstalk = NULL;
+    private $readonly;
     private $readconn;
     private $querying = false;
     private $dsn = NULL;
