@@ -32,7 +32,7 @@ class PAFTest extends IznikTestCase {
         error_log(__METHOD__);
 
         if (file_exists('/tmp/ut_paf0000000000.csv')) {
-            unlike('/tmp/ut_paf0000000000.csv');
+            unlink('/tmp/ut_paf0000000000.csv');
         }
 
         $p = new PAF($this->dbhr, $this->dbhm);

@@ -26,7 +26,7 @@ foreach ($chats as $chat) {
 
             if (count($roster) == 0) {
                 error_log("...No roster, add");
-                $c->updateRoster($msg['userid'], $msg['id'], ChatRoom::STATUS_OFFLINE);
+                $c->updateRoster($msg['userid'], $msg['id']);
             } else {
                 foreach ($roster as $user) {
                     if ($user['user']['id'] == $msg['userid']) {
@@ -34,7 +34,7 @@ foreach ($chats as $chat) {
                             error_log("...already seen later");
                         } else {
                             error_log("...mark first as seen");
-                            $c->updateRoster($msg['userid'], $msg['id'], ChatRoom::STATUS_OFFLINE);
+                            $c->updateRoster($msg['userid'], $msg['id']);
                         }
                     }
                 }

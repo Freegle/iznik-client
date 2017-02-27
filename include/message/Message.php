@@ -1952,7 +1952,7 @@ class Message
 
                     # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
                     # appearing as unread to us and other mods.
-                    $r->updateRoster($myid, $mid, ChatRoom::STATUS_ONLINE);
+                    $r->updateRoster($myid, $mid);
                 }
             } else {
                 # For other users, we send the message out by mail.

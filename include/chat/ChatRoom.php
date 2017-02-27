@@ -142,21 +142,12 @@ class ChatRoom extends Entity
         if ($id) {
             $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
 
-            # Now the conversation exists, set presence.
-            #
-            # Start off with the two members offline.
-            $this->updateRoster($user1, NULL, ChatRoom::STATUS_OFFLINE);
-            $this->updateRoster($user2, NULL, ChatRoom::STATUS_OFFLINE);
+            # Ensure the two members are in the roster.
+            $this->updateRoster($user1, NULL);
+            $this->updateRoster($user2, NULL);
 
-            # If we're logged in as one of the members, set our own presence in it to Online.  This will have the effect of
-            # overwriting any previous Closed status, which would stop it appearing in our list of chats.  So if you
-            # close a conversation, and then later reopen it by finding a relevant link, then it comes back.
             $me = whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
-
-            if ($myid == $user1 || $myid == $user2) {
-                $this->updateRoster($myid, NULL, ChatRoom::STATUS_ONLINE);
-            }
 
             # Poke the (other) member(s) to let them know to pick up the new chat
             $n = new Notifications($this->dbhr, $this->dbhm);
@@ -220,10 +211,8 @@ class ChatRoom extends Entity
         if ($id) {
             $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
 
-            # Now the conversation exists, set presence.
-            #
-            # Start off with the user online.
-            $this->updateRoster($user1, NULL, ChatRoom::STATUS_ONLINE);
+            # Ensure this users is in the roster.
+            $this->updateRoster($user1, NULL);
 
             # Poke the group mods to let them know to pick up the new chat
             $n = new Notifications($this->dbhr, $this->dbhm);
@@ -521,6 +510,19 @@ class ChatRoom extends Entity
         return (count($ret) == 0 ? NULL : $ret);
     }
 
+    public function filterCanSee($userid, $chatids)
+    {
+        $ret = [];
+        $rooms = $this->listForUser($userid, [
+            ChatRoom::TYPE_GROUP,
+            ChatRoom::TYPE_MOD2MOD,
+            ChatRoom::TYPE_USER2USER,
+            ChatRoom::TYPE_USER2MOD
+        ], NULL, TRUE);
+
+        return(array_intersect($chatids, $rooms));
+    }
+
     public function canSee($userid)
     {
         if ($userid == $this->chatroom['user1'] || $userid == $this->chatroom['user2']) {
@@ -565,7 +567,7 @@ class ChatRoom extends Entity
         }
     }
 
-    public function updateRoster($userid, $lastmsgseen, $status)
+    public function updateRoster($userid, $lastmsgseen)
     {
         # We have a unique key, and an update on current timestamp.
         #
@@ -620,33 +622,27 @@ class ChatRoom extends Entity
                 $this->dbhm->preExec($sql, [$this->id, $lastmsgseen]);
             }
         }
-
-        $this->dbhm->preExec("UPDATE chat_roster SET date = NOW(), status = ? WHERE chatid = ? AND userid = ?;",
-            [
-                $status,
-                $this->id,
-                $userid
-            ],
-            FALSE);
     }
 
     public function getRoster()
     {
         $mysqltime = date("Y-m-d H:i:s", strtotime("3600 seconds ago"));
-        $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN users ON users.id = chat_roster.userid WHERE `chatid` = ? AND `date` >= ? ORDER BY COALESCE(users.fullname, users.firstname, users.lastname);";
+        $sql = "SELECT TIMESTAMPDIFF(SECOND, users.lastaccess, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN users ON users.id = chat_roster.userid WHERE `chatid` = ? AND `date` >= ? ORDER BY COALESCE(users.fullname, users.firstname, users.lastname);";
         $roster = $this->dbhr->preQuery($sql, [$this->id, $mysqltime]);
 
         foreach ($roster as &$rost) {
             $u = User::get($this->dbhr, $this->dbhm, $rost['userid']);
-            switch ($rost['status']) {
-                case ChatRoom::STATUS_ONLINE:
-                    # We last heard that they were online; but if we've not heard from them recently then fade them out.
-                    $rost['status'] = $rost['secondsago'] < 60 ? ChatRoom::STATUS_ONLINE : ($rost['secondsago'] < 600 ? ChatRoom::STATUS_AWAY : ChatRoom::STATUS_OFFLINE);
-                    break;
-                case ChatRoom::STATUS_AWAY:
-                    # Similarly, if we last heard they were away, fade them to offline if we've not heard.
-                    $rost['status'] = $rost['secondsago'] < 600 ? ChatRoom::STATUS_AWAY : ChatRoom::STATUS_OFFLINE;
-                    break;
+            if ($rost['status'] != ChatRoom::STATUS_CLOSED) {
+                # This is an active chat room.  We determine the status from the last access time for the user,
+                # which is updated regularly in api.php.
+                #
+                # TODO This means some states in the room status are ignored.  This could be confusing looking at
+                # the DB.
+                if ($rost['secondsago'] < 60) {
+                    $rost['status'] = ChatRoom::STATUS_ONLINE;
+                } else if ($rost['secondsago'] < 600) {
+                    $rost['status'] = ChatRoom::STATUS_AWAY;
+                }
             }
             $ctx = NULL;
             $rost['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
@@ -913,12 +909,12 @@ class ChatRoom extends Entity
             # seen message was and decide who to chase.
             #
             # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
-            #error_log("$sql {$this->id}, $lastmessage");
+            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
+            error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
             foreach ($users as $user) {
                 # What's the max message this user has either seen or been mailed?
-                #error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
+                error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
                 $maxseen = presdef('lastmsgseen', $user, 0);
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
@@ -941,7 +937,7 @@ class ChatRoom extends Entity
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, chat_roster.date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
+            $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
             #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
 
@@ -982,7 +978,7 @@ class ChatRoom extends Entity
                 # First add any remaining mods into the roster so that we can record
                 # what we do.
                 foreach ($mods as $mod) {
-                    $sql = "INSERT IGNORE INTO chat_roster (chatid, userid, status) VALUES (?, ?, 'Offline');";
+                    $sql = "INSERT IGNORE INTO chat_roster (chatid, userid) VALUES (?, ?);";
                     $this->dbhm->preExec($sql, [$this->id, $mod['userid']]);
                 }
 

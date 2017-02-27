@@ -121,7 +121,6 @@ define([
         },
 
         allseen: function() {
-            this.chats.setStatus('Online');
             this.chats.allseen();
         },
 
@@ -519,7 +518,6 @@ define([
             _.delay(_.bind(self.allseen, self), 30000);
 
             // Tell the server now, in case they navigate away before the next roster timer.
-            Iznik.Session.chats.setStatus('Online', true);
             console.log("Set status");
 
             this.updateCount();

@@ -130,6 +130,15 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     # This is an optimisation for User.php.
     $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
 
+    # Update our last access time for this user.  We do this every 60 seconds.  This is used to return our
+    # roster status in ChatRoom.php
+    $id = pres('id', $_SESSION);
+    $last = presdef('lastaccessupdate', $_SESSION, 0);
+    if ($id && (time() - $last > 60)) {
+        $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
+        $_SESSION['lastaccessupdate'] = time();
+    }
+
     do {
         # Duplicate POST protection
         if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST')) {

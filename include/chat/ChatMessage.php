@@ -194,8 +194,9 @@ class ChatMessage extends Entity
         # Check keywords which are known as spam.
         $this->getSpamWords();
         foreach ($this->spamwords as $word) {
+            $exp = '/\b' . preg_quote($word['word']) . '\b/';
             if ($word['action'] == 'Spam' &&
-                preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
+                preg_match($exp, $message) &&
                 (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                 $spam = TRUE;
             }
@@ -270,7 +271,7 @@ class ChatMessage extends Entity
                 $r->notifyMembers($u->getName(), $message, $userid);
             }
         } catch (Exception $e) {
-            error_log("Failed to create chat " . $e->getMessage());
+            error_log("Failed to create chat " . $e->getMessage() . " at " . $e->getFile() . " line " . $e->getLine());
             $id = NULL;
             $rc = 0;
         }

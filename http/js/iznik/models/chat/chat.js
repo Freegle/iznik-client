@@ -20,6 +20,21 @@ define([
 
         sending: [],
 
+        initialize: function() {
+            // If the last message unseen changes, we want to tell the server.
+            var self = this;
+            self.listenTo(self, 'change:lastmsgseen', function () {
+                $.ajax({
+                    url: API + 'chatrooms',
+                    type: 'POST',
+                    data: {
+                        id: self.get('id'),
+                        'lastmsgseen': self.get('lastmsg')
+                    }
+                });
+            });
+        },
+
         send: function(message) {
             var self = this;
 
@@ -85,15 +100,11 @@ define([
 
                 self.set('unseen', 0);
             }
-        },
+        }
     });
 
     Iznik.Collections.Chat.Rooms = Iznik.Collection.extend({
         fallbackInterval: 300000,
-
-        rosterUpdateInterval: 25000,
-
-        rosterUpdating: false,
 
         tabActive: true,
 
@@ -145,9 +156,6 @@ define([
 
                 // Start our fallback fetch for new info in case the poll doesn't tell us.
                 _.delay(_.bind(self.fallback, self), self.fallbackInterval);
-
-                // Start our periodic roster update.
-                _.delay(_.bind(self.bulkUpdateRoster, self), self.rosterUpdateInterval);
             } else {
                 // We're still starting up.
                 _.delay(_.bind(self.startup, self), 200);
@@ -219,14 +227,6 @@ define([
                         var chat = this.get(id);
                         chat.set('unseen', 0);
                         chat.set('lastmsgseen', chat.get('lastmsg'));
-                        $.ajax({
-                            url: API + 'chatrooms',
-                            type: 'POST',
-                            data: {
-                                id: chat.get('id'),
-                                'lastmsgseen': chat.get('lastmsg')
-                            }
-                        });
                     }, self, chat.get('id')));
                 }
             });
@@ -358,86 +358,6 @@ define([
                     _.delay(_.bind(self.fallback, self), self.fallbackInterval);
                 }
             });
-        },
-
-        setStatus: function(status, force) {
-            var self = this;
-
-            if (status == 'Online') {
-                // We are online, but may have overridden this to appear something else.
-                try {
-                    var savestatus = Storage.get('mystatus');
-                    status = savestatus ? savestatus : status;
-                } catch (e) {}
-            }
-
-            self.status = status;
-
-            if (force) {
-                self.bulkUpdateRoster();
-            }
-        },
-
-        bulkUpdateRoster: function () {
-            var self = this;
-
-            log("bulkUpdateRoster", self.status, self.rosterUpdating, self.tabActive);
-
-            if (!self.rosterUpdating) {
-                if (self.tabActive) {
-                    var updates = [];
-                    self.each(function (chat) {
-                        if (self.status != 'Away') {
-                            // There's no real need to tell the server that we're in Away status - it will time us out into
-                            // that anyway.  This saves a lot of update calls if we're a mod on many groups.
-                            updates.push({
-                                id: chat.get('id'),
-                                status: self.status,
-                                lastmsgseen: chat.get('lastmsgseen')
-                            });
-                            // console.log("Update", chat.get('id'), chat.get('lastmsgseen'));
-                        }
-                    });
-
-                    log("Got updates", updates);
-
-                    if (updates.length > 0) {
-                        // We put the restart of the timer into success/error as complete can get called
-                        // multiple times in the event of retry, leading to timer explosion.
-                        self.rosterUpdating = true;
-
-                        $.ajax({
-                            url: API + 'chatrooms',
-                            type: 'POST',
-                            data: {
-                                'rosters': updates
-                            }, success: function (ret) {
-                                // Update the returned roster into each active chat.
-                                self.rosterUpdating = false;
-                                self.each(function (chat) {
-                                    var roster = ret.rosters[chat.get('id')];
-                                    if (!_.isUndefined(roster)) {
-                                        chat.set('roster', roster);
-                                    }
-                                });
-
-                                _.delay(_.bind(self.bulkUpdateRoster, self), self.rosterUpdateInterval);
-                            }, error: function (a,b,c) {
-                                self.rosterUpdating = false;
-                                _.delay(_.bind(self.bulkUpdateRoster, self), self.rosterUpdateInterval);
-                            }
-                        });
-                    } else {
-                        // No statuses to update.
-                        log("No statuses to update");
-                        _.delay(_.bind(self.bulkUpdateRoster, self), self.rosterUpdateInterval);
-                    }
-                } else {
-                    // Tab not active.  We don't update the roster because there is no activity to pass on.
-                    log("Tab not active");
-                    _.delay(_.bind(self.bulkUpdateRoster, self), self.rosterUpdateInterval);
-                }
-            }
         },
 
         reportPerson: function (groupid, chatid, reason, message) {
