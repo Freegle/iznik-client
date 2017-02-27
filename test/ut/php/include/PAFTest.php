@@ -28,11 +28,23 @@ class PAFTest extends IznikTestCase {
     public function __construct() {
     }
 
-    public function testBasic() {
+    public function testLoad() {
         error_log(__METHOD__);
 
+        if (file_exists('/tmp/ut_paf0000000000.csv')) {
+            unlike('/tmp/ut_paf0000000000.csv');
+        }
+
         $p = new PAF($this->dbhr, $this->dbhm);
-        $p->load(UT_DIR . '/php/misc/pc.csv');
+        $p->load(UT_DIR . '/php/misc/pc.csv', '/tmp/ut_paf');
+
+        $csv = file_get_contents('/tmp/ut_paf0000000000.csv');
+        error_log("CSV is $csv");
+    }
+
+    public function testList() {
+        error_log(__METHOD__);
+        $p = new PAF($this->dbhr, $this->dbhm);
 
         $ids = $p->listForPostcode('AB10 1AA');
         $line = $p->getSingleLine($ids[0]);

@@ -23,6 +23,8 @@ class PAF
         'organisationname'
     ];
 
+    private $cache = [];
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
         $this->dbhr = $dbhr;
@@ -34,62 +36,78 @@ class PAF
         $id = NULL;
 
         if ($val && strlen(trim($val))) {
-            $vals = $this->dbhr->preQuery("SELECT id FROM $table WHERE $att = ?;", [ $val ], FALSE, FALSE);
+            if (!array_key_exists($table, $this->cache)) {
+                $this->cache[$table] = [];
+            }
 
-            if (count($vals) > 0) {
-                $id = $vals[0]['id'];
+            if (pres($val, $this->cache[$table])) {
+                $id = $this->cache[$table][$val];
+                #error_log("Got cached $val for $att = $val in $table");
             } else {
-                $this->dbhm->preExec("INSERT INTO $table ($att) VALUES (?);" , [ $val ], FALSE, FALSE);
-                $id = $this->dbhm->lastInsertId();
+                $vals = $this->dbhr->preQuery("SELECT id FROM $table WHERE $att = ?;", [ $val ], FALSE, FALSE);
+
+                if (count($vals) > 0) {
+                    $id = $vals[0]['id'];
+                } else {
+                    $this->dbhm->preExec("INSERT INTO $table ($att) VALUES (?);" , [ $val ], NULL, FALSE);
+                    $id = $this->dbhm->lastInsertId();
+                }
+
+                $this->cache[$table][$val] = $id;
             }
         }
 
         return($id);
     }
 
-    public function load($fn) {
+    public function load($fn, $foutpref) {
+        error_log("Input $fn, output to $foutpref");
         $l = new Location($this->dbhr, $this->dbhm);
         $fh = fopen($fn,'r');
+        $count = 0;
+        $unknowns = [];
+        $csvfile = 0;
+        $fhout = NULL;
 
         while ($row = fgets($fh)){
+            # We generate CSV files so that we can use LOAD DATA INFILE.
+            if ($count % 100000 == 0) {
+                $fname = $foutpref . sprintf('%010d', $csvfile++) . ".csv";
+                $fhout = fopen($fname, "w");
+
+                # Clear cache to keep memory sane.
+                $this->cache = [];
+            }
+
             $fields = str_getcsv($row);
             $pcid = $l->findByName($fields[0]);
 
             if (!$pcid) {
-                error_log("Unknown postcode {$fields[0]}");
+                if (!in_array($fields[0], $unknowns)) {
+                    error_log("Unknown postcode {$fields[0]}");
+                    $unknowns[] = $fields[0];
+                }
             } else {
-                # Use REPLACE rather than INSERT as the individual fields might have changed, e.g. if a road is renamed.
-                $sql = "REPLACE INTO paf_addresses (postcodeid, buildingnumber, postcodetype, suorganisationindicator, deliverypointsuffix";
-                $values = [];
+                $csv = [ $pcid, $fields[12], $fields[6], $fields[13], $fields[14], $fields[15] ];
+
                 $ix = 1;
 
                 foreach ($this->idfields1 as $field) {
-                    $sql .= ", {$field}id";
-                    $values[] = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+                    $csv[] = $this->getRefId("paf_$field", $field, $fields[$ix++]);
                 }
 
                 foreach ($this->idfields2 as $field) {
-                    $sql .= ", {$field}id";
-                    $values[] = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+                    $csv[] = $this->getRefId("paf_$field", $field, $fields[$ix++]);
                 }
-
-                $sql .= ") VALUES ($pcid, " . $this->dbhm->quote($fields[6]) . ", " . $this->dbhm->quote($fields[13]) . ", " . $this->dbhm->quote($fields[14]) . ", " . $this->dbhm->quote($fields[15]);
-                $ix = 0;
-
-                foreach ($this->idfields1 as $field) {
-                    $val = $values[$ix++];
-                    $sql .= ", " . ($val ? $this->dbhm->quote($val) : 'NULL');
-                }
-
-                foreach ($this->idfields2 as $field) {
-                    $val = $values[$ix++];
-                    $sql .= ", " . ($val ? $this->dbhm->quote($val) : 'NULL');
-                }
-
-                $sql .= ");";
-                $this->dbhm->preExec($sql);
             }
+
+            fputcsv($fhout, $csv);
+            $count++;
+
+            if ($count % 1000 === 0) { error_log("...$count"); }
         }
+
+        error_log("Unknown " . var_export($unknowns, TRUE));
     }
 
     public function listForPostcode($pc) {

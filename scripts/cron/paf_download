@@ -1,7 +1,0 @@
-#!/bin/bash
-cd /tmp
-rm -r pafdownload
-mkdir pafdownload
-cd pafdownload
-username=`grep PAF_USERNAME /etc/iznik.conf | awk '{print $2}' | tr --delete \'\)\;`
-password=`grep PAF_PASSWORD /etc/iznik.conf | awk '{print $2}' | tr --delete \'\)\;`
