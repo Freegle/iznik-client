@@ -9,18 +9,35 @@ function address() {
 
     if ($myid) {
         $id = intval(presdef('id', $_REQUEST, NULL));
+        $postcodeid = intval(presdef('postcodeid', $_REQUEST, NULL));
         $a = new Address($dbhr, $dbhm, $id);
+        $p = new PAF($dbhr, $dbhm);
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
         switch ($_REQUEST['type']) {
             case 'GET': {
                 if ($id) {
-                    $ret = [ 'ret' => 3, 'status' => 'Access denied' ];
+                    $ret = ['ret' => 3, 'status' => 'Access denied'];
                     if ($a->getPrivate('userid') == $myid) {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
                             'address' => $a->getPublic()
+                        ];
+                    }
+                } else if ($postcodeid) {
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'addresses' => []
+                    ];
+
+                    $addresses = $p->listForPostcodeId($postcodeid);
+
+                    foreach ($addresses as $address) {
+                        $ret['addresses'][] = [
+                            'id' => $address,
+                            'singleline' => $p->getSingleLine($address)
                         ];
                     }
                 } else {

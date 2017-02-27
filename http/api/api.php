@@ -44,6 +44,7 @@ require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/user/Request.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/include/user/Address.php');
+require_once(IZNIK_BASE . '/include/misc/PAF.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');

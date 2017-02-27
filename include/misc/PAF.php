@@ -123,6 +123,17 @@ class PAF
         return($ret);
     }
 
+    public function listForPostcodeId($pcid) {
+        $ret = [];
+
+        $ids = $this->dbhr->preQuery("SELECT id FROM paf_addresses WHERE postcodeid = $pcid;");
+        foreach ($ids as $id) {
+            $ret[] = $id['id'];
+        }
+
+        return($ret);
+    }
+
     public function getSingleLine($id) {
         $str = NULL;
         $a = new AllenJB\PafUtils\Address;
@@ -163,7 +174,7 @@ class PAF
 
             $addr = $a->getAddressLines();
 
-            $str = implode(', ', $addr) . ", " . $a->getPostTown() . " " . $a->getPostcode();
+            $str = implode(', ', $addr) . ", " . $a->getPostTown() . " " . $address['postcode'];
         }
 
         return($str);
