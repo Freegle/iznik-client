@@ -3266,8 +3266,8 @@ class Message
         }
 
         # Let anyone who was interested, and who didn't get it, know.
-        $userq = $userid ? " AND userid != $userid " : "";
-        $sql = "SELECT DISTINCT t.* FROM (SELECT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? WHERE refmsgid = ? AND reviewrejected = 0 $userq AND userid IS NOT NULL GROUP BY userid, chatid) t;";
+        $userq = $userid ? " AND user1 != $userid AND user2 != $userid " : "";
+        $sql = "SELECT DISTINCT t.* FROM (SELECT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? WHERE refmsgid = ? AND reviewrejected = 0 $userq GROUP BY userid, chatid) t;";
         $replies = $this->dbhr->preQuery($sql, [ ChatRoom::TYPE_USER2USER, $this->id ]);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
