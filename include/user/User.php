@@ -2176,7 +2176,7 @@ class User extends Entity
                 'msgid' => $this->id,
                 'user' => $this->getId(),
                 'groupid' => $groupid,
-                'text' => 'Move from Pending to Approved after Yahoo notification mail for $email'
+                'text' => "Move from Pending to Approved after Yahoo notification mail for $email"
             ]);
 
             # Set the membership to be approved.
