@@ -293,10 +293,7 @@ class MailRouter
 
                     if ($g->getPrivate('onhere') && !$u->isRejected($gid)) {
                         if ($log) { error_log("Confirm it"); }
-                        for ($i = 0; $i < 10; $i++) {
-                            # Yahoo is sluggish - sending the confirm multiple times helps.
-                            $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
-                        }
+                        $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
 
                         $this->log->log([
                             'type' => Log::TYPE_USER,
@@ -312,10 +309,7 @@ class MailRouter
                 # This is an invitation by Yahoo to join a group, triggered by us in triggerYahooApplication.
                 if ($log) { error_log("Confirm invitation"); }
 
-                for ($i = 0; $i < 10; $i++) {
-                    # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
-                }
+                $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
 
                 $u = User::get($this->dbhr, $this->dbhm);
                 $uid = $u->findByEmail($to);
@@ -331,10 +325,7 @@ class MailRouter
                 # We have tried to unsubscribe from a group - we need to confirm it.
                 if ($log) { error_log("Confirm unsubscribe"); }
 
-                for ($i = 0; $i < 10; $i++) {
-                    # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
-                }
+                $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
 
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
