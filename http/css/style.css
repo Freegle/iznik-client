@@ -1631,6 +1631,18 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     margin: 0;
 }
 
+.thermometer-outer {
+    background: #c4f0ff;
+    border: 1px solid #c4c4c4;
+    border-radius: 3px;
+    height: 20px;
+    width: 100%;
+}
+.thermometer-inner {
+    background: #3f83f7;
+    height: 20px;
+}
+
 /*==================================================
 =            Bootstrap 3 Media Queries             =
 ==================================================*/

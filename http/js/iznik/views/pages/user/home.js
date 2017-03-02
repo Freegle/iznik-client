@@ -8,6 +8,7 @@ define([
     'iznik/views/group/communityevents',
     'iznik/views/pages/pages',
     'iznik/views/user/message',
+    'iznik/views/donations',
     'iznik/views/user/polls'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
@@ -524,7 +525,12 @@ define([
 
                         var v = new Iznik.Views.Modal();
                         v.template = 'user_home_supportus';
-                        v.render();
+                        v.render().then(function() {
+                            var w = new Iznik.Views.DonationThermometer();
+                            w.render().then(function () {
+                                v.$('.js-thermometer').html(w.$el);
+                            });
+                        });
                     }
                 }
             })
