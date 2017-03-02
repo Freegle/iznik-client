@@ -12,7 +12,7 @@ var mobilePushId = false;
 var mobilePush = false;
 var lastPushMsgid = false;
 var badgeconsole = '';
-var showDebugConsole = false;
+var showDebugConsole = true;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -347,7 +347,7 @@ require([
                         (function waitUntilLoggedIn(retry) {
                             if (Iznik.Session.loggedIn) {
                                 //ChatHolder().fetchAndRestore(chatid);
-                                setTimeout(function () { Router.navigate('/chat' + chatid, true); }, 500);
+                                setTimeout(function () { Router.navigate('/chat/' + chatid, true); }, 500);
                             } else {
                                 setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
                             }
