@@ -205,7 +205,23 @@ define([
         tagName: 'li',
 
         events: {
-            'click .js-submit': 'submit'
+            'click .js-submit': 'submit',
+            'click .js-justafew': 'justafew',
+            'click .js-more': 'more'
+        },
+
+        justafew: function() {
+            var self = this;
+            self.$('.js-howmany').slideUp('slow');
+            self.$('.js-more').hide();
+            self.$('.js-afew, .js-submit').fadeIn('slow');
+        },
+
+        more: function() {
+            var self = this;
+            self.$('.js-howmany').slideUp('slow');
+            self.$('.js-more').fadeIn('slow');
+            self.$('.js-afew, .js-submit').hide();
         },
 
         submit: function() {
