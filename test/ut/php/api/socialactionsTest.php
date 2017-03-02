@@ -94,4 +94,46 @@ class socialactionsAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testHide()
+    {
+        error_log(__METHOD__);
+
+        # Log in as a mod of the Playground group, which has a Facebook page.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+
+        # Delete the last share so that there will be at least one.
+        $this->dbhm->preExec("DELETE FROM groups_facebook_shares WHERE groupid = $gid ORDER BY date DESC LIMIT 1;");
+        $this->dbhm->preExec("UPDATE groups_facebook SET valid = 1 WHERE groupid = $gid");
+
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+
+        assertTrue($u->login('testpw'));
+
+        # Now we're talking.
+        $orig = $this->call('socialactions', 'GET', []);
+        assertEquals(0, $orig['ret']);
+        assertGreaterThan(0, count($orig['socialactions']));
+
+        $ret = $this->call('socialactions', 'POST', [
+            'id' => $orig['socialactions'][0]['id'],
+            'groupid' => $gid,
+            'action' => 'Hide'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        # Shouldn't show in list of groups now.
+        $ret = $this->call('socialactions', 'GET', []);
+        assertEquals(0, $ret['ret']);
+
+        assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
 }

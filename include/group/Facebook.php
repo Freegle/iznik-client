@@ -17,6 +17,9 @@ class GroupFacebook {
     const TYPE_PAGE = 'Page';
     const TYPE_GROUP = 'Group';
 
+    const ACTION_DO = 'Do';
+    const ACTION_HIDE = 'Hide';
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL, $fetched = NULL)
     {
         $this->dbhr = $dbhr;
@@ -214,6 +217,26 @@ class GroupFacebook {
                             ]);
                         }
                     }
+                }
+            }
+        }
+    }
+
+    public function hideSocialAction($id) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            # We need to be a mod on the relevant group.
+            $modships = $me->getModeratorships();
+
+            if (count($modships) > 0) {
+                $groupids = implode(',', $modships);
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype, groups_facebook.groupid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groups_facebook_toshare.id = ?;";
+                $actions = $this->dbhr->preQuery($sql, [ $id ]);
+                foreach ($actions as $action) {
+                    $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (groupid, postid, status) VALUES (?,?, 'Hidden');", [
+                        $action['groupid'],
+                        $action['postid']
+                    ]);
                 }
             }
         }

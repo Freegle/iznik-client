@@ -45,6 +45,7 @@ require_once(IZNIK_BASE . '/include/user/Request.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/include/misc/PAF.php');
+require_once(IZNIK_BASE . '/include/misc/Donations.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
@@ -76,6 +77,7 @@ require_once(IZNIK_BASE . '/http/api/stdmsg.php');
 require_once(IZNIK_BASE . '/http/api/bulkop.php');
 require_once(IZNIK_BASE . '/http/api/comment.php');
 require_once(IZNIK_BASE . '/http/api/dashboard.php');
+require_once(IZNIK_BASE . '/http/api/donations.php');
 require_once(IZNIK_BASE . '/http/api/error.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
@@ -299,6 +301,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'stories':
                     $ret = stories();
+                    break;
+                case 'donations':
+                    $ret = donations();
                     break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);

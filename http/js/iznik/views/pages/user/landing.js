@@ -3,9 +3,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/models/donations',
     'iznik/views/chat/chat',
     'iznik/views/pages/pages',
     'iznik/views/group/select',
+    'iznik/views/donations',
     'jquery.dd'
 ], function($, _, Backbone, Iznik, ChatHolder) {
     Iznik.Views.User.Pages.Landing = Iznik.Views.Page.extend({
@@ -89,7 +91,21 @@ define([
     Iznik.Views.User.Pages.Landing.Donate = Iznik.Views.Page.extend({
         template: "user_landing_donate",
         footer: true,
-        noback: true
+        noback: true,
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function () {
+                var v = new Iznik.Views.DonationThermometer();
+                v.render().then(function () {
+                    self.$('.js-thermometer').html(v.$el);
+                });
+            });
+
+            return(p);
+        }
     });
 
     Iznik.Views.User.Pages.Landing.Contact = Iznik.Views.Page.extend({
