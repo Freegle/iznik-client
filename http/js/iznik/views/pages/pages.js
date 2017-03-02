@@ -260,6 +260,11 @@ define([
                                 });
                             }
 
+                            // CC show debug sunglasses/specs icon
+                            if (showDebugConsole) {
+                                $('#mobile-debug').show();
+                            }
+
                             // Show anything which should or shouldn't be visible based on login status.
                             var loggedInOnly = $('.js-loggedinonly');
                             var loggedOutOnly = $('.js-loggedoutonly');

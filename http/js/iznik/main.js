@@ -12,6 +12,7 @@ var mobilePushId = false;
 var mobilePush = false;
 var lastPushMsgid = false;
 var badgeconsole = '';
+var showDebugConsole = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -162,19 +163,21 @@ require([
     // Template to add link to /mobiledebug is in template/user/layout/layout.html
     var oldconsolelog = console.log; 
     console.log = function () {
-        var msg = '';
-        for (var i = 0; i < arguments.length; i++) {
-            var arg = arguments[i];
-            if (typeof arg !== "string") {
-                arg = JSON.stringify(arg);
+        if (showDebugConsole) {
+            var msg = '';
+            for (var i = 0; i < arguments.length; i++) {
+                var arg = arguments[i];
+                if (typeof arg !== "string") {
+                    arg = JSON.stringify(arg);
+                }
+                msg += arg + ' ';
             }
-            msg += arg + ' ';
+            msg += "\r\n";
+            logtog = !logtog;
+            alllog = msg + alllog;
+            $('#js-mobilelog').val(alllog);
+            //oldconsolelog(msg); 
         }
-        msg += "\r\n";
-        logtog = !logtog;
-        alllog = msg + alllog;
-        $('#js-mobilelog').val(alllog);
-        //oldconsolelog(msg); 
     }
 
     // http://hammerjs.github.io/getting-started/
