@@ -44,6 +44,7 @@ require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/user/Request.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/include/user/Address.php');
+require_once(IZNIK_BASE . '/include/misc/PAF.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
@@ -129,6 +130,15 @@ if ($_REQUEST['type'] == 'OPTIONS') {
 
     # This is an optimisation for User.php.
     $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
+
+    # Update our last access time for this user.  We do this every 60 seconds.  This is used to return our
+    # roster status in ChatRoom.php
+    $id = pres('id', $_SESSION);
+    $last = presdef('lastaccessupdate', $_SESSION, 0);
+    if ($id && (time() - $last > 60)) {
+        $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
+        $_SESSION['lastaccessupdate'] = time();
+    }
 
     do {
         # Duplicate POST protection

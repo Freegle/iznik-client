@@ -31,7 +31,7 @@ foreach ($messages as $message) {
                 $m->submit($u, $email, $message['groupid']);
                 $outcome = ' submitted';
                 $submitted++;
-            } else if ($u->isPending($message['groupid'])) {
+            } else if (!$u->isRejected($message['groupid'])) {
                 # Still pending - maybe Yahoo lost it.  Resend the application.
                 $u->triggerYahooApplication($message['groupid'], FALSE);
                 $outcome = ' still queued';

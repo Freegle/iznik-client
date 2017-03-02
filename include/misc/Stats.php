@@ -331,6 +331,7 @@ class Stats
         $ret = [];
         $ret['groupids'] = $groupids;
         $start = date('Y-m-d', strtotime($startdate, strtotime($date)));
+        error_log("Start at $start from $startdate");
         $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
 
         if (!MODTOOLS && $systemwide) {
@@ -374,7 +375,8 @@ class Stats
             $sql = count($groupids) > 10 ? ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND type = ? AND groupid IN (" . implode(',', $groupids) . ") GROUP BY date;") : ("SELECT SUM(count) AS count, date FROM stats WHERE date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") AND type = ? GROUP BY date;");
             $counts = $this->dbhr->preQuery($sql,
                 [
-                    $start,
+                    # Activity stats only start from when we started tracking searches.
+                    $type == Stats::ACTIVITY ? '2016-12-21' : $start,
                     $end,
                     $type
                 ]);

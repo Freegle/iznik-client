@@ -27,7 +27,7 @@ foreach ($messages as $message) {
             $m->submit($u, $email, $message['groupid']);
             $outcome = ' submitted';
             $submitted++;
-        } else if ($u->isPending($message['groupid'])) {
+        } else if ($u->isPendingMember($message['groupid'])) {
             $u->triggerYahooApplication($message['groupid'], FALSE);
             $outcome = ' still queued';
             $queued++;

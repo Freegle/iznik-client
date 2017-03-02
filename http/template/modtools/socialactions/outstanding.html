@@ -10,13 +10,7 @@
     </div>
     <div class="panel-body">
         <p>Please send to:</p>
-        <% if (address.line1) { %>{{address.line1}}<br/><% } %>
-        <% if (address.line2) { %>{{address.line2}}<br /><% } %>
-        <% if (address.line3) { %>{{address.line3}}<br /><% } %>
-        <% if (address.line4) { %>{{address.line4}}<br /><% } %>
-        <% if (address.town) { %>{{address.town}}<br /><% } %>
-        <% if (address.county) { %>{{address.county}}<br /><% } %>
-        <% if (address.postcode && address.postcode.name) { %>{{address.postcode.name}}<br /><% } %>
+        <pre><%-address.multiline%></pre>
     </div>
     <div class="panel-footer">
         <span class="btn btn-white clickme js-delete"><span class="glyphicons glyphicons-bin" />&nbsp;Cancel</span>

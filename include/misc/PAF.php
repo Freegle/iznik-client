@@ -23,6 +23,8 @@ class PAF
         'organisationname'
     ];
 
+    private $cache = [];
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
         $this->dbhr = $dbhr;
@@ -34,46 +36,153 @@ class PAF
         $id = NULL;
 
         if ($val && strlen(trim($val))) {
-            $vals = $this->dbhr->preQuery("SELECT id FROM $table WHERE $att = ?;", [ $val ], FALSE, FALSE);
+            if (!array_key_exists($table, $this->cache)) {
+                $this->cache[$table] = [];
+            }
 
-            if (count($vals) > 0) {
-                $id = $vals[0]['id'];
+            if (pres($val, $this->cache[$table])) {
+                $id = $this->cache[$table][$val];
+                #error_log("Got cached $val for $att = $val in $table");
             } else {
-                $this->dbhm->preExec("INSERT INTO $table ($att) VALUES (?);" , [ $val ], FALSE, FALSE);
-                $id = $this->dbhm->lastInsertId();
+                $vals = $this->dbhr->preQuery("SELECT id FROM $table WHERE $att = ?;", [ $val ], FALSE, FALSE);
+
+                if (count($vals) > 0) {
+                    $id = $vals[0]['id'];
+                } else {
+                    $this->dbhm->preExec("INSERT INTO $table ($att) VALUES (?);" , [ $val ], NULL, FALSE);
+                    $id = $this->dbhm->lastInsertId();
+                }
+
+                $this->cache[$table][$val] = $id;
             }
         }
 
         return($id);
     }
 
-    public function load($fn) {
+    public function load($fn, $foutpref) {
+        error_log("Input $fn, output to $foutpref");
         $l = new Location($this->dbhr, $this->dbhm);
         $fh = fopen($fn,'r');
+        $count = 0;
+        $unknowns = [];
+        $csvfile = 0;
+        $fhout = NULL;
 
         while ($row = fgets($fh)){
+            # We generate CSV files so that we can use LOAD DATA INFILE.
+            if ($count % 100000 == 0) {
+                $fname = $foutpref . sprintf('%010d', $csvfile++) . ".csv";
+                $fhout = fopen($fname, "w");
+
+                # Clear cache to keep memory sane.
+                $this->cache = [];
+            }
+
             $fields = str_getcsv($row);
             $pcid = $l->findByName($fields[0]);
 
             if (!$pcid) {
-                error_log("Unknown postcode {$fields[0]}");
+                if (!in_array($fields[0], $unknowns)) {
+                    error_log("Unknown postcode {$fields[0]}");
+                    $unknowns[] = $fields[0];
+                }
             } else {
-                # Use REPLACE rather than INSERT as the individual fields might have changed, e.g. if a road is renamed.
-                $sql = "REPLACE INTO paf_addresses (postcodeid, buildingnumber, postcodetype, suorganisationindicator, deliverypointsuffix";
+                $csv = [ $pcid, $fields[12], $fields[6], $fields[13], $fields[14], $fields[15] ];
+
+                $ix = 1;
+
+                foreach ($this->idfields1 as $field) {
+                    $csv[] = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+                }
+
+                foreach ($this->idfields2 as $field) {
+                    $csv[] = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+                }
+
+                fputcsv($fhout, $csv);
+            }
+
+            $count++;
+
+            if ($count % 1000 === 0) { error_log("...$count"); }
+        }
+
+        error_log("Unknown " . var_export($unknowns, TRUE));
+    }
+
+    public function update($fn) {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $fh = fopen($fn,'r');
+        $count = 0;
+        $differs = 0;
+
+        while ($row = fgets($fh)){
+            # Parse the line.
+            $fields = str_getcsv($row);
+            $postcode = $l->findByName($fields[0]);
+            $udprn = $fields[12];
+            $buildingnumber = $fields[6];
+            $postcodetype = $fields[13];
+            $suorganisationindicator = $fields[14];
+            $deliverypointsuffix = $fields[15];
+
+            $ix = 1;
+
+            foreach ($this->idfields1 as $field) {
+                $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+            }
+
+            foreach ($this->idfields2 as $field) {
+                $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+            }
+
+            $addresses = $this->dbhr->preQuery("SELECT * FROM paf_addresses WHERE udprn = ?;", [ $udprn ]);
+            foreach ($addresses as $address) {
+                # Compare the values
+                foreach ($address as $key => $val) {
+                    if (!is_int($key) && $key != 'id') {
+                        $v = str_replace('id', '', $key);
+                        $$v = $$v == ' ' ? NULL : $$v;
+                        $$v = $$v == '' ? NULL : $$v;
+
+                        if ($val != $$v) {
+                            error_log("UDPRN $udprn differs in $key $val => {$$v}");
+                            $differs++;
+                            $this->dbhm->preExec("UPDATE paf_addresses SET $key = ? WHERE id = ?;", [
+                                $$v,
+                                $address['id']
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            if (count($addresses) === 0) {
+                # This is a new entry.
+                $sql = "INSERT INTO paf_addresses (postcodeid, buildingnumber, postcodetype, suorganisationindicator, deliverypointsuffix";
                 $values = [];
                 $ix = 1;
 
                 foreach ($this->idfields1 as $field) {
                     $sql .= ", {$field}id";
-                    $values[] = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+                    $v = $$field;
+                    $v = $v == ' ' ? NULL : $v;
+                    $v = $v == '' ? NULL : $v;
+
+                    $values[] = $v;
                 }
 
                 foreach ($this->idfields2 as $field) {
                     $sql .= ", {$field}id";
-                    $values[] = $this->getRefId("paf_$field", $field, $fields[$ix++]);
+                    $v = $$field;
+                    $v = $v == ' ' ? NULL : $v;
+                    $v = $v == '' ? NULL : $v;
+
+                    $values[] = $v;
                 }
 
-                $sql .= ") VALUES ($pcid, " . $this->dbhm->quote($fields[6]) . ", " . $this->dbhm->quote($fields[13]) . ", " . $this->dbhm->quote($fields[14]) . ", " . $this->dbhm->quote($fields[15]);
+                $sql .= ") VALUES ($postcode, " . $this->dbhm->quote($buildingnumber) . ", " . $this->dbhm->quote($postcodetype) . ", " . $this->dbhm->quote($suorganisationindicator) . ", " . $this->dbhm->quote($deliverypointsuffix);
                 $ix = 0;
 
                 foreach ($this->idfields1 as $field) {
@@ -87,9 +196,16 @@ class PAF
                 }
 
                 $sql .= ");";
+                $differs++;
                 $this->dbhm->preExec($sql);
             }
+
+            $count++;
+
+            if ($count % 1000 === 0) { error_log("...$count"); }
         }
+
+        return($differs);
     }
 
     public function listForPostcode($pc) {
@@ -105,7 +221,30 @@ class PAF
         return($ret);
     }
 
+    public function listForPostcodeId($pcid) {
+        $ret = [];
+
+        $ids = $this->dbhr->preQuery("SELECT id FROM paf_addresses WHERE postcodeid = $pcid;");
+        foreach ($ids as $id) {
+            $ret[] = $id['id'];
+        }
+
+        return($ret);
+    }
+
     public function getSingleLine($id) {
+        return($this->getFormatted($id, ', '));
+    }
+
+    private function tweak(&$addr) {
+        # The third-party lib we use doesn't get it quite right.
+        if (strpos($addr[1], "{$addr[0]} ") === 0) {
+            # House number which appears in the first line and the second line.
+            $addr = array_slice($addr, 1);
+        }
+    }
+
+    public function getFormatted($id, $delimiter) {
         $str = NULL;
         $a = new AllenJB\PafUtils\Address;
         $sql = "SELECT locations.name AS postcode, paf_addresses.buildingnumber";
@@ -144,8 +283,9 @@ class PAF
             }
 
             $addr = $a->getAddressLines();
+            $this->tweak($addr);
 
-            $str = implode(', ', $addr) . ", " . $a->getPostTown() . " " . $a->getPostcode();
+            $str = implode($delimiter, $addr) . $delimiter . $a->getPostTown() . " " . $address['postcode'];
         }
 
         return($str);

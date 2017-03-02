@@ -121,7 +121,6 @@ define([
         },
 
         allseen: function() {
-            this.chats.setStatus('Online');
             this.chats.allseen();
         },
 
@@ -519,7 +518,6 @@ define([
             _.delay(_.bind(self.allseen, self), 30000);
 
             // Tell the server now, in case they navigate away before the next roster timer.
-            Iznik.Session.chats.setStatus('Online', true);
             console.log("Set status");
 
             this.updateCount();
@@ -594,20 +592,22 @@ define([
             var self = this;
             var unseen = self.model.get('unseen');
 
-            // For performance reasons we avoid doing show/hide unless we need to.
-            if (unseen > 0) {
-                self.$('.js-count').html(unseen).show();
-                self.countHidden = false;
+            if (self.inDOM()) {
+                // For performance reasons we avoid doing show/hide unless we need to.
+                if (unseen > 0) {
+                    self.$('.js-count').html(unseen).show();
+                    self.countHidden = false;
 
-                if (self.messages) {
-                    self.messages.fetch({
-                        remove: true
-                    });
+                    if (self.messages) {
+                        self.messages.fetch({
+                            remove: true
+                        });
+                    }
+                } else if (!self.countHidden) {
+                    // When we call this from render, it's already hidden.
+                    self.$('.js-count').html(unseen).hide();
+                    self.countHidden = true;
                 }
-            } else if (!self.countHidden) {
-                // When we call this from render, it's already hidden.
-                self.$('.js-count').html(unseen).hide();
-                self.countHidden = true;
             }
 
             self.trigger('countupdated', unseen);

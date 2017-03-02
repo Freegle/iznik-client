@@ -183,7 +183,7 @@ define([
                         $(this).html(unseen).show();
                         document.title = '(' + unseen + ') ' + title;
                     } else {
-                        $(this).html().hide();
+                        $(this).empty().hide();
                         document.title = title;
                     }
                 }
@@ -690,8 +690,6 @@ define([
 
             this.options.updateCounts();
 
-            Iznik.Session.chats.setStatus('Away', false);
-
             try {
                 // Remove the local storage, otherwise it will clog up with info for chats we don't look at.
                 Storage.remove(this.lsID() + '-open');
@@ -844,8 +842,6 @@ define([
                 self.adjust();
             });
 
-            Iznik.Session.chats.setStatus('Online', false);
-
             try {
                 Storage.set(self.lsID() + '-open', 1);
             } catch (e) {
@@ -995,13 +991,13 @@ define([
 
         status: function () {
             // We can override appearing online to show something else.
+            //
+            // TODO Obsolete pending rework of status.
             var status = this.$('.js-status').val();
             try {
                 Storage.set('mystatus', status);
             } catch (e) {
             }
-
-            Iznik.Session.chats.setStatus(status, true);
         },
 
         openChat: function (chatid) {

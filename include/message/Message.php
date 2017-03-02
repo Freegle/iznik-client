@@ -1952,7 +1952,7 @@ class Message
 
                     # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
                     # appearing as unread to us and other mods.
-                    $r->updateRoster($myid, $mid, ChatRoom::STATUS_ONLINE);
+                    $r->updateRoster($myid, $mid);
                 }
             } else {
                 # For other users, we send the message out by mail.
@@ -3266,8 +3266,8 @@ class Message
         }
 
         # Let anyone who was interested, and who didn't get it, know.
-        $userq = $userid ? " AND userid != $userid " : "";
-        $sql = "SELECT DISTINCT t.* FROM (SELECT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? WHERE refmsgid = ? AND reviewrejected = 0 $userq AND userid IS NOT NULL GROUP BY userid, chatid) t;";
+        $userq = $userid ? " AND user1 != $userid AND user2 != $userid " : "";
+        $sql = "SELECT DISTINCT t.* FROM (SELECT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? WHERE refmsgid = ? AND reviewrejected = 0 $userq GROUP BY userid, chatid) t;";
         $replies = $this->dbhr->preQuery($sql, [ ChatRoom::TYPE_USER2USER, $this->id ]);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
@@ -3641,17 +3641,18 @@ class Message
         # ...and update the search index.
         $this->s->bump($this->id, time());
 
-        $this->log->log([
-            'type' => Log::TYPE_MESSAGE,
-            'subtype' => Log::SUBTYPE_AUTO_REPOSTED,
-            'msgid' => $this->id,
-            'user' => $this->getFromuser(),
-            'text' => "$reposts / $max"
-        ]);
-
         # Record that we've done this.
         $groups = $this->getGroups();
         foreach ($groups as $groupid) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_AUTO_REPOSTED,
+                'msgid' => $this->id,
+                'groupid' => $groupid,
+                'user' => $this->getFromuser(),
+                'text' => "$reposts / $max"
+            ]);
+
             $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
             $this->dbhm->preExec($sql, [
                 $this->id,

@@ -53,12 +53,16 @@ if (count($opts) != 1) {
                         $northing = $fields[3];
                         $os = new OSRef($easting, $northing);
                         $latlng = $os->toLatLng();
-                        $lid = $l->create(NULL, $pc, 'Postcode', "POINT({$latlng->lng} $latlng->lat)", 0);
+                        $lid = $l->findByName($pc);
 
-                        if ($lid) {
-                            error_log("...added $pc {$latlng->lat}, {$latlng->lng}");
-                        } else {
-                            error_log("...failed to add $pc {$latlng->lat}, {$latlng->lng}");
+                        if (!$lid) {
+                            $lid = $l->create(NULL, $pc, 'Postcode', "POINT({$latlng->lng} $latlng->lat)", 0);
+
+                            if ($lid) {
+                                error_log("...added $pc {$latlng->lat}, {$latlng->lng}");
+                            } else {
+                                error_log("...failed to add $pc {$latlng->lat}, {$latlng->lng}");
+                            }
                         }
                     }
                 }

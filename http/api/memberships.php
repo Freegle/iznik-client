@@ -228,14 +228,14 @@ function memberships() {
                             $u->reject($groupid, NULL, NULL, NULL);
                             break;
                         case 'Reject':
-                            if (!$u->isPending($groupid)) {
+                            if (!$u->isPendingMember($groupid)) {
                                 $ret = ['ret' => 3, 'status' => 'Member is not pending'];
                             } else {
                                 $u->reject($groupid, $subject, $body, $stdmsgid);
                             }
                             break;
                         case 'Approve':
-                            if (!$u->isPending($groupid)) {
+                            if (!$u->isPendingMember($groupid)) {
                                 $ret = ['ret' => 3, 'status' => 'Member is not pending'];
                             } else {
                                 $u->approve($groupid, $subject, $body, $stdmsgid);
