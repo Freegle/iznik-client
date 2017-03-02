@@ -144,6 +144,16 @@ define([
                         });
                     }
                 });
+
+                var v = new Iznik.Views.ModTools.SocialAction.FacebookPageHide({
+                    actionid: self.model.get('id'),
+                    action: self.model,
+                    hideWhenDone: self.$el
+                });
+
+                v.render().then(function() {
+                    self.$('.js-buttons').append(v.$el);
+                });
             });
 
             return(this);
@@ -162,40 +172,42 @@ define([
         share: function() {
             var self = this;
 
-            if (self.model.get('facebook').type == 'Page' || true) {
-                $.ajax({
-                    url: API + 'socialactions',
-                    type: 'POST',
-                    data: {
-                        id: self.options.actionid,
-                        groupid: self.model.get('id')
-                    }
-                });
-            } else {
-                // TODO Move to server too.
-                FB.login(function(){
-                    var params = JSON.parse(self.options.action.get('data'));
-                    var params2;
-                    var usersite = $('meta[name=iznikusersite]').attr("content");
-
-                    if (params.hasOwnProperty('link')) {
-                        params2 = {
-                            link: params.link
-                        };
-                    }
-
-                    params2.message = params.message;
-
-                    FB.api('/' + self.model.get('facebook').id + '/feed', 'post', params2, function(response) {
-                        console.log("Share returned", response);
-                        self.$('.js-share').fadeOut('slow');
-                    });
-                }, {
-                    scope: 'user_managed_groups, publish_actions'
-                });
-            }
+            $.ajax({
+                url: API + 'socialactions',
+                type: 'POST',
+                data: {
+                    id: self.options.actionid,
+                    groupid: self.model.get('id'),
+                    action: 'Do'
+                }
+            });
 
             self.$el.fadeOut('slow');
+        }
+    });
+
+    Iznik.Views.ModTools.SocialAction.FacebookPageHide = Iznik.View.extend({
+        template: 'modtools_socialactions_facebookhide',
+
+        tagName: 'li',
+
+        events: {
+            'click .js-hide': 'hide'
+        },
+
+        hide: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + 'socialactions',
+                type: 'POST',
+                data: {
+                    id: self.options.actionid,
+                    action: 'Hide'
+                }
+            });
+
+            self.options.hideWhenDone.fadeOut('slow');
         }
     });
 
