@@ -414,12 +414,6 @@ define([
 
                                 document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
 
-                                if (total) {
-                                    $('.js-chattotalcount').html(total).show();
-                                } else {
-                                    $('.js-chattotalcount').empty().hide();
-                                }
-
                                 if (countschanged) {
                                     Iznik.Session.trigger('countschanged');
                                 }
