@@ -236,6 +236,14 @@ class PAF
         return($this->getFormatted($id, ', '));
     }
 
+    private function tweak(&$addr) {
+        # The third-party lib we use doesn't get it quite right.
+        if (strpos($addr[1], "{$addr[0]} ") === 0) {
+            # House number which appears in the first line and the second line.
+            $addr = array_slice($addr, 1);
+        }
+    }
+
     public function getFormatted($id, $delimiter) {
         $str = NULL;
         $a = new AllenJB\PafUtils\Address;
@@ -275,6 +283,7 @@ class PAF
             }
 
             $addr = $a->getAddressLines();
+            $this->tweak($addr);
 
             $str = implode($delimiter, $addr) . $delimiter . $a->getPostTown() . " " . $address['postcode'];
         }
