@@ -24,6 +24,11 @@ class chatMessagesTest extends IznikTestCase {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
+        $users = $dbhr->preQuery("SELECT userid FROM users_emails WHERE email = 'from2@test.com'");
+        foreach ($users as $user) {
+            $dbhm->preExec("DELETE FROM users WHERE id = ?;", [ $user['userid']]);
+        }
+
 
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
@@ -95,8 +100,41 @@ class chatMessagesTest extends IznikTestCase {
         assertEquals(MailRouter::TO_USER, $rc);
 
         # Check got flagged.
-        $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com')");
+        $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
         assertEquals(1, $msgs[0]['reviewrequired']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testReplyFromSpammer() {
+        error_log(__METHOD__);
+
+        # Put a valid message on a group.
+        error_log("Put valid message on");
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+
+        $msg = $this->unique(file_get_contents('msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::YAHOO_APPROVED, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Now create a sender on the spammer list.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Spam', 'User', 'Spam User');
+        $u->addEmail('test2@test.com');
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'UT Test');
+
+        # Now reply from them.
+        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = str_replace('Re: Basic test', 'Re: OFFER: a test item (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
 
         error_log(__METHOD__ . " end");
     }
@@ -234,6 +272,9 @@ class chatMessagesTest extends IznikTestCase {
 
         # Keywords
         assertTrue($m->checkSpam('viagra'));
+
+        # Domain
+        assertTrue($m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
 
         error_log(__METHOD__ . " end");
     }

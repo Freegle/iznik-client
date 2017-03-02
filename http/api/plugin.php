@@ -19,11 +19,7 @@ function plugin() {
 
                 foreach ($groups as $group) {
                     # We only want to include work if we are an active mod on the group.
-                    $mysettings = $me->getGroupSettings($group);
-                    $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
-                    $showmembers = !array_key_exists('showmembers', $mysettings) || $mysettings['showmembers'];
-
-                    if ($showmembers || $showmessages) {
+                    if ($me->activeModForGroup($group)) {
                         $work = array_merge($work, $p->get($group));
                     }
                 }

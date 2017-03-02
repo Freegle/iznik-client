@@ -99,7 +99,8 @@ define([
 
             "localstorage": "localstorage",
             "yahoologin": "yahoologin",
-            "modtools": "modtools",
+            "modtools/chat/:id": "modChat",
+            "modtools/chats": "modChats",
             "modtools/supporters": "supporters",
             "modtools/messages/pending": "pendingMessages",
             "modtools/messages/approved/messagesearch/:search": "approvedMessagesSearchMessages",
@@ -110,6 +111,8 @@ define([
             "modtools/members/approved(/:search)": "approvedMembers",
             "modtools/members/spam": "spamMembers",
             "modtools/members/happiness": "happinessMembers",
+            "modtools/members/stories": "storiesMembers",
+            "modtools/members/newsletter": "storiesNewsletter",
             "modtools/events/pending": "pendingEvents",
             "modtools/publicity": "socialActions",
             "modtools/fbgroups": "facebookGroups",
@@ -128,7 +131,9 @@ define([
             "modtools/support": "support",
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
+            "modtools": "modtools",
             "replay/(:id)": "replay",
+            "mobiledebug": "mobiledebug",
             "find": "userFindWhereAmI",
             "find/whereami": "userFindWhereAmI",
             "find/search/(:search)": "userSearched",
@@ -150,11 +155,13 @@ define([
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
+            "livemap": "liveMap",
             "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
             "communityevent(/:id)": "userCommunityEvent",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
+            "chats": "userChats",
             "chat/:id": "userChat",
             "alert/viewed/:id": "alertViewed",
             "mobile": "userMobile",
@@ -172,6 +179,8 @@ define([
             "plugins/group/:id": "groupPlugin",
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
+            "stories": "userStories",
+            "story/:id": "userStory",
             "*path": "userHome"
         },
 
@@ -219,7 +228,7 @@ define([
             window.location.href = initialURL;  // Could add ?route=Xxx
         },
 
-        userHome: function (chatid) {
+        userHome: function () {
             var self = this;
 
             if (true) {  // MT
@@ -231,9 +240,7 @@ define([
                         console.log("Don't load home or landing as in maintenanceMode");
                     } else if (loggedIn || _.isUndefined(loggedIn)) {
                         require(["iznik/views/pages/user/home"], function () {
-                            var page = new Iznik.Views.User.Pages.Home({
-                                chatid: chatid
-                            });
+                            var page = new Iznik.Views.User.Pages.Home();
                             self.loadRoute({ page: page });
                         });
                     } else {
@@ -245,14 +252,8 @@ define([
                     }
                 }
 
-                if (chatid) {
-                    // We need to be logged in to see this.
-                    self.listenToOnce(Iznik.Session, 'loggedIn', f);
-                    Iznik.Session.forceLogin();
-                } else {
-                    self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
-                    Iznik.Session.testLoggedIn();
-                }
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+                Iznik.Session.testLoggedIn();
             }
         },
 
@@ -287,18 +288,50 @@ define([
             Iznik.Session.forceLogin();
         },
 
-        userChat: function(chatid) {
+        userStories: function() {
             var self = this;
 
-            try {
-                // Force the chat code to open this chat, even if we're on mobile.
-                // TODO This is a horrid way of signalling.
-                Storage.set('chat-' + chatid + '-open', 2);
-            } catch (e) {
-                console.error(e.message);
-            }
+            require(["iznik/views/pages/user/stories"], function() {
+                var page = new Iznik.Views.User.Pages.Stories();
+                self.loadRoute({page: page});
+            });
+        },
 
-            self.userHome(chatid);
+        userStory: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stories"], function() {
+                var page = new Iznik.Views.User.Pages.Stories.Single({
+                    id: id
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
+        userChats: function() {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page();
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
+            });
+        },
+
+        userChat: function(chatid) {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page({
+                        chatid: chatid
+                    });
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
+            });
         },
 
         userFindWhereAmI: function () {
@@ -534,6 +567,15 @@ define([
 
             require(["iznik/views/pages/user/explore"], function() {
                 var page = new Iznik.Views.User.Pages.Explore();
+                self.loadRoute({page: page});
+            });
+        },
+
+        liveMap: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/livemap"], function() {
+                var page = new Iznik.Views.User.Pages.LiveMap();
                 self.loadRoute({page: page});
             });
         },
@@ -973,6 +1015,38 @@ define([
             });
         },
 
+        storiesMembers: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/members_stories"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.StoriesMembers();
+                    self.loadRoute({page: page, modtools: true});
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        storiesNewsletter: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/members_stories"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.StoriesMembers({
+                        newsletter: true
+                    });
+                    self.loadRoute({page: page, modtools: true});
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
         spammerListPendingAdd: function (search) {
             var self = this;
 
@@ -1201,7 +1275,36 @@ define([
                 });
             });
         },
-        
+
+        modChats: function() {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page();
+                    page.modtools = true;
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
+            });
+        },
+
+        modChat: function(chatid) {
+            var self = this;
+            console.log("Mod Chat");
+            require(["iznik/views/pages/chat"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.Chat.Page({
+                        chatid: chatid
+                    });
+                    page.modtools = true;
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
+            });
+        },
+
         replay: function(sessionid) {
             var self = this;
 

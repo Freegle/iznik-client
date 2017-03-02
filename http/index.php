@@ -82,9 +82,10 @@ if (!pres('id', $_SESSION)) {
 }
 
 if (pres('src', $_REQUEST)) {
-    $dbhm->preExec("INSERT INTO logs_src (src, userid) VALUES (?, ?);", [
+    $dbhm->preExec("INSERT INTO logs_src (src, userid, session) VALUES (?, ?, ?);", [
         $_REQUEST['src'],
-        presdef('id', $_SESSION, NULL)
+        presdef('id', $_SESSION, NULL),
+        session_id()
     ]);
 }
 

@@ -120,7 +120,7 @@ class Relevant {
             $allowed = [];
             foreach ($groups as $group) {
                 $g = Group::get($this->dbhr, $this->dbhm, $group);
-                if ($g->getSetting('relevant', 1)) {
+                if ($g->getSetting('relevant', 1) && $g->getPrivate('onhere')) {
                     $allowed[] = $group;
                 }
             }
@@ -181,15 +181,6 @@ class Relevant {
         list ($transport, $mailer) = getMailer();
 
         $count = 0;
-
-        # TODO until we migrate over, we need to link to the old site, so we need the old group id.
-        global $dbconfig;
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname=republisher;charset=utf8";
-
-        $dbhold = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_EMULATE_PREPARES => FALSE
-        ));
 
         $sql = $userid ? "SELECT id FROM users WHERE id = $userid AND relevantallowed = 1;" : "SELECT id FROM users WHERE relevantallowed = 1;";
         $users = $this->dbhr->preQuery($sql);

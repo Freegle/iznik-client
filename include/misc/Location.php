@@ -285,7 +285,7 @@ class Location extends Entity
                 # (you might have 'Stockbridge' and 'Stockbridge Church Of England Primary School'), then ordered
                 # by most popular.
                 if ($limit > 0) {
-                    $sql = "SELECT locations.* FROM locations $exclgroup WHERE LENGTH(name) >= " . strlen($termt) . " AND name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote($termt) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT locations.* FROM locations FORCE INDEX (gridid) $exclgroup WHERE LENGTH(name) >= " . strlen($termt) . " AND name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote($termt) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     #error_log("%..% $sql");
                     $locs = $this->dbhr->preQuery($sql);
 
@@ -479,7 +479,7 @@ class Location extends Entity
         return($ret);
     }
 
-    public function typeahead($query, $limit = 10) {
+    public function typeahead($query, $limit = 10, $near = TRUE) {
         # We want to select full postcodes (with a space in them)
         $sql = "SELECT * FROM locations WHERE name LIKE ? AND name LIKE '% %' AND type = 'Postcode' LIMIT $limit;";
         $pcs = $this->dbhr->preQuery($sql, [ "$query%" ]);
@@ -490,8 +490,10 @@ class Location extends Entity
                 $thisone[$att] = $pc[$att];
             }
 
-            $l = new Location($this->dbhr, $this->dbhm, $pc['id']);
-            $thisone['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
+            if ($near) {
+                $l = new Location($this->dbhr, $this->dbhm, $pc['id']);
+                $thisone['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
+            }
 
             if ($thisone['areaid']) {
                 $l = new Location($this->dbhr, $this->dbhm, $thisone['areaid']);
@@ -611,7 +613,6 @@ class Location extends Entity
         # Return the areas within the box, along with a polygon which shows their shape.  This allows us to
         # display our areas on a map.
         $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND locations_excluded.locationid IS NULL;";
-        #error_log("SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= $swlat AND lng >= $swlng AND lat <= $nelat AND lng <= $nelng AND locations_excluded.locationid IS NULL;");
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
         $ret = [];
 

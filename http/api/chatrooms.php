@@ -74,33 +74,18 @@ function chatrooms() {
             # Update our presence and get the current roster.
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
-            if ($me) {
-                if ($id) {
-                    # Single roster update.
-                    $ret = ['ret' => 2, 'status' => "$id Not visible to you"];
+            if ($me && $id) {
+                # Single roster update.
+                $ret = ['ret' => 2, 'status' => "$id Not visible to you"];
 
-                    if ($r->canSee($myid)) {
-                        $ret = ['ret' => 0, 'status' => 'Success'];
-                        $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
-                        $status = presdef('status', $_REQUEST, 'Online');
-                        $r->updateRoster($myid, $lastmsgseen, $status);
+                if ($r->canSee($myid)) {
+                    $ret = ['ret' => 0, 'status' => 'Success'];
+                    $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
+                    $r->updateRoster($myid, $lastmsgseen);
 
-                        $ret['roster'] = $r->getRoster();
-                        $ret['unseen'] = $r->unseenCountForUser($myid);
-                        $ret['nolog'] = TRUE;
-                    }
-                } else {
-                    # Bulk roster update
-                    $ret = ['ret' => 0, 'status' => 'Success', 'rosters' => [], 'nolog' => TRUE];
-                    $rosters = presdef('rosters', $_REQUEST, []);
-                    foreach ($rosters as $roster) {
-                        $r = new ChatRoom($dbhr, $dbhm, $roster['id']);
-                        if ($r->canSee($myid)) {
-                            $r->updateRoster($myid, presdef('lastmsgseen', $roster, NULL), $roster['status']);
-                            $ret['rosters'][$roster['id']] = $r->getRoster();
-                            $ret['unseen'][$roster['id']] = $r->unseenCountForUser($myid);
-                        }
-                    }
+                    $ret['roster'] = $r->getRoster();
+                    $ret['unseen'] = $r->unseenCountForUser($myid);
+                    $ret['nolog'] = TRUE;
                 }
             }
         }

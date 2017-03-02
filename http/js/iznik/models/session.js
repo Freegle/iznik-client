@@ -2,6 +2,7 @@ define([
     'jquery',
     'backbone',
     'iznik/base',
+    'iznik/models/chat/chat',
     'jquery-visibility'
 ], function($, Backbone, Iznik) {
 
@@ -39,6 +40,9 @@ define([
                 // when we're not.
                 self.testLoggedIn();
             });
+
+            // Make sure that the chats are set up, even if not yet fetched - used all over.
+            self.chats = new Iznik.Collections.Chat.Rooms();
         },
 
         save: function(attrs, options) {
@@ -262,7 +266,7 @@ define([
                                 Storage.set('lastloggedinas', ret.me.id);
                                 Storage.set('myemail', ret.me.email);
 
-                                if (ret.me.id != lastloggedinas) {
+                                if (lastloggedinas && ret.me.id && ret.me.id != lastloggedinas) {
                                     // We have logged in as someone else.  Zap our fetch cache.
                                     gotYahooCookies = false;
                                     Storage.iterate(function(key,value) {
@@ -270,6 +274,8 @@ define([
                                             Storage.remove(key);
                                         }
                                     });
+
+                                    window.location.reload(true);
                                 }
 
                                 // We use this to decide whether to show sign up or sign in.
@@ -386,6 +392,20 @@ define([
                                         ev: 'spammerpendingremovecountschanged',
                                         window: admin,
                                         sound: false
+                                    },
+                                    {
+                                        fi: 'stories',
+                                        el: '.js-storiescount',
+                                        ev: 'storiescountchanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'newsletterstories',
+                                        el: '.js-newsletterstoriescount',
+                                        ev: 'newsletterstoriescountchanged',
+                                        window: false,
+                                        sound: false
                                     }
                                 ];
 
@@ -436,9 +456,9 @@ define([
                                 document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
 
                                 if (total) {
-                                    $('#menu-toggle .js-totalcount').html(total).show();
+                                    $('.js-chattotalcount').html(total).show();
                                 } else {
-                                    $('#menu-toggle .js-totalcount').empty().hide();
+                                    $('.js-chattotalcount').empty().hide();
                                 }
                                 if (mobilePush) {
                                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
@@ -912,6 +932,12 @@ define([
             });
 
             return(facebook);
+        },
+
+        hasPermission: function(perm) {
+            var perms = this.get('me').permissions;
+            // console.log("Check permission", perms, perm, this);
+            return(perms && perms.indexOf(perm) !== -1);
         }
     });
 });

@@ -83,7 +83,7 @@
             </div>
             <% } else if (subtype == 'Hold') { %>
             Held member <% if (user.displayname.length > 1) { %>{{user.displayname}}<% } else { %><em>(No name)</em><% } %> #{{user.id}} on {{group.namedisplay}}
-            <% } else if (subtype == 'Hold') { %>
+            <% } else if (subtype == 'Release') { %>
             Released member <% if (user.displayname.length > 1) { %>{{user.displayname}}<% } else { %><em>(No name)</em><% } %> #{{user.id}} on {{group.namedisplay}}
             <% } else if (subtype == 'Suspect') { %>
             Detected as suspicious<% if (obj.text) { %>: {{text}}<% } %>
@@ -100,7 +100,7 @@
             <% } else if (subtype == 'YahooApplied') { %>
             Triggered application to Yahoo Group {{obj.group.namedisplay}}.
             <% } else if (subtype == 'YahooJoined') { %>
-            Yahoo informed ModTools that the member has joined.
+            Yahoo informed ModTools that the member {{text}} has joined.
             <% } else if (subtype == 'SuspendMail') { %>
             Stop mailing this member as they are bouncing.
             <% } else if (subtype == 'Bounce') { %>

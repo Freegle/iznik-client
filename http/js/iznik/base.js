@@ -30,6 +30,7 @@ define([
 
     var Iznik = {
         Models: {
+            Activity: {},
             ModTools: {},
             Yahoo: {},
             Plugin: {},
@@ -38,6 +39,7 @@ define([
             User: {}
         },
         Views: {
+            Activity: {},
             ModTools: {
                 Pages: {},
                 Message: {},
@@ -70,6 +72,7 @@ define([
             Help: {}
         },
         Collections: {
+            Activity: {},
             Messages: {},
             Members: {},
             ModTools: {},
@@ -137,7 +140,7 @@ define([
             if (options && options.cached) {
                 // We would like a cached fetch.
                 var key = cacheKey(url, options.data);
-                //console.log("Fetch key", key);
+                // console.log("Fetch key", url, key);
 
                 try {
                     var cached = Storage.get(key);
@@ -158,11 +161,21 @@ define([
                         var now = (new Date()).getTime();
                         var age = now - expires;
                         var expiry = options.hasOwnProperty('cacheExpiry') ? options.cacheExpiry : 60 * 60 * 48;
-                        //console.log("Compare expire", age, expiry);
+                        // console.log("Compare expire", age, expiry);
 
                         // We want to fetch if our cache has expired, or if it is valid but we don't just want the
                         // cached value.
                         issueFetch = age >= expiry || !options.cacheOnly;
+
+                        if (issueFetch && age >= expiry) {
+                            // Our entry has expired and we are going to get a new one.  It's possible that this
+                            // might fail due to quota issues.  Zap our old one to avoid always showing data
+                            // that is too old.
+                            try {
+                                Storage.remove(key);
+                                Storage.remove(key + '.time');
+                            } catch (e) {}
+                        }
 
                         // We might want to delay it.
                         fetchDelay = options.hasOwnProperty('cacheFetchAfter') ? (options.cacheFetchAfter * 1000) :
@@ -188,45 +201,50 @@ define([
                                     var key = cacheKey(url, options.data);
                                     var data = JSON.stringify(self.toJSON());
 
-                                    if (Persist.size == -1 || data.length < Persist.size) {
+                                    // CC   if (Persist.size == -1 || data.length < Persist.size) { // CC
                                         // Don't cache stuff that's too big.
                                         try {
                                             Storage.set(key, data);
                                             Storage.set(key + '.time', (new Date()).getTime());
                                             // console.log("Stored length", key, Storage.get(key).length);
                                         } catch (e) {
-                                            // Failed.  Most likely quota - tidy some stuff up.
+                                            // Failed.  Most likely quota - tidy some stuff up, including
+                                            // this value so that it doesn't stay out of date.
+                                            Storage.remove(key);
+                                            Storage.remove(key + '.time');
+
                                             console.log("Failed to set", e.message);
                                             Storage.iterate(function(k,v) {
-                                                if (v.length > 10000) {
+                                                console.log("Consider prune ", k);
+                                                if (k.indexOf('cache.') === 0) {
                                                     console.log("Remove", k, v.length);
                                                     Storage.remove(k);
                                                 }
                                             });
                                         }
-                                    } else {
+                                    /* CC } else {
                                         // We can't cache this, as it's too big.  Remove any previously cached data
                                         // which might be below this limit, as otherwise it will persist forever and
                                         // become increasingly misleading.
                                         console.log("Don't cache too long", key, data.length);
                                         Storage.remove(key);
                                         Storage.remove(key + '.time');
-                                    }
+                                    } */
                                 } catch (e) {console.log("Exception", e); console.error(e.message);}
                             }
 
                             // Now tell the caller the fetch has completed.
-                            //console.log("Resolve fetch");
+                            // console.log("Resolve fetch");
                             resolve();
                         });
                     }
 
                     // Now fetch - immediately or after a delay.
                     if (fetchDelay > 0) {
-                        //console.log("Delay fetch for", fetchDelay);
+                        // console.log("Delay fetch for", fetchDelay);
                         window.setTimeout(issueFetch, fetchDelay);
                     } else {
-                        //console.log("Immediate fetch");
+                        // console.log("Immediate fetch");
                         issueFetch();
                     }
                 });

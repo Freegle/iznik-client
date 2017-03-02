@@ -1,37 +1,53 @@
 <h1 class="text-center">First, tell us where you are</h1>
 <p class="text-center">We'll use this to show you stuff nearby.  Don't worry, we won't give other people your postcode.</p>
 <div class="row-fluid">
-    <div class="col-lg-5 text-center">
+    <div class="col-lg-5 text-center js-hidepcbutt">
         <div class="btn btn-lg btn-primary js-geoloconly js-getloc">
             <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
         </div>
     </div>
-    <div class="col-lg-2 js-geoloconly text-center topspace">
+    <div class="col-lg-2 js-geoloconly text-center topspace js-hidepcor">
         <em>Or</em>
     </div>
-    <div class="col-lg-5 text-center">
+    <div class="col-lg-5 text-center js-hidepcpc">
         <input class="input-lg form-control js-postcode" placeholder="Enter postcode" />
     </div>
 </div>
 <div class="row-fluid hidden-xs" >
-    <div class="col-md-3"></div>
-    <div class="col-md-6 text-center">
+    <div class="col-md-6 col-md-offset-3 text-center">
         <a href="/find/search" aria-hidden="true">
             <div class="glyphicon glyphicon-ok-sign success glyphicon-behemoth topspace botspace js-ok js-next js-changehomegroup" style="display: none" />
         </a>
     </div>
     <div class="col-md-3"></div>
 </div>
-<div class="topspace row-fluid js-groupoverride" style="display: none">
-    <div class="alert alert-danger col-md-6 col-md-offset-3 text-center">
-        We're in testing mode; please only use EH postcodes, as all messages are going to <span class="js-groupoverridename" /> which is centered there.
-    </div>
-</div>
 <div class="row-fluid topspace js-homegroup" style="display: none">
     <div class="col-md-6 col-md-offset-3 text-center">
         <p class="text-center">Freegle has local groups for each area.  We'll put anything you post on here, and search this group and others nearby.</p>
         <select class="form-control js-groups"></select>
         <p class="text-nuted">Click on the name above to choose a different group.</p>
+    </div>
+</div>
+<div class="row-fluid js-external" style="display: none">
+    <div class="topspace row-fluid">
+        <div class="col-md-6 col-md-offset-3 text-center">
+            This group is on another site.
+            <a href="" data-realurl="true" class="js-toexternal">
+                <div class="btn btn-success topspace btn-lg btn-block">
+                    Proceed >>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="topspace row-fluid ">
+        <div class="topspace col-md-6 col-md-offset-3 text-center">
+            <div class="alert alert-warning">
+                Or you can stay on this site and search groups further away.
+            </div>
+            <a href="/find/search" class="js-changehomegroup">
+                <div class="btn btn-white topspace btn-lg btn-block">Proceed on here >></div>
+            </a>
+        </div>
     </div>
 </div>
 <div class="js-onyahoo" style="display: none">
@@ -53,18 +69,6 @@
             </div>
             <a href="/find/search" class="js-changehomegroup">
                 <div class="btn btn-white topspace btn-lg btn-block">Proceed on here >></div>
-            </a>
-        </div>
-    </div>
-</div>
-<div class="row-fluid js-external" style="display: none">
-    <div class="topspace row-fluid">
-        <div class="col-md-6 col-md-offset-3 text-center">
-            Your closest Freegle group is on another site.
-            <a href="" data-realurl="true" class="js-toexternal">
-                <div class="btn btn-success topspace btn-lg btn-block">
-                    Proceed >>
-                </div>
             </a>
         </div>
     </div>

@@ -27,16 +27,16 @@ define([
         },
 
         editFailed: function () {
-            console.log("Message edit failed");
             this.removeEditors();
             this.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign error');
+            this.$('.js-saveplatsubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-warning-sign error');
             this.restoreEditSubject();
         },
 
         editSucceeded: function () {
-            console.log("Message edit succeeded");
             this.removeEditors();
             this.$('.js-savesubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-ok success');
+            this.$('.js-saveplatsubj .glyphicon').removeClass('glyphicon-refresh rotate').addClass('glyphicon-ok success');
             this.restoreEditSubject();
         },
 
@@ -53,6 +53,53 @@ define([
                 removeTinyMCEInstance(tinymce.editors[i]);
             }
             this.$('.js-tinymce').remove();
+        },
+
+        postcodeSource: function(query, syncResults, asyncResults) {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: query.trim()
+                }, success: function(ret) {
+                    var matches = [];
+                    _.each(ret.locations, function(location) {
+                        matches.push(location.name);
+                    });
+
+                    asyncResults(matches);
+
+                    _.delay(function() {
+                        self.$('.js-postcode').tooltip('destroy');
+                    }, 10000);
+
+                    if (matches.length == 0) {
+                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode (including the space)'});
+                        self.$('.js-postcode').tooltip('show');
+                    } else {
+                        self.firstMatch = matches[0];
+                    }
+                }
+            })
+        },
+
+        savePlatSubject: function () {
+            var self = this;
+
+            // First edit our copy.
+            self.listenToOnce(self.model, 'editsucceeded', function() {
+                // Now we may need to edit on Yahoo too.
+                self.$('.js-subject').val(self.model.get('subject'));
+                self.saveSubject();
+            });
+
+            self.model.editPlatformSubject(
+                self.$('.js-type').val(),
+                self.$('.js-item').val(),
+                self.$('.js-location').val()
+            );
         },
 
         saveSubject: function () {

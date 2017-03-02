@@ -170,8 +170,10 @@ define([
 
                     if (!useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
                     showNetworkStatus(); // CC
-
-                    ChatHolder().createMinimised();
+                    if (self.appButtons) {
+                        // Show app buttons.
+                        $('#js-appbuttons').show();
+                    }
 
                     $('#botleft').empty();
 
@@ -283,6 +285,11 @@ define([
                                 });
                             }
 
+                            // CC show debug sunglasses/specs icon
+                            if (showDebugConsole) {
+                                $('#mobile-debug').show();
+                            }
+
                             // Show anything which should or shouldn't be visible based on login status.
                             var loggedInOnly = $('.js-loggedinonly');
                             var loggedOutOnly = $('.js-loggedoutonly');
@@ -389,14 +396,18 @@ define([
                     self.$('.js-adminsupportonly').removeClass('hidden');
                 }
 
-                if (Iznik.Session.isAdmin()) {
-                    self.$('.js-adminonly').removeClass('hidden');
+                if (Iznik.Session.hasPermission('Newsletter')) {
+                    self.$('.js-newsletter').removeClass('hidden');
                 }
+
+                if (Iznik.Session.hasP)
 
                 // We need to create a hidden signin button because otherwise the Google logout method doesn't
                 // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
                 var GoogleLoad = new Iznik.Views.GoogleLoad();
-                GoogleLoad.buttonShim('googleshim');
+                if (GoogleLoad) {
+                    GoogleLoad.buttonShim('googleshim');
+                }
 
                 // Events site is special.
                 var eventsite = $('meta[name=iznikevent]').attr("content");

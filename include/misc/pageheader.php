@@ -40,24 +40,27 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         $m = new Message($dbhr, $dbhm, intval($matches[1]));
         if ($m->getID()) {
             $atts = $m->getPublic();
-            $icon = (count($atts['attachments']) > 0) ? $atts['attachments'][0]['path'] : USERLOGO;
 
-            $rsptext = '';
-            if ($m->getType() == Message::TYPE_OFFER) {
-                $rsptext = "Interested?  Click here to reply.  Everything on Freegle is free.  ";
-            } else if ($m->getType() == Message::TYPE_WANTED) {
-                $rsptext = "Got one?  Click here to reply.  Everything on Freegle is free.  ";
+            if ($m->canSee($atts)) {
+                $icon = (count($atts['attachments']) > 0) ? $atts['attachments'][0]['path'] : USERLOGO;
+
+                $rsptext = '';
+                if ($m->getType() == Message::TYPE_OFFER) {
+                    $rsptext = "Interested?  Click here to reply.  Everything on Freegle is free.  ";
+                } else if ($m->getType() == Message::TYPE_WANTED) {
+                    $rsptext = "Got one?  Click here to reply.  Everything on Freegle is free.  ";
+                }
+
+                ?>
+                <title><?php echo $atts['subject']; ?></title>
+                <meta itemprop="title" content="<?php echo $atts['subject']; ?>"/>
+                <meta itemprop="description" content="<?php echo $rsptext; ?>"/>
+                <meta name="description" content="<?php echo $rsptext; ?>"/>
+                <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
+                <meta property="og:description" content="<?php echo $rsptext; ?>"/>
+                <meta property="og:image" content="<?php echo $icon; ?>"/>
+                <?php
             }
-
-            ?>
-            <title><?php echo $atts['subject']; ?></title>
-            <meta itemprop="title" content="<?php echo $atts['subject']; ?>"/>
-            <meta itemprop="description" content="<?php echo $rsptext; ?>"/>
-            <meta name="description" content="<?php echo $rsptext; ?>"/>
-            <meta property="og:title" content="<?php echo $atts['subject']; ?>"/>
-            <meta property="og:description" content="<?php echo $rsptext; ?>"/>
-            <meta property="og:image" content="<?php echo $icon; ?>"/>
-            <?php
         }
     } else if (preg_match('/\/communityevent\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
         # Community event - preview with title and description
@@ -66,8 +69,11 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
         global $dbhr, $dbhm;
         $e = new CommunityEvent($dbhr, $dbhm, intval($matches[1]));
+
         if ($e->getID()) {
             $atts = $e->getPublic();
+            $photo = presdef('photo', $atts, NULL);
+            $icon = $photo ? $photo['path'] : USERLOGO;
 
             ?>
             <title><?php echo $atts['title']; ?></title>
@@ -76,6 +82,31 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             <meta property="og:description" content="<?php echo $atts['title']; ?>"/>
             <meta property="og:title" content="<?php echo $atts['title']; ?>"/>
             <meta property="og:description" content=""/>
+            <meta property="og:image" content="<?php echo $icon; ?>"/>
+            <?php
+        }
+    } else if (preg_match('/\/story\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        # Story - preview with headline and description
+        require_once(BASE_DIR . '/include/config.php');
+        require_once(IZNIK_BASE . '/include/db.php');
+        require_once(IZNIK_BASE . '/include/user/Story.php');
+        global $dbhr, $dbhm;
+        $s = new Story($dbhr, $dbhm, intval($matches[1]));
+
+        if ($s->getID()) {
+            $atts = $s->getPublic();
+            $photo = presdef('photo', $atts, NULL);
+            $icon = $photo ? $photo['path'] : USERLOGO;
+            $headline = $atts['headline'];
+
+            ?>
+            <title><?php echo $headline; ?></title>
+            <meta itemprop="title" content="<?php echo $headline; ?>"/>
+            <meta name="description" content="<?php echo $headline; ?>"/>
+            <meta property="og:description" content="<?php echo $headline; ?>"/>
+            <meta property="og:title" content="<?php echo $headline; ?>"/>
+            <meta property="og:description" content="Click to read more"/>
+            <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
     } else {
@@ -137,6 +168,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
         if (/android/i.test(userAgent)) {
             // SmartBanner to encourage people to install the apps.  IOS has it natively.
+            <?php if (!MODTOOLS) { ?>
             new SmartBanner({
                 daysHidden: 15,   // days to hide banner after close button is clicked (defaults to 15)
                 daysReminder: 90, // days to hide banner after "VIEW" button is clicked (defaults to 90)
@@ -154,6 +186,25 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
                 },
                 icon: '/images/user_logo.png'
             });
+            <?php } else { ?>
+            new SmartBanner({
+                daysHidden: 15,   // days to hide banner after close button is clicked (defaults to 15)
+                daysReminder: 90, // days to hide banner after "VIEW" button is clicked (defaults to 90)
+                appStoreLanguage: 'us', // language code for the App Store (defaults to user's browser language)
+                title: 'ModTools',
+                author: 'Freegle UK',
+                button: 'VIEW',
+                store: {
+                    ios: 'On the App Store',
+                    android: 'In Google Play'
+                },
+                price: {
+                    ios: 'FREE',
+                    android: 'FREE'
+                },
+                icon: '/images/modtools_logo.png'
+            });
+            <?php } ?>
         }
 
         // Start a timer to reload if we fail to get the page rendered.  Do this now as any JS errors might prevent
@@ -236,7 +287,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=114">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=168">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -256,9 +307,9 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <!-- And then some custom styles for our different apps -->
     <?php
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
-        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=10"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=13"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=131"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=134"><?php
     }
     ?>
 

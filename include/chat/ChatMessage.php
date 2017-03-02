@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
@@ -20,6 +20,7 @@ class ChatMessage extends Entity
     const TYPE_RENEGED = 'Reneged';
     const TYPE_REPORTEDUSER = 'ReportedUser';
     const TYPE_COMPLETED = 'Completed';
+    const TYPE_IMAGE = 'Image';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_REJECT = 'Reject';
@@ -30,11 +31,15 @@ class ChatMessage extends Entity
     # Use matching from https://gist.github.com/gruber/249502 .
     private $urlPattern = '#(?i)\b(((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))|(\.com\/))#m';
 
+    # ...but this matches some bad character patterns.
+    private $urlBad = [ '%', '{', ';', '#', ':' ];
+
+    private $spamwords = NULL;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->fetch($dbhr, $dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
         $this->log = new Log($dbhr, $dbhm);
-        $this->spamwords = $dbhr->preQuery("SELECT * FROM spam_keywords;");
     }
 
     /**
@@ -45,6 +50,12 @@ class ChatMessage extends Entity
         $this->dbhm = $dbhm;
     }
 
+    private function getSpamWords() {
+        if (!$this->spamwords) {
+            $this->spamwords = $this->dbhr->preQuery("SELECT * FROM spam_keywords;");
+        }
+    }
+
     public function whitelistURLs($message) {
         if (preg_match_all($this->urlPattern, $message, $matches)) {
             $me = whoAmI($this->dbhr, $this->dbhm);
@@ -52,7 +63,17 @@ class ChatMessage extends Entity
 
             foreach ($matches as $val) {
                 foreach ($val as $url) {
-                    if (strlen($url) > 0 && stripos($url, 'http') !== FALSE) {
+                    $bad = FALSE;
+                    $url2 = str_replace('http:', '', $url);
+                    $url2 = str_replace('https:', '', $url2);
+                    foreach ($this->urlBad as $badone) {
+                        if (strpos($url2, $badone) !== FALSE) {
+                            $bad = TRUE;
+                        }
+                    }
+
+                    #error_log("Whitelist $url bad $bad");
+                    if (!$bad && strlen($url) > 0) {
                         $url = substr($url, strpos($url, '://') + 3);
                         $p = strpos($url, '/');
                         $domain = $p ? substr($url, 0, $p) : $url;
@@ -66,6 +87,38 @@ class ChatMessage extends Entity
         }
     }
 
+    private function checkSpamhaus($url) {
+        $ret = FALSE;
+
+        $parsed = parse_url( $url );
+        error_log("Spamhaus check $url");
+
+        if (isset($parsed['host'])) {
+            // Remove www. from domain (but not from www.com)
+            $parsed['host'] = preg_replace('/^www\.(.+\.)/i', '$1', $parsed['host']);
+
+            $blacklists = array(
+                'dbl.spamhaus.org',
+            );
+
+            foreach ($blacklists as $blacklist) {
+                $domain = $parsed['host'] . '.' . $blacklist . '.';
+                $record = dns_get_record($domain);
+
+                if ($record != NULL && count($record) > 0) {
+                    foreach ($record as $entry) {
+                        if (array_key_exists('ip', $entry) && strpos($entry['ip'], '127.0.1') === 0) {
+                            error_log("Spamhaus blocked $url");
+                            $ret = TRUE;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $ret;
+    }
+
     public function checkReview($message) {
         $check = FALSE;
 
@@ -77,7 +130,7 @@ class ChatMessage extends Entity
         # Check for URLs.
         if (preg_match_all($this->urlPattern, $message, $matches)) {
             # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
-            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3;");
+            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5;");
 
             $valid = 0;
             $count = 0;
@@ -85,7 +138,16 @@ class ChatMessage extends Entity
 
             foreach ($matches as $val) {
                 foreach ($val as $url) {
-                    if (strlen($url) > 0) {
+                    $bad = FALSE;
+                    $url2 = str_replace('http:', '', $url);
+                    $url2 = str_replace('https:', '', $url2);
+                    foreach ($this->urlBad as $badone) {
+                        if (strpos($url2, $badone) !== FALSE) {
+                            $bad = TRUE;
+                        }
+                    }
+
+                    if (!$bad && strlen($url) > 0) {
                         $url = substr($url, strpos($url, '://') + 3);
                         $count++;
                         $trusted = FALSE;
@@ -99,6 +161,9 @@ class ChatMessage extends Entity
                         }
 
                         $badurl = $trusted ? $badurl : $url;
+//                        if (!$trusted) {
+//                            error_log("Bad url $url");
+//                        }
                     }
                 }
             }
@@ -110,10 +175,12 @@ class ChatMessage extends Entity
         }
 
         # Check keywords
+        $this->getSpamWords();
         foreach ($this->spamwords as $word) {
             if ($word['action'] == 'Review' &&
                 preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
                 (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
+                #error_log("Spam keyword {$word['word']}");
                 $check = TRUE;
             }
         }
@@ -124,19 +191,44 @@ class ChatMessage extends Entity
     public function checkSpam($message) {
         $spam = FALSE;
 
-        # Check keywords
+        # Check keywords which are known as spam.
+        $this->getSpamWords();
         foreach ($this->spamwords as $word) {
+            $exp = '/\b' . preg_quote($word['word']) . '\b/';
             if ($word['action'] == 'Spam' &&
-                preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
+                preg_match($exp, $message) &&
                 (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                 $spam = TRUE;
+            }
+        }
+
+        # Check whether any URLs are in Spamhaus DBL black list.
+        if (preg_match_all($this->urlPattern, $message, $matches)) {
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    $bad = FALSE;
+                    $url2 = str_replace('http:', '', $url);
+                    $url2 = str_replace('https:', '', $url2);
+                    foreach ($this->urlBad as $badone) {
+                        if (strpos($url2, $badone) !== FALSE) {
+                            $bad = TRUE;
+                        }
+                    }
+
+                    if (!$bad && strlen($url) > 0) {
+                        $url = substr($url, strpos($url, '://') + 3);
+                        if ($this->checkSpamhaus("http://$url")) {
+                            $spam = TRUE;
+                        }
+                    }
+                }
             }
         }
 
         return($spam);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL) {
         try {
             $review = 0;
             $spam = 0;
@@ -148,7 +240,7 @@ class ChatMessage extends Entity
                 $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid) VALUES (?,?,?,?,?,?,?,?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
                 $chatid,
                 $userid,
                 $message,
@@ -159,7 +251,8 @@ class ChatMessage extends Entity
                 $spam,
                 $spamscore,
                 $reportreason,
-                $refchatid
+                $refchatid,
+                $imageid
             ]);
 
             $id = $this->dbhm->lastInsertId();
@@ -178,7 +271,7 @@ class ChatMessage extends Entity
                 $r->notifyMembers($u->getName(), $message, $userid);
             }
         } catch (Exception $e) {
-            error_log("Failed to create chat " . $e->getMessage());
+            error_log("Failed to create chat " . $e->getMessage() . " at " . $e->getFile() . " line " . $e->getLine());
             $id = NULL;
             $rc = 0;
         }
@@ -202,6 +295,16 @@ class ChatMessage extends Entity
             unset($ret['refmsg']['textbody']);
             unset($ret['refmsg']['htmlbody']);
             unset($ret['refmsg']['message']);
+        }
+
+        if (pres('imageid', $ret)) {
+            # There is an image attached
+            $ret['image'] = [
+                'id' => $ret['imageid'],
+                'path' => Attachment::getPath($ret['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE),
+                'paththumb' => Attachment::getPath($ret['imageid'], Attachment::TYPE_CHAT_MESSAGE, TRUE)
+            ];
+            unset($ret['imageid']);
         }
 
         # Strip any remaining quoted text in replies.
@@ -259,15 +362,12 @@ class ChatMessage extends Entity
         # that the recipient of the message (i.e. the chat member who isn't the one who sent it) is on.
         #
         # For some of these groups we may be set not to show messages - so we need to honour that.
-        $show = [0];
-        $dontshow = [0];
+        $show = [];
+        $dontshow = [];
 
         $groupids = $me->getModeratorships();
         foreach ($groupids as $groupid) {
-            $mysettings = $me->getGroupSettings($groupid);
-            $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
-
-            if ($showmessages) {
+            if ($me->activeModForGroup($groupid)) {
                 $show[] = $groupid;
             } else {
                 $dontshow[] = $groupid;
@@ -282,8 +382,8 @@ class ChatMessage extends Entity
         # an inefficient query.
         # TODO This uses INSTR to check a json-encoded field.  In MySQL 5.7 we can do better.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
-        $showcount = $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'];
-        $dontshowcount = $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($dontshowq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'];
+        $showcount = count($show) > 0 ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'] : 0;
+        $dontshowcount = count($dontshow) > 0 ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($dontshowq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'] : 0;
 
         return([
             'showgroups' => $showq,

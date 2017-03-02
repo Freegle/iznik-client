@@ -14,28 +14,40 @@ $messages = $dbhr->preQuery($sql);
 
 $submitted = 0;
 $queued = 0;
+$rejected = 0;
 
 foreach ($messages as $message) {
-    $m = new Message($dbhr, $dbhm, $message['id']);
+    try {
+        $m = new Message($dbhr, $dbhm, $message['id']);
 
-    $uid = $m->getFromuser();
+        $uid = $m->getFromuser();
 
-    if ($uid) {
-        $u = User::get($dbhr, $dbhm, $uid);
-        list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE, TRUE);
+        if ($uid) {
+            $u = User::get($dbhr, $dbhm, $uid);
+            list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE, TRUE);
 
-        if ($eid) {
-            $m->submit($u, $email, $message['groupid']);
-            $outcome = ' submitted';
-            $submitted++;
-        } else {
-            $u->triggerYahooApplication($message['groupid'], FALSE);
-            $outcome = ' still queued';
-            $queued++;
+            if ($eid) {
+                # Now approved - we can submit.
+                $m->submit($u, $email, $message['groupid']);
+                $outcome = ' submitted';
+                $submitted++;
+            } else if (!$u->isRejected($message['groupid'])) {
+                # Still pending - maybe Yahoo lost it.  Resend the application.
+                $u->triggerYahooApplication($message['groupid'], FALSE);
+                $outcome = ' still queued';
+                $queued++;
+            } else {
+                # No longer pending.  Just leave - it will eventually get purged, and this way we have it
+                # for debug if we want.
+                $outcome = ' rejected?';
+                $rejected++;
+            }
+
+            error_log("#{$message['id']} {$message['date']} {$message['subject']} $outcome");
         }
-
-        error_log("#{$message['id']} {$message['date']} {$message['subject']} $outcome");
+    } catch (Exception $e) {
+        error_log("Failed with " . $e->getMessage());
     }
 }
 
-error_log("\r\nSubmitted $submitted still queued $queued");
+error_log("\r\nSubmitted $submitted still queued $queued rejected $rejected");

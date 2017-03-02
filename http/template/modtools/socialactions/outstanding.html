@@ -1,0 +1,20 @@
+<% if (obj.type == 'BusinessCards') { %>
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        <h3>
+            {{obj.user.displayname}} asked for business cards.
+        </h3>
+        <span class="text-muted">
+             <abbr class="timeago" title="{{date}}" />
+        </span>
+    </div>
+    <div class="panel-body">
+        <p>Please send to:</p>
+        <pre><%-address.multiline%></pre>
+    </div>
+    <div class="panel-footer">
+        <span class="btn btn-white clickme js-delete"><span class="glyphicons glyphicons-bin" />&nbsp;Cancel</span>
+        <span class="btn btn-success clickme js-sent"><span class="glyphicons glyphicons-tick" />&nbsp;Sent</span>
+    </div>
+</div>
+<% } %>

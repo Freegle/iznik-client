@@ -26,8 +26,45 @@ define([
             this.$('.js-postcode').tooltip('destroy');
         },
 
+        showButt: function() {
+            var self = this;
+
+            self.$('.js-hidepcpc').removeClass('col-lg-offset-3');
+            self.$('.js-hidepcpc').addClass('col-lg-offset-7 col-lg-5');
+            _.delay(function() {
+                self.$('.js-hidepcpc').removeClass('margtrans');
+                self.$('.js-hidepcpc').removeClass('col-lg-offset-7 col-lg-6');
+                self.$('.js-hidepcbutt').removeClass('hidden');
+                self.$('.js-hidepcor').removeClass('hidden');
+            }, 1100);
+        },
+
+        hideButt: function() {
+            var self = this;
+            self.$('.js-hidepcbutt').addClass('hidden');
+            self.$('.js-hidepcor').addClass('hidden');
+            self.$('.js-hidepcpc').addClass('col-lg-offset-7');
+            _.defer(function() {
+                self.$('.js-hidepcpc').removeClass('col-lg-offset-7 col-lg-5');
+                self.$('.js-hidepcpc').addClass('col-lg-offset-3 col-lg-6 margtrans');
+            });
+        },
+
+        showHideButt: function() {
+            var self = this;
+
+            if (val.length == 0) {
+                self.showButt();
+            } else {
+                self.hideButt();
+            }
+        },
+
         keyUp: function(e) {
             var self = this;
+
+            self.showHideButt();
+
             if (e.which === 13) {
                 if (self.firstMatch) {
                     // We choose the first match on enter.
@@ -53,8 +90,10 @@ define([
         },
             
         scrollTo: function() {
-            // Make sure they can see the typeahead by scrolling.  Delay because an on-screen keyboard might open.
             var self = this;
+            self.showHideButt();
+
+            // Make sure they can see the typeahead by scrolling.  Delay because an on-screen keyboard might open.
             _.delay(function() {
                 var top = self.$('.tt-input').offset().top ;
                 $('body').scrollTo(top - $('.navbar').height(), 'slow');
@@ -156,7 +195,7 @@ define([
                         // Update our map if we have one.
                         var map = self.$('.js-locmap');
                         if (map.length > 0) {
-                            var width = self.$('.js-postcode').width();
+                            var width = Math.floor(self.$('.js-postcode').width());
                             map.css('width', width);
                             map.css('height', width);
                             var mapicon = 'https://www.ilovefreegle.org/images/mapmarker.gif';	// CC
@@ -215,7 +254,7 @@ define([
                         // Hosted externally on a different site.
                         self.$('.js-toexternal').attr('href', first.external);
                         self.$('.js-external').fadeIn('slow');
-                        self.$('.js-homegroup').hide();
+                        self.$('.js-homegroup').fadeIn('slow');
                     } else if (first.onyahoo && first.showonyahoo) {
                         // But Yahoo does and we want to show it.
                         self.$('.js-toyahoo').attr('href', 'https://groups.yahoo.com/group/' + first.nameshort);
@@ -238,9 +277,9 @@ define([
 
         recordLocation: function(location) {
             var self = this;
-            console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name); console.trace();
 
             if (!_.isUndefined(location)) {
+                // console.log("Record location ", this.$('.js-postcode').typeahead('val'), location.name); console.trace();
                 this.$('.js-postcode').typeahead('val', location.name);
                 self.$('.js-next').fadeIn('slow');
                 self.$('.js-ok').fadeIn('slow');
@@ -415,7 +454,7 @@ define([
                 }
 
                 self.$('.js-postcode').typeahead({
-                    minLength: 2,
+                    minLength: 3,
                     hint: false,
                     highlight: true
                 }, {
@@ -450,10 +489,12 @@ define([
 
                         if (!mylocation) {
                             mylocation = Iznik.Session.getSetting('mylocation', null);
+                        } else {
+                            mylocation = JSON.parse(mylocation);
                         }
 
                         if (mylocation) {
-                            var postcode = JSON.parse(mylocation).name;
+                            var postcode = mylocation.name;
                             self.$('.js-postcode').typeahead('val', postcode);
                             self.locChange.call(self);
                         }

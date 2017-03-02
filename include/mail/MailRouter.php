@@ -115,7 +115,7 @@ class MailRouter
     }
 
     # Public for UT
-    public function markPending($force) {
+    public function markPending($force, $onyahoo) {
         # Set the message as pending.
         #
         # If we're forced we just do it.  The force is to allow us to move from Spam to Pending.
@@ -133,7 +133,10 @@ class MailRouter
             #error_log("MarkPending " . $this->msg->getID() . " from collection $overq");
         }
 
-        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ? $overq;", [ $this->msg->getID() ]);
+        $rc = $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Pending', senttoyahoo = ? WHERE msgid = ? $overq;", [
+            $onyahoo ? 1 : 0,
+            $this->msg->getID()
+        ]);
 
         # Notify mods of new work
         $groups = $this->msg->getGroups();
@@ -183,7 +186,10 @@ class MailRouter
             $fromheader = mailparse_rfc822_parse_addresses($fromheader);
         }
 
-        if ($this->msg->getSource() == Message::YAHOO_SYSTEM) {
+        if ($this->spam->isSpammer($from)) {
+            # Mail from spammer. Drop it.
+            $ret = MailRouter::DROPPED;
+        } else if ($this->msg->getSource() == Message::YAHOO_SYSTEM) {
             $ret = MailRouter::DROPPED;
 
             # This is a message which is from Yahoo's system, rather than a message for a group.
@@ -267,32 +273,43 @@ class MailRouter
                 $this->mail($fromheader[0]['address'], $to, "Yes please", "I confirm this");
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
-                # This is a request by Yahoo to confirm a subscription for one of our members.  We always do that.
+                # This is a request by Yahoo to confirm a subscription for one of our members.  We do that if the
+                # member is still pending or approved; if not then this might be an earlier subscription request which has
+                # finally found its way to Yahoo.  Confirming this might lead to a resubscribe after a rejection.
                 if ($log) { error_log("Confirm subscription"); }
 
-                for ($i = 0; $i < 10; $i++) {
-                    # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
+                if (preg_match('/Please confirm your request to join (.*)/', $this->msg->getSubject(), $matches)) {
+                    $groupname = $matches[1];
+                    if ($log) { error_log("For group $groupname"); }
+                    $g = new Group($this->dbhr, $this->dbhm);
+                    $gid = $g->findByShortName($groupname);
+                    $g = new Group($this->dbhr, $this->dbhm, $gid);
+                    if ($log) { error_log("Found group $gid"); }
+
+                    $u = User::get($this->dbhr, $this->dbhm);
+                    $uid = $u->findByEmail($to);
+                    $u = User::get($this->dbhr, $this->dbhm, $uid);
+                    if ($log) { error_log("Found $uid for $to, onhere " . $g->getPrivate('onhere') . ", pending " . $u->isPendingMember($gid) . " approved " . $u->isApprovedMember($gid)); }
+
+                    if ($g->getPrivate('onhere') && !$u->isRejected($gid)) {
+                        if ($log) { error_log("Confirm it"); }
+                        $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
+
+                        $this->log->log([
+                            'type' => Log::TYPE_USER,
+                            'subtype' => Log::SUBTYPE_YAHOO_CONFIRMED,
+                            'user' => $uid,
+                            'text' => $to
+                        ]);
+
+                        $ret = MailRouter::TO_SYSTEM;
+                    }
                 }
-
-                $u = User::get($this->dbhr, $this->dbhm);
-                $uid = $u->findByEmail($to);
-                $this->log->log([
-                    'type' => Log::TYPE_USER,
-                    'subtype' => Log::SUBTYPE_YAHOO_CONFIRMED,
-                    'user' => $uid,
-                    'text' => $to
-                ]);
-
-                $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-invite-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
                 # This is an invitation by Yahoo to join a group, triggered by us in triggerYahooApplication.
                 if ($log) { error_log("Confirm invitation"); }
 
-                for ($i = 0; $i < 10; $i++) {
-                    # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
-                }
+                $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
 
                 $u = User::get($this->dbhr, $this->dbhm);
                 $uid = $u->findByEmail($to);
@@ -308,10 +325,7 @@ class MailRouter
                 # We have tried to unsubscribe from a group - we need to confirm it.
                 if ($log) { error_log("Confirm unsubscribe"); }
 
-                for ($i = 0; $i < 10; $i++) {
-                    # Yahoo is sluggish - sending the confirm multiple times helps.
-                    $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
-                }
+                $this->mail($replyto, $to, "Yes please", "I confirm this to $replyto");
 
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/(.*)-acceptsub(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
@@ -473,7 +487,7 @@ class MailRouter
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
 
                             # Membership might have disappeared in the mean time.
-                            if ($u->isPending($gid)) {
+                            if ($u->isPendingMember($gid)) {
                                 $eid = $u->getIdForEmail($to);
                                 $eid = $eid ? $eid['id'] : NULL;
                                 $u->markYahooApproved($gid, $eid);
@@ -648,7 +662,7 @@ class MailRouter
                 $spammers = $g->getSetting('spammers', $defs['spammers']);
                 $check = array_key_exists('messagereview', $spammers) ? $spammers['messagereview'] : $defs['spammers']['messagereview'];
                 $notspam = $check ? $notspam : TRUE;
-                error_log("Consider spam review $notspam from $check, " . var_export($spammers, TRUE));
+                #error_log("Consider spam review $notspam from $check, " . var_export($spammers, TRUE));
             }
 
             if (!$notspam) {
@@ -784,7 +798,7 @@ class MailRouter
                                 error_log("Mark as pending");
                             }
 
-                            if ($this->markPending($notspam)) {
+                            if ($this->markPending($notspam, TRUE)) {
                                 $ret = MailRouter::PENDING;
                             }
                         }
@@ -809,7 +823,7 @@ class MailRouter
 
                                     if ($ps == Group::POSTING_MODERATED) {
                                         if ($log) { error_log("Mark as pending"); }
-                                        if ($this->markPending($notspam)) {
+                                        if ($this->markPending($notspam, FALSE)) {
                                             $ret = MailRouter::PENDING;
                                         }
                                     } else {
@@ -833,9 +847,12 @@ class MailRouter
                         }
                     }
                 } else {
-                    # It's not to one of our groups - but it could be a reply to one of our users - either directly
-                    # (which happens after posting on a group) or in reply to an email notification (which happens
-                    # in subsequent exchanges).
+                    # It's not to one of our groups - but it could be a reply to one of our users, in several ways:
+                    # - to the reply address we put in our What's New mails
+                    # - directly to their USER_DOMAIN address, which happens after their message has been posted
+                    #   on a Yahoo group and we get a reply through that route
+                    # - in response to an email chat notification, which happens as a result of subsequent
+                    #   communications after the previous two
                     $u = User::get($this->dbhr, $this->dbhm);
                     $to = $this->msg->getEnvelopeto();
                     $to = $to ? $to : $this->msg->getHeader('to');
@@ -843,7 +860,43 @@ class MailRouter
                     $uid = NULL;
                     $ret = MailRouter::DROPPED;
 
-                    if (preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
+                    if (preg_match('/replyto-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
+                        if (!$this->msg->isBounce() && !$this->msg->isAutoreply()) {
+                            $msgid = intval($matches[1]);
+                            $fromid = intval($matches[2]);
+
+                            $m = new Message($this->dbhr, $this->dbhm, $msgid);
+                            $u = User::get($this->dbhr, $this->dbhm, $fromid);
+
+                            if ($m->getID() && $u->getId() && $m->getFromuser()) {
+                                # The email address that we replied from might not currently be attached to the
+                                # other user, for example if someone has email forwarding set up.  So make sure we
+                                # have it.
+                                $u->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
+
+                                $fromu = User::get($this->dbhr, $this->dbhm, $m->getFromuser());
+
+                                # The sender of this reply will always be on our platform, because otherwise we
+                                # wouldn't have generated a What's New mail to them.  So we want to set up a chat
+                                # between them and the sender of the message (who might or might not be on our
+                                # platform).
+                                $r = new ChatRoom($this->dbhr, $this->dbhm);
+                                $chatid = $r->createConversation($fromid, $m->getFromuser());
+
+                                # Now add this into the conversation as a message.  This will notify them.
+                                $textbody = $this->msg->stripQuoted();
+
+                                $m = new ChatMessage($this->dbhr, $this->dbhm);
+                                $mid = $m->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
+
+                                # The user sending this is up to date with this conversation.  This prevents us
+                                # notifying her about other messages.
+                                $r->mailedLastForUser($fromid);
+
+                                $ret = MailRouter::TO_USER;
+                            }
+                        }
+                    } else if (preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
                         # It's a reply to an email notification.
                         if (!$this->msg->isBounce()) {
                             $chatid = intval($matches[1]);

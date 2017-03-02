@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function chat_notify($domain, $logo, $fromname, $fromid, $reply, $htmlsummary, $unsub) {
+function chat_notify($domain, $logo, $fromname, $fromid, $reply, $htmlsummary, $unsub, $image) {
     $siteurl = "https://$domain";
 
     $html = <<<EOT

@@ -1,5 +1,6 @@
-var API = 'https://modtools.org/api/'; // CC
-//var API = 'https://iznik.modtools.org/api/'; // CC
+var API = 'https://www.ilovefreegle.org/api/'; // CC
+//var API = 'https://dev.ilovefreegle.org/api/'; // CC
+//var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -11,6 +12,7 @@ var mobilePushId = false;
 var mobilePush = false;
 var lastPushMsgid = false;
 var badgeconsole = '';
+var showDebugConsole = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -125,10 +127,10 @@ window.Storage = {
 
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
-if (typeof alllog === 'undefined') {
-    var alllog = "<p>Log started: "+(new Date()).toISOString()+"</p>";
-}
-var logtog = false;
+if (typeof alllog === 'undefined') { 
+    var alllog = "Log started: "+(new Date()).toISOString(); 
+} 
+var logtog = false; 
 
 function mainOnAppStart() { // CC
 console.log("main boot");	// CC
@@ -158,42 +160,25 @@ require([
         panicReload();
     }
 
-    var entityMap = {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': '&quot;',
-        "'": '&#39;',
-        "/": '&#x2F;'
-    };
-
-    function escapeHtml(string) {
-        return String(string).replace(/[&<>"'\/]/g, function (s) {
-            return entityMap[s];
-        });
+    // Template to add link to /mobiledebug is in template/user/layout/layout.html
+    var oldconsolelog = console.log; 
+    console.log = function () {
+        if (showDebugConsole) {
+            var msg = '';
+            for (var i = 0; i < arguments.length; i++) {
+                var arg = arguments[i];
+                if (typeof arg !== "string") {
+                    arg = JSON.stringify(arg);
+                }
+                msg += arg + ' ';
+            }
+            msg += "\r\n";
+            logtog = !logtog;
+            alllog = msg + alllog;
+            $('#js-mobilelog').val(alllog);
+            //oldconsolelog(msg); 
+        }
     }
-
-	  var oldconsolelog = console.log;
-	  console.log = function () {
-	      var msg = '';
-	      for (var i = 0; i < arguments.length; i++) {
-	          var arg = arguments[i];
-	          if (typeof arg !== "string") {
-	              arg = JSON.stringify(arg);
-	          }
-	          msg += arg+' ';
-	      }
-	      msg = escapeHtml(msg);
-	      if (logtog) {
-	          msg = "<div style='background-color:#aaa;'>" + msg + "</div>";
-	      } else {
-	          msg = "<div>" + msg + "</div>";
-	      }
-	      logtog = !logtog;
-	      alllog = msg + alllog;
-	      $('#js-mobilelog').html(alllog);
-	      //oldconsolelog(msg);
-	  }
 
     // http://hammerjs.github.io/getting-started/
 
@@ -334,6 +319,8 @@ require([
         //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
         mobilePush.on('notification', function (data) {
             //alert("push notification");
+            console.log("push notification");
+            console.log(data);
             var foreground = data.additionalData.foreground.toString() == 'true';
             var msgid = data.additionalData['google.message_id'];
             var doubleEvent = (!isiOS) && (msgid == lastPushMsgid);
@@ -355,13 +342,13 @@ require([
                 if (showRoute) {
                     if (data.additionalData.route) {
                         console.log("About to show route: " + data.additionalData.route);
-                        (function waitUntilLoggedIn(i) {
+                        (function waitUntilLoggedIn(retry) {
                             if (Iznik.Session.loggedIn) {
                                 setTimeout(function () {
                                     Router.navigate(data.additionalData.route, true);
                                 }, 500);
                             } else {
-                                setTimeout(function () { if (--i) { waitUntilLoggedIn(i); } }, 1000);
+                                setTimeout(function () { if (--retry) { waitUntilLoggedIn(i); } }, 1000);
                             }
                         })(10);
                     }
@@ -375,7 +362,8 @@ require([
         });
 
         mobilePush.on('error', function (e) {
-            alert("push error: " + e.message);
+            //alert("error: " + e.message);
+            console.log("mobilePush error " + e.message);
         });
     }
 

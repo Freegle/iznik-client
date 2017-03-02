@@ -142,21 +142,12 @@ class ChatRoom extends Entity
         if ($id) {
             $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
 
-            # Now the conversation exists, set presence.
-            #
-            # Start off with the two members offline.
-            $this->updateRoster($user1, NULL, ChatRoom::STATUS_OFFLINE);
-            $this->updateRoster($user2, NULL, ChatRoom::STATUS_OFFLINE);
+            # Ensure the two members are in the roster.
+            $this->updateRoster($user1, NULL);
+            $this->updateRoster($user2, NULL);
 
-            # If we're logged in as one of the members, set our own presence in it to Online.  This will have the effect of
-            # overwriting any previous Closed status, which would stop it appearing in our list of chats.  So if you
-            # close a conversation, and then later reopen it by finding a relevant link, then it comes back.
             $me = whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : NULL;
-
-            if ($myid == $user1 || $myid == $user2) {
-                $this->updateRoster($myid, NULL, ChatRoom::STATUS_ONLINE);
-            }
 
             # Poke the (other) member(s) to let them know to pick up the new chat
             $n = new Notifications($this->dbhr, $this->dbhm);
@@ -220,10 +211,8 @@ class ChatRoom extends Entity
         if ($id) {
             $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
 
-            # Now the conversation exists, set presence.
-            #
-            # Start off with the user online.
-            $this->updateRoster($user1, NULL, ChatRoom::STATUS_ONLINE);
+            # Ensure this users is in the roster.
+            $this->updateRoster($user1, NULL);
 
             # Poke the group mods to let them know to pick up the new chat
             $n = new Notifications($this->dbhr, $this->dbhm);
@@ -300,7 +289,7 @@ class ChatRoom extends Entity
             $ret['refmsgids'][] = $refmsg['refmsgid'];
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
+        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND message IS NOT NULL AND LENGTH(message) > 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
         $ret['lastmsg'] = 0;
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
@@ -333,7 +322,7 @@ class ChatRoom extends Entity
 
     public function mailedLastForUser($userid)
     {
-        $sql = "UPDATE chat_roster SET lastmsgemailed = (SELECT MAX(id) FROM chat_messages WHERE chatid = ?) WHERE userid = ? AND chatid = ?;";
+        $sql = "UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = (SELECT MAX(id) FROM chat_messages WHERE chatid = ?) WHERE userid = ? AND chatid = ?;";
         $this->dbhm->preExec($sql, [
             $this->id,
             $userid,
@@ -521,6 +510,19 @@ class ChatRoom extends Entity
         return (count($ret) == 0 ? NULL : $ret);
     }
 
+    public function filterCanSee($userid, $chatids)
+    {
+        $ret = [];
+        $rooms = $this->listForUser($userid, [
+            ChatRoom::TYPE_GROUP,
+            ChatRoom::TYPE_MOD2MOD,
+            ChatRoom::TYPE_USER2USER,
+            ChatRoom::TYPE_USER2MOD
+        ], NULL, TRUE);
+
+        return(array_intersect($chatids, $rooms));
+    }
+
     public function canSee($userid)
     {
         if ($userid == $this->chatroom['user1'] || $userid == $this->chatroom['user2']) {
@@ -555,7 +557,7 @@ class ChatRoom extends Entity
     public function upToDate($userid) {
         $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
         foreach ($msgs as $msg) {
-            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ?;",
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;",
                 [
                     $msg['max'],
                     $msg['max'],
@@ -565,7 +567,7 @@ class ChatRoom extends Entity
         }
     }
 
-    public function updateRoster($userid, $lastmsgseen, $status)
+    public function updateRoster($userid, $lastmsgseen)
     {
         # We have a unique key, and an update on current timestamp.
         #
@@ -579,7 +581,11 @@ class ChatRoom extends Entity
             ],
             FALSE);
 
-        if ($lastmsgseen) {
+        if ($lastmsgseen && is_nan($lastmsgseen)) {
+            error_log("Bad request " . var_export($_REQUEST, TRUE));
+        }
+
+        if ($lastmsgseen && !is_nan($lastmsgseen)) {
             # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
             # windows open.
             $rc = $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);", [
@@ -616,33 +622,27 @@ class ChatRoom extends Entity
                 $this->dbhm->preExec($sql, [$this->id, $lastmsgseen]);
             }
         }
-
-        $this->dbhm->preExec("UPDATE chat_roster SET date = NOW(), status = ? WHERE chatid = ? AND userid = ?;",
-            [
-                $status,
-                $this->id,
-                $userid
-            ],
-            FALSE);
     }
 
     public function getRoster()
     {
         $mysqltime = date("Y-m-d H:i:s", strtotime("3600 seconds ago"));
-        $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN users ON users.id = chat_roster.userid WHERE `chatid` = ? AND `date` >= ? ORDER BY COALESCE(users.fullname, users.firstname, users.lastname);";
+        $sql = "SELECT TIMESTAMPDIFF(SECOND, users.lastaccess, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN users ON users.id = chat_roster.userid WHERE `chatid` = ? AND `date` >= ? ORDER BY COALESCE(users.fullname, users.firstname, users.lastname);";
         $roster = $this->dbhr->preQuery($sql, [$this->id, $mysqltime]);
 
         foreach ($roster as &$rost) {
             $u = User::get($this->dbhr, $this->dbhm, $rost['userid']);
-            switch ($rost['status']) {
-                case ChatRoom::STATUS_ONLINE:
-                    # We last heard that they were online; but if we've not heard from them recently then fade them out.
-                    $rost['status'] = $rost['secondsago'] < 60 ? ChatRoom::STATUS_ONLINE : ($rost['secondsago'] < 600 ? ChatRoom::STATUS_AWAY : ChatRoom::STATUS_OFFLINE);
-                    break;
-                case ChatRoom::STATUS_AWAY:
-                    # Similarly, if we last heard they were away, fade them to offline if we've not heard.
-                    $rost['status'] = $rost['secondsago'] < 600 ? ChatRoom::STATUS_AWAY : ChatRoom::STATUS_OFFLINE;
-                    break;
+            if ($rost['status'] != ChatRoom::STATUS_CLOSED) {
+                # This is an active chat room.  We determine the status from the last access time for the user,
+                # which is updated regularly in api.php.
+                #
+                # TODO This means some states in the room status are ignored.  This could be confusing looking at
+                # the DB.
+                if ($rost['secondsago'] < 60) {
+                    $rost['status'] = ChatRoom::STATUS_ONLINE;
+                } else if ($rost['secondsago'] < 600) {
+                    $rost['status'] = ChatRoom::STATUS_AWAY;
+                }
             }
             $ctx = NULL;
             $rost['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
@@ -779,10 +779,7 @@ class ChatRoom extends Entity
 
         foreach ($msgs as $msg) {
             # This might be for a group which we are a mod on but don't actually want to see.
-            $mysettings = $user->getGroupSettings($msg['groupid']);
-            $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
-
-            if ($showmessages) {
+            if ($user->activeModForGroup($msg['groupid'])) {
                 $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
                 $thisone = $m->getPublic();
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
@@ -911,13 +908,13 @@ class ChatRoom extends Entity
             # This is a conversation between two users.  They're both in the roster so we can see what their last
             # seen message was and decide who to chase.
             #
-            # Used to remail - but that never stops if they don't visit the site.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, date, NOW()) AS secondsago, chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
-            #error_log("$sql {$this->id}, $lastmessage");
+            # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
+            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
+            error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
             foreach ($users as $user) {
                 # What's the max message this user has either seen or been mailed?
-                #error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
+                error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
                 $maxseen = presdef('lastmsgseen', $user, 0);
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
@@ -940,7 +937,7 @@ class ChatRoom extends Entity
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $sql = "SELECT TIMESTAMPDIFF(SECOND, chat_roster.date, NOW()) AS secondsago, chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
+            $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
             #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
 
@@ -981,7 +978,7 @@ class ChatRoom extends Entity
                 # First add any remaining mods into the roster so that we can record
                 # what we do.
                 foreach ($mods as $mod) {
-                    $sql = "INSERT IGNORE INTO chat_roster (chatid, userid, status) VALUES (?, ?, 'Offline');";
+                    $sql = "INSERT IGNORE INTO chat_roster (chatid, userid) VALUES (?, ?);";
                     $this->dbhm->preExec($sql, [$this->id, $mod['userid']]);
                 }
 
@@ -1037,18 +1034,21 @@ class ChatRoom extends Entity
             #error_log("Last seen by all $lastseen");
             $notmailed = $r->getMembersStatus($chatatts['lastmsg']);
             #error_log("Members not seen " . var_export($notmailed, TRUE));
+            $ccit = FALSE;
 
             foreach ($notmailed as $member) {
-                # Now we have a member who has not been mailed of the messages in this chat.  Find the other one.
+                # Now we have a member who has not been mailed of the messages in this chat.
                 #error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
 
-                # We email them if they have mails turned on, and if they have a membership - if they don't, then we
-                # don't want to annoy them.
+                # We email them if they have mails turned on, and even if they don't have any current memberships.
+                # Although that runs the risk of annoying them if they've left, we also have to be able to handle
+                # the case where someone replies from a different email which isn't a group membership, and we
+                # want to notify that email.
                 #error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
-                if ($thisu->notifsOn(User::NOTIFS_EMAIL) && count($thisu->getMemberships()) > 0) {
+                if ($thisu->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'))) {
                     # Now collect a summary of what they've missed.
                     $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
                         [
@@ -1067,6 +1067,7 @@ class ChatRoom extends Entity
                         $justmine = TRUE;
 
                         foreach ($unmailedmsgs as $unmailedmsg) {
+                            $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
                             $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
 
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
@@ -1088,6 +1089,11 @@ class ChatRoom extends Entity
                                     break;
                                 }
 
+                                case ChatMessage::TYPE_REPORTEDUSER: {
+                                    $thisone = "This member reported another member with the comment: {$unmailedmsg['message']}";
+                                    break;
+                                }
+
                                 default: {
                                     # Use the text in the message.
                                     $thisone = $unmailedmsg['message'];
@@ -1102,7 +1108,6 @@ class ChatRoom extends Entity
                             if (!$lastmsg || $lastmsg != $thisone) {
                                 $messageu = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                 $fromname = $messageu->getName();
-                                $textsummary .= $thisone . "\r\n";
 
                                 #error_log("Message {$unmailedmsg['id']} from {$unmailedmsg['userid']} vs " . $thisu->getId());
                                 if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
@@ -1120,7 +1125,16 @@ class ChatRoom extends Entity
 
                                 $lastfrom = $unmailedmsg['userid'];
 
-                                $htmlsummary .= nl2br($thisone) . "<br>";
+                                if ($unmailedmsg['imageid']) {
+                                    $path = Attachment::getPath($unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE);
+                                    $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
+                                    $textsummary .= "Here's a picture: $path\r\n";
+                                    $ccit = TRUE;
+                                } else {
+                                    $textsummary .= $thisone . "\r\n";
+                                    $htmlsummary .= nl2br($thisone) . "<br>";
+                                }
+
                                 $htmlsummary .= '</span>';
 
                                 $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
@@ -1130,7 +1144,7 @@ class ChatRoom extends Entity
 
                         #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
                         if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
-                            if ($textsummary != '') {
+                            if ($htmlsummary != '') {
                                 # As a subject, we should use the last referenced message in this chat.
                                 $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                                 #error_log($sql . $chat['chatid']);
@@ -1178,13 +1192,16 @@ class ChatRoom extends Entity
                                     case ChatRoom::TYPE_USER2USER:
                                         $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
                                             $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
+                                        $sendname = $fromname;
                                         break;
                                     case ChatRoom::TYPE_USER2MOD:
                                         if ($member['role'] == User::ROLE_MEMBER) {
                                             $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
                                                 $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
+                                            $sendname = $fromname;
                                         } else {
                                             $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
+                                            $sendname = 'Reply All';
                                         }
                                         break;
                                 }
@@ -1198,16 +1215,24 @@ class ChatRoom extends Entity
                                     error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
                                     try {
                                         #$to = 'log@ehibbert.org.uk';
+                                        # We only include the HTML part if this is a user on our platform; otherwise
+                                        # we just send a text bodypart containing the replies.  This means that our
+                                        # messages to users who aren't on here look less confusing.
                                         $message = $this->constructMessage($thisu,
                                             $member['userid'],
                                             $thisu->getName(),
                                             $to,
-                                            $fromname,
+                                            $sendname,
                                             $replyto,
                                             $subject,
                                             $textsummary,
-                                            $html);
+                                            $thisu->getOurEmail() ? $html : NULL);
                                         $this->mailer($message);
+
+                                        if ($ccit) {
+                                            error_log("CC image message");
+                                            $message->setBcc('log@ehibbert.org.uk');
+                                        }
 
                                         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
                                             $lastmsgemailed,

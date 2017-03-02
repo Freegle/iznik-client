@@ -33,6 +33,7 @@ define([
             'switchChange.bootstrapSwitch .js-appswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-facebookswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-relevant': 'relevantSwitch',
+            'switchChange.bootstrapSwitch .js-newsletter': 'newsletterSwitch',
             'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
             'click .js-savename': 'nameChange',
@@ -109,6 +110,18 @@ define([
             Iznik.Session.save({
                 id: me.id,
                 relevantallowed: relevant
+            }, {
+                patch: true
+            });
+        },
+
+        newsletterSwitch: function() {
+            var me = Iznik.Session.get('me');
+            var newsletter = this.$('.js-newsletter').bootstrapSwitch('state');
+
+            Iznik.Session.save({
+                id: me.id,
+                newslettersallowed: newsletter
             }, {
                 patch: true
             });
@@ -272,6 +285,12 @@ define([
                     onText: 'Send them',
                     offText: 'No thanks',
                     state: me.relevantallowed ? true : false
+                });
+
+                self.$(".js-newsletter").bootstrapSwitch({
+                    onText: 'Send them',
+                    offText: 'No thanks',
+                    state: me.newslettersallowed ? true : false
                 });
 
                 var notifs = me.settings.notifications;

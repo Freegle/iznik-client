@@ -149,6 +149,7 @@ class Alert extends Entity
             case 'mentors': $from = MENTORS_ADDR; break;
             case 'newgroups': $from = NEWGROUPS_ADDR; break;
             case 'ro': $from = RO_ADDR; break;
+            case 'volunteers': $from = VOLUNTEERS_ADDR; break;
         }
 
         return($from);
@@ -267,7 +268,7 @@ class Alert extends Entity
                                     USER_SITE,
                                     USERLOGO,
                                     $this->alert['subject'],
-                                    $this->alert['html'],
+                                    $this->alert['html'] ? $this->alert['html'] : nl2br($this->alert['text']),
                                     NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
                                     $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
                                     'https://' . USER_SITE . "/beacon/$trackid");

@@ -5,11 +5,28 @@
                 <div class="col-sm-9">
                     <h4>
                         {{title}}
-                        <span class="text-muted pull-right">#{{id}}</span>
                     </h4>
+                </div>
+                <div class="col-sm-3">
+                    <span class="text-muted pull-right">#{{id}}</span>
                 </div>
             </div>
         </div>
+        <% if (obj.user) { %>
+        <div class="row">
+            <div class="col-md-2">
+                From #{{user.id}}
+            </div>
+            <div class="col-md-2">
+                {{user.displayname}}
+            </div>
+            <div class="col-md-2">
+                {{user.email}}
+            </div>
+            <div class="col-md-6">
+            </div>
+        </div>
+        <% } %>
     </div>
     <div class="panel-body">
         <form>
@@ -43,12 +60,17 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-sm-12">
+                <div class="<% if (obj.photo) { %>col-sm-8<% } else { %>col-sm-12<% } %>">
                     <div class="form-group">
                         <label>What:</label>
                         <textarea class="form-control js-description" name="description" rows="5" required></textarea>
                     </div>
                 </div>
+                <% if (obj.photo) { %>
+                <div class="col-sm-4">
+                    <img class="img-thumbnail" src="{{photo.path}}" />
+                </div>
+                <% } %>
             </div>
             <div class="row">
                 <div class="col-sm-12">

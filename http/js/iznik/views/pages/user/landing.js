@@ -10,7 +10,44 @@ define([
 ], function($, _, Backbone, Iznik, ChatHolder) {
     Iznik.Views.User.Pages.Landing = Iznik.Views.Page.extend({
         template: "user_landing_main",
-        footer: true
+        footer: true,
+        appButtons: true,
+
+        render: function () {
+            var self = this;
+
+            var p = Iznik.Views.Page.prototype.render.call(this);
+
+            p.then(function(self) {
+                // Add stories
+                require(['iznik/models/membership'], function () {
+                    self.collection = new Iznik.Collections.Members.Stories();
+
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-stories'),
+                        modelView: Iznik.Views.User.Pages.Landing.Story,
+                        collection: self.collection
+                    });
+
+                    self.collectionView.render();
+
+                    self.collection.fetch({
+                        data: {
+                            story: false,
+                            limit: 3
+                        }
+                    });
+                });
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Pages.Landing.Story = Iznik.View.extend({
+        template: "user_landing_story",
+
+        tagName: 'li'
     });
 
     Iznik.Views.User.Pages.Landing.About = Iznik.Views.Page.extend({
@@ -73,13 +110,10 @@ define([
 
         render: function() {
             var self = this;
-            console.log("Render contact");
 
             var p = Iznik.Views.Page.prototype.render.call(this);
             p.then(function () {
-                console.log("Test logged");
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                    console.log("Logged in", loggedIn);
                     if (loggedIn) {
                         var groups = Iznik.Session.get('groups');
 
@@ -99,7 +133,6 @@ define([
                             self.$('.js-contactmods').show();
                         }
                     } else {
-                        console.log("Show");
                         self.$('.js-signinfirst').show();
                     }
                 });

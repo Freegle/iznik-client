@@ -12,6 +12,7 @@ $tops = [
     'give' => 1,
     'find' => 1,
     'explore' => 0.8,
+    'stories' => 0.5,
     'about' => 0.1,
     'terms' => 0.1,
     'privacy' => 0.1,

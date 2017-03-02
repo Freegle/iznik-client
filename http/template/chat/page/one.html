@@ -1,0 +1,35 @@
+<div class="row completefull">
+    <div class="hidden-xs hidden-sm col-sm-12">
+        <div class="padright clickme">
+            <div>
+                <% if (obj.chattype == 'Mod2Mod') { %>
+                <span class="glyphicons glyphicons-crown" />
+                <% } %>
+                <strong class="chat-min-username text-larger"><% if (obj.name && name.length > 1) {%>{{name}}<% } else { %><em>Unknown user</em><% } %></strong>
+                <span class="js-count badge badge-unread" style="display: none;"></span>
+                <span class="text-muted pull-right"><small><abbr class="timeago" title="{{lastdate}}" /></small></span>
+            </div>
+            <div>
+                <%if (obj.snippet) { %>{{snippet}}...<% } %>
+            </div>
+        </div>
+    </div>
+    <div class="visible-xs visible-sm col-xs-11">
+        <div class="padright clickme">
+            <div>
+                <% if (obj.chattype == 'Mod2Mod') { %>
+                <span class="glyphicons glyphicons-crown" />
+                <% } %>
+                <strong class="chat-min-username text-larger"><% if (obj.name && name.length > 1) {%>{{name}}<% } else { %><em>Unknown user</em><% } %></strong>
+                <span class="js-count badge badge-unread" style="display: none;"></span>
+                <span class="text-muted pull-right"><small><abbr class="timeago" title="{{lastdate}}" /></small></span>
+            </div>
+            <div>
+                <%if (obj.snippet) { %>{{snippet}}...<% } %>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-1 visible-xs visible-sm">
+        <span class="glyphicons glyphicons-chevron-right gi-2x text-muted" />
+    </div>
+</div>

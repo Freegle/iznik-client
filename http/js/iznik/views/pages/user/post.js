@@ -142,7 +142,7 @@ define([
                             if (item.hasOwnProperty('item')) {
                                 matches.push(item.item.name);
                             }
-                        })
+                        });
 
                         asyncResults(matches);
                     }
@@ -351,7 +351,8 @@ define([
                     autoselect: false
                 }, {
                     name: 'items',
-                    source: self.itemSource
+                    source: self.itemSource,
+                    limit: 3
                 });
 
                 if (self.options.item) {
@@ -384,9 +385,9 @@ define([
                                 // Parse out item from subject.
                                 var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(msg.get('subject'));
                                 if (matches && matches.length > 2 && matches[2].length > 0) {
-                                    self.$('.js-item').val(matches[2]);
+                                    self.$('.js-item').typeahead('val', matches[2]);
                                 } else {
-                                    self.$('.js-item').val(msg.get('subject'));
+                                    self.$('.js-item').typeahead('val', msg.get('subject'));
                                 }
 
                                 msg.stripGumf('textbody');

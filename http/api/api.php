@@ -41,6 +41,10 @@ require_once(IZNIK_BASE . '/include/dashboard/Dashboard.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/Search.php');
+require_once(IZNIK_BASE . '/include/user/Request.php');
+require_once(IZNIK_BASE . '/include/user/Story.php');
+require_once(IZNIK_BASE . '/include/user/Address.php');
+require_once(IZNIK_BASE . '/include/misc/PAF.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
@@ -62,8 +66,10 @@ require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/config/BulkOp.php');
 
 # Include each API call
+require_once(IZNIK_BASE . '/http/api/activity.php');
 require_once(IZNIK_BASE . '/http/api/alert.php');
 require_once(IZNIK_BASE . '/http/api/admin.php');
+require_once(IZNIK_BASE . '/http/api/address.php');
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/modconfig.php');
 require_once(IZNIK_BASE . '/http/api/stdmsg.php');
@@ -90,6 +96,8 @@ require_once(IZNIK_BASE . '/http/api/image.php');
 require_once(IZNIK_BASE . '/http/api/event.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
+require_once(IZNIK_BASE . '/http/api/request.php');
+require_once(IZNIK_BASE . '/http/api/stories.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -122,6 +130,15 @@ if ($_REQUEST['type'] == 'OPTIONS') {
 
     # This is an optimisation for User.php.
     $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
+
+    # Update our last access time for this user.  We do this every 60 seconds.  This is used to return our
+    # roster status in ChatRoom.php
+    $id = pres('id', $_SESSION);
+    $last = presdef('lastaccessupdate', $_SESSION, 0);
+    if ($id && (time() - $last > 60)) {
+        $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
+        $_SESSION['lastaccessupdate'] = time();
+    }
 
     do {
         # Duplicate POST protection
@@ -184,6 +201,12 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             # call_user_func doesn't scale well on multicores with HHVM, so we need can't figure out the function from
             # the call name - use a switch instead.
             switch ($call) {
+                case 'activity':
+                    $ret = activity();
+                    break;
+                case 'address':
+                    $ret = address();
+                    break;
                 case 'alert':
                     $ret = alert();
                     break;
@@ -271,6 +294,12 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                 case 'poll':
                     $ret = poll();
                     break;
+                case 'request':
+                    $ret = request();
+                    break;
+                case 'stories':
+                    $ret = stories();
+                    break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);
                     break;
@@ -325,7 +354,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
 
             $ip = presdef('REMOTE_ADDR', $_SERVER, '');
 
-            if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET' || $ip == '82.7.164.249') &&
+            if (BROWSERTRACKING && (presdef('type', $_REQUEST, NULL) != 'GET') &&
                 (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
                 # save GET calls as they don't change the DB and there are a lot of them.

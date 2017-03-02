@@ -345,7 +345,7 @@ class userTest extends IznikTestCase {
         $settings = [ 'test' => 1];
         $u2->setGroupSettings($group2, $settings);
         $u1->clearMembershipCache();
-        assertEquals([ 'showmessages' => 1, 'showmembers' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1 ], $u1->getGroupSettings($group2));
+        assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1 ], $u1->getGroupSettings($group2));
 
         # We should get the group back and a default config.
         assertEquals(1, $u2->getGroupSettings($group2)['test'] );
@@ -516,6 +516,27 @@ class userTest extends IznikTestCase {
         assertNotNull($u2->getId());
 
         error_log(__METHOD__ . " end");
+    }
+
+    public function testMergeForbidden()
+    {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $id2 = $u->create(NULL, NULL, 'Test User');
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
+        $settings = $u1->getPublic()['settings'];
+        $settings['canmerge'] = FALSE;
+        $u1->setPrivate('settings', json_encode($settings));
+        assertFalse($u1->merge($id1, $id2, "Should fail"));
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
+        assertEquals($id1, $u1->getId());
+        assertEquals($id2, $u2->getId());
     }
 
     public function testSystemRoleMax() {
@@ -812,6 +833,23 @@ class userTest extends IznikTestCase {
         $email2 = $u->inventEmail();
         error_log("Other email again, invented $email2");
         assertEquals($email, $email2);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testThank() {
+        error_log(__METHOD__);
+
+        $s = $this->getMockBuilder('User')
+            ->setConstructorArgs([ $this->dbhr, $this->dbhm ])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $s->method('sendIt')->willReturn(TRUE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->thankDonation();
 
         error_log(__METHOD__ . " end");
     }

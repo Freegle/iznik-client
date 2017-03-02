@@ -4,13 +4,14 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+require_once(IZNIK_BASE . '/include/user/Story.php');
 
 use Abraham\TwitterOAuth\TwitterOAuth;
 
 class Twitter {
     var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'lasterror', 'lasterrortime'];
     
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid, $fetched = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -21,7 +22,7 @@ class Twitter {
             $this->$att = NULL;
         }
 
-        $groups = $this->dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid = ?;", [ $groupid ]);
+        $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid = ?;", [ $groupid ]);
         foreach ($groups as $group) {
             foreach ($this->publicatts as $att) {
                 $this->$att = $group[$att];
@@ -159,7 +160,7 @@ class Twitter {
                 $link = 'https://' . USER_SITE . "/communityevent/{$event['eventid']}?t=". time();
 
                 $status .= " $link";
-                $rc = $this->tweet($status, NULL);
+                $rc = $this->tweet($status, pres('photo', $atts) ? file_get_contents($atts['photo']['path']) : NULL);
                 error_log($status);
 
                 if ($rc) {
@@ -179,10 +180,38 @@ class Twitter {
         return($worked);
     }
 
+    public function tweetStory($id = NULL) {
+        # We tweet from the central account.
+        $this->tw = new TwitterOAuth(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_ACCOUNT_TOKEN, TWITTER_ACCOUNT_SECRET);
+
+        # We want to tweet:
+        # - any story which hasn't been tweeted, or
+        # - a random one
+        $idq = $id ? " AND id = $id " : "";
+        $sql = "SELECT id FROM users_stories WHERE public = 1 and reviewed = 1 $idq ORDER BY tweeted ASC LIMIT 1;";
+        $stories = $this->dbhr->preQuery($sql);
+        foreach ($stories as $story) {
+            $s = new Story($this->dbhr, $this->dbhm, $story['id']);
+
+            # We tweet the title, first date later than now, and a link.
+            $atts = $s->getPublic();
+
+            $status = 'A freegle story: "' . substr($atts['headline'], 0, 90) . '"';
+            $status .= ' #LoveFreegle read more...';
+
+            $link = 'https://' . USER_SITE . "/story/{$story['id']}?src=tweetstory&t=". time();
+
+            $status .= " $link";
+            $rc = $this->tweet($status, file_get_contents(IZNIK_BASE . '/http/images/story.png'));
+
+            $this->dbhm->preExec("UPDATE users_stories SET tweeted = 1 WHERE id = ?;", [ $story['id'] ]);
+        }
+    }
+
     public function tweetMessages() {
         # We want to tweet any messages since the last one, with a max of the 24 hours ago to avoid flooding things.
         $mysqltime = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
-        $sql = "SELECT messages_groups.msgid, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') ORDER BY messages_groups.arrival ASC;";
+        $sql = "SELECT messages_groups.msgid, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages_groups.arrival ASC;";
 
         $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime ]);
         $msgid = NULL;

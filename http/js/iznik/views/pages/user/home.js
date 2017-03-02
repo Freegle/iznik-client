@@ -107,8 +107,7 @@ define([
                     el: self.$('.js-offers'),
                     modelViewOptions: {
                         offers: self.offers,
-                        page: self,
-                        chatid: self.options.chatid
+                        page: self
                     },
                     modelView: Iznik.Views.User.Home.Offer,
                     collection: self.offers,
@@ -122,8 +121,7 @@ define([
                     modelView: Iznik.Views.User.Home.Wanted,
                     modelViewOptions: {
                         wanteds: self.wanteds,
-                        page: self,
-                        chatid: self.options.chatid
+                        page: self
                     },
                     collection: self.wanteds,
                     visibleModelsFilter: _.bind(self.filter, self)
@@ -232,7 +230,10 @@ define([
                 self.searchView = new Backbone.CollectionView({
                     el: self.$('.js-searchlist'),
                     modelView: Iznik.Views.User.Home.Search,
-                    collection: self.searches
+                    collection: self.searches,
+                    modelViewOptions: {
+                        collection: self.searches
+                    }
                 });
 
                 self.searchView.render();
@@ -281,64 +282,66 @@ define([
                 });
 
                 self.model.fetch().then(function() {
-                    var v;
+                    var v = null;
 
                     if (self.model.get('type') == 'Offer') {
                         v = new Iznik.Views.User.Home.Offer({
                             model: self.model
                         });
-                    } else if (self.model.get('type') == 'Offer') {
+                    } else if (self.model.get('type') == 'Wanted') {
                         v = new Iznik.Views.User.Home.Wanted({
                             model: self.model
                         });
                     }
 
-                    v.expanded = true;
+                    if (v) {
+                        v.expanded = true;
 
-                    v.render().then(function() {
-                        self.$('.js-post').html(v.$el);
-                        self.$('.js-continue').fadeIn('slow');
+                        v.render().then(function() {
+                            self.$('.js-post').html(v.$el);
+                            self.$('.js-continue').fadeIn('slow');
 
-                        self.wait.close();
+                            self.wait.close();
 
-                        // We might have an action.  Record it at the start in case they don't complete the
-                        // questions we ask.  We'll pick this up in a background script.
-                        if (self.options.action == 'completed') {
-                            var t = self.model.get('type') == 'Offer' ? '.js-taken' : '.js-received';
-                            self.$(t).click();
-                            $.ajax({
-                                url: API + 'message',
-                                type: 'POST',
-                                data: {
-                                    action: 'OutcomeIntended',
-                                    id: self.model.get('id'),
-                                    outcome: self.model.get('type') == 'Offer' ? 'Taken' : 'Received'
-                                }
-                            });
-                        } else if (self.options.action == 'withdraw') {
-                            self.$('.js-withdraw').click();
-                            $.ajax({
-                                url: API + 'message',
-                                type: 'POST',
-                                data: {
-                                    action: 'OutcomeIntended',
-                                    id: self.model.get('id'),
-                                    outcome: 'Withdrawn'
-                                }
-                            });
-                        } else if (self.options.action == 'repost') {
-                            self.$('.js-repost').click();
-                            $.ajax({
-                                url: API + 'message',
-                                type: 'POST',
-                                data: {
-                                    action: 'OutcomeIntended',
-                                    id: self.model.get('id'),
-                                    outcome: 'Repost'
-                                }
-                            });
-                        }
-                    });
+                            // We might have an action.  Record it at the start in case they don't complete the
+                            // questions we ask.  We'll pick this up in a background script.
+                            if (self.options.action == 'completed') {
+                                var t = self.model.get('type') == 'Offer' ? '.js-taken' : '.js-received';
+                                self.$(t).click();
+                                $.ajax({
+                                    url: API + 'message',
+                                    type: 'POST',
+                                    data: {
+                                        action: 'OutcomeIntended',
+                                        id: self.model.get('id'),
+                                        outcome: self.model.get('type') == 'Offer' ? 'Taken' : 'Received'
+                                    }
+                                });
+                            } else if (self.options.action == 'withdraw') {
+                                self.$('.js-withdraw').click();
+                                $.ajax({
+                                    url: API + 'message',
+                                    type: 'POST',
+                                    data: {
+                                        action: 'OutcomeIntended',
+                                        id: self.model.get('id'),
+                                        outcome: 'Withdrawn'
+                                    }
+                                });
+                            } else if (self.options.action == 'repost') {
+                                self.$('.js-repost').click();
+                                $.ajax({
+                                    url: API + 'message',
+                                    type: 'POST',
+                                    data: {
+                                        action: 'OutcomeIntended',
+                                        id: self.model.get('id'),
+                                        outcome: 'Repost'
+                                    }
+                                });
+                            }
+                        });
+                    }
                 });
             }
         },
@@ -484,8 +487,6 @@ define([
                 this.$('.js-private').hide();
                 this.$('.js-public').fadeIn('slow');
             }
-
-            this.defaultText();
         },
 
         confirm: function () {
@@ -578,7 +579,10 @@ define([
                 },
                 success: function(ret) {
                     if (ret.ret == 0) {
-                        self.$el.fadeOut('slow');
+                        // Fetch to update our view and cache.
+                        self.options.collection.fetch({
+                            cached: function() {}
+                        });
                     }
                 }
             });

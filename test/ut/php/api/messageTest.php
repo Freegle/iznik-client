@@ -40,6 +40,38 @@ class messageAPITest extends IznikAPITestCase
     {
     }
 
+    public function testLoggedOut() {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+
+        # Create a group with a message on it
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $a = new Message($this->dbhr, $this->dbhm, $id);
+        $a->setYahooApprovedId($group1, 42);
+        $a->setPrivate('sourceheader', Message::PLATFORM);
+
+        # Should be able to see this message even logged out.
+        $this->dbhr->setErrorLog(TRUE);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'collection' => 'Approved'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['message']['id']);
+        assertFalse(array_key_exists('fromuser', $ret['message']));
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testApproved()
     {
         error_log(__METHOD__);
@@ -57,6 +89,7 @@ class messageAPITest extends IznikAPITestCase
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
         $a->setYahooApprovedId($group1, 42);
+        $a->setPrivate('sourceheader', Message::PLATFORM);
 
         # Should be able to see this message even logged out.
         $ret = $this->call('message', 'GET', [
@@ -559,19 +592,24 @@ class messageAPITest extends IznikAPITestCase
 
         error_log("Message $id should now be rejected");
         $ret = $this->call('messages', 'GET', [
-            'collection' => MessageCollection::REJECTED
+            'collection' => MessageCollection::REJECTED,
+            'groupid' => $group1
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['messages']));
         assertEquals($id, $ret['messages'][0]['id']);
+        error_log("Indeed it is");
 
         # Try to convert it back to a draft.
+        error_log("Back to draft");
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'RejectToDraft'
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Check it's a draft.  Have to be logged in to see that.
+        error_log("Check draft");
         $ret = $this->call('messages', 'GET', [
             'collection' => MessageCollection::DRAFT
         ]);
@@ -580,10 +618,12 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['messages'][0]['id']);
 
         # Coverage of rollback case.
+        error_log("Rollback");
         $m2 = new Message($this->dbhr, $this->dbhm);
         assertFalse($m2->backToDraft());
 
         # Now delete it.
+        error_log("Delete");
         $ret = $this->call('plugin', 'DELETE', [
             'id' => $pid
         ]);
@@ -591,7 +631,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('plugin', 'GET', []);
         assertEquals(0, count($ret['plugin']));
 
-        # Should be gone
+        # Should be gone from the messages we can see as a mod
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $group1,
@@ -974,12 +1014,10 @@ class messageAPITest extends IznikAPITestCase
 
         # Create an attachment
         $cwd = getcwd();
-        error_log("Initial $cwd");
         $data = file_get_contents('images/chair.jpg');
         $msg = $this->unique(file_get_contents('msgs/basic'));
         file_put_contents("/tmp/chair.jpg", $data);
         chdir($cwd);
-        error_log("After " . getcwd());
 
         $ret = $this->call('image', 'POST', [
             'photo' => [
@@ -995,6 +1033,14 @@ class messageAPITest extends IznikAPITestCase
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup', Group::GROUP_OTHER);
+        $g->setPrivate('onyahoo', 1);
+        $g->setPrivate('lat', 8.5);
+        $g->setPrivate('lng', 179.3);
+        $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $g->setPrivate('publish', 1);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
 
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
@@ -1042,9 +1088,36 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id
         ]);
+
         assertEquals('Test edit', $ret['message']['subject']);
         assertEquals('Test edit', $ret['message']['suggestedsubject']);
 
+        # Now edit a platform subject.
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $id,
+            'groupid' => $group1,
+            'msgtype' => 'Offer',
+            'item' => 'Test item',
+            'location' => 'TV1 1AA'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals('OFFER: Test item (TV1)', $ret['message']['subject']);
+        assertEquals($ret['message']['subject'], $ret['message']['suggestedsubject']);
+
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $id,
+            'groupid' => $group1,
+            'msgtype' => 'Offer',
+            'item' => 'Test item',
+            'location' => 'TV1 1BB'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        # Attachments
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,
@@ -1172,6 +1245,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Text body2', $msg['textbody']);
         assertEquals($attid2, $msg['attachments'][0]['id']);
 
+        error_log("Get back in draft");
         $ret = $this->call('messages', 'GET', [
             'collection' => 'Draft'
         ]);
@@ -1894,7 +1968,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
         error_log("Happiness " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        self::assertEquals(3, count($ret['members']));
+        self::assertEquals(2, count($ret['members']));
 
         $m->delete("UT delete");
 

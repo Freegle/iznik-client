@@ -12,6 +12,7 @@ $messages = $dbhr->preQuery($sql);
 
 $submitted = 0;
 $queued = 0;
+$rejected = 0;
 
 foreach ($messages as $message) {
     $m = new Message($dbhr, $dbhm, $message['msgid']);
@@ -26,14 +27,19 @@ foreach ($messages as $message) {
             $m->submit($u, $email, $message['groupid']);
             $outcome = ' submitted';
             $submitted++;
-        } else {
+        } else if ($u->isPendingMember($message['groupid'])) {
             $u->triggerYahooApplication($message['groupid'], FALSE);
             $outcome = ' still queued';
             $queued++;
+        } else {
+            # No longer pending.  Just leave - it will eventually get purged, and this way we have it
+            # for debug if we want.
+            $outcome = ' rejected?';
+            $rejected++;
         }
 
         error_log("#{$message['msgid']} {$message['arrival']} $outcome");
     }
 }
 
-error_log("\r\nSubmitted $submitted still queued $queued");
+error_log("\r\nSubmitted $submitted still queued $queued rejected $rejected");

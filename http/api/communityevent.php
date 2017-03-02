@@ -59,14 +59,14 @@ function communityevent() {
                 if ($me) {
                     $title = $location = $contactname = $contactphone = $contactemail = $contacturl = $description = NULL;
 
-                    foreach (['title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description'] as $att) {
+                    foreach (['title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'photo'] as $att) {
                         $$att = presdef($att, $_REQUEST, NULL);
                     }
 
                     $id = NULL;
 
                     if ($title && $location && $description) {
-                        $id = $c->create($me->getId(), $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description);
+                        $id = $c->create($me->getId(), $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $photo);
                     }
 
                     $ret = $id ? ['ret' => 0, 'status' => 'Success', 'id' => $id] : ['ret' => 2, 'status' => 'Create failed'];

@@ -13,7 +13,6 @@ function user() {
     $action = presdef('action', $_REQUEST, NULL);
     $suspectcount = array_key_exists('suspectcount', $_REQUEST) ? intval($_REQUEST['suspectcount']) : NULL;
     $suspectreason = presdef('suspectreason', $_REQUEST, NULL);
-    $settings = presdef('settings', $_REQUEST, NULL);
     $search = presdef('search', $_REQUEST, NULL);
     $password = array_key_exists('password', $_REQUEST) ? $_REQUEST['password'] : NULL;
 
@@ -41,6 +40,7 @@ function user() {
         case 'GET': {
             $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+            $info = array_key_exists('info', $_REQUEST) ? filter_var($_REQUEST['info'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $ctx = presdef('logcontext', $_REQUEST, NULL);
 
             $u = User::get($dbhr, $dbhm, $id);
@@ -68,6 +68,10 @@ function user() {
 
                     $ret['user'] = $u->getPublic(NULL, TRUE, $logs, $ctx, TRUE, TRUE, TRUE, $modmailsonly);
                     $ret['logcontext'] = $ctx;
+
+                    if ($info) {
+                        $ret['user']['info'] = $u->getInfo();
+                    }
                 }
             }
 
@@ -226,7 +230,9 @@ function user() {
                     $u->setMembershipAtt($groupid, 'emailfrequency', $ourEmailFrequency);
                 }
 
-                if ($password && $u->getPrivate('systemrole') == User::SYSTEMROLE_USER) {
+                $sysrole = $u->getPrivate('systemrole');
+                if ($password &&
+                    ($sysrole == User::SYSTEMROLE_USER || $me->getPrivate('systemrole') == User::SYSTEMROLE_ADMIN)) {
                     # Can only set the password of users, to prevent us using that to gain access to
                     # accounts with admin rights.
                     $u->addLogin(User::LOGIN_NATIVE, $u->getId(), $password);

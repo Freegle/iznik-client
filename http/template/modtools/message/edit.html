@@ -12,7 +12,11 @@
                         To: {{obj.groups[0].namedisplay}}
                     </span>
                 </p>
-                <input type="text" class="botspace form-control js-subject"  />
+                <% if (obj.item) { %>
+                <input type="hidden" class="js-subject" />
+                <% } else { %>
+                <input type="text" class="botspace form-control js-subject" />
+                <% } %>
                 <textarea class="form-control js-text" rows="10"></textarea>
             </div>
             <div class="modal-footer">

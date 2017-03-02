@@ -17,7 +17,7 @@ class GroupFacebook {
     const TYPE_PAGE = 'Page';
     const TYPE_GROUP = 'Group';
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL, $fetched = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -27,10 +27,12 @@ class GroupFacebook {
             $this->$att = NULL;
         }
 
-        $groups = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
-        foreach ($groups as $group) {
-            foreach ($this->publicatts as $att) {
-                $this->$att = $group[$att];
+        if ($groupid) {
+            $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
+            foreach ($groups as $group) {
+                foreach ($this->publicatts as $att) {
+                    $this->$att = $group[$att];
+                }
             }
         }
     }
@@ -119,39 +121,43 @@ class GroupFacebook {
                 ]);
 
             foreach ($groups as $group) {
-                $modships[] = $group['groupid'];
+                # Only show social actions where we're an active mod.
+                if ($me->activeModForGroup($group['groupid'])) {
+                    $modships[] = $group['groupid'];
+                }
             }
 
             if (count($modships) > 0) {
+                # We want to find all groups where we haven't shared this post.  To make this scale better with
+                # many groups we do a more complex query and then munge the data.
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 WHERE groupid IN ($groupids) AND groups_facebook_toshare.id > ? $dateq ORDER BY groups_facebook_toshare.id DESC;";
-                #error_log($sql);
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.groupid, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 LEFT JOIN groups_facebook_shares ON groups_facebook_shares.postid = groups_facebook_toshare.postid AND groups_facebook_shares.groupid = groups_facebook.groupid WHERE groups_facebook.groupid IN ($groupids) AND groups_facebook_toshare.id > ? $dateq AND groups_facebook_shares.postid IS NULL ORDER BY groups_facebook_toshare.id DESC;";
                 $posts = $this->dbhr->preQuery($sql, [ $minid ]);
+
+                $remaining = [];
 
                 foreach ($posts as &$post) {
                     $ctx['id'] = $post['id'];
-                    $posteds = $this->dbhr->preQuery("SELECT groupid FROM groups_facebook_shares WHERE postid = ?;", [
-                        $post['postid']
-                    ]);
 
-                    $remaining = $modships;
-
-                    foreach ($posteds as $posted) {
-                        $remaining = array_diff($remaining, [ $posted['groupid'] ]);
-                    }
-
-                    if (count($remaining) > 0) {
-                        $post['groups'] = $remaining;
+                    if (!array_key_exists($post['id'], $remaining)) {
+                        $remaining[$post['id']] = $post;
+                        unset($remaining[$post['id']]['groupid']);
+                        $remaining[$post['id']]['groups'] = [];
 
                         if (preg_match('/(.*)_(.*)/', $post['postid'], $matches)) {
                             # Create the iframe version of the Facebook plugin.
                             $pageid = $matches[1];
                             $postid = $matches[2];
-                            $post['iframe'] = '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>';
+                            $remaining[$post['id']]['iframe'] = '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>';
                         }
-
-                        $ret[] = $post;
                     }
+
+                    # Add this group
+                    $remaining[$post['id']]['groups'][] = $post['groupid'];
+                }
+
+                foreach ($remaining as $groupid => $post) {
+                    $ret[] = $post;
                 }
             }
         }
@@ -216,7 +222,7 @@ class GroupFacebook {
     public function postMessages() {
         # We want to post any messages since the last one, with a max of 1 hour ago to avoid flooding things.
         $mysqltime = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
-        $sql = "SELECT messages_groups.msgid, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') ORDER BY messages_groups.arrival ASC;";
+        $sql = "SELECT messages_groups.msgid, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages_groups.arrival ASC;";
 
         $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime ]);
         error_log($sql . var_export([ $this->groupid, $mysqltime  ], TRUE));

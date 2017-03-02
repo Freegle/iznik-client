@@ -4,10 +4,15 @@ define([
     'backbone',
     'moment',
     'iznik/base',
-    "iznik/modtools",
-    "iznik/models/social",
+    'typeahead',
+    'jquery.validate.min',
+    'jquery.validate.additional-methods',
+    'iznik/customvalidate',
+    'iznik/modtools',
+    'iznik/models/social',
     'iznik/views/pages/pages',
-    'iznik/views/infinite'
+    'iznik/views/infinite',
+    'iznik/views/postaladdress'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Pages.SocialActions = Iznik.Views.Infinite.extend({
         modtools: true,
@@ -15,6 +20,15 @@ define([
         template: "modtools_socialactions_main",
 
         retField: 'socialactions',
+
+        events: {
+            'click .js-businesscards': 'businessCards'
+        },
+
+        businessCards: function() {
+            var v = new Iznik.Views.ModTools.SocialAction.BusinessCards();
+            v.render();
+        },
 
         render: function () {
             var self = this;
@@ -50,6 +64,35 @@ define([
 
                 self.collectionView.render();
                 self.fetch();
+
+                self.requests = new Iznik.Collections.Requests();
+
+                self.requestCollectionView = new Backbone.CollectionView({
+                    el: self.$('.js-requestlist'),
+                    modelView: Iznik.Views.ModTools.SocialAction.Request,
+                    collection: self.requests
+                });
+
+                self.requestCollectionView.render();
+                self.requests.fetch();
+
+                if (Iznik.Session.hasPermission('BusinessCardsAdmin')) {
+                    self.outstanding = new Iznik.Collections.Requests();
+
+                    self.outstandingCollectionView = new Backbone.CollectionView({
+                        el: self.$('.js-outstandinglist'),
+                        modelView: Iznik.Views.ModTools.SocialAction.Outstanding,
+                        collection: self.outstanding
+                    });
+
+                    self.outstandingCollectionView.render();
+                    self.outstanding.fetch({
+                        data: {
+                            outstanding: true
+                        }
+                    });
+
+                }
             });
 
             return(p);
@@ -143,7 +186,6 @@ define([
 
                     params2.message = params.message;
 
-                    console.log("Params for post", params2);
                     FB.api('/' + self.model.get('facebook').id + '/feed', 'post', params2, function(response) {
                         console.log("Share returned", response);
                         self.$('.js-share').fadeOut('slow');
@@ -154,6 +196,133 @@ define([
             }
 
             self.$el.fadeOut('slow');
+        }
+    });
+
+    Iznik.Views.ModTools.SocialAction.BusinessCards = Iznik.Views.Modal.extend({
+        template: 'modtools_socialactions_businesscards',
+
+        tagName: 'li',
+
+        events: {
+            'click .js-submit': 'submit',
+            'click .js-justafew': 'justafew',
+            'click .js-more': 'more'
+        },
+
+        justafew: function() {
+            var self = this;
+            self.$('.js-howmany').slideUp('slow');
+            self.$('.js-more').hide();
+            self.$('.js-afew, .js-submit').fadeIn('slow');
+        },
+
+        more: function() {
+            var self = this;
+            self.$('.js-howmany').slideUp('slow');
+            self.$('.js-more').fadeIn('slow');
+            self.$('.js-afew, .js-submit').hide();
+        },
+
+        submit: function() {
+            var self = this;
+            var pafid = self.postalAddress.address();
+            var to = self.postalAddress.to();
+
+            if (pafid) {
+
+                $.ajax({
+                    url: API + '/address',
+                    type: 'PUT',
+                    data: {
+                        pafid: pafid
+                    },
+                    success: function(ret) {
+                        if (ret.ret === 0) {
+                            $.ajax({
+                                url: API + '/request',
+                                type: 'PUT',
+                                data: {
+                                    reqtype: 'BusinessCards',
+                                    to: to,
+                                    addressid: ret.id
+                                },
+                                success: function(ret) {
+                                    if (ret.ret === 0) {
+                                        self.close();
+                                        var v = new Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou();
+                                        v.render();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        },
+
+        render: function() {
+            var self = this;
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+            p.then(function () {
+                self.waitDOM(self, function() {
+                    var me = Iznik.Session.get('me');
+                    var settings = me.hasOwnProperty('settings') ? me.settings : null;
+                    var location = settings ? (settings.hasOwnProperty('mylocation') ? settings.mylocation : null) : null;
+                    var postcode = location ? location.name : null;
+
+                    self.postalAddress = new Iznik.Views.PostalAddress({
+                        postcode: postcode,
+                        showTo: true,
+                        to: me.displayname
+                    });
+                    self.postalAddress.render();
+                    self.$('.js-postaladdress').append(self.postalAddress.$el);
+                });
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou = Iznik.Views.Modal.extend({
+        template: 'modtools_socialactions_businesscardsthanks'
+    });
+
+    Iznik.Views.ModTools.SocialAction.Request = Iznik.View.Timeago.extend({
+        template: 'modtools_socialactions_request',
+
+        tagName: 'li',
+
+        events: {
+            'click .js-delete': 'deleteIt'
+        },
+
+        deleteIt: function() {
+            var self = this;
+            this.model.destroy().then(self.$el.fadeOut('slow'));
+        }
+    });
+
+    Iznik.Views.ModTools.SocialAction.Outstanding = Iznik.View.Timeago.extend({
+        template: 'modtools_socialactions_outstanding',
+
+        tagName: 'li',
+
+        events: {
+            'click .js-delete': 'deleteIt',
+            'click .js-sent': 'sent'
+        },
+
+        sent: function() {
+            var self = this;
+            console.log("Sent", this.model);
+            this.model.completed().then(self.$el.fadeOut('slow'));
+        },
+
+        deleteIt: function() {
+            var self = this;
+            this.model.destroy().then(self.$el.fadeOut('slow'));
         }
     });
 });

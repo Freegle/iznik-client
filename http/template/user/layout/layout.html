@@ -1,38 +1,27 @@
-<div id="notifchatdropdown" class="pull-right" style="display: none">
-    <ul class="list-unstyled">
-        <li id="notifchatdropdownactions">
-            <div class="row padleft">
-                <div class="margleft notifaction clickme col-xs-4 js-minimiseall">
-                    <span class="glyphicon glyphicon-remove" />&nbsp;Close all chats
-                </div>
-                <div class="margleft notifaction col-xs-4 clickme js-allseen">
-                    <span class="glyphicon glyphicon-ok" />&nbsp;Mark all read
-                </div>
-            </div>
-            <div class="row padleft padright">
-                <div class="tbspace clickme col-xs-12">
-                    <input class="form-control js-search" type="text" placeholder="Search chats" />
-                </div>
-            </div>
-        </li>
-        <li>
-            <ul id="notifchatdropdownlist" class="list-unstyled">
-            </ul>
-        </li>
-    </ul>
-</div>
 <nav class="navbar navbar-custom navbar-fixed-top">
     <div class="nopad completefull container-fluid">
         <div class="nopad nomargin completefull navbar-header">
             <button class="reallyHide btn btn-white js-signin js-loggedoutonly margtopsm margright pull-right">Sign in</button>
-            <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
-              <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
-              <span class="js-totalcount badge badge-unread" style="display: none;" />
-            </button>
+            <ul class="list-inline nomargin pull-right visible-xs">
+                <li>
+                    <div class="clickme ">
+                        <a href="/chats" class="visible-xs visible-sm">
+                            <span class="white fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left padbot" type="button">
+                                <span class="js-chattotalcount badge badge-unread notifchat" />
+                            </span>
+                        </a>
+                    </div>
+                </li>
+                <li>
+                    <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
+                        <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
+                    </button>
+                </li>
+            </ul>
             <div id="nonetwork" class="margright pull-right">
               <span class="glyphicon glyphicon-cloud" aria-hidden="true" />
             </div>
-            <button id="refreshbutton" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();" >
+            <button id="refreshbutton" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();">
               <span class="glyphicon glyphicon-repeat" aria-hidden="true" />
             </button>
             <div id="refreshicon" class="margright pull-right">
@@ -80,17 +69,22 @@
                             <br /><span class="">Events</span>
                         </a>
                     </li>
+                    <li id="mobile-debug" style="display:none !important;">
+                        <a href="/mobiledebug" class="margleft nopad text-center">
+                            <div class="fullholder glyphicons glyphicons-sunglasses glyphicon-larger vcenter-left" title="Debug" />
+                            <br /><span class="">Debug</span>
+                        </a>
+                    </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly">
                     <li>
-                        <a href="#" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a href="/chats" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers">
                             <div class="fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button" />
                             <br />
                             <span>
                                 Chat
-                                <span class="js-totalcount badge badge-unread hidden-sm hidden-md hidden-lg" style="display: none;" />
+                                <span class="js-chattotalcount badge badge-unread" style="display: none;" />
                             </span>
-                            <span class="js-totalcount badge badge-unread hidden-xs" style="display: none;" />
                         </a>
                     </li>
                     <li>
@@ -122,10 +116,9 @@
 </div>
     </div>
 </nav>
-<!--div id="badgeconsole" style="background-color:yellow;margin:5px;"></div-->
-<div class="container completefull margtopbig nopad">
-    <div class="row-fluid margtop">
-        <div class="col-md-3 hidden-sm hidden-xs js-leftsidebar ">
+<div class="container completefull nopad">
+    <div class="row-fluid">
+        <div class="col-md-3 hidden-sm hidden-xs js-leftsidebar">
             <div class="sidebar-nav-fixed fullholder pull-left affix">
                 <div class="nopad js-loggedinonly">
                     <ul class="nav ">
@@ -137,7 +130,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-xs-12 col-sm-12 col-md-6 nopad">
             <div class="js-alerts" />
             <div class="pageContent img-rounded js-pageContent" />
         </div>
@@ -147,6 +140,22 @@
                     <ul class="list-group nomargin list-unstyled">
                         <li id="js-weightless" />
                     </ul>
+                    <div id="js-appbuttons" style="display: none">
+                        <div class="row completefull">
+                            <div class="col-xs-12">
+                                <a href="https://play.google.com/store/apps/details?id=org.ilovefreegle.direct" data-realurl="true" class="pull-right" alt="Android app">
+                                    <img alt="Freegle Android app on Google Play" title="Freegle Android app on Google Play"  class="img-responsive" src="/images/en-play-badge.png">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="row completefull">
+                            <div class="col-xs-12">
+                                <a href="https://itunes.apple.com/gb/app/freegle/id970045029?ls=1&amp;mt=8"data-realurl="true" class="pull-right topspace" alt="IOS app">
+                                    <img alt="Freegle app for iPhone, iPad, and iPod touch" title="Freegle app for iPhone, iPad, and iPod touch" class="img-responsive" src="/images/app-store-black-sm.png">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

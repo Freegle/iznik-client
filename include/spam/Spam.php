@@ -338,6 +338,10 @@ class Spam {
             }
         }
 
+        # Find any chat messages from spammers.u
+        $sql = "UPDATE chat_messages SET reviewrejected = 1 WHERE EXISTS(SELECT 1 FROM spam_users WHERE chat_messages.userid = spam_users.userid AND collection = 'Spammer');";
+        $this->dbhm->preExec($sql);
+
         return($count);
     }
 
@@ -458,5 +462,27 @@ class Spam {
         }
 
         return($rc);
+    }
+
+    public function isSpammer($email) {
+        $ret = FALSE;
+
+        if ($email) {
+            $u = new User($this->dbhr, $this->dbhm);
+            $uid = $u->findByEmail($email);
+
+            if ($uid) {
+                $spammers = $this->dbhr->preQuery("SELECT id FROM spam_users WHERE userid = ? AND collection = ?;", [
+                    $uid,
+                    Spam::TYPE_SPAMMER
+                ]);
+
+                foreach ($spammers as $spammer) {
+                    $ret = TRUE;
+                }
+            }
+        }
+
+        return($ret);
     }
 }

@@ -87,25 +87,36 @@ function message() {
 
             if ($m) {
                 if ($_REQUEST['type'] == 'GET') {
+                    $atts = $m->getPublic($messagehistory, FALSE);
+                    $cansee = $m->canSee($atts);
+
                     $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'groups' => [],
-                        'message' => $m->getPublic($messagehistory, FALSE)
+                        'ret' => 2,
+                        'status' => 'Permission denied'
                     ];
 
-                    foreach ($ret['message']['groups'] as &$group) {
-                        $g = Group::get($dbhr, $dbhm, $group['groupid']);
-                        $ret['groups'][$group['groupid']] = $g->getPublic();
-                    }
+                    if ($cansee) {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'groups' => [],
+                            'message' => $atts
+                        ];
 
+                        foreach ($ret['message']['groups'] as &$group) {
+                            # The groups info returned in the message is not enough - doesn't include settings, for
+                            # example.
+                            $g = Group::get($dbhr, $dbhm, $group['groupid']);
+                            $ret['groups'][$group['groupid']] = $g->getPublic();
+                        }
+                    }
                 } else if ($_REQUEST['type'] == 'PUT') {
                     if ($collection == MessageCollection::DRAFT) {
                         # Draft messages are created by users, rather than parsed out from emails.  We might be
                         # creating one, or updating one.
                         $locationid = intval(presdef('locationid', $_REQUEST, NULL));
 
-                        $ret = [ 'ret' => 2, 'Missing location - client error' ];
+                        $ret = [ 'ret' => 3, 'Missing location - client error' ];
 
                         if ($locationid) {
                             if (!$id) {
@@ -196,14 +207,22 @@ function message() {
                     $ret = ['ret' => 2, 'status' => 'Permission denied'];
                 } else {
                     $subject = presdef('subject', $_REQUEST, NULL);
+                    $msgtype = presdef('msgtype', $_REQUEST, NULL);
+                    $item = presdef('item', $_REQUEST, NULL);
+                    $location = presdef('location', $_REQUEST, NULL);
                     $textbody = presdef('textbody', $_REQUEST, NULL);
                     $htmlbody = presdef('htmlbody', $_REQUEST, NULL);
                     $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
                     $attachments = presdef('attachments', $_REQUEST, []);
 
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
 
-                    if ($subject || $textbody || $htmlbody) {
-                        $m->edit($subject, $textbody, $htmlbody);
+                    if ($subject || $textbody || $htmlbody || $msgtype || $item || $location) {
+                        $rc = $m->edit($subject, $textbody, $htmlbody, $msgtype, $item, $location);
+                        $ret = $rc ? $ret : [ 'ret' => 2, 'status' => 'Edit failed' ];
                     }
 
                     if ($fop !== NULL) {
@@ -214,10 +233,6 @@ function message() {
                         $m->replaceAttachments($attachments);
                     }
 
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
                 }
             }
         }
@@ -227,7 +242,6 @@ function message() {
             $m = new Message($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $m ? $m->getRoleForMessage() : User::ROLE_NONMEMBER;
-            #error_log("Role for $id is $role");
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
@@ -455,45 +469,51 @@ function message() {
                         $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
                         break;
                     case 'OutcomeIntended':
-                        $outcome = presdef('outcome', $_REQUEST, NULL);
-                        $m->intendedOutcome($outcome);
+                        # Ignore duplicate attempts by user to supply an outcome.
+                        if (!$m->hasOutcome()) {
+                            $outcome = presdef('outcome', $_REQUEST, NULL);
+                            $m->intendedOutcome($outcome);
+                        }
                         break;
                     case 'Outcome':
-                        $outcome = presdef('outcome', $_REQUEST, NULL);
-                        $h = presdef('happiness', $_REQUEST, NULL);
-                        $happiness = NULL;
-                        
-                        switch ($h) {
-                            case User::HAPPY:
-                            case User::FINE:
-                            case User::UNHAPPY:
-                                $happiness = $h;
-                                break;
-                        }
-                        
-                        $comment = presdef('comment', $_REQUEST, NULL);
-                        
-                        $ret = ['ret' => 1, 'status' => 'Odd action'];
+                        # Ignore duplicate attempts by user to supply an outcome.
+                        if (!$m->hasOutcome()) {
+                            $outcome = presdef('outcome', $_REQUEST, NULL);
+                            $h = presdef('happiness', $_REQUEST, NULL);
+                            $happiness = NULL;
 
-                        switch ($outcome) {
-                            case Message::OUTCOME_TAKEN: {
-                                if ($m->getType() == Message::TYPE_OFFER) {
-                                    $m->mark($outcome, $comment, $happiness, $userid);
-                                    $ret = ['ret' => 0, 'status' => 'Success'];
-                                };
-                                break;
+                            switch ($h) {
+                                case User::HAPPY:
+                                case User::FINE:
+                                case User::UNHAPPY:
+                                    $happiness = $h;
+                                    break;
                             }
-                            case Message::OUTCOME_RECEIVED: {
-                                if ($m->getType() == Message::TYPE_WANTED) {
-                                    $m->mark($outcome, $comment, $happiness, $userid);
+
+                            $comment = presdef('comment', $_REQUEST, NULL);
+
+                            $ret = ['ret' => 1, 'status' => 'Odd action'];
+
+                            switch ($outcome) {
+                                case Message::OUTCOME_TAKEN: {
+                                    if ($m->getType() == Message::TYPE_OFFER) {
+                                        $m->mark($outcome, $comment, $happiness, $userid);
+                                        $ret = ['ret' => 0, 'status' => 'Success'];
+                                    };
+                                    break;
+                                }
+                                case Message::OUTCOME_RECEIVED: {
+                                    if ($m->getType() == Message::TYPE_WANTED) {
+                                        $m->mark($outcome, $comment, $happiness, $userid);
+                                        $ret = ['ret' => 0, 'status' => 'Success'];
+                                    };
+                                    break;
+                                }
+                                case Message::OUTCOME_WITHDRAWN: {
+                                    $m->withdraw($comment, $happiness, $userid);
                                     $ret = ['ret' => 0, 'status' => 'Success'];
-                                };
-                                break;
-                            }
-                            case Message::OUTCOME_WITHDRAWN: {
-                                $m->withdraw($comment, $happiness, $userid);
-                                $ret = ['ret' => 0, 'status' => 'Success'];
-                                break;
+                                    break;
+                                }
                             }
                         }
                         break;

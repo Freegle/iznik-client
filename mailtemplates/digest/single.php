@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function digest_single($msghtml, $siteurl, $domain, $logo, $groupname, $subject, $fromname, $reply) {
+function digest_single($msghtml, $siteurl, $logo, $groupname, $subject) {
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>

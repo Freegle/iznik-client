@@ -34,10 +34,7 @@ class Digest
         $this->errorlog = $errorlog;
         
         $this->freqText = [
-
-
-
-           Digest::NEVER => 'never',
+            Digest::NEVER => 'never',
             Digest::IMMEDIATE => 'immediately',
             Digest::HOUR1 => 'every hour',
             Digest::HOUR2 => 'every two hours',
@@ -162,15 +159,13 @@ class Digest
                     #
                     # Anything that is per-group is passed in as a parameter here.  Anything that is or might
                     # become per-user is in the template as a {{...}} substitution.
-                    $msghtml = digest_message($msg, $msg['id'], TRUE);
+                    $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
+                    $msghtml = digest_message($msg, $msg['id'], TRUE, $replyto);
                     $html = digest_single($msghtml,
                         'https://' . USER_SITE,
-                        USER_DOMAIN,
                         USERLOGO,
                         $gatts['namedisplay'],
-                        $msg['subject'],
-                        $msg['fromname'],
-                        $msg['fromaddr']
+                        $msg['subject']
                     );
 
                     $u = User::get($this->dbhr, $this->dbhm, $msg['fromuser']['id']);
@@ -180,9 +175,9 @@ class Digest
 
                     $tosend[] = [
                         'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
-                        'from' => $ouremail ? $ouremail : $g->getAutoEmail(),
+                        'from' => $replyto,
                         'fromname' => $msg['fromname'],
-                        'replyto' => $msg['fromaddr'],
+                        'replyto' => $replyto,
                         'replytoname' => $msg['fromname'],
                         'html' => $html,
                         'text' => $msg['textbody']
@@ -200,7 +195,7 @@ class Digest
                 $subjinfo = '';
 
                 foreach ($available as $msg) {
-                    $availablehtml .= $msghtml = digest_message($msg, $msg['id'], TRUE);
+                    $availablehtml .= $msghtml = digest_message($msg, $msg['id'], TRUE, "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN);
                     $textsumm .= $msg['subject'] . ":\r\https://" . USER_SITE . "/message/{$msg['id']}\"\r\n\r\n";
                     $availablesumm .= $msg['subject'] . '<br />';
 
@@ -220,7 +215,7 @@ class Digest
                 $unavailablehtml = '';
 
                 foreach ($unavailable as $msg) {
-                    $unavailablehtml .= digest_message($msg, $msg['id'], FALSE);
+                    $unavailablehtml .= digest_message($msg, $msg['id'], FALSE, "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN);
                     $textsumm .= $msg['subject'] . " (post completed, no longer active)\r\n";
                 }
 
@@ -279,7 +274,8 @@ class Digest
                             '{{noemail}}' => 'digestoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                             '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST),
                             '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups', User::SRC_DIGEST),
-                            '{{creds}}' => $creds
+                            '{{creds}}' => $creds,
+                            '{{replyto}}' => $u->getId()
                         ];
                     }
                 }

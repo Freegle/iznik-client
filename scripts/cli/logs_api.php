@@ -9,10 +9,10 @@ $opts = getopt('a:');
 if (count($opts)) {
     $age = intval($opts['a']);
 } else {
-    $age = 31 * 24;
+    $age = 31 * 24 * 60;
 }
 
-$ago = "$age hours ago";
+$ago = "$age minutes ago";
 $mysqltime = date("Y-m-d H:i:s", strtotime($ago));
 
 # Get average CPU cost per call.

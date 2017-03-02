@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/plugin.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
+require_once(IZNIK_BASE . '/include/message/Item.php');
 require_once(IZNIK_BASE . '/include/user/Search.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
@@ -90,6 +91,10 @@ class Message
         "Automated reply",
         "Auto-Reply",
         "Out of Office",
+        "maternity leave",
+        "paternity leave",
+        "return to the office",
+        "due to return",
         "annual leave",
         "on holiday",
         "vacation reply"
@@ -107,7 +112,8 @@ class Message
         "I am away",
         "I am currently away",
         "Thanks for your email enquiry",
-        "don't check this very often"
+        "don't check this very often",
+        "below to complete the verification process"
     ];
     
     static public function checkType($type) {
@@ -204,7 +210,9 @@ class Message
         ]);
     }
     
-    public function edit($subject, $textbody, $htmlbody) {
+    public function edit($subject, $textbody, $htmlbody, $type, $item, $location) {
+        $ret = TRUE;
+
         if ($htmlbody && !$textbody) {
             # In the interests of accessibility, let's create a text version of the HTML
             $html = new \Html2Text\Html2Text($htmlbody);
@@ -213,21 +221,50 @@ class Message
 
         $me = whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');
+        $text .= ($type ? "New type $type " : '');
+        $text .= ($item ? "New item $item " : '');
+        $text .= ($location ? "New location $location" : '');
         $text .= "Text body changed to len " . strlen($textbody);
         $text .= " HTML body changed to len " . strlen($htmlbody);
 
         # Make sure we have a text value, otherwise we might return a missing body.
         $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
 
-        $this->log->log([
-            'type' => Log::TYPE_MESSAGE,
-            'subtype' => Log::SUBTYPE_EDIT,
-            'msgid' => $this->id,
-            'byuser' => $me ? $me->getId() : NULL,
-            'text' => $text
-        ]);
+        if ($type) {
+            $this->setPrivate('type', $type);
+        }
 
-        if ($subject) {
+        if ($item) {
+            # Remove any old item and add this one.
+            $i = new Item($this->dbhr, $this->dbhm);
+            $iid = $i->create($item);
+
+            $ret = FALSE;
+
+            if ($iid) {
+                $ret = TRUE;
+                $this->dbhm->preExec("DELETE FROM messages_items WHERE msgid = ?;", [ $this->id ]);
+                $this->addItem($iid);
+            }
+        }
+
+        if ($location) {
+            $l = new Location($this->dbhr, $this->dbhm);
+            $lid = $l->findByName($location);
+
+            $ret = FALSE;
+            if ($lid) {
+                $ret = TRUE;
+                $this->setPrivate('locationid', $lid);
+            }
+        }
+
+        if ($ret && ($type || $item || $location)) {
+            # Construct a new subject from the edited values.
+            $groupids = $this->getGroups();
+            $this->constructSubject($groupids[0]);
+            $this->setPrivate('suggestedsubject', $this->subject);
+        } else if ($subject) {
             # If the subject has been edited, then that edit is more important than any suggestion we might have
             # come up with.
             $this->setPrivate('subject', $subject);
@@ -242,18 +279,30 @@ class Message
             $this->setPrivate('htmlbody', $htmlbody);
         }
 
-        $sql = "UPDATE messages SET editedby = ?, editedat = NOW() WHERE id = ?;";
-        $this->dbhm->preExec($sql, [
-            $me ? $me->getId() : NULL,
-            $this->id
-        ]);
+        if ($ret) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_EDIT,
+                'msgid' => $this->id,
+                'byuser' => $me ? $me->getId() : NULL,
+                'text' => $text
+            ]);
 
-        # If we edit a message and then approve it by email, Yahoo breaks the message.  So prevent that happening by
-        # removing the email approval info.
-        $sql = "UPDATE messages_groups SET yahooapprove = NULL, yahooreject = NULL WHERE msgid = ?;";
-        $this->dbhm->preExec($sql, [
-            $this->id
-        ]);
+            $sql = "UPDATE messages SET editedby = ?, editedat = NOW() WHERE id = ?;";
+            $this->dbhm->preExec($sql, [
+                $me ? $me->getId() : NULL,
+                $this->id
+            ]);
+
+            # If we edit a message and then approve it by email, Yahoo breaks the message.  So prevent that happening by
+            # removing the email approval info.
+            $sql = "UPDATE messages_groups SET yahooapprove = NULL, yahooreject = NULL WHERE msgid = ?;";
+            $this->dbhm->preExec($sql, [
+                $this->id
+            ]);
+        }
+
+        return($ret);
     }
 
     /**
@@ -273,7 +322,7 @@ class Message
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attachments, $yahoopendingid, $yahooapprovedid, $yahooreject, $yahooapprove, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
-        $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP;
+        $s, $editedby, $editedat, $modmail, $senttoyahoo, $FOP, $publishconsent, $isdraft, $itemid, $itemname;
 
     /**
      * @return mixed
@@ -328,6 +377,10 @@ class Message
         'source'
     ];
 
+    public $internalAtts = [
+        'publishconsent', 'isdraft', 'itemid', 'itemname'
+    ];
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->dbhr = $dbhr;
@@ -337,7 +390,11 @@ class Message
         $this->notif = new Notifications($this->dbhr, $this->dbhm);
 
         if ($id) {
-            $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id WHERE id = ?;", [$id]);
+            # When constructing we do some LEFT JOINs with other tables where we expect to only have one row at most.
+            # This saves queries later, which is a round trip to the DB server.
+            #
+            # Don't try to cache message info - too many of them.
+            $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id = ?;", [$id], FALSE, FALSE);
             foreach ($msgs as $msg) {
                 $this->id = $id;
 
@@ -346,7 +403,7 @@ class Message
                     $msg['FOP'] = 1;
                 }
 
-                foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts) as $attr) {
+                foreach (array_merge($this->nonMemberAtts, $this->memberAtts, $this->moderatorAtts, $this->ownerAtts, $this->internalAtts) as $attr) {
                     if (pres($attr, $msg)) {
                         $this->$attr = $msg[$attr];
                     }
@@ -410,13 +467,13 @@ class Message
         }
     }
 
-    public function getRoleForMessage($overrides = TRUE) {
+    public function getRoleForMessage($overrides = TRUE, $me = NULL) {
         # Our role for a message is the highest role we have on any group that this message is on.  That means that
         # we have limited access to information on other groups of which we are not a moderator, but that is legitimate
         # if the message is on our group.
         #
         # We might also be a partner.
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
         $role = pres('partner', $_SESSION) ? User::ROLE_MEMBER : User::ROLE_NONMEMBER;
 
         if ($me) {
@@ -465,7 +522,7 @@ class Message
             }
         }
 
-        if ($role == User::ROLE_NONMEMBER) {
+        if ($role == User::ROLE_NONMEMBER && $this->isdraft) {
             # We can potentially upgrade our role if this is one of our drafts.
             $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
                 $this->id,
@@ -480,7 +537,50 @@ class Message
 
         return($role);
     }
-    
+
+    public function canSee($atts) {
+        # Can we see this message?  This is called after getPublic because most of the time we can, and doing
+        # that saves queries.
+        #
+        # We can see messages if:
+        # - we're a mod or an owner, or
+        # - it was posted from the platform, or
+        # - for Freegle groups which use this platform
+        #   - we're a member, or
+        #   - we have publish consent
+        $role = $atts['myrole'];
+        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $this->getSourceheader() == Message::PLATFORM ;
+
+        if (!$cansee) {
+            foreach ($atts['groups'] as $group) {
+                $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                #error_log("Consider show " . $this->getID() . " role $role coll {$group['collection']} type " . $g->getPrivate('type') . " onhere " . $g->getPrivate('onhere') . " consent {$atts['publishconsent']} source " . $this->getSourceheader());
+                if (($group['collection'] != MessageCollection::PENDING &&
+                    $g->getPrivate('type') == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
+                    ($atts['publishconsent'] || $role == User::ROLE_MEMBER))
+                ) {
+                    $cansee = TRUE;
+                }
+            }
+        }
+
+        if (!$cansee) {
+            # We can see our drafts.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
+                $this->id,
+                session_id(),
+                $me ? $me->getId() : NULL
+            ]);
+
+            foreach ($drafts as $draft) {
+                $cansee = TRUE;
+            }
+        }
+
+        return($cansee);
+    }
+
     public function stripGumf() {
         # We have the same function in views/user/message.js; keep thenm in sync.
         $text = $this->getTextbody();
@@ -526,6 +626,7 @@ class Message
         $ret = [];
         $role = $this->getRoleForMessage();
         $ret['myrole'] = $role;
+        debug_backtrace();
 
         foreach ($this->nonMemberAtts as $att) {
             $ret[$att] = $this->$att;
@@ -562,7 +663,7 @@ class Message
                 $a = new Location($this->dbhr, $this->dbhm, $areaid);
                 $ret['area'] = $a->getPublic();
             } else {
-                # This location isn't in an area; it is one.  Return i.
+                # This location isn't in an area; it is one.  Return it.
                 $ret['area'] = $l->getPublic();
             }
 
@@ -584,9 +685,11 @@ class Message
         $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
 
         # Get the item.  Although it's an extra DB call, we use this in creating structured data for SEO.
-        $items = $this->dbhr->preQuery("SELECT items.id, items.name FROM messages_items INNER JOIN items ON messages_items.itemid = items.id WHERE msgid = ?;", [ $this->id ]);
-        if (count($items) > 0) {
-            $ret['item'] = $items[0];
+        if ($this->itemid) {
+            $ret['item'] = [
+                'id' => $this->itemid,
+                'name' => $this->itemname
+            ];
         } else if (preg_match("/(.+)\:(.+)\((.+)\)/", $ret['subject'], $matches)) {
             # See if we can find it.
             $item = trim($matches[2]);
@@ -608,10 +711,12 @@ class Message
             $group['arrival'] = ISODate($group['arrival']);
             #error_log("{$this->id} approved by {$group['approvedby']}");
 
-            if (pres('approvedby', $group)) {
-                $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
-                $ctx = NULL;
-                $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
+                if (pres('approvedby', $group)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
+                    $ctx = NULL;
+                    $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                }
             }
 
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
@@ -723,27 +828,24 @@ class Message
             $ret['fromcountry'] = code_to_country($ret['fromcountry']);
         }
 
-        $ret['publishconsent'] = FALSE;
+        # Publish consent was returned in the construct.
+        $ret['publishconsent'] = $this->publishconsent ? TRUE : FALSE;
 
-        if ($this->fromuser) {
+        if ($this->fromuser && pres('fromuser', $ret)) {
             # We know who sent this.  We may be able to return this (depending on the role we have for the message
             # and hence the attributes we have already filled in).  We also want to know if we have consent
             # to republish it.
             $u = User::get($this->dbhr, $this->dbhm, $this->fromuser);
 
-            if (pres('fromuser', $ret)) {
-                # Get the user details, relative to the groups this message appears on.
-                $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
+            # Get the user details, relative to the groups this message appears on.
+            $ret['fromuser'] = $u->getPublic($this->getGroups(), $messagehistory, FALSE);
 
-                if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
-                    # We can see their emails.
-                    $ret['fromuser']['emails'] = $u->getEmails();
-                }
-
-                filterResult($ret['fromuser']);
+            if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
+                # We can see their emails.
+                $ret['fromuser']['emails'] = $u->getEmails();
             }
 
-            $ret['publishconsent'] = $u->getPrivate('publishconsent');
+            filterResult($ret['fromuser']);
         }
 
         if ($related) {
@@ -783,6 +885,16 @@ class Message
                 /** @var $att Attachment */
                 $ret['attachments'][] = $att->getPublic();
                 $atthash[$hash] = TRUE;
+            }
+        }
+
+        if ($myid && $this->fromuser == $myid) {
+            # For our own messages, return the posting history.
+            $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid = ? ORDER BY date ASC;", [ $this->id ]);
+            $ret['postings'] = [];
+            foreach ($posts as &$post) {
+                $post['date'] = ISODate($post['date']);
+                $ret['postings'][] = $post;
             }
         }
 
@@ -1055,6 +1167,7 @@ class Message
             $id = $rc ? $id : NULL;
         }
 
+        #error_log("Created draft $id");
         return($id);
     }
 
@@ -1839,7 +1952,7 @@ class Message
 
                     # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
                     # appearing as unread to us and other mods.
-                    $r->updateRoster($myid, $mid, ChatRoom::STATUS_ONLINE);
+                    $r->updateRoster($myid, $mid);
                 }
             } else {
                 # For other users, we send the message out by mail.
@@ -2395,6 +2508,10 @@ class Message
         $p = strpos($textbody, '________________________________');
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
 
+        # Some group sigs
+        $p = strpos($textbody, '~*~*~*~*~*~*');
+        $textbody = $p ? substr($textbody, 0, $p) : $textbody;
+
         # A reply from us.
         $p = strpos($textbody, "You can respond by just replying to this email");
         $textbody = $p ? substr($textbody, 0, $p) : $textbody;
@@ -2412,16 +2529,25 @@ class Message
             $textbody = $matches[1] . $matches[2];
         }
 
-        if (preg_match('/(.*)__,_._,___(.*)/ms', $textbody, $matches)) {
+        if (preg_match('/(.*?)__,_._,___(.*)/ms', $textbody, $matches)) {
+            $textbody = $matches[1];
+        }
+
+        if (preg_match('/(.*?)__._,_.___(.*)/ms', $textbody, $matches)) {
             $textbody = $matches[1];
         }
 
         # Or we might have some headers
-        $textbody = preg_replace('/^From:.*?$/mi', '', $textbody);
-        $textbody = preg_replace('/^Sent:.*?$/mi', '', $textbody);
+        $textbody = preg_replace('/To:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/From:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/Sent:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/Date:.*?$/is', '', $textbody);
+        $textbody = preg_replace('/Subject:.*?$/is', '', $textbody);
 
         # Get rid of sigs
         $textbody = preg_replace('/^Get Outlook for Android.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Xperia.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from my phone.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPad.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my .*smartphone./ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPhone.*/ms', '', $textbody);
@@ -2442,6 +2568,9 @@ class Message
 
         // We might have links to our own site.  Strip these in case they contain login information.
         $textbody = preg_replace('/https:\/\/' . USER_SITE . '\S*/', 'https://' . USER_SITE, $textbody);
+
+        // Redundant line breaks.
+        $textbody = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\r\n\r\n", $textbody);
 
         return(trim($textbody));
     }
@@ -2619,115 +2748,120 @@ class Message
 
     public function suggestSubject($groupid, $subject) {
         $newsubj = $subject;
-        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
-        # This method is used to improve subjects, and also to map - because we need to make sure we understand the
-        # subject format before can map.
-        $type = $this->determineType($subject);
-        $keywords = $g->getSetting('keywords', []);
+        if ($this->getSourceheader() != Message::PLATFORM) {
+            # We only need to do this if the message came from elsewhere - ones we composed are well formatted and
+            # already mapped.
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
-        switch ($type) {
-            case Message::TYPE_OFFER:
-            case Message::TYPE_TAKEN:
-            case Message::TYPE_WANTED:
-            case Message::TYPE_RECEIVED:
-                # Remove any subject tag.
-                $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
+            # This method is used to improve subjects, and also to map - because we need to make sure we understand the
+            # subject format before can map.
+            $type = $this->determineType($subject);
+            $keywords = $g->getSetting('keywords', []);
 
-                $pretag = $subject;
+            switch ($type) {
+                case Message::TYPE_OFFER:
+                case Message::TYPE_TAKEN:
+                case Message::TYPE_WANTED:
+                case Message::TYPE_RECEIVED:
+                    # Remove any subject tag.
+                    $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
 
-                # Strip any of the keywords.
-                foreach ($this->keywords()[$type] as $keyword) {
-                    $subject = preg_replace('/(^|\b)' . preg_quote($keyword) . '\b/i', '', $subject);
-                }
+                    $pretag = $subject;
 
-                # Only proceed if we found the type tag.
-                if ($subject != $pretag) {
-                    # Shrink multiple spaces
-                    $subject = preg_replace('/\s+/', ' ', $subject);
-                    $subject = trim($subject);
+                    # Strip any of the keywords.
+                    foreach ($this->keywords()[$type] as $keyword) {
+                        $subject = preg_replace('/(^|\b)' . preg_quote($keyword) . '\b/i', '', $subject);
+                    }
 
-                    # Find a location in the subject.  Only seek ) at end because if it's in the middle it's probably
-                    # not a location.
-                    $loc = NULL;
-                    $l = new Location($this->dbhr, $this->dbhm);
+                    # Only proceed if we found the type tag.
+                    if ($subject != $pretag) {
+                        # Shrink multiple spaces
+                        $subject = preg_replace('/\s+/', ' ', $subject);
+                        $subject = trim($subject);
 
-                    if (preg_match('/(.*)\((.*)\)$/', $subject, $matches)) {
-                        # Find the residue, which will be the item, and tidy it.
-                        $residue = trim($matches[1]);
-
-                        $aloc = $matches[2];
-
-                        # Check if it's a good location.
-                        #error_log("Check loc $aloc");
-                        $locs = $l->search($aloc, $groupid, 1);
-                        #error_log(var_export($locs, TRUE));
-
-                        if (count($locs) == 1) {
-                            # Take the name we found, which may be better than the one we have, if only in capitalisation.
-                            $loc = $locs[0];
-                        }
-                    } else {
-                        # The subject is not well-formed.  But we can try anyway.
-                        #
-                        # Look for an exact match for a known location in the subject.
-                        $locs = $l->locsForGroup($groupid);
-                        $bestpos = 0;
-                        $bestlen = 0;
+                        # Find a location in the subject.  Only seek ) at end because if it's in the middle it's probably
+                        # not a location.
                         $loc = NULL;
+                        $l = new Location($this->dbhr, $this->dbhm);
 
-                        foreach ($locs as $aloc) {
-                            #error_log($aloc['name']);
-                            $xp = '/\b' . preg_quote($aloc['name'],'/') . '\b/i';
-                            #error_log($xp);
-                            $p = preg_match($xp, $subject, $matches, PREG_OFFSET_CAPTURE);
-                            #error_log("$subject matches as $p with $xp");
-                            $p = $p ? $matches[0][1] : FALSE;
-                            #error_log("p2 $p");
+                        if (preg_match('/(.*)\((.*)\)$/', $subject, $matches)) {
+                            # Find the residue, which will be the item, and tidy it.
+                            $residue = trim($matches[1]);
 
-                            if ($p !== FALSE &&
-                                (strlen($aloc['name']) > $bestlen ||
-                                 (strlen($aloc['name']) == $bestlen && $p > $bestpos))) {
-                                # The longer a location is, the more likely it is to be the correct one.  If we get a
-                                # tie, then the further right it is, the more likely to be a location.
-                                $loc = $aloc;
-                                $bestpos = $p;
-                                $bestlen = strlen($loc['name']);
+                            $aloc = $matches[2];
+
+                            # Check if it's a good location.
+                            #error_log("Check loc $aloc");
+                            $locs = $l->search($aloc, $groupid, 1);
+                            #error_log(var_export($locs, TRUE));
+
+                            if (count($locs) == 1) {
+                                # Take the name we found, which may be better than the one we have, if only in capitalisation.
+                                $loc = $locs[0];
+                            }
+                        } else {
+                            # The subject is not well-formed.  But we can try anyway.
+                            #
+                            # Look for an exact match for a known location in the subject.
+                            $locs = $l->locsForGroup($groupid);
+                            $bestpos = 0;
+                            $bestlen = 0;
+                            $loc = NULL;
+
+                            foreach ($locs as $aloc) {
+                                #error_log($aloc['name']);
+                                $xp = '/\b' . preg_quote($aloc['name'],'/') . '\b/i';
+                                #error_log($xp);
+                                $p = preg_match($xp, $subject, $matches, PREG_OFFSET_CAPTURE);
+                                #error_log("$subject matches as $p with $xp");
+                                $p = $p ? $matches[0][1] : FALSE;
+                                #error_log("p2 $p");
+
+                                if ($p !== FALSE &&
+                                    (strlen($aloc['name']) > $bestlen ||
+                                        (strlen($aloc['name']) == $bestlen && $p > $bestpos))) {
+                                    # The longer a location is, the more likely it is to be the correct one.  If we get a
+                                    # tie, then the further right it is, the more likely to be a location.
+                                    $loc = $aloc;
+                                    $bestpos = $p;
+                                    $bestlen = strlen($loc['name']);
+                                }
+                            }
+
+                            $residue = preg_replace('/' . preg_quote($loc['name']) . '/i', '', $subject);
+                        }
+
+                        if ($loc) {
+                            $punc = '\(|\)|\[|\]|\,|\.|\-|\{|\}|\:|\;| ';
+                            $residue = preg_replace('/^(' . $punc . ')*/','', $residue);
+                            $residue = preg_replace('/(' . $punc . '){2,}$/','', $residue);
+                            $residue = trim($residue);
+
+                            if ($residue == strtoupper($residue)) {
+                                # All upper case.  Stop it being shouty.
+                                $residue = strtolower($residue);
+                            }
+
+                            $typeval = presdef(strtolower($type), $keywords, strtoupper($type));
+                            $newsubj = $typeval . ": $residue ({$loc['name']})";
+
+                            $this->lat = $loc['lat'];
+                            $this->lng = $loc['lng'];
+                            $this->locationid = $loc['id'];
+
+                            if ($this->fromuser) {
+                                # Save off this as the last known location for this user.
+                                $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
+                                    $this->locationid,
+                                    $this->fromuser
+                                ]);
+                                User::clearCache($this->fromuser);
                             }
                         }
-
-                        $residue = preg_replace('/' . preg_quote($loc['name']) . '/i', '', $subject);
                     }
-
-                    if ($loc) {
-                        $punc = '\(|\)|\[|\]|\,|\.|\-|\{|\}|\:|\;| ';
-                        $residue = preg_replace('/^(' . $punc . ')*/','', $residue);
-                        $residue = preg_replace('/(' . $punc . '){2,}$/','', $residue);
-                        $residue = trim($residue);
-
-                        if ($residue == strtoupper($residue)) {
-                            # All upper case.  Stop it being shouty.
-                            $residue = strtolower($residue);
-                        }
-
-                        $typeval = presdef(strtolower($type), $keywords, strtoupper($type));
-                        $newsubj = $typeval . ": $residue ({$loc['name']})";
-
-                        $this->lat = $loc['lat'];
-                        $this->lng = $loc['lng'];
-                        $this->locationid = $loc['id'];
-
-                        if ($this->fromuser) {
-                            # Save off this as the last known location for this user.
-                            $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
-                                $this->locationid,
-                                $this->fromuser
-                            ]);
-                            User::clearCache($this->fromuser);
-                        }
-                    }
-                }
-               break;
+                    break;
+            }
         }
 
         return($newsubj);
@@ -2798,19 +2932,23 @@ class Message
             # Normally we should have an area and postcode to use, but as a fallback we use the area we have.
             if (pres('area', $atts) && pres('postcode', $atts)) {
                 $includearea = $g->getSetting('includearea', TRUE);
-                if ($includearea) {
+                $includepc = $g->getSetting('includepc', TRUE);
+                if ($includearea && $includepc) {
                     # We want the area in the group, e.g. Edinburgh EH4.
                     $loc = $atts['area']['name'] . ' ' . $atts['postcode']['name'];
-                } else {
-                    # We have it, but don't want it, e.g. EH4.
+                } else if ($includepc) {
+                    # Just postcode, e.g. EH4
                     $loc = $atts['postcode']['name'];
+                } else  {
+                    # Just area or foolish settings, e.g. Edinburgh
+                    $loc = $atts['area']['name'];
                 }
             } else {
                 $l = new Location($this->dbhr, $this->dbhm, $atts['location']['id']);
                 $loc = $l->ensureVague();
             }
 
-            $subject = presdef(strtolower($this->type), $keywords, $this->type) . ': ' . $items[0]['name'] . " ($loc)";
+            $subject = presdef(strtolower($this->type), $keywords, strtoupper($this->type)) . ': ' . $items[0]['name'] . " ($loc)";
             $this->setPrivate('subject', $subject);
         }
     }
@@ -2923,6 +3061,8 @@ class Message
             }
 
             $htmlbody = str_replace("\r\n", "<br>", $htmlbody);
+            $htmlbody = str_replace("\r", "<br>", $htmlbody);
+            $htmlbody = str_replace("\n", "<br>", $htmlbody);
 
             $this->setPrivate('textbody', $txtbody);
             $this->setPrivate('htmlbody', $htmlbody);
@@ -3023,10 +3163,19 @@ class Message
         $keywords = Message::keywords()[$type];
 
         foreach ($keywords as $keyword) {
-            if (preg_match('/^' . preg_quote($keyword) . '\b(.*)/i', $subj, $matches)) {
+            if (preg_match('/ ' . preg_quote($keyword) . '\:(.*)/i', $subj, $matches)) {
                 $subj = $matches[1];
             }
-            if (preg_match('/ ' . preg_quote($keyword) . '\:(.*)/i', $subj, $matches)) {
+        }
+
+        foreach ($keywords as $keyword) {
+            if (preg_match('/.*' . preg_quote($keyword) . '.*\:(.*)/i', $subj, $matches)) {
+                $subj = $matches[1];
+            }
+        }
+
+        foreach ($keywords as $keyword) {
+            if (preg_match('/^' . preg_quote($keyword) . '\b(.*)/i', $subj, $matches)) {
                 $subj = $matches[1];
             }
         }
@@ -3117,8 +3266,8 @@ class Message
         }
 
         # Let anyone who was interested, and who didn't get it, know.
-        $userq = $userid ? " AND userid != $userid " : "";
-        $sql = "SELECT DISTINCT t.* FROM (SELECT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? WHERE refmsgid = ? AND reviewrejected = 0 $userq AND userid IS NOT NULL GROUP BY userid, chatid) t;";
+        $userq = $userid ? " AND user1 != $userid AND user2 != $userid " : "";
+        $sql = "SELECT DISTINCT t.* FROM (SELECT chatid FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? WHERE refmsgid = ? AND reviewrejected = 0 $userq GROUP BY userid, chatid) t;";
         $replies = $this->dbhr->preQuery($sql, [ ChatRoom::TYPE_USER2USER, $this->id ]);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
@@ -3396,22 +3545,24 @@ class Message
         foreach ($intendeds as $intended) {
             $m = new Message($this->dbhr, $this->dbhm, $intended['msgid']);
 
-            switch ($intended['outcome']) {
-                case 'Taken':
-                    $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);
-                    break;
-                case 'Received':
-                    $m->mark(Message::OUTCOME_RECEIVED, NULL, NULL, NULL);
-                    break;
-                case 'Withdrawn':
-                    $m->withdraw(NULL, NULL);
-                    break;
-                case 'Repost':
-                    $m->repost();
-                    break;
-            }
+            if (!$m->hasOutcome()) {
+                switch ($intended['outcome']) {
+                    case 'Taken':
+                        $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);
+                        break;
+                    case 'Received':
+                        $m->mark(Message::OUTCOME_RECEIVED, NULL, NULL, NULL);
+                        break;
+                    case 'Withdrawn':
+                        $m->withdraw(NULL, NULL);
+                        break;
+                    case 'Repost':
+                        $m->repost();
+                        break;
+                }
 
-            $count++;
+                $count++;
+            }
         }
 
         return($count);
@@ -3490,17 +3641,18 @@ class Message
         # ...and update the search index.
         $this->s->bump($this->id, time());
 
-        $this->log->log([
-            'type' => Log::TYPE_MESSAGE,
-            'subtype' => Log::SUBTYPE_AUTO_REPOSTED,
-            'msgid' => $this->id,
-            'user' => $this->getFromuser(),
-            'text' => "$reposts / $max"
-        ]);
-
         # Record that we've done this.
         $groups = $this->getGroups();
         foreach ($groups as $groupid) {
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_AUTO_REPOSTED,
+                'msgid' => $this->id,
+                'groupid' => $groupid,
+                'user' => $this->getFromuser(),
+                'text' => "$reposts / $max"
+            ]);
+
             $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
             $this->dbhm->preExec($sql, [
                 $this->id,
@@ -3551,5 +3703,11 @@ class Message
         }
 
         return ($autoreply);
+    }
+
+    public function hasOutcome() {
+        $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
+        $outcomes = $this->dbhr->preQuery($sql, [ $this->id ]);
+        return(count($outcomes) > 0);
     }
 }

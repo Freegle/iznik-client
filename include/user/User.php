@@ -15,6 +15,7 @@ require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
+require_once(IZNIK_BASE . '/mailtemplates/donations/thank.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
@@ -26,13 +27,17 @@ class User extends Entity
     const CACHE_SIZE = 100;
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
     const ROLE_MEMBER = 'Member';
     const ROLE_MODERATOR = 'Moderator';
     const ROLE_OWNER = 'Owner';
+
+    # Permissions
+    const PERM_BUSINESS_CARDS = 'BusinessCards';
+    const PERM_NEWSLETTER = 'Newsletter';
 
     const HAPPY = 'Happy';
     const FINE = 'Fine';
@@ -92,7 +97,7 @@ class User extends Entity
                 # @var User
                 $u = User::$cache[$id];
                 #error_log("Found $id in cache with " . $u->getId());
-                
+
                 if (!User::$cacheDeleted[$id]) {
                     # And it's not zapped - so we can use it.
                     #error_log("Not zapped");
@@ -271,7 +276,7 @@ class User extends Entity
         $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
 
         $pw = '';
-        
+
         do {
             $length = \Wordle\array_weighted_rand($lengths);
             $start  = \Wordle\array_weighted_rand($bigrams);
@@ -314,9 +319,9 @@ class User extends Entity
             if (!ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE) {
                 $ret = $email['email'];
                 break;
-            } 
+            }
         }
-        
+
         return($ret);
     }
 
@@ -628,16 +633,16 @@ class User extends Entity
                 ->setBody("Pleased to meet you.");
             $headers = $message->getHeaders();
             $headers->addTextHeader('X-Freegle-Mail-Type', 'Added');
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreStart
-        
+
         if ($rc) {
             # The membership didn't already exist.  We might want to send a welcome mail.
             $atts = $g->getPublic();
 
-            if (($addedhere) && ($atts['welcomemail'] || $message)) {
-                # We need to send a per-group welcome mail.
+            if (($addedhere) && ($atts['welcomemail'] || $message) && $collection == MembershipCollection::APPROVED) {
+                # They are now approved.  We need to send a per-group welcome mail.
                 $to = $this->getEmailPreferred();
 
                 if ($to) {
@@ -652,7 +657,7 @@ class User extends Entity
                         ->setDate(time())
                         ->setBody($welcome)
                         ->addPart($html, 'text/html');
-                    $mailer->send($message);
+                    $this->sendIt($mailer, $message);
                 }
             }
 
@@ -673,7 +678,32 @@ class User extends Entity
         return($rc);
     }
 
-    public function isPending($groupid) {
+    public function isRejected($groupid) {
+        # We use this to check if a member has recently been rejected.  We call it when we are dealing with a
+        # member that we think should be pending, to check that they haven't been rejected and therefore
+        # we shouldn't continue processing them.
+        #
+        # This is rather than checking the current collection they're in, because there are some awkward timing
+        # windows.  For example:
+        # - Trigger Yahoo application
+        # - Member sync via plugin - not yet on Pending on Yahoo
+        # - Delete membership
+        # - Then asked to confirm application
+        #
+        # TODO This lasts forever.  Probably it shouldn't.
+        $logs = $this->dbhr->preQuery("SELECT id FROM logs WHERE user = ? AND groupid = ? AND type = ? AND subtype = ?;", [
+            $this->id,
+            $groupid,
+            Log::TYPE_USER,
+            Log::SUBTYPE_REJECTED
+        ]);
+
+        $ret = count($logs) > 0;
+
+        return($ret);
+    }
+
+    public function isPendingMember($groupid) {
         $ret = false;
         $sql = "SELECT userid FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
         $membs = $this->dbhr->preQuery($sql, [
@@ -759,7 +789,7 @@ class User extends Entity
                 ->setBody("Parting is such sweet sorrow.");
             $headers = $message->getHeaders();
             $headers->addTextHeader('X-Freegle-Mail-Type', 'Removed');
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreEnd
 
@@ -773,7 +803,7 @@ class User extends Entity
             if ($ban) {
                 $type = 'BanApprovedMember';
             } else {
-                $type = $this->isPending($groupid) ? 'RejectPendingMember' : 'RemoveApprovedMember';
+                $type = $this->isPendingMember($groupid) ? 'RejectPendingMember' : 'RemoveApprovedMember';
             }
 
             # It would be odd for them to be on Yahoo with no email but handle it anyway.
@@ -796,7 +826,7 @@ class User extends Entity
                                 ->setTo($g->getGroupUnsubscribe())
                                 ->setDate(time())
                                 ->setBody('Let me go');
-                            $mailer->send($message);
+                            $this->sendIt($mailer, $message);
                         }
                     }
                 }
@@ -858,11 +888,9 @@ class User extends Entity
 
             if ($getwork) {
                 # We only need finding out how much work there is if we are interested in seeing it.
-                $showmessages = !array_key_exists('showmessages', $one['mysettings']) || $one['mysettings']['showmessages'];
-                $showmembers = !array_key_exists('showmembers', $one['mysettings']) || $one['mysettings']['showmembers'];
+                $active = $this->activeModForGroup($group['groupid'], $one['mysettings']);
 
-                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) &&
-                    ($showmessages || $showmembers)) {
+                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) && $active) {
                     if (!$g) {
                         # We need to have an actual group object for this.
                         $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
@@ -871,6 +899,10 @@ class User extends Entity
                     # Give a summary of outstanding work.
                     $one['work'] = $g->getWorkCounts($one['mysettings'], $this->id);
                 }
+
+                # See if there is a membersync pending
+                $syncpendings = $this->dbhr->preQuery("SELECT lastupdated, lastprocessed FROM memberships_yahoo_dump WHERE groupid = ? AND (lastprocessed IS NULL OR lastupdated > lastprocessed);", [ $group['groupid'] ]);
+                $one['syncpending'] = count($syncpendings) > 0;
             }
 
             $ret[] = $one;
@@ -1002,11 +1034,12 @@ class User extends Entity
         }
 
         # If the login with this type already exists in the table, that's fine.
-        $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE credentials = ?;",
+        $sql = "INSERT INTO users_logins (userid, uid, type, credentials) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE credentials = ?;";
+        $rc = $this->dbhm->preExec($sql,
             [$this->id, $uid, $type, $creds, $creds]);
 
         # If we add a login, we might be about to log in.
-        # TODO This is a bit hacky.  
+        # TODO This is a bit hacky.
         global $sessionPrepared;
         $sessionPrepared = FALSE;
 
@@ -1041,26 +1074,25 @@ class User extends Entity
             }
         }
 
-        if ($role === User::ROLE_NONMEMBER) {
-            # Now find if we have any membership of the group which might also give us a role.
-            $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;", [
-                $this->id,
-                $groupid
-            ]);
+        # Now find if we have any membership of the group which might also give us a role.
+        $membs = $this->dbhr->preQuery("SELECT role FROM memberships WHERE userid = ? AND groupid = ?;", [
+            $this->id,
+            $groupid
+        ]);
 
-            foreach ($membs as $memb) {
-                switch ($memb['role']) {
-                    case 'Moderator':
-                        $role = User::ROLE_MODERATOR;
-                        break;
-                    case 'Owner':
-                        $role = User::ROLE_OWNER;
-                        break;
-                    case 'Member':
-                        # Upgrade from none to member.
-                        $role = $role == User::ROLE_NONMEMBER ? User::ROLE_MEMBER : $role;
-                        break;
-                }
+        foreach ($membs as $memb) {
+            switch ($memb['role']) {
+                case 'Moderator':
+                    # Don't downgrade from owner if we have that by virtue of an override.
+                    $role = $role == User::ROLE_OWNER ? $role : User::ROLE_MODERATOR;
+                    break;
+                case 'Owner':
+                    $role = User::ROLE_OWNER;
+                    break;
+                case 'Member':
+                    # Don't downgrade if we already have a role by virtue of an override.
+                    $role = $role == User::ROLE_NONMEMBER ? User::ROLE_MEMBER : $role;
+                    break;
             }
         }
 
@@ -1099,14 +1131,23 @@ class User extends Entity
         ]));
     }
 
+    public function activeModForGroup($groupid, $mysettings = NULL) {
+        $mysettings = $mysettings ? $mysettings : $this->getGroupSettings($groupid);
+
+        # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
+        # to active.
+        # TODO Retire showmessages entirely and remove from user configs.
+        $active = array_key_exists('active', $mysettings) ? $mysettings['active'] : (!array_key_exists('showmessages', $mysettings) || $mysettings['showmessages']);
+        return($active);
+    }
+
     public function getGroupSettings($groupid, $configid = NULL) {
         # We have some parameters which may give us some info which saves queries
         $this->cacheMemberships();
 
         # Defaults match memberships ones in Group.php.
         $defaults = [
-            'showmessages' => 1,
-            'showmembers' => 1,
+            'active' => 1,
             'showchat' => 1,
             'pushnotify' => 1,
             'eventsallowed' => 1
@@ -1122,9 +1163,15 @@ class User extends Entity
 
                 if (!$configid && ($set['role'] == User::ROLE_OWNER || $set['role'] == User::ROLE_MODERATOR)) {
                     $c = new ModConfig($this->dbhr, $this->dbhm);
-                    $settings['configid'] = $c->getForGroup($this->id, $groupid);
+
+                    # We might have an explicit configid - if so, use it to save on DB calls.
+                    $settings['configid'] = $set['configid'] ? $set['configid'] : $c->getForGroup($this->id, $groupid);
                 }
             }
+
+            # Base active setting on legacy showmessages setting if not present.
+            $settings['active'] = array_key_exists('active', $settings) ? $settings['active'] : (!array_key_exists('showmessages', $settings) || $settings['showmessages']);
+            $settings['active'] = $settings['active'] ? 1 : 0;
 
             foreach ($defaults as $key => $val) {
                 if (!array_key_exists($key, $settings)) {
@@ -1136,13 +1183,12 @@ class User extends Entity
             $settings['eventsallowed'] = $set['eventsallowed'];
         }
 
-
         return($settings);
     }
 
     public function setRole($role, $groupid) {
         $me = whoAmI($this->dbhr, $this->dbhm);
-        
+
         Session::clearSessionCache();
 
         $l = new Log($this->dbhr, $this->dbhm);
@@ -1171,6 +1217,34 @@ class User extends Entity
         return($rc);
     }
 
+    public function getInfo() {
+        # Extra user info.
+        $ret = [];
+        $start = date('Y-m-d', strtotime("90 days ago"));
+
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL;", [
+            $this->id,
+            $start
+        ]);
+
+        $ret['replies'] = $replies[0]['count'];
+
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND arrival > ? AND type = 'Offer';", [
+            $this->id,
+            $start
+        ]);
+
+        $ret['offers'] = $replies[0]['count'];
+
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages WHERE fromuser = ? AND arrival > ? AND type = 'Wanted';", [
+            $this->id,
+            $start
+        ]);
+
+        $ret['wanteds'] = $replies[0]['count'];
+        return($ret);
+    }
+
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE) {
         $atts = parent::getPublic();
 
@@ -1180,6 +1254,7 @@ class User extends Entity
         $myid = $me ? $me->getId() : NULL;
 
         $atts['displayname'] = $this->getName();
+        $atts['added'] = ISODate($atts['added']);
 
         foreach(['fullname', 'firstname', 'lastname'] as $att) {
             # Make sure we don't return an email if somehow one has snuck in.
@@ -1191,9 +1266,10 @@ class User extends Entity
             $atts['emails'] = $me->getEmails();
             $atts['email'] = $me->getEmailPreferred($atts['emails']);
             $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
+            $atts['permissions'] = $me->getPrivate('permissions');
         }
 
-        if ($me && $me->isModerator()) {
+        if ($me && ($me->isModerator() || $this->id == $me->getId())) {
             # Mods can see email settings, no matter which group.
             $atts['onholidaytill'] = $this->user['onholidaytill'] ? ISODate($this->user['onholidaytill']) : NULL;
         }
@@ -1392,8 +1468,9 @@ class User extends Entity
                 $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
                 $memberof = [];
 
-                # Check the groups.
-                $sql = "SELECT memberships.*, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
+                # the case where you have two emails and one is approved and the other pending.
+                $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
@@ -1405,7 +1482,7 @@ class User extends Entity
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
                         'added' => ISODate($group['added']),
-                        'collection' => $group['collection'],
+                        'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
@@ -1436,7 +1513,7 @@ class User extends Entity
                 # allows us to spot abuse) and any which are on our groups.
                 $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
                 $modids = array_merge([0], $me->getModeratorships());
-                $sql = "SELECT DISTINCT memberships.*, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 $memberof = [];
 
@@ -1449,12 +1526,12 @@ class User extends Entity
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
                         'added' => ISODate($group['added']),
-                        'collection' => $group['collection'],
+                        'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
-                        'ourPostingStatus' => $group['ourPostingStatus'],
+                        'ourpostingstatus' => $group['ourPostingStatus'],
                         'type' => $group['type'],
                         'onyahoo' => $group['onyahoo']
                     ];
@@ -1612,275 +1689,285 @@ class User extends Entity
     }
 
     public function merge($id1, $id2, $reason) {
-        error_log("Merge $id1, $id2, $reason"); ;
-        # We want to merge two users.  At present we just merge the memberships, comments, emails and logs; we don't try to
-        # merge any conflicting settings.
-        #
-        # Both users might have membership of the same group, including at different levels.
-        #
-        # A useful query to find foreign key references is of this form:
-        #
-        # USE information_schema; SELECT * FROM KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = 'iznik' AND REFERENCED_TABLE_NAME = 'users';
-        #
-        # We avoid too much use of quoting in preQuery/preExec because quoted numbers can't use a numeric index and therefore
-        # perform slowly.
-        #error_log("Merge $id2 into $id1");
-        $l = new Log($this->dbhr, $this->dbhm);
-        $me = whoAmI($this->dbhr, $this->dbhm);
+        error_log("Merge $id1, $id2, $reason");
 
-        $rc = $this->dbhm->beginTransaction();
-        $rollback = FALSE;
+        # We might not be able to merge them, if one or the other has the setting to prevent that.
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
+        $ret = FALSE;
 
-        if ($rc) {
-            try {
-                #error_log("Started transaction");
-                $rollback = TRUE;
+        if ($u1->canMerge() && $u2->canMerge()) {
+            #
+            # We want to merge two users.  At present we just merge the memberships, comments, emails and logs; we don't try to
+            # merge any conflicting settings.
+            #
+            # Both users might have membership of the same group, including at different levels.
+            #
+            # A useful query to find foreign key references is of this form:
+            #
+            # USE information_schema; SELECT * FROM KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = 'iznik' AND REFERENCED_TABLE_NAME = 'users';
+            #
+            # We avoid too much use of quoting in preQuery/preExec because quoted numbers can't use a numeric index and therefore
+            # perform slowly.
+            #error_log("Merge $id2 into $id1");
+            $l = new Log($this->dbhr, $this->dbhm);
+            $me = whoAmI($this->dbhr, $this->dbhm);
 
-                # Merge the top-level memberships
-                $id2membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = $id2;");
-                foreach ($id2membs as $id2memb) {
-                    # Jiggery-pokery with $rc for UT purposes.
-                    $rc2 = $rc;
-                    #error_log("$id2 member of {$id2memb['groupid']} ");
-                    $id1membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = $id1 AND groupid = {$id2memb['groupid']};");
+            $rc = $this->dbhm->beginTransaction();
+            $rollback = FALSE;
 
-                    if (count($id1membs) == 0) {
-                        # id1 is not already a member.  Just change our id2 membership to id1.
-                        #error_log("...$id1 not a member, UPDATE");
-                        $rc2 = $this->dbhm->preExec("UPDATE memberships SET userid = $id1 WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
+            if ($rc) {
+                try {
+                    #error_log("Started transaction");
+                    $rollback = TRUE;
 
-                        #error_log("Membership UPDATE merge returned $rc2");
-                    } else {
-                        # id1 is already a member, so we really have to merge.
-                        #
-                        # Our new membership has the highest role.
-                        $id1memb = $id1membs[0];
-                        #error_log("...as is $id1");
-                        $role = User::roleMax($id1memb['role'], $id2memb['role']);
+                    # Merge the top-level memberships
+                    $id2membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = $id2;");
+                    foreach ($id2membs as $id2memb) {
+                        # Jiggery-pokery with $rc for UT purposes.
+                        $rc2 = $rc;
+                        #error_log("$id2 member of {$id2memb['groupid']} ");
+                        $id1membs = $this->dbhr->preQuery("SELECT * FROM memberships WHERE userid = $id1 AND groupid = {$id2memb['groupid']};");
 
-                        if ($role != $id1memb['role']) {
-                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
-                                $role
-                            ]);
-                        }
+                        if (count($id1membs) == 0) {
+                            # id1 is not already a member.  Just change our id2 membership to id1.
+                            #error_log("...$id1 not a member, UPDATE");
+                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET userid = $id1 WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
 
-                        if ($rc2) {
-                            #  Our added date should be the older of the two.
-                            $date = min(strtotime($id1memb['added']), strtotime($id2memb['added']));
-                            $mysqltime = date("Y-m-d H:i:s", $date);
-                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
-                                $mysqltime
-                            ]);
-                        }
+                            #error_log("Membership UPDATE merge returned $rc2");
+                        } else {
+                            # id1 is already a member, so we really have to merge.
+                            #
+                            # Our new membership has the highest role.
+                            $id1memb = $id1membs[0];
+                            #error_log("...as is $id1");
+                            $role = User::roleMax($id1memb['role'], $id2memb['role']);
 
-                        # There are several attributes we want to take the non-NULL version.
-                        foreach (['configid', 'settings', 'heldby'] as $key) {
-                            if ($id2memb[$key]) {
-                                if ($rc2) {
-                                    $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
-                                        $id2memb[$key]
-                                    ]);
-                                }
-                            }
-                        }
-
-                        # Now move any id2 Yahoo memberships over to refer to id1 before we delete it.
-                        # This might result in duplicates so we use IGNORE.
-                        $id2membs = $this->dbhm->preQuery("SELECT id, groupid FROM memberships WHERE userid = $id2;");
-                        #error_log("Memberships for $id2 " . var_export($id2membs, true));
-                        foreach ($id2membs as $id2memb) {
-                            $rc2 = $rc;
-
-                            $id1membs = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [
-                                $id1,
-                                $id2memb['groupid']
-                            ]);
-
-                            #error_log("Memberships for $id1 on {$id2memb['groupid']} " . var_export($id1membs, true));
-
-                            foreach ($id1membs as $id1memb) {
-                                $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships_yahoo SET membershipid = ? WHERE membershipid = ?;", [
-                                    $id1memb['id'],
-                                    $id2memb['id']
-                                ]) ;
-                                #error_log("$rc2 from UPDATE IGNORE memberships_yahoo SET membershipid = {$id1memb['id']} WHERE membershipid = {$id2memb['id']};");
+                            if ($role != $id1memb['role']) {
+                                $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
+                                    $role
+                                ]);
                             }
 
                             if ($rc2) {
-                                $rc2 = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE membershipid = ?;", [
-                                    $id2memb['id']
+                                #  Our added date should be the older of the two.
+                                $date = min(strtotime($id1memb['added']), strtotime($id2memb['added']));
+                                $mysqltime = date("Y-m-d H:i:s", $date);
+                                $rc2 = $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
+                                    $mysqltime
                                 ]);
-                                #error_log("$rc2 from delete {$id2memb['id']}");
                             }
 
-                            $rc = $rc2 && $rc ? $rc2 : 0;
+                            # There are several attributes we want to take the non-NULL version.
+                            foreach (['configid', 'settings', 'heldby'] as $key) {
+                                if ($id2memb[$key]) {
+                                    if ($rc2) {
+                                        $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
+                                            $id2memb[$key]
+                                        ]);
+                                    }
+                                }
+                            }
+
+                            # Now move any id2 Yahoo memberships over to refer to id1 before we delete it.
+                            # This might result in duplicates so we use IGNORE.
+                            $id2membs = $this->dbhm->preQuery("SELECT id, groupid FROM memberships WHERE userid = $id2;");
+                            #error_log("Memberships for $id2 " . var_export($id2membs, true));
+                            foreach ($id2membs as $id2memb) {
+                                $rc2 = $rc;
+
+                                $id1membs = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [
+                                    $id1,
+                                    $id2memb['groupid']
+                                ]);
+
+                                #error_log("Memberships for $id1 on {$id2memb['groupid']} " . var_export($id1membs, true));
+
+                                foreach ($id1membs as $id1memb) {
+                                    $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships_yahoo SET membershipid = ? WHERE membershipid = ?;", [
+                                        $id1memb['id'],
+                                        $id2memb['id']
+                                    ]) ;
+                                    #error_log("$rc2 from UPDATE IGNORE memberships_yahoo SET membershipid = {$id1memb['id']} WHERE membershipid = {$id2memb['id']};");
+                                }
+
+                                if ($rc2) {
+                                    $rc2 = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE membershipid = ?;", [
+                                        $id2memb['id']
+                                    ]);
+                                    #error_log("$rc2 from delete {$id2memb['id']}");
+                                }
+
+                                $rc = $rc2 && $rc ? $rc2 : 0;
+                            }
+
+                            if ($rc2) {
+                                # Now we just need to delete the id2 one.
+                                $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
+                            }
                         }
 
-                        if ($rc2) {
-                            # Now we just need to delete the id2 one.
-                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
+                        $rc = $rc2 && $rc ? $rc2 : 0;
+                    }
+
+                    # Merge the emails.  Both might have a primary address; id1 wins.  There is a unique index, so there
+                    # can't be a conflict on email.
+                    if ($rc) {
+                        $primary = NULL;
+                        $sql = "SELECT * FROM users_emails WHERE userid = $id2 AND preferred = 1;";
+                        $emails = $this->dbhr->preQuery($sql);
+                        foreach ($emails as $email) {
+                            $primary = $email['id'];
                         }
-                    }
 
-                    $rc = $rc2 && $rc ? $rc2 : 0;
-                }
+                        $sql = "SELECT * FROM users_emails WHERE userid = $id1 AND preferred = 1;";
+                        $emails = $this->dbhr->preQuery($sql);
+                        foreach ($emails as $email) {
+                            $primary = $email['id'];
+                        }
 
-                # Merge the emails.  Both might have a primary address; id1 wins.  There is a unique index, so there
-                # can't be a conflict on email.
-                if ($rc) {
-                    $primary = NULL;
-                    $sql = "SELECT * FROM users_emails WHERE userid = $id2 AND preferred = 1;";
-                    $emails = $this->dbhr->preQuery($sql);
-                    foreach ($emails as $email) {
-                        $primary = $email['id'];
-                    }
-
-                    $sql = "SELECT * FROM users_emails WHERE userid = $id1 AND preferred = 1;";
-                    $emails = $this->dbhr->preQuery($sql);
-                    foreach ($emails as $email) {
-                        $primary = $email['id'];
-                    }
-
-                    #error_log("Merge emails");
-                    $sql = "UPDATE users_emails SET userid = $id1, preferred = 0 WHERE userid = $id2;";
-                    $rc = $this->dbhm->preExec($sql);
-
-                    if ($primary) {
-                        $sql = "UPDATE users_emails SET preferred = 1 WHERE id = $primary;";
+                        #error_log("Merge emails");
+                        $sql = "UPDATE users_emails SET userid = $id1, preferred = 0 WHERE userid = $id2;";
                         $rc = $this->dbhm->preExec($sql);
+
+                        if ($primary) {
+                            $sql = "UPDATE users_emails SET preferred = 1 WHERE id = $primary;";
+                            $rc = $this->dbhm->preExec($sql);
+                        }
+
+                        #error_log("Emails now " . var_export($this->dbhm->preQuery("SELECT * FROM users_emails WHERE userid = $id1;"), true));
+                        #error_log("Email merge returned $rc");
                     }
 
-                    #error_log("Emails now " . var_export($this->dbhm->preQuery("SELECT * FROM users_emails WHERE userid = $id1;"), true));
-                    #error_log("Email merge returned $rc");
-                }
+                    if ($rc) {
+                        # Merge other foreign keys where success is less important.  For some of these there might already
+                        # be entries, so we do an IGNORE.
+                        $this->dbhm->preExec("UPDATE locations_excluded SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE spam_users SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE spam_users SET byuserid = $id1 WHERE byuserid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = $id1 WHERE byuser = $id2;");
+                        $this->dbhm->preExec("UPDATE users_logins SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE users_comments SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE users_comments SET byuserid = $id1 WHERE byuserid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE sessions SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE chat_roster SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET user1 = $id1 WHERE user1 = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET user2 = $id1 WHERE user2 = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE chat_messages SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_searches SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_donations SET userid = $id1 WHERE userid = $id2;");
+                    }
 
-                if ($rc) {
-                    # Merge other foreign keys where success is less important.  For some of these there might already
-                    # be entries, so we do an IGNORE.
-                    $this->dbhm->preExec("UPDATE locations_excluded SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE spam_users SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE spam_users SET byuserid = $id1 WHERE byuserid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = $id1 WHERE byuser = $id2;");
-                    $this->dbhm->preExec("UPDATE users_logins SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE users_comments SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE users_comments SET byuserid = $id1 WHERE byuserid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE sessions SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE chat_roster SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET user1 = $id1 WHERE user1 = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET user2 = $id1 WHERE user2 = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE chat_messages SET userid = $id1 WHERE userid = $id2;");
-                    $this->dbhm->preExec("UPDATE IGNORE users_searches SET userid = $id1 WHERE userid = $id2;");
-                }
+                    # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
+                    # keys, so update to delete them.
+                    foreach (['fullname', 'firstname', 'lastname', 'yahooUserId', 'yahooid'] as $att) {
+                        $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = $id2;");
+                        foreach ($users as $user) {
+                            $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = $id2;");
+                            User::clearCache($id1);
+                            User::clearCache($id2);
 
-                # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
-                # keys, so update to delete them.
-                foreach (['fullname', 'firstname', 'lastname', 'yahooUserId', 'yahooid'] as $att) {
-                    $users = $this->dbhm->preQuery("SELECT $att FROM users WHERE id = $id2;");
-                    foreach ($users as $user) {
-                        $this->dbhm->preExec("UPDATE users SET $att = NULL WHERE id = $id2;");
-                        User::clearCache($id1);
-                        User::clearCache($id2);
-
-                        if ($att != 'fullname') {
-                            $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
-                        } else if (stripos($user[$att], 'fbuser') === FALSE) {
-                            # We don't want to overwrite a name with FBUser.
-                            $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1;", [$user[$att]]);
+                            if ($att != 'fullname') {
+                                $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
+                            } else if (stripos($user[$att], 'fbuser') === FALSE) {
+                                # We don't want to overwrite a name with FBUser.
+                                $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1;", [$user[$att]]);
+                            }
                         }
                     }
-                }
 
-                # Merge the logs.  There should be logs both about and by each user, so we can use the rc to check success.
-                if ($rc) {
-                    $rc = $this->dbhm->preExec("UPDATE logs SET user = $id1 WHERE user = $id2;");
+                    # Merge the logs.  There should be logs both about and by each user, so we can use the rc to check success.
+                    if ($rc) {
+                        $rc = $this->dbhm->preExec("UPDATE logs SET user = $id1 WHERE user = $id2;");
 
-                    #error_log("Log merge 1 returned $rc");
-                }
+                        #error_log("Log merge 1 returned $rc");
+                    }
 
-                if ($rc) {
-                    $rc = $this->dbhm->preExec("UPDATE logs SET byuser = $id1 WHERE byuser = $id2;");
+                    if ($rc) {
+                        $rc = $this->dbhm->preExec("UPDATE logs SET byuser = $id1 WHERE byuser = $id2;");
 
-                    #error_log("Log merge 2 returned $rc");
-                }
+                        #error_log("Log merge 2 returned $rc");
+                    }
 
-                # Merge the fromuser in messages.  There might not be any, and it's not the end of the world
-                # if this info isn't correct, so ignore the rc.
-                #error_log("Merge messages, current rc $rc");
-                if ($rc) {
-                    $this->dbhm->preExec("UPDATE messages SET fromuser = $id1 WHERE fromuser = $id2;");
-                }
+                    # Merge the fromuser in messages.  There might not be any, and it's not the end of the world
+                    # if this info isn't correct, so ignore the rc.
+                    #error_log("Merge messages, current rc $rc");
+                    if ($rc) {
+                        $this->dbhm->preExec("UPDATE messages SET fromuser = $id1 WHERE fromuser = $id2;");
+                    }
 
-                # Merge the history
-                #error_log("Merge history, current rc $rc");
-                if ($rc) {
-                    $this->dbhm->preExec("UPDATE messages_history SET fromuser = $id1 WHERE fromuser = $id2;");
-                    $this->dbhm->preExec("UPDATE memberships_history SET userid = $id1 WHERE userid = $id2;");
-                }
+                    # Merge the history
+                    #error_log("Merge history, current rc $rc");
+                    if ($rc) {
+                        $this->dbhm->preExec("UPDATE messages_history SET fromuser = $id1 WHERE fromuser = $id2;");
+                        $this->dbhm->preExec("UPDATE memberships_history SET userid = $id1 WHERE userid = $id2;");
+                    }
 
-                # Merge the systemrole.
-                $u1s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id = $id1;");
-                foreach ($u1s as $u1) {
-                    $u2s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id = $id2;");
-                    foreach ($u2s as $u2) {
-                        $rc = $this->dbhm->preExec("UPDATE users SET systemrole = ? WHERE id = $id1;", [
-                            $this->systemRoleMax($u1['systemrole'], $u2['systemrole'])
+                    # Merge the systemrole.
+                    $u1s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id = $id1;");
+                    foreach ($u1s as $u1) {
+                        $u2s = $this->dbhr->preQuery("SELECT systemrole FROM users WHERE id = $id2;");
+                        foreach ($u2s as $u2) {
+                            $rc = $this->dbhm->preExec("UPDATE users SET systemrole = ? WHERE id = $id1;", [
+                                $this->systemRoleMax($u1['systemrole'], $u2['systemrole'])
+                            ]);
+                        }
+                        User::clearCache($id1);
+                    }
+
+                    if ($rc) {
+                        # Log the merge - before the delete otherwise we will fail to log it.
+                        $l->log([
+                            'type' => Log::TYPE_USER,
+                            'subtype' => Log::SUBTYPE_MERGED,
+                            'user' => $id2,
+                            'byuser' => $me ? $me->getId() : NULL,
+                            'text' => "Merged $id1 into $id2 ($reason)"
                         ]);
+
+                        # Log under both users to make sure we can trace it.
+                        $l->log([
+                            'type' => Log::TYPE_USER,
+                            'subtype' => Log::SUBTYPE_MERGED,
+                            'user' => $id1,
+                            'byuser' => $me ? $me->getId() : NULL,
+                            'text' => "Merged $id1 into $id2 ($reason)"
+                        ]);
+
+                        # Finally, delete id2.
+                        #error_log("Delete $id2");
+                        error_log("Merged $id1 < $id2, $reason");
+                        $deleteme = User::get($this->dbhr, $this->dbhm, $id2);
+                        $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
                     }
-                    User::clearCache($id1);
-                }
 
-                if ($rc) {
-                    # Log the merge - before the delete otherwise we will fail to log it.
-                    $l->log([
-                        'type' => Log::TYPE_USER,
-                        'subtype' => Log::SUBTYPE_MERGED,
-                        'user' => $id2,
-                        'byuser' => $me ? $me->getId() : NULL,
-                        'text' => "Merged $id1 into $id2 ($reason)"
-                    ]);
+                    if ($rc) {
+                        # Everything worked.
+                        $rollback = FALSE;
 
-                    # Log under both users to make sure we can trace it.
-                    $l->log([
-                        'type' => Log::TYPE_USER,
-                        'subtype' => Log::SUBTYPE_MERGED,
-                        'user' => $id1,
-                        'byuser' => $me ? $me->getId() : NULL,
-                        'text' => "Merged $id1 into $id2 ($reason)"
-                    ]);
-
-                    # Finally, delete id2.
-                    #error_log("Delete $id2");
-                    error_log("Merged $id1 < $id2, $reason");
-                    $deleteme = User::get($this->dbhr, $this->dbhm, $id2);
-                    $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
-                }
-
-                if ($rc) {
-                    # Everything worked.
-                    $rollback = FALSE;
-
-                    # We might have merged ourself!
-                    if (pres('id', $_SESSION) == $id2) {
-                        $_SESSION['id'] = $id1;
+                        # We might have merged ourself!
+                        if (pres('id', $_SESSION) == $id2) {
+                            $_SESSION['id'] = $id1;
+                        }
                     }
+                } catch (Exception $e) {
+                    error_log("Merge exception " . $e->getMessage());
+                    $rollback = TRUE;
                 }
-            } catch (Exception $e) {
-                error_log("Merge exception " . $e->getMessage());
-                $rollback = TRUE;
+            }
+
+            if ($rollback) {
+                # Something went wrong.
+                #error_log("Merge failed, rollback");
+                $this->dbhm->rollBack();
+                $ret = FALSE;
+            } else {
+                #error_log("Merge worked, commit");
+                $ret = $this->dbhm->commit();
             }
         }
-
-        if ($rollback) {
-            # Something went wrong.
-            #error_log("Merge failed, rollback");
-            $this->dbhm->rollBack();
-            $ret = FALSE;
-        } else {
-            #error_log("Merge worked, commit");
-            $ret = $this->dbhm->commit();
-       }
 
         return($ret);
     }
@@ -1993,12 +2080,20 @@ class User extends Entity
             }
         }
 
-        $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
-        $this->dbhr->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
-
         $this->notif->notifyGroupMods($groupid);
 
         $this->maybeMail($groupid, $subject, $body, 'Reject Member');
+
+        # We might have messages which are awaiting this membership.
+        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid IN (SELECT id FROM messages WHERE fromuser = ?) AND groupid = ?;", [
+            MessageCollection::REJECTED,
+            $this->id,
+            $groupid
+        ]);
+
+        # Delete from memberships - after emailing, otherwise we won't find the right email for this grup.
+        $sql = "DELETE FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;";
+        $this->dbhm->preExec($sql, [ $this->id, $groupid, MembershipCollection::PENDING ]);
     }
 
     public function approve($groupid, $subject, $body, $stdmsgid) {
@@ -2081,7 +2176,7 @@ class User extends Entity
                 'msgid' => $this->id,
                 'user' => $this->getId(),
                 'groupid' => $groupid,
-                'text' => 'Move from Pending to Approved after Yahoo notification mail for $email'
+                'text' => "Move from Pending to Approved after Yahoo notification mail for $email"
             ]);
 
             # Set the membership to be approved.
@@ -2358,7 +2453,7 @@ class User extends Entity
             ->addPart($html, 'text/html');
 
         list ($transport, $mailer) = getMailer();
-        $mailer->send($message);
+        $this->sendIt($mailer, $message);
     }
 
     public function forgotPassword($email) {
@@ -2373,7 +2468,7 @@ class User extends Entity
             ->addPart($html, 'text/html');
 
         list ($transport, $mailer) = getMailer();
-        $mailer->send($message);
+        $this->sendIt($mailer, $message);
     }
 
     public function verifyEmail($email) {
@@ -2412,7 +2507,7 @@ class User extends Entity
                 ->setBody("Someone, probably you, has said that $email is their email address.\n\nIf this was you, please click on the link below to verify the address; if this wasn't you, please just ignore this mail.\n\n$confirm")
                 ->addPart($html, 'text/html');
 
-            $mailer->send($message);
+            $this->sendIt($mailer, $message);
         }
 
         return($handled);
@@ -2507,17 +2602,18 @@ class User extends Entity
 
         $headers = "From: $email>\r\n";
 
-        # Yahoo is not very reliable; if we subscribe multiple times it seems to be more likely to react.
-        for ($i = 0; $i < 10; $i++) {
-            list ($transport, $mailer) = getMailer();
-            $message = Swift_Message::newInstance()
-                ->setSubject('Please let me join')
-                ->setFrom([$email])
-                ->setTo($g->getGroupSubscribe())
-                ->setDate(time())
-                ->setBody('Pretty please');
-            $mailer->send($message);
-        }
+        # Yahoo isn't very reliable, so it's tempting to send the subscribe multiple times.  But this can lead
+        # to a situation where we subscribe, the member is rejected on Yahoo, then a later subscribe attempt
+        # that was greylisted gets through again.  This annoys mods.  So we only subscribe once, and rely on
+        # the cron jobs to retry if this doesn't work.
+        list ($transport, $mailer) = getMailer();
+        $message = Swift_Message::newInstance()
+            ->setSubject('Please let me join')
+            ->setFrom([$email])
+            ->setTo($g->getGroupSubscribe())
+            ->setDate(time())
+            ->setBody('Pretty please');
+        $this->sendIt($mailer, $message);
 
         if ($log) {
             $this->log->log([
@@ -2794,7 +2890,12 @@ class User extends Entity
         #error_log("set $att = $val");
     }
 
-    public function notifsOn($type) {
+    public function canMerge() {
+        $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
+        return(array_key_exists('canmerge', $settings) ? $settings['canmerge'] : TRUE);
+    }
+
+    public function notifsOn($type, $groupid = NULL) {
         $settings = pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
         $notifs = pres('notifications', $settings);
 
@@ -2807,6 +2908,12 @@ class User extends Entity
         ];
 
         $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
+
+        if ($ret && $groupid) {
+            # Check we're an active mod on this group - if not then we don't want the notifications.
+            $ret = $this->activeModForGroup($groupid);
+        }
+
         #error_log("Notifs on for type $type ? $ret from " . var_export($notifs, TRUE));
         return($ret);
     }
@@ -2877,5 +2984,31 @@ class User extends Entity
         }
 
         return([$count, $title, $message, $chatids, $route]);
+    }
+
+    public function hasPermission($perm) {
+        $perms = $this->user['permissions'];
+        return($perms && stripos($perms, $perm) !== FALSE);
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function thankDonation() {
+        list ($transport, $mailer) = getMailer();
+        $message = Swift_Message::newInstance()
+            ->setSubject("Thank you for supporting Freegle!")
+            ->setFrom(PAYPAL_THANKS_FROM)
+            ->setReplyTo(PAYPAL_THANKS_FROM)
+            ->setTo($this->getEmailPreferred())
+            ->setBody("Thank you for donating to freegle");
+        $headers = $message->getHeaders();
+        $headers->addTextHeader('X-Freegle-Mail-Type', 'ThankDonation');
+
+        $html = donation_thank($this->getName(), $this->getEmailPreferred(), $this->loginLink(USER_SITE , $this->id, '/?src=thankdonation'), $this->loginLink(USER_SITE, $this->id, '/settings?src=thankdonation'));
+
+        $message->addPart($html, 'text/html');
+        $this->sendIt($mailer, $message);
     }
 }

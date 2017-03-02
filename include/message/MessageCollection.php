@@ -34,7 +34,7 @@ class MessageCollection
         return $this->collection;
     }
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $collection)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $collection = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -63,95 +63,98 @@ class MessageCollection
     }
 
     function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL) {
-        $msgids = [];
+        do {
+            $msgids = [];
 
+            if (in_array(MessageCollection::DRAFT, $this->collection)) {
+                # Draft messages are handled differently, as they're not attached to any group.
+                $me = whoAmI($this->dbhr, $this->dbhm);
+                $userids = $userids ? $userids : ($me ? [ $me->getId() ] : NULL);
 
-        if (in_array(MessageCollection::DRAFT, $this->collection)) {
-            # Draft messages are handled differently, as they're not attached to any group.
-            $me = whoAmI($this->dbhr, $this->dbhm);
-            $sql = "SELECT msgid FROM messages_drafts WHERE session = ? OR (userid = ? AND userid IS NOT NULL);";
-            $msgs = $this->dbhr->preQuery($sql, [
-                session_id(),
-                $me ? $me->getId() : NULL
-            ]);
-            #error_log($sql . " " . ($me ? $me->getId() : NULL));
+                $sql = (count($userids) > 0) ? ("SELECT msgid FROM messages_drafts WHERE session = ? OR userid IN (" . implode(',', $userids) . ");") : "SELECT msgid FROM messages_drafts WHERE session = ?;";
+                $msgs = $this->dbhr->preQuery($sql, [
+                    session_id()
+                ]);
 
-            foreach ($msgs as $msg) {
-                $msgids[] = ['id' => $msg['msgid']];
-            }
-        }
-
-        $collection = array_filter($this->collection, function($val) {
-            return($val != MessageCollection::DRAFT);
-        });
-
-        if (count($collection) > 0) {
-            $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
-
-            # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
-            # message arrived for the very first time, or when it was reposted.
-            $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
-            $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
-            $oldest = '';
-
-            if (in_array(MessageCollection::SPAM, $collection)) {
-                # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
-                # See also Group.
-                #
-                # This fits with Yahoo's policy on deleting pending activity.
-                #
-                # This code assumes that if we're called to retrieve SPAM, it's the only collection.  That's true at
-                # the moment as the only use of multiple collection values is via ALLUSER, which doesn't include SPAM.
-                $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
-                $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
-            } else if ($age !== NULL) {
-                $mysqltime = date ("Y-m-d", strtotime("Midnight $age days ago"));
-                $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
+                foreach ($msgs as $msg) {
+                    $msgids[] = ['id' => $msg['msgid']];
+                }
             }
 
-            # We may have some groups to filter by.
-            $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
+            $collection = array_filter($this->collection, function ($val) {
+                return ($val != MessageCollection::DRAFT);
+            });
 
-            # We have a complicated set of different queries we can do.  This is because we want to make sure that
-            # the query is as fast as possible, which means:
-            # - access as few tables as we need to
-            # - use multicolumn indexes
-            $collectionq = " AND collection IN ('" . implode("','", $collection) . "') ";
-            if ($userids) {
-                # We only query on a small set of userids, so it's more efficient to get the list of messages from them
-                # first.
-                $seltab = "(SELECT id, arrival, fromuser, deleted, `type` FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
-                $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC LIMIT $limit";
-            } else if (count($groupids) > 0) {
-                # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
-                $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
-                $sql = "SELECT msgid as id, arrival, messages_groups.collection FROM messages_groups WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC LIMIT $limit;";
-            } else {
-                # We are not searching within a specific group, so we have no choice but to do a larger join.
-                $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages.arrival DESC LIMIT $limit";
-            }
+            if (count($collection) > 0) {
+                $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
 
-            #error_log("Messages get $sql");
+                # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
+                # message arrived for the very first time, or when it was reposted.
+                $date = ($ctx == NULL || !pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
+                $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ") ");
+                $oldest = '';
 
-            $msglist = $this->dbhr->preQuery($sql);
-
-            # Get an array of just the message ids.  Save off context for next time.
-            $ctx = [ 'Date' => NULL, 'id' => PHP_INT_MAX ];
-
-            foreach ($msglist as $msg) {
-                $msgids[] = ['id' => $msg['id']];
-
-                $thisepoch = strtotime($msg['arrival']);
-
-                if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
-                    $ctx['Date'] = $thisepoch;
+                if (in_array(MessageCollection::SPAM, $collection)) {
+                    # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
+                    # See also Group.
+                    #
+                    # This fits with Yahoo's policy on deleting pending activity.
+                    #
+                    # This code assumes that if we're called to retrieve SPAM, it's the only collection.  That's true at
+                    # the moment as the only use of multiple collection values is via ALLUSER, which doesn't include SPAM.
+                    $mysqltime = date("Y-m-d", strtotime("Midnight 31 days ago"));
+                    $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
+                } else if ($age !== NULL) {
+                    $mysqltime = date("Y-m-d", strtotime("Midnight $age days ago"));
+                    $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
                 }
 
-                $ctx['id'] = min($msg['id'], $ctx['id']);
-            }
-        }
+                # We may have some groups to filter by.
+                $groupq = count($groupids) > 0 ? (" AND groupid IN (" . implode(',', $groupids) . ") ") : '';
 
-        list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL);
+                # We have a complicated set of different queries we can do.  This is because we want to make sure that
+                # the query is as fast as possible, which means:
+                # - access as few tables as we need to
+                # - use multicolumn indexes
+                $collectionq = " AND collection IN ('" . implode("','", $collection) . "') ";
+                if ($userids) {
+                    # We only query on a small set of userids, so it's more efficient to get the list of messages from them
+                    # first.
+                    $seltab = "(SELECT id, arrival, fromuser, deleted, `type` FROM messages WHERE fromuser IN (" . implode(',', $userids) . ")) messages";
+                    $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
+                } else if (count($groupids) > 0) {
+                    # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
+                    $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
+                    $sql = "SELECT msgid as id, arrival, messages_groups.collection FROM messages_groups WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC LIMIT $limit;";
+                } else {
+                    # We are not searching within a specific group, so we have no choice but to do a larger join.
+                    $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
+                }
+
+                #error_log("Messages get $sql");
+
+                $msglist = $this->dbhr->preQuery($sql);
+
+                # Get an array of just the message ids.  Save off context for next time.
+                $ctx = ['Date' => NULL, 'id' => PHP_INT_MAX];
+
+                foreach ($msglist as $msg) {
+                    $msgids[] = ['id' => $msg['id']];
+
+                    $thisepoch = strtotime($msg['arrival']);
+
+                    if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
+                        $ctx['Date'] = $thisepoch;
+                    }
+
+                    $ctx['id'] = min($msg['id'], $ctx['id']);
+                }
+            }
+
+            list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL);
+
+            # We might have excluded all the messages we found; if so, keep going.
+        } while (count($msgids) > 0 && count($msgs) == 0);
 
         return([$groups, $msgs]);
     }
@@ -174,32 +177,15 @@ class MessageCollection
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
                 $role = $m->getRoleForMessage(FALSE);
-                #error_log("Role $role for {$msg['id']}");
+                $cansee = $m->canSee($public);
 
-                $thisgroups = $m->getGroups();
-                $cansee = ($role == User::ROLE_MODERATOR) || ($role == User::ROLE_OWNER);
+                if ($cansee) {
+                    $thisgroups = $m->getGroups(TRUE);
 
-                foreach ($thisgroups as $groupid) {
-                    if (!array_key_exists($groupid, $groups)) {
+                    foreach ($thisgroups as $groupid) {
                         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-                        $atts = $g->getPublic();
-
-                        # We can see messages if:
-                        # - we're a mod or an owner
-                        # - for Freegle groups which use this platform
-                        #   - we're a member, or
-                        #   - we have publish consent
-                        if ($role == User::ROLE_MODERATOR ||
-                            $role == User::ROLE_OWNER ||
-                            ($this->collection != MessageCollection::PENDING &&
-                                $atts['type'] == Group::GROUP_FREEGLE && $g->getPrivate('onhere') &&
-                                ($publishconsent || $role == User::ROLE_MEMBER))
-                        ) {
-                            $groups[$groupid] = $g->getPublic();
-                        }
+                        $groups[$groupid] = $g->getPublic();
                     }
-
-                    $cansee = array_key_exists($groupid, $groups);
                 }
 
                 if ($cansee) {
@@ -282,5 +268,44 @@ class MessageCollection
         } else {
             return NULL;
         }
+    }
+
+    function getRecentMessages($type = Group::GROUP_FREEGLE) {
+        $groupq = $type ? " AND groups.type = '$type' " : "";
+        $mysqltime = date("Y-m-d H:i:s", strtotime('30 minutes ago'));
+        $messages = $this->dbhr->preQuery("SELECT messages.id, messages_groups.arrival, messages_groups.groupid, messages.subject FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid INNER JOIN groups ON messages_groups.groupid = groups.id INNER JOIN users ON messages.fromuser = users.id WHERE messages_groups.arrival > ? AND collection = ? AND publishconsent = 1 $groupq ORDER BY messages_groups.arrival ASC;", [
+            $mysqltime,
+            MessageCollection::APPROVED
+        ]);
+
+        $ret = [];
+
+        $last = NULL;
+        foreach ($messages as $message) {
+            $g = Group::get($this->dbhr, $this->dbhm, $message['groupid']);
+            $namedisplay = $g->getPrivate('namefull') ? $g->getPrivate('namefull') : $g->getPrivate('nameshort');
+            $arrival = strtotime($message['arrival']);
+            $delta = $last !== NULL ? ($arrival - $last) : 0;
+            $last = $arrival;
+
+            $ret[] = [
+                'id' => $message['id'],
+                'message' => [
+                    'id' => $message['id'],
+                    'subject' => $message['subject'],
+                    'arrival' => ISODate($message['arrival']),
+                    'delta' => $delta,
+                ],
+                'group' => [
+                    'id' => $g->getId(),
+                    'nameshort' => $g->getPrivate('nameshort'),
+                    'namedisplay' => $namedisplay,
+                    'lat' => $g->getPrivate('lat'),
+                    'lng' => $g->getPrivate('lng')
+                ]
+            ];
+        }
+
+        return($ret);
     }
 }

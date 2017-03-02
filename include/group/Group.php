@@ -55,7 +55,9 @@ class Group extends Entity
         $this->defaultSettings = [
             'showchat' => 1,
             'communityevents' => 1,
+            'stories' => 1,
             'includearea' => 1,
+            'includepc' => 1,
             'autoapprove' => [
                 'members' => 0,
                 'messages' => 0
@@ -84,7 +86,8 @@ class Group extends Entity
                 'max' => 10,
                 'chaseups' => 2
             ],
-            'relevant' => 1
+            'relevant' => 1,
+            'newsletter' => 1
         ];
 
         if (!$this->group['settings'] || strlen($this->group['settings']) == 0) {
@@ -290,10 +293,12 @@ class Group extends Entity
     public function getWorkCounts($mysettings, $myid) {
         # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
         # less prominently in the client.
-        #error_log("Getworkcounts " . error_log(var_export($mysettings, true)));
-        $showmessages = !array_key_exists('showmessages', $mysettings) || $mysettings['showmessages'];
-        $showmembers = !array_key_exists('showmembers', $mysettings) || $mysettings['showmembers'];
-        $spam = $showmessages ? 'spam' : 'spamother';
+        #
+        # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
+        # to active.
+        # TODO Retire showmessages entirely and remove from user configs.
+        $active = array_key_exists('active', $mysettings) ? $mysettings['active'] : (!array_key_exists('showmessages', $mysettings) || $mysettings['showmessages']);
+        $spam = $active ? 'spam' : 'spamother';
 
         # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
         #
@@ -302,27 +307,27 @@ class Group extends Entity
         $eventsqltime = date("Y-m-d H:i:s", time());
 
         $ret = [
-            'pending' => $showmessages ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL;", [
+            'pending' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL;", [
                 $this->id,
                 MessageCollection::PENDING
             ])[0]['count'] : 0,
-            'pendingother' => $showmessages ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NOT NULL;", [
+            'pendingother' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NOT NULL;", [
                 $this->id,
                 MessageCollection::PENDING
             ])[0]['count'] : 0,
-            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.arrival >= '$mysqltime' AND messages_groups.deleted = 0 " . ($showmessages ? "AND messages.heldby IS NULL" : "") . ";", [
+            $spam => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages.arrival >= '$mysqltime' AND messages_groups.deleted = 0 " . ($active ? "AND messages.heldby IS NULL" : "") . ";", [
                 $this->id,
                 MessageCollection::SPAM
             ])[0]['count'],
-            'pendingmembers' => $showmembers ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NULL;", [
+            'pendingmembers' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NULL;", [
                 $this->id,
                 MembershipCollection::PENDING
             ])[0]['count'] : 0,
-            'pendingmembersother' => $showmembers ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NOT NULL;", [
+            'pendingmembersother' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND collection = ? AND memberships.heldby IS NOT NULL;", [
                 $this->id,
                 MembershipCollection::PENDING
             ])[0]['count'] : 0,
-            'pendingevents' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ?;", [
+            'pendingevents' => $this->dbhr->preQuery("SELECT COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid = ? AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ?;", [
                 $this->id,
                 $eventsqltime
             ])[0]['count'],
@@ -356,8 +361,10 @@ class Group extends Entity
         }
 
         # Images
-        $atts['profile'] = $atts['profile'] ? Attachment::getPath($atts['profile'], Attachment::TYPE_GROUP) : NULL;
-        $atts['cover'] = $atts['cover'] ? Attachment::getPath($atts['cover'], Attachment::TYPE_GROUP) : NULL;
+        if (defined('IMAGE_DOMAIN')) {
+            $atts['profile'] = $atts['profile'] ? Attachment::getPath($atts['profile'], Attachment::TYPE_GROUP) : NULL;
+            $atts['cover'] = $atts['cover'] ? Attachment::getPath($atts['cover'], Attachment::TYPE_GROUP) : NULL;
+        }
 
         $atts['url'] = $atts['onhere'] ? ('https://' . USER_SITE . '/explore/' . $atts['nameshort']) : ("https://groups.yahoo.com/neo/groups/" . $atts['nameshort'] . "/info");
 
@@ -492,9 +499,10 @@ class Group extends Entity
             $thisone['joined'] = ISODate($member['added']);
 
             # Defaults match ones in User.php
+            #error_log("Settings " . var_export($member, TRUE));
             $thisone['settings'] = $member['settings'] ? json_decode($member['settings'], TRUE) : [
-                'showmessages' => 1,
-                'showmembers' => 1,
+                'active' => 1,
+                'showchat' => 1,
                 'pushnotify' => 1,
                 'eventsallowed' => 1
             ];
@@ -690,11 +698,17 @@ class Group extends Entity
                     # Now merge any different ones.
                     if ($emailid && $yuid && $emailid != $yuid) {
                         $mergerc = $u->merge($emailid, $yuid, $reason);
+
+                        # If the merge failed then zap the id to stop us setting it below.
+                        $memb['yahooid'] = $mergerc ? $memb['yahooid'] : NULL;
                         #error_log($reason);
                     }
 
                     if ($emailid && $yiduid && $emailid != $yiduid && $yiduid != $yuid) {
                         $mergerc = $u->merge($emailid, $yiduid, $reason);
+
+                        # If the merge failed then zap the id to stop us setting it below.
+                        $memb['yahooUserId'] = $mergerc ? $memb['yahooUserId'] : NULL;
                         #error_log($reason);
                     }
 
@@ -725,7 +739,7 @@ class Group extends Entity
 
                     # If we don't have a yahooid for this user, update it.  If we already have one, then stick with it
                     # to avoid updating a user with an old Yahoo id
-                    if (pres('yahooid', $memb) && !$u->getPrivate('yahooid')) {
+                    if (pres('yahooid', $memb) && !$u->getPrivate('yahooid') && (!$yuid)) {
                         $u->setPrivate('yahooid', $memb['yahooid']);
                     }
 
@@ -897,7 +911,15 @@ class Group extends Entity
             # Delete any residual Yahoo memberships.
             #$resid = $this->dbhm->preQuery("SELECT memberships_yahoo.id, emailid FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);", [$this->id, $collection]);
             #error_log(var_export($resid, TRUE));
-            $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid IN (SELECT emailid FROM syncdelete) AND membershipid IN (SELECT id FROM memberships WHERE groupid = ? AND collection = ?);", [$this->id, $collection]);
+            $emailids = $this->dbhm->preQuery("SELECT emailid FROM syncdelete;");
+            foreach ($emailids as $emailid) {
+                #error_log("Check for delete {$emailid['emailid']}");
+                $rc = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE emailid = ? AND membershipid IN (SELECT id FROM memberships WHERE groupid = ?);",
+                    [
+                        $emailid['emailid'],
+                        $this->id
+                    ]);
+            }
             #error_log("Deleted $rc Yahoo Memberships");
 
             #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
@@ -1166,15 +1188,11 @@ class Group extends Entity
    public function listByType($type) {
        $me = whoAmI($this->dbhr, $this->dbhm);
        $typeq = $type ? "type = ?" : '1=1';
-        $sql = "SELECT id, nameshort, region, namefull, lat, lng, poly, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $sql = "SELECT id, nameshort, region, namefull, lat, lng, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
             $group['profile'] = $group['profile'] ? Attachment::getPath($group['profile'], Attachment::TYPE_GROUP) : NULL;
-
-            if (!$me || !$me->isModerator()) {
-                $group['polygon'] = NULL;
-            }
         }
 
         return($groups);

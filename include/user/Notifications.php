@@ -26,13 +26,17 @@ class Notifications
     }
 
     public function get($userid) {
-        $ret = NULL;
+        # Cache the notification - saves a DB call in GET of session, which is very common.
+        $ret = presdef('notification', $_SESSION, NULL);
 
-        $sql = "SELECT * FROM users_push_notifications WHERE userid = ?;";
-        $notifs = $this->dbhr->preQuery($sql, [ $userid ]);
-        foreach ($notifs as &$notif) {
-            $notif['added'] = ISODate($notif['added']);
-            $ret = $notif;
+        if (!$ret) {
+            $sql = "SELECT * FROM users_push_notifications WHERE userid = ?;";
+            $notifs = $this->dbhr->preQuery($sql, [ $userid ]);
+            foreach ($notifs as &$notif) {
+                $notif['added'] = ISODate($notif['added']);
+                $ret = $notif;
+                $_SESSION['notification'] = $ret;
+            }
         }
 
         return($ret);
@@ -131,7 +135,7 @@ class Notifications
 
                     break;
             }
-            #error_log("Returned " . var_export($rc, TRUE) . " for {$notif['subscription']}");
+            error_log("Returned " . var_export($rc, TRUE) . " for $userid type $notiftype $endpoint payload " . var_export($payload, TRUE));
             $rc = $this->uthook($rc);
         } catch (Exception $e) {
             $rc = [ 'exception' => $e->getMessage() ];

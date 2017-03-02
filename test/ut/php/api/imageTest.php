@@ -54,6 +54,7 @@ class imageAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
+        $a->setPrivate('sourceheader', Message::PLATFORM);
 
         # Should be able to see this message even logged out.
         $ret = $this->call('message', 'GET', [
@@ -159,6 +160,27 @@ class imageAPITest extends IznikAPITestCase
             'id' => $id,
             'w' => 100
         ], FALSE);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testOCR() {
+        error_log(__METHOD__);
+
+        $data = file_get_contents('images/giveandtake.jpg');
+        file_put_contents("/tmp/giveandtake.jpg", $data);
+
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/giveandtake.jpg',
+                'type' => 'image/jpeg'
+            ],
+            'ocr' => TRUE
+        ]);
+
+        var_dump($ret);
+
+        assertTrue(strpos($ret['ocr'], 'GIVE OR TAKE') !== FALSE);
 
         error_log(__METHOD__ . " end");
     }
