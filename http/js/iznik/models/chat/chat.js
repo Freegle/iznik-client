@@ -242,7 +242,7 @@ define([
             // TODO use a separate domain name to get round client-side limits on the max number of HTTP connections
             // to a single host.  We use a single connection rather than a per chat one for the same reason.
             var self = this;
-            log("Start chat wait");
+            //log("Start chat wait");
 
             if (Iznik.Session) {
 
@@ -262,10 +262,10 @@ define([
                     global: false, // don't trigger ajaxStart to avoid showing a busy icon all the time
                     success: function (ret) {
                         self.waiting = false;
-                        log("Received notif", ret);
 
                         if (ret && ret.hasOwnProperty('text')) {
                             var data = ret.text;
+                            log("Received notif", ret);
 
                             if (data) {
                                 if (data.hasOwnProperty('newroom')) {

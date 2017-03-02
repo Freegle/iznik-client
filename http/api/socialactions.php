@@ -24,7 +24,17 @@ function socialactions() {
 
         case 'POST':
             $f = new GroupFacebook($dbhr, $dbhm, $groupid);
-            $f->performSocialAction($id);
+            $action = presdef('action', $_REQUEST, GroupFacebook::ACTION_DO);
+
+            switch ($action) {
+                case GroupFacebook::ACTION_DO:
+                    $f->performSocialAction($id);
+                    break;
+                case GroupFacebook::ACTION_HIDE:
+                    $f->hideSocialAction($id);
+                    break;
+            }
+
             $ret = [
                 'ret' => 0,
                 'status' => 'Success'
