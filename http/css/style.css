@@ -417,13 +417,6 @@ body {
     padding-bottom: 10px !important;
 }
 
-.padmdbotplus {
-    padding-top: 5px !important;
-    padding-bottom: 40px !important;
-    padding-left: 5px !important;
-    padding-right: 5px !important;
-}
-
 .padtopbotmd {
     padding-top: 7px !important;
     padding-bottom: 7px !important;
@@ -834,10 +827,6 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding-bottom: 5px;
 }
 
-#page-content-wrapper {
-    min-height: 90vh;
-}
-
 .white, .white a {
     color: #fff;
 }
@@ -1018,23 +1007,11 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     justify-content: space-between;
 }
 
-.chat-page-pane {
-    /*height: calc(100vh - 65px);*/
-}
-
 .chat-page-content {
-    /*height: calc(100vh - 80px - 60px);*/
     overflow-x: hidden;
     overflow-y: scroll;
     background-color: #f3f0da;
 }
-
-/*.chat-page-footer {*/
-    /*position: relative;*/
-    /*height: 20vh;*/
-    /*top: 100vh;*/
-    /*transform: translateY(-100vh);*/
-/*}*/
 
 .chat-page-input {
     bottom: 0;
