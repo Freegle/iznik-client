@@ -52,6 +52,7 @@ define([
 
         showHideButt: function() {
             var self = this;
+            var val = self.$('.js-postcode').typeahead('val');
 
             if (val.length == 0) {
                 self.showButt();
