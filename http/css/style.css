@@ -148,13 +148,13 @@ body {
     float: left;
 }
 
-.modal-backdrop{
+.modal-backdrop {
     z-index: 10;
-}​
+}
 
- .mapcontainer {
-     margin: 20px 5px 5px 5px;
- }
+.mapcontainer {
+    margin: 20px 5px 5px 5px;
+}
 
 .maparea {
     width: 100%;
@@ -163,7 +163,7 @@ body {
 
 .mapandresults {
     min-width: 100%;
-    margin-top: 20;
+    margin-top: 20px;
 }
 
 .networkicon, .networkicon img {
