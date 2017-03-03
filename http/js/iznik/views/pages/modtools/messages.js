@@ -685,6 +685,7 @@ define([
                 }
 
                 // TODO $otherapplied
+                text = text.replace(/\$otherapplied/g, '');
 
                 text = text.replace(/\$membermail/g, model.fromaddr);
                 var from = model.fromuser.hasOwnProperty('realemail') ? model.fromuser.realemail : model.fromaddr;
