@@ -150,7 +150,7 @@ body {
 
 .modal-backdrop{
     z-index: 10;
-}​
+}
 
  .mapcontainer {
      margin: 20px 5px 5px 5px;
@@ -415,6 +415,13 @@ body {
 
 .padbot {
     padding-bottom: 10px !important;
+}
+
+.padmdbotplus {
+    padding-top: 5px !important;
+    padding-bottom: 40px !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
 }
 
 .padtopbotmd {
@@ -827,6 +834,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding-bottom: 5px;
 }
 
+#page-content-wrapper {
+    min-height: 90vh;
+}
+
 .white, .white a {
     color: #fff;
 }
@@ -1007,11 +1018,23 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     justify-content: space-between;
 }
 
+.chat-page-pane {
+    /*height: calc(100vh - 65px);*/
+}
+
 .chat-page-content {
+    /*height: calc(100vh - 80px - 60px);*/
     overflow-x: hidden;
     overflow-y: scroll;
     background-color: #f3f0da;
 }
+
+/*.chat-page-footer {*/
+    /*position: relative;*/
+    /*height: 20vh;*/
+    /*top: 100vh;*/
+    /*transform: translateY(-100vh);*/
+/*}*/
 
 .chat-page-input {
     bottom: 0;
@@ -1739,6 +1762,8 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 /* Large Devices, Wide Screens */
 @media only screen and (min-width : 1200px) {
 }
+
+/* // CC */
 
 #refreshbutton {
     margin-top: 8px;
