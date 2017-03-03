@@ -32,6 +32,7 @@ class Group extends Entity
 
     const FILTER_NONE = 0;
     const FILTER_WITHCOMMENTS = 1;
+    const FILTER_MODERATORS = 2;
 
     /** @var  $log Log */
     private $log;
@@ -395,12 +396,16 @@ class Group extends Entity
         $ypsq = $yps ? (" AND memberships_yahoo.yahooPostingStatus = " . $this->dbhr->quote($yps)) : '';
         $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
         $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
+        $modq = '';
 
         switch ($filter) {
             case Group::FILTER_WITHCOMMENTS:
                 $filterq = ' INNER JOIN users_comments ON users_comments.userid = memberships.userid ';
                 $filterq = $groupids ? ("$filterq AND users_comments.groupid IN (" . implode(',', $groupids) . ") ") : $filterq;
                 break;
+            case Group::FILTER_MODERATORS:
+                $filterq = '';
+                $modq = " AND memberships.role IN ('Owner', 'Moderator') ";
             default:
                 $filterq = '';
                 break;
@@ -444,7 +449,7 @@ class Group extends Entity
               $groupq $collectionq $addq $ypsq $ydtq $opsq";
         } else {
             $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : '';
-            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq $opsq";
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq $opsq $modq";
         }
 
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
