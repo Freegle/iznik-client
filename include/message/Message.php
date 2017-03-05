@@ -3659,7 +3659,7 @@ class Message
                 $this->id,
                 $groupid,
                 1,
-                0
+                1
             ]);
         }
     }
