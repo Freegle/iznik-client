@@ -346,7 +346,6 @@ define([
                 self.fallbackFetch = [];
                 self.each(function (chat) {
                     if (lastseens[chat.get('id')] != chat.get('lastmsgseen')) {
-                        log("Need to refresh", chat);
                         self.fallbackFetch.push(chat);
                     }
                 });

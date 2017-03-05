@@ -363,9 +363,6 @@ body, #bodyContent {
     overflow-x: hidden;
 }
 
-.xyz{
-    min-width: 360px;
-}
 #wrapper.toggled #page-content-wrapper {
     position: relative;
     margin-right: 0px;
