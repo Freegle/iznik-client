@@ -263,6 +263,7 @@ class Message
             # Construct a new subject from the edited values.
             $groupids = $this->getGroups();
             $this->constructSubject($groupids[0]);
+            $this->setPrivate('subject', $this->subject);
             $this->setPrivate('suggestedsubject', $this->subject);
         } else if ($subject) {
             # If the subject has been edited, then that edit is more important than any suggestion we might have
@@ -3658,7 +3659,7 @@ class Message
                 $this->id,
                 $groupid,
                 1,
-                0
+                1
             ]);
         }
     }

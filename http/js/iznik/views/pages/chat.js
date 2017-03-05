@@ -93,7 +93,6 @@ define([
         loadChat: function(chat) {
             // We have selected a chat.  Mark it as selected.
             var self = this;
-            console.log("Load chat", chat);
 
             if (chat)
             {
