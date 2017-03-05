@@ -455,11 +455,11 @@ define([
 
                                 document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
 
-                                if (total) {
+                                /* // CC only in user app if (total) {
                                     $('.js-chattotalcount').html(total).show();
                                 } else {
                                     $('.js-chattotalcount').empty().hide();
-                                }
+                                }*/
                                 if (mobilePush) {
                                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
                                 }

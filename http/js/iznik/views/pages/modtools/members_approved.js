@@ -462,7 +462,7 @@ define([
             var email = self.$('.js-email').val();
             var message = self.$('.js-welcome').val();
 
-            if (!email || email.trim().length == 0) {
+            if (!email || email.trim().length == 0 || !isValidEmailAddress(email)) {
                 self.$('.js-email').addClass('error-border');
             } else {
                 self.$('.js-email').removeClass('error-border');

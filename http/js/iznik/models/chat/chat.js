@@ -87,6 +87,20 @@ define([
             }
         },
 
+        close: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + 'chatrooms',
+                type: 'POST',
+                data: {
+                    id: self.get('id'),
+                    status: 'Closed'
+                }, success: function(ret) {
+                }
+            }));
+        },
+
         seen: function() {
             var self = this;
             
@@ -332,7 +346,6 @@ define([
                 self.fallbackFetch = [];
                 self.each(function (chat) {
                     if (lastseens[chat.get('id')] != chat.get('lastmsgseen')) {
-                        log("Need to refresh", chat);
                         self.fallbackFetch.push(chat);
                     }
                 });
