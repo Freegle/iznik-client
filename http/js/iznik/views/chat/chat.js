@@ -544,12 +544,6 @@ define([
             return ('chat-' + this.model.get('id'));
         },
 
-        zapViews: function () {
-            Iznik.Session.chats.remove({
-                id: this.model.get('id')
-            });
-        },
-
         removeIt: function (e) {
             var self = this;
             e.preventDefault();
@@ -571,17 +565,18 @@ define([
                     Storage.remove(this.lsID() + '-height');
                     Storage.remove(this.lsID() + '-width');
 
-                    // Also refetch the chats, so that our cached copy gets updated.
-                    Iznik.Session.chats.fetch();
+                    self.model.close().then(function() {
+                        // Also refetch the chats, so that our cached copy gets updated.
+                        Iznik.Session.chats.fetch({
+                            cached: nullFn
+                        });
+                    })
                 } catch (e) {
                     console.error(e.message)
                 }
-                ;
-                self.updateRoster('Closed', _.bind(self.zapViews, self), true);
             });
 
             v.render();
-
         },
 
         focus: function () {
@@ -655,7 +650,10 @@ define([
 
         messageFocus: function () {
             var self = this;
-            self.messages.allseen();
+
+            if (self.messages) {
+                self.messages.allseen();
+            }
             self.updateCount();
         },
 

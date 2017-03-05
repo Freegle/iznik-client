@@ -87,6 +87,20 @@ define([
             }
         },
 
+        close: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + 'chatrooms',
+                type: 'POST',
+                data: {
+                    id: self.get('id'),
+                    status: 'Closed'
+                }, success: function(ret) {
+                }
+            }));
+        },
+
         seen: function() {
             var self = this;
             
