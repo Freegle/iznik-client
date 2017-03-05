@@ -567,7 +567,7 @@ class ChatRoom extends Entity
         }
     }
 
-    public function updateRoster($userid, $lastmsgseen)
+    public function updateRoster($userid, $lastmsgseen, $status = ChatRoom::STATUS_ONLINE)
     {
         # We have a unique key, and an update on current timestamp.
         #
@@ -583,6 +583,15 @@ class ChatRoom extends Entity
 
         if ($lastmsgseen && is_nan($lastmsgseen)) {
             error_log("Bad request " . var_export($_REQUEST, TRUE));
+        }
+
+        if ($status == ChatRoom::STATUS_CLOSED) {
+            # The Closed status is special - it's per-room.  So we need to set it.
+            $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;", [
+                $status,
+                $this->id,
+                $userid
+            ], FALSE);
         }
 
         if ($lastmsgseen && !is_nan($lastmsgseen)) {

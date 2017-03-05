@@ -295,7 +295,8 @@ define([
             'click .js-large': 'large',
             'click .js-small': 'small',
             'keyup .js-message': 'keyUp',
-            'change .js-status': 'status'
+            'change .js-status': 'status',
+            'click .js-remove': 'removeIt'
         },
 
         enter: function(e) {
@@ -304,6 +305,38 @@ define([
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
+        },
+
+        removeIt: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("Remove?");
+
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'chat_remove';
+
+            self.listenToOnce(v, 'confirmed', function () {
+                // This will close the chat, which means it won't show in our list until we recreate it.  The messages
+                // will be preserved.
+                var v = new Iznik.Views.PleaseWait({
+                    label: 'chat openChat'
+                });
+                v.render();
+
+                self.model.close().then(function() {
+                    // Reload.  Bit clunky but it'll do.
+                    Iznik.Session.chats.fetch({
+                        cached: nullFn
+                    }).then(function() {
+                        window.location.reload();
+                    });
+                });
+            });
+
+            v.render();
         },
 
         keyUp: function (e) {

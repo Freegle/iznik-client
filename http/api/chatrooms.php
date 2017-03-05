@@ -81,7 +81,8 @@ function chatrooms() {
                 if ($r->canSee($myid)) {
                     $ret = ['ret' => 0, 'status' => 'Success'];
                     $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
-                    $r->updateRoster($myid, $lastmsgseen);
+                    $status = presdef('status', $_REQUEST, ChatRoom::STATUS_ONLINE);
+                    $r->updateRoster($myid, $lastmsgseen, $status);
 
                     $ret['roster'] = $r->getRoster();
                     $ret['unseen'] = $r->unseenCountForUser($myid);
