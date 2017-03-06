@@ -28,6 +28,11 @@
     background-color: white;
 }
 
+.boxglow {
+    -webkit-box-shadow: 0 0 20px #61AE24;
+    -moz-box-shadow: 0 0 20px #61AE24;
+    box-shadow: 0 0 20px #61AE24;
+}
 .navbar-custom .navbar-collapse,
 .navbar-custom .navbar-form,
 .navbar-custom {
