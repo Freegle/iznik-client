@@ -971,6 +971,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     background-color: white;
 }
 
+.backwarning {
+    background-color: #fbeed5;
+}
+
 /* Chat */
 .chat-list-holder {
     height: calc(100vh - 60px);

@@ -172,6 +172,7 @@ define([
             "donate": "userDonate",
             "contact": "userContact",
             "help": "userContact",
+            "invite/:id": "userInvite",
             "plugins/events/:id": "communityEventsPlugin",
             "plugins/group?groupid=:id(&*t)": "groupPlugin",
             "plugins/group/:id": "groupPlugin",
@@ -436,6 +437,21 @@ define([
 
                 Iznik.Session.forceLogin();
             });
+        },
+
+        userInvite: function(id) {
+            // Record result of invitation.
+            var self = this;
+            $.ajax({
+                url: API + 'invitation',
+                type: 'PATCH',
+                data: {
+                    id: id,
+                    outcome: 'Accepted'
+                }, complete: function() {
+                    self.userHome();
+                }
+            })
         },
 
         userConfirmMail: function (key) {

@@ -19,7 +19,44 @@ define([
 
         events: {
             'click .js-oldoffers': 'showOldOffers',
-            'click .js-oldwanteds': 'showOldWanteds'
+            'click .js-oldwanteds': 'showOldWanteds',
+            'keyup .js-inviteemail': 'showInvite',
+            'click .js-invite': 'doInvite'
+        },
+
+        showingInvite: false,
+
+        showInvite: function() {
+            var self = this;
+            var email = self.$('.js-inviteemail').val();
+            console.log("Current email", email);
+            if (email.length > 0 && !self.showingInvite) {
+                self.$('.js-showinvite').slideDown('slow');
+                showingInvite = true;
+            } else if (email.length == 0) {
+                self.$('.js-showinvite').slideUp('slow');
+                showingInvite = false;
+            }
+        },
+
+        doInvite: function() {
+            var self = this;
+            var email = self.$('.js-inviteemail').val();
+
+            if (isValidEmailAddress(email)) {
+                $.ajax({
+                    url: API + 'invitation',
+                    type: 'PUT',
+                    data: {
+                        email: email
+                    },
+                    complete: function() {
+                        self.$('.js-inviteemail').val('');
+                        self.$('.js-showinvite').slideUp('slow');
+                        (new Iznik.Views.User.Invited()).render();
+                    }
+                });
+            }
         },
 
         filter: function(model) {
@@ -441,6 +478,10 @@ define([
 
             v.render();
         }
+    });
+
+    Iznik.Views.User.Invited = Iznik.Views.Modal.extend({
+        template: 'user_home_invited'
     });
 
     Iznik.Views.User.Outcome = Iznik.Views.Modal.extend({
