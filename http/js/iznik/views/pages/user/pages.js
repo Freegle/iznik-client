@@ -172,6 +172,7 @@ define([
             try {
                 console.log("Save home group", val);
                 Storage.set('myhomegroup', val);
+                Storage.set('myhomegrouptime', (new Date()).getTime());
             } catch (e) {}
         },
 
@@ -306,12 +307,31 @@ define([
                     if (self.groupsnear) {
                         // We have some groups near their chosen location.
                         var homegroup = null;
+                        var homegrouptime = null;
                         var homegroupfound = false;
                         var firstonhere = null;
 
                         try {
                             homegroup = Storage.get('myhomegroup');
+                            homegrouptime = Storage.get('myhomegrouptime');
                         } catch (e) {};
+
+                        // If the first group has been founded since the home group was set up, then we want to
+                        // use that rather than a previous preference.  Otherwise new groups don't get existing
+                        // members from their area.
+                        if (self.groupsnear.length > 0) {
+                            var g = self.groupsnear[0];
+                            if (g) {
+                                var founded = (new Date(g.founded)).getTime();
+                                if (!homegrouptime || homegrouptime < founded) {
+                                    homegroup = g.id;
+                                    try {
+                                        Storage.set('myhomegroup', homegroup);
+                                        Storage.set('myhomegrouptime', (new Date()).getTime());
+                                    } catch (e) {};
+                                }
+                            }
+                        }
 
                         // Show home group if it's present.
                         var addedGroups = [];
