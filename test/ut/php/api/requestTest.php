@@ -39,6 +39,11 @@ class requestAPITest extends IznikAPITestCase {
     public function testBasic() {
         error_log(__METHOD__);
 
+        // This assumes some addresses are loaded, even if they're fake.
+        $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses LIMIT 1;");
+        self::assertEquals(1, count($pafadds));
+        $pafid = $pafadds[0]['id'];
+
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -53,11 +58,11 @@ class requestAPITest extends IznikAPITestCase {
         # Create logged in
         $l = new Location($this->dbhr, $this->dbhm);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-
         assertTrue($this->user->login('testpw'));
+
         $ret = $this->call('address', 'PUT', [
             'line1' => 'Test',
-            'postcodeid' => $pcid
+            'pafid' => $pafid
         ]);
         assertEquals(0, $ret['ret']);
 

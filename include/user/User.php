@@ -16,6 +16,7 @@ require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/group.php');
 require_once(IZNIK_BASE . '/mailtemplates/donations/thank.php');
+require_once(IZNIK_BASE . '/mailtemplates/invite.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 class User extends Entity
@@ -3010,5 +3011,47 @@ class User extends Entity
 
         $message->addPart($html, 'text/html');
         $this->sendIt($mailer, $message);
+    }
+
+    public function invite($email) {
+        $ret = FALSE;
+
+        # We can only invite logged in.
+        if ($this->id) {
+            # They might already be using us - but they might also have forgotten.  So allow that case.
+            #
+            # The table has a unique key on userid and email, so that means we can only invite the same person
+            # once.  That avoids us pestering them.
+            try {
+                $this->dbhm->preExec("INSERT INTO users_invitations (userid, email) VALUES (?,?);", [
+                    $this->id,
+                    $email
+                ]);
+
+                # We're ok to invite.
+                $fromname = $this->getName();
+                $frommail = $this->getEmailPreferred();
+                $url = "https://" . USER_SITE . "/invite/" . $this->dbhm->lastInsertId();
+
+                list ($transport, $mailer) = getMailer();
+                $message = Swift_Message::newInstance()
+                    ->setSubject("$fromname has invited you to try Freegle!")
+                    ->setFrom(NOREPLY_ADDR)
+                    ->setReplyTo(GEEKS_ADDR)
+                    ->setTo($email)
+                    ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
+                $headers = $message->getHeaders();
+                $headers->addTextHeader('X-Freegle-Mail-Type', 'Invitation');
+
+                $html = invite($fromname, $frommail, $url);
+                $message->addPart($html, 'text/html');
+                $this->sendIt($mailer, $message);
+                $ret = TRUE;
+            } catch (Exception $e) {
+                # Probably a duplicate.
+            }
+        }
+        
+        return($ret);
     }
 }
