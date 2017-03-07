@@ -28,7 +28,8 @@ function invitation()
             $outcome = presdef('outcome', $_REQUEST, User::INVITE_ACCEPTED);
 
             if ($id) {
-                $me->inviteOutcome($id, $outcome);
+                $u = new User($dbhr, $dbhm);
+                $u->inviteOutcome($id, $outcome);
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
             }
             break;

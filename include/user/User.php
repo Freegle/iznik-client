@@ -3046,7 +3046,7 @@ class User extends Entity
                     list ($transport, $mailer) = getMailer();
                     $message = Swift_Message::newInstance()
                         ->setSubject("$fromname has invited you to try Freegle!")
-                        ->setFrom(NOREPLY_ADDR)
+                        ->setFrom([ NOREPLY_ADDR => SITE_NAME ])
                         ->setReplyTo(GEEKS_ADDR)
                         ->setTo($email)
                         ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
