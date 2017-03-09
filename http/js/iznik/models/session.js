@@ -403,7 +403,8 @@ define([
                                                         // Some browsers prevent us using play unless in response to a
                                                         // user gesture, so catch any exception.
                                                         sound.play();
-                                                    } catch (e) {}
+                                                    } catch (e) {
+                                                    }
                                                 }
                                             }
                                         }
@@ -413,6 +414,12 @@ define([
                                 })
 
                                 document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
+
+                                if (total) {
+                                    $('.js-workcount').html(total).show();
+                                } else {
+                                    $('.js-workcount').html('').hide();
+                                }
 
                                 if (countschanged) {
                                     Iznik.Session.trigger('countschanged');
