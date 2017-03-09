@@ -3709,6 +3709,6 @@ class Message
     public function hasOutcome() {
         $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
         $outcomes = $this->dbhr->preQuery($sql, [ $this->id ]);
-        return(count($outcomes) > 0);
+        return(count($outcomes) > 0 ? $outcomes[0]['outcome'] : NULL);
     }
 }
