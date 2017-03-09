@@ -463,6 +463,7 @@ define([
                                 }
                                 if (mobilePush) {
                                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
+                                }
 
                                 if (countschanged) {
                                     Iznik.Session.trigger('countschanged');
