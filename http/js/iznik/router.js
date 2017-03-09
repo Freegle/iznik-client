@@ -174,6 +174,8 @@ define([
             "donate": "userDonate",
             "contact": "userContact",
             "help": "userContact",
+            "invite/:id": "userInvited",
+            "invite": "userInvite",
             "plugins/events/:id": "communityEventsPlugin",
             "plugins/group?groupid=:id(&*t)": "groupPlugin",
             "plugins/group/:id": "groupPlugin",
@@ -537,6 +539,30 @@ define([
                     }
                 }
             });
+        },
+
+        userInvite: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/invite"], function() {
+                var page = new Iznik.Views.User.Pages.Invite();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userInvited: function(id) {
+            // Record result of invitation.
+            var self = this;
+            $.ajax({
+                url: API + 'invitation',
+                type: 'PATCH',
+                data: {
+                    id: id,
+                    outcome: 'Accepted'
+                }, complete: function() {
+                    self.userHome();
+                }
+            })
         },
 
         userExploreGroup: function(id, naked) {

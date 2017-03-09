@@ -444,7 +444,8 @@ define([
                                                         // Some browsers prevent us using play unless in response to a
                                                         // user gesture, so catch any exception.
                                                         sound.play();
-                                                    } catch (e) {}
+                                                    } catch (e) {
+                                                    }
                                                 }
                                             }
                                         }
@@ -455,14 +456,13 @@ define([
 
                                 document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
 
-                                /* // CC only in user app if (total) {
-                                    $('.js-chattotalcount').html(total).show();
+                                if (total) {
+                                    $('.js-workcount').html(total).show();
                                 } else {
-                                    $('.js-chattotalcount').empty().hide();
-                                }*/
+                                    $('.js-workcount').html('').hide();
+                                }
                                 if (mobilePush) {
                                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
-                                }
 
                                 if (countschanged) {
                                     Iznik.Session.trigger('countschanged');

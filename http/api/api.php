@@ -81,6 +81,7 @@ require_once(IZNIK_BASE . '/http/api/donations.php');
 require_once(IZNIK_BASE . '/http/api/error.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
+require_once(IZNIK_BASE . '/http/api/invitation.php');
 require_once(IZNIK_BASE . '/http/api/item.php');
 require_once(IZNIK_BASE . '/http/api/usersearch.php');
 require_once(IZNIK_BASE . '/http/api/memberships.php');
@@ -238,6 +239,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'message':
                     $ret = message();
+                    break;
+                case 'invitation':
+                    $ret = invitation();
                     break;
                 case 'item':
                     $ret = item();

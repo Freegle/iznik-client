@@ -24,11 +24,15 @@ function communityevent() {
             case 'GET': {
                 if ($id) {
                     # We're not bothered about privacy of events - people may not be logged in when they see them.
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'communityevent' => $c->getPublic()
-                    ];
+                    $ret = [ 'ret' => 3, 'status' => 'Deleted' ];
+
+                    if (!$c->getPrivate('deleted')) {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'communityevent' => $c->getPublic()
+                        ];
+                    }
                 } else if ($groupid) {
                     # List for a specific group - which we can do even if not logged in.
                     $ret = [

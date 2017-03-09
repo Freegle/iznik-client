@@ -40,19 +40,31 @@ define([
                 });
 
                 mod.fetch().then(function() {
-                    console.log("Got event", mod)
-                    var v = new Iznik.Views.User.CommunityEvent.Single({
-                        model: mod
-                    });
+                    console.log("Fetched", mod.attributes);
+                    if (mod.get('title')) {
+                        var v = new Iznik.Views.User.CommunityEvent.Single({
+                            model: mod
+                        });
 
-                    v.render().then(function() {
-                        self.$('.js-event').html(v.$el);
-                    });
+                        v.render().then(function() {
+                            self.$('.js-event').html(v.$el);
+                        });
+                    } else {
+                        var v = new Iznik.Views.User.CommunityEvent.Deleted();
+
+                        v.render().then(function() {
+                            self.$('.js-event').html(v.$el);
+                        });
+                    }
                 });
             });
 
             return (p);
         }
+    });
+
+    Iznik.Views.User.CommunityEvent.Deleted = Iznik.View.extend({
+        template: 'user_communityevents_deleted',
     });
 
     Iznik.Views.User.CommunityEvent.Single = Iznik.View.extend({

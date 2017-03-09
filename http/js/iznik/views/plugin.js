@@ -1005,7 +1005,7 @@ define([
 
                 // console.log("Finished?", self.url(), total, this.chunkSize, maxage, self.ageLimit);
 
-                if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit) {
+                if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit || (ret.ygData.hasOwnProperty('nextPageStart') && ret.ygData.nextPageStart === 0)) {
                     // Finished.  Now check with the server whether we have any messages which it doesn't.
                     $.ajax({
                         type: "POST",
@@ -1172,7 +1172,7 @@ define([
     });
     
     Iznik.Views.Plugin.Yahoo.SyncMessages.Pending = Iznik.Views.Plugin.Yahoo.SyncMessages.extend({
-        template: 'plugin_sync_pending',
+        template: 'plugin_sync_messages_pending',
     
         messageLocation: 'pendingMessages',
         crumbLocation: "/management/pendingmessages",
@@ -1205,7 +1205,7 @@ define([
         // Setting offset to 0 omits start from first one
         offset: 0,
     
-        template: 'plugin_sync_members_approved',
+        template: 'plugin_sync_messages_approved',
     
         messageLocation: 'messages',
         crumbLocation: "/management/pendingmessages",
