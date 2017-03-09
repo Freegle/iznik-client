@@ -126,6 +126,7 @@ class addressAPITest extends IznikAPITestCase
         $ret = $this->call('address', 'GET', [
             'postcodeid' => $postcode[0]['postcodeid']
         ]);
+        error_log("Got " . var_export($ret, TRUE));
         $found = FALSE;
         foreach ($ret['addresses'] as $address) {
             if ($address['id'] == $postcode[0]['id']) {

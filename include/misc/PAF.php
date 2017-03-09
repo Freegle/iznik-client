@@ -238,7 +238,7 @@ class PAF
 
     private function tweak(&$addr) {
         # The third-party lib we use doesn't get it quite right.
-        if (strpos($addr[1], "{$addr[0]} ") === 0) {
+        if (count($addr) >= 2 && strpos($addr[1], "{$addr[0]} ") === 0) {
             # House number which appears in the first line and the second line.
             $addr = array_slice($addr, 1);
         }
