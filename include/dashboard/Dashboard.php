@@ -93,7 +93,6 @@ class Dashboard {
             $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 1st January this year"));
 
             $sql = "SELECT SUM(GrossAmount) AS total FROM users_donations INNER JOIN memberships ON users_donations.userid = memberships.userid AND memberships.groupid = ? WHERE users_donations.timestamp > '$mysqltime';";
-            error_log($sql);
             $donations = $this->dbhr->preQuery($sql, [ $groupid ]);
             $ret['donationsthisyear'] = $donations[0]['total'];
         }
