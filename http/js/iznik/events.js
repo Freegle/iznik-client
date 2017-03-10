@@ -17,6 +17,7 @@ define([
             lastDOM: null,
             lastDOMtime: 0,
             idCount: 0,
+            running: true,
 
             trackEvent: function(target, event, posX, posY, data, timestamp) {
                 if (!timestamp) {
@@ -287,58 +288,66 @@ define([
                 // Monitor for DOM changes
                 try {
                     self.mutationObserver = new MutationObserver(function(mutations) {
-                        // We might well get many mutations for the same target, for example when doing slideUp.  So
-                        // first scan to find the separate targets.
-                        var paths = [];
-                        _.each(mutations, function(mutation) {
-                            if (mutation.target) {
-                                // Get the paths (this sets up ids so we need to do it first).
-                                var path = self.getPath($(mutation.target));
-                                paths[path[0]] = [path, mutation.target];
-                            }
-                        });
-                        
-                        // Now scan 
-                        for (var key in paths) {
-                            var path = paths[key][0];
-                            var target = paths[key][1];
+                        if (self.running) {
+                            try {
+                                // We might well get many mutations for the same target, for example when doing slideUp.  So
+                                // first scan to find the separate targets.
+                                var paths = [];
+                                _.each(mutations, function(mutation) {
+                                    if (mutation.target) {
+                                        // Get the paths (this sets up ids so we need to do it first).
+                                        var path = self.getPath($(mutation.target));
+                                        paths[path[0]] = [path, mutation.target];
+                                    }
+                                });
 
-                            // Grab the HTML.  We can't use getWithValues because that does a clone, which in turn
-                            // causes more mutations.
-                            var timestamp = (new Date()).getTime();
-                            // Get the paths (this sets up ids so we need to do it first).
-                            //
-                            // First make sure there's an id on this target.
-                            var inputs = [].concat(
-                                Array.prototype.slice.call(target.getElementsByTagName('input'), 0),
-                                Array.prototype.slice.call(target.getElementsByTagName('textarea'), 0),
-                                Array.prototype.slice.call(target.getElementsByTagName('select'), 0));
+                                // Now scan
+                                for (var key in paths) {
+                                    var path = paths[key][0];
+                                    var target = paths[key][1];
 
-                            var inputvals = [];
-                            _.each(inputs, function(input) {
-                                var val = $(input).val();
-                                if (val) {
-                                    inputvals[self.getPath($(input))[0]] = val;
+                                    // Grab the HTML.  We can't use getWithValues because that does a clone, which in turn
+                                    // causes more mutations.
+                                    var timestamp = (new Date()).getTime();
+                                    // Get the paths (this sets up ids so we need to do it first).
+                                    //
+                                    // First make sure there's an id on this target.
+                                    var inputs = [].concat(
+                                        Array.prototype.slice.call(target.getElementsByTagName('input'), 0),
+                                        Array.prototype.slice.call(target.getElementsByTagName('textarea'), 0),
+                                        Array.prototype.slice.call(target.getElementsByTagName('select'), 0));
+
+                                    var inputvals = [];
+                                    _.each(inputs, function(input) {
+                                        var val = $(input).val();
+                                        if (val) {
+                                            inputvals[self.getPath($(input))[0]] = val;
+                                        }
+                                    });
+
+                                    // If we just set an id, then we can't use it as a path because it won't yet exist
+                                    // in the DOM when we're replaying.  But the usable path returned will.
+                                    //
+                                    // Get the HTML - which will now include the ids.  It needs to, because subsquent
+                                    // events use those to set values.
+                                    if (path[1]) {
+                                        var el = $(path[1]).get(0);
+
+                                        if (!_.isUndefined(el)) {
+                                            var html = el.outerHTML;
+                                            self.trackEvent(path[1], 'mutation', null, null, html, timestamp);
+                                        }
+                                    }
+
+                                    // Now pick up any input values within it.
+                                    for (var path in inputvals) {
+                                        self.trackEvent(path, 'input', null, null, inputvals[path], timestamp);
+                                    }
                                 }
-                            });
-
-                            // If we just set an id, then we can't use it as a path because it won't yet exist
-                            // in the DOM when we're replaying.  But the usable path returned will.
-                            //
-                            // Get the HTML - which will now include the ids.  It needs to, because subsquent
-                            // events use those to set values.
-                            if (path[1]) {
-                                var el = $(path[1]).get(0);
-                                
-                                if (!_.isUndefined(el)) {
-                                    var html = el.outerHTML;
-                                    self.trackEvent(path[1], 'mutation', null, null, html, timestamp);
-                                }
-                            }
-
-                            // Now pick up any input values within it.
-                            for (var path in inputvals) {
-                                self.trackEvent(path, 'input', null, null, inputvals[path], timestamp);
+                            } catch (e) {
+                                // We can get storage exceptions.  Give up.
+                                console.log("Give up on observer", e);
+                                self.running = false;
                             }
                         }
                     });

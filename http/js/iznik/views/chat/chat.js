@@ -651,9 +651,7 @@ define([
         messageFocus: function () {
             var self = this;
 
-            if (self.messages) {
-                self.messages.allseen();
-            }
+            self.model.allseen();
             self.updateCount();
         },
 
