@@ -101,7 +101,7 @@ define([
             }));
         },
 
-        seen: function() {
+        allseen: function() {
             var self = this;
             
             if (self.get('unseen') > 0) {
