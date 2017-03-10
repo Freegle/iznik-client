@@ -9,6 +9,18 @@ function invitation()
     $ret = ['ret' => 100, 'status' => 'Unknown verb'];
 
     switch ($_REQUEST['type']) {
+        case 'GET': {
+            $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
+            if ($myid) {
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'invitations' => $me->listInvitations()
+                ];
+            }
+            break;
+        }
+
         case 'PUT': {
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
             $email = presdef('email', $_REQUEST, NULL);

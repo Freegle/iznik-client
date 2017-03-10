@@ -28,7 +28,7 @@ class User extends Entity
     const CACHE_SIZE = 100;
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -3028,43 +3028,50 @@ class User extends Entity
 
         # We can only invite logged in.
         if ($this->id) {
-            # They might already be using us - but they might also have forgotten.  So allow that case.  However if
-            # they have actively declined a previous invitation we suppress this one.
-            $previous = $this->dbhr->preQuery("SELECT id FROM users_invitations WHERE email = ? AND outcome = ?;", [
-                $email,
-                User::INVITE_DECLINED
-            ]);
+            # ...and only if we have spare.
+            if ($this->user['invitesleft'] > 0) {
+                # They might already be using us - but they might also have forgotten.  So allow that case.  However if
+                # they have actively declined a previous invitation we suppress this one.
+                $previous = $this->dbhr->preQuery("SELECT id FROM users_invitations WHERE email = ? AND outcome = ?;", [
+                    $email,
+                    User::INVITE_DECLINED
+                ]);
 
-            if (count($previous) == 0) {
-                # The table has a unique key on userid and email, so that means we can only invite the same person
-                # once.  That avoids us pestering them.
-                try {
-                    $this->dbhm->preExec("INSERT INTO users_invitations (userid, email) VALUES (?,?);", [
-                        $this->id,
-                        $email
-                    ]);
+                if (count($previous) == 0) {
+                    # The table has a unique key on userid and email, so that means we can only invite the same person
+                    # once.  That avoids us pestering them.
+                    try {
+                        $this->dbhm->preExec("INSERT INTO users_invitations (userid, email) VALUES (?,?);", [
+                            $this->id,
+                            $email
+                        ]);
 
-                    # We're ok to invite.
-                    $fromname = $this->getName();
-                    $frommail = $this->getEmailPreferred();
-                    $url = "https://" . USER_SITE . "/invite/" . $this->dbhm->lastInsertId();
+                        # We're ok to invite.
+                        $fromname = $this->getName();
+                        $frommail = $this->getEmailPreferred();
+                        $url = "https://" . USER_SITE . "/invite/" . $this->dbhm->lastInsertId();
 
-                    list ($transport, $mailer) = getMailer();
-                    $message = Swift_Message::newInstance()
-                        ->setSubject("$fromname has invited you to try Freegle!")
-                        ->setFrom([ NOREPLY_ADDR => SITE_NAME ])
-                        ->setReplyTo(GEEKS_ADDR)
-                        ->setTo($email)
-                        ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
-                    $headers = $message->getHeaders();
-                    $headers->addTextHeader('X-Freegle-Mail-Type', 'Invitation');
+                        list ($transport, $mailer) = getMailer();
+                        $message = Swift_Message::newInstance()
+                            ->setSubject("$fromname has invited you to try Freegle!")
+                            ->setFrom([ NOREPLY_ADDR => SITE_NAME ])
+                            ->setReplyTo(GEEKS_ADDR)
+                            ->setTo($email)
+                            ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
+                        $headers = $message->getHeaders();
+                        $headers->addTextHeader('X-Freegle-Mail-Type', 'Invitation');
 
-                    $html = invite($fromname, $frommail, $url);
-                    $message->addPart($html, 'text/html');
-                    $this->sendIt($mailer, $message);
-                    $ret = TRUE;
-                } catch (Exception $e) {
-                    # Probably a duplicate.
+                        $html = invite($fromname, $frommail, $url);
+                        $message->addPart($html, 'text/html');
+                        $this->sendIt($mailer, $message);
+                        $ret = TRUE;
+
+                        $this->dbhm->preExec("UPDATE users SET invitesleft = invitesleft - 1 WHERE id = ?;", [
+                            $this->id
+                        ]);
+                    } catch (Exception $e) {
+                        # Probably a duplicate.
+                    }
                 }
             }
         }
@@ -3072,10 +3079,44 @@ class User extends Entity
         return($ret);
     }
 
-    public function inviteOutcome($id, $outcome) {
-        $this->dbhm->preExec("UPDATE users_invitations SET outcome = ?, outcometimestamp = NOW() WHERE id = ?;", [
-            $outcome,
+    public function inviteOutcome($id, $outcome)
+    {
+        $invites = $this->dbhm->preQuery("SELECT * FROM users_invitations WHERE id = ?;", [
             $id
         ]);
+
+        foreach ($invites as $invite) {
+            if ($invite['outcome'] == User::INVITE_PENDING) {
+                $this->dbhm->preExec("UPDATE users_invitations SET outcome = ?, outcometimestamp = NOW() WHERE id = ?;", [
+                    $outcome,
+                    $id
+                ]);
+
+                if ($outcome == User::INVITE_ACCEPTED) {
+                    # Give the sender two more invites.  This means that if their invitations are unsuccessful, they will
+                    # stall, but if they do ok, they won't.  This isn't perfect - someone could fake up emails and do
+                    # successful invitations that way.
+                    $this->dbhm->preExec("UPDATE users SET invitesleft = invitesleft + 2 WHERE id = ?;", [
+                        $invite['userid']
+                    ]);
+                }
+            }
+        }
+    }
+
+    public function listInvitations() {
+        $ret = [];
+        $invites = $this->dbhr->preQuery("SELECT id, email, date, outcome, outcometimestamp FROM users_invitations WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($invites as $invite) {
+            # Check if this email is now on the platform.
+            $invite['date'] = ISODate($invite['date']);
+            $invite['outcometimestamp'] = $invite['outcometimestamp'] ? ISODate($invite['outcometimestamp']) : NULL;
+            $ret[] = $invite;
+        }
+
+        return($ret);
     }
 }

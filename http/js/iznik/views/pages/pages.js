@@ -220,7 +220,8 @@ define([
                     // chats, which some pages may rely on behing active.
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                         if (loggedIn) {
-                            if (!Iznik.Session.get('me').email) {
+                            var me = Iznik.Session.get('me');
+                            if (!me.email) {
                                 // We have no email.  This can happen for some login types.  Force them to provide one.
                                 require(["iznik/views/pages/user/settings"], function() {
                                     var v = new Iznik.Views.User.Pages.Settings.NoEmail();
@@ -231,6 +232,13 @@ define([
                                 ChatHolder({
                                     modtools: self.modtools
                                 }).render();
+                            }
+
+                            // Invitation count.
+                            if (me.invitesleft > 0) {
+                                $('.js-invitesleft').html(me.invitesleft).show();
+                            } else {
+                                $('.js-invitesleft').html('').show();
                             }
                         }
 
