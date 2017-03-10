@@ -385,7 +385,6 @@ define([
         gotLocation: function(position) {
             var self = this;
 
-
             $.ajax({
                 type: 'GET',
                 url: API + 'locations',
@@ -407,7 +406,9 @@ define([
                         }, 20000);
                     }
                 }, complete: function() {
-                    self.wait.close();
+                    if (self.wait) {
+                        self.wait.close();
+                    }
                 }
             });
         },
