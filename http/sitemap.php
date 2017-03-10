@@ -20,7 +20,7 @@ $tops = [
     'contact' => 0.5
 ];
 
-$prot = presdef('HTTPS', $_SERVER) ? 'https://' : 'http://';
+$prot = pres('HTTPS', $_SERVER) ? 'https://' : 'http://';
 
 foreach ($tops as $top => $prio) {
     echo "<url><loc>$prot" . USER_SITE . "/$top</loc><changefreq>monthly</changefreq><priority>$prio</priority></url>\n";
