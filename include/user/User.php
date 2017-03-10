@@ -2663,6 +2663,12 @@ class User extends Entity
     public function delete($groupid = NULL, $subject = NULL, $body = NULL, $log = TRUE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
+        # Delete memberships.  This will remove any Yahoo memberships.
+        $membs = $this->getMemberships();
+        foreach ($membs as $memb) {
+            $this->removeMembership($memb['id']);
+        }
+
         $rc = $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [$this->id]);
 
         if ($rc && $log) {
