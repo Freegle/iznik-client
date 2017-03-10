@@ -5,6 +5,61 @@ define([
     'iznik/base',
     'iznik/models/donations'
 ], function($, _, Backbone, Iznik) {
+    Iznik.Views.SupportUs = Iznik.Views.Modal.extend({
+        events: {
+            'click .js-invite': 'doInvite'
+        },
+
+        doInvite: function() {
+            var self = this;
+            var email = self.$('.js-inviteemail').val();
+
+            if (isValidEmailAddress(email)) {
+                $.ajax({
+                    url: API + 'invitation',
+                    type: 'PUT',
+                    data: {
+                        email: email
+                    },
+                    complete: function() {
+                        self.$('.js-inviteemail').val('');
+                        self.$('.js-thanks').slideDown('slow');
+                        _.delay(function() {
+                            self.$('.js-thanks').slideUp('slow');
+                        }, 30000);
+                    }
+                });
+            }
+        },
+
+        render: function() {
+            var self = this;
+
+            var lastask = Storage.get('donationlastask');
+            var now = (new Date()).getTime();
+            var p;
+
+            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
+                // We ask for donations the first time, and no more often than every seven days.
+                self.template = 'user_support_askdonation';
+                p = Iznik.Views.Modal.prototype.render.call(self);
+                p.then(function() {
+                    var w = new Iznik.Views.DonationThermometer();
+                    w.render().then(function () {
+                        Storage.set('donationlastask', now);
+                        self.$('.js-thermometer').html(w.$el);
+                    });
+                });
+            } else {
+                // If we're not asking for a donation, ask for an invite.
+                self.template = 'user_support_invite';
+                p = Iznik.Views.Modal.prototype.render.call(self);
+            }
+
+            return(p);
+        }
+    });
+
     Iznik.Views.DonationThermometer = Iznik.View.extend({
         template: "user_thermometer",
 

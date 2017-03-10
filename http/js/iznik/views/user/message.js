@@ -223,7 +223,7 @@ define([
                             if (group.collection == 'Approved') {
                                 approved = true;
                             }
-                            if (group.collection == 'Pending') {
+                            if (group.collection == 'Pending' || group.collection == 'QueuedYahooUser') {
                                 pending = true;
                             }
                             if (group.collection == 'Rejected') {

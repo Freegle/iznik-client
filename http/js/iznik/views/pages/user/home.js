@@ -523,14 +523,8 @@ define([
                         self.close();
                         self.trigger('outcame');
 
-                        var v = new Iznik.Views.Modal();
-                        v.template = 'user_home_supportus';
-                        v.render().then(function() {
-                            var w = new Iznik.Views.DonationThermometer();
-                            w.render().then(function () {
-                                v.$('.js-thermometer').html(w.$el);
-                            });
-                        });
+                        var v = new Iznik.Views.SupportUs();
+                        v.render();
                     }
                 }
             })

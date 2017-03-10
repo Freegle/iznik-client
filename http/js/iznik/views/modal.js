@@ -96,7 +96,7 @@ define([
         open: function(template){
             var self = this;
             var p;
-            
+
             if (template) {
                 // For more complex modals we might have set up the content before calling open.
                 self.template = template;
