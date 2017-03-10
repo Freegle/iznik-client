@@ -33,7 +33,7 @@ define([
                     self.xhrPool.push(jqXHR);
                 },
                 complete: function(jqXHR) {
-                    var index = self.xhrPool.indexOf(jqXHR);
+                    var index = $.inArray(jqXHR, self.xhrPool);
                     if (index > -1) {
                         self.xhrPool.splice(index, 1);
                     }
