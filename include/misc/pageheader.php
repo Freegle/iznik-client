@@ -109,6 +109,29 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
+    } else if (preg_match('/\/streetwhack(\/.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+        $title = "Streetwhack!";
+        $desc = "How popular is your streetname?  Is it a streetwhack - a one-off?  Or are there lots across the UK?  Find out now...";
+        $count = presdef(1, $matches, NULL);
+        $count = $count ? str_replace('/', '', $count) : NULL;
+        $countdesc = "";
+        if ($count == 1) {
+            $countdesc = "I'm a streetwhack!  Are you?\n\n";
+        } else if ($count > 0) {
+            $countdesc = "$count streets across the UK have the same name as mine.  How about you?\n\n";
+        }
+
+        $desc = "$countdesc $desc";
+        ?>
+        <title><?php echo $title; ?></title>
+        <meta name="description" content="<?php echo $desc; ?>"/>
+        <meta itemprop="description" content="<?php echo $desc; ?>"/>
+        <meta itemprop="title" content="<?php echo $title; ?>"/>
+        <meta property="og:title" content="<?php echo $title; ?>"/>
+        <meta property="og:description" content="<?php echo $desc; ?>"/>
+        <meta property="og:image" content="/images/streetwhack.png?a=2"/>
+        <?php
+        
     } else {
         ?>
         <title><?php echo SITE_NAME; ?></title>

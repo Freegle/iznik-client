@@ -18,7 +18,20 @@ define([
         events: {
             'click .js-findme': 'streetwhack',
             'click .js-click': 'gotoGroup',
-            'keyup .js-postcode': 'myKeyUp'
+            'keyup .js-postcode': 'myKeyUp',
+            'click .js-sharefb': 'shareFB'
+        },
+
+        shareFB: function() {
+            var self = this;
+            var params = {
+                method: 'share',
+                href: window.location.protocol + '//' + window.location.host + '/streetwhack?src=streetwhack&count=' + self.count,
+            };
+
+            FB.ui(params, function (response) {
+                self.$('.js-fbshare').fadeOut('slow');
+            });
         },
 
         click: function() {
@@ -57,6 +70,7 @@ define([
 
                     var count = ret.streets.length;
                     self.$('.js-streetcount').html(count);
+                    self.count = count;
 
                     if (count == 1) {
                         self.$('.js-just1').fadeIn('slow');

@@ -181,7 +181,7 @@ define([
             "mypost/:id": "userMyPost",
             "stories": "userStories",
             "story/:id": "userStory",
-            "streetwhack": "findMyStreet",
+            "streetwhack(/:id)": "findMyStreet",
             "*path": "userHome"
         },
 
