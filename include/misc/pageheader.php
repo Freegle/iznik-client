@@ -114,6 +114,12 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         $desc = "How popular is your streetname?  Is it a streetwhack - a one-off?  Or are there lots across the UK?  Find out now...";
         $count = presdef(1, $matches, NULL);
         $count = $count ? str_replace('/', '', $count) : NULL;
+
+        if ($count) {
+            $p = strpos($count, '?');
+            $count = $p != -1 ? substr($count, 0, $p) : $count;
+        }
+
         $countdesc = "";
         if ($count == 1) {
             $countdesc = "I'm a streetwhack!  Are you?\n\n";
