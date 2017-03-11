@@ -379,6 +379,8 @@ define([
                         self.changeGroup();
                     }
                 }
+
+                self.trigger('gotlocation', location);
             }
         },
 

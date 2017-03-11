@@ -181,6 +181,7 @@ define([
             "mypost/:id": "userMyPost",
             "stories": "userStories",
             "story/:id": "userStory",
+            "streetwhack": "findMyStreet",
             "*path": "userHome"
         },
 
@@ -1404,6 +1405,15 @@ define([
             // Might be trailing guff in legacy routes.
             groupid = parseInt(groupid);
             this.userExploreGroup(groupid, true);
+        },
+
+        findMyStreet: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/findmystreet"], function() {
+                var page = new Iznik.Views.User.Pages.FindMyStreet();
+                self.loadRoute({page: page});
+            });
         }
     });
 

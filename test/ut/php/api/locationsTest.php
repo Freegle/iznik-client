@@ -348,4 +348,21 @@ class locationsAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function findMyStreet()
+    {
+        error_log(__METHOD__);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('W12 7DP');
+
+        $ret = $this->call('locations', 'GET', [
+            'findmystreet' => $lid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertGreaterThan(0, count($ret['streets']));
+
+        error_log(__METHOD__ . " end");
+    }
 }

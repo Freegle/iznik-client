@@ -1,0 +1,44 @@
+<div class="alert alert-success text-center js-click">
+    <h3>Could Freegle be right up your street?</h3>
+    <p>This is just a bit of fun from Freegle.  We help people give away stuff they don't need and find stuff they want - all for free.</p>
+    <p>Your nearest group is <a data-realurl="true" target="_blank" href="{{url}}">{{namedisplay}}</a>.  Why not have a look?</p>
+    <div class="panel panel-white topspace text-left">
+        <div class="row">
+            <% if (obj.profile) { %>
+            <div class="col-xs-2">
+                <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded" />
+            </div>
+            <% } %>
+            <% if (obj.profile) { %>
+            <div class="col-xs-8">
+                <% } else { %>
+                <div class="col-xs-10">
+                    <% } %>
+                    <h1>
+                        {{namedisplay}}
+                    </h1>
+                    <p class="text-larger">{{obj.tagline}}</p>
+                    <div class="text-muted">
+                <span class="js-founded">
+                    Founded <span class="js-foundeddate" />.
+                </span>
+                        <span class="js-membercount" /> current freeglers.
+                    </div>
+                </div>
+                <div class="col-xs-2">
+                    <br />
+                    <a data-realurl="true" target="_blank" href="{{url}}">
+                        <span class="btn btn-success pull-right margright">Explore this Group</span>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <hr />
+                    <div class="padleft groupdescription js-description" />
+                    <br class="clearfix" />
+                </div>
+            </div>
+        </div>
+</div>
+
