@@ -2326,10 +2326,11 @@ class Message
 
             # For pending messages which come back to us as approved, it might not be the same.
             # This can happen if a message is handled on another system, e.g. moderated directly on Yahoo.
+            # But if it's been edited on here, we don't want to take the Yahoo versions, which might be older.
             #
             # For approved messages which only reach us as pending later, we don't want to change the approved
             # version.
-            if ($this->source == Message::YAHOO_APPROVED) {
+            if ($this->source == Message::YAHOO_APPROVED && !$this->isEdited()) {
                 # Other atts which we want the latest version of.
                 foreach (['date', 'subject', 'message', 'textbody', 'htmlbody'] as $att) {
                     $oldval = $m->getPrivate($att);
@@ -3710,5 +3711,17 @@ class Message
         $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
         $outcomes = $this->dbhr->preQuery($sql, [ $this->id ]);
         return(count($outcomes) > 0 ? $outcomes[0]['outcome'] : NULL);
+    }
+
+    public function isEdited() {
+        $logs = $this->dbhr->preQuery("SELECT id FROM logs WHERE msgid = ? AND type = ? AND subtype = ?;", [
+            $this->id,
+            Log::TYPE_MESSAGE,
+            Log::SUBTYPE_EDIT
+        ]);
+
+        $ret = count($logs) > 0;
+
+        return($ret);
     }
 }

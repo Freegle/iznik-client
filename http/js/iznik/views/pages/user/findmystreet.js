@@ -26,7 +26,7 @@ define([
             var self = this;
             var params = {
                 method: 'share',
-                href: window.location.protocol + '//' + window.location.host + '/streetwhack?src=streetwhack&count=' + self.count,
+                href: window.location.protocol + '//' + window.location.host + '/streetwhack/' + self.count + '?src=streetwhack',
             };
 
             FB.ui(params, function (response) {
