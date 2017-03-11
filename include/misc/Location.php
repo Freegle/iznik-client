@@ -682,7 +682,7 @@ class Location extends Entity
 
         $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
         
-        $sql = "SELECT locationid, locations.name, lat, lng FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid AND locations.type IN('Line', 'Road') WHERE MBRContains(GeomFromText(?), locations_spatial.geometry) ORDER BY ST_Distance(?, locations_spatial.geometry) LIMIT 1;";
+        $sql = "SELECT locationid, locations.name, lat, lng FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid AND locations.type IN('Line', 'Road') WHERE MBRContains(GeomFromText(?), locations_spatial.geometry) AND INSTR(name, ';') = 0 AND INSTR(name, '(') = 0 ORDER BY ST_Distance(?, locations_spatial.geometry), LENGTH(name) ASC LIMIT 1;";
         $locs = $this->dbhr->preQuery($sql, [
             $poly,
             $l->getPrivate('geometry')
