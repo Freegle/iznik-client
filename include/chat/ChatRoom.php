@@ -432,6 +432,9 @@ class ChatRoom extends Entity
             foreach ($rooms as $room) {
                 #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
                 $cansee = FALSE;
+                $r = new ChatRoom($this->dbhr, $this->dbhm, $room['id']);
+                $name = $r->getPublic()['name'];
+                
                 switch ($room['chattype']) {
                     case ChatRoom::TYPE_USER2USER:
                         # We can see this if we're one of the users.
@@ -475,11 +478,10 @@ class ChatRoom extends Entity
 
                     if ($search) {
                         # We want to apply a search filter.
-                        if (stripos($room['name'], $search) === FALSE) {
+                        if (stripos($room, $search) === FALSE) {
                             # We didn't get a match easily.  Now we have to search in the messages.
                             $searchq = $this->dbhr->quote("%$search%");
                             $sql = "SELECT chat_messages.id FROM chat_messages LEFT OUTER JOIN messages ON messages.id = chat_messages.refmsgid WHERE chatid = {$room['id']} AND (chat_messages.message LIKE $searchq OR messages.subject LIKE $searchq) LIMIT 1;";
-                            error_log($sql);
                             $msgs = $this->dbhr->preQuery($sql);
 
                             $show = count($msgs) > 0;
