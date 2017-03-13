@@ -478,7 +478,7 @@ class ChatRoom extends Entity
 
                     if ($search) {
                         # We want to apply a search filter.
-                        if (stripos($room, $search) === FALSE) {
+                        if (stripos($name, $search) === FALSE) {
                             # We didn't get a match easily.  Now we have to search in the messages.
                             $searchq = $this->dbhr->quote("%$search%");
                             $sql = "SELECT chat_messages.id FROM chat_messages LEFT OUTER JOIN messages ON messages.id = chat_messages.refmsgid WHERE chatid = {$room['id']} AND (chat_messages.message LIKE $searchq OR messages.subject LIKE $searchq) LIMIT 1;";
