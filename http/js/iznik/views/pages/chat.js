@@ -748,18 +748,13 @@ define([
             }
         },
 
+        rendered: false,
+
         render: function () {
             var self = this;
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function (self) {
-                // Input text autosize
-                autosize(self.$('textarea'));
-
-                self.waitDOM(self, function() {
-                    self.adjust();
-                });
-
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();
                 } else {
@@ -801,7 +796,19 @@ define([
                 }
 
                 self.updateCount();
-                self.listenTo(self.model, 'change:unseen', self.updateCount);
+
+                if (!self.rendered) {
+                    self.rendered = true;
+
+                    // Input text autosize
+                    autosize(self.$('textarea'));
+
+                    self.waitDOM(self, function() {
+                        self.adjust();
+                    });
+
+                    self.listenTo(self.model, 'change:unseen', self.updateCount);
+                }
 
                 self.messageViews = new Backbone.CollectionView({
                     el: self.$('.js-messages'),
