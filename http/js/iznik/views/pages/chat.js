@@ -533,27 +533,14 @@ define([
             v.render();
         },
 
-        allseen: function () {
-            if (this.messages.length > 0) {
-                this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
-                // console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
-            }
-            this.model.set('unseen', 0);
-        },
-
         messageFocused: function () {
             var self = this;
             console.log("Message focus");
 
             // We've seen all the messages.
-            console.log("Start seen timer");
-            _.delay(_.bind(self.allseen, self), 30000);
-
-            // Tell the server now, in case they navigate away before the next roster timer.
-            console.log("Set status");
+            self.model.allseen();
 
             this.updateCount();
-            console.log("Updated count");
         },
 
         messageFocus: function() {
