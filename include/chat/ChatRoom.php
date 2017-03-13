@@ -1281,7 +1281,7 @@ class ChatRoom extends Entity
         $notreplied = [];
 
         # Chase up recent User2Mod chats where there has been no mod input.
-        $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
+        $mysqltime = date("Y-m-d", strtotime("Midnight 2 days ago"));
         $idq = $id ? " AND chat_rooms.id = $id " : '';
         $sql = "SELECT DISTINCT chat_rooms.id FROM chat_rooms INNER JOIN chat_messages ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.date >= '$mysqltime' AND chat_rooms.chattype = 'User2Mod' $idq;";
         $chats = $this->dbhr->preQuery($sql);
