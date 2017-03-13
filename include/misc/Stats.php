@@ -331,7 +331,7 @@ class Stats
         $ret = [];
         $ret['groupids'] = $groupids;
         $start = date('Y-m-d', strtotime($startdate, strtotime($date)));
-        error_log("Start at $start from $startdate");
+        #error_log("Start at $start from $startdate");
         $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
 
         if (!MODTOOLS && $systemwide) {
@@ -393,7 +393,6 @@ class Stats
         if (MODTOOLS && $me && ($me->isModerator() || $me->isAdmin())) {
             $types = [
                 Stats::MESSAGE_BREAKDOWN,
-                Stats::POST_METHOD_BREAKDOWN,
                 Stats::YAHOO_POSTING_BREAKDOWN,
                 Stats::YAHOO_DELIVERY_BREAKDOWN
             ];
@@ -403,6 +402,7 @@ class Stats
             $ret[$type] = [];
 
             $sql = "SELECT breakdown FROM stats WHERE type = ? AND date >= ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ");";
+            #error_log("$sql $start $end");
             #error_log("SELECT breakdown FROM stats WHERE type = '$type' AND date >= '$start' AND date < '$end' AND groupid IN (" . implode(',', $groupids) . ");");
             $breakdowns = $this->dbhr->preQuery($sql,
                 [
@@ -415,6 +415,23 @@ class Stats
                 $b = json_decode($breakdown['breakdown'], TRUE);
                 foreach ($b as $key => $val) {
                     $ret[$type][$key] = !array_key_exists($key, $ret[$type]) ? $val : $ret[$type][$key] + $val;
+                }
+            }
+        }
+
+        if (MODTOOLS && $me && ($me->isModerator() || $me->isAdmin())) {
+            $sql = "SELECT breakdown FROM stats WHERE type = ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC LIMIT 1;";
+            error_log("$sql $end");
+            $breakdowns = $this->dbhr->preQuery($sql,
+                [
+                    Stats::POST_METHOD_BREAKDOWN,
+                    $end
+                ]);
+
+            foreach ($breakdowns as $breakdown) {
+                $b = json_decode($breakdown['breakdown'], TRUE);
+                foreach ($b as $key => $val) {
+                    $ret[Stats::POST_METHOD_BREAKDOWN][$key] = !array_key_exists($key, $ret[$type]) ? $val : $ret[$type][$key] + $val;
                 }
             }
         }
