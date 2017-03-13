@@ -101,18 +101,22 @@ define([
             }));
         },
 
-        seen: function() {
+        allseen: function() {
             var self = this;
+            console.log("Allseen", self.get('unseen'), self.get('id'));
             
             if (self.get('unseen') > 0) {
-                // We have seen the last message, and there are no unseen ones left.
-                var messages = self.get('messages');
-
-                if (messages && messages.length > 0) {
-                    self.set('lastmsgseen', messages.at(messages.length - 1).get('id'));
-                }
-
-                self.set('unseen', 0);
+                // Record that we have seen the last message, and there are no unseen ones left.
+                $.ajax({
+                    url: API + 'chatrooms',
+                    type: 'POST',
+                    data: {
+                        id: self.get('id'),
+                        'lastmsgseen': self.get('lastmsg')
+                    }, complete: function() {
+                        self.fetch();
+                    }
+                });
             }
         }
     });

@@ -33,7 +33,7 @@ define([
                     self.xhrPool.push(jqXHR);
                 },
                 complete: function(jqXHR) {
-                    var index = self.xhrPool.indexOf(jqXHR);
+                    var index = $.inArray(jqXHR, self.xhrPool);
                     if (index > -1) {
                         self.xhrPool.splice(index, 1);
                     }
@@ -182,6 +182,7 @@ define([
             "mypost/:id": "userMyPost",
             "stories": "userStories",
             "story/:id": "userStory",
+            "streetwhack(/:id)": "findMyStreet",
             "*path": "userHome"
         },
 
@@ -1428,6 +1429,15 @@ define([
             // Might be trailing guff in legacy routes.
             groupid = parseInt(groupid);
             this.userExploreGroup(groupid, true);
+        },
+
+        findMyStreet: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/findmystreet"], function() {
+                var page = new Iznik.Views.User.Pages.FindMyStreet();
+                self.loadRoute({page: page});
+            });
         }
     });
 

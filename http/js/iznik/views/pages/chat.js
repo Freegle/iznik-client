@@ -533,27 +533,14 @@ define([
             v.render();
         },
 
-        allseen: function () {
-            if (this.messages.length > 0) {
-                this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
-                // console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
-            }
-            this.model.set('unseen', 0);
-        },
-
         messageFocused: function () {
             var self = this;
             console.log("Message focus");
 
             // We've seen all the messages.
-            console.log("Start seen timer");
-            _.delay(_.bind(self.allseen, self), 30000);
-
-            // Tell the server now, in case they navigate away before the next roster timer.
-            console.log("Set status");
+            self.model.allseen();
 
             this.updateCount();
-            console.log("Updated count");
         },
 
         messageFocus: function() {
@@ -748,18 +735,13 @@ define([
             }
         },
 
+        rendered: false,
+
         render: function () {
             var self = this;
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function (self) {
-                // Input text autosize
-                autosize(self.$('textarea'));
-
-                self.waitDOM(self, function() {
-                    self.adjust();
-                });
-
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();
                 } else {
@@ -801,7 +783,19 @@ define([
                 }
 
                 self.updateCount();
-                self.listenTo(self.model, 'change:unseen', self.updateCount);
+
+                if (!self.rendered) {
+                    self.rendered = true;
+
+                    // Input text autosize
+                    autosize(self.$('textarea'));
+
+                    self.waitDOM(self, function() {
+                        self.adjust();
+                    });
+
+                    self.listenTo(self.model, 'change:unseen', self.updateCount);
+                }
 
                 self.messageViews = new Backbone.CollectionView({
                     el: self.$('.js-messages'),

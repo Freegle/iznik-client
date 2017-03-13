@@ -55,6 +55,9 @@ class userTest extends IznikTestCase {
         $u->setPrivate('yahooid', 'testyahootest');
         assertEquals($id, $u->findByYahooId('testyahootest'));
 
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $u->addMembership($group1);
         assertGreaterThan(0, $u->delete());
 
         $u = User::get($this->dbhr, $this->dbhm);

@@ -76,6 +76,10 @@ class invitationAPITest extends IznikAPITestCase
         $invites = $this->dbhr->preQuery("SELECT * FROM users_invitations WHERE email = 'test@test.com';");
         self::assertEquals(User::INVITE_ACCEPTED, $invites[0]['outcome']);
 
+        $ret = $this->call('invitation', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals('Accepted', $ret['invitations'][0]['outcome']);
+
         error_log(__METHOD__ . " end");
     }
 }

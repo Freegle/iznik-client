@@ -660,4 +660,80 @@ class Location extends Entity
 
         return($ret);
     }
+
+    public function findMyStreet($pcid) {
+        # This finds how common a street name is, and returns locations for it.  We use OpenStreetmap data because
+        # the PAF data license doesn't allow this.
+        $distincts = [];
+        $l = new Location($this->dbhr, $this->dbhm, $pcid);
+        $lat = $l->getPrivate('lat');
+        $lng = $l->getPrivate('lng');
+        $name = $l->getPrivate('name');
+        #error_log("#$pcid $name at $lat, $lng");
+
+        # First find the streetname for this postcode.
+
+        # We use a bounding box because that can be evaluated using the spatial index to reduce the number of locations
+        # we have to search.
+        $swlat = round($lat, 2) - 0.1;
+        $swlng = round($lng, 2) - 0.1;
+        $nelat = round($lat, 2) + 0.1;
+        $nelng = round($lng, 2) + 0.1;
+
+        $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+        
+        $sql = "SELECT locationid, locations.name, lat, lng FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid AND locations.type IN('Line', 'Road') WHERE MBRContains(GeomFromText(?), locations_spatial.geometry) AND INSTR(name, ';') = 0 AND INSTR(name, '(') = 0 ORDER BY ST_Distance(?, locations_spatial.geometry), LENGTH(name) ASC LIMIT 1;";
+        $locs = $this->dbhr->preQuery($sql, [
+            $poly,
+            $l->getPrivate('geometry')
+        ]);
+
+        if (count($locs) > 0) {
+            $street = $locs[0];
+            $distincts = [ $street ];
+
+            # Now we find other examples of that street name which are at least a mile away.
+            #error_log("Street is {$street['name']}");
+            $others = $this->dbhr->preQuery("SELECT id, gridid, geometry, AsText(geometry) AS geomtext, lat, lng FROM locations WHERE name LIKE ? AND locations.type IN('Line', 'Road') AND ST_Distance(?, locations.geometry) > 0.1;", [
+                $street['name'],
+                $l->getPrivate('geometry')
+            ], FALSE, FALSE);
+            #error_log("Found others " . count($others));
+
+            if (count($others) > 0) {
+                # But we might have duplicates, so we need to filter those out.
+                $latlngs = [];
+                foreach ($others as $loc) {
+                    $far = TRUE;
+                    foreach ($latlngs as $latlng) {
+                        if (abs($latlng['lat'] - $loc['lat']) <= 0.1 && abs($latlng['lng'] - $loc['lng']) <= 0.1) {
+                            $far = FALSE;
+                        }
+                    }
+
+                    if ($far) {
+                        #error_log("{$loc['id']} at {$loc['lat']}, {$loc['lng']} far enough away");
+                        $latlngs[] = [
+                            'lat' => $loc['lat'],
+                            'lng' => $loc['lng']
+                        ];
+                        
+                        unset($loc['geometry']);
+                        unset($loc['geomtext']);
+                        $distincts[] = $loc;
+                    }
+                }
+
+                #error_log("Found " . count($distincts));
+            }
+
+            # Some of the locations we have found may be duplicates of each other.
+        }
+
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : 'NULL';
+
+        $this->dbhm->background("INSERT INTO streetwhacks (locationid, count, streetname, userid, sessionid) VALUES ($pcid," . count($distincts) . "," . $this->dbhm->quote($distincts[0]['name']) . ", $myid, '" . session_id() . "');");
+        return($distincts);
+    }
 }

@@ -221,7 +221,6 @@ define([
 
                         _.each(self.model.get('groups'), function (group) {
                             var mod = new Iznik.Model(group);
-                            console.log("Message", self.model.get('id'), group);
 
                             if (!group.onhere) {
                                 // Native group - can edit.

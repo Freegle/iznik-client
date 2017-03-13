@@ -330,7 +330,6 @@ define([
                                 var anyrare = false;
 
                                 _.each(sortmsgs, function (stdmsg) {
-                                    console.log("ACtion", stdmsg.action);
                                     if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
                                         stdmsg.message = self.model;
                                         var v = new Iznik.Views.ModTools.StdMessage.Button({

@@ -82,6 +82,9 @@ define([
                             v.close();
 
                             if (ret.dashboard) {
+                                self.$('.js-donations').html(ret.dashboard.donationsthisyear);
+                                self.$('.js-donationwrapper').fadeIn('slow');
+
                                 var coll = new Iznik.Collections.DateCounts(ret.dashboard.Activity);
                                 var graph = new Iznik.Views.DateGraph({
                                     target: self.$('.js-messagegraph').get()[0],

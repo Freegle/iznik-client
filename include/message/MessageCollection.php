@@ -182,7 +182,11 @@ class MessageCollection
                 if ($cansee) {
                     $thisgroups = $m->getGroups(TRUE);
 
+                    # Make sure we only return this if it's on a group.
+                    $cansee = FALSE;
+
                     foreach ($thisgroups as $groupid) {
+                        $cansee = TRUE;
                         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                         $groups[$groupid] = $g->getPublic();
                     }

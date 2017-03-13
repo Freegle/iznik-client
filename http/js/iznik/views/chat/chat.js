@@ -160,7 +160,7 @@ define([
         updateCounts: function () {
             var self = this;
             var unseen = 0;
-            console.log("update Chat counts");
+            // console.log("update Chat counts");
 
             Iznik.Session.chats.each(function (chat) {
                 unseen += chat.get('unseen');
@@ -664,9 +664,7 @@ define([
         messageFocus: function () {
             var self = this;
 
-            if (self.messages) {
-                self.messages.allseen();
-            }
+            self.model.allseen();
             self.updateCount();
         },
 
