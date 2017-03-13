@@ -72,6 +72,7 @@ class Message
         "update your records",
         "has now left",
         "please note his new address",
+        "this account is no longer in use",
         "Sorry, we were unable to deliver your message",
         "this email address is no longer in use"
     ];
