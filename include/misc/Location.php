@@ -690,12 +690,11 @@ class Location extends Entity
 
         if (count($locs) > 0) {
             $street = $locs[0];
-            $distinctids = [ $street['locationid'] ];
             $distincts = [ $street ];
 
             # Now we find other examples of that street name which are at least a mile away.
             #error_log("Street is {$street['name']}");
-            $others = $this->dbhr->preQuery("SELECT id, geometry, AsText(geometry) AS geomtext, lat, lng FROM locations WHERE name LIKE ? AND locations.type IN('Line', 'Road') AND ST_Distance(?, locations.geometry) > 0.1;", [
+            $others = $this->dbhr->preQuery("SELECT id, gridid, geometry, AsText(geometry) AS geomtext, lat, lng FROM locations WHERE name LIKE ? AND locations.type IN('Line', 'Road') AND ST_Distance(?, locations.geometry) > 0.1;", [
                 $street['name'],
                 $l->getPrivate('geometry')
             ], FALSE, FALSE);
@@ -703,19 +702,25 @@ class Location extends Entity
 
             if (count($others) > 0) {
                 # But we might have duplicates, so we need to filter those out.
+                $latlngs = [];
                 foreach ($others as $loc) {
-                    $sql = "SELECT COUNT(*) AS count FROM locations_spatial WHERE locationid IN (" . implode(',', $distinctids) . ") AND ST_Distance(?, geometry) <= 0.1 LIMIT 1;";
-                    #error_log("SELECT COUNT(*) AS count FROM locations_spatial WHERE locationid IN (" . implode(',', $distinctids) . ") AND ST_Distance(GeomFromText('{$loc['geomtext']}'), geometry) > 0.1;");
-                    $distants = $this->dbhr->preQuery($sql, [ $loc['geometry'] ], FALSE, FALSE);
-                    if ($distants[0]['count'] == 0) {
-                        # Far away from all of them
+                    $far = TRUE;
+                    foreach ($latlngs as $latlng) {
+                        if (abs($latlng['lat'] - $loc['lat']) <= 0.1 && abs($latlng['lng'] - $loc['lng']) <= 0.1) {
+                            $far = FALSE;
+                        }
+                    }
+
+                    if ($far) {
                         #error_log("{$loc['id']} at {$loc['lat']}, {$loc['lng']} far enough away");
-                        $distinctids[] = $loc['id'];
+                        $latlngs[] = [
+                            'lat' => $loc['lat'],
+                            'lng' => $loc['lng']
+                        ];
+                        
                         unset($loc['geometry']);
                         unset($loc['geomtext']);
                         $distincts[] = $loc;
-                    } else {
-                        #error_log("{$loc['id']} at {$loc['lat']}, {$loc['lng']} only far away from " . count($distants));
                     }
                 }
 
@@ -725,7 +730,10 @@ class Location extends Entity
             # Some of the locations we have found may be duplicates of each other.
         }
 
-        $this->dbhm->background("INSERT INTO streetwhacks (locationid, count, streetname) VALUES ($pcid," . count($distincts) . "," . $this->dbhm->quote($distincts[0]['name']) . ");");
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : 'NULL';
+
+        $this->dbhm->background("INSERT INTO streetwhacks (locationid, count, streetname, userid, sessionid) VALUES ($pcid," . count($distincts) . "," . $this->dbhm->quote($distincts[0]['name']) . ", $myid, '" . session_id() . "');");
         return($distincts);
     }
 }
