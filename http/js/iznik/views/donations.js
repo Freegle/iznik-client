@@ -7,12 +7,18 @@ define([
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.SupportUs = Iznik.Views.Modal.extend({
         events: {
-            'click .js-invite': 'doInvite'
+            'click .js-invite': 'doInvite',
+            'click .js-clickdonate': 'clickDonate'
+        },
+
+        clickDonate: function() {
+            ABTestAction('SupportUs', this.template);
         },
 
         doInvite: function() {
             var self = this;
             var email = self.$('.js-inviteemail').val();
+            ABTestAction('SupportUs', 'invite');
 
             if (isValidEmailAddress(email)) {
                 $.ajax({
@@ -41,7 +47,7 @@ define([
 
             if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
                 // We ask for donations the first time, and no more often than every seven days.
-                self.template = 'user_support_askdonation';
+                self.template = (Math.random() < 0.5) ? 'user_support_askdonation' : 'user_support_askdonationstats';
                 p = Iznik.Views.Modal.prototype.render.call(self);
                 p.then(function() {
                     var w = new Iznik.Views.DonationThermometer();
@@ -50,10 +56,14 @@ define([
                         self.$('.js-thermometer').html(w.$el);
                     });
                 });
+
+                ABTestShown('SupportUs', self.template);
             } else {
                 // If we're not asking for a donation, ask for an invite.
                 self.template = 'user_support_invite';
                 p = Iznik.Views.Modal.prototype.render.call(self);
+
+                ABTestShown('SupportUs', 'invite');
             }
 
             return(p);

@@ -1,4 +1,4 @@
-define([
+([
     'jquery',
     'underscore'
 ], function($, _) {
@@ -369,6 +369,30 @@ function strip_tags (input, allowed) { // eslint-disable-line camelcase
     return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
         return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : ''
     })
+}
+
+function ABTestShown(uid, variant) {
+    $.ajax({
+        url: API + 'abtest',
+        type: 'POST',
+        data: {
+            uid: uid,
+            variant: variant,
+            shown: true
+        }
+    });
+}
+
+function ABTestAction(uid, variant) {
+    $.ajax({
+        url: API + 'abtest',
+        type: 'POST',
+        data: {
+            uid: uid,
+            variant: variant,
+            action: true
+        }
+    });
 }
 
 function nullFn() {}

@@ -421,7 +421,7 @@ class Stats
 
         if (MODTOOLS && $me && ($me->isModerator() || $me->isAdmin())) {
             $sql = "SELECT breakdown FROM stats WHERE type = ? AND date < ? AND groupid IN (" . implode(',', $groupids) . ") ORDER BY date DESC LIMIT 1;";
-            error_log("$sql $end");
+            #error_log("$sql $end");
             $breakdowns = $this->dbhr->preQuery($sql,
                 [
                     Stats::POST_METHOD_BREAKDOWN,
