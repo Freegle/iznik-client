@@ -2768,20 +2768,20 @@ class User extends Entity
                     }
                 }
             }
+        }
 
-            if ($sendit) {
-                # We might be on holiday.
-                $hol = $this->getPrivate('onholidaytill');
-                $till = $hol ? strtotime($hol) : 0;
-                #error_log("Holiday $till vs " . time());
+        if ($sendit) {
+            # We might be on holiday.
+            $hol = $this->getPrivate('onholidaytill');
+            $till = $hol ? strtotime($hol) : 0;
+            #error_log("Holiday $till vs " . time());
 
-                $sendit = time() > $till;
-            }
+            $sendit = time() > $till;
+        }
 
-            if ($sendit) {
-                # And don't send if we're bouncing.
-                $sendit = !$this->getPrivate('bouncing');
-            }
+        if ($sendit) {
+            # And don't send if we're bouncing.
+            $sendit = !$this->getPrivate('bouncing');
         }
 
         #error_log("Sendit? $sendit");
