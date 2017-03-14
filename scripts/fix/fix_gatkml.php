@@ -48,6 +48,7 @@ $namemap = [
     [ 21265,'Blackwater-and-Yateley-Freegle','S. East: Blackwater & Yateley' ],
     [ 217449,'blaenaugwentfreegle','Wales: Blaenau Gwent' ],
     [ 21268,'BognorFreegle','S. East: Bognor' ],
+    [ 386072, 'BorehamwoodElstreeFreegle', 'East: Borehamwood and Elstree' ],
     [ 21269,'BoltonFreegle','N. West: Bolton Freegle' ],
     [ 126638,'Borders-Freegle','Scotland: Scottish Borders' ],
     [ 126767,'Bordon-Alton-Petersfield-Freegle','S. East: Bordon-Alton-Petersfield-Freegle' ],
@@ -178,7 +179,7 @@ $namemap = [
     [ 218359,'GreenCyclePortslade','S. East: Portslade' ],
     [ 21441,'greencyclesussex','S. East: Brighton' ],
     [ 253562,'Greenwich-Freegle','London: Greenwich Freegle' ],
-    [ 21443,'Grimsbyfreegle','East: Grimsby' ],
+    [ 21443,'Grimsbyfreegle','Yorkshire: Grimsby' ],
     [ 21446,'guildfordrecycleforfree','S. East: Guildford' ],
     [ 21449,'Hackney-Freegle','London: Hackney' ],
     [ 21450,'hammersmithandfulhamfreegle','London: Hammersmith and Fulham' ],
@@ -232,6 +233,7 @@ $namemap = [
     [ 253436,'LlandrindodFreegle','Wales: LLandrindod' ],
     [ 21512,'Llanelli-Freegle','Wales: LLanelli' ],
     [ 21513,'Llyn-Peninsula-Freegle','Wales: Llyn Peninsula' ],
+    [ 253505, 'IslingtonNorthFreegle', 'London: Islington North' ],
     [ 253460,'Louth-Freegle','E. Mids: Louth' ],
     [ 21515,'Ludlow-Leominster-Freegle','W. Mids: Ludlow and Leominster' ],
     [ 21516,'Luton-Freegle','East: Luton' ],
@@ -256,7 +258,7 @@ $namemap = [
     [ 253439,'newburyfreegle','S. East: Newbury' ],
     [ 253517,'Newham-Reuse-Group','London: Newham' ],
     [ 171793,'newquay-freegle','S. West: Newquay' ],
-    [ 21546,'North_Shropshire_Freegle','N. West: North Shropshire [Market Drayton, Whitchurch & Wem]' ],
+    [ 21546,'North_Shropshire_Freegle','N. West: North Shropshire  [Market Drayton, Whitchurch & Wem]' ],
     [ 126545,'North_Tyneside','N. East: North Tyneside' ],
     [ 126617,'North-Warwickshire-Freegle','W. Mids: North Warwickshire' ],
     [ 21540,'Northampton_East_Freegle','E. Mids: Northampton East Freegle' ],
@@ -338,7 +340,7 @@ $namemap = [
     [ 21621,'Stafford_Freegle','W. Mids: Stafford' ],
     [ 21623,'StevenageFreegle','East: stevenagefreegle' ],
     [ 126656,'Steyning-Freegle','S. East: Steyning' ],
-    [ 21625,'stirlingcityfreegle','Scotland: Stirling [Council]' ],
+    [ 21625,'stirlingcityfreegle','Scotland: Stirling' ],
     [ 21628,'StockportFreegle','N. West: Stockport' ],
     [ 21629,'stockton-freegle','N. East: Stockton' ],
     [ 21630,'Stone-Freegle','W. Mids: Stone' ],
@@ -428,7 +430,15 @@ if ($kml) {
                     if (strpos($kname, $name[2]) === 0) {
                         #error_log("Found $kname as {$name[0]} {$name[1]}");
                         $found = TRUE;
-                        $dbhm->preExec("UPDATE groups SET polyofficial = ? WHERE id = ?;", [ $wkt, $name[0]] );
+                        $gs = $dbhr->preQuery("SELECT * FROM groups WHERE id = ? AND polyofficial != ?;", [
+                            $name[0],
+                            $wkt
+                        ]);
+
+                        foreach ($gs as $g) {
+                            error_log("Change {$name[1]} from {$g['polyofficial']} to $wkt");
+                            #$dbhm->preExec("UPDATE groups SET polyofficial = ? WHERE id = ?;", [ $wkt, $name[0]] );
+                        }
                     }
                 }
 

@@ -67,6 +67,7 @@ require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/config/BulkOp.php');
 
 # Include each API call
+require_once(IZNIK_BASE . '/http/api/abtest.php');
 require_once(IZNIK_BASE . '/http/api/activity.php');
 require_once(IZNIK_BASE . '/http/api/alert.php');
 require_once(IZNIK_BASE . '/http/api/admin.php');
@@ -204,6 +205,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
             # call_user_func doesn't scale well on multicores with HHVM, so we need can't figure out the function from
             # the call name - use a switch instead.
             switch ($call) {
+                case 'abtest':
+                    $ret = abtest();
+                    break;
                 case 'activity':
                     $ret = activity();
                     break;
