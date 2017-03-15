@@ -45,9 +45,17 @@ define([
             var now = (new Date()).getTime();
             var p;
 
-            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
+            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000) || true) {
                 // We ask for donations the first time, and no more often than every seven days.
-                self.template = (Math.random() < 0.5) ? 'user_support_askdonation' : 'user_support_askdonationstats';
+                var r = Math.random();
+                if (r < 0.33) {
+                    self.template = 'user_support_askdonation';
+                } else if (r < 0.66) {
+                    self.template = 'user_support_askdonationstats';
+                } else {
+                    self.template = 'user_support_askdonationflytip';
+                }
+
                 p = Iznik.Views.Modal.prototype.render.call(self);
                 p.then(function() {
                     var w = new Iznik.Views.DonationThermometer();
