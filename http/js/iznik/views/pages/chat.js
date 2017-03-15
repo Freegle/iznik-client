@@ -721,7 +721,7 @@ define([
                 if (currHeight != height) {
                     self.$('.js-scroll').css('height', height + 'px');
                     self.currentAdjustDelay = 10;
-                    console.log(str);
+                    // console.log(str);
                 } else {
                     self.currentAdjustDelay *= 2;
                     self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);

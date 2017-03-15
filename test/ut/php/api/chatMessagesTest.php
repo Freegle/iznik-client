@@ -265,7 +265,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         # Create a chat to the second user with a referenced image
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        file_put_contents("/tmp/chair.jpg", $data);
+        file_put_contents("/tmp/pan.jpg", $data);
 
         $ret = $this->call('image', 'POST', [
             'photo' => [

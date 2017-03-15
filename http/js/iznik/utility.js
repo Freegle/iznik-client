@@ -1,7 +1,8 @@
-([
+define([
     'jquery',
     'underscore'
 ], function($, _) {
+    console.log("Load utils.")
     // TODO Namespace pollution here
     //
     // Ensure we can log.

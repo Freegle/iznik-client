@@ -225,8 +225,11 @@ class ChatRoom extends Entity
         return ($id);
     }
 
-    public function getPublic($me = NULL)
+    public function getPublic($me = NULL, $mepub = NULL)
     {
+        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
         $ret = $this->getAtts($this->publicatts);
 
         if (pres('groupid', $ret)) {
@@ -236,26 +239,36 @@ class ChatRoom extends Entity
         }
 
         if (pres('user1', $ret)) {
-            $u = User::get($this->dbhr, $this->dbhm, $ret['user1']);
-            unset($ret['user1']);
-            $ctx = NULL;
-            $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+            if ($ret['user1'] == $myid && $mepub) {
+                $ret['user1'] = $mepub;
+            } else {
+                $u = User::get($this->dbhr, $this->dbhm, $ret['user1']);
+                unset($ret['user1']);
+                $ctx = NULL;
+                $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
 
-            if (pres('group', $ret)) {
-                # As a mod we can see the email
-                $ret['user1']['email'] = $u->getEmailPreferred();
+                if (pres('group', $ret)) {
+                    # As a mod we can see the email
+                    $ret['user1']['email'] = $u->getEmailPreferred();
+                }
             }
         }
 
         if (pres('user2', $ret)) {
-            $u = User::get($this->dbhr, $this->dbhm, $ret['user2']);
-            unset($ret['user2']);
-            $ctx = NULL;
-            $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
-        }
+            if ($ret['user2'] == $myid && $mepub) {
+                $ret['user2'] = $mepub;
+            } else {
+                $u = User::get($this->dbhr, $this->dbhm, $ret['user2']);
+                unset($ret['user2']);
+                $ctx = NULL;
+                $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
 
-        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+                if (pres('group', $ret)) {
+                    # As a mod we can see the email
+                    $ret['user2']['email'] = $u->getEmailPreferred();
+                }
+            }
+        }
 
         $ret['unseen'] = $this->unseenCountForUser($myid);
 
@@ -429,12 +442,16 @@ class ChatRoom extends Entity
             $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = ? AND chat_rooms.id = chat_roster.chatid WHERE chat_rooms.id IN (" . implode(',', $chatids) . ") $typeq AND (status IS NULL OR status != ?)";
             #error_log($sql . var_export([ $userid, ChatRoom::STATUS_CLOSED ], TRUE));
             $rooms = $this->dbhr->preQuery($sql, [$userid, ChatRoom::STATUS_CLOSED]);
+
+            # We might have quite a lot of chats - speed up by reducing user fetches.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $ctx = NULL;
+            $mepub = $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+
             foreach ($rooms as $room) {
                 #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
                 $cansee = FALSE;
-                $r = new ChatRoom($this->dbhr, $this->dbhm, $room['id']);
-                $name = $r->getPublic()['name'];
-                
+
                 switch ($room['chattype']) {
                     case ChatRoom::TYPE_USER2USER:
                         # We can see this if we're one of the users.
@@ -478,6 +495,9 @@ class ChatRoom extends Entity
 
                     if ($search) {
                         # We want to apply a search filter.
+                        $r = new ChatRoom($this->dbhr, $this->dbhm, $room['id']);
+                        $name = $r->getPublic($me, $mepub)['name'];
+
                         if (stripos($name, $search) === FALSE) {
                             # We didn't get a match easily.  Now we have to search in the messages.
                             $searchq = $this->dbhr->quote("%$search%");

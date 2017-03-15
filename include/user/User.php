@@ -83,8 +83,9 @@ class User extends Entity
     private $log;
     var $user;
     private $memberships = NULL;
-
+    private $spam_users = NULL;
     private $ouremailid = NULL;
+    private $emails = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -304,20 +305,22 @@ class User extends Entity
 
     public function getEmails() {
         # Don't return canon - don't need it on the client.
-        $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, email ASC;";
-        #error_log("$sql, {$this->id}");
-        $emails = $this->dbhr->preQuery($sql, [$this->id]);
-        return($emails);
+        if (!$this->emails) {
+            $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, email ASC;";
+            #error_log("$sql, {$this->id}");
+            $this->emails = $this->dbhr->preQuery($sql, [$this->id]);
+        }
+
+        return($this->emails);
     }
 
-    public function getEmailPreferred($emails = NULL) {
+    public function getEmailPreferred() {
         # This gets the email address which we think the user actually uses.  So we pay attention to:
         # - the preferred flag, which gets set by end user action
         # - the date added, as most recently added emails are most likely to be right
         # - exclude our own invented mails
         # - exclude any yahoo groups mails which have snuck in.
-        $emails = $emails ? $emails : $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",
-            [$this->id]);
+        $emails = $this->getEmails();
         $ret = NULL;
 
         foreach ($emails as $email) {
@@ -471,6 +474,9 @@ class User extends Entity
 
     public function addEmail($email, $primary = 1, $changeprimary = TRUE)
     {
+        # Invalidate cache.
+        $this->emails = NULL;
+
         if (stripos($email, '-owner@yahoogroups.co') !== FALSE) {
             # We don't allow people to add Yahoo owner addresses as the address of an individual user.
             $rc = NULL;
@@ -529,6 +535,9 @@ class User extends Entity
 
     public function removeEmail($email)
     {
+        # Invalidate cache.
+        $this->emails = NULL;
+
         $rc = $this->dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email = ?;",
             [$this->id, $email]);
         return($rc);
@@ -970,12 +979,16 @@ class User extends Entity
 
         return($ret);
     }
-
+    
     public function getModeratorships() {
+        $this->cacheMemberships();
+        
         $ret = [];
-        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
-        foreach ($groups as $group) {
-            $ret[] = $group['groupid'];
+        error_log("Got cached membs " . var_export($this->memberships, TRUE));
+        foreach ($this->memberships AS $membership) {
+            if ($membership['role'] == 'Owner' || $membership['role'] == 'Moderator') {
+                $ret[] = $membership['groupid'];
+            }
         }
 
         return($ret);
@@ -1269,7 +1282,7 @@ class User extends Entity
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
             $atts['emails'] = $me->getEmails();
-            $atts['email'] = $me->getEmailPreferred($atts['emails']);
+            $atts['email'] = $me->getEmailPreferred();
             $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
             $atts['permissions'] = $me->getPrivate('permissions');
         }
@@ -1592,9 +1605,12 @@ class User extends Entity
                 $systemrole == User::SYSTEMROLE_SUPPORT
             ) {
                 # Also fetch whether they're on the spammer list.
-                $sql = "SELECT * FROM spam_users WHERE userid = ?;";
-                $spammers = $this->dbhr->preQuery($sql, [$this->id]);
-                foreach ($spammers as $spammer) {
+                if (!$this->spam_users) {
+                    $sql = "SELECT * FROM spam_users WHERE userid = ?;";
+                    $this->spam_users = $this->dbhr->preQuery($sql, [$this->id]);
+                }
+
+                foreach ($this->spam_users as $spammer) {
                     $spammer['added'] = ISODate($spammer['added']);
                     $atts['spammer'] = $spammer;
                 }

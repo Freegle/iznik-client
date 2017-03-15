@@ -170,9 +170,6 @@ class Digest
 
                     $u = User::get($this->dbhr, $this->dbhm, $msg['fromuser']['id']);
 
-                    # If we have an email on our domain, we use it; otherwise we have to send from the mods email, because of DMARC.
-                    $ouremail = $u->getOurEmail();
-
                     $tosend[] = [
                         'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
                         'from' => $replyto,

@@ -133,6 +133,9 @@ class digestTest extends IznikTestCase {
         error_log("Now with our email");
         $eid2 = $u2->addEmail('test2@' . USER_DOMAIN);
         $this->dbhm->preExec("DELETE FROM groups_digests WHERE groupid = ?;", [ $gid ]);
+
+        # Force pick up of new email.
+        User::$cache = [];
         assertEquals(2, $d->send($gid, Digest::IMMEDIATE));
 
         error_log(__METHOD__ . " end");

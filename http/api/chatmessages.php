@@ -2,7 +2,8 @@
 function chatmessages() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+    $dbhr->setErrorLog(TRUE);
+    $dbhm->setErrorLog(TRUE);
 
     $roomid = intval(presdef('roomid', $_REQUEST, NULL));
     $message = presdef('message', $_REQUEST, NULL);
