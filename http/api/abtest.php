@@ -44,7 +44,7 @@ function abtest() {
 
             if ($uid && $variant) {
                 if ($shown !== NULL) {
-                    $sql = "INSERT INTO abtest (uid, variant, shown) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1) ON DUPLICATE KEY UPDATE shown = shown + 1;";
+                    $sql = "INSERT INTO abtest (uid, variant, shown) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1) ON DUPLICATE KEY UPDATE shown = shown + 1, rate = 100 * action / shown;";
                     $dbhm->background($sql);
                 }
 
