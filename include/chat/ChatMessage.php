@@ -258,11 +258,12 @@ class ChatMessage extends Entity
             $id = $this->dbhm->lastInsertId();
 
             # We have ourselves seen this message.
-            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ?;",
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
                 [
                     $id,
                     $chatid,
-                    $userid
+                    $userid,
+                    $id
                 ]);
 
             if (!$spam) {

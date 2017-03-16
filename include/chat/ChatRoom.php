@@ -446,7 +446,7 @@ class ChatRoom extends Entity
             # We might have quite a lot of chats - speed up by reducing user fetches.
             $me = whoAmI($this->dbhr, $this->dbhm);
             $ctx = NULL;
-            $mepub = $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+            $mepub = $me ? $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE) : NULL;
 
             foreach ($rooms as $room) {
                 #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
