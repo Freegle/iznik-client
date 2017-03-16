@@ -396,5 +396,21 @@ function ABTestAction(uid, variant) {
     });
 }
 
+function ABTestGetVariant(uid, cb) {
+    var p = $.ajax({
+        url: API + 'abtest',
+        type: 'GET',
+        data: {
+            uid: uid,
+        }, success: function(ret) {
+            if (ret.ret === 0) {
+                cb(ret.variant);
+            }
+        }
+    });
+
+    return(p);
+}
+
 function nullFn() {}
 

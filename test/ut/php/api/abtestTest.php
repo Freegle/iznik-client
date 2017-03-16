@@ -65,6 +65,28 @@ class abtestAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Wait for cache.
+        sleep(LoggedPDO::CACHE_EXPIRY + 1);
+
+        # Now get until we've seen both.
+        $seena = FALSE;
+        $seenb = FALSE;
+
+        do {
+            $ret = $this->call('abtest', 'GET', [
+                'uid' => 'UT'
+            ]);
+            assertEquals(0, $ret['ret']);
+
+            if ($ret['variant']['variant'] == 'a') {
+                $seena = TRUE;
+            }
+
+            if ($ret['variant']['variant'] == 'b') {
+                $seenb = TRUE;
+            }
+        } while (!$seena || !$seenb);
+
         error_log(__METHOD__ . " end");
     }
 }

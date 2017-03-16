@@ -262,6 +262,8 @@ define([
                     self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
                     self.$('.js-bouncing').fadeIn('slow');
                 }
+
+                // (new Iznik.Views.SupportUs()).render();
             });
 
             return(p);

@@ -45,27 +45,22 @@ define([
             var now = (new Date()).getTime();
             var p;
 
-            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000) || true) {
-                // We ask for donations the first time, and no more often than every seven days.
-                var r = Math.random();
-                if (r < 0.33) {
-                    self.template = 'user_support_askdonation';
-                } else if (r < 0.66) {
-                    self.template = 'user_support_askdonationstats';
-                } else {
-                    self.template = 'user_support_askdonationflytip';
-                }
+            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
+                p = ABTestGetVariant('SupportUs', function(variant) {
+                    self.template = variant.variant;
+                    self.template = 'invite' ? 'user_support_askdonationstats' : self.template;
 
-                p = Iznik.Views.Modal.prototype.render.call(self);
-                p.then(function() {
-                    var w = new Iznik.Views.DonationThermometer();
-                    w.render().then(function () {
-                        Storage.set('donationlastask', now);
-                        self.$('.js-thermometer').html(w.$el);
+                    var p = Iznik.Views.Modal.prototype.render.call(self);
+                    p.then(function() {
+                        var w = new Iznik.Views.DonationThermometer();
+                        w.render().then(function () {
+                            Storage.set('donationlastask', now);
+                            self.$('.js-thermometer').html(w.$el);
+                        });
                     });
-                });
 
-                ABTestShown('SupportUs', self.template);
+                    ABTestShown('SupportUs', self.template);
+                });
             } else {
                 // If we're not asking for a donation, ask for an invite.
                 self.template = 'user_support_invite';
