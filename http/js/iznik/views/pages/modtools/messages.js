@@ -587,7 +587,7 @@ define([
                         }
 
                         var source = self.model.get('sourceheader');
-                        if ((source == 'Platform' || source == 'FDv2' || source.indexOf('TN-') !== -1) &&
+                        if ((!source || source == 'Platform' || source == 'FDv2' || source.indexOf('TN-') !== -1) &&
                             ((check.indexOf('groups.yahoo') !== -1) ||
                              (msg.indexOf('Yahoo') !== -1))) {
                             self.$('.modal-body').prepend('<div class="alert alert-warning">This message did not come from Yahoo, but your reply mentions Yahoo, so they may not understand.</div>');
