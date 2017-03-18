@@ -331,7 +331,8 @@ define([
                     Iznik.Session.chats.fetch({
                         cached: nullFn
                     }).then(function() {
-                        window.location.reload();
+                        // CC window.location.reload();
+                        Router.navigate("/chats", true);
                     });
                 });
             });
