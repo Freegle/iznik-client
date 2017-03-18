@@ -984,7 +984,6 @@ class User extends Entity
         $this->cacheMemberships();
         
         $ret = [];
-        error_log("Got cached membs " . var_export($this->memberships, TRUE));
         foreach ($this->memberships AS $membership) {
             if ($membership['role'] == 'Owner' || $membership['role'] == 'Moderator') {
                 $ret[] = $membership['groupid'];
