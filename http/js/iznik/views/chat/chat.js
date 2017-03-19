@@ -1183,13 +1183,15 @@ define([
             'click .js-imgzoom': 'imageZoom'
         },
 
-        imageZoom: function() {
+        imageZoom: function(e) {
             var self = this;
             var v = new Iznik.Views.Chat.Message.PhotoZoom({
                 model: self.model
             });
 
             v.render();
+            e.preventDefault();
+            e.stopPropagation();
         },
 
         viewChat: function () {
