@@ -298,7 +298,16 @@ define([
             'click .js-small': 'small',
             'keyup .js-message': 'keyUp',
             'change .js-status': 'status',
-            'click .js-remove': 'removeIt'
+            'click .js-remove': 'removeIt',
+            'click .js-popup': 'popup'
+        },
+
+        popup: function(){
+            var self = this;
+            require(['iznik/views/chat/chat'], function(ChatHolder) {
+                var chatid = self.model.get('id');
+                ChatHolder().fetchAndRestore(chatid);
+            });
         },
 
         enter: function(e) {
@@ -313,7 +322,6 @@ define([
             var self = this;
             e.preventDefault();
             e.stopPropagation();
-            console.log("Remove?");
 
             var v = new Iznik.Views.Confirm({
                 model: self.model
