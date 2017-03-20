@@ -59,7 +59,8 @@ define([
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-list'),
                     modelView: Iznik.Views.ModTools.SocialAction,
-                    collection: self.collection
+                    collection: self.collection,
+                    processKeyEvents: false
                 });
 
                 self.collectionView.render();
@@ -70,7 +71,8 @@ define([
                 self.requestCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-requestlist'),
                     modelView: Iznik.Views.ModTools.SocialAction.Request,
-                    collection: self.requests
+                    collection: self.requests,
+                    processKeyEvents: false
                 });
 
                 self.requestCollectionView.render();
@@ -82,7 +84,8 @@ define([
                     self.outstandingCollectionView = new Backbone.CollectionView({
                         el: self.$('.js-outstandinglist'),
                         modelView: Iznik.Views.ModTools.SocialAction.Outstanding,
-                        collection: self.outstanding
+                        collection: self.outstanding,
+                        processKeyEvents: false
                     });
 
                     self.outstandingCollectionView.render();

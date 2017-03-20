@@ -105,7 +105,8 @@ define([
                         self.regionCollectionView = new Backbone.CollectionView({
                             el: self.$('.js-regions'),
                             modelView: Iznik.Views.User.Pages.Explore.Region,
-                            collection: self.regions
+                            collection: self.regions,
+                            processKeyEvents: false
                         });
 
                         self.regionCollectionView.render();
@@ -507,7 +508,8 @@ define([
                             page: self
                         },
                         collection: self.collection,
-                        visibleModelsFilter: _.bind(self.filter, self)
+                        visibleModelsFilter: _.bind(self.filter, self),
+                        processKeyEvents: false
                     });
 
                     self.collectionView.render();

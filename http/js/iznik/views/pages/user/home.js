@@ -112,7 +112,8 @@ define([
                     },
                     modelView: Iznik.Views.User.Home.Offer,
                     collection: self.offers,
-                    visibleModelsFilter: _.bind(self.filter, self)
+                    visibleModelsFilter: _.bind(self.filter, self),
+                    processKeyEvents: false
                 });
 
                 self.offersView.render();
@@ -125,7 +126,8 @@ define([
                         page: self
                     },
                     collection: self.wanteds,
-                    visibleModelsFilter: _.bind(self.filter, self)
+                    visibleModelsFilter: _.bind(self.filter, self),
+                    processKeyEvents: false
                 });
 
                 self.wantedsView.render();
@@ -234,7 +236,8 @@ define([
                     collection: self.searches,
                     modelViewOptions: {
                         collection: self.searches
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 self.searchView.render();

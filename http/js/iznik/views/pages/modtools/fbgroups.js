@@ -141,7 +141,8 @@ define([
                         page: self
                     },
                     collection: self.collection,
-                    visibleModelsFilter: _.bind(self.filter, self)
+                    visibleModelsFilter: _.bind(self.filter, self),
+                    processKeyEvents: false
                 });
 
                 self.collectionView.render();

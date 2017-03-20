@@ -66,7 +66,8 @@ define([
                 self.eventsView = new Backbone.CollectionView({
                     el: self.$('.js-eventslist'),
                     modelView: Iznik.Views.User.CommunityEvent,
-                    collection: self.events
+                    collection: self.events,
+                    processKeyEvents: false
                 });
 
                 self.eventsView.render();

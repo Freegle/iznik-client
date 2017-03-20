@@ -58,7 +58,8 @@ define([
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-list'),
                     modelView: Iznik.Views.User.Invitation,
-                    collection: self.invitations
+                    collection: self.invitations,
+                    processKeyEvents: false
                 });
 
                 self.collectionView.render();

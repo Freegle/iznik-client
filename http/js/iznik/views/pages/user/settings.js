@@ -349,7 +349,8 @@ define([
                     visibleModelsFilter: function(group) {
                         // Only show Freegle groups in the UI.
                         return(group.get('type') == 'Freegle')
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 self.collectionView.render();

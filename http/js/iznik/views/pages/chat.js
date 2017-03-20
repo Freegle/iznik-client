@@ -150,7 +150,8 @@ define([
                         el: $('#js-chatlist1'),
                         modelView: Iznik.Views.Chat.Page.One,
                         collection: self.chats,
-                        visibleModelsFilter: _.bind(self.searchFilter, self)
+                        visibleModelsFilter: _.bind(self.searchFilter, self),
+                        processKeyEvents: false
                     });
 
                     self.chatsCV1.render();
@@ -172,7 +173,8 @@ define([
                             el: $('#js-chatlist2'),
                             modelView: Iznik.Views.Chat.Page.One,
                             collection: self.chats,
-                            visibleModelsFilter: _.bind(self.searchFilter, self)
+                            visibleModelsFilter: _.bind(self.searchFilter, self),
+                            processKeyEvents: false
                         });
 
                         self.chatsCV2.render();
@@ -721,7 +723,7 @@ define([
                 if (currHeight != height) {
                     self.$('.js-scroll').css('height', height + 'px');
                     self.currentAdjustDelay = 10;
-                    // console.log(str);
+                    console.log(str);
                 } else {
                     self.currentAdjustDelay *= 2;
                     self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
@@ -806,7 +808,8 @@ define([
                     modelViewOptions: {
                         chatView: self,
                         chatModel: self.model
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 // As new messages are added, we want to show them.  This also means when we first render, we'll

@@ -64,7 +64,8 @@ define([
                             self.collectionView = new Backbone.CollectionView({
                                 el: self.$('.js-searchuserres'),
                                 modelView: Iznik.Views.ModTools.Member.SupportSearch,
-                                collection: self.collection
+                                collection: self.collection,
+                                processKeyEvents: false
                             });
 
                             self.collectionView.render();
@@ -93,7 +94,8 @@ define([
                     collection: self.messages,
                     page: self
                 },
-                collection: self.messages
+                collection: self.messages,
+                processKeyEvents: false
             });
 
             self.messagesView.render();
@@ -173,7 +175,8 @@ define([
                     var alerts = new Backbone.CollectionView({
                         el: self.$('.js-alerts'),
                         modelView: Iznik.Views.ModTools.Alert,
-                        collection: coll
+                        collection: coll,
+                        processKeyEvents: false
                     });
 
                     alerts.render();
@@ -694,7 +697,8 @@ define([
                 self.sessionCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-sessions'),
                     modelView: Iznik.Views.ModTools.Pages.Replay.Session,
-                    collection: self.sessionCollection
+                    collection: self.sessionCollection,
+                    processKeyEvents: false
                 });
 
                 self.sessionCollectionView.render();
@@ -720,7 +724,8 @@ define([
                 self.chatCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-chats'),
                     modelView: Iznik.Views.ModTools.Member.SupportSearch.Chat,
-                    collection: self.chatCollection
+                    collection: self.chatCollection,
+                    processKeyEvents: false
                 });
 
                 self.chatCollectionView.render();
@@ -780,7 +785,8 @@ define([
                 self.loginCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-logins'),
                     modelView: Iznik.Views.ModTools.Member.SupportSearch.Login,
-                    collection: self.loginCollection
+                    collection: self.loginCollection,
+                    processKeyEvents: false
                 });
 
                 self.loginCollectionView.render();
@@ -791,7 +797,8 @@ define([
                 self.membershipHistoryCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-membershiphistory'),
                     modelView: Iznik.Views.ModTools.Member.SupportSearch.MembershipHistory,
-                    collection: self.membershipHistoryCollection
+                    collection: self.membershipHistoryCollection,
+                    processKeyEvents: false
                 });
 
                 self.membershipHistoryCollectionView.render();

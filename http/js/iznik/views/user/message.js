@@ -297,7 +297,8 @@ define([
                                             message: self.model,
                                             offers: self.options.offers
                                         },
-                                        collection: self.replies
+                                        collection: self.replies,
+                                        processKeyEvents: false
                                     });
 
                                     self.repliesView.render();

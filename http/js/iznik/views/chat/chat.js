@@ -319,7 +319,8 @@ define([
                         organise: _.bind(self.organise, self),
                         updateCounts: _.bind(self.updateCounts, self),
                         modtools: self.options.modtools
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 Iznik.openChats.render();
@@ -1078,7 +1079,8 @@ define([
                         modelViewOptions: {
                             chatView: self,
                             chatModel: self.model
-                        }
+                        },
+                        processKeyEvents: false
                     });
 
                     // As new messages are added, we want to show them.  This also means when we first render, we'll
@@ -1477,7 +1479,8 @@ define([
                     collection: self.messages,
                     modelViewOptions: {
                         chatModel: self.model
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 console.log("Chat modal", self.$('.js-messages').length, self.messages, self.model);
