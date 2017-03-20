@@ -1046,6 +1046,8 @@ class messageAPITest extends IznikAPITestCase
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertFalse($m->isEdited());
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -1091,6 +1093,9 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals('Test edit', $ret['message']['subject']);
         assertEquals('Test edit', $ret['message']['suggestedsubject']);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertTrue($m->isEdited());
 
         # Now edit a platform subject.
         $ret = $this->call('message', 'PATCH', [

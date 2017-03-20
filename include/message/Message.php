@@ -3715,14 +3715,6 @@ class Message
     }
 
     public function isEdited() {
-        $logs = $this->dbhr->preQuery("SELECT id FROM logs WHERE msgid = ? AND type = ? AND subtype = ?;", [
-            $this->id,
-            Log::TYPE_MESSAGE,
-            Log::SUBTYPE_EDIT
-        ]);
-
-        $ret = count($logs) > 0;
-
-        return($ret);
+        return($this->editedby !== NULL);
     }
 }
