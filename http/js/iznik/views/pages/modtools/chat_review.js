@@ -12,9 +12,34 @@ define([
     Iznik.Views.ModTools.Pages.ChatReview = Iznik.Views.Infinite.extend({
         modtools: true,
 
+        events: {
+            'click .js-allspam': 'allSpam'
+        },
+
         template: "modtools_chatreview_main",
 
         retField: 'chatmessages',
+
+        allSpam: function() {
+            var self = this;
+
+            self.collection.each(function(msg) {
+                $.ajax({
+                    url: API + 'chatmessages',
+                    type: 'POST',
+                    data: {
+                        id: msg.get('id'),
+                        action: 'Reject'
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            self.collection.remove(msg);
+                        }
+                    }
+                });
+            });
+
+            self.$('js-allspamholder').fadeOut('slow');
+        },
 
         render: function () {
             var p = Iznik.Views.Infinite.prototype.render.call(this);
@@ -40,7 +65,11 @@ define([
                 });
 
                 self.collectionView.render();
-                self.fetch();
+                self.fetch().then(function() {
+                    if (self.collection.length > 0) {
+                        self.$('.js-allspamholder').show();
+                    }
+                });
 
                 self.listenTo(Iznik.Session, 'chatreviewcountschanged', _.bind(self.fetch, self));
                 self.listenTo(Iznik.Session, 'chatreviewothercountschanged', _.bind(self.fetch, self));
