@@ -2516,7 +2516,7 @@ class User extends Entity
             $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
             $this->dbhm->preExec($sql,
                 [$email, $canon, $key, strrev($canon), $key]);
-            $confirm = $usersite ? ("https://" . $_SERVER['HTTP_HOST'] . "/settings/confirmmail/" . urlencode($key)) : ("https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key));
+            $confirm  = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail');
 
             list ($transport, $mailer) = getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
