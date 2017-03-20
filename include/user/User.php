@@ -2547,7 +2547,8 @@ class User extends Entity
                 $this->merge($this->id, $mail['userid'], "Verified ownership of email {$mail['email']}");
             }
 
-            $this->dbhm->preExec("UPDATE users_emails SET userid = ?, validated = NOW() WHERE id = ?;", [ $this->id, $mail['id']]);
+            $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE id = ?;", [ $this->id ]);
+            $this->dbhm->preExec("UPDATE users_emails SET userid = ?, preferred = 1, validated = NOW() WHERE id = ?;", [ $this->id, $mail['id']]);
             $this->addEmail($mail['email'], 1);
             $rc = TRUE;
         }
