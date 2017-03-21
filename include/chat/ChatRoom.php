@@ -941,11 +941,11 @@ class ChatRoom extends Entity
             #
             # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
             $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
-            error_log("$sql {$this->id}, $lastmessage");
+            #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
             foreach ($users as $user) {
                 # What's the max message this user has either seen or been mailed?
-                error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
+                #error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
                 $maxseen = presdef('lastmsgseen', $user, 0);
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
