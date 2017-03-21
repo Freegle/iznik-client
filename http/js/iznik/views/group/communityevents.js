@@ -104,15 +104,23 @@ define([
             var self = this;
             var p = Iznik.View.prototype.render.call(this).then(function() {
                 var dates = self.model.get('dates');
+                var count = 0;
                 for (var i = 0; i < dates.length; i++) {
                     var date = dates[i];
                     if (moment().diff(date.end) < 0  || moment().isSame(date.end, 'day')) {
-                        var mom = new moment(date.start);
-                        self.$('.js-start').html(mom.format('ddd, Do MMM HH:mm'));
-                        var mom = new moment(date.end);
-                        self.$('.js-end').html(mom.format('ddd, Do MMM HH:mm'));
-                        break;
+                        if (count == 0) {
+                            var mom = new moment(date.start);
+                            self.$('.js-start').html(mom.format('ddd, Do MMM HH:mm'));
+                            var mom = new moment(date.end);
+                            self.$('.js-end').html(mom.format('ddd, Do MMM HH:mm'));
+                        }
+
+                        count++;
                     }
+                }
+
+                if (count > 1) {
+                    self.$('.js-moredates').html('...plus ' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
                 }
 
                 self.$el.closest('li').addClass('completefull');
