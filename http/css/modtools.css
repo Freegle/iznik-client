@@ -26,10 +26,6 @@
     font-size: 12px !important;
 }
 
-.msgsubj .text-muted {
-    color: #777 !important;
-}
-
 .msgsubj input {
     z-index:0 !important;
 }
@@ -507,6 +503,10 @@ body, #bodyContent {
 
 .social {
     display: none !important;
+}
+
+.text-muted {
+    color: black !important;
 }
 
 /*==================================================
