@@ -155,7 +155,7 @@ class MessageCollection
             }
 
             list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL);
-            error_log("Filled in " . count($msgs) . " from " . count($msgids));
+//            error_log("Filled in " . count($msgs) . " from " . count($msgids));
 
             # We might have excluded all the messages we found; if so, keep going.
         } while (count($msgids) > 0 && count($msgs) == 0);

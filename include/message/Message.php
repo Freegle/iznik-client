@@ -749,6 +749,8 @@ class Message
             $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
             $ret['replies'] = [];
+            $ret['replycount'] = count($replies);
+
             foreach ($replies as $reply) {
                 $ctx = NULL;
                 if ($reply['userid']) {
@@ -778,11 +780,21 @@ class Message
             $ret['willautorepost'] = count($ret['replies']) == 0;
 
             $ret['promisecount'] = 0;
+        } else {
+            # Can see a count of replies.
+            $sql = "SELECT COUNT(DISTINCT t.userid) AS count FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t;";
+            $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
+            $ret['replycount'] = $replies[0]['count'];
+        }
 
-            if ($this->type == Message::TYPE_OFFER) {
-                # Add any promises, i.e. one or more people we've said can have this.
-                $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
-                $ret['promises'] = $this->dbhr->preQuery($sql, [$this->id]);
+
+        if ($this->type == Message::TYPE_OFFER) {
+            # Add any promises, i.e. one or more people we've said can have this.
+            $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
+            $promises = $this->dbhr->preQuery($sql, [$this->id]);
+
+            if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
+                $ret['promises'] = $promises;
                 $ret['promisecount'] = count($ret['promises']);
 
                 foreach ($ret['replies'] as &$reply) {
@@ -791,7 +803,10 @@ class Message
                     }
                 }
             }
+
+            $ret['promised'] = count($promises) > 0;
         }
+
 
         # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
         $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
@@ -1243,20 +1258,37 @@ class Message
 
         if (!$rejected) {
             # Rejected messages can look a bit like messages to the group, but they're not.
+            $togroup = FALSE;
+            $toours = FALSE;
+
             foreach ($to as $t) {
                 # Check it's to a group (and not the owner).
+                #
+                # Yahoo members can do a reply to all which results in a message going to both one of our users
+                # and the group, so in that case we want to ignore the group aspect.
+                if (ourDomain($t['address'])) {
+                    $toours = TRUE;
+                }
+
                 if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches) &&
                     strpos($t['address'], '-owner@') === FALSE) {
                     # Yahoo group.
                     $groupname = $matches[1];
+                    $togroup = TRUE;
                     #error_log("Got $groupname from {$t['address']}");
                 } else if (preg_match('/(.*)@' . GROUP_DOMAIN . '/', $t['address'], $matches) &&
                     strpos($t['address'], '-volunteers@') === FALSE &&
                     strpos($t['address'], '-auto@') === FALSE) {
                     # Native group.
                     $groupname = $matches[1];
+                    $togroup = TRUE;
                     #error_log("Got $groupname from {$t['address']}");
                 }
+            }
+
+            if ($toours && $togroup) {
+                # Drop the group aspect.
+                $groupname = NULL;
             }
         }
 
@@ -2432,7 +2464,7 @@ class Message
             $message['dist'] = $d->getSimilarity();
             $mindist = min($mindist, $message['dist']);
 
-            #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
+            error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
 
             if ($message['dist'] <= $mindist && $message['dist'] <= strlen($subj1) * 3 / 4) {
                 # This is the closest match, but not utterly different.

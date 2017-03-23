@@ -16,7 +16,7 @@
     <% } %>
 </div>
 <div class="nomargin panel panel-success">
-    <div class="panel-heading nopad clearfix">
+    <div class="panel-heading nopad clearfix <% if (obj.promised) { %>faded<% } %>">
         <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
             <div class="col-sm-11 padmd">
             <% if (attachments.length>0) { %>
@@ -34,10 +34,17 @@
               <div class="hidden-xs js-groups" />
             </div>
             <div class="hidden-xs js-snippet">
-              <% if (obj.snippet) { %>
-              <h4 class="nomargin">{{snippet}}...</h4>
-              <h4 class="black">Read more >></h4>
-              <% } %>
+                <% if (obj.snippet) { %>
+                <h4 class="nomargin">{{snippet}}...</h4>
+                <h4 class="black">
+                    Read more >>
+                    <% if (obj.promised) { %>
+                    <div class="pull-right unfaded">
+                        <span title="This item has been promised to someone" class="glyphicons glyphicons-handshake" />
+                    </div>
+                    <% } %>
+                </h4>
+                <% } %>
             </div>
         </div>
         <div class="hidden-xs col-sm-1">
@@ -60,6 +67,12 @@
     <div id="result-{{id}}" class="panel-collapse collapse">
         <div class="visible-xs-block js-groups" style="padding:5px;" />
         <div class="panel-body">
+            <% if (obj.promised) { %>
+            <div class="alert alert-warning">
+                This item has already been promised to someone.  You can still reply - you might get it if someone
+                else drops out.
+            </div>
+            <% } %>
             <div class="row">
                 <div class="col-sm-10">
                     <div class="lead prewrap forcebreak js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
@@ -81,6 +94,15 @@
                     <div class="btn btn-warning js-fop">
                         <span class="glyphicon glyphicon-info-sign" />&nbsp;Fair Offer Policy
                     </div>
+                    <% } %>
+                    <% if (obj.replycount) { %>
+                        <div class="topspace text-muted">
+                            <br /><span class="glyphicon glyphicon-user" />&nbsp;{{replycount}} freegler<% if (replycount != 1) { %>s<% } %> interested
+                        </div>
+                    <% } else { %>
+                        <div class="topspace text-muted">
+                            <br /><span class="glyphicon glyphicon-user" />&nbsp;No replies yet
+                        </div>
                     <% } %>
                 </div>
                 <div class="hidden-xs col-sm-2 js-mapzoom" style="display:none">

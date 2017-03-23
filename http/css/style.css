@@ -802,6 +802,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     left: -20px !important;
 }
 
+.unfaded {
+    opacity: 1
+}
+
 .slightlyfaded {
     opacity: 0.7;
 }
