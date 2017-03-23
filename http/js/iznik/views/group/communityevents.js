@@ -186,86 +186,103 @@ define([
         
         closeAfterSave: true,
 
+        wait: null,
+
         save: function() {
             var self = this;
 
-            if (self.$('form').valid()) {
-                self.$('input,textarea').each(function () {
-                    var name = $(this).prop('name');
-                    if (name.length > 0 && name != 'photo') {
-                        self.model.set(name, $(this).val());
-                    }
+            if (!self.wait) {
+                self.wait = new Iznik.Views.PleaseWait({
+                    timeout: 1
                 });
+                self.wait.render();
+                self.promises = [];
 
-                self.model.save({}, {
-                    success: function(model, response, options) {
-                        if (response.id) {
-                            self.model.set('id', response.id);
+                if (self.$('form').valid()) {
+                    self.$('input,textarea').each(function () {
+                        var name = $(this).prop('name');
+                        if (name.length > 0 && name != 'photo') {
+                            self.model.set(name, $(this).val());
                         }
-                    }
-                }).then(function() {
-                    // Add the group and dates.
-                    var groups = self.model.get('groups');
-                    if (_.isUndefined(groups) || self.groupSelect.get() != groups[0]['id']) {
-                        $.ajax({
-                            url: API + 'communityevent',
-                            type: 'PATCH',
-                            data: {
-                                id: self.model.get('id'),
-                                action: 'AddGroup',
-                                groupid: self.groupSelect.get()
-                            },
-                            success: function (ret) {
-                                if (!_.isUndefined(groups)) {
-                                    $.ajax({
-                                        url: API + 'communityevent',
-                                        type: 'PATCH',
-                                        data: {
-                                            id: self.model.get('id'),
-                                            action: 'RemoveGroup',
-                                            groupid: groups[0]['id']
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                    }
-
-                    // Delete any old dates.
-                    var olddates = self.model.get('dates');
-                    _.each(olddates, function(adate) {
-                        $.ajax({
-                            url: API + 'communityevent',
-                            type: 'PATCH',
-                            data: {
-                                id: self.model.get('id'),
-                                action: 'RemoveDate',
-                                dateid: adate.id
-                            }
-                        });
                     });
 
-                    // Add new dates.
-                    for (var i = 0; i < self.dates.length; i++) {
-                        var start = self.dates[i].getStart();
-                        var end = self.dates[i].getEnd();
-
-                        $.ajax({
-                            url: API + 'communityevent',
-                            type: 'PATCH',
-                            data: {
-                                id: self.model.get('id'),
-                                action: 'AddDate',
-                                start: start,
-                                end: end
+                    var p = self.model.save({}, {
+                        success: function(model, response, options) {
+                            if (response.id) {
+                                self.model.set('id', response.id);
                             }
-                        });
-                    }
-                });
+                        }
+                    }).then(function() {
+                        // Add the group and dates.
+                        var groups = self.model.get('groups');
+                        if (_.isUndefined(groups) || self.groupSelect.get() != groups[0]['id']) {
+                            self.promises.push($.ajax({
+                                url: API + 'communityevent',
+                                type: 'PATCH',
+                                data: {
+                                    id: self.model.get('id'),
+                                    action: 'AddGroup',
+                                    groupid: self.groupSelect.get()
+                                },
+                                success: function (ret) {
+                                    if (!_.isUndefined(groups)) {
+                                        self.promises.push($.ajax({
+                                            url: API + 'communityevent',
+                                            type: 'PATCH',
+                                            data: {
+                                                id: self.model.get('id'),
+                                                action: 'RemoveGroup',
+                                                groupid: groups[0]['id']
+                                            }
+                                        }));
+                                    }
+                                }
+                            }));
+                        }
 
-                if (self.closeAfterSave) {
-                    self.close();
-                    (new Iznik.Views.User.CommunityEvent.Confirm()).render();
+                        // Delete any old dates.
+                        var olddates = self.model.get('dates');
+                        _.each(olddates, function(adate) {
+                            self.promises.push($.ajax({
+                                url: API + 'communityevent',
+                                type: 'PATCH',
+                                data: {
+                                    id: self.model.get('id'),
+                                    action: 'RemoveDate',
+                                    dateid: adate.id
+                                }
+                            }));
+                        });
+
+                        // Add new dates.
+                        for (var i = 0; i < self.dates.length; i++) {
+                            var start = self.dates[i].getStart();
+                            var end = self.dates[i].getEnd();
+
+                            self.promises.push($.ajax({
+                                url: API + 'communityevent',
+                                type: 'PATCH',
+                                data: {
+                                    id: self.model.get('id'),
+                                    action: 'AddDate',
+                                    start: start,
+                                    end: end
+                                }
+                            }));
+                        }
+
+                        console.log("Wait for", self.promises);
+                        Promise.all(self.promises).then(function() {
+                            console.log("Completed all");
+                            self.wait.close();
+                            self.wait = null;
+                        })
+                    });
+
+                    if (self.closeAfterSave) {
+                        self.close();
+                        (new Iznik.Views.User.CommunityEvent.Confirm()).render();
+                    }
                 }
             }
         },

@@ -164,6 +164,9 @@ class CommunityEvent extends Entity
 
         unset($atts['userid']);
 
+        # Ensure leading 0 not stripped.
+        $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
+
         return($atts);
     }
 
