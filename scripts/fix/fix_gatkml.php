@@ -15,7 +15,7 @@ $namemap = [
     [ 21231,'Armagh-Freegle','Northern Ireland: Armagh' ],
     [ 21232,'ascot-freegle','S. East: Ascot' ],
     [ 126527,'Ashfield-freegle','E. Mids: Ashfield [District Council]' ],
-    [ 70146,'Ashford-Freegle','S. East: Ashford [Borough Council]' ],
+    [ 70146,'Ashford-Freegle','S. East: Ashford' ],
     [ 253535,'Axe-Seat-n-Lyme-Freegle','S. West: Ax, Seat n Lyme' ],
     [ 21233,'Aylesbury_Recycle','S. East: Aylesbury' ],
     [ 43534,'BallymenaFreegle','Northern Ireland: Ballymena' ],
@@ -195,7 +195,7 @@ $namemap = [
     [ 126647,'helensburgh-freegle','Scotland: Helensburgh' ],
     [ 21461,'Helston-Freegle','S. West: Helston' ],
     [ 21462,'Hemel-Freegle','East: Hemel-Freegle' ],
-    [ 21463,'Henfield-Freegle','S. East Henfield' ],
+    [ 21463,'Henfield-Freegle','S.East: Henfield' ],
     [ 21464,'HenleyFreegle','S. East: Henley' ],
     [ 21465,'Hereford_Freegle','W. Mids: Hereford' ],
     [ 21467,'hertford_freegle','East: hertford_freegle' ],
@@ -207,6 +207,7 @@ $namemap = [
     [ 126698,'HungerfordFreegle','S. West: Hungerford' ],
     [ 21475,'huntsfreegle','East: huntsfreegle' ],
     [ 126668,'hyndburnrealcycle','N. West: Hyndburn' ],
+    [ 127370, 'waste-not-want-not-christchurch', 'S. West: Christchurch Freegle'],
     [ 21483,'IpswichRecycle','East: ipswichrecycle' ],
     [ 21485,'Isle-of-Man-Freegle','N West: Isle of Man' ],
     [ 126608,'Isle-of-Wight-Freegle','S. East: Isle of Wight' ],
@@ -437,7 +438,7 @@ if ($kml) {
 
                         foreach ($gs as $g) {
                             error_log("Change {$name[1]} from {$g['polyofficial']} to $wkt");
-                            #$dbhm->preExec("UPDATE groups SET polyofficial = ? WHERE id = ?;", [ $wkt, $name[0]] );
+                            $dbhm->preExec("UPDATE groups SET polyofficial = ? WHERE id = ?;", [ $wkt, $name[0]] );
                         }
                     }
                 }

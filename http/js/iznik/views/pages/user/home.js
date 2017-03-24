@@ -8,7 +8,7 @@ define([
     'iznik/views/group/communityevents',
     'iznik/views/pages/pages',
     'iznik/views/user/message',
-    'iznik/views/donations',
+    'iznik/views/supportus',
     'iznik/views/user/polls'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({

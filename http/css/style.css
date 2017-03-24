@@ -722,7 +722,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 .error-border {
     border-color: red !important;
-    outline-coor: red !important;
+    outline-color: red !important;
 }
 
 .signindisabled {
