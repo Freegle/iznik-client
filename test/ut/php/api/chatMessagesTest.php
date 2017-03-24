@@ -165,7 +165,11 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         assertTrue($this->user->login('testpw'));
 
-        # Create a chat to the second user with a referenced message
+        # We want to use a referenced message which is promised, to test suppressing of email notifications.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+
+        $this->user2->addEmail('test@test.com');
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -173,6 +177,11 @@ class chatMessagesAPITest extends IznikAPITestCase
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
+        # Promise to someone else.
+        $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
+        $m->promise($uid2);
+
+        # Create a chat to the second user with a referenced message from the second user.
         $ret = $this->call('chatrooms', 'PUT', [
             'userid' => $this->uid2
         ]);
@@ -196,6 +205,19 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid1 = $ret['id'];
+
+        # Check that the email was suppressed.
+        error_log("Check for suppress of $mid1 to {$this->uid2}");
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $this->cid
+        ]);
+
+        error_log(var_export($ret, TRUE));
+        foreach ($ret['roster'] as $rost) {
+            if ($rost['user']['id'] == $this->uid2) {
+                self::assertEquals($mid1, $rost['lastmsgemailed']);
+            }
+        }
 
         # Now log in as the other user.
         assertTrue($this->user2->login('testpw'));

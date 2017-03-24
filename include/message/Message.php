@@ -3746,6 +3746,12 @@ class Message
         return(count($outcomes) > 0 ? $outcomes[0]['outcome'] : NULL);
     }
 
+    public function promisedTo() {
+        $sql = "SELECT * FROM messages_promises WHERE msgid = ?;";
+        $promises = $this->dbhr->preQuery($sql, [ $this->id ]);
+        return(count($promises) > 0 ? $promises[0]['userid'] : NULL);
+    }
+
     public function isEdited() {
         return($this->editedby !== NULL);
     }

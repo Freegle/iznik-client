@@ -886,12 +886,21 @@ class MailRouter
                                 # Now add this into the conversation as a message.  This will notify them.
                                 $textbody = $this->msg->stripQuoted();
 
-                                $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                $mid = $m->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
+                                $cm = new ChatMessage($this->dbhr, $this->dbhm);
+                                $mid = $cm->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
 
                                 # The user sending this is up to date with this conversation.  This prevents us
                                 # notifying her about other messages.
                                 $r->mailedLastForUser($fromid);
+
+                                $promisedto = $m->promisedTo();
+
+                                if ($m->hasOutcome() || ($promisedto && $promisedto != $this->msg->getFromuser())) {
+                                    # We don't want to email the recipient either - no point pestering them with more
+                                    # emails for items which are completed or promised.  They can see them on the
+                                    # site if they want.
+                                    $r->mailedLastForUser($m->getFromuser());
+                                }
 
                                 $ret = MailRouter::TO_USER;
                             }
@@ -917,12 +926,16 @@ class MailRouter
                                     # Now add this into the conversation as a message.  This will notify them.
                                     $textbody = $this->msg->stripQuoted();
 
-                                    $m = new ChatMessage($this->dbhr, $this->dbhm);
-                                    $mid = $m->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+                                    $cm = new ChatMessage($this->dbhr, $this->dbhm);
+                                    $mid = $cm->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
 
                                     # The user sending this is up to date with this conversation.  This prevents us
                                     # notifying her about other messages
                                     $r->mailedLastForUser($userid);
+
+                                    # It might be nice to suppress email notifications if the message has already
+                                    # been promised or is complete, but we don't really know which message this
+                                    # reply is for.
 
                                     $ret = MailRouter::TO_USER;
                                 }
@@ -980,6 +993,18 @@ class MailRouter
                                 # The user sending this is up to date with this conversation.  This prevents us
                                 # notifying her about other messages
                                 $r->mailedLastForUser($this->msg->getFromuser());
+
+                                if ($original) {
+                                    $m = new Message($this->dbhr, $this->dbhm, $original);
+                                    $promisedto = $m->promisedTo();
+
+                                    if ($m->hasOutcome() || ($promisedto && $promisedto != $this->msg->getFromuser())) {
+                                        # We don't want to email the recipient either - no point pestering them with more
+                                        # emails for items which are completed or promised.  They can see them on the
+                                        # site if they want.
+                                        $r->mailedLastForUser($m->getFromuser());
+                                    }
+                                }
                             }
                         }
                     }
