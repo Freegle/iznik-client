@@ -362,7 +362,7 @@ class Location extends Entity
             # Now we have a list of gridids within which we want to find locations.
             #error_log("Got gridids " . var_export($gridids, TRUE));
             if (count($gridids) > 0) {
-                $sql = "SELECT locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") ORDER BY popularity ASC;";
+                $sql = "SELECT locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(TRIM(name)) > 0 ORDER BY popularity ASC;";
                 #error_log("Get locs in grids $sql");
                 $ret = $this->dbhr->preQuery($sql);
             }
