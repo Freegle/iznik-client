@@ -5,8 +5,8 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 
-$mysqltime = date("Y-m-d", strtotime("Midnight 3 days ago"));
-$searches = $dbhr->preQuery("SELECT * FROM search_history WHERE date > ?;", $mysqltime);
+$mysqltime = date("Y-m-d", strtotime("Midnight 2 days ago"));
+$searches = $dbhr->preQuery("SELECT * FROM search_history WHERE date > ? ORDER BY groups, id ASC;", [ $mysqltime ]);
 $last = NULL;
 $deleted = 0;
 
@@ -14,7 +14,7 @@ foreach ($searches as $search) {
     if ($last) {
         $diff = FALSE;
 
-        foreach (['date', 'term', 'locationid', 'groups'] as $att) {
+        foreach (['term', 'locationid', 'groups'] as $att) {
             if ($search[$att] != $last[$att]) {
                 #error_log("Differs in $att");
                 $diff = TRUE;
