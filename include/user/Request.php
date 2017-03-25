@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards.php');
 class Request extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'userid', 'type', 'date', 'completed', 'addressid');
+    var $publicatts = array('id', 'userid', 'type', 'date', 'completed', 'addressid', 'to');
     var $settableatts = array('completed', 'addressid');
 
     const TYPE_BUSINESS_CARDS = 'BusinessCards';
@@ -19,13 +19,14 @@ class Request extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'users_requests', 'request', $this->publicatts);
     }
 
-    public function create($userid, $type, $addressid) {
+    public function create($userid, $type, $addressid, $to) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO users_requests (userid, type, addressid) VALUES (?,?,?);", [
+        $rc = $this->dbhm->preExec("INSERT INTO users_requests (userid, type, addressid, `to`) VALUES (?,?,?,?);", [
             $userid,
             $type,
-            $addressid
+            $addressid,
+            $to
         ]);
 
         if ($rc) {
