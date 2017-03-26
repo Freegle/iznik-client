@@ -266,7 +266,7 @@ define([
                     self.$('.js-bouncing').fadeIn('slow');
                 }
 
-                (new Iznik.Views.SupportUs()).render();
+                // (new Iznik.Views.SupportUs()).render();
             });
 
             return(p);
