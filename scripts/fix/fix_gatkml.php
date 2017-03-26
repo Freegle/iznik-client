@@ -431,7 +431,7 @@ if ($kml) {
                     if (strpos($kname, $name[2]) === 0) {
                         #error_log("Found $kname as {$name[0]} {$name[1]}");
                         $found = TRUE;
-                        $gs = $dbhr->preQuery("SELECT * FROM groups WHERE id = ? AND polyofficial != ?;", [
+                        $gs = $dbhr->preQuery("SELECT * FROM groups WHERE id = ? AND (polyofficial != ? OR polyofficial IS NULL);", [
                             $name[0],
                             $wkt
                         ]);
