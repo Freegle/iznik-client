@@ -456,10 +456,10 @@ class Location extends Entity
 
     public function groupsNear($radius = Location::NEARBY, $expand = FALSE) {
         # We use the Haversine distance as a quick filter for the radius, but we order by the distance to the group
-        # polygon, rather than to the centre, because that reflects which group you are genuinely closest to.
+        # polygon (dist), rather than to the centre (hav), because that reflects which group you are genuinely closest to.
         #
         # Favour groups hosted by us if there's a tie.
-        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE id IN (SELECT id FROM groups WHERE (poly IS NOT NULL OR polyofficial IS NOT NULL) AND publish = 1) HAVING hav < ? AND hav IS NOT NULL ORDER BY hav ASC, external ASC LIMIT 10;";
+        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE id IN (SELECT id FROM groups WHERE (poly IS NOT NULL OR polyofficial IS NOT NULL) AND publish = 1) HAVING hav < ? AND hav IS NOT NULL ORDER BY dist ASC, external ASC LIMIT 10;";
         $groups = $this->dbhr->preQuery($sql, [ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ]);
         #error_log("Find near $sql " .
         # var_export([ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ], TRUE));
