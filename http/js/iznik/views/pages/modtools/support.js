@@ -49,7 +49,8 @@ define([
             $.ajax({
                 url: API + 'user',
                 data: {
-                    search: this.$('.js-searchuserinp').val().trim()
+                    search: this.$('.js-searchuserinp').val().trim(),
+                    emailhistory: true
                 },
                 success: function(ret) {
                     v.close();
@@ -623,6 +624,11 @@ define([
                 message.group = self.groups[message.groupid];
                 self.addMessage(message);
             });
+
+            self.$('.js-messages').showFirst({
+                controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                count: 5
+            });
         },
 
         render: function () {
@@ -664,6 +670,11 @@ define([
                     });
                 });
 
+                self.$('.js-memberof').showFirst({
+                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                    count: 5
+                });
+
                 self.$('.js-otheremailsdiv').hide();
                 _.each(remaining, function(email) {
                     self.$('.js-otheremailsdiv').show();
@@ -684,9 +695,7 @@ define([
 
                 // Add any sessions.
                 var sessions = self.model.get('sessions');
-                console.log("Sessions", sessions);
                 self.sessionCollection = new Iznik.Collection(sessions);
-                console.log("Session collection", self.sessionCollection);
 
                 if (self.sessionCollection.length == 0) {
                     self.$('.js-sessionsnone').show();
@@ -735,7 +744,7 @@ define([
                     count: 5
                 });
 
-                // Add message history.  Annoyingly, we might have a groupid for a group which we are not a
+                // Add posting history.  Annoyingly, we might have a groupid for a group which we are not a
                 // member of at the moment, so we may need to fetch some.
                 self.$('.js-messages').empty();
                 self.$('.js-messagesnone').hide();
@@ -772,7 +781,36 @@ define([
                     // Not waiting to get any groups - add now.
                     self.addMessages();
                 }
-                
+
+                // Recent emails
+                self.emailHistoryCollection = new Iznik.Collection(self.model.get('emailhistory'));
+
+                // Show most recent first.
+                self.emailHistoryCollection.comparator = function(chat) {
+                    return -(new Date(chat.get('timestamp'))).getTime();
+                };
+                self.emailHistoryCollection.sort();
+
+                if (self.emailHistoryCollection.length == 0) {
+                    self.$('.js-emailhistorynone').show();
+                } else {
+                    self.$('.js-emailhistorynone').hide();
+                }
+
+                self.emailHistoryCollectionView = new Backbone.CollectionView({
+                    el: self.$('.js-emailhistory'),
+                    modelView: Iznik.Views.ModTools.Member.SupportSearch.EmailHistory,
+                    collection: self.emailHistoryCollection,
+                    processKeyEvents: false
+                });
+
+                self.emailHistoryCollectionView.render();
+
+                self.$('.js-emailhistory').showFirst({
+                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                    count: 5
+                });
+
                 // Logins
                 self.loginCollection = new Iznik.Collection(self.model.get('logins'));
 
@@ -803,6 +841,11 @@ define([
 
                 self.membershipHistoryCollectionView.render();
 
+                self.$('.js-membershiphistory').showFirst({
+                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                    count: 5
+                });
+
                 self.$('.datepicker').datepicker({
                     format: 'D, dd MM yyyy',
                     startDate: '0d',
@@ -810,7 +853,6 @@ define([
                 });
 
                 var onholiday = self.model.get('onholidaytill');
-                console.log("On holiday?", onholiday);
 
                 self.$(".js-switch").bootstrapSwitch({
                     onText: 'Paused',
@@ -852,6 +894,10 @@ define([
                 v.render();
             });
         }
+    });
+
+    Iznik.Views.ModTools.Member.SupportSearch.EmailHistory = Iznik.View.Timeago.extend({
+        template: 'modtools_support_emailhistory'
     });
 
     Iznik.Views.ModTools.Member.SupportSearch.MemberOf = Iznik.View.extend({

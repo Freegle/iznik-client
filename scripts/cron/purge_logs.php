@@ -114,3 +114,18 @@ try {
 } catch (Exception $e) {
     error_log("Failed to delete SQL logs " . $e->getMessage());
 }
+
+$start = date('Y-m-d', strtotime("midnight 7 days ago"));
+
+try {
+    error_log("Email logs:");
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM logs_email WHERE `date` < '$start' LIMIT 1000;");
+        $total += $count;
+        set_time_limit(60);
+        error_log("...$total");
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete SQL logs " . $e->getMessage());
+}

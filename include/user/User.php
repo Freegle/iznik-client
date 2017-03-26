@@ -1262,7 +1262,7 @@ class User extends Entity
         return($ret);
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE) {
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE) {
         $atts = parent::getPublic();
 
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
@@ -1614,6 +1614,16 @@ class User extends Entity
                 foreach ($this->spam_users as $spammer) {
                     $spammer['added'] = ISODate($spammer['added']);
                     $atts['spammer'] = $spammer;
+                }
+            }
+
+            if ($emailhistory) {
+                $emails = $this->dbhr->preQuery("SELECT * FROM logs_emails WHERE userid = ?;", [ $this->id ]);
+                $atts['emailhistory'] = [];
+                foreach ($emails as &$email) {
+                    $email['timestamp'] = ISODate($email['timestamp']);
+                    unset($email['userid']);
+                    $atts['emailhistory'][] = $email;
                 }
             }
         }
@@ -2865,7 +2875,9 @@ class User extends Entity
             $ctx['id'] = $user['userid'];
 
             $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
-            $thisone = $u->getPublic();
+
+            $ctx = NULL;
+            $thisone = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE);
 
             # We might not have the emails.
             $thisone['email'] = $u->getEmailPreferred();

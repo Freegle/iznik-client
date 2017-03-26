@@ -1,0 +1,15 @@
+<div class="row">
+    <div class="col-md-2">
+        <abbr class="timeago" title="{{timestamp}}"/>
+    </div>
+    <div class="col-md-6 forcebreak">
+        {{subject}}
+    </div>
+    <div class="col-md-4 forcebreak">
+        <% if (status.indexOf('sent') === 0) { %>
+        <span class="glyphicons glyphicons-tick success" />&nbsp;{{status}}
+        <% } else { %>
+        <span class="glyphicons glyphicons-cross error" />&nbsp;{{status}}
+        <% } %>
+    </div>
+</div>
