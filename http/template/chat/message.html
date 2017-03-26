@@ -27,6 +27,13 @@
             <% } else { %>
             <div class="col-sm-12 padleft">
             <% } %>
+                <% if (!obj.left) { %>
+                    <% if (obj.seenbyall) { %>
+                    <span class="glyphicons glyphicons-tick success pull-right small" alt="Read" title="This has been seen." />
+                    <% } else if (obj.mailedtoall) { %>
+                    <span class="glyphicons glyphicons-envelope faded pull-right small" alt="Emailed" title="This has been sent by email." />
+                    <% } %>
+                <% } %>
                 <abbr class="chat-when botspace  <% if (obj.left) { %>pull-left<% } else { %>pull-right<% } %> text-muted small timeago" title="{{date}}" />
             </div>
         </div>
