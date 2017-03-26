@@ -41,7 +41,7 @@ class RequestTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
 
-        $rid = $r->create($uid, Request::TYPE_BUSINESS_CARDS, NULL);
+        $rid = $r->create($uid, Request::TYPE_BUSINESS_CARDS, NULL, NULL);
         $r->completed($uid);
 
         error_log(__METHOD__ . " end");
