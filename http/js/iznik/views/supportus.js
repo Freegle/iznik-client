@@ -63,8 +63,23 @@ define([
                     ABTestShown('SupportUs', self.template);
                 });
             } else {
-                // If we're not asking for a donation, offer business cards
-                (new Iznik.Views.User.BusinessCards()).render();
+                // If we're not asking for a donation, offer business cards, unless the group forbids it.
+                var homegroup = Storage.get('myhomegroup');
+                var cardsallowed = true;
+                if (homegroup) {
+                    var settings = Iznik.Session.getSettings(homegroup);
+                    if (settings.hasOwnProperty('businesscards')) {
+                        cardsallowed = settings.businesscards;
+                    }
+                }
+
+                if (cardsallowed) {
+                    (new Iznik.Views.User.BusinessCards()).render();
+                } else {
+                    // Invite instead
+                    self.template = 'user_support_invite';
+                    p = Iznik.Views.Modal.prototype.render.call(self);
+                }
             }
 
             return(p);
