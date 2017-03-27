@@ -341,7 +341,6 @@ define([
 
             // We might already be rendered, as we're outside the body content that gets zapped when we move from
             // page to page.
-            console.log("Page render - got holder?", $('#chatHolder').length);
             if ($('#chatHolder').length == 0) {
                 self.$el.css('visibility', 'hidden');
 
@@ -1048,6 +1047,11 @@ define([
                     // If the unread message count changes, we want to update it.
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
 
+                    // If the last message changes, we want to fetch more.
+                    self.listenTo(self.model, 'change:lastmsg', function() {
+                        self.messages.fetch();
+                    });
+
                     var minimise = true;
 
                     try {
@@ -1333,6 +1337,9 @@ define([
                     }, self), 60000);
 
                     self.$el.fadeIn('slow');
+
+                    self.listenTo(self.model, 'change:seenbyall', self.render);
+                    self.listenTo(self.model, 'change:mailedtoall', self.render);
                 });
             } else {
                 p = resolvedPromise(this);

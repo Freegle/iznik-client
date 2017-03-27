@@ -64,7 +64,7 @@ define([
                 // Maintain the lastmsgseen flag.  We might send multiple messages which complete in
                 // different order, so don't go backwards.
                 var lastmsg = msg.get('lastmsgseen');
-                self.set('lastmsgseen', Math.max(lastmsg, msg.get('id')));
+                self.set('lastmsgseen', lastmsg ? Math.max(lastmsg, msg.get('id')) : msg.get('id'));
                 self.set('unseen', 0);
 
                 if (self.sending.length > 0) {
@@ -144,12 +144,6 @@ define([
 
             // The chat host is passed from the server.
             self.chathost = $('meta[name=iznikchat]').attr("content");
-
-            self.listenTo(self, 'add', function (chat) {
-                // We also want to sort if the unseen value changes, so that the chats with messages appear at the
-                // top.
-                self.listenTo(chat, 'change:unseen', self.sort);
-            });
 
             // We want to know when the tab is active, as this affects how often we hit the server.
             $(document).on('hide', function () {
@@ -302,15 +296,22 @@ define([
                                     //
                                     // Make sure we have this chat in our collection - might not have picked
                                     // it up yet - timing windows.
-                                    var chat = new Iznik.Models.Chat.Room({
-                                        id: data.roomid
-                                    });
+                                    var chat = self.get(data.roomid);
+                                    if (!chat) {
+                                        // We don't have it - get and add.
+                                        chat = new Iznik.Models.Chat.Room({
+                                            id: data.roomid
+                                        });
 
-                                    chat.fetch({
-                                        remove: true
-                                    }).then(function() {
-                                        self.add(chat, { merge: true });
-                                    });
+                                        chat.fetch({
+                                            remove: true
+                                        }).then(function() {
+                                            self.add(chat, { merge: true });
+                                        });
+                                    } else {
+                                        // We already have it.
+                                        chat.fetch();
+                                    }
                                 }
                             }
                         }
