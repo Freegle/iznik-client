@@ -109,10 +109,10 @@ define([
                     var date = dates[i];
                     if (moment().diff(date.end) < 0  || moment().isSame(date.end, 'day')) {
                         if (count == 0) {
-                            var mom = new moment(date.start);
-                            self.$('.js-start').html(mom.format('ddd, Do MMM HH:mm'));
-                            var mom = new moment(date.end);
-                            self.$('.js-end').html(mom.format('ddd, Do MMM HH:mm'));
+                            var startm = new moment(date.start);
+                            self.$('.js-start').html(startm.format('ddd, Do MMM HH:mm'));
+                            var endm = new moment(date.end);
+                            self.$('.js-end').html(endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm'));
                         }
 
                         count++;
@@ -169,8 +169,10 @@ define([
 
                 self.$('.js-dates').empty();
                 _.each(self.model.get('dates'), function(date) {
-                    var start = (new moment(date.start)).format('ddd, Do MMM YYYY HH:mm');
-                    var end = (new moment(date.end)).format('ddd, Do MMM YYYY HH:mm');
+                    var startm = new moment(date.start);
+                    var start = startm.format('ddd, Do MMM YYYY HH:mm');
+                    var endm = new moment(date.end);
+                    var end = endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm');
                     self.$('.js-dates').append(start + ' - ' + end + '<br />');
                 });
             });
@@ -181,24 +183,34 @@ define([
         template: "communityevents_edit",
 
         events: {
-            'click .js-save': 'save'
+            'click .js-save': 'save',
+            'click .js-adddate': 'addDate'
         },
         
         closeAfterSave: true,
 
         wait: null,
 
+        addDate: function(event) {
+            var self = this;
+            event.preventDefault();
+            event.stopPropagation();
+
+            self.dates.add(new Iznik.Model({}));
+        },
+
         save: function() {
             var self = this;
 
-            if (!self.wait) {
-                self.wait = new Iznik.Views.PleaseWait({
-                    timeout: 1
-                });
-                self.wait.render();
+            if (!self.wait && self.dates.length > 0) {
                 self.promises = [];
 
                 if (self.$('form').valid()) {
+                    self.wait = new Iznik.Views.PleaseWait({
+                        timeout: 1
+                    });
+                    self.wait.render();
+
                     self.$('input,textarea').each(function () {
                         var name = $(this).prop('name');
                         if (name.length > 0 && name != 'photo') {
@@ -255,9 +267,9 @@ define([
                         });
 
                         // Add new dates.
-                        for (var i = 0; i < self.dates.length; i++) {
-                            var start = self.dates[i].getStart();
-                            var end = self.dates[i].getEnd();
+                        self.datesCV.viewManager.each(function(date) {
+                            var start = date.getStart();
+                            var end = date.getEnd();
 
                             self.promises.push($.ajax({
                                 url: API + 'communityevent',
@@ -269,11 +281,9 @@ define([
                                     end: end
                                 }
                             }));
-                        }
+                        });
 
-                        console.log("Wait for", self.promises);
                         Promise.all(self.promises).then(function() {
-                            console.log("Completed all");
                             self.wait.close();
                             self.wait = null;
                         })
@@ -340,29 +350,34 @@ define([
                     })
 
                     var dates = self.model.get('dates');
-                    self.dates = [];
 
                     if (_.isUndefined(dates) || dates.length == 0) {
                         // None so far.  Set up one for them to modify.
-                        var v = new Iznik.Views.User.CommunityEvent.Dates({
-                            list: self.dates,
-                            model: self.model
-                        });
-                        v.render().then(function() {
-                            self.$('.js-dates').append(v.el);
-                        });
+                        self.dates = new Iznik.Collection([
+                            new Iznik.Model({})
+                        ]);
                     } else {
-                        // Got some dates.  Show them.
-                        _.each(dates, function(adate) {
-                            var v = new Iznik.Views.User.CommunityEvent.Dates({
-                                list: self.dates,
-                                model: new Iznik.Model(adate)
-                            });
-                            v.render().then(function() {
-                                self.$('.js-dates').append(v.el);
-                            });
-                        });
+                        self.dates = new Iznik.Collection(dates);
                     }
+
+                    self.datesCV = new Backbone.CollectionView({
+                        el: $('.js-dates'),
+                        modelView: Iznik.Views.User.CommunityEvent.Date,
+                        collection: self.dates,
+                        processKeyEvents: false,
+                        modelViewOptions: {
+                            collection: self.dates
+                        }
+                    });
+
+                    self.datesCV.render();
+
+                    self.listenTo(self.dates, 'update', function() {
+                        // Re-render the first date to make sure the delete button only appears when there are
+                        // multiple.
+                        console.log("Collection updated", self.dates.length);
+                        self.datesCV.viewManager.findByIndex(0).render();
+                    });
 
                     // Need to make sure we're in the DOM else the validate plugin fails.
                     self.waitDOM(self, function() {
@@ -473,12 +488,12 @@ define([
         }
     });
 
-    Iznik.Views.User.CommunityEvent.Dates = Iznik.View.extend({
+    Iznik.Views.User.CommunityEvent.Date = Iznik.View.extend({
         template: "communityevents_dates",
 
         events: {
-            'click .js-addrepeat': 'add',
-            'change .js-start': 'startChange'
+            'change .js-start': 'startChange',
+            'click .js-deldate': 'del'
         },
 
         startChange: function() {
@@ -486,22 +501,19 @@ define([
             this.$('.js-end').combodate('setValue', this.$('.js-start').combodate('getValue'));
         },
 
-        add: function(event) {
+        del: function(event) {
+            var self = this;
             event.preventDefault();
             event.stopPropagation();
-            var self = this;
-            this.$('.js-addrepeat').hide();
-            var v = new Iznik.Views.User.CommunityEvent.Dates(this.options);
-            v.render().then(function() {
-                console.log("New date", self.$el.parent(), v.el);
-                self.$el.parent().append(v.el);
+
+            self.$el.fadeOut('slow', function() {
+                self.options.collection.remove(self.model);
             });
         },
 
         render: function () {
             var self = this;
             var p = Iznik.View.prototype.render.call(this).then(function() {
-                self.options.list.push(self);
                 self.$el.html(window.template(self.template)(self.model.toJSON2()));
 
                 var start = self.model.get('start');
@@ -546,6 +558,10 @@ define([
                 }
 
                 self.$('select').addClass('form-control');
+
+                if (self.options.collection.length > 1) {
+                    self.$('.js-deldate').show();
+                }
             });
 
             return(p);
