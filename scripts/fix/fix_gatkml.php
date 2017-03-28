@@ -398,7 +398,7 @@ $namemap = [
     [ 21694,'Witney-Freegle','S. East: Witney' ],
     [ 21695,'WNM_Freegle','Wales: Welshpool, Newtown & Montgomery' ],
     [ 21696,'woking-freegle','S. East: Woking' ],
-    [ 21698,'Wokingham-Freegle','S. East: Wokingham [Borough Council]' ],
+    [ 21698,'Wokingham-Freegle','S. East: Wokingham' ],
     [ 21699,'WolvesFreegle','W. Mids: Wolverhampton [City Council]' ],
     [ 21700,'WoodleyFreegle','S. East: Woodley' ],
     [ 21701,'Worcester-Freegle','W. Mids: Worcester City' ],
@@ -418,8 +418,16 @@ if ($kml) {
 
     foreach ($kgroups as $kgroup) {
         $kname = trim($kgroup->name);
-        $poly = $kgroup->Polygon;
-        #error_log(var_export($kgroup, TRUE));
+        $poly = NULL;
+        if ($kgroup->Polygon) {
+            $poly = $kgroup->Polygon;
+        } else if ($kgroup->MultiGeometry) {
+            # Take the larger polygon.
+            foreach ($kgroup->MultiGeometry->Polygon as $p) {
+                $poly = (!$poly || (strlen($p->asXML()) > strlen($poly))) ? $p : $poly;
+            }
+        }
+
         if ($poly) {
             $geom = geoPHP::load($poly->asXML(), 'kml');
             $wkt = $geom->out('wkt');
@@ -428,8 +436,8 @@ if ($kml) {
                 $found = FALSE;
                 foreach ($namemap as $name) {
                     #error_log("Compare {$name[2]} vs $kname");
-                    if (strpos($kname, $name[2]) === 0) {
-                        #error_log("Found $kname as {$name[0]} {$name[1]}");
+                    if ($kname == $name[2]) {
+                        error_log("Found $kname as {$name[0]} {$name[1]}");
                         $found = TRUE;
                         $gs = $dbhr->preQuery("SELECT * FROM groups WHERE id = ? AND (polyofficial != ? OR polyofficial IS NULL);", [
                             $name[0],
@@ -446,6 +454,8 @@ if ($kml) {
                 if (!$found) {
                     error_log("Failed to find $kname");
                 }
+            } else {
+                error_log("Could not process " . $poly->asXML());
             }
         } else {
             #error_log("No WKT from GAT for $kname");
