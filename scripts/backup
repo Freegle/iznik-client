@@ -13,7 +13,7 @@ timestamp=$(date +%Y-%m-%d-%H-%M)
 pgrep mysql
 if [ $? == 0 ]; then
     # run a backup and stream the output directly to Google storage
-    $BACKUP | gzip - | /root/gsutil/gsutil cp -q - gs://freegle_backup/iznik-$timestamp.tar.gz > /tmp/gsutil.out 2>&1
+    $BACKUP | gzip - | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar.gz > /tmp/gsutil.out 2>&1
 
     if [ $? == 0 ]; then
       grep "0 B" /tmp/gsutil.out
@@ -43,4 +43,4 @@ do
     ssh $host "(cd /var/spool.crontabs; tar -cvzf - ./)" > $host.crontab.tgz
 done
 tar -cvf iznik-etc-$timestamp.tgz ./
-/root/gsutil/gsutil cp -q iznik-etc-$timestamp.tgz gs://freegle_backup/ >> /tmp/gsutil.out 2>&1
+/root/gsutil/gsutil cp iznik-etc-$timestamp.tgz gs://freegle_backup/ >> /tmp/gsutil.out 2>&1
