@@ -266,9 +266,9 @@ class Message
             $this->constructSubject($groupids[0]);
             $this->setPrivate('subject', $this->subject);
             $this->setPrivate('suggestedsubject', $this->subject);
-        } else if ($subject) {
+        } else if ($subject && strlen($subject) > 10) {
             # If the subject has been edited, then that edit is more important than any suggestion we might have
-            # come up with.
+            # come up with.  Don't allow stupidly short edits.
             $this->setPrivate('subject', $subject);
             $this->setPrivate('suggestedsubject', $subject);
         }
