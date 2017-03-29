@@ -91,8 +91,11 @@
                 <div class="col-md-3">
                     On holiday?
                 </div>
-                <div class="col-md-9">
-                    <% if (obj.onholidaytill && onholidaytill != '1970-01-01T00:00:00Z') { %><abbr class="timeago" title="{{onholidaytill}}" /></small></span><% } else { %>No<% } %>
+                <div class="col-md-4">
+                    <input type="checkbox" class="js-switch js-onholiday" disabled="true" />
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control js-onholidaytill datepicker" disabled="true" style="display: none"/>
                 </div>
             </div>
             <h3>Logins</h3>
@@ -124,10 +127,16 @@
             </div>
             <h3>Detailed Logs</h3>
             <div class="btn btn-white js-logs">View Logs</div>
-            <h3>Message History</h3>
+            <h3>Posting History</h3>
             <div class="js-messages" />
             <div class="js-messagesnone">
                 This user hasn't posted any messages.
+            </div>
+            <h3>Recent Emails</h3>
+            <p>These are the recent emails which we have sent to this user.  It may not be completely up to date.</p>
+            <div class="js-emailhistory" />
+            <div class="js-emailhistorynone">
+                No recent emails sent.
             </div>
             <h3>Chats</h3>
             <div class="js-chats" />

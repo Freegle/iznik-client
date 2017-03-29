@@ -134,7 +134,8 @@ define([
                         type: self.options.urlfragment,
                         page: self
                     },
-                    collection: self.spammers
+                    collection: self.spammers,
+                    processKeyEvents: false
                 });
 
                 self.collectionView.render();

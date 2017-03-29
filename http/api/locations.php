@@ -25,8 +25,11 @@ function locations() {
             $nelng = presdef('nelng', $_REQUEST, NULL);
             $typeahead = presdef('typeahead', $_REQUEST, NULL);
             $limit = intval(presdef('limit', $_REQUEST, 10));
+            $findmystreet = intval(presdef('findmystreet', $_REQUEST, NULL));
 
-            if ($lat && $lng) {
+            if ($findmystreet) {
+                $ret = [ 'ret' => 0, 'status' => 'Success', 'streets' => $l->findMyStreet($findmystreet) ];
+            } else if ($lat && $lng) {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'location' => $l->closestPostcode($lat, $lng) ];
             } else if ($typeahead) {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->typeahead($typeahead, $limit, $groupsnear) ];

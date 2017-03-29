@@ -462,6 +462,13 @@ define([
                                 helpMessage: "Email occasional newsletters to members.  Members can turn this on/off themselves, so you would only turn this off if you want to override their decision."
                             },
                             {
+                                name: 'businesscards',
+                                label: '(Freegle only) Offer business cards to members?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "When members mark a post as completed, we can offer them some business cards to promote Freegle."
+                            },
+                            {
                                 name: 'reposts.max',
                                 label: '(Freegle only) Max auto-reposts',
                                 control: 'input',

@@ -33,7 +33,7 @@ define([
                     self.xhrPool.push(jqXHR);
                 },
                 complete: function(jqXHR) {
-                    var index = self.xhrPool.indexOf(jqXHR);
+                    var index = $.inArray(jqXHR, self.xhrPool);
                     if (index > -1) {
                         self.xhrPool.splice(index, 1);
                     }
@@ -183,6 +183,8 @@ define([
             "mypost/:id": "userMyPost",
             "stories": "userStories",
             "story/:id": "userStory",
+            "streetwhack(/:id)": "findMyStreet",
+            "why": "userWhy",
             "*path": "userHome"
         },
 
@@ -1416,6 +1418,15 @@ define([
             });
         },
 
+        userWhy: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.Why();
+                self.loadRoute({page: page});
+            });
+        },
+
         userContact: function() {
             var self = this;
 
@@ -1442,6 +1453,15 @@ define([
             // Might be trailing guff in legacy routes.
             groupid = parseInt(groupid);
             this.userExploreGroup(groupid, true);
+        },
+
+        findMyStreet: function(id) {
+            var self = this;
+
+            require(["iznik/views/pages/user/findmystreet"], function() {
+                var page = new Iznik.Views.User.Pages.FindMyStreet();
+                self.loadRoute({page: page});
+            });
         }
     });
 

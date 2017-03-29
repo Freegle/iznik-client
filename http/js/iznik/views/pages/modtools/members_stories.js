@@ -61,7 +61,8 @@ define([
                                 page: self,
                                 newsletter: self.options.newsletter
                             },
-                            collection: self.collection
+                            collection: self.collection,
+                            processKeyEvents: false
                         });
 
                         self.collectionView.render();
@@ -90,7 +91,8 @@ define([
                             page: self,
                             newsletter: self.options.newsletter
                         },
-                        collection: self.collection
+                        collection: self.collection,
+                        processKeyEvents: false
                     });
 
                     self.collectionView.render();

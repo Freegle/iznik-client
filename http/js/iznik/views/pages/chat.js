@@ -150,7 +150,8 @@ define([
                         el: $('#js-chatlist1'),
                         modelView: Iznik.Views.Chat.Page.One,
                         collection: self.chats,
-                        visibleModelsFilter: _.bind(self.searchFilter, self)
+                        visibleModelsFilter: _.bind(self.searchFilter, self),
+                        processKeyEvents: false
                     });
 
                     self.chatsCV1.render();
@@ -172,7 +173,8 @@ define([
                             el: $('#js-chatlist2'),
                             modelView: Iznik.Views.Chat.Page.One,
                             collection: self.chats,
-                            visibleModelsFilter: _.bind(self.searchFilter, self)
+                            visibleModelsFilter: _.bind(self.searchFilter, self),
+                            processKeyEvents: false
                         });
 
                         self.chatsCV2.render();
@@ -296,7 +298,16 @@ define([
             'click .js-small': 'small',
             'keyup .js-message': 'keyUp',
             'change .js-status': 'status',
-            'click .js-remove': 'removeIt'
+            'click .js-remove': 'removeIt',
+            'click .js-popup': 'popup'
+        },
+
+        popup: function(){
+            var self = this;
+            require(['iznik/views/chat/chat'], function(ChatHolder) {
+                var chatid = self.model.get('id');
+                ChatHolder().fetchAndRestore(chatid);
+            });
         },
 
         enter: function(e) {
@@ -311,7 +322,6 @@ define([
             var self = this;
             e.preventDefault();
             e.stopPropagation();
-            console.log("Remove?");
 
             var v = new Iznik.Views.Confirm({
                 model: self.model
@@ -331,7 +341,8 @@ define([
                     Iznik.Session.chats.fetch({
                         cached: nullFn
                     }).then(function() {
-                        window.location.reload();
+                        // CC window.location.reload();
+                        Router.navigate("/chats", true);
                     });
                 });
             });
@@ -533,27 +544,14 @@ define([
             v.render();
         },
 
-        allseen: function () {
-            if (this.messages.length > 0) {
-                this.model.set('lastmsgseen', this.messages.at(this.messages.length - 1).get('id'));
-                // console.log("Now seen chat message", this.messages.at(this.messages.length - 1).get('id'));
-            }
-            this.model.set('unseen', 0);
-        },
-
         messageFocused: function () {
             var self = this;
             console.log("Message focus");
 
             // We've seen all the messages.
-            console.log("Start seen timer");
-            _.delay(_.bind(self.allseen, self), 30000);
-
-            // Tell the server now, in case they navigate away before the next roster timer.
-            console.log("Set status");
+            self.model.allseen();
 
             this.updateCount();
-            console.log("Updated count");
         },
 
         messageFocus: function() {
@@ -748,18 +746,13 @@ define([
             }
         },
 
+        rendered: false,
+
         render: function () {
             var self = this;
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function (self) {
-                // Input text autosize
-                autosize(self.$('textarea'));
-
-                self.waitDOM(self, function() {
-                    self.adjust();
-                });
-
                 if (!self.options.modtools) {
                     self.$('.js-privacy').hide();
                 } else {
@@ -801,7 +794,19 @@ define([
                 }
 
                 self.updateCount();
-                self.listenTo(self.model, 'change:unseen', self.updateCount);
+
+                if (!self.rendered) {
+                    self.rendered = true;
+
+                    // Input text autosize
+                    autosize(self.$('textarea'));
+
+                    self.waitDOM(self, function() {
+                        self.adjust();
+                    });
+
+                    self.listenTo(self.model, 'change:unseen', self.updateCount);
+                }
 
                 self.messageViews = new Backbone.CollectionView({
                     el: self.$('.js-messages'),
@@ -812,7 +817,8 @@ define([
                     modelViewOptions: {
                         chatView: self,
                         chatModel: self.model
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 // As new messages are added, we want to show them.  This also means when we first render, we'll

@@ -8,7 +8,7 @@ define([
     'iznik/views/group/communityevents',
     'iznik/views/pages/pages',
     'iznik/views/user/message',
-    'iznik/views/donations',
+    'iznik/views/supportus',
     'iznik/views/user/polls'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
@@ -112,7 +112,8 @@ define([
                     },
                     modelView: Iznik.Views.User.Home.Offer,
                     collection: self.offers,
-                    visibleModelsFilter: _.bind(self.filter, self)
+                    visibleModelsFilter: _.bind(self.filter, self),
+                    processKeyEvents: false
                 });
 
                 self.offersView.render();
@@ -125,7 +126,8 @@ define([
                         page: self
                     },
                     collection: self.wanteds,
-                    visibleModelsFilter: _.bind(self.filter, self)
+                    visibleModelsFilter: _.bind(self.filter, self),
+                    processKeyEvents: false
                 });
 
                 self.wantedsView.render();
@@ -234,7 +236,8 @@ define([
                     collection: self.searches,
                     modelViewOptions: {
                         collection: self.searches
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 self.searchView.render();
@@ -262,6 +265,8 @@ define([
                     self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
                     self.$('.js-bouncing').fadeIn('slow');
                 }
+
+                // (new Iznik.Views.SupportUs()).render();
             });
 
             return(p);
@@ -523,14 +528,8 @@ define([
                         self.close();
                         self.trigger('outcame');
 
-                        var v = new Iznik.Views.Modal();
-                        v.template = 'user_home_supportus';
-                        v.render().then(function() {
-                            var w = new Iznik.Views.DonationThermometer();
-                            w.render().then(function () {
-                                v.$('.js-thermometer').html(w.$el);
-                            });
-                        });
+                        var v = new Iznik.Views.SupportUs();
+                        v.render();
                     }
                 }
             })

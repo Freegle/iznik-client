@@ -36,7 +36,8 @@ define([
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-list'),
                     modelView: Iznik.Views.User.Pages.Stories.One,
-                    collection: self.collection
+                    collection: self.collection,
+                    processKeyEvents: false
                 });
 
                 self.collectionView.render();

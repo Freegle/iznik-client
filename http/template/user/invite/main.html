@@ -1,21 +1,38 @@
 <h1 class="text-center js-exploreall js-pagetitle">Get your friends freegling!</h1>
-<div class="panel">
-    <div class="panel-body boxglow img-rounded">
-        <div class="row">
-            <div class="col-xs-12">
-                <p>
-                    We'll send them an email invitation.  It will show your name and email, and by using this
-                    you confirm that you have their consent.
-                </p>
+<% if (!me.invitesleft) { %>
+<div class="alert alert-danger">
+    You don't have any invitations left at the moment.  Please check back later.
+</div>
+<% } else { %>
+    <div class="alert alert-info">
+        You have <b>{{me.invitesleft}}</b> invitation<% if (me.invitesleft != 1) { %>s<% } %> left.
+    </div>
+    <div class="panel">
+        <div class="panel-body boxglow img-rounded">
+            <div class="row">
+                <div class="col-xs-12">
+                    <p>
+                        We'll send them an email invitation.  It will show your name and email, and by using this
+                        you confirm that you have their consent.
+                    </p>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="input-group">
-                    <input type="email" class="form-control js-inviteemail" placeholder="Enter their email address" aria-describedby="invitebtn">
-                    <span class="input-group-addon btn-success clickme js-invite" id="invitebtn"><span class="glyphicon glyphicon-envelope" />&nbsp;Invite a friend</span>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="input-group">
+                        <input type="email" class="form-control js-inviteemail" placeholder="Enter their email address" aria-describedby="invitebtn">
+                        <span class="input-group-addon btn-success clickme js-invite" id="invitebtn"><span class="glyphicon glyphicon-envelope" />&nbsp;Invite a friend</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    <div class="js-invitewrapper" style="display: none">
+        <h3>Your invitations</h3>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <ul class="list-unstyled js-list" />
+            </div>
+        </div>
+    </div>
+<% } %>

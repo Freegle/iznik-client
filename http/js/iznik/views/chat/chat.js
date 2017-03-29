@@ -160,7 +160,7 @@ define([
         updateCounts: function () {
             var self = this;
             var unseen = 0;
-            console.log("update Chat counts");
+            // console.log("update Chat counts");
 
             Iznik.Session.chats.each(function (chat) {
                 unseen += chat.get('unseen');
@@ -332,7 +332,8 @@ define([
                         organise: _.bind(self.organise, self),
                         updateCounts: _.bind(self.updateCounts, self),
                         modtools: self.options.modtools
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 Iznik.openChats.render();
@@ -353,7 +354,6 @@ define([
 
             // We might already be rendered, as we're outside the body content that gets zapped when we move from
             // page to page.
-            console.log("Page render - got holder?", $('#chatHolder').length);
             if ($('#chatHolder').length == 0) {
                 self.$el.css('visibility', 'hidden');
 
@@ -664,9 +664,7 @@ define([
         messageFocus: function () {
             var self = this;
 
-            if (self.messages) {
-                self.messages.allseen();
-            }
+            self.model.allseen();
             self.updateCount();
         },
 
@@ -1062,6 +1060,11 @@ define([
                     // If the unread message count changes, we want to update it.
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
 
+                    // If the last message changes, we want to fetch more.
+                    self.listenTo(self.model, 'change:lastmsg', function() {
+                        self.messages.fetch();
+                    });
+
                     var minimise = true;
 
                     try {
@@ -1093,7 +1096,8 @@ define([
                         modelViewOptions: {
                             chatView: self,
                             chatModel: self.model
-                        }
+                        },
+                        processKeyEvents: false
                     });
 
                     // As new messages are added, we want to show them.  This also means when we first render, we'll
@@ -1198,13 +1202,15 @@ define([
             'click .js-imgzoom': 'imageZoom'
         },
 
-        imageZoom: function() {
+        imageZoom: function(e) {
             var self = this;
             var v = new Iznik.Views.Chat.Message.PhotoZoom({
                 model: self.model
             });
 
             v.render();
+            e.preventDefault();
+            e.stopPropagation();
         },
 
         viewChat: function () {
@@ -1344,6 +1350,9 @@ define([
                     }, self), 60000);
 
                     self.$el.fadeIn('slow');
+
+                    self.listenTo(self.model, 'change:seenbyall', self.render);
+                    self.listenTo(self.model, 'change:mailedtoall', self.render);
                 });
             } else {
                 p = resolvedPromise(this);
@@ -1490,7 +1499,8 @@ define([
                     collection: self.messages,
                     modelViewOptions: {
                         chatModel: self.model
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 console.log("Chat modal", self.$('.js-messages').length, self.messages, self.model);

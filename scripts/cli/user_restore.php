@@ -14,6 +14,14 @@ $dbhback = new LoggedPDO($dsn, SQLUSER, SQLPASSWORD, array(
 
 $opts = getopt('e:');
 
+$useridkeywords = [
+    'userid',
+    'user',
+    'byuserid',
+    'user1',
+    'user2'
+];
+
 if (count($opts) < 1) {
     echo "Usage: hhvm user_restore.php -e <email to restore>\n";
 } else {
@@ -22,6 +30,12 @@ if (count($opts) < 1) {
     $luid = $ulive->findByEmail($email);
     $ulive = User::get($dbhr, $dbhm, $luid);
     error_log("User on live #$luid");
+
+    if (!$luid) {
+        error_log("...create");
+        $luid = $ulive->create(NULL, NULL, NULL);
+        $u->addEmail($email);
+    }
 
     $uback = new User($dbhback, $dbhback);
     $buid = $uback->findByEmail($email);
@@ -47,6 +61,7 @@ if (count($opts) < 1) {
             'sessions' => [ 'userid' ],
             'messages' => [ 'fromuser' ],
             'users_push_notifications' => [ 'userid' ],
+            'chat_rooms' => [ 'user1', 'user2' ],
             'chat_roster' => [ 'userid' ],
             'chat_messages' => [ 'userid' ],
             'users_searches' => [ 'userid' ],
@@ -56,15 +71,50 @@ if (count($opts) < 1) {
             'logs_sql' => [ 'userid' ]
                  ] as $table => $keys) {
             foreach ($keys as $key) {
-                error_log("Table $table key $key");
+                #error_log("Table $table key $key");
                 $rows = $dbhback->preQuery("SELECT * FROM $table WHERE $key = ?;", [ $buid ]);
 
                 foreach ($rows as $row) {
                     error_log("  #{$row['id']}");
-                    $dbhm->preExec("UPDATE $table SET $key = ? WHERE id = ?;", [
-                        $luid,
-                        $row['id']
-                    ]);
+
+                    # The row might or might not exist.
+                    unset($row['id']);
+                    $sql1 = "INSERT INTO $table (";
+                    $sql2 = ") VALUES (";
+                    $sql3 = ") ON DUPLICATE KEY UPDATE $key = $luid";
+                    $first = TRUE;
+                    $vals = [];
+                    $vals2 = [];
+                    foreach ($row as $key2 => $val) {
+                        if (!is_int($key2)) {
+                            if (!$first) {
+                                $sql1 .= ", ";
+                                $sql2 .= ", ";
+                            }
+
+                            $first = FALSE;
+                            $sql1 .= $key2;
+                            $sql2 .= "?";
+                            $sql3 .= ", $key2 = ?";
+
+                            #error_log("Consider $key2 => $val vs $buid");
+                            $val = ($key2 == $key || (in_array($key2, $useridkeywords) && $val == $buid)) ? $luid : $val;
+                            #error_log("...$val");
+                            $vals[] = $val;
+                            $vals2[] = $val;
+                        }
+                    }
+
+                    $sql = "$sql1 $sql2 $sql3";
+                    $v = array_merge($vals, $vals2);
+                    #error_log($sql . var_export($v, TRUE));
+                    try {
+                        $rc = $dbhm->preExec($sql, $v);
+                    } catch (Exception $e) {
+                        error_log($e->getMessage());
+                    }
+                    #error_log("Returned $rc");
+                    #exit(0);
                 }
             }
         }

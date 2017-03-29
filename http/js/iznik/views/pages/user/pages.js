@@ -383,6 +383,8 @@ define([
                         self.changeGroup();
                     }
                 }
+
+                self.trigger('gotlocation', location);
             }
         },
         
@@ -409,7 +411,6 @@ define([
             var self = this;
             self.$('.js-getloc').tooltip('destroy');
 
-
             $.ajax({
                 type: 'GET',
                 url: API + 'locations',
@@ -431,7 +432,9 @@ define([
                         }, 20000);
                     }
                 }, complete: function() {
-                    self.wait.close();
+                    if (self.wait) {
+                        self.wait.close();
+                    }
                 }
             });
         },

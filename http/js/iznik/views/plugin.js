@@ -108,7 +108,8 @@ define([
                     self.collectionView = new Backbone.CollectionView( {
                         el : self.$('.js-work'),
                         modelView : Iznik.Views.Plugin.Work,
-                        collection: self.collection
+                        collection: self.collection,
+                        processKeyEvents: false
                     } );
 
                     var count = self.collection.length; // CC

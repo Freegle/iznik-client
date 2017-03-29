@@ -223,7 +223,7 @@ define([
                             if (group.collection == 'Approved') {
                                 approved = true;
                             }
-                            if (group.collection == 'Pending') {
+                            if (group.collection == 'Pending' || group.collection == 'QueuedYahooUser') {
                                 pending = true;
                             }
                             if (group.collection == 'Rejected') {
@@ -297,7 +297,8 @@ define([
                                             message: self.model,
                                             offers: self.options.offers
                                         },
-                                        collection: self.replies
+                                        collection: self.replies,
+                                        processKeyEvents: false
                                     });
 
                                     self.repliesView.render();

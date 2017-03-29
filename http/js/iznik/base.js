@@ -216,7 +216,9 @@ define([
                                             console.log("Failed to set", e.message);
                                             Storage.iterate(function(k,v) {
                                                 console.log("Consider prune ", k);
-                                                if (k.indexOf('cache.') === 0) {
+                                                if (k.indexOf('cache.') === 0 ||
+                                                    (k.indexOf('chat-') !== -1 &&
+                                                    (k.indexOf('-width') !== -1 || k.indexOf('-height') !== -1 || k.indexOf("-lp") !== -1))) {
                                                     console.log("Remove", k, v.length);
                                                     Storage.remove(k);
                                                 }

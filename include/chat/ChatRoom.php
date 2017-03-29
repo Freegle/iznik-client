@@ -225,8 +225,11 @@ class ChatRoom extends Entity
         return ($id);
     }
 
-    public function getPublic($me = NULL)
+    public function getPublic($me = NULL, $mepub = NULL)
     {
+        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
         $ret = $this->getAtts($this->publicatts);
 
         if (pres('groupid', $ret)) {
@@ -236,26 +239,36 @@ class ChatRoom extends Entity
         }
 
         if (pres('user1', $ret)) {
-            $u = User::get($this->dbhr, $this->dbhm, $ret['user1']);
-            unset($ret['user1']);
-            $ctx = NULL;
-            $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+            if ($ret['user1'] == $myid && $mepub) {
+                $ret['user1'] = $mepub;
+            } else {
+                $u = User::get($this->dbhr, $this->dbhm, $ret['user1']);
+                unset($ret['user1']);
+                $ctx = NULL;
+                $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
 
-            if (pres('group', $ret)) {
-                # As a mod we can see the email
-                $ret['user1']['email'] = $u->getEmailPreferred();
+                if (pres('group', $ret)) {
+                    # As a mod we can see the email
+                    $ret['user1']['email'] = $u->getEmailPreferred();
+                }
             }
         }
 
         if (pres('user2', $ret)) {
-            $u = User::get($this->dbhr, $this->dbhm, $ret['user2']);
-            unset($ret['user2']);
-            $ctx = NULL;
-            $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
-        }
+            if ($ret['user2'] == $myid && $mepub) {
+                $ret['user2'] = $mepub;
+            } else {
+                $u = User::get($this->dbhr, $this->dbhm, $ret['user2']);
+                unset($ret['user2']);
+                $ctx = NULL;
+                $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
 
-        $me = $me ? $me : whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+                if (pres('group', $ret)) {
+                    # As a mod we can see the email
+                    $ret['user2']['email'] = $u->getEmailPreferred();
+                }
+            }
+        }
 
         $ret['unseen'] = $this->unseenCountForUser($myid);
 
@@ -289,7 +302,7 @@ class ChatRoom extends Entity
             $ret['refmsgids'][] = $refmsg['refmsgid'];
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND message IS NOT NULL AND LENGTH(message) > 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
+        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
         $ret['lastmsg'] = 0;
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
@@ -429,9 +442,16 @@ class ChatRoom extends Entity
             $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = ? AND chat_rooms.id = chat_roster.chatid WHERE chat_rooms.id IN (" . implode(',', $chatids) . ") $typeq AND (status IS NULL OR status != ?)";
             #error_log($sql . var_export([ $userid, ChatRoom::STATUS_CLOSED ], TRUE));
             $rooms = $this->dbhr->preQuery($sql, [$userid, ChatRoom::STATUS_CLOSED]);
+
+            # We might have quite a lot of chats - speed up by reducing user fetches.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $ctx = NULL;
+            $mepub = $me ? $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE) : NULL;
+
             foreach ($rooms as $room) {
                 #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
                 $cansee = FALSE;
+
                 switch ($room['chattype']) {
                     case ChatRoom::TYPE_USER2USER:
                         # We can see this if we're one of the users.
@@ -475,11 +495,13 @@ class ChatRoom extends Entity
 
                     if ($search) {
                         # We want to apply a search filter.
-                        if (stripos($room['name'], $search) === FALSE) {
+                        $r = new ChatRoom($this->dbhr, $this->dbhm, $room['id']);
+                        $name = $r->getPublic($me, $mepub)['name'];
+
+                        if (stripos($name, $search) === FALSE) {
                             # We didn't get a match easily.  Now we have to search in the messages.
                             $searchq = $this->dbhr->quote("%$search%");
                             $sql = "SELECT chat_messages.id FROM chat_messages LEFT OUTER JOIN messages ON messages.id = chat_messages.refmsgid WHERE chatid = {$room['id']} AND (chat_messages.message LIKE $searchq OR messages.subject LIKE $searchq) LIMIT 1;";
-                            error_log($sql);
                             $msgs = $this->dbhr->preQuery($sql);
 
                             $show = count($msgs) > 0;
@@ -919,11 +941,11 @@ class ChatRoom extends Entity
             #
             # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
             $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
-            error_log("$sql {$this->id}, $lastmessage");
+            #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
             foreach ($users as $user) {
                 # What's the max message this user has either seen or been mailed?
-                error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
+                #error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
                 $maxseen = presdef('lastmsgseen', $user, 0);
                 $maxmailed = presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
@@ -1281,7 +1303,7 @@ class ChatRoom extends Entity
         $notreplied = [];
 
         # Chase up recent User2Mod chats where there has been no mod input.
-        $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
+        $mysqltime = date("Y-m-d", strtotime("Midnight 2 days ago"));
         $idq = $id ? " AND chat_rooms.id = $id " : '';
         $sql = "SELECT DISTINCT chat_rooms.id FROM chat_rooms INNER JOIN chat_messages ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.date >= '$mysqltime' AND chat_rooms.chattype = 'User2Mod' $idq;";
         $chats = $this->dbhr->preQuery($sql);

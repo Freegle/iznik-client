@@ -72,6 +72,7 @@ class Message
         "update your records",
         "has now left",
         "please note his new address",
+        "this account is no longer in use",
         "Sorry, we were unable to deliver your message",
         "this email address is no longer in use"
     ];
@@ -265,9 +266,9 @@ class Message
             $this->constructSubject($groupids[0]);
             $this->setPrivate('subject', $this->subject);
             $this->setPrivate('suggestedsubject', $this->subject);
-        } else if ($subject) {
+        } else if ($subject && strlen($subject) > 10) {
             # If the subject has been edited, then that edit is more important than any suggestion we might have
-            # come up with.
+            # come up with.  Don't allow stupidly short edits.
             $this->setPrivate('subject', $subject);
             $this->setPrivate('suggestedsubject', $subject);
         }
@@ -748,6 +749,8 @@ class Message
             $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
             $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
             $ret['replies'] = [];
+            $ret['replycount'] = count($replies);
+
             foreach ($replies as $reply) {
                 $ctx = NULL;
                 if ($reply['userid']) {
@@ -777,11 +780,21 @@ class Message
             $ret['willautorepost'] = count($ret['replies']) == 0;
 
             $ret['promisecount'] = 0;
+        } else {
+            # Can see a count of replies.
+            $sql = "SELECT COUNT(DISTINCT t.userid) AS count FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? GROUP BY userid, chatid) t;";
+            $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser]);
+            $ret['replycount'] = $replies[0]['count'];
+        }
 
-            if ($this->type == Message::TYPE_OFFER) {
-                # Add any promises, i.e. one or more people we've said can have this.
-                $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
-                $ret['promises'] = $this->dbhr->preQuery($sql, [$this->id]);
+
+        if ($this->type == Message::TYPE_OFFER) {
+            # Add any promises, i.e. one or more people we've said can have this.
+            $sql = "SELECT * FROM messages_promises WHERE msgid = ? ORDER BY id DESC;";
+            $promises = $this->dbhr->preQuery($sql, [$this->id]);
+
+            if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
+                $ret['promises'] = $promises;
                 $ret['promisecount'] = count($ret['promises']);
 
                 foreach ($ret['replies'] as &$reply) {
@@ -790,7 +803,10 @@ class Message
                     }
                 }
             }
+
+            $ret['promised'] = count($promises) > 0;
         }
+
 
         # Add any outcomes.  No need to expand the user as any user in an outcome should also be in a reply.
         $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
@@ -1242,20 +1258,37 @@ class Message
 
         if (!$rejected) {
             # Rejected messages can look a bit like messages to the group, but they're not.
+            $togroup = FALSE;
+            $toours = FALSE;
+
             foreach ($to as $t) {
                 # Check it's to a group (and not the owner).
+                #
+                # Yahoo members can do a reply to all which results in a message going to both one of our users
+                # and the group, so in that case we want to ignore the group aspect.
+                if (ourDomain($t['address'])) {
+                    $toours = TRUE;
+                }
+
                 if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches) &&
                     strpos($t['address'], '-owner@') === FALSE) {
                     # Yahoo group.
                     $groupname = $matches[1];
+                    $togroup = TRUE;
                     #error_log("Got $groupname from {$t['address']}");
                 } else if (preg_match('/(.*)@' . GROUP_DOMAIN . '/', $t['address'], $matches) &&
                     strpos($t['address'], '-volunteers@') === FALSE &&
                     strpos($t['address'], '-auto@') === FALSE) {
                     # Native group.
                     $groupname = $matches[1];
+                    $togroup = TRUE;
                     #error_log("Got $groupname from {$t['address']}");
                 }
+            }
+
+            if ($toours && $togroup) {
+                # Drop the group aspect.
+                $groupname = NULL;
             }
         }
 
@@ -2326,10 +2359,11 @@ class Message
 
             # For pending messages which come back to us as approved, it might not be the same.
             # This can happen if a message is handled on another system, e.g. moderated directly on Yahoo.
+            # But if it's been edited on here, we don't want to take the Yahoo versions, which might be older.
             #
             # For approved messages which only reach us as pending later, we don't want to change the approved
             # version.
-            if ($this->source == Message::YAHOO_APPROVED) {
+            if ($this->source == Message::YAHOO_APPROVED && !$this->isEdited()) {
                 # Other atts which we want the latest version of.
                 foreach (['date', 'subject', 'message', 'textbody', 'htmlbody'] as $att) {
                     $oldval = $m->getPrivate($att);
@@ -2430,7 +2464,7 @@ class Message
             $message['dist'] = $d->getSimilarity();
             $mindist = min($mindist, $message['dist']);
 
-            #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
+            error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
 
             if ($message['dist'] <= $mindist && $message['dist'] <= strlen($subj1) * 3 / 4) {
                 # This is the closest match, but not utterly different.
@@ -3710,5 +3744,15 @@ class Message
         $sql = "SELECT * FROM messages_outcomes WHERE msgid = ? ORDER BY id DESC;";
         $outcomes = $this->dbhr->preQuery($sql, [ $this->id ]);
         return(count($outcomes) > 0 ? $outcomes[0]['outcome'] : NULL);
+    }
+
+    public function promisedTo() {
+        $sql = "SELECT * FROM messages_promises WHERE msgid = ?;";
+        $promises = $this->dbhr->preQuery($sql, [ $this->id ]);
+        return(count($promises) > 0 ? $promises[0]['userid'] : NULL);
+    }
+
+    public function isEdited() {
+        return($this->editedby !== NULL);
     }
 }

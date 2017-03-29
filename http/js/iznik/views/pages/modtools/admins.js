@@ -57,7 +57,8 @@ define([
                 self.collectionView = new Backbone.CollectionView({
                     el: $('#adminlist'),
                     modelView: Iznik.Views.ModTools.Pages.Admins.Previous,
-                    collection: self.collection
+                    collection: self.collection,
+                    processKeyEvents: false
                 });
 
                 self.collectionView.render();

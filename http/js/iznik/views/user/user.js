@@ -979,9 +979,12 @@ define([
                     mod.set('joined', member.added);
                     // console.log("My role is", self.options.groupid, mod.get('myrole'));
 
+                    var userid = self.model.get('id');
                     self.model = mod;
                     var group = Iznik.Session.getGroup(self.options.groupid);
                     self.model.set('group', group.attributes);
+                    self.model.set('groupid', group.id);
+                    self.model.set('userid', userid);
                     p = Iznik.Views.ModTools.Member.Freegle.prototype.render.call(self);
                 }
             });

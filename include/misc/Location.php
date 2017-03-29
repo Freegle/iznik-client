@@ -362,7 +362,7 @@ class Location extends Entity
             # Now we have a list of gridids within which we want to find locations.
             #error_log("Got gridids " . var_export($gridids, TRUE));
             if (count($gridids) > 0) {
-                $sql = "SELECT locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") ORDER BY popularity ASC;";
+                $sql = "SELECT locations.* FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(TRIM(name)) > 0 ORDER BY popularity ASC;";
                 #error_log("Get locs in grids $sql");
                 $ret = $this->dbhr->preQuery($sql);
             }
@@ -456,12 +456,13 @@ class Location extends Entity
 
     public function groupsNear($radius = Location::NEARBY, $expand = FALSE) {
         # We use the Haversine distance as a quick filter for the radius, but we order by the distance to the group
-        # polygon, rather than to the centre, because that reflects which group you are genuinely closest to.
+        # polygon (dist), rather than to the centre (hav), because that reflects which group you are genuinely closest to.
         #
         # Favour groups hosted by us if there's a tie.
-        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(poly)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE poly IS NOT NULL AND publish = 1 HAVING dist < ? AND dist IS NOT NULL ORDER BY dist ASC, external ASC LIMIT 10;";
+        $sql = "SELECT id, nameshort, ST_distance(POINT(?, ?), GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END)) AS dist, haversine(lat, lng, ?, ?) AS hav FROM groups WHERE id IN (SELECT id FROM groups WHERE (poly IS NOT NULL OR polyofficial IS NOT NULL) AND publish = 1) HAVING hav < ? AND hav IS NOT NULL ORDER BY dist ASC, external ASC LIMIT 10;";
         $groups = $this->dbhr->preQuery($sql, [ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ]);
-        #error_log("Find near $sql " . var_export([ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ], TRUE));
+        #error_log("Find near $sql " .
+        # var_export([ $this->loc['lng'], $this->loc['lat'], $this->loc['lat'], $this->loc['lng'], $radius ], TRUE));
         $ret = [];
         foreach ($groups as $group) {
             if ($expand) {
@@ -659,5 +660,81 @@ class Location extends Entity
         }
 
         return($ret);
+    }
+
+    public function findMyStreet($pcid) {
+        # This finds how common a street name is, and returns locations for it.  We use OpenStreetmap data because
+        # the PAF data license doesn't allow this.
+        $distincts = [];
+        $l = new Location($this->dbhr, $this->dbhm, $pcid);
+        $lat = $l->getPrivate('lat');
+        $lng = $l->getPrivate('lng');
+        $name = $l->getPrivate('name');
+        #error_log("#$pcid $name at $lat, $lng");
+
+        # First find the streetname for this postcode.
+
+        # We use a bounding box because that can be evaluated using the spatial index to reduce the number of locations
+        # we have to search.
+        $swlat = round($lat, 2) - 0.1;
+        $swlng = round($lng, 2) - 0.1;
+        $nelat = round($lat, 2) + 0.1;
+        $nelng = round($lng, 2) + 0.1;
+
+        $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+        
+        $sql = "SELECT locationid, locations.name, lat, lng FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid AND locations.type IN('Line', 'Road') WHERE MBRContains(GeomFromText(?), locations_spatial.geometry) AND INSTR(name, ';') = 0 AND INSTR(name, '(') = 0 ORDER BY ST_Distance(?, locations_spatial.geometry), LENGTH(name) ASC LIMIT 1;";
+        $locs = $this->dbhr->preQuery($sql, [
+            $poly,
+            $l->getPrivate('geometry')
+        ]);
+
+        if (count($locs) > 0) {
+            $street = $locs[0];
+            $distincts = [ $street ];
+
+            # Now we find other examples of that street name which are at least a mile away.
+            #error_log("Street is {$street['name']}");
+            $others = $this->dbhr->preQuery("SELECT id, gridid, geometry, AsText(geometry) AS geomtext, lat, lng FROM locations WHERE name LIKE ? AND locations.type IN('Line', 'Road') AND ST_Distance(?, locations.geometry) > 0.1;", [
+                $street['name'],
+                $l->getPrivate('geometry')
+            ], FALSE, FALSE);
+            #error_log("Found others " . count($others));
+
+            if (count($others) > 0) {
+                # But we might have duplicates, so we need to filter those out.
+                $latlngs = [];
+                foreach ($others as $loc) {
+                    $far = TRUE;
+                    foreach ($latlngs as $latlng) {
+                        if (abs($latlng['lat'] - $loc['lat']) <= 0.1 && abs($latlng['lng'] - $loc['lng']) <= 0.1) {
+                            $far = FALSE;
+                        }
+                    }
+
+                    if ($far) {
+                        #error_log("{$loc['id']} at {$loc['lat']}, {$loc['lng']} far enough away");
+                        $latlngs[] = [
+                            'lat' => $loc['lat'],
+                            'lng' => $loc['lng']
+                        ];
+                        
+                        unset($loc['geometry']);
+                        unset($loc['geomtext']);
+                        $distincts[] = $loc;
+                    }
+                }
+
+                #error_log("Found " . count($distincts));
+            }
+
+            # Some of the locations we have found may be duplicates of each other.
+        }
+
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : 'NULL';
+
+        $this->dbhm->background("INSERT INTO streetwhacks (locationid, count, streetname, userid, sessionid) VALUES ($pcid," . count($distincts) . "," . $this->dbhm->quote($distincts[0]['name']) . ", $myid, '" . session_id() . "');");
+        return($distincts);
     }
 }

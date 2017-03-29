@@ -275,7 +275,8 @@ define([
                                         }
                                     });
 
-                                    window.location.reload(true);
+                                    // CC window.location.reload(true);
+                                    Router.navigate("/", true);
                                 }
 
                                 // We use this to decide whether to show sign up or sign in.
@@ -463,7 +464,7 @@ define([
                                 }
                                 if (mobilePush) {
                                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
-                                }
+                                } // CC
 
                                 if (countschanged) {
                                     Iznik.Session.trigger('countschanged');
@@ -501,7 +502,7 @@ define([
                             }
 
                             // We're not logged in
-                        }
+                            }
                     },
                     error: function () {
                         console.log("Get settings failed");

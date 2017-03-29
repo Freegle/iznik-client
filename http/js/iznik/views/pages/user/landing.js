@@ -7,7 +7,7 @@ define([
     'iznik/models/donations',
     'iznik/views/pages/pages',
     'iznik/views/group/select',
-    'iznik/views/donations',
+    'iznik/views/supportus',
     'jquery.dd'
 ], function($, _, Backbone, Iznik, ChatHolder) {
     Iznik.Views.User.Pages.Landing = Iznik.Views.Page.extend({
@@ -28,7 +28,8 @@ define([
                     self.collectionView = new Backbone.CollectionView({
                         el: self.$('.js-stories'),
                         modelView: Iznik.Views.User.Pages.Landing.Story,
-                        collection: self.collection
+                        collection: self.collection,
+                        processKeyEvents: false
                     });
 
                     self.collectionView.render();
@@ -85,6 +86,12 @@ define([
     Iznik.Views.User.Pages.Landing.Disclaimer = Iznik.Views.Page.extend({
         template: "user_landing_disclaimer",
         footer: true,
+        noback: true
+    });
+
+    Iznik.Views.User.Pages.Landing.Why = Iznik.Views.Page.extend({
+        template: "user_landing_why",
+        footer: false,
         noback: true
     });
 

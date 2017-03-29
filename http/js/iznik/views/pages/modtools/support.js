@@ -49,7 +49,8 @@ define([
             $.ajax({
                 url: API + 'user',
                 data: {
-                    search: this.$('.js-searchuserinp').val().trim()
+                    search: this.$('.js-searchuserinp').val().trim(),
+                    emailhistory: true
                 },
                 success: function(ret) {
                     v.close();
@@ -64,7 +65,8 @@ define([
                             self.collectionView = new Backbone.CollectionView({
                                 el: self.$('.js-searchuserres'),
                                 modelView: Iznik.Views.ModTools.Member.SupportSearch,
-                                collection: self.collection
+                                collection: self.collection,
+                                processKeyEvents: false
                             });
 
                             self.collectionView.render();
@@ -93,7 +95,8 @@ define([
                     collection: self.messages,
                     page: self
                 },
-                collection: self.messages
+                collection: self.messages,
+                processKeyEvents: false
             });
 
             self.messagesView.render();
@@ -173,7 +176,8 @@ define([
                     var alerts = new Backbone.CollectionView({
                         el: self.$('.js-alerts'),
                         modelView: Iznik.Views.ModTools.Alert,
-                        collection: coll
+                        collection: coll,
+                        processKeyEvents: false
                     });
 
                     alerts.render();
@@ -620,6 +624,11 @@ define([
                 message.group = self.groups[message.groupid];
                 self.addMessage(message);
             });
+
+            self.$('.js-messages').showFirst({
+                controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                count: 5
+            });
         },
 
         render: function () {
@@ -661,6 +670,11 @@ define([
                     });
                 });
 
+                self.$('.js-memberof').showFirst({
+                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                    count: 5
+                });
+
                 self.$('.js-otheremailsdiv').hide();
                 _.each(remaining, function(email) {
                     self.$('.js-otheremailsdiv').show();
@@ -681,9 +695,7 @@ define([
 
                 // Add any sessions.
                 var sessions = self.model.get('sessions');
-                console.log("Sessions", sessions);
                 self.sessionCollection = new Iznik.Collection(sessions);
-                console.log("Session collection", self.sessionCollection);
 
                 if (self.sessionCollection.length == 0) {
                     self.$('.js-sessionsnone').show();
@@ -694,7 +706,8 @@ define([
                 self.sessionCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-sessions'),
                     modelView: Iznik.Views.ModTools.Pages.Replay.Session,
-                    collection: self.sessionCollection
+                    collection: self.sessionCollection,
+                    processKeyEvents: false
                 });
 
                 self.sessionCollectionView.render();
@@ -720,7 +733,8 @@ define([
                 self.chatCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-chats'),
                     modelView: Iznik.Views.ModTools.Member.SupportSearch.Chat,
-                    collection: self.chatCollection
+                    collection: self.chatCollection,
+                    processKeyEvents: false
                 });
 
                 self.chatCollectionView.render();
@@ -730,7 +744,7 @@ define([
                     count: 5
                 });
 
-                // Add message history.  Annoyingly, we might have a groupid for a group which we are not a
+                // Add posting history.  Annoyingly, we might have a groupid for a group which we are not a
                 // member of at the moment, so we may need to fetch some.
                 self.$('.js-messages').empty();
                 self.$('.js-messagesnone').hide();
@@ -767,7 +781,36 @@ define([
                     // Not waiting to get any groups - add now.
                     self.addMessages();
                 }
-                
+
+                // Recent emails
+                self.emailHistoryCollection = new Iznik.Collection(self.model.get('emailhistory'));
+
+                // Show most recent first.
+                self.emailHistoryCollection.comparator = function(chat) {
+                    return -(new Date(chat.get('timestamp'))).getTime();
+                };
+                self.emailHistoryCollection.sort();
+
+                if (self.emailHistoryCollection.length == 0) {
+                    self.$('.js-emailhistorynone').show();
+                } else {
+                    self.$('.js-emailhistorynone').hide();
+                }
+
+                self.emailHistoryCollectionView = new Backbone.CollectionView({
+                    el: self.$('.js-emailhistory'),
+                    modelView: Iznik.Views.ModTools.Member.SupportSearch.EmailHistory,
+                    collection: self.emailHistoryCollection,
+                    processKeyEvents: false
+                });
+
+                self.emailHistoryCollectionView.render();
+
+                self.$('.js-emailhistory').showFirst({
+                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                    count: 5
+                });
+
                 // Logins
                 self.loginCollection = new Iznik.Collection(self.model.get('logins'));
 
@@ -780,7 +823,8 @@ define([
                 self.loginCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-logins'),
                     modelView: Iznik.Views.ModTools.Member.SupportSearch.Login,
-                    collection: self.loginCollection
+                    collection: self.loginCollection,
+                    processKeyEvents: false
                 });
 
                 self.loginCollectionView.render();
@@ -791,10 +835,37 @@ define([
                 self.membershipHistoryCollectionView = new Backbone.CollectionView({
                     el: self.$('.js-membershiphistory'),
                     modelView: Iznik.Views.ModTools.Member.SupportSearch.MembershipHistory,
-                    collection: self.membershipHistoryCollection
+                    collection: self.membershipHistoryCollection,
+                    processKeyEvents: false
                 });
 
                 self.membershipHistoryCollectionView.render();
+
+                self.$('.js-membershiphistory').showFirst({
+                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                    count: 5
+                });
+
+                self.$('.datepicker').datepicker({
+                    format: 'D, dd MM yyyy',
+                    startDate: '0d',
+                    endDate: '+30d'
+                });
+
+                var onholiday = self.model.get('onholidaytill');
+
+                self.$(".js-switch").bootstrapSwitch({
+                    onText: 'Paused',
+                    offText: 'On',
+                    state: onholiday != undefined
+                });
+
+                if (onholiday && onholiday != undefined && onholiday != "1970-01-01T00:00:00Z") {
+                    self.$('.js-onholidaytill').show();
+                    self.$('.datepicker').datepicker('setUTCDate', new Date(onholiday));
+                } else {
+                    self.$('.js-onholidaytill').hide();
+                }
             });
 
             return (p);
@@ -823,6 +894,10 @@ define([
                 v.render();
             });
         }
+    });
+
+    Iznik.Views.ModTools.Member.SupportSearch.EmailHistory = Iznik.View.Timeago.extend({
+        template: 'modtools_support_emailhistory'
     });
 
     Iznik.Views.ModTools.Member.SupportSearch.MemberOf = Iznik.View.extend({
@@ -877,27 +952,6 @@ define([
 
                 self.$('.js-ourpostingstatus').val(self.model.get('ourpostingstatus'));
                 self.$('.js-role').val(self.model.get('role'));
-
-                self.$('.datepicker').datepicker({
-                    format: 'D, dd MM yyyy',
-                    startDate: '0d',
-                    endDate: '+30d'
-                });
-
-                var onholiday = self.model.get('onholidaytill');
-
-                self.$(".js-switch").bootstrapSwitch({
-                    onText: 'Paused',
-                    offText: 'On',
-                    state: onholiday != undefined
-                });
-
-                if (onholiday && onholiday != undefined && onholiday != "1970-01-01T00:00:00Z") {
-                    self.$('.js-onholidaytill').show();
-                    self.$('.datepicker').datepicker('setUTCDate', new Date(onholiday));
-                } else {
-                    self.$('.js-onholidaytill').hide();
-                }
 
                 self.waitDOM(self, function() {
                     self.$('select').selectpicker();

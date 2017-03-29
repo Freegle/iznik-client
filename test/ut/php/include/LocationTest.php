@@ -247,6 +247,16 @@ class locationTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testFindMyStreet() {
+        error_log(__METHOD__);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('W12 7DP');
+        $l->findMyStreet($lid);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

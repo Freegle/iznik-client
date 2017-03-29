@@ -236,7 +236,8 @@ define([
                             collection: self.collection,
                             page: self
                         },
-                        collection: self.collection
+                        collection: self.collection,
+                        processKeyEvents: false
                     });
 
                     self.collectionView.render();
@@ -244,9 +245,9 @@ define([
                     var group = Iznik.Session.get('groups').get(self.selected);
 
                     if (group.get('onyahoo')) {
-                        self.$('.js-exportyahoo').show();
+                        self.$('.js-exportyahoo, .js-sync').show();
                     } else {
-                        self.$('.js-exportyahoo').hide();
+                        self.$('.js-exportyahoo, .js-sync').hide();
                     }
 
                     // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
@@ -275,7 +276,8 @@ define([
                             collection: self.collection,
                             page: self
                         },
-                        collection: self.collection
+                        collection: self.collection,
+                        processKeyEvents: false
                     });
 
                     self.collectionView.render();

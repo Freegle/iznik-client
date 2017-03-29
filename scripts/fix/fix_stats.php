@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/misc/Stats.php');
 $groups = $dbhr->preQuery("SELECT * FROM groups ORDER BY nameshort ASC;");
 foreach ($groups as $group) {
     error_log("...{$group['nameshort']}");
-    for ($i = 0; $i < 2; $i++) {
+    for ($i = 0; $i < 12; $i++) {
         $date = date('Y-m-d', $i == 0 ? time() : strtotime("$i days ago"));
         $s = new Stats($dbhr, $dbhm, $group['id']);
         $s->generate($date);

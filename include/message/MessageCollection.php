@@ -77,7 +77,10 @@ class MessageCollection
                 ]);
 
                 foreach ($msgs as $msg) {
-                    $msgids[] = ['id' => $msg['msgid']];
+                    $msgids[] = [
+                        'id' => $msg['msgid'],
+                        'collection' => MessageCollection::DRAFT
+                    ];
                 }
             }
 
@@ -152,6 +155,7 @@ class MessageCollection
             }
 
             list($groups, $msgs) = $this->fillIn($msgids, $limit, NULL);
+//            error_log("Filled in " . count($msgs) . " from " . count($msgids));
 
             # We might have excluded all the messages we found; if so, keep going.
         } while (count($msgids) > 0 && count($msgs) == 0);
@@ -169,27 +173,27 @@ class MessageCollection
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
             $public = $m->getPublic(TRUE, TRUE);
 
-            # See if we have consent to publish this message to non-members.  This is a Freegle function, and depends
-            # on the setting of the sender.  We need to check this otherwise we are in breach of Yahoo's Terms of
-            # Service.
-            $publishconsent = $public['publishconsent'];
-
             $type = $m->getType();
             if (!$messagetype || $type == $messagetype) {
                 $role = $m->getRoleForMessage(FALSE);
                 $cansee = $m->canSee($public);
+                $coll = presdef('collection', $msg, MessageCollection::APPROVED);
 
-                if ($cansee) {
+                if ($cansee && $coll != MessageCollection::DRAFT) {
                     $thisgroups = $m->getGroups(TRUE);
 
+                    # Make sure we only return this if it's on a group.
+                    $cansee = FALSE;
+
                     foreach ($thisgroups as $groupid) {
+                        $cansee = TRUE;
                         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                         $groups[$groupid] = $g->getPublic();
                     }
                 }
 
                 if ($cansee) {
-                    switch (presdef('collection', $msg, MessageCollection::APPROVED)) {
+                    switch ($coll) {
                         case MessageCollection::DRAFT:
                         case MessageCollection::QUEUED_YAHOO_USER:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {

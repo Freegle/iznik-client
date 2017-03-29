@@ -28,7 +28,7 @@ class User extends Entity
     const CACHE_SIZE = 100;
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'yahooUserId', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -83,8 +83,9 @@ class User extends Entity
     private $log;
     var $user;
     private $memberships = NULL;
-
+    private $spam_users = NULL;
     private $ouremailid = NULL;
+    private $emails = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -304,20 +305,22 @@ class User extends Entity
 
     public function getEmails() {
         # Don't return canon - don't need it on the client.
-        $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, email ASC;";
-        #error_log("$sql, {$this->id}");
-        $emails = $this->dbhr->preQuery($sql, [$this->id]);
-        return($emails);
+        if (!$this->emails) {
+            $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, email ASC;";
+            #error_log("$sql, {$this->id}");
+            $this->emails = $this->dbhr->preQuery($sql, [$this->id]);
+        }
+
+        return($this->emails);
     }
 
-    public function getEmailPreferred($emails = NULL) {
+    public function getEmailPreferred() {
         # This gets the email address which we think the user actually uses.  So we pay attention to:
         # - the preferred flag, which gets set by end user action
         # - the date added, as most recently added emails are most likely to be right
         # - exclude our own invented mails
         # - exclude any yahoo groups mails which have snuck in.
-        $emails = $emails ? $emails : $this->dbhr->preQuery("SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, added DESC;",
-            [$this->id]);
+        $emails = $this->getEmails();
         $ret = NULL;
 
         foreach ($emails as $email) {
@@ -471,6 +474,9 @@ class User extends Entity
 
     public function addEmail($email, $primary = 1, $changeprimary = TRUE)
     {
+        # Invalidate cache.
+        $this->emails = NULL;
+
         if (stripos($email, '-owner@yahoogroups.co') !== FALSE) {
             # We don't allow people to add Yahoo owner addresses as the address of an individual user.
             $rc = NULL;
@@ -529,6 +535,9 @@ class User extends Entity
 
     public function removeEmail($email)
     {
+        # Invalidate cache.
+        $this->emails = NULL;
+
         $rc = $this->dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email = ?;",
             [$this->id, $email]);
         return($rc);
@@ -970,12 +979,15 @@ class User extends Entity
 
         return($ret);
     }
-
+    
     public function getModeratorships() {
+        $this->cacheMemberships();
+        
         $ret = [];
-        $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner');", [ $this->id ]);
-        foreach ($groups as $group) {
-            $ret[] = $group['groupid'];
+        foreach ($this->memberships AS $membership) {
+            if ($membership['role'] == 'Owner' || $membership['role'] == 'Moderator') {
+                $ret[] = $membership['groupid'];
+            }
         }
 
         return($ret);
@@ -1250,7 +1262,7 @@ class User extends Entity
         return($ret);
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE) {
+    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE) {
         $atts = parent::getPublic();
 
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
@@ -1269,7 +1281,7 @@ class User extends Entity
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
             $atts['emails'] = $me->getEmails();
-            $atts['email'] = $me->getEmailPreferred($atts['emails']);
+            $atts['email'] = $me->getEmailPreferred();
             $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
             $atts['permissions'] = $me->getPrivate('permissions');
         }
@@ -1475,7 +1487,7 @@ class User extends Entity
 
                 # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
                 # the case where you have two emails and one is approved and the other pending.
-                $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
@@ -1494,7 +1506,8 @@ class User extends Entity
                         'eventsallowed' => $group['eventsallowed'],
                         'ourPostingStatus' => $group['ourPostingStatus'],
                         'type' => $group['type'],
-                        'onyahoo' => $group['onyahoo']
+                        'onyahoo' => $group['onyahoo'],
+                        'onhere' => $group['onhere']
                     ];
 
                     if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
@@ -1518,7 +1531,7 @@ class User extends Entity
                 # allows us to spot abuse) and any which are on our groups.
                 $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
                 $modids = array_merge([0], $me->getModeratorships());
-                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 $memberof = [];
 
@@ -1538,7 +1551,8 @@ class User extends Entity
                         'eventsallowed' => $group['eventsallowed'],
                         'ourpostingstatus' => $group['ourPostingStatus'],
                         'type' => $group['type'],
-                        'onyahoo' => $group['onyahoo']
+                        'onyahoo' => $group['onyahoo'],
+                        'onhere' => $group['onhere']
                     ];
 
                     if ($group['lat'] && $group['lng']) {
@@ -1592,11 +1606,24 @@ class User extends Entity
                 $systemrole == User::SYSTEMROLE_SUPPORT
             ) {
                 # Also fetch whether they're on the spammer list.
-                $sql = "SELECT * FROM spam_users WHERE userid = ?;";
-                $spammers = $this->dbhr->preQuery($sql, [$this->id]);
-                foreach ($spammers as $spammer) {
+                if (!$this->spam_users) {
+                    $sql = "SELECT * FROM spam_users WHERE userid = ?;";
+                    $this->spam_users = $this->dbhr->preQuery($sql, [$this->id]);
+                }
+
+                foreach ($this->spam_users as $spammer) {
                     $spammer['added'] = ISODate($spammer['added']);
                     $atts['spammer'] = $spammer;
+                }
+            }
+
+            if ($emailhistory) {
+                $emails = $this->dbhr->preQuery("SELECT * FROM logs_emails WHERE userid = ?;", [ $this->id ]);
+                $atts['emailhistory'] = [];
+                foreach ($emails as &$email) {
+                    $email['timestamp'] = ISODate($email['timestamp']);
+                    unset($email['userid']);
+                    $atts['emailhistory'][] = $email;
                 }
             }
         }
@@ -2499,7 +2526,7 @@ class User extends Entity
             $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
             $this->dbhm->preExec($sql,
                 [$email, $canon, $key, strrev($canon), $key]);
-            $confirm = $usersite ? ("https://" . $_SERVER['HTTP_HOST'] . "/settings/confirmmail/" . urlencode($key)) : ("https://" . $_SERVER['HTTP_HOST'] . "/modtools/settings/confirmmail/" . urlencode($key));
+            $confirm  = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail');
 
             list ($transport, $mailer) = getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
@@ -2530,7 +2557,8 @@ class User extends Entity
                 $this->merge($this->id, $mail['userid'], "Verified ownership of email {$mail['email']}");
             }
 
-            $this->dbhm->preExec("UPDATE users_emails SET userid = ?, validated = NOW() WHERE id = ?;", [ $this->id, $mail['id']]);
+            $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE id = ?;", [ $this->id ]);
+            $this->dbhm->preExec("UPDATE users_emails SET userid = ?, preferred = 1, validated = NOW() WHERE id = ?;", [ $this->id, $mail['id']]);
             $this->addEmail($mail['email'], 1);
             $rc = TRUE;
         }
@@ -2663,6 +2691,12 @@ class User extends Entity
     public function delete($groupid = NULL, $subject = NULL, $body = NULL, $log = TRUE) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
+        # Delete memberships.  This will remove any Yahoo memberships.
+        $membs = $this->getMemberships();
+        foreach ($membs as $memb) {
+            $this->removeMembership($memb['id']);
+        }
+
         $rc = $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [$this->id]);
 
         if ($rc && $log) {
@@ -2762,20 +2796,20 @@ class User extends Entity
                     }
                 }
             }
+        }
 
-            if ($sendit) {
-                # We might be on holiday.
-                $hol = $this->getPrivate('onholidaytill');
-                $till = $hol ? strtotime($hol) : 0;
-                #error_log("Holiday $till vs " . time());
+        if ($sendit) {
+            # We might be on holiday.
+            $hol = $this->getPrivate('onholidaytill');
+            $till = $hol ? strtotime($hol) : 0;
+            #error_log("Holiday $till vs " . time());
 
-                $sendit = time() > $till;
-            }
+            $sendit = time() > $till;
+        }
 
-            if ($sendit) {
-                # And don't send if we're bouncing.
-                $sendit = !$this->getPrivate('bouncing');
-            }
+        if ($sendit) {
+            # And don't send if we're bouncing.
+            $sendit = !$this->getPrivate('bouncing');
         }
 
         #error_log("Sendit? $sendit");
@@ -2841,7 +2875,9 @@ class User extends Entity
             $ctx['id'] = $user['userid'];
 
             $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
-            $thisone = $u->getPublic();
+
+            $ctx = NULL;
+            $thisone = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE);
 
             # We might not have the emails.
             $thisone['email'] = $u->getEmailPreferred();
@@ -3022,43 +3058,50 @@ class User extends Entity
 
         # We can only invite logged in.
         if ($this->id) {
-            # They might already be using us - but they might also have forgotten.  So allow that case.  However if
-            # they have actively declined a previous invitation we suppress this one.
-            $previous = $this->dbhr->preQuery("SELECT id FROM users_invitations WHERE email = ? AND outcome = ?;", [
-                $email,
-                User::INVITE_DECLINED
-            ]);
+            # ...and only if we have spare.
+            if ($this->user['invitesleft'] > 0) {
+                # They might already be using us - but they might also have forgotten.  So allow that case.  However if
+                # they have actively declined a previous invitation we suppress this one.
+                $previous = $this->dbhr->preQuery("SELECT id FROM users_invitations WHERE email = ? AND outcome = ?;", [
+                    $email,
+                    User::INVITE_DECLINED
+                ]);
 
-            if (count($previous) == 0) {
-                # The table has a unique key on userid and email, so that means we can only invite the same person
-                # once.  That avoids us pestering them.
-                try {
-                    $this->dbhm->preExec("INSERT INTO users_invitations (userid, email) VALUES (?,?);", [
-                        $this->id,
-                        $email
-                    ]);
+                if (count($previous) == 0) {
+                    # The table has a unique key on userid and email, so that means we can only invite the same person
+                    # once.  That avoids us pestering them.
+                    try {
+                        $this->dbhm->preExec("INSERT INTO users_invitations (userid, email) VALUES (?,?);", [
+                            $this->id,
+                            $email
+                        ]);
 
-                    # We're ok to invite.
-                    $fromname = $this->getName();
-                    $frommail = $this->getEmailPreferred();
-                    $url = "https://" . USER_SITE . "/invite/" . $this->dbhm->lastInsertId();
+                        # We're ok to invite.
+                        $fromname = $this->getName();
+                        $frommail = $this->getEmailPreferred();
+                        $url = "https://" . USER_SITE . "/invite/" . $this->dbhm->lastInsertId();
 
-                    list ($transport, $mailer) = getMailer();
-                    $message = Swift_Message::newInstance()
-                        ->setSubject("$fromname has invited you to try Freegle!")
-                        ->setFrom([ NOREPLY_ADDR => SITE_NAME ])
-                        ->setReplyTo(GEEKS_ADDR)
-                        ->setTo($email)
-                        ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
-                    $headers = $message->getHeaders();
-                    $headers->addTextHeader('X-Freegle-Mail-Type', 'Invitation');
+                        list ($transport, $mailer) = getMailer();
+                        $message = Swift_Message::newInstance()
+                            ->setSubject("$fromname has invited you to try Freegle!")
+                            ->setFrom([ NOREPLY_ADDR => SITE_NAME ])
+                            ->setReplyTo(GEEKS_ADDR)
+                            ->setTo($email)
+                            ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
+                        $headers = $message->getHeaders();
+                        $headers->addTextHeader('X-Freegle-Mail-Type', 'Invitation');
 
-                    $html = invite($fromname, $frommail, $url);
-                    $message->addPart($html, 'text/html');
-                    $this->sendIt($mailer, $message);
-                    $ret = TRUE;
-                } catch (Exception $e) {
-                    # Probably a duplicate.
+                        $html = invite($fromname, $frommail, $url);
+                        $message->addPart($html, 'text/html');
+                        $this->sendIt($mailer, $message);
+                        $ret = TRUE;
+
+                        $this->dbhm->preExec("UPDATE users SET invitesleft = invitesleft - 1 WHERE id = ?;", [
+                            $this->id
+                        ]);
+                    } catch (Exception $e) {
+                        # Probably a duplicate.
+                    }
                 }
             }
         }
@@ -3066,10 +3109,44 @@ class User extends Entity
         return($ret);
     }
 
-    public function inviteOutcome($id, $outcome) {
-        $this->dbhm->preExec("UPDATE users_invitations SET outcome = ?, outcometimestamp = NOW() WHERE id = ?;", [
-            $outcome,
+    public function inviteOutcome($id, $outcome)
+    {
+        $invites = $this->dbhm->preQuery("SELECT * FROM users_invitations WHERE id = ?;", [
             $id
         ]);
+
+        foreach ($invites as $invite) {
+            if ($invite['outcome'] == User::INVITE_PENDING) {
+                $this->dbhm->preExec("UPDATE users_invitations SET outcome = ?, outcometimestamp = NOW() WHERE id = ?;", [
+                    $outcome,
+                    $id
+                ]);
+
+                if ($outcome == User::INVITE_ACCEPTED) {
+                    # Give the sender two more invites.  This means that if their invitations are unsuccessful, they will
+                    # stall, but if they do ok, they won't.  This isn't perfect - someone could fake up emails and do
+                    # successful invitations that way.
+                    $this->dbhm->preExec("UPDATE users SET invitesleft = invitesleft + 2 WHERE id = ?;", [
+                        $invite['userid']
+                    ]);
+                }
+            }
+        }
+    }
+
+    public function listInvitations() {
+        $ret = [];
+        $invites = $this->dbhr->preQuery("SELECT id, email, date, outcome, outcometimestamp FROM users_invitations WHERE userid = ?;", [
+            $this->id
+        ]);
+
+        foreach ($invites as $invite) {
+            # Check if this email is now on the platform.
+            $invite['date'] = ISODate($invite['date']);
+            $invite['outcometimestamp'] = $invite['outcometimestamp'] ? ISODate($invite['outcometimestamp']) : NULL;
+            $ret[] = $invite;
+        }
+
+        return($ret);
     }
 }

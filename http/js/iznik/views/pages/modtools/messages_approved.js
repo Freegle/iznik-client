@@ -127,7 +127,8 @@ define([
                         collection: self.collection,
                         page: self
                     },
-                    collection: self.collection
+                    collection: self.collection,
+                    processKeyEvents: false
                 });
 
                 self.collectionView.render();
@@ -222,7 +223,6 @@ define([
 
                         _.each(self.model.get('groups'), function (group) {
                             var mod = new Iznik.Model(group);
-                            console.log("Message", self.model.get('id'), group);
 
                             if (!group.onhere) {
                                 // Native group - can edit.

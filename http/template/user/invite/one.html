@@ -1,0 +1,16 @@
+<div class="row">
+    <div class="col-md-3">
+        {{email}}
+    </div>
+    <div class="col-md-3">
+        invited <abbr class="timeago" title="{{date}}"/>
+    </div>
+    <div class="col-md-3">
+        {{outcome}}
+    </div>
+    <div class="col-md-3">
+        <% if (obj.outcome == 'Accepted') { %>
+        <abbr class="timeago" title="{{outcometimestamp}}"/>
+        <% } %>
+    </div>
+</div>

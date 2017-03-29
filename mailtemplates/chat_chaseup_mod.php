@@ -56,7 +56,7 @@ EOT;
                                                                 <tr>
                                                                     <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:20px; line-height:26px; font-weight:bold;">
                                                                         <p>We can't find a reply to this message from your member, so we're resending it in case you missed it.</p>
-                                                                          <p>If you've already replied (e.g. by emailing directly), then just ignore this.</p>
+                                                                        <p>If you've already replied (e.g. by emailing directly), or it doesn't need a reply, then just ignore this.  You might get several, but they will stop after a week or so.</p>
                                                                         <p style="font-size:16px; line-height:20px; font-weight:bold;">$fromname wrote:</p>
                                                                     </td>
                                                                 </tr>
