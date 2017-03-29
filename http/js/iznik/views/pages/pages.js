@@ -147,7 +147,7 @@ define([
                     showNetworkStatus(); // CC
                     if (self.appButtons) {
                         // Show app buttons.
-                        $('#js-appbuttons').show();
+                        // CC $('#js-appbuttons').show();
                     }
 
                     $('#botleft').empty();
