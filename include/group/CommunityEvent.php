@@ -82,7 +82,7 @@ class CommunityEvent extends Entity
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         foreach ($events as $event) {
-            if ($u->activeModForGroup($event['groupid'])) {
+            if (!$event['pending'] || $u->activeModForGroup($event['groupid'])) {
                 $ctx['end'] = $event['end'];
                 $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
                 $atts = $e->getPublic();

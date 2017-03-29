@@ -1,0 +1,26 @@
+<h1>{{title}}</h1>
+<div class="row">
+    <div class="<% if (obj.photo) { %>col-md-8<% } else { %>col-md-12<% } %>">
+        <table class="botspace nomargin table borderless table-condensed eventtable fullholder">
+            <tbody class="completefull">
+            <tr><td><h4>Where</h4></td><td>{{location}}<td></tr>
+            <tr><td><h4>When</h4></td><td class="js-dates"><td></tr>
+            <% if (obj.contactname) { %><tr><td><h4>Contact name</h4></td><td>{{contactname}}<td></tr><% } %>
+            <% if (obj.contactemail) { %><tr><td><h4>Contact email</h4></td><td><a data-realurl="true" href="mailto:{{contactemail}}">{{contactemail}}</a><td></tr><% } %>
+            <% if (obj.contactphone) { %><tr><td><h4>Contact phone</h4></td><td><a data-realurl="true" href="tel:{{contactphone}}">{{contactphone}}</a><td></tr><% } %>
+            <% if (obj.contacturl) { %><tr><td><h4>Website</h4></td><td><a data-realurl="true" href="{{contacturl}}" target="_blank" class="hardbreak">{{contacturl}}</a><td></tr><% } %>
+            <tr><td colspan="2"><h4>Details</h4><td></tr>
+            <tr><td colspan="2" class="prewrap">{{description}}<td></tr>
+            <% if (obj.timecommitment) { %>
+            <tr><td colspan="2"><h4>Time Commitment</h4><td></tr>
+            <tr><td colspan="2" class="prewrap">{{timecommitment}}<td></tr>
+            <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<a href="/volunteering/group/{{groups[0].id}}">
+    <span class="btn btn-white">
+        See more events on {{groups[0].namedisplay}} >>
+    </span>
+</a>

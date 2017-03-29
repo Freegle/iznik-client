@@ -1,0 +1,72 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="glyphicon glyphicon-remove-circle clickme pull-right glyphicon-larger clickme" class="close" data-dismiss="modal" />
+                <h4 class="modal-title js-modal-title">Add Volunteer Opportunity</h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="js-grouplist">
+                                <div class="form-group">
+                                    <label for="group">For which group?</label>
+
+                                    <div class="input-group">
+                                        <div id="group" class="groupselect js-groupselect">
+                                            <select id="groupid"></select>
+                                        </div>
+                                    </div>
+                                    <div class="topspace alert alert-danger js-volunteeringdisabled" style="display: none">
+                                        This group has chosen not to allow volunteer opportunities.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Role:</label>
+                                <input type="text" class="form-control js-title" name="title" placeholder="Give a short description of the role" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>More detail:</label>
+                        <textarea class="form-control js-description" name="description" placeholder="Please let people know what the opportunity is - any organisation which is involved, what you'd like them to do, and why they might like to do it." rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Time commitment:</label>
+                        <textarea class="form-control js-timecommitment" name="timecommitment" placeholder="Please let people know what the time commitment is that you're looking for, e.g. how many hours a week, what times of day." rows="2" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Where is it?</label>
+                        <input type="text" class="form-control js-location" name="location" placeholder="Where does the volunteering happen?" required />
+                    </div>
+                    <div>
+                        <label>Dates</label>
+                        <ul class="list-unstyled js-dates"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact name:</label>
+                        <input type="text" length="60" class="form-control js-contactname" name="contactname" placeholder="Is there a contact person for anyone who wants to find out more? (Optional)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Contact email:</label>
+                        <input type="email" class="form-control js-contactemail" name="contactemail" placeholder="Can people reach you by email? (Optional)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Contact phone:</label>
+                        <input type="tel" class="form-control js-contactphone" name="contactphone" placeholder="Can people reach you by phone? (Optional)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Web link:</label>
+                        <input type="url" class="form-control js-contacturl" name="contacturl" placeholder="Is there more information on the web? (Optional)" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white js-close" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success js-save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

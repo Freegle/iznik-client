@@ -51,6 +51,7 @@ require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
 require_once(IZNIK_BASE . '/include/group/Admin.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+require_once(IZNIK_BASE . '/include/group/Volunteering.php');
 require_once(IZNIK_BASE . '/include/group/Twitter.php');
 require_once(IZNIK_BASE . '/include/group/Facebook.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
@@ -102,6 +103,7 @@ require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
 require_once(IZNIK_BASE . '/http/api/request.php');
 require_once(IZNIK_BASE . '/http/api/stories.php');
+require_once(IZNIK_BASE . '/http/api/volunteering.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -312,6 +314,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'donations':
                     $ret = donations();
+                    break;
+                case 'volunteering':
+                    $ret = volunteering();
                     break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);

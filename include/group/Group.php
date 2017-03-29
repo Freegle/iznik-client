@@ -56,6 +56,7 @@ class Group extends Entity
         $this->defaultSettings = [
             'showchat' => 1,
             'communityevents' => 1,
+            'volunteering' => 1,
             'stories' => 1,
             'includearea' => 1,
             'includepc' => 1,
@@ -333,6 +334,11 @@ class Group extends Entity
                 $this->id,
                 $eventsqltime
             ])[0]['count'] : 0,
+            'pendingvolunteering' => $active ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid = ? AND volunteering.pending = 1 AND volunteering.deleted = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?);", [
+                $this->id,
+                $eventsqltime,
+                $eventsqltime
+            ])[0]['count'] : 0,
             'spammembers' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users INNER JOIN memberships ON memberships.groupid = ? AND memberships.userid = users.id WHERE suspectcount > 0;", [
                 $this->id
             ])[0]['count'],
@@ -340,6 +346,7 @@ class Group extends Entity
                 $this->id
             ])[0]['count'],
         ];
+
         return($ret);
     }
 
