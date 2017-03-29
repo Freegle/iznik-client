@@ -271,7 +271,8 @@ define([
                                         }
                                     });
 
-                                    window.location.reload(true);
+                                    // CC window.location.reload(true);
+                                    Router.navigate("/", true);
                                 }
 
                                 // We use this to decide whether to show sign up or sign in.
