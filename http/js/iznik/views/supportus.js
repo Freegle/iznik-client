@@ -3,16 +3,24 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/models/donations'
+    'typeahead',
+    'iznik/models/donations',
+    'iznik/views/postaladdress'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.SupportUs = Iznik.Views.Modal.extend({
         events: {
-            'click .js-invite': 'doInvite'
+            'click .js-invite': 'doInvite',
+            'click .js-clickdonate': 'clickDonate'
+        },
+
+        clickDonate: function() {
+            ABTestAction('SupportUs', this.template);
         },
 
         doInvite: function() {
             var self = this;
             var email = self.$('.js-inviteemail').val();
+            ABTestAction('SupportUs', 'invite');
 
             if (isValidEmailAddress(email)) {
                 $.ajax({
@@ -40,20 +48,38 @@ define([
             var p;
 
             if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
-                // We ask for donations the first time, and no more often than every seven days.
-                self.template = 'user_support_askdonation';
-                p = Iznik.Views.Modal.prototype.render.call(self);
-                p.then(function() {
-                    var w = new Iznik.Views.DonationThermometer();
-                    w.render().then(function () {
-                        Storage.set('donationlastask', now);
-                        self.$('.js-thermometer').html(w.$el);
+                p = ABTestGetVariant('SupportUs', function(variant) {
+                    self.template = variant.variant;
+
+                    var p = Iznik.Views.Modal.prototype.render.call(self);
+                    p.then(function() {
+                        var w = new Iznik.Views.DonationThermometer();
+                        w.render().then(function () {
+                            Storage.set('donationlastask', now);
+                            self.$('.js-thermometer').html(w.$el);
+                        });
                     });
+
+                    ABTestShown('SupportUs', self.template);
                 });
             } else {
-                // If we're not asking for a donation, ask for an invite.
-                self.template = 'user_support_invite';
-                p = Iznik.Views.Modal.prototype.render.call(self);
+                // If we're not asking for a donation, offer business cards, unless the group forbids it.
+                var homegroup = Storage.get('myhomegroup');
+                var cardsallowed = true;
+                if (homegroup) {
+                    var settings = Iznik.Session.getSettings(homegroup);
+                    if (settings.hasOwnProperty('businesscards')) {
+                        cardsallowed = settings.businesscards;
+                    }
+                }
+
+                if (cardsallowed) {
+                    (new Iznik.Views.User.BusinessCards()).render();
+                } else {
+                    // Invite instead
+                    self.template = 'user_support_invite';
+                    p = Iznik.Views.Modal.prototype.render.call(self);
+                }
             }
 
             return(p);
@@ -193,5 +219,100 @@ define([
 
             return(p);
         }
+    });
+
+    Iznik.Views.User.BusinessCards = Iznik.Views.Modal.extend({
+        template: 'user_support_businesscards',
+
+        tagName: 'li',
+
+        events: {
+            'click .js-submit': 'submit',
+            'click .js-justafew': 'justafew',
+            'click .js-more': 'more'
+        },
+
+        justafew: function() {
+            var self = this;
+            self.$('.js-howmany').slideUp('slow');
+            self.$('.js-more, .js-justafew').hide();
+            self.$('.js-afew, .js-submit').fadeIn('slow');
+        },
+
+        more: function() {
+            var self = this;
+            self.$('.js-howmany').slideUp('slow');
+            self.$('.js-more').fadeIn('slow');
+            self.$('.js-afew, .js-submit').hide();
+            ABTestAction('BusinessCards', 'more');
+        },
+
+        submit: function() {
+            var self = this;
+            var pafid = self.postalAddress.address();
+            var to = self.postalAddress.to();
+
+            if (pafid) {
+                $.ajax({
+                    url: API + '/address',
+                    type: 'PUT',
+                    data: {
+                        pafid: pafid
+                    },
+                    success: function(ret) {
+                        if (ret.ret === 0) {
+                            $.ajax({
+                                url: API + '/request',
+                                type: 'PUT',
+                                data: {
+                                    reqtype: 'BusinessCards',
+                                    to: to,
+                                    addressid: ret.id
+                                },
+                                success: function(ret) {
+                                    if (ret.ret === 0) {
+                                        self.close();
+                                        var v = new Iznik.Views.User.BusinessCards.Thankyou();
+                                        v.render();
+                                    }
+                                }
+                            });
+
+                            ABTestAction('BusinessCards', 'justafew');
+                        }
+                    }
+                });
+            }
+        },
+
+        render: function() {
+            var self = this;
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+            p.then(function () {
+                self.waitDOM(self, function() {
+                    var me = Iznik.Session.get('me');
+                    var settings = me.hasOwnProperty('settings') ? me.settings : null;
+                    var location = settings ? (settings.hasOwnProperty('mylocation') ? settings.mylocation : null) : null;
+                    var postcode = location ? location.name : null;
+
+                    self.postalAddress = new Iznik.Views.PostalAddress({
+                        postcode: postcode,
+                        showTo: true,
+                        to: me.displayname
+                    });
+                    self.postalAddress.render();
+                    self.$('.js-postaladdress').append(self.postalAddress.$el);
+
+                    ABTestShown('BusinessCards', 'justafew');
+                    ABTestShown('BusinessCards', 'more');
+                });
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.User.BusinessCards.Thankyou = Iznik.Views.Modal.extend({
+        template: 'user_support_businesscardsthanks'
     });
 });

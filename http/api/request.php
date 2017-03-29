@@ -48,7 +48,8 @@ function request() {
             case 'PUT':
                 $id = $r->create($me->getId(),
                     presdef('reqtype', $_REQUEST, NULL),
-                    presdef('addressid', $_REQUEST, NULL));
+                    presdef('addressid', $_REQUEST, NULL),
+                    presdef('to', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 0,

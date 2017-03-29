@@ -1098,6 +1098,10 @@ class MailRouterTest extends IznikTestCase {
     public function testReply() {
         error_log(__METHOD__);
 
+        # Create a user for a reply.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+
         # Create the sending user
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -1113,6 +1117,10 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($origid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
+
+        # Mark the message as promised - this should suppress the email notification.
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
+        $m->promise($uid2);
 
         # Send a purported reply.  This should result in the replying user being created.
         $msg = $this->unique(file_get_contents('msgs/replytext'));
@@ -1133,6 +1141,7 @@ class MailRouterTest extends IznikTestCase {
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         $rid = $c->createConversation($uid, $uid2);
         assertNotNull($rid);
+
         list($msgs, $users) = $c->getMessages();
 
         error_log("Chat messages " . var_export($msgs, TRUE));
@@ -1144,6 +1153,16 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(1, count($users));
         foreach ($users as $user) {
             assertEquals('Some replying person', $user['displayname']);
+        }
+
+        # Check that the reply is flagged as having been seen by email, as it should be since the original has
+        # been promised.
+        $roster = $c->getRoster();
+        error_log("Roster " . var_export($roster, TRUE));
+        foreach ($roster as $rost) {
+            if ($rost['user']['id'] == $uid) {
+                self::assertEquals($msgs[0]['id'], $rost['lastmsgemailed']);
+            }
         }
 
         # The reply should be visible in the message.
@@ -1195,6 +1214,77 @@ class MailRouterTest extends IznikTestCase {
         list($msgs, $users) = $c->getMessages();
         error_log("Chat messages " . var_export($msgs, TRUE));
         self::assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testReplyToImmediate() {
+        error_log(__METHOD__);
+
+        # Immediate emails have a reply address of replyto-msgid-userid
+        #
+        # Create a user for a reply.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test2@test.com');
+
+        # And a promise
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid3 = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test3@test.com');
+
+        # Create the sending user
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created user $uid");
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        # Send a message.
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $origid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        assertNotNull($origid);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Mark the message as promised - this should suppress the email notification.
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
+        $m->promise($uid3);
+
+        # Send a purported reply.  This should result in the replying user being created.
+        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test2@test.com', "replyto-$origid-$uid2@" . USER_DOMAIN, $msg);
+        assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNotNull($m->getFromuser());
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        # Now get the chat room that this should have been placed into.
+        assertNotEquals($uid, $uid2);
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $c->createConversation($uid, $uid2);
+        assertNotNull($rid);
+
+        list($msgs, $users) = $c->getMessages();
+
+        error_log("Chat messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        assertEquals($origid, $msgs[0]['refmsg']['id']);
+
+        # Check that the reply is flagged as having been seen by email, as it should be since the original has
+        # been promised.
+        $roster = $c->getRoster();
+        error_log("Roster " . var_export($roster, TRUE));
+        foreach ($roster as $rost) {
+            if ($rost['user']['id'] == $uid) {
+                self::assertEquals($msgs[0]['id'], $rost['lastmsgemailed']);
+            }
+        }
 
         error_log(__METHOD__ . " end");
     }
@@ -1395,6 +1485,70 @@ class MailRouterTest extends IznikTestCase {
         $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
         $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_LEFT, $logs);
         assertEquals($gid, $log['group']['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testReplyAll() {
+        error_log(__METHOD__);
+
+        # Some people reply all to both our user and the Yahoo group.
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $eid = $u->addEmail('test2@test.com');
+        $u->addMembership($gid, User::ROLE_MEMBER, $eid);
+
+        # Create the sending user
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created user $uid");
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        assertGreaterThan(0, $u->addEmail($email));
+
+        # Send a message.
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $origid = $r->received(Message::YAHOO_APPROVED, $email, 'testgroup1@yahoogroups.com', $msg);
+        assertNotNull($origid);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Send a purported reply.  This should result in the replying user being created.
+        $msg = $this->unique(file_get_contents('msgs/replytext'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
+        $msg = str_replace("To: test@test.com", "To: $email, testgroup1@yahoogroups.com", $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test2@test.com', $email, $msg);
+        assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNotNull($m->getFromuser());
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        # Check it didn't go to a group
+        $groups = $m->getGroups();
+        self::assertEquals(0, count($groups));
+
+        $uid2 = $u->findByEmail('test2@test.com');
+
+        # Now get the chat room that this should have been placed into.
+        assertNotNull($uid2);
+        assertNotEquals($uid, $uid2);
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $c->createConversation($uid, $uid2);
+        assertNotNull($rid);
+        list($msgs, $users) = $c->getMessages();
+
+        error_log("Chat messages " . var_export($msgs, TRUE));
+        assertEquals(1, count($msgs));
+        assertEquals("I'd like to have these, then I can return them to Greece where they rightfully belong.", $msgs[0]['message']);
+        assertEquals($origid, $msgs[0]['refmsg']['id']);
 
         error_log(__METHOD__ . " end");
     }

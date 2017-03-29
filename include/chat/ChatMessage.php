@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
@@ -130,7 +130,7 @@ class ChatMessage extends Entity
         # Check for URLs.
         if (preg_match_all($this->urlPattern, $message, $matches)) {
             # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
-            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5;");
+            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5 AND domain NOT LIKE '%linkedin%';");
 
             $valid = 0;
             $count = 0;
@@ -258,11 +258,12 @@ class ChatMessage extends Entity
             $id = $this->dbhm->lastInsertId();
 
             # We have ourselves seen this message.
-            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ?;",
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
                 [
                     $id,
                     $chatid,
-                    $userid
+                    $userid,
+                    $id
                 ]);
 
             if (!$spam) {

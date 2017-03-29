@@ -15,7 +15,7 @@ $namemap = [
     [ 21231,'Armagh-Freegle','Northern Ireland: Armagh' ],
     [ 21232,'ascot-freegle','S. East: Ascot' ],
     [ 126527,'Ashfield-freegle','E. Mids: Ashfield [District Council]' ],
-    [ 70146,'Ashford-Freegle','S. East: Ashford [Borough Council]' ],
+    [ 70146,'Ashford-Freegle','S. East: Ashford' ],
     [ 253535,'Axe-Seat-n-Lyme-Freegle','S. West: Ax, Seat n Lyme' ],
     [ 21233,'Aylesbury_Recycle','S. East: Aylesbury' ],
     [ 43534,'BallymenaFreegle','Northern Ireland: Ballymena' ],
@@ -48,6 +48,7 @@ $namemap = [
     [ 21265,'Blackwater-and-Yateley-Freegle','S. East: Blackwater & Yateley' ],
     [ 217449,'blaenaugwentfreegle','Wales: Blaenau Gwent' ],
     [ 21268,'BognorFreegle','S. East: Bognor' ],
+    [ 386072, 'BorehamwoodElstreeFreegle', 'East: Borehamwood and Elstree' ],
     [ 21269,'BoltonFreegle','N. West: Bolton Freegle' ],
     [ 126638,'Borders-Freegle','Scotland: Scottish Borders' ],
     [ 126767,'Bordon-Alton-Petersfield-Freegle','S. East: Bordon-Alton-Petersfield-Freegle' ],
@@ -178,7 +179,7 @@ $namemap = [
     [ 218359,'GreenCyclePortslade','S. East: Portslade' ],
     [ 21441,'greencyclesussex','S. East: Brighton' ],
     [ 253562,'Greenwich-Freegle','London: Greenwich Freegle' ],
-    [ 21443,'Grimsbyfreegle','East: Grimsby' ],
+    [ 21443,'Grimsbyfreegle','Yorkshire: Grimsby' ],
     [ 21446,'guildfordrecycleforfree','S. East: Guildford' ],
     [ 21449,'Hackney-Freegle','London: Hackney' ],
     [ 21450,'hammersmithandfulhamfreegle','London: Hammersmith and Fulham' ],
@@ -194,7 +195,7 @@ $namemap = [
     [ 126647,'helensburgh-freegle','Scotland: Helensburgh' ],
     [ 21461,'Helston-Freegle','S. West: Helston' ],
     [ 21462,'Hemel-Freegle','East: Hemel-Freegle' ],
-    [ 21463,'Henfield-Freegle','S. East Henfield' ],
+    [ 21463,'Henfield-Freegle','S.East: Henfield' ],
     [ 21464,'HenleyFreegle','S. East: Henley' ],
     [ 21465,'Hereford_Freegle','W. Mids: Hereford' ],
     [ 21467,'hertford_freegle','East: hertford_freegle' ],
@@ -206,6 +207,7 @@ $namemap = [
     [ 126698,'HungerfordFreegle','S. West: Hungerford' ],
     [ 21475,'huntsfreegle','East: huntsfreegle' ],
     [ 126668,'hyndburnrealcycle','N. West: Hyndburn' ],
+    [ 127370, 'waste-not-want-not-christchurch', 'S. West: Christchurch Freegle'],
     [ 21483,'IpswichRecycle','East: ipswichrecycle' ],
     [ 21485,'Isle-of-Man-Freegle','N West: Isle of Man' ],
     [ 126608,'Isle-of-Wight-Freegle','S. East: Isle of Wight' ],
@@ -232,6 +234,7 @@ $namemap = [
     [ 253436,'LlandrindodFreegle','Wales: LLandrindod' ],
     [ 21512,'Llanelli-Freegle','Wales: LLanelli' ],
     [ 21513,'Llyn-Peninsula-Freegle','Wales: Llyn Peninsula' ],
+    [ 253505, 'IslingtonNorthFreegle', 'London: Islington North' ],
     [ 253460,'Louth-Freegle','E. Mids: Louth' ],
     [ 21515,'Ludlow-Leominster-Freegle','W. Mids: Ludlow and Leominster' ],
     [ 21516,'Luton-Freegle','East: Luton' ],
@@ -256,7 +259,7 @@ $namemap = [
     [ 253439,'newburyfreegle','S. East: Newbury' ],
     [ 253517,'Newham-Reuse-Group','London: Newham' ],
     [ 171793,'newquay-freegle','S. West: Newquay' ],
-    [ 21546,'North_Shropshire_Freegle','N. West: North Shropshire [Market Drayton, Whitchurch & Wem]' ],
+    [ 21546,'North_Shropshire_Freegle','N. West: North Shropshire  [Market Drayton, Whitchurch & Wem]' ],
     [ 126545,'North_Tyneside','N. East: North Tyneside' ],
     [ 126617,'North-Warwickshire-Freegle','W. Mids: North Warwickshire' ],
     [ 21540,'Northampton_East_Freegle','E. Mids: Northampton East Freegle' ],
@@ -338,7 +341,7 @@ $namemap = [
     [ 21621,'Stafford_Freegle','W. Mids: Stafford' ],
     [ 21623,'StevenageFreegle','East: stevenagefreegle' ],
     [ 126656,'Steyning-Freegle','S. East: Steyning' ],
-    [ 21625,'stirlingcityfreegle','Scotland: Stirling [Council]' ],
+    [ 21625,'stirlingcityfreegle','Scotland: Stirling' ],
     [ 21628,'StockportFreegle','N. West: Stockport' ],
     [ 21629,'stockton-freegle','N. East: Stockton' ],
     [ 21630,'Stone-Freegle','W. Mids: Stone' ],
@@ -395,7 +398,7 @@ $namemap = [
     [ 21694,'Witney-Freegle','S. East: Witney' ],
     [ 21695,'WNM_Freegle','Wales: Welshpool, Newtown & Montgomery' ],
     [ 21696,'woking-freegle','S. East: Woking' ],
-    [ 21698,'Wokingham-Freegle','S. East: Wokingham [Borough Council]' ],
+    [ 21698,'Wokingham-Freegle','S. East: Wokingham' ],
     [ 21699,'WolvesFreegle','W. Mids: Wolverhampton [City Council]' ],
     [ 21700,'WoodleyFreegle','S. East: Woodley' ],
     [ 21701,'Worcester-Freegle','W. Mids: Worcester City' ],
@@ -415,8 +418,16 @@ if ($kml) {
 
     foreach ($kgroups as $kgroup) {
         $kname = trim($kgroup->name);
-        $poly = $kgroup->Polygon;
-        #error_log(var_export($kgroup, TRUE));
+        $poly = NULL;
+        if ($kgroup->Polygon) {
+            $poly = $kgroup->Polygon;
+        } else if ($kgroup->MultiGeometry) {
+            # Take the larger polygon.
+            foreach ($kgroup->MultiGeometry->Polygon as $p) {
+                $poly = (!$poly || (strlen($p->asXML()) > strlen($poly))) ? $p : $poly;
+            }
+        }
+
         if ($poly) {
             $geom = geoPHP::load($poly->asXML(), 'kml');
             $wkt = $geom->out('wkt');
@@ -425,16 +436,26 @@ if ($kml) {
                 $found = FALSE;
                 foreach ($namemap as $name) {
                     #error_log("Compare {$name[2]} vs $kname");
-                    if (strpos($kname, $name[2]) === 0) {
-                        #error_log("Found $kname as {$name[0]} {$name[1]}");
+                    if ($kname == $name[2]) {
+                        error_log("Found $kname as {$name[0]} {$name[1]}");
                         $found = TRUE;
-                        $dbhm->preExec("UPDATE groups SET polyofficial = ? WHERE id = ?;", [ $wkt, $name[0]] );
+                        $gs = $dbhr->preQuery("SELECT * FROM groups WHERE id = ? AND (polyofficial != ? OR polyofficial IS NULL);", [
+                            $name[0],
+                            $wkt
+                        ]);
+
+                        foreach ($gs as $g) {
+                            error_log("Change {$name[1]} from {$g['polyofficial']} to $wkt");
+                            $dbhm->preExec("UPDATE groups SET polyofficial = ? WHERE id = ?;", [ $wkt, $name[0]] );
+                        }
                     }
                 }
 
                 if (!$found) {
                     error_log("Failed to find $kname");
                 }
+            } else {
+                error_log("Could not process " . $poly->asXML());
             }
         } else {
             #error_log("No WKT from GAT for $kname");

@@ -19,9 +19,16 @@ function chatrooms() {
         case 'GET': {
             if ($id) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                $ret['chatroom'] = $r->canSee($myid) ? $r->getPublic() : NULL;
+                $ret['chatroom'] = NULL;
+
+                if ($r->canSee($myid)) {
+                    $ret['chatroom'] = $r->getPublic();
+                    $ret['chatroom']['unseen'] = $r->unseenCountForUser($myid);
+                    $ret['chatroom']['lastmsgseen'] = $r->lastSeenForUser($myid);
+                }
             } else {
-                $me = whoAmI($dbhr, $dbhm);
+                $ctx = NULL;
+                $mepub = $me ? $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE) : NULL;
                 $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
                 if ($me) {
@@ -33,7 +40,7 @@ function chatrooms() {
                     if ($rooms) {
                         foreach ($rooms as $room) {
                             $r = new ChatRoom($dbhr, $dbhm, $room);
-                            $atts = $r->getPublic();
+                            $atts = $r->getPublic($me, $mepub);
                             $atts['unseen'] = $r->unseenCountForUser($myid);
                             $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
                             $ret['chatrooms'][] = $atts;

@@ -257,9 +257,10 @@ define([
                                 success: function(ret) {
                                     var found = false;
                                     var self = this;
-                                    if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('pendingMessages')) {
+                                    if (ret.hasOwnProperty('ygData') &&
+                                        ret.ygData.hasOwnProperty('pendingMessages')) {
                                         _.each(ret.ygData.pendingMessages, function (msg) {
-                                            if (msg.msgId == group.yahoopendingid) {
+                                            if (msg.msgId == group.yahoopendingid && msg.messageParts.length > 0) {
                                                 found = true;
 
                                                 self.parts = [];

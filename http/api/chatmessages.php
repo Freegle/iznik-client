@@ -2,7 +2,8 @@
 function chatmessages() {
     global $dbhr, $dbhm;
 
-    $me = whoAmI($dbhr, $dbhm);
+//    $dbhr->setErrorLog(TRUE);
+//    $dbhm->setErrorLog(TRUE);
 
     $roomid = intval(presdef('roomid', $_REQUEST, NULL));
     $message = presdef('message', $_REQUEST, NULL);
@@ -105,9 +106,20 @@ function chatmessages() {
                         $reportreason,
                         $refchatid,
                         $imageid);
+
                     $ret = ['ret' => 3, 'status' => 'Message create failed'];
 
                     if ($id) {
+                        if ($refmsgid) {
+                            # If the refmsg has completed or is promised to someone else, then no need to
+                            # email notify the recipient.
+                            $refm = new Message($dbhr, $dbhm, $refmsgid);
+                            $promisedto = $refm->promisedTo();
+
+                            if ($refm->hasOutcome() || ($promisedto && $promisedto != $me->getId())) {
+                                $r->mailedLastForUser($refm->getFromuser());
+                            }
+                        }
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',

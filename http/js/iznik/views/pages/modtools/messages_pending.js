@@ -53,7 +53,8 @@ define([
                         collection: self.collection,
                         page: self
                     },
-                    collection: self.collection
+                    collection: self.collection,
+                    processKeyEvents: false
                 });
 
                 self.collectionView.render();

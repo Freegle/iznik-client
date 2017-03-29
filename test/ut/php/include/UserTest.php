@@ -656,6 +656,10 @@ class userTest extends IznikTestCase {
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u1->login('testpw'));
 
+        # Reset u1 to match what whoAmI will give so that when we change the role in u1, the role
+        # returned by whoAmI will have changed.
+        $u1 = whoAmI($this->dbhr, $this->dbhm);
+
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
 
@@ -663,6 +667,7 @@ class userTest extends IznikTestCase {
         assertNull($u2->addComment($gid, "Test comment"));
         $u1->addMembership($gid);
         assertNull($u2->addComment($gid, "Test comment"));
+        error_log("Set role mod");
         $u1->setRole(User::ROLE_MODERATOR, $gid);
         $cid = $u2->addComment($gid, "Test comment");
         assertNotNull($cid);

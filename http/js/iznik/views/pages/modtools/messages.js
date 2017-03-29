@@ -245,7 +245,7 @@ define([
                             // posting.
 
                             var p = (message.id + '').indexOf('.');
-                            var i = p == -1 ? message.id : (message.id + '').substring(0, p);
+                            var i = p ==  -1 ? message.id : (message.id + '').substring(0, p);
                             if (i != id && message.daysago < 60) {
                                 if (canonSubj(message.subject) == subj) {
                                     // No point displaying any group tag in the duplicate.
@@ -587,7 +587,7 @@ define([
                         }
 
                         var source = self.model.get('sourceheader');
-                        if ((source == 'Platform' || source == 'FDv2' || source.indexOf('TN-') !== -1) &&
+                        if ((!source || source == 'Platform' || source == 'FDv2' || source.indexOf('TN-') !== -1) &&
                             ((check.indexOf('groups.yahoo') !== -1) ||
                              (msg.indexOf('Yahoo') !== -1))) {
                             self.$('.modal-body').prepend('<div class="alert alert-warning">This message did not come from Yahoo, but your reply mentions Yahoo, so they may not understand.</div>');

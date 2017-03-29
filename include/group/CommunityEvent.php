@@ -141,7 +141,7 @@ class CommunityEvent extends Entity
             $atts['groups'][] = $g->getPublic();
         }
 
-        $atts['dates'] = $this->dbhr->preQuery("SELECT * FROM communityevents_dates WHERE eventid = ?", [ $this->id ]);
+        $atts['dates'] = $this->dbhr->preQuery("SELECT * FROM communityevents_dates WHERE eventid = ? ORDER BY end ASC", [ $this->id ]);
         
         foreach ($atts['dates'] as &$date) {
             $date['start'] = ISODate($date['start']);
@@ -163,6 +163,9 @@ class CommunityEvent extends Entity
         }
 
         unset($atts['userid']);
+
+        # Ensure leading 0 not stripped.
+        $atts['contactphone'] = pres('contactphone', $atts) ? "{$atts['contactphone']} " : NULL;
 
         return($atts);
     }

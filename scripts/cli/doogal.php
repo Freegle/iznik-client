@@ -19,7 +19,7 @@ require_once(IZNIK_BASE . '/lib/phpcoord.php');
 $opts = getopt('f:');
 
 if (count($opts) != 1) {
-    echo "Usage: hhvm doogle -f <CSV file>\n";
+    echo "Usage: hhvm doogal.php -f <CSV file>\n";
 } else {
     $fn = presdef('f', $opts, NULL);
 
@@ -29,6 +29,9 @@ if (count($opts) != 1) {
         $fh = fopen($fn, 'r');
 
         if ($fh) {
+            $added = 0;
+            $failed = 0;
+
             while (!feof($fh)) {
                 # Format is:
                 #
@@ -45,14 +48,18 @@ if (count($opts) != 1) {
 
                         if ($lid) {
                             error_log("...added $pc $lat, $lng");
+                            $added++;
                         } else {
                             error_log("...failed to add $pc $lat, $lng");
+                            $failed++;
                         }
                     }
                 }
             }
 
             fclose($fh);
+
+            error_log("Added $added failed $failed");
         }
     }
 }

@@ -183,6 +183,7 @@ define([
             "stories": "userStories",
             "story/:id": "userStory",
             "streetwhack(/:id)": "findMyStreet",
+            "why": "userWhy",
             "*path": "userHome"
         },
 
@@ -1399,6 +1400,15 @@ define([
 
             require(["iznik/views/pages/user/landing"], function() {
                 var page = new Iznik.Views.User.Pages.Landing.Donate();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userWhy: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/landing"], function() {
+                var page = new Iznik.Views.User.Pages.Landing.Why();
                 self.loadRoute({page: page});
             });
         },

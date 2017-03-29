@@ -202,7 +202,8 @@ class Twitter {
             $link = 'https://' . USER_SITE . "/story/{$story['id']}?src=tweetstory&t=". time();
 
             $status .= " $link";
-            $rc = $this->tweet($status, file_get_contents(IZNIK_BASE . '/http/images/story.png'));
+            $img = rand(1, 5);
+            $rc = $this->tweet($status, file_get_contents(IZNIK_BASE . "/http/images/stories/story$img.png"));
 
             $this->dbhm->preExec("UPDATE users_stories SET tweeted = 1 WHERE id = ?;", [ $story['id'] ]);
         }

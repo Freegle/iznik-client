@@ -221,7 +221,8 @@ define([
                             return (model.get('outcomes').length == 0);
                         }
                     },
-                    collection: self.collection
+                    collection: self.collection,
+                    processKeyEvents: false
                 });
 
                 if (self.collection) {

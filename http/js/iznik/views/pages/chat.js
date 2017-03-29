@@ -150,7 +150,8 @@ define([
                         el: $('#js-chatlist1'),
                         modelView: Iznik.Views.Chat.Page.One,
                         collection: self.chats,
-                        visibleModelsFilter: _.bind(self.searchFilter, self)
+                        visibleModelsFilter: _.bind(self.searchFilter, self),
+                        processKeyEvents: false
                     });
 
                     self.chatsCV1.render();
@@ -172,7 +173,8 @@ define([
                             el: $('#js-chatlist2'),
                             modelView: Iznik.Views.Chat.Page.One,
                             collection: self.chats,
-                            visibleModelsFilter: _.bind(self.searchFilter, self)
+                            visibleModelsFilter: _.bind(self.searchFilter, self),
+                            processKeyEvents: false
                         });
 
                         self.chatsCV2.render();
@@ -296,7 +298,16 @@ define([
             'click .js-small': 'small',
             'keyup .js-message': 'keyUp',
             'change .js-status': 'status',
-            'click .js-remove': 'removeIt'
+            'click .js-remove': 'removeIt',
+            'click .js-popup': 'popup'
+        },
+
+        popup: function(){
+            var self = this;
+            require(['iznik/views/chat/chat'], function(ChatHolder) {
+                var chatid = self.model.get('id');
+                ChatHolder().fetchAndRestore(chatid);
+            });
         },
 
         enter: function(e) {
@@ -311,7 +322,6 @@ define([
             var self = this;
             e.preventDefault();
             e.stopPropagation();
-            console.log("Remove?");
 
             var v = new Iznik.Views.Confirm({
                 model: self.model
@@ -807,7 +817,8 @@ define([
                     modelViewOptions: {
                         chatView: self,
                         chatModel: self.model
-                    }
+                    },
+                    processKeyEvents: false
                 });
 
                 // As new messages are added, we want to show them.  This also means when we first render, we'll

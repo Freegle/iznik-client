@@ -82,7 +82,7 @@ define([
                             v.close();
 
                             if (ret.dashboard) {
-                                self.$('.js-donations').html(ret.dashboard.donationsthisyear);
+                                self.$('.js-donations').html(ret.dashboard.donationsthisyear ? ret.dashboard.donationsthisyear : '0');
                                 self.$('.js-donationwrapper').fadeIn('slow');
 
                                 var coll = new Iznik.Collections.DateCounts(ret.dashboard.Activity);
