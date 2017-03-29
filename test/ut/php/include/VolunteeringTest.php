@@ -46,7 +46,7 @@ class volunteeringTest extends IznikTestCase {
         $c->addGroup($this->groupid);
         $start = ISODate('@' . (time()+600));
         $end = ISODate('@' . (time()+600));
-        $c->addDate($start, $end);
+        $c->addDate($start, $end, NULL);
 
         $atts = $c->getPublic();
         assertEquals('Test vacancy', $atts['title']);
