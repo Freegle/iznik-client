@@ -4,23 +4,24 @@ define([
     'backbone',
     'iznik/base',
     'moment',
-    'iznik/models/communityevent',
+    'iznik/models/volunteering',
     'iznik/views/pages/user/pages',
-    'iznik/views/group/communityevents'
+    'iznik/views/group/volunteering'
 ], function ($, _, Backbone, Iznik, moment) {
-    Iznik.Views.User.Pages.CommunityEvents = Iznik.Views.Page.extend({
-        template: 'user_communityevents_main',
+    Iznik.Views.User.Pages.Volunteerings = Iznik.Views.Page.extend({
+        template: 'user_volunteering_main',
 
         render: function () {
             var self = this;
+            console.log("Render, group", self.options);
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
-                var v = new Iznik.Views.User.CommunityEventsFull({
+                var v = new Iznik.Views.User.VolunteeringFull({
                     groupid: self.options.groupid
                 });
 
                 v.render().then(function() {
-                    self.$('.js-events').html(v.$el);
+                    self.$('.js-volunteering').html(v.$el);
                 });
             });
 
@@ -28,31 +29,31 @@ define([
         }
     });
 
-    Iznik.Views.User.Pages.CommunityEvent = Iznik.Views.Page.extend({
-        template: 'user_communityevents_singlemain',
+    Iznik.Views.User.Pages.Volunteering = Iznik.Views.Page.extend({
+        template: 'user_volunteering_singlemain',
 
         render: function () {
             var self = this;
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
-                var mod = new Iznik.Models.CommunityEvent({
+                var mod = new Iznik.Models.Volunteering({
                     id: self.options.id
                 });
 
                 mod.fetch().then(function() {
                     if (mod.get('title')) {
-                        var v = new Iznik.Views.User.CommunityEvent.Single({
+                        var v = new Iznik.Views.User.Volunteering.Single({
                             model: mod
                         });
 
                         v.render().then(function() {
-                            self.$('.js-event').html(v.$el);
+                            self.$('.js-volunteering').html(v.$el);
                         });
                     } else {
-                        var v = new Iznik.Views.User.CommunityEvent.Deleted();
+                        var v = new Iznik.Views.User.Volunteering.Deleted();
 
                         v.render().then(function() {
-                            self.$('.js-event').html(v.$el);
+                            self.$('.js-volunteering').html(v.$el);
                         });
                     }
                 });
@@ -62,12 +63,12 @@ define([
         }
     });
 
-    Iznik.Views.User.CommunityEvent.Deleted = Iznik.View.extend({
-        template: 'user_communityevents_deleted',
+    Iznik.Views.User.Volunteering.Deleted = Iznik.View.extend({
+        template: 'user_volunteering_deleted'
     });
 
-    Iznik.Views.User.CommunityEvent.Single = Iznik.View.extend({
-        template: 'user_communityevents_single',
+    Iznik.Views.User.Volunteering.Single = Iznik.View.extend({
+        template: 'user_volunteering_single',
 
         render: function() {
             var self = this;
@@ -81,13 +82,13 @@ define([
                     self.$('.js-dates').append(start + ' - ' + end + '<br />');
                 });
             });
-            
+
             return(p);
         }
     });
 
-    Iznik.Views.User.CommunityEventsFull = Iznik.Views.User.CommunityEventsSidebar.extend({
-        template: 'user_communityevents_full',
+    Iznik.Views.User.VolunteeringFull = Iznik.Views.User.VolunteeringSidebar.extend({
+        template: 'user_volunteering_full',
 
         refetch: function() {
             var self = this;
@@ -95,16 +96,16 @@ define([
                 reset: true
             };
 
-            // We might fetch all events or those for a specific group.
+            // We might fetch all volunteering vacancies or those for a specific group.
             if (self.selected > 0) {
                 args.data = {
                     groupid: self.selected
                 }
             }
 
-            self.events.fetch(args).then(function() {
+            self.volunteering.fetch(args).then(function() {
                 self.$('.js-list').fadeIn('slow');
-                if (self.events.length == 0) {
+                if (self.volunteering.length == 0) {
                     self.$('.js-none').fadeIn('slow');
                 }
             });
@@ -121,16 +122,16 @@ define([
             // We extend the sidebar as that has some event handling we want, but we don't want its render.
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                self.events = new Iznik.Collections.CommunityEvent();
+                self.volunteering = new Iznik.Collections.Volunteering();
 
-                self.eventsView = new Backbone.CollectionView({
+                self.volunteeringView = new Backbone.CollectionView({
                     el: self.$('.js-list'),
-                    modelView: Iznik.Views.User.CommunityEvent,
-                    collection: self.events,
+                    modelView: Iznik.Views.User.Volunteering,
+                    collection: self.volunteering,
                     processKeyEvents: false
                 });
 
-                self.eventsView.render();
+                self.volunteeringView.render();
 
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                     if (loggedIn) {
@@ -140,7 +141,7 @@ define([
                             all: true,
                             mod: false,
                             grouptype: 'Freegle',
-                            id: 'eventsGroupSelect',
+                            id: 'volunteeringGroupSelect',
                             selected: self.options.groupid
                         });
 
@@ -161,7 +162,6 @@ define([
                 });
 
                 Iznik.Session.testLoggedIn();
-
             });
 
             return(p);

@@ -15,7 +15,7 @@ if ($handle = opendir(IZNIK_BASE . "/events")) {
 
         $modified = filemtime($fn);
 
-        if (time() - filemtime($fn) > 4 * 3600) {
+        if (is_file($fn) && (time() - filemtime($fn) > 4 * 3600)) {
             unlink($fn);
         }
     }

@@ -402,10 +402,11 @@ function message() {
 
                                     if ($fromemail) {
                                         # Make sure it's attached to this group.
+                                        $postcoll = $u->postToCollection($groupid);
                                         $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
                                             $draft['msgid'],
                                             $groupid,
-                                            $u->postToCollection($groupid),
+                                            $postcoll,
                                             $m->getType()
                                         ]);
 
@@ -414,6 +415,11 @@ function message() {
                                         if ($m->submit($u, $fromemail, $groupid)) {
                                             # We sent it.
                                             $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid ];
+
+                                            if ($postcoll == MessageCollection::APPROVED) {
+                                                # We index now; for pending messages we index when they are approved.
+                                                $m->index();
+                                            }
                                         }
                                     }
                                 }

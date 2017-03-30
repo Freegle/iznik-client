@@ -344,6 +344,13 @@ define([
                                 helpMessage: '(Freegle only) Whether members can post local community events on this group.'
                             },
                             {
+                                name: 'volunteering',
+                                label: 'Allow volunteer requests?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: '(Freegle only) Whether members can post requests for volunteers on this group.'
+                            },
+                            {
                                 name: 'stories',
                                 label: 'Allow stories?',
                                 control: 'radio',

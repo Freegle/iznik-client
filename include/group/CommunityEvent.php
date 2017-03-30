@@ -72,7 +72,7 @@ class CommunityEvent extends Entity
         $ctxq = $ctx ? " AND end > '{$ctx['end']}' " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT communityevents.id, communityevents_dates.end, communityevents_groups.groupid FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
+        $sql = "SELECT communityevents.id, communityevents.pending, communityevents_dates.end, communityevents_groups.groupid FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
         #error_log("$sql, $userid, $mysqltime");
         $events = $this->dbhr->preQuery($sql, [
             $userid,
@@ -82,7 +82,7 @@ class CommunityEvent extends Entity
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         foreach ($events as $event) {
-            if ($u->activeModForGroup($event['groupid'])) {
+            if (!$event['pending'] || $u->activeModForGroup($event['groupid'])) {
                 $ctx['end'] = $event['end'];
                 $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
                 $atts = $e->getPublic();

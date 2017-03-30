@@ -6,6 +6,7 @@ define([
     'iznik/models/message',
     'iznik/models/user/search',
     'iznik/views/group/communityevents',
+    'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
     'iznik/views/user/message',
     'iznik/views/supportus',
@@ -225,6 +226,12 @@ define([
                 var v = new Iznik.Views.User.CommunityEventsSidebar();
                 v.render().then(function () {
                     $('#js-eventcontainer').append(v.$el);
+                });
+
+                // Right menu is volunteer vacancies
+                var w = new Iznik.Views.User.VolunteeringSidebar();
+                w.render().then(function () {
+                    $('#js-volunteeringcontainer').append(w.$el);
                 });
 
                 // Searches
