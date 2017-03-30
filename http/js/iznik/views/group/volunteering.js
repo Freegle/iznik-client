@@ -280,13 +280,13 @@ define([
                         Promise.all(self.promises).then(function() {
                             self.wait.close();
                             self.wait = null;
-                        })
-                    });
 
-                    if (self.closeAfterSave) {
-                        self.close();
-                        (new Iznik.Views.User.Volunteering.Confirm()).render();
-                    }
+                            if (self.closeAfterSave) {
+                                self.close();
+                                (new Iznik.Views.User.Volunteering.Confirm()).render();
+                            }
+                        });
+                    });
                 }
             }
         },
@@ -338,7 +338,7 @@ define([
 
                     // Set the values.  We do it here rather than in the template because they might contain user data
                     // which would mess up the template expansion.
-                    _.each(['title', 'description', 'location', 'contactname', 'contactemail', 'contacturl', 'contactphone'], function(att)
+                    _.each(['title', 'description', 'timecommitment', 'location', 'contactname', 'contactemail', 'contacturl', 'contactphone'], function(att)
                     {
                         self.$('.js-' + att).val(self.model.get(att));
                     })

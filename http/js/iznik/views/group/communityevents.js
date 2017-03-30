@@ -284,15 +284,16 @@ define([
                         });
 
                         Promise.all(self.promises).then(function() {
+                            console.log("Close wait");
                             self.wait.close();
                             self.wait = null;
-                        })
-                    });
 
-                    if (self.closeAfterSave) {
-                        self.close();
-                        (new Iznik.Views.User.CommunityEvent.Confirm()).render();
-                    }
+                            if (self.closeAfterSave) {
+                                self.close();
+                                (new Iznik.Views.User.CommunityEvent.Confirm()).render();
+                            }
+                        });
+                    });
                 }
             }
         },
