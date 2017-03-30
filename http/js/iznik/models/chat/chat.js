@@ -140,8 +140,6 @@ define([
         initialize: function() {
             var self = this;
 
-            log("ChatRoom Collection initialise");
-
             // The chat host is passed from the server.
             self.chathost = $('meta[name=iznikchat]').attr("content");
 
@@ -254,7 +252,6 @@ define([
             // TODO use a separate domain name to get round client-side limits on the max number of HTTP connections
             // to a single host.  We use a single connection rather than a per chat one for the same reason.
             var self = this;
-            //log("Start chat wait");
 
             if (Iznik.Session) {
 

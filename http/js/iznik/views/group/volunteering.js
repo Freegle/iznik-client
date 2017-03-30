@@ -4,27 +4,28 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'jquery.dotdotdot',
     'combodate',
     'jquery.validate.min',
     'jquery.validate.additional-methods',
-    'iznik/models/communityevent',
+    'iznik/models/volunteering',
     'iznik/views/group/select',
     'iznik/customvalidate'
 ], function($, _, Backbone, Iznik, moment) {
-    Iznik.Views.User.CommunityEventsSidebar = Iznik.View.extend({
-        template: "communityevents_list",
+    Iznik.Views.User.VolunteeringSidebar = Iznik.View.extend({
+        template: "volunteering_list",
 
         events: {
-            'click .js-addevent': 'add'
+            'click .js-addvolunteering': 'add'
         },
 
         add: function() {
             var self = this;
 
-            // Need to be logged in to add an event.
+            // Need to be logged in to add a volunteering vacancy.
             self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                var v = new Iznik.Views.User.CommunityEvent.Editable({
-                    model: new Iznik.Models.CommunityEvent({})
+                var v = new Iznik.Views.User.Volunteering.Editable({
+                    model: new Iznik.Models.Volunteering({})
                 });
                 v.render();
             });
@@ -33,25 +34,25 @@ define([
         },
 
         containerHeight: function() {
-            $('#js-eventcontainer').css('height', window.innerHeight - $('#botleft').height() - $('nav').height() - 50)
+            $('#js-volunteeringcontainer').css('height', window.innerHeight - $('#botleft').height() - $('nav').height() - 50)
         },
 
         fetched: false,
 
-        eventsFetched: function() {
+        volunteeringFetched: function() {
             // This might get called twice, once with cached info and once without, so we want to be resilient to that.
             var self = this;
 
             if (!self.fetched) {
                 self.fetched = true;
-                self.$('.js-eventslist').fadeIn('slow');
+                self.$('.js-volunteeringlist').fadeIn('slow');
 
                 self.containerHeight();
                 $(window).resize(self.containerHeight);
-                $('#js-eventcontainer').fadeIn('slow');
+                $('#js-volunteeringcontainer').fadeIn('slow');
             }
 
-            if (self.events.length == 0) {
+            if (self.volunteering.length == 0) {
                 self.$('.js-none').fadeIn('slow');
             }
         },
@@ -61,19 +62,19 @@ define([
 
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                self.events = new Iznik.Collections.CommunityEvent();
+                self.volunteering = new Iznik.Collections.Volunteering();
 
-                self.eventsView = new Backbone.CollectionView({
-                    el: self.$('.js-eventslist'),
-                    modelView: Iznik.Views.User.CommunityEvent,
-                    collection: self.events,
+                self.volunteeringView = new Backbone.CollectionView({
+                    el: self.$('.js-volunteeringlist'),
+                    modelView: Iznik.Views.User.Volunteering,
+                    collection: self.volunteering,
                     processKeyEvents: false
                 });
 
-                self.eventsView.render();
+                self.volunteeringView.render();
 
-                var cb = _.bind(self.eventsFetched, self);
-                self.events.fetch({
+                var cb = _.bind(self.volunteeringFetched, self);
+                self.volunteering.fetch({
                     cached: cb,
                     data: {
                         groupid: self.options.groupid
@@ -85,8 +86,8 @@ define([
         }
     });
 
-    Iznik.Views.User.CommunityEvent  = Iznik.View.extend({
-        template: "communityevents_one",
+    Iznik.Views.User.Volunteering  = Iznik.View.extend({
+        template: "volunteering_one",
         className: 'padleftsm',
 
         events: {
@@ -94,7 +95,7 @@ define([
         },
 
         info: function() {
-            var v = new Iznik.Views.User.CommunityEvent.Details({
+            var v = new Iznik.Views.User.Volunteering.Details({
                 model: this.model
             });
             v.render();
@@ -103,27 +104,11 @@ define([
         render: function() {
             var self = this;
             var p = Iznik.View.prototype.render.call(this).then(function() {
-                var dates = self.model.get('dates');
-                var count = 0;
-                for (var i = 0; i < dates.length; i++) {
-                    var date = dates[i];
-                    if (moment().diff(date.end) < 0  || moment().isSame(date.end, 'day')) {
-                        if (count == 0) {
-                            var startm = new moment(date.start);
-                            self.$('.js-start').html(startm.format('ddd, Do MMM HH:mm'));
-                            var endm = new moment(date.end);
-                            self.$('.js-end').html(endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm'));
-                        }
-
-                        count++;
-                    }
-                }
-
-                if (count > 1) {
-                    self.$('.js-moredates').html('...plus ' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
-                }
-
                 self.$el.closest('li').addClass('completefull');
+
+                self.$('.js-description').dotdotdot({
+                    height: 60
+                });
 
                 self.model.on('change', self.render, self);
             });
@@ -132,8 +117,8 @@ define([
         }
     });
 
-    Iznik.Views.User.CommunityEvent.Details  = Iznik.Views.Modal.extend({
-        template: "communityevents_details",
+    Iznik.Views.User.Volunteering.Details  = Iznik.Views.Modal.extend({
+        template: "volunteering_details",
 
         events: {
             'click .js-delete': 'deleteMe',
@@ -143,7 +128,7 @@ define([
         edit: function() {
             var self = this;
             self.close();
-            var v = new Iznik.Views.User.CommunityEvent.Editable({
+            var v = new Iznik.Views.User.Volunteering.Editable({
                 model: self.model
             });
             v.render();
@@ -161,32 +146,37 @@ define([
         render: function() {
             var self = this;
             Iznik.Views.Modal.prototype.render.call(this).then(function() {
-                // Add the link to this specific event.
+                // Add the link to this specific volunteering vacancy.
                 var usersite = $('meta[name=iznikusersite]').attr("content");
-                var url = 'https://' + usersite + '/communityevent/' + self.model.get('id');
+                var url = 'https://' + usersite + '/volunteering/' + self.model.get('id');
                 self.$('.js-url').html(url);
                 self.$('.js-url').attr('href', url);
 
-                self.$('.js-dates').empty();
-                _.each(self.model.get('dates'), function(date) {
-                    var startm = new moment(date.start);
-                    var start = startm.format('ddd, Do MMM YYYY HH:mm');
-                    var endm = new moment(date.end);
-                    var end = endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm');
-                    self.$('.js-dates').append(start + ' - ' + end + '<br />');
-                });
+                var dates = self.model.get('dates');
+                if (dates.length > 0) {
+                    self.$('.js-dates').empty();
+                    _.each(dates, function(date) {
+                        var startm = new moment(date.start);
+                        var start = startm.format('ddd, Do MMM YYYY HH:mm');
+                        var endm = new moment(date.end);
+                        var end = endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm');
+                        self.$('.js-dates').append(start + ' - ' + end + '<br />');
+                    });
+                } else {
+                    self.$('.js-dateswrapper').hide();
+                }
             });
         }
     });
 
-    Iznik.Views.User.CommunityEvent.Editable  = Iznik.Views.Modal.extend({
-        template: "communityevents_edit",
+    Iznik.Views.User.Volunteering.Editable = Iznik.Views.Modal.extend({
+        template: "volunteering_edit",
 
         events: {
             'click .js-save': 'save',
             'click .js-adddate': 'addDate'
         },
-        
+
         closeAfterSave: true,
 
         wait: null,
@@ -229,7 +219,7 @@ define([
                         var groups = self.model.get('groups');
                         if (_.isUndefined(groups) || self.groupSelect.get() != groups[0]['id']) {
                             self.promises.push($.ajax({
-                                url: API + 'communityevent',
+                                url: API + 'volunteering',
                                 type: 'PATCH',
                                 data: {
                                     id: self.model.get('id'),
@@ -239,7 +229,7 @@ define([
                                 success: function (ret) {
                                     if (!_.isUndefined(groups)) {
                                         self.promises.push($.ajax({
-                                            url: API + 'communityevent',
+                                            url: API + 'volunteering',
                                             type: 'PATCH',
                                             data: {
                                                 id: self.model.get('id'),
@@ -256,7 +246,7 @@ define([
                         var olddates = self.model.get('dates');
                         _.each(olddates, function(adate) {
                             self.promises.push($.ajax({
-                                url: API + 'communityevent',
+                                url: API + 'volunteering',
                                 type: 'PATCH',
                                 data: {
                                     id: self.model.get('id'),
@@ -270,45 +260,48 @@ define([
                         self.datesCV.viewManager.each(function(date) {
                             var start = date.getStart();
                             var end = date.getEnd();
+                            var applyby = date.getApplyBy();
 
-                            self.promises.push($.ajax({
-                                url: API + 'communityevent',
-                                type: 'PATCH',
-                                data: {
-                                    id: self.model.get('id'),
-                                    action: 'AddDate',
-                                    start: start,
-                                    end: end
-                                }
-                            }));
+                            if (start !== 'Invalid date') {
+                                self.promises.push($.ajax({
+                                    url: API + 'volunteering',
+                                    type: 'PATCH',
+                                    data: {
+                                        id: self.model.get('id'),
+                                        action: 'AddDate',
+                                        start: start,
+                                        end: end,
+                                        applyby: applyby
+                                    }
+                                }));
+                            }
                         });
 
                         Promise.all(self.promises).then(function() {
-                            console.log("Close wait");
                             self.wait.close();
                             self.wait = null;
 
                             if (self.closeAfterSave) {
                                 self.close();
-                                (new Iznik.Views.User.CommunityEvent.Confirm()).render();
+                                (new Iznik.Views.User.Volunteering.Confirm()).render();
                             }
                         });
                     });
                 }
             }
         },
-        
+
         parentClass: Iznik.Views.Modal,
 
         groupChange: function() {
             var self = this;
             var groupid = self.groupSelect.get();
             var group = Iznik.Session.getGroup(groupid);
-            if (group.get('settings').communityevents) {
-                this.$('.js-eventsdisabled').hide();
+            if (group.get('settings').volunteering) {
+                this.$('.js-volunteeringdisabled').hide();
                 this.$('.js-save').show();
             } else {
-                this.$('.js-eventsdisabled').fadeIn('slow');
+                this.$('.js-volunteeringdisabled').fadeIn('slow');
                 this.$('.js-save').hide();
             }
         },
@@ -323,7 +316,7 @@ define([
                         all: false,
                         mod: false,
                         choose: false,
-                        id: 'eventGroupSelect-' + self.model.get('id')
+                        id: 'volunteeringGroupSelect-' + self.model.get('id')
                     });
 
                     // The group select render is a bit unusual because the dropdown requires us to have added it to the
@@ -345,7 +338,7 @@ define([
 
                     // Set the values.  We do it here rather than in the template because they might contain user data
                     // which would mess up the template expansion.
-                    _.each(['title', 'description', 'location', 'contactname', 'contactemail', 'contacturl', 'contactphone'], function(att)
+                    _.each(['title', 'description', 'timecommitment', 'location', 'contactname', 'contactemail', 'contacturl', 'contactphone'], function(att)
                     {
                         self.$('.js-' + att).val(self.model.get(att));
                     })
@@ -363,7 +356,7 @@ define([
 
                     self.datesCV = new Backbone.CollectionView({
                         el: $('.js-dates'),
-                        modelView: Iznik.Views.User.CommunityEvent.Date,
+                        modelView: Iznik.Views.User.Volunteering.Date,
                         collection: self.dates,
                         processKeyEvents: false,
                         modelViewOptions: {
@@ -372,13 +365,7 @@ define([
                     });
 
                     self.datesCV.render();
-
-                    self.listenTo(self.dates, 'update', function() {
-                        // Re-render the first date to make sure the delete button only appears when there are
-                        // multiple.
-                        console.log("Collection updated", self.dates.length);
-                        self.datesCV.viewManager.findByIndex(0).render();
-                    });
+                    self.dates.fetch();
 
                     // Need to make sure we're in the DOM else the validate plugin fails.
                     self.waitDOM(self, function() {
@@ -392,11 +379,15 @@ define([
                                 },
                                 start: {
                                     mindate: self,
-                                    required: true
+                                    required: false
                                 },
                                 end: {
                                     mindate: self,
-                                    required: true
+                                    required: false
+                                },
+                                end: {
+                                    mindate: self,
+                                    required: false
                                 },
                                 location: {
                                     required: true
@@ -412,85 +403,14 @@ define([
                                 }
                             }
                         });
-
-                        // Photo.  We ask for OCR because it is common for this to be a poster.
-                        var photo = self.model.get('photo');
-                        var url = !_.isUndefined(photo) ? photo.paththumb : "https://placehold.it/150x150";
-                        self.$('.js-photopreview').attr('src',  url);
-                        self.$('.js-photo').fileinput({
-                            uploadExtraData: {
-                                imgtype: 'CommunityEvent',
-                                communityevent: 1,
-                                ocr: true
-                            },
-                            showUpload: false,
-                            allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-                            uploadUrl: API + 'image',
-                            resizeImage: true,
-                            maxImageWidth: 800,
-                            browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
-                            browseLabel: 'Upload photo',
-                            browseClass: 'btn btn-primary nowrap',
-                            showCaption: false,
-                            showRemove: false,
-                            showUploadedThumbs: false,
-                            dropZoneEnabled: false,
-                            buttonLabelClass: '',
-                            fileActionSettings: {
-                                showZoom: false,
-                                showRemove: false,
-                                showUpload: false
-                            },
-                            layoutTemplates: {
-                                footer: '<div class="file-thumbnail-footer">\n' +
-                                '    {actions}\n' +
-                                '</div>'
-                            },
-                            elErrorContainer: '#js-uploaderror'
-                        });
-
-                        // Upload as soon as we have it.
-                        self.$('.js-photo').on('fileimagesresized', function (event) {
-                            self.$('.file-input').hide();
-                            self.$('.js-photopreview').hide();
-                            self.$('.js-photo').fileinput('upload');
-                        });
-
-                        self.$('.js-photo').on('fileuploaded', function (event, data) {
-                            // Once it's uploaded, hide the controls.  This means we can't edit, but that's ok for
-                            // this.
-                            self.$('.js-photopreview').attr('src', data.response.paththumb);
-                            self.$('.js-photopreview').show();
-                            self.model.set('photo', data.response.id);
-
-                            if (data.response.ocr && data.response.ocr.length > 10) {
-                                // We got some text.  The first line is most likely to be a title.
-                                var p = data.response.ocr.indexOf("\n");
-                                var title = p !== -1 ? data.response.ocr.substring(0, p): null;
-                                var desc = p !== -1 ? data.response.ocr.substring(p + 1) : data.response.ocr;
-
-                                if (title && self.$('.js-title').val().length === 0) {
-                                    self.$('.js-title').val(title);
-                                }
-
-                                // Put the rest in the description for them to sort out.
-                                if (self.$('.js-description').val().length === 0) {
-                                    self.$('.js-description').val(desc);
-                                }
-                            }
-
-                            _.delay(function() {
-                                self.$('.file-preview-frame').remove();
-                            }, 500);
-                        });
                     });
                 });
             });
         }
     });
 
-    Iznik.Views.User.CommunityEvent.Date = Iznik.View.extend({
-        template: "communityevents_dates",
+    Iznik.Views.User.Volunteering.Date = Iznik.View.extend({
+        template: "volunteering_dates",
 
         events: {
             'change .js-start': 'startChange',
@@ -519,9 +439,10 @@ define([
 
                 var start = self.model.get('start');
                 var end = self.model.get('end');
+                var applyby = self.model.get('applyby');
 
                 var dtopts = {
-                    format: "dd MM yyyy HH:ii P",
+                    format: "dd MM yyyy",
                     showMeridian: true,
                     autoclose: true
                 };
@@ -531,8 +452,8 @@ define([
                 }
 
                 var opts = {
-                    template: "DD MMM YYYY hh:mm A",
-                    format: "YYYY-MM-DD HH:mm",
+                    template: "DD MMM YYYY",
+                    format: "YYYY-MM-DD",
                     smartDays: true,
                     yearDescending: false,
                     minYear: new Date().getFullYear(),
@@ -540,22 +461,18 @@ define([
                     customClass: 'inline'
                 };
 
-                self.$('.js-start, .js-end').combodate(opts);
+                self.$('.js-start, .js-end, .js-applyby').combodate(opts);
 
                 if (start) {
                     self.$('.js-start').combodate('setValue', new Date(start));
-                } else {
-                    // Set a default of tomorrow on the hour
-                    var m = moment().add(1, 'days').startOf('hour');
-                    self.$('.js-start').combodate('setValue', m.toDate());
                 }
 
                 if (end) {
                     self.$('.js-end').combodate('setValue', new Date(end));
-                } else {
-                    // Default event to last 1 hour.
-                    var m = moment().add(1, 'days').startOf('hour').add(1, 'hours');
-                    self.$('.js-end').combodate('setValue', m.toDate());
+                }
+
+                if (applyby) {
+                    self.$('.js-applyby').combodate('setValue', new Date(applyby));
                 }
 
                 self.$('select').addClass('form-control');
@@ -585,10 +502,14 @@ define([
 
         getEnd: function() {
             return(this.getDate('.js-end'));
+        },
+
+        getApplyBy: function() {
+            return(this.getDate('.js-applyby'));
         }
     });
 
-    Iznik.Views.User.CommunityEvent.Confirm = Iznik.Views.Modal.extend({
-        template: "communityevents_confirm"
+    Iznik.Views.User.Volunteering.Confirm = Iznik.Views.Modal.extend({
+        template: "volunteering_confirm"
     });
 });

@@ -114,6 +114,7 @@ define([
             "modtools/members/stories": "storiesMembers",
             "modtools/members/newsletter": "storiesNewsletter",
             "modtools/events/pending": "pendingEvents",
+            "modtools/volunteering/pending": "pendingVolunteering",
             "modtools/publicity": "socialActions",
             "modtools/fbgroups": "facebookGroups",
             "modtools/admins": "admins",
@@ -184,6 +185,9 @@ define([
             "stories": "userStories",
             "story/:id": "userStory",
             "streetwhack(/:id)": "findMyStreet",
+            "volunteering": "userVolunteerings",
+            "volunteering/group/(/:id)": "userVolunteerings",
+            "volunteering/:id": "userVolunteering",
             "why": "userWhy",
             "*path": "userHome"
         },
@@ -672,6 +676,39 @@ define([
             });
         },
 
+        userVolunteerings: function(groupid, naked) {
+            var self = this;
+
+            require(["iznik/views/pages/user/volunteering"], function() {
+                var page = new Iznik.Views.User.Pages.Volunteerings({
+                    groupid: groupid,
+                    naked: naked
+                });
+
+                if (groupid) {
+                    // We can see volunteer vacancies for a specific group when we're logged out.
+                    self.loadRoute({page: page});
+                } else {
+                    // But for all groups, we need to log in.
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        self.loadRoute({page: page});
+                    });
+
+                    Iznik.Session.forceLogin();
+                }
+            });
+        },
+
+        userVolunteering: function(id) {
+            var self = this;
+            require(["iznik/views/pages/user/volunteering"], function() {
+                var page = new Iznik.Views.User.Pages.Volunteering({
+                    id: id
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
         legacyUserMessage: function(groupid, messageid) {
             var self = this;
 
@@ -911,6 +948,24 @@ define([
             require(["iznik/views/pages/modtools/events_pending"], function() {
                 self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                     var page = new Iznik.Views.ModTools.Pages.PendingEvents();
+                    self.loadRoute({
+                        page: page,
+                        modtools: true
+                    });
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        pendingVolunteering: function (search) {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/volunteering_pending"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.PendingVolunteering();
                     self.loadRoute({
                         page: page,
                         modtools: true

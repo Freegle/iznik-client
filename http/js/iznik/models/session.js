@@ -360,6 +360,13 @@ define([
                                         sound: false
                                     },
                                     {
+                                        fi: 'pendingvolunteering',
+                                        el: '.js-pendingvolunteeringcount',
+                                        ev: 'pendingvolunteeringcountschanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
                                         fi: 'chatreview',
                                         el: '.js-repliescount',
                                         ev: 'repliescountschanged',

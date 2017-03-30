@@ -226,6 +226,7 @@ class WebPush
             #error_log("Post to $url, headers " . var_export($headers, TRUE) . " content $content");
             $response = $this->browser->post($url, $headers, $content);
         } catch (RequestException $e) {
+            error_log("Post exception " . $e->getMessage());
             $response = null;
         }
 
