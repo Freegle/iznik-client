@@ -12,7 +12,7 @@ function abtest() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $uid = presdef('uid', $_REQUEST, NULL);
-            $variants = $dbhr->preQuery("SELECT * FROM abtest WHERE uid = ? ORDER BY rate DESC;", [
+            $variants = $dbhr->preQuery("SELECT * FROM abtest WHERE uid = ? ORDER BY rate, RAND() DESC;", [
                 $uid
             ]);
 
