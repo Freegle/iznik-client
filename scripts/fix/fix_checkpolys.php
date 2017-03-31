@@ -28,7 +28,7 @@ foreach ($groups as $group) {
             ]);
 
         foreach ($overlaps as $overlap) {
-            if ($overlap['area'] > 0.30)
+            if ($overlap['area'] > 0.20)
             {
                 error_log("#{$group['id']}, {$group['nameshort']}, overlaps, #{$overlap['id']}, {$overlap['nameshort']}, with, {$overlap['area']}");
                 if ($overlap['area'] > $maxoverlap && $overlap['id'] > $group['id']) {

@@ -1729,10 +1729,28 @@ define([
             'click .js-save': 'save',
             'click .js-delete': 'exclude',
             'click #js-shade': 'shade',
+            'change #js-showcore': 'changeCore',
+            'change #js-showdpa': 'changeDPA',
             'keyup .js-wkt': 'paste',
             'click .js-discard': 'discard',
             'click .js-postcodetest': 'postcodeTest',
             'click .js-postcodeshow': 'postcodeShow'
+        },
+
+        cores: [],
+        dpas: [],
+        mapLabels: [],
+        showCore: true,
+        showDPA: true,
+
+        changeCore: function() {
+            this.showCore = !this.showCore;
+            this.addGroups();
+        },
+
+        changeDPA: function() {
+            this.showDPA = !this.showDPA;
+            this.addGroups();
         },
 
         discard: function() {
@@ -2010,6 +2028,7 @@ define([
                     });
 
                     area.set('label', mapLabel);
+                    self.mapLabels.push(mapLabel);
                 }
 
                 var bounds = new google.maps.LatLngBounds();
@@ -2224,27 +2243,7 @@ define([
                                             }
                                         }).then(function() {
                                             self.fetched = true;
-
-                                            // Add a polygon for each
-                                            self.allGroups.each(function(group) {
-                                                var poly = group.get('poly');
-                                                var polyofficial = group.get('polyofficial');
-                                                var diff = polyofficial && polyofficial != poly;
-
-                                                if (diff) {
-                                                    group.set('name', group.get('nameshort') + ' Default Posting Area')
-                                                } else {
-                                                    group.set('name', group.get('nameshort'))
-                                                }
-
-                                                self.mapWKT(poly, group);
-
-                                                if (diff) {
-                                                    var group2 = group.clone();
-                                                    group2.set('name', group.get('nameshort') + ' Core Group Area')
-                                                    self.mapWKT(polyofficial, group2, 'blue');
-                                                }
-                                            })
+                                            self.addGroups();
                                         });
                                     }
                                 });
@@ -2256,6 +2255,52 @@ define([
             });
 
             return(p);
+        },
+
+        addGroups: function() {
+            var self = this;
+
+            _.each(self.cores, function(core) {
+                if (core) {
+                    core.setMap(null);
+                }
+            });
+            _.each(self.dpas, function(dpa) {
+                if (dpa) {
+                    dpa.setMap(null);
+                }
+            });
+            _.each(self.mapLabels, function(label) {
+                if (label) {
+                    label.setMap(null);
+                }
+            });
+            self.cores = [];
+            self.dpas = [];
+            self.mapLabels = [];
+
+            // Add a polygon for each
+            self.allGroups.each(function(group) {
+                var poly = group.get('poly');
+                var polyofficial = group.get('polyofficial');
+                var diff = polyofficial && polyofficial != poly;
+
+                if (diff) {
+                    group.set('name', group.get('nameshort') + ' Default Posting Area')
+                } else {
+                    group.set('name', group.get('nameshort'))
+                }
+
+                if (self.showCore) {
+                    self.cores.push(self.mapWKT(poly, group));
+                }
+
+                if (self.showDPA) {
+                    var group2 = group.clone();
+                    group2.set('name', group.get('nameshort') + ' Core Group Area')
+                    self.dpas.push(self.mapWKT(polyofficial, group2, 'blue'));
+                }
+            });
         }
     });
 
