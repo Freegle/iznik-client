@@ -262,7 +262,24 @@ define([
                             var end = date.getEnd();
                             var applyby = date.getApplyBy();
 
-                            if (start !== 'Invalid date') {
+                            // Remove invalid date values.
+                            start = (start !== 'Invalid date') ? start : null;
+                            end = (end !== 'Invalid date') ? end : null;
+                            applyby = (applyby !== 'Invalid date') ? applyby : null;
+
+                            // Because we just asked for the date, if we're in DST then we'll have been given the
+                            // previous day.  Add a couple of hours to make sure.
+                            if (start) {
+                                start = (new moment(start)).add(2, 'hours').toISOString();
+                            }
+                            if (end) {
+                                end = (new moment(end)).add(2, 'hours').toISOString();
+                            }
+                            if (applyby) {
+                                applyby = (new moment(applyby)).add(2, 'hours').toISOString();
+                            }
+
+                            if (start || applyby) {
                                 self.promises.push($.ajax({
                                     url: API + 'volunteering',
                                     type: 'PATCH',
