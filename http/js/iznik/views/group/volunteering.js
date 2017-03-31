@@ -355,7 +355,7 @@ define([
                     }
 
                     self.datesCV = new Backbone.CollectionView({
-                        el: $('.js-dates'),
+                        el: self.$('.js-dates'),
                         modelView: Iznik.Views.User.Volunteering.Date,
                         collection: self.dates,
                         processKeyEvents: false,
@@ -365,7 +365,6 @@ define([
                     });
 
                     self.datesCV.render();
-                    self.dates.fetch();
 
                     // Need to make sure we're in the DOM else the validate plugin fails.
                     self.waitDOM(self, function() {
