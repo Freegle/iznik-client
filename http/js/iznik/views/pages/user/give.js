@@ -26,7 +26,7 @@ define([
         whatnext: '/give/whatnext',
         title: "Give away something"
     });
-    
+
     Iznik.Views.User.Pages.Give.WhatNext = Iznik.Views.User.Pages.WhatNext.extend({
         template: "user_give_whatnext",
 
@@ -36,40 +36,43 @@ define([
             'click .js-fop': 'fop'
         },
 
-        fop: function() {
+        fop: function () {
             var self = this;
             var fop = self.$('.js-fop').is(':checked') ? 1 : 0;
 
             try {
                 self.id = Storage.get('lastpost');
-            } catch (e) {}
+            } catch (e) {
+            }
 
             if (self.id) {
-                var message = new Iznik.Models.Message({ id: self.id });
-                message.fetch().then(function() {
+                var message = new Iznik.Models.Message({id: self.id});
+                message.fetch().then(function () {
                     message.setFOP(fop);
 
                     try {
                         Storage.set('FOP', fop ? 1 : 0);
-                    } catch (e) {}
+                    } catch (e) {
+                    }
                 });
             }
         },
 
-        render: function() {
+        render: function () {
             var self = this;
 
             var p = Iznik.Views.User.Pages.WhatNext.prototype.render.call(this);
-            p.then(function() {
+            p.then(function () {
                 try {
                     var fop = Storage.get('FOP');
                     if (fop !== null) {
                         self.$('.js-fop').prop('checked', parseInt(fop) ? true : false);
                     }
-                } catch (e) {}
+                } catch (e) {
+                }
             });
 
-            return(p);
+            return (p);
         }
     });
 });
