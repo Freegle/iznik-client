@@ -144,6 +144,10 @@ define([
                     self.waitDOM(self, function() {
                         var valor1 = self.donations.get('raised');
                         var maxim = self.donations.get('target');
+
+                        // We might exceed the target.
+                        maxim = Math.round(Math.max(valor1 * 1.2, maxim) / 10) * 10;
+
                         var canvas = document.getElementById("termome");
                         var valor = valor1 / maxim;
                         var ctx = canvas.getContext("2d");
@@ -162,7 +166,7 @@ define([
                         var xxinc = parseInt(valor1 / 50);
                         if (xxinc == 0) xxinc = 1;
                         var AA = setInterval(DibujaTermo, 40);
-                        var target = self.donations.get('target');
+                        var target = maxim;
                         var thermlines = 15;
 
                         function DibujaTermo() {
