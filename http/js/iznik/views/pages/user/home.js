@@ -279,7 +279,7 @@ define([
                     self.$('.js-bouncing').fadeIn('slow');
                 }
 
-                // (new Iznik.Views.SupportUs()).render();
+                (new Iznik.Views.SupportUs()).render();
                 var today = new Date().toISOString().slice(0, 10);
                 console.log("Today is", today);
                 if (today == '2017-04-01') {
