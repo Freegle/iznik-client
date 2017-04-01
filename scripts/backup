@@ -18,9 +18,9 @@ if [ $? == 0 ]; then
     if [ $? == 0 ]; then
       grep "Operation completed" /tmp/gsutil.out
       if [ $? == 0 ]; then
-        cat /tmp/gsutil.out | mail -s "BACKUP ERROR: MySQL backup was empty" $EMAIL
-      else
         cat /tmp/gsutil.out | mail -s "BACKUP SUCCESS: MySQL backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
+      else
+        cat /tmp/gsutil.out | mail -s "BACKUP ERROR: MySQL backup didn't work" $EMAIL
       fi
     else
        # problem with initial backup :(
