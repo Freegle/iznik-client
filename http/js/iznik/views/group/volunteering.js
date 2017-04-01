@@ -217,7 +217,7 @@ define([
                     }).then(function() {
                         // Add the group and dates.
                         var groups = self.model.get('groups');
-                        if (_.isUndefined(groups) || self.groupSelect.get() != groups[0]['id']) {
+                        if (_.isUndefined(groups) || (groups.length > 0 && self.groupSelect.get() != groups[0]['id'])) {
                             self.promises.push($.ajax({
                                 url: API + 'volunteering',
                                 type: 'PATCH',
@@ -227,7 +227,7 @@ define([
                                     groupid: self.groupSelect.get()
                                 },
                                 success: function (ret) {
-                                    if (!_.isUndefined(groups)) {
+                                    if (!_.isUndefined(groups) && groups.length > 0) {
                                         self.promises.push($.ajax({
                                             url: API + 'volunteering',
                                             type: 'PATCH',
@@ -313,13 +313,18 @@ define([
         groupChange: function() {
             var self = this;
             var groupid = self.groupSelect.get();
-            var group = Iznik.Session.getGroup(groupid);
-            if (group.get('settings').volunteering) {
-                this.$('.js-volunteeringdisabled').hide();
-                this.$('.js-save').show();
+
+            if (groupid > 0) {
+                var group = Iznik.Session.getGroup(groupid);
+                if (group.get('settings').volunteering) {
+                    this.$('.js-volunteeringdisabled').hide();
+                    this.$('.js-save').show();
+                } else {
+                    this.$('.js-volunteeringdisabled').fadeIn('slow');
+                    this.$('.js-save').hide();
+                }
             } else {
-                this.$('.js-volunteeringdisabled').fadeIn('slow');
-                this.$('.js-save').hide();
+                this.$('.js-save').show();
             }
         },
 
@@ -329,7 +334,7 @@ define([
             require([ 'fileinput' ], function() {
                 self.parentClass.prototype.render.call(self).then(function() {
                     self.groupSelect = new Iznik.Views.Group.Select({
-                        systemWide: false,
+                        systemWide: Iznik.Session.hasPermission('NationalVolunteers'),
                         all: false,
                         mod: false,
                         choose: false,

@@ -19,7 +19,7 @@ define([
     Iznik.Collections.Volunteering = Iznik.Collection.extend({
         model: Iznik.Models.Volunteering,
 
-        url: API + 'volunteering',
+        url: API + 'volunteering?systemwide=true',
 
         ret: null,
 

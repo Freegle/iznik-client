@@ -20,7 +20,9 @@
             </div>
         </div>
         <div class="row">
+            <% if (obj.groups && groups.length > 0) { %>
             <div class="topspace text-muted small text-center">Posted on {{groups[0].nameshort}}</div>
+            <% } %>
         </div>
     </div>
 </div>
