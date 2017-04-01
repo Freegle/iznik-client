@@ -180,6 +180,7 @@ define([
             "plugins/group/:id": "groupPlugin",
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
+            "stories/fornewsletter": "userNewsletterReview",
             "stories": "userStories",
             "story/:id": "userStory",
             "streetwhack(/:id)": "findMyStreet",
@@ -286,6 +287,17 @@ define([
             });
 
             Iznik.Session.forceLogin();
+        },
+
+        userNewsletterReview: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/stories"], function() {
+                var page = new Iznik.Views.User.Pages.Stories({
+                    reviewnewsletter: true
+                });
+                self.loadRoute({page: page});
+            });
         },
 
         userStories: function() {

@@ -18,6 +18,9 @@ class Story extends Entity
     const ASK_OUTCOME_THRESHOLD = 3;
     const ASK_OFFER_THRESHOLD = 5;
 
+    const LIKE = 'Like';
+    const UNLIKE = 'Unlike';
+
     # TODO Generic
     private $exclude = [ 'freecycle', 'freecycling' ];
 
@@ -74,6 +77,20 @@ class Story extends Entity
 
         $ret['groupname'] = $groupname;
 
+        $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_stories_likes WHERE storyid = ?;", [
+            $this->id
+        ], FALSE, FALSE);
+
+        $ret['likes'] = $likes[0]['count'];
+        $ret['liked'] = FALSE;
+        if ($me) {
+            $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_stories_likes WHERE storyid = ? AND userid = ?;", [
+                $this->id,
+                $me->getId()
+            ], FALSE, FALSE);
+            $ret['liked'] = $likes[0]['count'] > 0;
+        }
+
         return($ret);
     }
 
@@ -129,11 +146,16 @@ class Story extends Entity
         return($ids[0]['count']);
     }
 
-    public function getStories($groupid, $story, $limit = 20) {
+    public function getStories($groupid, $story, $limit = 20, $reviewnewsletter = FALSE) {
         $limit = intval($limit);
-        $sql1 = "SELECT DISTINCT users_stories.id FROM users_stories WHERE reviewed = 1 AND public = 1 AND userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
-        $sql2 = "SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid = $groupid AND reviewed = 1 AND public = 1 AND users_stories.userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
-        $sql = $groupid ? $sql2 : $sql1;
+        if ($reviewnewsletter) {
+            $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE newsletter = 1 AND mailedtomembers = 0 ORDER BY RAND();";
+        } else {
+            $sql1 = "SELECT DISTINCT users_stories.id FROM users_stories WHERE reviewed = 1 AND public = 1 AND userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
+            $sql2 = "SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid = $groupid AND reviewed = 1 AND public = 1 AND users_stories.userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
+            $sql = $groupid ? $sql2 : $sql1;
+        }
+
         $ids = $this->dbhr->preQuery($sql);
         $ret = [];
 
@@ -230,8 +252,9 @@ class Story extends Entity
     public function sendToCentral($id = NULL) {
         $idq = $id ? " AND id = $id " : "";
         $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE mailedtocentral = 0 AND public = 1 AND reviewed = 1 $idq;");
-        $html = '';
-        $text = '';
+        $url = "https://" . USER_SITE . "stories/fornewsletter";
+        $html = "<p><span style=\"color: red\">Please go  <a href=\"$url\">here</a> to vote for which go into the next member newsletter.</span></p>";
+        $text = "Please go to $url to vote for which go into the next member newsletter\n\n";
         $count = 0;
 
         foreach ($stories as $story) {
@@ -277,7 +300,7 @@ class Story extends Entity
 
         # Get unsent stories
         $idq = $id ? " AND id = $id " : "";
-        $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE newsletterreviewed = 1 AND newsletter = 1 $idq ORDER BY id ASC LIMIT $max;");
+        $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq ORDER BY id ASC LIMIT $max;");
 
         if (count($stories) >= $min) {
             # Enough to be worth sending a newsletter.
@@ -312,5 +335,25 @@ class Story extends Entity
         }
 
         return ($count >= $min ? $nid : NULL);
+    }
+
+    public function like() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            $this->dbhm->preExec("INSERT IGNORE INTO users_stories_likes (storyid, userid) VALUES (?,?);", [
+                $this->id,
+                $me->getId()
+            ]);
+        }
+    }
+
+    public function unlike() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            $this->dbhm->preExec("DELETE FROM users_stories_likes WHERE storyid = ? AND userid = ?;", [
+                $this->id,
+                $me->getId()
+            ]);
+        }
     }
 }

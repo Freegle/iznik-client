@@ -1,9 +1,14 @@
 <div class="js-homehelp" />
 <h1 class="js-pagetitle">Stories from Freeglers</h1>
+<% if (reviewnewsletter) { %>
+<p>These are stories we could send out in the next newsletter to freeglers.  Please click the button to show which
+ones you love; we'll send out the most loved ones.  They're in a random order so that each gets a fair chance.</p>
+<% } else { %>
 <p class="js-pagedescription">We love to hear why people Freegle - it keeps our volunteers volunteering, and it helps show new freeglers what it's all about.</p>
 <p>So please tell us your story!</p>
 <div class="btn btn-lg btn-success js-add">
     <span class="glyphicons glyphicons-book-open" />&nbsp;Tell us your story!
 </div>
 <p class="topspace">Here are some recent stories from freeglers like you...</p>
+<% } %>
 <ul class="list-unstyled js-list" />

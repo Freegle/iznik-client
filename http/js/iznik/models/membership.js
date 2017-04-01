@@ -259,6 +259,32 @@ define([
             return(p);
         },
 
+        like: function() {
+            var p = $.ajax({
+                url: API + 'stories',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Like'
+                }
+            });
+
+            return(p);
+        },
+
+        unlike: function() {
+            var p = $.ajax({
+                url: API + 'stories',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Unlike'
+                }
+            });
+
+            return(p);
+        },
+
         parse: function(ret) {
             if (ret.hasOwnProperty('story') && ret.story.hasOwnProperty('id')) {
                 return(ret.story);
