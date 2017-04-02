@@ -1,5 +1,7 @@
 <?php
 
+# This is a fallback - donateipn catches them normally.
+
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
