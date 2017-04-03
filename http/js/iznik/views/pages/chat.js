@@ -140,6 +140,12 @@ define([
                 // We use a single global collection for our chats.
                 self.chats = Iznik.Session.chats;
 
+                // When something happens on the chat, we want to sort the collection, which will then sort the
+                // collection view, resulting in unread messages being at the top.
+                self.listenTo(self.chats, 'somethinghappened', function() {
+                    self.chats.sort();
+                });
+
                 templateFetch('chat_page_list').then(function() {
                     $(self.listContainer).html(window.template('chat_page_list'));
                     $(self.listContainer).addClass('chat-list-holder');
