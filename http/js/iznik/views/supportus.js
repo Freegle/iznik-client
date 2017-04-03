@@ -384,7 +384,6 @@ define([
 
                     if (ret.dashboard) {
                         self.$('.js-donations').html(ret.dashboard.donationsthisyear ? ret.dashboard.donationsthisyear : '0');
-
                     }
                 }
             });
