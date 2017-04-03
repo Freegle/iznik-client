@@ -266,6 +266,22 @@ class ChatMessage extends Entity
                     $id
                 ]);
 
+            # If anyone has closed this chat so that it no longer appears in their list, we want to open it again.
+            #
+            # This is rare, so rather than do an UPDATE which would always be a bit expensive even if we have
+            # nothing to do, we do a SELECT to see if there are any.
+            $closeds = $this->dbhr->preQuery("SELECT id FROM chat_roster WHERE chatid = ? AND status = ?;", [
+                $chatid,
+                ChatRoom::STATUS_CLOSED
+            ], FALSE, FALSE);
+
+            foreach ($closeds as $closed) {
+                $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE id = ?;", [
+                    ChatRoom::STATUS_OFFLINE,
+                    $closed['id']
+                ]);
+            }
+
             if (!$spam) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
                 $r->pokeMembers();
