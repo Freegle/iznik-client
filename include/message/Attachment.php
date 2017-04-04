@@ -5,6 +5,8 @@ require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
 
 use Jenssegers\ImageHash\ImageHash;
+use WindowsAzure\Common\ServicesBuilder;
+use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
 
 # This is a base class
 class Attachment
@@ -137,12 +139,39 @@ class Attachment
     }
 
     public function archive() {
-        $rc = file_put_contents(IZNIK_BASE . "/http/attachments/img_{$this->id}.jpg", $this->getData());
-        #error_log("$rc for img_{$this->id}.jpg");
-        if ($rc) {
-            $sql = "UPDATE messages_attachments SET archived = 1, data = NULL WHERE id = {$this->id};";
-            $this->dbhm->exec($sql);
-        }
+        # We archive out of the DB into Azure.  This reduces load on the servers because we don't have to serve
+        # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
+        # place to store large amounts of image data);
+        #
+        # If we fail then we leave it unchanged for next time.
+        $data = $this->getData();
+        $rc = FALSE;
+
+        try {
+            $blobRestProxy = ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING);
+            $options = new CreateBlobOptions();
+            $options->setBlobContentType("image/jpeg");
+
+            # Upload the thumbnail.  If this fails we'll leave it untouched.
+            $i = new Image($data);
+            if ($i->img) {
+                $i->scale(250, 250);
+                $thumbdata = $i->getData(100);
+                $blobRestProxy->createBlockBlob("images", "timg_{$this->id}.jpg", $thumbdata, $options);
+
+                # Upload the full size image.
+                $blobRestProxy->createBlockBlob("images", "img_{$this->id}.jpg", $data, $options);
+
+                # Remove from the DB.
+                $sql = "UPDATE messages_attachments SET archived = 1, data = NULL WHERE id = {$this->id};";
+                $this->dbhm->exec($sql);
+
+                $rc = TRUE;
+            } else {
+                error_log("...failed to create image");
+            }
+
+        } catch (Exception $e) {}
 
         return($rc);
     }
@@ -162,16 +191,15 @@ class Attachment
         $datas = $this->dbhm->preQuery($sql, [$this->id]);
         foreach ($datas as $data) {
             if ($data['archived']) {
-                # This attachment has been archived out of our database, to our archive host.  This happens to
-                # older attachments to save space in the DB.
+                # This attachment has been archived out of our database, to a CDN.  Normally we would expect
+                # that we wouldn't come through here, because we'd serve up an image link directly to the CDN, but
+                # there is a timing window where we could archive after we've served up a link, so we have
+                # to handle it.
                 #
                 # We fetch the data - not using SSL as we don't need to, and that host might not have a cert.  And
                 # we put it back in the DB, because we are probably going to fetch it again.
-                $ret = @file_get_contents('http://' . IMAGE_ARCHIVED_DOMAIN . "/img_{$this->id}.jpg");
-                $this->dbhm->preExec("UPDATE {$this->table} SET data = ?, archived = 0 WHERE id = ?;", [
-                    $ret,
-                    $this->id
-                ]);
+                $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/img_{$this->id}.jpg";
+                $ret = @file_get_contents($url);
             } else {
                 $ret = $data['data'];
             }
