@@ -316,10 +316,11 @@ class ChatMessage extends Entity
 
         if (pres('imageid', $ret)) {
             # There is an image attached
+            $a = new Attachment($this->dbhr, $this->dbhm, $ret['imageid'], Attachment::TYPE_CHAT_MESSAGE);
             $ret['image'] = [
                 'id' => $ret['imageid'],
-                'path' => Attachment::getPath($ret['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE),
-                'paththumb' => Attachment::getPath($ret['imageid'], Attachment::TYPE_CHAT_MESSAGE, TRUE)
+                'path' => $a->getPath(FALSE),
+                'paththumb' => $a->getPath(TRUE)
             ];
             unset($ret['imageid']);
         }

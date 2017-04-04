@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
+require_once(IZNIK_BASE . '/include/misc/Image.php');
 
 use Jenssegers\ImageHash\ImageHash;
 use WindowsAzure\Common\ServicesBuilder;
@@ -15,7 +16,7 @@ class Attachment
     private $dbhr;
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
-    private $id, $table, $contentType, $hash;
+    private $id, $table, $contentType, $hash, $archived;
 
     /**
      * @return null
@@ -48,10 +49,10 @@ class Attachment
         return $this->contentType;
     }
 
-    public static function getPath($id, $type = Attachment::TYPE_MESSAGE, $thumb = FALSE) {
+    public function getPath($thumb = FALSE) {
         # We serve up our attachment names as though they are files.
         # When these are fetched it will go through image.php
-        switch ($type) {
+        switch ($this->type) {
             case Attachment::TYPE_MESSAGE: $name = 'img'; break;
             case Attachment::TYPE_GROUP: $name = 'gimg'; break;
             case Attachment::TYPE_NEWSLETTER: $name = 'nimg'; break;
@@ -60,8 +61,9 @@ class Attachment
         }
 
         $name = $thumb ? "t$name" : $name;
+        $domain = $this->archived ? IMAGE_ARCHIVED_DOMAIN : IMAGE_DOMAIN;
 
-        return("https://" . IMAGE_DOMAIN . "/{$name}_$id.jpg");
+        return("https://$domain/{$name}_{$this->id}.jpg");
     }
 
     public function getPublic() {
@@ -72,8 +74,8 @@ class Attachment
 
         if (stripos($this->contentType, 'image') !== FALSE) {
             # It's an image.  That's the only type we support.
-            $ret['path'] = Attachment::getPath($this->id, $this->type);
-            $ret['paththumb'] = Attachment::getPath($this->id, $this->type, TRUE);
+            $ret['path'] = $this->getPath(FALSE);
+            $ret['paththumb'] = $this->getPath(TRUE);
         }
 
         return($ret);
@@ -85,6 +87,7 @@ class Attachment
         $this->dbhm = $dbhm;
         $this->id = $id;
         $this->type = $type;
+        $this->archived = FALSE;
         
         switch ($type) {
             case Attachment::TYPE_MESSAGE: $this->table = 'messages_attachments'; $this->idatt = 'msgid'; break;
@@ -95,11 +98,12 @@ class Attachment
         }
 
         if ($id) {
-            $sql = "SELECT contenttype, hash FROM {$this->table} WHERE id = ?;";
+            $sql = "SELECT contenttype, hash, archived FROM {$this->table} WHERE id = ?;";
             $atts = $this->dbhr->preQuery($sql, [$id]);
             foreach ($atts as $att) {
                 $this->contentType = $att['contenttype'];
                 $this->hash = $att['hash'];
+                $this->archived = $att['archived'];
             }
         }
     }
@@ -145,33 +149,39 @@ class Attachment
         #
         # If we fail then we leave it unchanged for next time.
         $data = $this->getData();
-        $rc = FALSE;
+        $rc = TRUE;
 
-        try {
-            $blobRestProxy = ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING);
-            $options = new CreateBlobOptions();
-            $options->setBlobContentType("image/jpeg");
+        if ($data) {
+            $rc = FALSE;
 
-            # Upload the thumbnail.  If this fails we'll leave it untouched.
-            $i = new Image($data);
-            if ($i->img) {
-                $i->scale(250, 250);
-                $thumbdata = $i->getData(100);
-                $blobRestProxy->createBlockBlob("images", "timg_{$this->id}.jpg", $thumbdata, $options);
+            try {
+                $blobRestProxy = ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING);
+                $options = new CreateBlobOptions();
+                $options->setBlobContentType("image/jpeg");
 
-                # Upload the full size image.
-                $blobRestProxy->createBlockBlob("images", "img_{$this->id}.jpg", $data, $options);
+                # Upload the thumbnail.  If this fails we'll leave it untouched.
+                $i = new Image($data);
+                if ($i->img) {
+                    $i->scale(250, 250);
+                    $thumbdata = $i->getData(100);
+                    $blobRestProxy->createBlockBlob("images", "timg_{$this->id}.jpg", $thumbdata, $options);
 
-                # Remove from the DB.
-                $sql = "UPDATE messages_attachments SET archived = 1, data = NULL WHERE id = {$this->id};";
-                $this->dbhm->exec($sql);
+                    # Upload the full size image.
+                    $blobRestProxy->createBlockBlob("images", "img_{$this->id}.jpg", $data, $options);
 
-                $rc = TRUE;
-            } else {
-                error_log("...failed to create image");
-            }
+                    $rc = TRUE;
+                } else {
+                    error_log("...failed to create image");
+                }
 
-        } catch (Exception $e) {}
+            } catch (Exception $e) {}
+        }
+
+        if ($rc) {
+            # Remove from the DB.
+            $sql = "UPDATE messages_attachments SET archived = 1, data = NULL WHERE id = {$this->id};";
+            $this->dbhm->exec($sql);
+        }
 
         return($rc);
     }

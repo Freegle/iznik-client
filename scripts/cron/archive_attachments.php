@@ -11,19 +11,18 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
-$time = date('Y-m-d', strtotime("midnight 31 days ago"));
-$sql = "SELECT messages_attachments.id FROM messages INNER JOIN messages_attachments ON messages.id = messages_attachments.msgid WHERE arrival < '$time' AND archived = 0 AND data IS NOT NULL;";
-$atts = $dbhr->query($sql);
+$sql = "SELECT id FROM messages_attachments WHERE archived = 0;";
+$atts = $dbhr->preQuery($sql);
+error_log(count($atts) . " to archive");
 $count = 0;
+$total = count($atts);
 
 foreach ($atts as $att) {
     $a = new Attachment($dbhr, $dbhm, $att['id']);
     $a->archive();
 
     $count++;
-    if ($count % 1000 == 0) {
-      error_log("...$count");
-    }
+    error_log("...$count / $total");
 }
 
 unlockScript($lockh);

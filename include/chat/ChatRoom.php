@@ -1157,7 +1157,8 @@ class ChatRoom extends Entity
                                 $lastfrom = $unmailedmsg['userid'];
 
                                 if ($unmailedmsg['imageid']) {
-                                    $path = Attachment::getPath($unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE);
+                                    $a = new Attachment($this->dbhr, $this->dbhm, $unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE);
+                                    $path = $a->getPath(FALSE);
                                     $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
                                     $textsummary .= "Here's a picture: $path\r\n";
                                     $ccit = TRUE;

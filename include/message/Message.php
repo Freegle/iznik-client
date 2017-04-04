@@ -3083,7 +3083,7 @@ class Message
                 $count = 0;
 
                 foreach ($atts as $att) {
-                    $path = Attachment::getPath($att->getId());
+                    $path = $att->getPath(FALSE);
                     $txtbody .= "$path\r\n";
                     $htmlbody .= '<td><a href="' . $path . '" target="_blank"><img width="200px" src="' . $path . '" /></a></td>';
 

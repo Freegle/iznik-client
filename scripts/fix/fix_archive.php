@@ -12,7 +12,7 @@ use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
 
 $blobRestProxy = ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING);
 
-$sql = "SELECT id FROM messages_attachments WHERE archived = 1;";
+$sql = "SELECT id FROM messages_attachments WHERE archived = 1 ORDER BY id ASC;";
 $atts = $dbhr->preQuery($sql);
 $total = count($atts);
 $count = 0;

@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Shortlink.php');
+require_once(IZNIK_BASE . '/include/message/Attachment.php');
 
 class Group extends Entity
 {
@@ -371,8 +372,11 @@ class Group extends Entity
 
         # Images
         if (defined('IMAGE_DOMAIN')) {
-            $atts['profile'] = $atts['profile'] ? Attachment::getPath($atts['profile'], Attachment::TYPE_GROUP) : NULL;
-            $atts['cover'] = $atts['cover'] ? Attachment::getPath($atts['cover'], Attachment::TYPE_GROUP) : NULL;
+            $a = new Attachment($this->dbhr, $this->dbhm, $atts['profile'], Attachment::TYPE_GROUP);
+            $b = new Attachment($this->dbhr, $this->dbhm, $atts['cover'], Attachment::TYPE_GROUP);
+
+            $atts['profile'] = $atts['profile'] ? $a->getPath(FALSE) : NULL;
+            $atts['cover'] = $atts['cover'] ? $b->getPath(FALSE) : NULL;
         }
 
         $atts['url'] = $atts['onhere'] ? ('https://' . USER_SITE . '/explore/' . $atts['nameshort']) : ("https://groups.yahoo.com/neo/groups/" . $atts['nameshort'] . "/info");
@@ -1205,7 +1209,8 @@ class Group extends Entity
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-            $group['profile'] = $group['profile'] ? Attachment::getPath($group['profile'], Attachment::TYPE_GROUP) : NULL;
+            $a = new Attachment($this->dbhr, $this->dbhm, $group['profile'], Attachment::TYPE_GROUP);
+            $group['profile'] = $group['profile'] ? $a->getPath(FALSE) : NULL;
         }
 
         return($groups);
