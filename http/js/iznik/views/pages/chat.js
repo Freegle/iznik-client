@@ -142,8 +142,13 @@ define([
 
                 // When something happens on the chat, we want to sort the collection, which will then sort the
                 // collection view, resulting in unread messages being at the top.
-                self.listenTo(self.chats, 'somethinghappened', function() {
-                    self.chats.sort();
+                self.listenTo(self.chats, 'somethinghappened', function(chatid) {
+                    // Only sort if this chat is not already at the top.
+                    var first = self.chats.first();
+
+                    if (first && first.get('id') != chatid) {
+                        self.chats.sort();
+                    }
                 });
 
                 templateFetch('chat_page_list').then(function() {
