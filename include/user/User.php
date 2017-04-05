@@ -612,7 +612,8 @@ class User extends Entity
             $collection
         ]);
         $membershipid = $this->dbhm->lastInsertId();
-        #error_log("Insert returned $rc membership $membershipid");
+        $added = $this->dbhm->rowsAffected();
+        #error_log("Insert returned $rc membership $membershipid row count $added");
 
         if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
@@ -652,7 +653,7 @@ class User extends Entity
         }
         // @codeCoverageIgnoreStart
 
-        if ($rc) {
+        if ($added) {
             # The membership didn't already exist.  We might want to send a welcome mail.
             $atts = $g->getPublic();
 

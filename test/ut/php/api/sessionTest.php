@@ -20,8 +20,13 @@ class sessionTest extends IznikAPITestCase
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->msgsSent = [];
 
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE `type` = 'Test';");
+    }
+
+    public function sendMock($mailer, $message) {
+        $this->msgsSent[] = $message->toString();
     }
 
     public function testLoggedOut()
@@ -140,13 +145,29 @@ class sessionTest extends IznikAPITestCase
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         assertNotNull($u->addEmail('test@test.com'));
-        $u = User::get($this->dbhm, $this->dbhm, $id);
+
+        # Mock the user ("your hair looks terrible") to check the welcome mail is sent.
+        $u = $this->getMockBuilder('User')
+            ->setConstructorArgs([$this->dbhm, $this->dbhm, $id])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $u->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $group1);
         $g->setPrivate('welcomemail', 'Test - please ignore');
+        error_log("Add first time");
         $u->addMembership($group1);
+
+        self::assertEquals(1, count($this->msgsSent));
+
+        # Add membership again and check the welcome is not sent.
+        error_log("Add second time");
+        $u->addMembership($group1);
+        self::assertEquals(1, count($this->msgsSent));
 
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
