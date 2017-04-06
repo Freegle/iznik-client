@@ -250,8 +250,8 @@ define([
                     // Add the photo to our list
                     var mod = new Iznik.Models.Message.Attachment({
                         id: data.response.id,
-                        src: data.response.paththumb,
-                        path: data.response.paththumb,
+                        path: data.response.path,
+                        paththumb: data.response.paththumb,
                         mine: true
                     });
 
