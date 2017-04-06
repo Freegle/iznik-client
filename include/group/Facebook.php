@@ -4,6 +4,10 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/message/Message.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
+require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
 use Facebook\FacebookSession;
 use Facebook\FacebookJavaScriptLoginHelper;
@@ -12,7 +16,7 @@ use Facebook\FacebookRequest;
 use Facebook\FacebookRequestException;
 
 class GroupFacebook {
-    var $publicatts = ['name', 'token', 'type', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'sharefrom', 'token', 'groupid', 'id' ];
+    var $publicatts = ['name', 'token', 'type', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'sharefrom', 'token', 'groupid', 'id', 'lastupdated', 'uid' ];
 
     const TYPE_PAGE = 'Page';
     const TYPE_GROUP = 'Group';
@@ -55,7 +59,7 @@ class GroupFacebook {
     }
 
     public function getFB($graffiti) {
-        error_log("Get FB $graffiti");
+        #error_log("Get FB $graffiti");
         $fb = new Facebook\Facebook([
             'app_id' => $graffiti ? FBGRAFFITIAPP_ID : FBAPP_ID,
             'app_secret' => $graffiti ? FBGRAFFITIAPP_SECRET : FBAPP_SECRET
@@ -256,7 +260,7 @@ class GroupFacebook {
         foreach ($msgs as $msg) {
             $params = [
                 'link' => 'https://' . USER_SITE . '/message/' . $msg['msgid'] . '?src=fbgroup',
-                'description' => 'Please click to view and reply - no PMs please.  Everything on Freegle is completely free.'
+                'description' => 'Everything on Freegle is completely free.  Comment below to reply and we\'ll pass it on to the original freegler.'
             ];
 
             # Whether the post works or not, we might as well assume it does.  If it fails it's most likely because
@@ -293,5 +297,177 @@ class GroupFacebook {
         }
 
         return($worked);
+    }
+
+    public function pollForChanges() {
+        $fb = $this->getFB(FALSE);
+        $count = 0;
+        $since = $this->lastupdated ? ("since=" . ISODate($this->lastupdated) . "&") : '';
+        $lastupdated = $this->lastupdated ? strtotime($this->lastupdated) : NULL;
+        $fields = "&fields=id,from,updated_time,place,link,message,type,caption,icon,name";
+        $next = $this->id . "/feed?$since$fields";
+        $token = $this->token;
+        $u = new User($this->dbhr, $this->dbhm);
+        $now = time();
+
+        do {
+            try {
+                $ret = $fb->get($next, $token);
+
+                $posts = $ret->getDecodedBody();
+                $next = pres('paging', $posts) ? presdef('next', $posts['paging'], NULL) : NULL;
+                if ($next) {
+                    $p = strpos($next, "/{$this->id}");
+                    $next = $p !== FALSE ? substr($next, $p) : $next;
+                }
+                $token = NULL;
+
+                foreach ($posts['data'] as $post) {
+                    if ($post['type'] == 'link') {
+                        if (preg_match('/https:\/\/.*\/message\/(.*)\?src=fbgroup/', $post['link'], $matches)) {
+                            # This is a post we published to the group.
+                            error_log("Our post of msg #{$matches[1]}");
+                            $msgid = $matches[1];
+                            $updated = strtotime($post['updated_time']);
+
+                            if (!$lastupdated || $updated >= $lastupdated) {
+                                # This post has changed since we last checked.
+                                error_log("...changed");
+                                $m = new Message($this->dbhr, $this->dbhm, $msgid);
+
+                                # We only care about this if the message still exists.
+                                if ($m->getId() && !$m->getPrivate('deleted')) {
+                                    # The message still exists.  Get the comments from Facebook.
+                                    $ret = $fb->get($post['id'] . '/comments', $this->token);
+
+                                    do {
+                                        $comments = $ret->getDecodedBody();
+                                        if (pres('data', $comments) && count($comments['data']) > 0) {
+                                            foreach ($comments['data'] as $comment) {
+                                                error_log("Got comment " . var_export($comment, TRUE));
+                                                if (pres('from', $comment)) {
+                                                    $fbid = presdef('id', $comment['from'], NULL);
+                                                    error_log("FBID $fbid");
+
+                                                    if ($fbid) {
+                                                        # We have a Facebook id.  If they have ever used the site before,
+                                                        # we will have a Facebook login for that id.
+                                                        $cid = $u->findByLogin(User::LOGIN_FACEBOOK, $fbid);
+                                                        error_log("Already know user? $cid");
+
+                                                        if ($cid) {
+                                                            # We know this user.  Set up a chatroom between them
+                                                            $r = new ChatRoom($this->dbhr, $this->dbhm);
+                                                            $rid = $r->createConversation($m->getFromuser(), $cid);
+                                                            error_log("Created conversation $rid to " . $m->getFromuser());
+                                                            error_log("Already processed? " . $r->containsFBComment($comment['id']));
+
+                                                            if ($rid && !$r->containsFBComment($comment['id'])) {
+                                                                # Add this comment as a message.  If it's the first time
+                                                                # we've referred to this message in this chat then flag it
+                                                                # as interested so that the platform user knows which
+                                                                # message they're talking about.
+                                                                $already = $r->referencesMessage($msgid);
+                                                                error_log("Already referencing? $already");
+                                                                $type = $already ? ChatMessage::TYPE_DEFAULT : ChatMessage::TYPE_INTERESTED;
+                                                                $cm = new ChatMessage($this->dbhr, $this->dbhm);
+                                                                $mid = $cm->create($rid, $cid, $comment['message'], $type, $already ? NULL : $msgid, FALSE, NULL, NULL, NULL, NULL, $comment['id']);
+                                                                error_log("Created chat $mid");
+
+                                                                # Flag this conversation as being sync'd to Facebook.
+                                                                # This helps us find which to sync.  When we get the
+                                                                # first message after this, it'll set linkedonfacebook,
+                                                                # which will trigger us posting a link to Facebook
+                                                                # to this conversation.
+                                                                error_log("Flag conversation? " . $r->getId() . " " . $r->getPrivate('synctofacebook') . var_export($r->getPublic(), TRUE));
+                                                                if ($r->getPrivate('synctofacebook') == ChatRoom::FACEBOOK_SYNC_DONT) {
+                                                                    $r->setPrivate('synctofacebook', ChatRoom::FACEBOOK_SYNC_REPLIED_ON_FACEBOOK);
+                                                                    $r->setPrivate('synctofacebookgroupid', $this->uid);
+                                                                }
+
+                                                                $count++;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        $ret = $fb->next($ret->getGraphEdge());
+                                    } while ($ret);
+                                }
+                            }
+                        }
+                    } else {
+                        error_log(var_export($post, TRUE));
+                    }
+                }
+            } catch (Exception $e) {
+                $code = $e->getCode();
+                error_log("Failed code $code message " . $e->getMessage() . " token " . $this->token);
+            }
+        } while ($next && count($posts) > 0);
+
+        $this->dbhm->preExec("UPDATE groups_facebook SET lastupdated = ? WHERE groupid = ?;", [
+            date("Y-m-d H:i:s", $now),
+            $this->groupid
+        ]);
+
+        return($count);
+    }
+
+    public function postLinks() {
+        $fb = $this->getFB(FALSE);
+        $count = 0;
+
+        # Look for chats where we have had replies on the platform but not yet posted a link to Facebook
+        $chats = $this->dbhr->preQuery("SELECT id FROM chat_rooms WHERE synctofacebookgroupid = ? AND synctofacebook = ?;", [
+            $this->uid,
+            ChatRoom::FACEBOOK_SYNC_REPLIED_ON_PLATFORM
+        ]);
+
+        foreach ($chats as $chat) {
+            # Find the ID of the comment on Facebook, which we want to reply to.
+            error_log("Find Facebook ID for {$chat['id']}");
+            $comments = $this->dbhr->preQuery("SELECT facebookid, userid FROM chat_messages WHERE chatid = ? AND facebookid IS NOT NULL ORDER BY id DESC LIMIT 1;", [
+                $chat['id']
+            ]);
+
+            foreach ($comments as $comment) {
+                # We also want the relevant message.
+                $msgid = NULL;
+                $msgs = $this->dbhr->preQuery("SELECT refmsgid FROM chat_messages WHERE chatid = ? AND refmsgid IS NOT NULL ORDER BY id DESC LIMIT 1;", [
+                    $chat['id']
+                ]);
+
+                foreach ($msgs as $msg) {
+                    $msgid = "/{$msg['refmsgid']}";
+                }
+
+                $url = 'https://' . USER_SITE . '/chat/' . $chat['id'] . "/external$msgid?src=fbgroup";
+                $u = new User($this->dbhr, $this->dbhm, $comment['userid']);
+
+                $params = [
+                    'message' => $u->getName() . ", you have a reply.  Click to read it.\n\n" . $url
+                ];
+
+                try {
+                    $result = $fb->post($comment['facebookid'] . '/comments', $params, $this->token);
+                    error_log("Post returned " . var_export($result, true));
+                    $this->dbhm->preExec("UPDATE chat_rooms SET synctofacebook = ? WHERE id = ?;", [
+                        ChatRoom::FACEBOOK_SYNC_POSTED_LINK,
+                        $chat['id']
+                    ]);
+
+                    $count++;
+                } catch (Exception $e) {
+                    error_log("Post failed with " . $e->getMessage());
+                    $code = $e->getCode();
+                    error_log("Failed on {$this->groupid} code $code message " . $e->getMessage() . " token " . $this->token);
+                }
+            }
+        }
+
+        return($count);
     }
 }

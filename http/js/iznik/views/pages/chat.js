@@ -15,6 +15,8 @@ define([
     Iznik.Views.Chat.Page = Iznik.Views.Page.extend({
         noback: true,
 
+        noEmailOk: true,
+
         filter: null,
 
         searchKey: function (e) {
@@ -193,7 +195,6 @@ define([
                         // When we click on this one, we want to route to the chat/id.  This is so that the user
                         // can use the back button to return to the chat list.
                         self.chatsCV2.on('selectionChanged', function(selected) {
-                            console.log("selectionChanged 2", selected);
                             Router.navigate((self.modtools ? '/modtools' : '') + '/chat/' + selected[0].get('id'), true);
                         });
                     }
@@ -845,6 +846,68 @@ define([
             });
 
             return (p);
+        }
+    });
+
+    Iznik.Views.Chat.External = Iznik.Views.Page.extend({
+        noback: true,
+
+        noEmailOk: true,
+
+        template: 'chat_page_external',
+
+        events: {
+            'click .js-next': 'login'
+        },
+
+        login: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                self.render();
+            });
+
+            Iznik.Session.forceLogin();
+        },
+
+        render: function() {
+            var self = this;
+
+            var msg = new Iznik.Models.Message({
+                id: self.options.msgid
+            });
+
+            var p = msg.fetch().then(function() {
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                    if (loggedIn) {
+                        // Ok, we're logged in.  Possibly as the user for this chat, possibly not.
+                        var chat = new Iznik.Models.Chat.Room({
+                            id: self.options.chatid
+                        });
+
+                        chat.fetch().then(function() {
+                            var myid = Iznik.Session.get('me').id;
+
+                            if (chat.get('user1').id == myid || chat.get('user2').id == myid) {
+                                // Yes, this is for us.  Just go to the chat.
+                                Router.navigate('/chat/' + self.options.chatid, true);
+                            } else {
+                                // No, someone else has clicked on this link.  Just show them the message and
+                                // let them proceed from there if they want.
+                                Router.navigate('/message/' + self.options.msgid, true);
+                            }
+                        });
+                    } else {
+                        // We're not logged in yet.  Display the explanation page.
+                        self.model = msg;
+                        Iznik.Views.Page.prototype.render.call(self);
+                    }
+                });
+
+                Iznik.Session.testLoggedIn();
+            });
+
+            return(p);
         }
     });
 });

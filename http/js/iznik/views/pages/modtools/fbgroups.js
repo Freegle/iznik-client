@@ -83,7 +83,7 @@ define([
                         var msg = self.collection.get(id);
                         FB.api('/' + fbgroup + '/feed', 'post', {
                             link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup',
-                            description: 'Please click to view and reply - no PMs please.  Everything on Freegle is completely free.'
+                            description: 'Everything on Freegle is completely free.  Comment below to reply and we\'ll pass it on to the original freegler.'
                         }, function(response) {
                             console.log("Share returned", response);
                             if (response.hasOwnProperty('error')) {

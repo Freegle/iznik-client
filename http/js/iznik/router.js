@@ -161,6 +161,7 @@ define([
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
             "chats": "userChats",
+            "chat/:id/external(/:id)": "userChatExternal",
             "chat/:id": "userChat",
             "alert/viewed/:id": "alertViewed",
             "mobile": "userMobile",
@@ -343,6 +344,17 @@ define([
                 });
 
                 Iznik.Session.forceLogin();
+            });
+        },
+
+        userChatExternal: function(chatid, msgid) {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                var page = new Iznik.Views.Chat.External({
+                    chatid: chatid,
+                    msgid: msgid
+                });
+                self.loadRoute({page: page});
             });
         },
 

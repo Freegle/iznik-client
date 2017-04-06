@@ -109,6 +109,22 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             <meta property="og:image" content="<?php echo $icon; ?>"/>
             <?php
         }
+    } else if (preg_match('/\/chat\/(.*)\/external/', $_SERVER["REQUEST_URI"], $matches)) {
+        # External link to a chat reply.
+        require_once(BASE_DIR . '/include/config.php');
+        require_once(IZNIK_BASE . '/include/db.php');
+        require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+        global $dbhr, $dbhm;
+        $title = "Click to read your reply";
+        $desc = "We passed on your message and got a reply - click here to read it."
+        ?>
+        <title><?php echo $title; ?></title>
+        <meta itemprop="title" content="<?php echo $title; ?>"/>
+        <meta name="description" content="<?php echo $desc; ?>"/>
+        <meta property="og:description" content="<?php echo $desc; ?>"/>
+        <meta property="og:title" content="<?php echo $title; ?>"/>
+        <meta property="og:image" content="<?php echo $icon; ?>"/>
+        <?php
     } else if (preg_match('/\/streetwhack(\/.*)/', $_SERVER["REQUEST_URI"], $matches)) {
         $title = "Streetwhack!";
         $desc = "How popular is your streetname?  Is it a streetwhack - a one-off?  Or are there lots across the UK?  Find out now...";

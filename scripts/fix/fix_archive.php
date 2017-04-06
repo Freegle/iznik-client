@@ -12,7 +12,10 @@ use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
 
 $blobRestProxy = ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING);
 
-$sql = "SELECT id FROM messages_attachments WHERE archived = 1 ORDER BY id ASC;";
+$id = file_get_contents('/tmp/fixarchive');
+$id = $id ? $id : 1835462;
+
+$sql = "SELECT id FROM messages_attachments WHERE id >= $id AND archived = 1 ORDER BY id ASC;";
 $atts = $dbhr->preQuery($sql);
 $total = count($atts);
 $count = 0;
@@ -59,4 +62,6 @@ foreach ($atts as $att) {
     } else {
         error_log("...{$att['id']} not found");
     }
+
+    file_put_contents('/tmp/fixarchive', $att['id']);
 }

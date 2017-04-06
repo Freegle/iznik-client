@@ -228,7 +228,7 @@ class ChatMessage extends Entity
         return($spam);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL) {
         try {
             $review = 0;
             $spam = 0;
@@ -240,7 +240,7 @@ class ChatMessage extends Entity
                 $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [
                 $chatid,
                 $userid,
                 $message,
@@ -252,7 +252,8 @@ class ChatMessage extends Entity
                 $spamscore,
                 $reportreason,
                 $refchatid,
-                $imageid
+                $imageid,
+                $facebookid
             ]);
 
             $id = $this->dbhm->lastInsertId();
@@ -286,6 +287,14 @@ class ChatMessage extends Entity
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
                 $r->pokeMembers();
                 $r->notifyMembers($u->getName(), $message, $userid);
+
+                if ($r->getPrivate('synctofacebook') == ChatRoom::FACEBOOK_SYNC_REPLIED_ON_FACEBOOK) {
+                    # We have had a reply from Facebook, which caused us to flag this conversation.
+                    # This is now the first reply from the other user.  So we want to post a link on Facebook which
+                    # will allow the user on there to read the message we've just created.  Set the state to
+                    # make this happen in the background.
+                    $r->setPrivate('synctofacebook', ChatRoom::FACEBOOK_SYNC_REPLIED_ON_PLATFORM);
+                }
             }
         } catch (Exception $e) {
             error_log("Failed to create chat " . $e->getMessage() . " at " . $e->getFile() . " line " . $e->getLine());
