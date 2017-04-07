@@ -2866,6 +2866,9 @@ class User extends Entity
         $backwards = strrev($search);
         $qb = $this->dbhr->quote("$backwards%");
 
+        # If we're searching for a notify address, switch to the user it.
+        $search = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
+
         $sql = "SELECT DISTINCT userid FROM
                 ((SELECT userid FROM users_emails WHERE email LIKE $q OR backwards LIKE $qb) UNION
                 (SELECT id AS userid FROM users WHERE fullname LIKE $q) UNION
