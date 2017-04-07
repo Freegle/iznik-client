@@ -329,15 +329,18 @@ class GroupFacebook {
                             error_log("Our post of msg #{$matches[1]}");
                             $msgid = $matches[1];
                             $updated = strtotime($post['updated_time']);
+                            $m = new Message($this->dbhr, $this->dbhm, $msgid);
 
-                            if (!$lastupdated || $updated >= $lastupdated) {
-                                # This post has changed since we last checked.
+                            if ($m->getId() && ($m->getPrivate('deleted') || $m->hasOutcome())) {
+                                # We want to remove the post from Facebook.
+                                error_log("...delete {$post['id']}");
+                                $ret = $fb->delete($post['id'], [], $this->token);
+                            } else if (!$lastupdated || $updated >= $lastupdated) {
+                                # This post has changed on Facebook since we last checked.
                                 error_log("...changed");
-                                $m = new Message($this->dbhr, $this->dbhm, $msgid);
 
-                                # We only care about this if the message still exists.
-                                if ($m->getId() && !$m->getPrivate('deleted')) {
-                                    # The message still exists.  Get the comments from Facebook.
+                                if ($m->getId() && !$m->getPrivate('deleted') && !$m->hasOutcome()) {
+                                    # The message still exists and is active.  Get the comments from Facebook.
                                     $ret = $fb->get($post['id'] . '/comments', $this->token);
 
                                     do {
