@@ -9,7 +9,8 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/infinite',
     'iznik/views/group/select',
-    'iznik/views/group/communityevents'
+    'iznik/views/group/communityevents',
+    'iznik/views/pages/user/communityevents'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Pages.PendingEvents = Iznik.Views.Infinite.extend({
         modtools: true,

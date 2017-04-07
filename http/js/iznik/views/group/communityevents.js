@@ -362,7 +362,7 @@ define([
                     }
 
                     self.datesCV = new Backbone.CollectionView({
-                        el: $('.js-dates'),
+                        el: self.$('.js-dates'),
                         modelView: Iznik.Views.User.CommunityEvent.Date,
                         collection: self.dates,
                         processKeyEvents: false,
