@@ -152,7 +152,7 @@ class EventDigest
                         '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_EVENT_DIGEST),
                         '{{email}}' => $email,
                         '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
-                        '{{post}}' => "https://" . USER_SITE,
+                        '{{post}}' => "https://" . USER_SITE . "/communityevents",
                         '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid"
                     ];
                 }
