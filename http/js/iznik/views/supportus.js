@@ -20,7 +20,7 @@ define([
         doInvite: function() {
             var self = this;
             var email = self.$('.js-inviteemail').val();
-            ABTestAction('SupportUs', 'invite');
+            ABTestAction('SupportUs', 'user_support_invite');
 
             if (isValidEmailAddress(email)) {
                 $.ajax({
@@ -51,7 +51,8 @@ define([
             if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
                 p = ABTestGetVariant('SupportUs', function(variant) {
                     self.template = variant.variant;
-                    if (variant.variant == 'user_support_askdonationgroup') {
+
+                    if (variant.variant.indexOf('group') !== -1) {
                         // Get home group to ask for per-group donation.
                         var homegroup = Storage.get('myhomegroup');
                         var group = Iznik.Session.getGroup(homegroup);
