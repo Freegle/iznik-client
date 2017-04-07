@@ -894,9 +894,11 @@ class User extends Entity
             $one = $g->getPublic();
 
             $one['role'] = $group['role'];
+            $amod = ($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER);
             $one['configid'] = presdef('configid', $group, NULL);
 
-            if (!pres('configid', $one)) {
+            if ($amod && !pres('configid', $one)) {
+                # Get a config using defaults.
                 $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
             }
 
@@ -906,7 +908,7 @@ class User extends Entity
                 # We only need finding out how much work there is if we are interested in seeing it.
                 $active = $this->activeModForGroup($group['groupid'], $one['mysettings']);
 
-                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) && $active) {
+                if ($amod && $active) {
                     if (!$g) {
                         # We need to have an actual group object for this.
                         $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
