@@ -47,14 +47,16 @@ if ($transaction['mc_gross'] > 0) {
         date("Y-m-d H:i:s", strtotime($transaction['payment_date']))
     ]);
 
-    $text = "{$transaction['first_name']} {$transaction['last_name']} ({$transaction['payer_email']}) donated £{$transaction['mc_gross']}.  Please can you thank them?";
-    $message = Swift_Message::newInstance()
-        ->setSubject("{$transaction['payer_email']} donated £{$transaction['mc_gross']} - please send thanks")
-        ->setFrom(NOREPLY_ADDR)
-        ->setTo(INFO_ADDR)
-        ->setCc('log@ehibbert.org.uk')
-        ->setBody($text);
+    if ($transaction['mc_gross'] >= 30) {
+        $text = "{$transaction['first_name']} {$transaction['last_name']} ({$transaction['payer_email']}) donated £{$transaction['mc_gross']}.  Please can you thank them?";
+        $message = Swift_Message::newInstance()
+            ->setSubject("{$transaction['payer_email']} donated £{$transaction['mc_gross']} - please send thanks")
+            ->setFrom(NOREPLY_ADDR)
+            ->setTo(INFO_ADDR)
+            ->setCc('log@ehibbert.org.uk')
+            ->setBody($text);
 
-    list ($transport, $mailer) = getMailer();
-    $mailer->send($message);
+        list ($transport, $mailer) = getMailer();
+        $mailer->send($message);
+    }
 }
