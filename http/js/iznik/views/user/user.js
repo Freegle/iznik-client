@@ -606,7 +606,7 @@ define([
         template: 'modtools_member_otheremail'
     });
 
-    Iznik.Views.ModTools.Member.Of = Iznik.View.extend({
+    Iznik.Views.ModTools.Member.Of = Iznik.View.Timeago.extend({
         template: 'modtools_member_of',
         
         events: {
@@ -653,13 +653,11 @@ define([
                 this.model.set('email', email.email);
             }
 
-            var p = Iznik.View.prototype.render.call(this);
+            var p = Iznik.View.Timeago.prototype.render.call(this);
             p.then(function(self) {
                 if (Iznik.Session.isModeratorOf(self.model.get('groupid')), true) {
                     self.$('.js-remove').removeClass('hidden');
                 }
-                
-                self.$('.timeago').timeago();
             });
 
             return(p);
@@ -670,7 +668,7 @@ define([
         template: 'modtools_member_applied'
     });
 
-    Iznik.Views.ModTools.User.Comment = Iznik.View.extend({
+    Iznik.Views.ModTools.User.Comment = Iznik.View.Timeago.extend({
         template: 'modtools_user_comment',
 
         events: {
@@ -705,8 +703,6 @@ define([
                 if (hideedit) {
                     self.$('.js-editnote, .js-deletenote').hide();
                 }
-
-                self.$('.timeago').timeago();
             });
             
             return(p);

@@ -1313,7 +1313,7 @@ define([
 
                 this.template = tpl;
 
-                p = Iznik.View.prototype.render.call(this);
+                p = Iznik.View.Timeago.prototype.render.call(this);
                 p.then(function (self) {
                     if (self.model.get('type') == 'ModMail' && self.model.get('refmsg')) {
                         // ModMails may related to a message which has been rejected.  If so, add a button to
@@ -1327,8 +1327,6 @@ define([
                             }
                         });
                     }
-                    self.$('.timeago').timeago();
-                    self.$('.timeago').show();
 
                     // New messages are in bold - keep them so for a few seconds, to make it easy to see new stuff,
                     // then revert.
