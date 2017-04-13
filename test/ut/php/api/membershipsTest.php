@@ -1077,5 +1077,32 @@ class membershipsAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testYahooThenFD() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addMembership($this->groupid);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # We don't send emails if we don't have our own domain.
+        assertFalse($u->sendOurMails($this->group));
+
+        # Now change our email frequency - this should trigger a membership.
+        $ret = $this->call('memberships', 'PATCH', [
+            'groupid' => $this->groupid,
+            'userid' => $id,
+            'emailfrequency' => 8,
+            'eventsallowed' => 0,
+            'ourpostingstatus' => 'DEFAULT'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        assertTrue($u->sendOurMails($this->group));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

@@ -878,7 +878,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE) {
+    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE, $pernickety = FALSE) {
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
@@ -903,6 +903,11 @@ class User extends Entity
             }
 
             $one['mysettings'] = $this->getGroupSettings($group['groupid'], presdef('configid', $one, NULL));
+
+            # If we don't have our own email on this group we won't be sending mails.  This is what affects what
+            # gets shown on the Settings page for the user, and we only want to check this here
+            # for performance reasons.
+            $one['mysettings']['emailfrequency'] = ($pernickety || $this->sendOurMails($g, FALSE, FALSE)) ? $one['mysettings']['emailfrequency'] : 0;
 
             if ($getwork) {
                 # We only need finding out how much work there is if we are interested in seeing it.
@@ -1497,7 +1502,7 @@ class User extends Entity
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
                     $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
 
-                    $memberof[] = [
+                    $thisone = [
                         'id' => $group['groupid'],
                         'membershipid' => $group['id'],
                         'namedisplay' => $name,
@@ -1513,6 +1518,8 @@ class User extends Entity
                         'onyahoo' => $group['onyahoo'],
                         'onhere' => $group['onhere']
                     ];
+
+                    $memberof[] = $thisone;
 
                     if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                         $visible = TRUE;
@@ -2754,7 +2761,7 @@ class User extends Entity
         return($url);
     }
 
-    public function sendOurMails($g) {
+    public function sendOurMails($g, $checkholiday = TRUE, $checkbouncing = TRUE) {
         # We always want to send our mails for groups which we host.
         $sendit = TRUE;
         $groupid = $g->getId();
@@ -2802,7 +2809,7 @@ class User extends Entity
             }
         }
 
-        if ($sendit) {
+        if ($sendit && $checkholiday) {
             # We might be on holiday.
             $hol = $this->getPrivate('onholidaytill');
             $till = $hol ? strtotime($hol) : 0;
@@ -2811,7 +2818,7 @@ class User extends Entity
             $sendit = time() > $till;
         }
 
-        if ($sendit) {
+        if ($sendit && $checkbouncing) {
             # And don't send if we're bouncing.
             $sendit = !$this->getPrivate('bouncing');
         }

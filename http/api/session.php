@@ -42,7 +42,7 @@ function session() {
                 $ret['emails'] = $me->getEmails();
 
                 # Get groups including work when we're on ModTools; don't need that on the user site.
-                $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS);
+                $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS, TRUE);
 
                 if (MODTOOLS) {
                     # Tell them what mod work there is.  Similar code in Notifications.
