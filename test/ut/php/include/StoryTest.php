@@ -67,7 +67,7 @@ class StoryTest extends IznikTestCase {
 
         $nid = $s->generateNewsletter(1, 10, $sid);
         assertNotNull($nid);
-        #$this->dbhm->preExec("DELETE FROM newsletters WHERE id = ?;", [ $nid ]);
+        $this->dbhm->preExec("DELETE FROM newsletters WHERE id = ?;", [ $nid ]);
 
         error_log(__METHOD__ . " end");
     }

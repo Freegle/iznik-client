@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function business_cards($toname, $to) {
+function business_cards_mods($name, $email) {
     $siteurl = "https://" . USER_SITE;
     $sitename = SITE_NAME;
     $logo = USERLOGO;
@@ -54,9 +54,9 @@ EOT;
                                                                 </table>               
                                                             </td>    
                                                             <td class="mobile" align="left" valign="top">
-                                                                <p>Dear $toname,</p>
-                                                                <p>Thanks for asking for some cards to promote Freegle.  They should now be on their way.  Please allow a week or so for them to arrive.</p>
-                                                                <p>Thanks for freegling!</p>
+                                                                <p>When your members mark an item as TAKEN/RECEIVED on Freegle Direct, we sometimes ask them if they'd like some "business cards" so that they can promote Freegle.  We have a few national volunteers who send these out.  We've recently sent cards to the following member of your group:</p>
+                                                                <p>$name ($email)</p>
+                                                                <p>Enthusiastic members like this could help Freegle in other ways, so you might want to contact them.</p> 
                                                             </td>
                                                         </tr>        
                                                         <tr>
@@ -71,7 +71,6 @@ EOT;
                                                         </tr>
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
-                                                                <p>You've received this automated mail because $to is a member of <a href="$siteurl">$sitename</a>.  You can leave $sitename from <a href="$siteurl/unsubscribe">here</a>.</p>                                                            
                                                                 <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
                                                             </td>
                                                         </tr>        

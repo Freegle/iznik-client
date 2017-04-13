@@ -298,12 +298,21 @@ class Story extends Entity
         $nid = NULL;
         $count = 0;
 
-        # Get unsent stories
+        # Find the date of the last newsletter; we're only interested in stories since then.
+        $last = $this->dbhr->preQuery("SELECT MAX(created) AS max FROM newsletters WHERE type = 'Stories';");
+        $since = $last[0]['max'];
+
+        # Get unsent stories.  Pick the ones we have voted for most often.
         $idq = $id ? " AND id = $id " : "";
-        $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq ORDER BY id ASC LIMIT $max;");
+        $stories = $this->dbhr->preQuery("SELECT id, COUNT(*) AS count FROM users_stories INNER JOIN users_stories_likes ON storyid = users_stories.id WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq AND (? IS NULL OR date > ?) GROUP BY id ORDER BY count DESC LIMIT $max;", [
+            $since,
+            $since
+        ]);
 
         if (count($stories) >= $min) {
             # Enough to be worth sending a newsletter.
+            shuffle($stories);
+
             $n = new Newsletter($this->dbhr, $this->dbhm);
             $nid = $n->create(NULL,
                 "Lovely stories from other freeglers!",
