@@ -747,7 +747,7 @@ class Message
         if ($seeall || (MODTOOLS && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER)) || ($myid && $this->fromuser == $myid)) {
             # Add replies, as long as they're not awaiting review or rejected.
             $sql = "SELECT DISTINCT t.* FROM (SELECT id, userid, chatid, MAX(date) AS lastdate FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND userid != ? AND chat_messages.type = ? GROUP BY userid, chatid) t ORDER BY lastdate DESC;";
-            $replies = $this->dbhr->preQuery($sql, [$this->id, ChatMessage::TYPE_INTERESTED, $this->fromuser]);
+            $replies = $this->dbhr->preQuery($sql, [$this->id, $this->fromuser, ChatMessage::TYPE_INTERESTED]);
             $ret['replies'] = [];
             $ret['replycount'] = count($replies);
 
