@@ -149,12 +149,32 @@ function group() {
 
                         # Other support-settable attributes
                         if ($me->isAdminOrSupport()) {
-                            foreach (['publish', 'licenserequired', 'lat', 'lng', 'poly', 'polyofficial'] as $att) {
+                            foreach (['publish', 'licenserequired', 'lat', 'lng'] as $att) {
                                 $val = presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {
                                     $g->setPrivate($att, $val);
                                 }
                             }
+
+                            # For polygon attributes, check that they are valid before putting them into the DB.
+                            # Otherwise, we can break the whole site.
+                            foreach (['poly', 'polyofficial'] as $att) {
+                                $val = presdef($att, $_REQUEST, NULL);
+                                if (array_key_exists($att, $_REQUEST)) {
+                                    try {
+                                        $dbhr->preQuery("SELECT GeomFromText(?);", [
+                                            $val
+                                        ]);
+                                        $g->setPrivate($att, $val);
+                                    } catch (Exception $e) {
+                                        $ret = [
+                                            'ret' => 3,
+                                            'status' => 'Invalid polygon data'
+                                        ];
+                                    }
+                                }
+                            }
+
                         }
                     }
                 }
