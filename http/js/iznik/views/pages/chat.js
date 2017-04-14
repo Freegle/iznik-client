@@ -872,6 +872,7 @@ define([
 
         render: function() {
             var self = this;
+            console.log("Render external");
 
             var msg = new Iznik.Models.Message({
                 id: self.options.msgid
@@ -889,8 +890,53 @@ define([
                             var myid = Iznik.Session.get('me').id;
 
                             if (chat.get('user1').id == myid || chat.get('user2').id == myid) {
-                                // Yes, this is for us.  Just go to the chat.
-                                Router.navigate('/chat/' + self.options.chatid, true);
+                                // Yes, this is for us.
+                                //
+                                // We might need to sign up for the group.  Find the last referenced message,
+                                // which tells us which group we may need to join.
+                                var messages = new Iznik.Collections.Chat.Messages({
+                                    roomid: self.options.chatid
+                                });
+
+                                messages.fetch().then(function() {
+                                    var refmsgid = null;
+                                    messages.each(function(message) {
+                                        var refmsg = message.get('refmsg');
+                                        if (refmsg) {
+                                            // We've found a message
+                                            var msggroups = refmsg.groups;
+                                            if (msggroups.length > 0) {
+                                                var groupid = msggroups[0].groupid;
+                                                var already = false;
+                                                Iznik.Session.get('groups').each(function(group) {
+                                                    if (group.get('id') == groupid) {
+                                                        already = true;
+                                                    }
+                                                });
+
+                                                if (!already) {
+                                                    // Finally!  We're not a member yet, so join us up.
+                                                    $.ajax({
+                                                        url: API + 'memberships',
+                                                        type: 'PUT',
+                                                        data: {
+                                                            groupid: groupid
+                                                        }, complete: function () {
+                                                            // Now that we've joined, proceed to the chat
+                                                            Router.navigate('/chat/' + self.options.chatid, true);
+                                                        }
+                                                    });
+                                                } else {
+                                                    // Just go to the chat.
+                                                    Router.navigate('/chat/' + self.options.chatid, true);
+                                                }
+                                            }
+                                        }
+                                    });
+                                });
+
+                                var groups = Iznik.Session.get('groups');
+
                             } else {
                                 // No, someone else has clicked on this link.  Just show them the message and
                                 // let them proceed from there if they want.
