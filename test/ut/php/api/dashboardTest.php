@@ -103,5 +103,25 @@ class dashboardTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testArea() {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_OTHER);
+        $g->setPrivate('polyofficial', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
+
+        $this->dbhm->preExec("REPLACE INTO authorities (name, polygon) VALUES ('Tuvulu Authority', GeomFromText('POLYGON((179.2 8.5, 179.2 8.6, 179.3 8.6, 179.3 8.5, 179.2 8.5))'))");
+
+        $ret = $this->call('dashboard', 'GET', [
+            'area' => 'Tuvulu Authority'
+        ]);
+        error_log("Returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        $dash = $ret['dashboard'];
+        self::assertEquals($group1, $ret['dashboard']['groupids'][0]);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

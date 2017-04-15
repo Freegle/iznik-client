@@ -26,12 +26,12 @@ define([
 
                 p = self.model.fetch();
             } else {
-                // We want all of them.
+                // We want all of them, or perhaps within an area
                 var sitename = $('meta[name=izniksitename]').attr("content");
                 var sitedesc = $('meta[name=izniksitedesc]').attr("content");
 
                 self.model = new Iznik.Model({
-                    'namedisplay': sitename,
+                    'namedisplay': self.options.area ? self.options.area : sitename,
                     'tagline': sitedesc
                 });
 
@@ -76,7 +76,8 @@ define([
                             group: self.model.get('id'),
                             start: '13 months ago',
                             grouptype: 'Freegle',
-                            systemwide: self.options.id ? false : true
+                            systemwide: (self.options.id || self.options.area) ? false : true,
+                            area: self.options.area
                         },
                         success: function (ret) {
                             v.close();
@@ -224,6 +225,31 @@ define([
                                 });
 
                                 graph.render();
+
+                                if (ret.dashboard.groupids && ret.dashboard.groupids.length > 0 && ret.dashboard.groupids.length < 30) {
+                                    // Add a list of the groups.
+                                    var promises = [];
+                                    var mods = [];
+                                    _.each(ret.dashboard.groupids, function(groupid) {
+                                        if (groupid) {
+                                            var mod = new Iznik.Models.Group({
+                                                id: groupid
+                                            });
+
+                                            mods.push(mod);
+                                            promises.push(mod.fetch());
+                                        }
+                                    });
+
+                                    Promise.all(promises).then(function() {
+                                        var names = [];
+                                        _.each(mods, function(mod) {
+                                            names.push(mod.get('namedisplay'));
+                                        });
+                                        var list = names.join(', ');
+                                        self.$('.js-arealist').html(list);
+                                    });
+                                }
                             }
                         }
                     });

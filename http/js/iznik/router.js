@@ -155,6 +155,7 @@ define([
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "livemap": "liveMap",
+            "stats/area/:id": "userStatsArea",
             "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
             "communityevent(/:id)": "userCommunityEvent",
@@ -625,6 +626,17 @@ define([
 
             require(["iznik/views/pages/user/livemap"], function() {
                 var page = new Iznik.Views.User.Pages.LiveMap();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStatsArea: function(area) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stats"], function() {
+                var page = new Iznik.Views.User.Pages.StatsGroup({
+                    area: area
+                });
                 self.loadRoute({page: page});
             });
         },
