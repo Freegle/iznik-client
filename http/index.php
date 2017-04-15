@@ -87,6 +87,9 @@ if (pres('src', $_REQUEST)) {
         presdef('id', $_SESSION, NULL),
         session_id()
     ]);
+
+    # Record in the session, as we might later create a user.
+    $_SESSION['src'] = $_REQUEST['src'];
 }
 
 $default = TRUE;

@@ -253,8 +253,9 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooUserId, yahooid) VALUES (?, ?, ?, ?, ?)",
-                [$firstname, $lastname, $fullname, $yahooUserId, $yahooid]);
+            $src = presdef('src', $_SESSION, NULL);
+            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooUserId, yahooid, source) VALUES (?, ?, ?, ?, ?, ?)",
+                [ $firstname, $lastname, $fullname, $yahooUserId, $yahooid, $src ]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
