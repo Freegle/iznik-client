@@ -4,6 +4,8 @@
 # TODO Messy.
 $_SERVER['HTTP_HOST'] = "www.ilovefreegle.org";
 
+# Don't log - too much data.
+define('SQLLOG', FALSE);
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
