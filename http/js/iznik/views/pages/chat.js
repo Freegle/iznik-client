@@ -145,10 +145,12 @@ define([
                 // When something happens on the chat, we want to sort the collection, which will then sort the
                 // collection view, resulting in unread messages being at the top.
                 self.listenTo(self.chats, 'somethinghappened', function(chatid) {
-                    // Only sort if this chat is not already at the top.
+                    // Only sort if this chat is not already at the top or open in a popup window.
                     var first = self.chats.first();
+                    var mod = self.chats.get(chatid);
+                    var view = Iznik.openChats.viewManager.findByModel(mod);
 
-                    if (first && first.get('id') != chatid) {
+                    if (first && first.get('id') != chatid && (!view || view.minimised)) {
                         self.chats.sort();
                     }
                 });
