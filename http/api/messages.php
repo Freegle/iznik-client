@@ -21,6 +21,7 @@ function messages() {
     $modtools = array_key_exists('modtools', $_REQUEST) ? filter_var($_REQUEST['modtools'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $grouptype = presdef('grouptype', $_REQUEST, NULL);
     $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $facebook_postable = array_key_exists('facebook_postable', $_REQUEST) ? filter_var($_REQUEST['facebook_postable'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
@@ -57,90 +58,104 @@ function messages() {
                 # We're looking for messages from a specific user
                 $userids[] = $fromuser;
             }
-            
-            $msgs = NULL;
-            $c = new MessageCollection($dbhr, $dbhm, $collection);
 
-            $ret = [
-                'ret' => 0,
-                'status' => 'Success',
-                'searchgroups' => $groups,
-                'searchgroup' => $groupid
-            ];
+            if (!$facebook_postable) {
+                $msgs = NULL;
+                $c = new MessageCollection($dbhr, $dbhm, $collection);
 
-            switch ($subaction) {
-                case NULL:
-                    # Just a normal fetch.
-                    list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $collection == MessageCollection::ALLUSER ? MessageCollection::OWNPOSTS: NULL);
-                    break;
-                case 'search':
-                case 'searchmess':
-                case 'searchall':
-                    # A search on message info.
-                    $search = presdef('search', $_REQUEST, NULL);
-                    $search = $search ? trim($search) : NULL;
-                    $ctx = presdef('context', $_REQUEST, NULL);
-                    $limit = presdef('limit', $_REQUEST, Search::Limit);
-                    $messagetype = presdef('messagetype', $_REQUEST, NULL);
-                    $nearlocation = presdef('nearlocation', $_REQUEST, NULL);
-                    $nearlocation = $nearlocation ? intval($nearlocation) : NULL;
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'searchgroups' => $groups,
+                    'searchgroup' => $groupid
+                ];
 
-                    if (is_numeric($search)) {
-                        $m = new Message($dbhr, $dbhm, $search);
+                switch ($subaction) {
+                    case NULL:
+                        # Just a normal fetch.
+                        list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $collection == MessageCollection::ALLUSER ? MessageCollection::OWNPOSTS: NULL);
+                        break;
+                    case 'search':
+                    case 'searchmess':
+                    case 'searchall':
+                        # A search on message info.
+                        $search = presdef('search', $_REQUEST, NULL);
+                        $search = $search ? trim($search) : NULL;
+                        $ctx = presdef('context', $_REQUEST, NULL);
+                        $limit = presdef('limit', $_REQUEST, Search::Limit);
+                        $messagetype = presdef('messagetype', $_REQUEST, NULL);
+                        $nearlocation = presdef('nearlocation', $_REQUEST, NULL);
+                        $nearlocation = $nearlocation ? intval($nearlocation) : NULL;
 
-                        if ($m->getID() == $search) {
-                            # Found by message id.
-                            list($groups, $msgs) = $c->fillIn([ [ 'id' => $search ] ], $limit, NULL);
+                        if (is_numeric($search)) {
+                            $m = new Message($dbhr, $dbhm, $search);
+
+                            if ($m->getID() == $search) {
+                                # Found by message id.
+                                list($groups, $msgs) = $c->fillIn([ [ 'id' => $search ] ], $limit, NULL);
+                            }
+                        } else {
+                            # Not an id search
+                            $m = new Message($dbhr, $dbhm);
+
+                            if ($nearlocation) {
+                                # We need to look in the groups near this location.
+                                $l = new Location($dbhr, $dbhm, $nearlocation);
+                                $groups = $l->groupsNear();
+                            }
+
+                            do {
+                                $searched = $m->search($search, $ctx, $limit, NULL, $groups, $nearlocation, $exactonly);
+                                list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, NULL);
+                                # We might have excluded all the messages we found; if so, keep going.
+                            } while (count($searched) > 0 && count($msgs) == 0);
                         }
-                    } else {
-                        # Not an id search
-                        $m = new Message($dbhr, $dbhm);
 
-                        if ($nearlocation) {
-                            # We need to look in the groups near this location.
-                            $l = new Location($dbhr, $dbhm, $nearlocation);
-                            $groups = $l->groupsNear();
+                        break;
+                    case 'searchmemb':
+                        # A search for messages based on member.  It is most likely that this is a search where relatively
+                        # few members match, so it is quickest for us to get all the matching members, then use a context
+                        # to return paged results within those.  We put a fallback limit on the number of members to stop
+                        # ourselves exploding, though.
+                        $search = presdef('search', $_REQUEST, NULL);
+                        $search = $search ? trim($search) : NULL;
+                        $ctx = presdef('context', $_REQUEST, NULL);
+                        $limit = presdef('limit', $_REQUEST, Search::Limit);
+
+                        $groupids = $groupid ? [ $groupid ] : NULL;
+
+                        $g = Group::get($dbhr, $dbhm);
+                        $membctx = NULL;
+                        $members = $g->getMembers(1000, $search, $membctx, NULL, $collection, $groupids, NULL, NULL, NULL);
+                        $userids = [];
+                        foreach ($members as $member) {
+                            $userids[] = $member['userid'];
                         }
 
-                        do {
-                            $searched = $m->search($search, $ctx, $limit, NULL, $groups, $nearlocation, $exactonly);
-                            list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, NULL);
-                            # We might have excluded all the messages we found; if so, keep going.
-                        } while (count($searched) > 0 && count($msgs) == 0);
-                    }
+                        $members = NULL;
+                        $groups = [];
+                        $msgs = [];
 
-                    break;
-                case 'searchmemb':
-                    # A search for messages based on member.  It is most likely that this is a search where relatively
-                    # few members match, so it is quickest for us to get all the matching members, then use a context
-                    # to return paged results within those.  We put a fallback limit on the number of members to stop
-                    # ourselves exploding, though.
-                    $search = presdef('search', $_REQUEST, NULL);
-                    $search = $search ? trim($search) : NULL;
-                    $ctx = presdef('context', $_REQUEST, NULL);
-                    $limit = presdef('limit', $_REQUEST, Search::Limit);
+                        if (count($userids) > 0) {
+                            # Now get the messages for those members.
+                            $c = new MessageCollection($dbhr, $dbhm, $collection);
+                            list ($groups, $msgs) = $c->get($ctx, $limit, $groupids, $userids, $collection == MessageCollection::ALLUSER ?  MessageCollection::OWNPOSTS : NULL);
+                        }
+                        break;
+                }
+            } else {
+                # This is handled differently as we are returning the messages outstanding to post.
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
 
-                    $groupids = $groupid ? [ $groupid ] : NULL;
-
-                    $g = Group::get($dbhr, $dbhm);
-                    $membctx = NULL;
-                    $members = $g->getMembers(1000, $search, $membctx, NULL, $collection, $groupids, NULL, NULL, NULL);
-                    $userids = [];
-                    foreach ($members as $member) {
-                        $userids[] = $member['userid'];
-                    }
-
-                    $members = NULL;
-                    $groups = [];
-                    $msgs = [];
-
-                    if (count($userids) > 0) {
-                        # Now get the messages for those members.
-                        $c = new MessageCollection($dbhr, $dbhm, $collection);
-                        list ($groups, $msgs) = $c->get($ctx, $limit, $groupids, $userids, $collection == MessageCollection::ALLUSER ?  MessageCollection::OWNPOSTS : NULL);
-                    }
-                    break;
+                $c = new MessageCollection($dbhr, $dbhm, MessageCollection::APPROVED);
+                $f = new GroupFacebook($dbhr, $dbhm, $groupid);
+                $msgs = $f->getPostableMessages();
+                list($groups, $msgs) = $c->fillIn($msgs, PHP_INT_MAX, NULL);
             }
+
 
             $ret['context'] = $ctx;
             $ret['groups'] = $groups;

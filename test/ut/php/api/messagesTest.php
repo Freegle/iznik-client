@@ -44,6 +44,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: Thing (Place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -77,6 +78,17 @@ class messagesTest extends IznikAPITestCase {
         assertEquals($a->getID(), $msgs[0]['id']);
         assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
+        # This should be outstanding for Facebook posting.
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $group1,
+            'facebook_postable' => TRUE
+        ]);
+        error_log("Get outstanding Facebook on $group1 should be $id " . var_export($ret, true));
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($a->getID(), $msgs[0]['id']);
+
         # Now join and check we can see see it.
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
@@ -97,7 +109,7 @@ class messagesTest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'searchmess',
             'groupid' => $group1,
-            'search' => 'basic'
+            'search' => 'thing'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
@@ -171,14 +183,14 @@ class messagesTest extends IznikAPITestCase {
 
         # Filter by type
         $ret = $this->call('messages', 'GET', [
-            'types' => [ Message::TYPE_OTHER ]
+            'types' => [ Message::TYPE_OFFER ]
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
 
         $ret = $this->call('messages', 'GET', [
-            'types' => [ Message::TYPE_OFFER ]
+            'types' => [ Message::TYPE_OTHER ]
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];

@@ -28,11 +28,12 @@ class GroupFacebook {
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
-        $this->groupid = $groupid;
 
         foreach ($this->publicatts as $att) {
             $this->$att = NULL;
         }
+
+        $this->groupid = $groupid;
 
         if ($groupid) {
             $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
@@ -246,26 +247,29 @@ class GroupFacebook {
         }
     }
 
-    public function postMessages() {
+    public function getPostableMessages() {
         # We want to post any messages since the last one, with a max of 1 hour ago to avoid flooding things.
         $mysqltime = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
-        $sql = "SELECT messages_groups.msgid, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages_groups.arrival ASC;";
-
+        $sql = "SELECT messages_groups.msgid AS id, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages_groups.arrival ASC;";
         $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime ]);
-        error_log($sql . var_export([ $this->groupid, $mysqltime  ], TRUE));
-        $msgid = NULL;
+        return($msgs);
+    }
+
+    public function postMessages() {
+        $msgs = $this->getPostableMessages();
+        $id = NULL;
         $msgarrival = NULL;
         $worked = 0;
 
         foreach ($msgs as $msg) {
             $params = [
-                'link' => 'https://' . USER_SITE . '/message/' . $msg['msgid'] . '?src=fbgroup',
+                'link' => 'https://' . USER_SITE . '/message/' . $msg['id'] . '?src=fbgroup',
                 'description' => 'Everything on Freegle is completely free.  Comment below to reply and we\'ll pass it on to the original freegler.'
             ];
 
             # Whether the post works or not, we might as well assume it does.  If it fails it's most likely because
             # we are rate-limited, and we'd never get out of that state.
-            $msgid = $msgid ? max($msg['msgid'], $msgid) : $msg['msgid'];
+            $id = $id ? max($msg['id'], $id) : $msg['id'];
             $msgarrival = $msg['arrival'];
 
             try {
@@ -291,12 +295,16 @@ class GroupFacebook {
             }
         }
 
-        if ($msgarrival) {
-            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE groupid = ?;", [ $msgid, $msgarrival, $this->groupid ]);
-            error_log("UPDATE groups_facebook SET msgid = $msgid, msgarrival = $msgarrival WHERE groupid = {$this->groupid};");
-        }
+        $this->updatePostableMessages($msgarrival);
 
         return($worked);
+    }
+
+    public function updatePostableMessages($msgarrival) {
+        if ($msgarrival) {
+            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE groupid = ?;", [$msgid, $msgarrival, $this->groupid]);
+            #error_log("UPDATE groups_facebook SET msgid = $msgid, msgarrival = $msgarrival WHERE groupid = {$this->groupid};");
+        }
     }
 
     public function pollForChanges() {
