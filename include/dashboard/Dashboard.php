@@ -96,7 +96,7 @@ class Dashboard {
         }
 
         if ($groupid) {
-            # Also get the donations this ear.
+            # Also get the donations this year.
             $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 1st January this year"));
 
             $sql = "SELECT SUM(GrossAmount) AS total FROM users_donations INNER JOIN memberships ON users_donations.userid = memberships.userid AND memberships.groupid = ? WHERE users_donations.timestamp > '$mysqltime';";
