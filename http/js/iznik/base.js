@@ -414,13 +414,17 @@ define([
                     // We put it in the title, but we can have a more human-readable title if we move it into
                     // datetime
                     var $el = $(this);
-                    var d = $el.attr('title');
+                    var d = $el.prop('title');
+                    console.log("Title is ", d);
 
                     if (d) {
                         $el.prop('datetime', d);
-                        var s = (new moment(d)).format('LLLL');
-                        $el.attr('title', s);
                         $el.timeago();
+
+                        // Prettify the title.  Need to do this afterwards, as otherwise we see (at least on some
+                        // old FF versions) that some timeagos fail.
+                        var s = (new moment(d)).format('LLLL');
+                        $el.prop('title', s);
                     }
                 });
             });
