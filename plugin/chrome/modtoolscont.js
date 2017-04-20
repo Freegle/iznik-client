@@ -87,16 +87,29 @@ function waitFor(check, parm) {
     return(p);
 }
 
+function status(str) {
+    $('#mtstatus').html(str);
+}
+
+function statusHide() {
+    $('#mtholder').hide();
+}
+
 $(document).ready(function() {
     console.log("MT Document ready", document.URL);
 
     if (document.URL.indexOf('https://www.facebook.com') === 0) {
+        // Put our status div in the bottom left
+        $('body').append('<div style="position: fixed; bottom: 0; left: 0; background: #e8fefb" id="mtholder"><table><tbody><tr><td><img src="https://modtools.org/images/modtools_logo.png" width="40px" /></td><td id="mtstatus"></td></tr></tbody></table>')
+        status('Checking...');
+
         // We want to post any outstanding messages to Facebook.
         $.ajax({
-            url: 'https://www.ilovefreegle.org/api/messages?groupid=21589&facebook_postable=true',
+            url: 'https://iznik.ilovefreegle.org/api/messages?groupid=21589&facebook_postable=true',
             type: 'GET',
             success:function(ret) {
                 console.log("Got unposted", ret);
+
                 if (ret.messages.length > 0) {
                     var confirmed = false;
 
@@ -109,6 +122,7 @@ $(document).ready(function() {
                     var fbgroup = 'https://www.facebook.com/groups/91145196504/';
 
                     if (!confirmed) {
+                        status('Asking...');
                         confirmed = window.confirm("May ModTools post " + ret.messages.length + " post" + ((ret.messages.length != 1) ? 's' : '') + '?');
                         try {
                             localStorage.setItem('mtconfirmed', confirmed);
@@ -118,6 +132,7 @@ $(document).ready(function() {
                     }
 
                     if (confirmed) {
+                        status('Posting ' + ret.messages.length + '...');
                         var url = document.URL;
 
                         if (document.URL === fbgroup) {
@@ -154,6 +169,7 @@ $(document).ready(function() {
                                             return(ret);
                                         }, messages).then(function(messages) {
                                             var message = messages.unshift();
+                                            console.log("Post", message);
                                             
                                             $('input').each(function() {
                                                 var placeholder = $(this).prop('placeholder');
@@ -175,10 +191,12 @@ $(document).ready(function() {
 
                                                         var loc = this;
                                                         window.setTimeout(function() {
-                                                            $(loc).execInsertText(message.area.name);
+                                                            if (message.hasOwnProperty('area')) {
+                                                                $(loc).execInsertText(message.area.name);
+                                                            }
                                                             $(loc).blur();
 
-                                                            var url = "https://www.ilovefreegle.org/message/" + message.id + "?src=fbgroup2";
+                                                            var url = "https://modtools.org/message/" + message.id + "?src=fbgroup2";
                                                             var inp = $('#composer_text_input_box').find('div[contenteditable=true]');
                                                             inp.focus();
 
@@ -188,7 +206,7 @@ $(document).ready(function() {
 
                                                                 window.setTimeout(function() {
                                                                     $.ajax({
-                                                                        url: 'https://www.ilovefreegle.org/api/messages?groupid=21589&facebook_postable=true',
+                                                                        url: 'https://modtools.org/api/messages?groupid=21589&facebook_postable=true',
                                                                         type: 'POST',
                                                                         data: {
                                                                             'action': 'UpdateFacebookPostable',
@@ -236,7 +254,7 @@ $(document).ready(function() {
                             //                 console.log("Placeholder", placeholder);
                             //                 if (placeholder == 'What are you selling?') {
                             //                     console.log("Found input");
-                            //                     $(this).val("https://www.ilovefreegle.org/message/" + messages[messageIndex++].id);
+                            //                     $(this).val("https://modtools.org/message/" + messages[messageIndex++].id);
                             //                 }
                             //             })
                             //         }, 1000);
@@ -247,7 +265,12 @@ $(document).ready(function() {
                             console.log("Need to navigate");
                             document.location = fbgroup;
                         }
+                    } else {
+                        statusHide();
                     }
+                } else {
+                    status('Nothing to do');
+                    statusHide();
                 }
             }
         })

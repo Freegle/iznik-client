@@ -39,12 +39,20 @@ define([
             'click .js-addlicense': 'addLicense',
             'click .js-hideall': 'hideAll',
             'click .js-mapsettings': 'mapSettings',
-            'click .js-editdesc': 'editDesc'
+            'click .js-editdesc': 'editDesc',
+            'click .js-facebookauthgroup': 'facebookAuthGroup'
         },
     
         addGroup: function() {
-            var self = this;
             var v = new Iznik.Views.ModTools.Settings.AddGroup();
+            v.render();
+        },
+
+        facebookAuthGroup: function() {
+            var group = Iznik.Session.getGroup(this.selected);
+            var v = new Iznik.Views.ModTools.Settings.FacebookAuthGroup({
+                group: group
+            });
             v.render();
         },
     
@@ -173,7 +181,6 @@ define([
 
                     self.$('.js-twitterauth').attr('href', '/twitter/twitter_request.php?groupid=' + self.selected);
                     self.$('.js-facebookauthpage').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected + '&type=Page');
-                    self.$('.js-facebookauthgroup').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected + '&type=Group');
 
                     self.group.fetch().then(function() {
                         // Because we switch the form based on our group select we need to remove old events to avoid saving new
@@ -689,6 +696,9 @@ define([
                                 el: self.$('.js-facebooklist'),
                                 modelView: Iznik.Views.ModTools.Settings.GroupFacebook,
                                 collection: self.facebookColl,
+                                modelViewOptions: {
+                                    group: self.group
+                                },
                                 processKeyEvents: false
                             });
 
@@ -1458,10 +1468,10 @@ define([
             var v = new Iznik.Views.ModTools.Settings.CreateFailed();
             v.render();
         },
-    
+
         add: function() {
             var self = this;
-    
+
             $.ajax({
                 type: 'POST',
                 url: API + 'group',
@@ -1477,7 +1487,7 @@ define([
                     if (ret.ret == 0) {
                         var v = new Iznik.Views.ModTools.Settings.CreateSucceeded();
                         v.render();
-    
+
                         // Trigger another list to force the invite and hence the add.
                         IznikPlugin.listYahooGroups();
                     } else {
@@ -1486,7 +1496,7 @@ define([
                 }, error: self.createFailed
             });
         },
-    
+
         render: function() {
             var p = Iznik.Views.Modal.prototype.render.call(this);
             p.then(function(self) {
@@ -1513,7 +1523,7 @@ define([
             return(p);
         }
     });
-    
+
     Iznik.Views.ModTools.Settings.CreateSucceeded = Iznik.Views.Modal.extend({
         template: 'modtools_settings_createsucceeded'
     });
@@ -2512,4 +2522,58 @@ define([
             });
         }
     });
+
+    Iznik.Views.ModTools.Settings.FacebookAuthGroup = Iznik.Views.Modal.extend({
+        template: 'modtools_settings_facebookauthgroup',
+
+        events: {
+            'click .js-add': 'add'
+        },
+
+        add: function() {
+            var self = this;
+            console.log("Add", self);
+            var url = self.$('.js-groupurl').val();
+            self.$('.js-groupurl').removeClass('error');
+
+            var re = /https:\/\/www.facebook.com\/groups\/(\d*)/;
+            var match = re.exec(url);
+            console.log("Matches", match);
+
+            if (match) {
+                // Fetch the page to get the name, and make sure it's valid.
+                require(['iznik/facebook'], function(FBLoad) {
+                    self.listenToOnce(FBLoad(), 'fbloaded', function () {
+                        if (!FBLoad().isDisabled()) {
+                            FB.login(function() {
+                                FB.api('/' + match[1], function (response) {
+                                    if (response && !response.error && response.hasOwnProperty('name')) {
+                                        $.ajax({
+                                            type: 'POST',
+                                            url: API + 'group',
+                                            data: {
+                                                action: 'AddFacebookGroup',
+                                                name: response.name,
+                                                facebookid: response.id,
+                                                id: self.options.group.get('id')
+                                            }, success: function(ret) {
+                                                self.close();
+                                            }
+                                        });
+                                    } else {
+                                        self.$('.js-groupurl').addClass('error-border');
+                                    }
+                                });
+                            });
+                        }
+                    });
+
+                    FBLoad().render();
+                });
+            } else {
+                self.$('.js-groupurl').addClass('error-border');
+            }
+        }
+    });
+
 });

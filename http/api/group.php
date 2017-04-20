@@ -285,7 +285,6 @@ function group() {
                     }
 
                     case 'RemoveFacebookGroup': {
-                        error_log("REmove " . var_export($_REQUEST, TRUE));
                         $uid = intval(presdef('uid', $_REQUEST, NULL));
                         $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 

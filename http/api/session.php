@@ -59,7 +59,6 @@ function session() {
                         $facebooks[$group['id']] = GroupFacebook::listForGroup($dbhr, $dbhm, $group['id']);
                     }
 
-                    error_log("Facebook mapping for " . implode(',', $gids) . " is " . var_export($facebooks, TRUE));
                     $twitters = [];
 
                     if (count($gids) > 0) {
@@ -100,7 +99,6 @@ function session() {
                                 $group['facebook'] = [];
 
                                 foreach ($facebooks[$group['id']] as $uid) {
-                                    error_log("GroupFacebook $uid");
                                     $f = new GroupFacebook($dbhr, $dbhm, $uid);
                                     $atts = $f->getPublic();
                                     unset($atts['token']);
