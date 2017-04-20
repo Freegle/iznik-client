@@ -790,7 +790,7 @@ class Group extends Entity
 
             error_log("Scanned members {$this->group['nameshort']}");
 
-            if ($gotanowner) {
+            if ($gotanowner || $collection !== MembershipCollection::APPROVED) {
                 $me = whoAmI($this->dbhr, $this->dbhm);
                 $myrole = $me ? $me->getRoleForGroup($this->id) : User::ROLE_NONMEMBER;
                 #error_log("myrole in setGroup $myrole id " . $me->getId() . " from " . $me->getRoleForGroup($this->id) . " session " . $_SESSION['id']);

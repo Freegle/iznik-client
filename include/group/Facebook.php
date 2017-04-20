@@ -24,7 +24,7 @@ class GroupFacebook {
     const ACTION_DO = 'Do';
     const ACTION_HIDE = 'Hide';
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL, $fetched = NULL)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $fetched = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -33,10 +33,10 @@ class GroupFacebook {
             $this->$att = NULL;
         }
 
-        $this->groupid = $groupid;
+        $this->uid = $id;
 
-        if ($groupid) {
-            $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
+        if ($id) {
+            $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE uid = ?;", [ $id ]);
             foreach ($groups as $group) {
                 foreach ($this->publicatts as $att) {
                     $this->$att = $group[$att];
@@ -54,11 +54,6 @@ class GroupFacebook {
         return($ret);
     }
 
-    public function findById($id) {
-        $groups = $this->dbhr->preQuery("SELECT groupid FROM groups_facebook WHERE id = ?;", [ $id ]);
-        return(count($groups) > 0 ? $groups[0]['groupid'] : NULL);
-    }
-
     public function getFB($graffiti) {
         #error_log("Get FB $graffiti");
         $fb = new Facebook\Facebook([
@@ -69,7 +64,7 @@ class GroupFacebook {
         return($fb);
     }
 
-    public function set($groupid, $token, $name, $id, $type = GroupFacebook::TYPE_PAGE) {
+    public function add($groupid, $token, $name, $id, $type = GroupFacebook::TYPE_PAGE) {
         $this->dbhm->preExec("INSERT INTO groups_facebook (groupid, name, id, token, authdate, type) VALUES (?,?,?,?,NOW(), ?) ON DUPLICATE KEY UPDATE name = ?, id = ?, token = ?, authdate = NOW(), valid = 1, type = ?;",
             [
                 $groupid,
@@ -84,6 +79,10 @@ class GroupFacebook {
             ]);
 
         $this->token = $token;
+    }
+
+    public function remove($uid) {
+        $this->dbhm->preExec("DELETE FROM groups_facebook WHERE uid = ?;", [ $uid ]);
     }
 
     public function getPostsToShare($sharefrom, $since = "yesterday") {
@@ -136,10 +135,10 @@ class GroupFacebook {
             }
 
             if (count($modships) > 0) {
-                # We want to find all groups where we haven't shared this post.  To make this scale better with
+                # We want to find all Facebook pages/groups where we haven't shared this post.  To make this scale better with
                 # many groups we do a more complex query and then munge the data.
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.groupid, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 LEFT JOIN groups_facebook_shares ON groups_facebook_shares.postid = groups_facebook_toshare.postid AND groups_facebook_shares.groupid = groups_facebook.groupid WHERE groups_facebook.groupid IN ($groupids) AND groups_facebook_toshare.id > ? $dateq AND groups_facebook_shares.postid IS NULL ORDER BY groups_facebook_toshare.id DESC;";
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.uid, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 LEFT JOIN groups_facebook_shares ON groups_facebook_shares.postid = groups_facebook_toshare.postid AND groups_facebook_shares.uid = groups_facebook.uid WHERE groups_facebook.groupid IN ($groupids) AND groups_facebook_toshare.id > ? $dateq AND groups_facebook_shares.postid IS NULL ORDER BY groups_facebook_toshare.id DESC;";
                 $posts = $this->dbhr->preQuery($sql, [ $minid ]);
 
                 $remaining = [];
@@ -148,9 +147,10 @@ class GroupFacebook {
                     $ctx['id'] = $post['id'];
 
                     if (!array_key_exists($post['id'], $remaining)) {
+                        # This is a new post which we've not considered so far.
                         $remaining[$post['id']] = $post;
-                        unset($remaining[$post['id']]['groupid']);
-                        $remaining[$post['id']]['groups'] = [];
+                        unset($remaining[$post['id']]['uid']);
+                        $remaining[$post['id']]['uids'] = [];
 
                         if (preg_match('/(.*)_(.*)/', $post['postid'], $matches)) {
                             # Create the iframe version of the Facebook plugin.
@@ -160,8 +160,8 @@ class GroupFacebook {
                         }
                     }
 
-                    # Add this group
-                    $remaining[$post['id']]['groups'][] = $post['groupid'];
+                    # Add this Facebook page/group in for this post.
+                    $remaining[$post['id']]['uids'][] = $post['uid'];
                 }
 
                 foreach ($remaining as $groupid => $post) {
@@ -182,14 +182,15 @@ class GroupFacebook {
 
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groupid = ? AND groups_facebook_toshare.id = ?;";
-                $actions = $this->dbhr->preQuery($sql, [ $this->groupid, $id ]);
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype, groups_facebook.uid, groups_facebook.groupid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND uid = ? AND groups_facebook_toshare.id = ?;";
+                $actions = $this->dbhr->preQuery($sql, [ $this->uid, $id ]);
                 error_log("Perform " . var_export($actions, TRUE));
                 foreach ($actions as $action) {
                     try {
                         # Whether or not this worked, remember that we've tried, so that we don't try again.
-                        $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (groupid, postid) VALUES (?,?);", [
-                            $this->groupid,
+                        $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES (?,?,?);", [
+                            $action['uid'],
+                            $action['groupid'],
                             $action['postid']
                         ]);
 
@@ -212,13 +213,13 @@ class GroupFacebook {
                         #error_log("Post returned " . var_export($result, true));
                     } catch (Exception $e) {
                         $code = $e->getCode();
-                        error_log("Failed on {$this->groupid} code $code message " . $e->getMessage() . " token " . $this->token);
+                        error_log("Failed perform on {$this->id} code $code message " . $e->getMessage() . " token " . $this->token);
 
                         # These numbers come from FacebookResponseException.
                         if ($code == 100 || $code == 102 || $code == 190) {
-                            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE groupid = ?;", [
+                            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE uid = ?;", [
                                 $e->getMessage(),
-                                $this->groupid
+                                $this->uid
                             ]);
                         }
                     }
@@ -235,10 +236,11 @@ class GroupFacebook {
 
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype, groups_facebook.groupid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groups_facebook_toshare.id = ?;";
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype, groups_facebook.groupid, groups_facebook.uid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groups_facebook_toshare.id = ?;";
                 $actions = $this->dbhr->preQuery($sql, [ $id ]);
                 foreach ($actions as $action) {
-                    $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (groupid, postid, status) VALUES (?,?, 'Hidden');", [
+                    $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid, status) VALUES (?,?,?, 'Hidden');", [
+                        $this->uid,
                         $action['groupid'],
                         $action['postid']
                     ]);
@@ -247,11 +249,22 @@ class GroupFacebook {
         }
     }
 
+    public static function listForGroup($dbhr, $dbhm, $groupid) {
+        $ids = [];
+        $groups = $dbhr->preQuery("SELECT uid FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
+        foreach ($groups as $group) {
+            $ids[] = $group['uid'];
+        }
+
+        return($ids);
+    }
+
     public function getPostableMessages() {
         # We want to post any messages since the last one, with a max of 1 hour ago to avoid flooding things.
         $mysqltime = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
-        $sql = "SELECT messages_groups.msgid AS id, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE messages_groups.groupid = ? AND messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages_groups.arrival ASC;";
-        $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime ]);
+        $sql = "SELECT messages_groups.msgid AS id, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.uid = ? WHERE messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages_groups.arrival ASC;";
+        $msgs = $this->dbhr->preQuery($sql, [ $this->uid, $mysqltime ]);
+        error_log("Get postable $sql, {$this->uid}, $mysqltime returned " . var_export($msgs, TRUE));
         return($msgs);
     }
 
@@ -278,32 +291,31 @@ class GroupFacebook {
                 error_log("Post returned " . var_export($result, true));
 
                 # Try to avoid rate-limiting.  This number covers the traffic we expect.
-                sleep(10);
+                sleep(30);
                 $worked++;
             } catch (Exception $e) {
                 error_log("Post failed with " . $e->getMessage());
                 $code = $e->getCode();
-                error_log("Failed on {$this->groupid} code $code message " . $e->getMessage() . " token " . $this->token);
+                error_log("Failed on {$this->id} code $code message " . $e->getMessage() . " token " . $this->token);
 
                 # These numbers come from FacebookResponseException.
                 if ($code == 100 || $code == 102 || $code == 190) {
-                    $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE groupid = ?;", [
+                    $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE uid = ?;", [
                         $e->getMessage(),
-                        $this->groupid
+                        $this->uid
                     ]);
                 }
             }
         }
 
-        $this->updatePostableMessages($msgarrival);
+        $this->updatePostableMessages($id, $msgarrival);
 
         return($worked);
     }
 
-    public function updatePostableMessages($msgarrival) {
+    public function updatePostableMessages($msgid, $msgarrival) {
         if ($msgarrival) {
-            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE groupid = ?;", [$msgid, $msgarrival, $this->groupid]);
-            #error_log("UPDATE groups_facebook SET msgid = $msgid, msgarrival = $msgarrival WHERE groupid = {$this->groupid};");
+            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE uid = ?;", [$msgid, $msgarrival, $this->uid]);
         }
     }
 
@@ -419,9 +431,9 @@ class GroupFacebook {
             }
         } while ($next && count($posts) > 0);
 
-        $this->dbhm->preExec("UPDATE groups_facebook SET lastupdated = ? WHERE groupid = ?;", [
+        $this->dbhm->preExec("UPDATE groups_facebook SET lastupdated = ? WHERE uid = ?;", [
             date("Y-m-d H:i:s", $now),
-            $this->groupid
+            $this->uid
         ]);
 
         return($count);
@@ -474,7 +486,7 @@ class GroupFacebook {
                 } catch (Exception $e) {
                     error_log("Post failed with " . $e->getMessage());
                     $code = $e->getCode();
-                    error_log("Failed on {$this->groupid} code $code message " . $e->getMessage() . " token " . $this->token);
+                    error_log("Failed on {$this->uid} code $code message " . $e->getMessage() . " token " . $this->token);
                 }
             }
         }

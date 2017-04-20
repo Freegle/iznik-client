@@ -415,7 +415,6 @@ define([
                     // datetime
                     var $el = $(this);
                     var d = $el.prop('title');
-                    console.log("Title is ", d);
 
                     if (d) {
                         $el.prop('datetime', d);

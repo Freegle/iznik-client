@@ -941,6 +941,7 @@ class membershipsAPITest extends IznikAPITestCase {
                 'yahooUserId' => "-$i",
                 'yahooPostingStatus' => 'UNMODERATED',
                 'yahooDeliveryType' => 'SINGLE',
+                'yahooModeratorStatus' => 'OWNER',
                 'name' => 'Test User',
                 'date' => isodate('Sat, 22 Aug 2015 10:45:58 +0000')
             ];

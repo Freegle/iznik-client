@@ -5,6 +5,7 @@ function messages() {
     $me = whoAmI($dbhr, $dbhm);
 
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+    $uid = intval(presdef('uid', $_REQUEST, NULL));
     $collection = presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $ctx = presdef('context', $_REQUEST, NULL);
     $limit = intval(presdef('limit', $_REQUEST, 5));
@@ -151,7 +152,7 @@ function messages() {
                 ];
 
                 $c = new MessageCollection($dbhr, $dbhm, MessageCollection::APPROVED);
-                $f = new GroupFacebook($dbhr, $dbhm, $groupid);
+                $f = new GroupFacebook($dbhr, $dbhm, $uid);
                 $msgs = $f->getPostableMessages();
                 list($groups, $msgs) = $c->fillIn($msgs, PHP_INT_MAX, NULL);
             }
@@ -226,17 +227,33 @@ function messages() {
         break;
 
         case 'POST': {
-            $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
+            $action = presdef('action', $_REQUEST, NULL);
 
-            if ($me) {
-                # Check if we're logged in and have rights.
-                $g = Group::get($dbhr, $dbhm, $groupid);
-                $ret = [ 'ret' => 3, 'status' => 'Permission denied' ];
+            switch ($action) {
+                case 'UpdateFacebookPostable':
+                    # We have posted some messages on Facebook.  We don't have to be logged in for this, as we're
+                    # not in the context of the Facebook tab.  There's no security risk.
+                    $f = new GroupFacebook($dbhr, $dbhm, $groupid);
+                    $f->updatePostableMessages(
+                        presdef('id', $_REQUEST, NULL),
+                        date("Y-m-d H:i:s", strtotime(presdef('arrival', $_REQUEST, NULL)))
+                    );
+                    break;
+                default:
+                    # Correlation.
+                    $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
+                    if ($me) {
+                        # Check if we're logged in and have rights.
+                        $g = Group::get($dbhr, $dbhm, $groupid);
+                        $ret = [ 'ret' => 3, 'status' => 'Permission denied' ];
 
-                if ($me->isModOrOwner($groupid)) {
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                    list($ret['missingonserver'], $ret['missingonclient']) = $g->correlate($collections, $messages);
-                }
+                        if ($me->isModOrOwner($groupid)) {
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                            list($ret['missingonserver'], $ret['missingonclient']) = $g->correlate($collections, $messages);
+                        }
+                    }
+
+                    break;
             }
         }
     }

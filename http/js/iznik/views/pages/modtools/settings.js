@@ -682,24 +682,17 @@ define([
                         // Add Facebook info.  Won't show for groups it shouldn't.
                         var facebook = self.group.get('facebook');
 
-                        if (facebook) {
-                            self.$('.js-facebookname').html(facebook.name);
-                            self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
-                            if (facebook.type == 'Page') {
-                                self.$('.js-facebookpage').show();
-                                self.$('.js-facebookgroup').hide();
-                            } else {
-                                self.$('.js-facebookpage').hide();
-                                self.$('.js-facebookgroup').show();
-                            }
+                        if (facebook && facebook.length > 0) {
+                            self.facebookColl = new Iznik.Collection(facebook);
 
-                            if (!facebook.valid) {
-                                self.$('.js-facebooknotlinked').show();
-                            } else {
-                                var mom = new moment(facebook.authdate);
-                                self.$('.js-facebookauthdate').html(mom.format('ll'));
-                                self.$('.js-facebookvalid').show();
-                            }
+                            self.facebookCV = new Backbone.CollectionView({
+                                el: self.$('.js-facebooklist'),
+                                modelView: Iznik.Views.ModTools.Settings.GroupFacebook,
+                                collection: self.facebookColl,
+                                processKeyEvents: false
+                            });
+
+                            self.facebookCV.render();
                         } else {
                             self.$('.js-facebooknotlinked').show();
                         }
@@ -2487,6 +2480,36 @@ define([
             });
 
             return(p);
+        }
+    });
+
+    Iznik.Views.ModTools.Settings.GroupFacebook = Iznik.View.extend({
+        template: 'modtools_settings_groupfacebook',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function() {
+                var facebook = self.model.attributes;
+                self.$('.js-facebookname').html(facebook.name);
+                self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
+                if (facebook.type == 'Page') {
+                    self.$('.js-facebookpage').show();
+                    self.$('.js-facebookgroup').hide();
+                } else {
+                    self.$('.js-facebookpage').hide();
+                    self.$('.js-facebookgroup').show();
+                }
+
+                if (!facebook.valid) {
+                    self.$('.js-facebooknotlinked').show();
+                } else {
+                    var mom = new moment(facebook.authdate);
+                    self.$('.js-facebookauthdate').html(mom.format('ll'));
+                    self.$('.js-facebookvalid').show();
+                }
+            });
         }
     });
 });

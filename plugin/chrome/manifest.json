@@ -12,7 +12,8 @@
     "cookies",
     "storage",
     "*://direct.ilovefreegle.org/",
-    "*://*.yahoo.com/"
+    "*://*.yahoo.com/",
+    "*://*.facebook.com/"
   ],
 
   "icons": { "16": "ModToolsLogo16.png",
@@ -27,7 +28,7 @@
 
   "content_scripts": [
     {
-      "matches": ["*://modtools.org/*", "*://www.modtools.org/*", "*://dev.modtools.org/*", "*://iznik.modtools.org/*" ],
+      "matches": [ "*://modtools.org/*", "*://www.modtools.org/*", "*://dev.modtools.org/*", "*://iznik.modtools.org/*",  "*://www.facebook.com/*" ],
       "js": ["jquery-1.10.2.min.js", "modtoolscont.js"]
     }
   ],

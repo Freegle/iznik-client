@@ -16,9 +16,9 @@ $lockh = lockScript(basename(__FILE__));
 
 error_log("Start at " . date("Y-m-d H:i:s"));
 
-$groups = $dbhr->preQuery("SELECT groups.id, groups.nameshort FROM groups INNER JOIN groups_facebook ON groups.id = groups_facebook.groupid WHERE groups.type = 'Freegle' AND groups_facebook.type = 'Group' AND publish = 1 AND valid = 1 AND nameshort LIKE '%EldrickTest%' ORDER BY LOWER(nameshort) ASC;");
+$groups = $dbhr->preQuery("SELECT groups_facebook.uid, groups.nameshort FROM groups INNER JOIN groups_facebook ON groups.id = groups_facebook.groupid WHERE groups.type = 'Freegle' AND groups_facebook.type = 'Group' AND publish = 1 AND valid = 1 AND nameshort LIKE '%EldrickTest%' ORDER BY LOWER(nameshort) ASC;");
 foreach ($groups as $group) {
-    $f = new GroupFacebook($dbhr, $dbhm, $group['id']);
+    $f = new GroupFacebook($dbhr, $dbhm, $group['uid']);
 
     # Look for comments which we need to pull from Facebook into our platform.
     $count = $f->pollForChanges();

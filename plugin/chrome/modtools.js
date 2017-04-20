@@ -250,6 +250,7 @@ chrome.webRequest.onHeadersReceived.addListener(
         return blockingResponse;
     },
     {urls: ["<all_urls>"]},
-    ["blocking", "responseHeaders"]);
+    ["blocking", "responseHeaders"]
+);
 
 
