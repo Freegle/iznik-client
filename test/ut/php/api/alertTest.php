@@ -120,11 +120,12 @@ class alertAPITest extends IznikAPITestCase
                                   array (
                                       0 =>
                                           array (
-                                              'summary' =>
+                                              'summary' => [ 0 =>
                                                   array (
                                                       'count' => 2,
                                                       'rsp' => 'None',
-                                                  ),
+                                                  )
+                                              ],
                                           ),
                                   ),
                               'mods' =>
@@ -181,11 +182,12 @@ class alertAPITest extends IznikAPITestCase
                         array (
                             0 =>
                                 array (
-                                    'summary' =>
+                                    'summary' => [ 0 =>
                                         array (
                                             'count' => 2,
                                             'rsp' => 'Reached',
-                                        ),
+                                        )
+                                    ],
                                 ),
                         ),
                     'mods' =>
