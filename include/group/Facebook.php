@@ -184,10 +184,11 @@ class GroupFacebook {
                 $groupids = implode(',', $modships);
                 $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype, groups_facebook.uid, groups_facebook.groupid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND uid = ? AND groups_facebook_toshare.id = ?;";
                 $actions = $this->dbhr->preQuery($sql, [ $this->uid, $id ]);
-                error_log("Perform " . var_export($actions, TRUE));
+
                 foreach ($actions as $action) {
                     try {
                         # Whether or not this worked, remember that we've tried, so that we don't try again.
+                        error_log("Record INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES ({$action['uid']},{$action['groupid']},{$action['postid']});");
                         $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES (?,?,?);", [
                             $action['uid'],
                             $action['groupid'],
@@ -236,8 +237,10 @@ class GroupFacebook {
 
             if (count($modships) > 0) {
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype, groups_facebook.groupid, groups_facebook.uid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND groups_facebook_toshare.id = ?;";
-                $actions = $this->dbhr->preQuery($sql, [ $id ]);
+
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.type AS facebooktype, groups_facebook.uid, groups_facebook.groupid FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND groupid IN ($groupids) AND uid = ? AND groups_facebook_toshare.id = ?;";
+                $actions = $this->dbhr->preQuery($sql, [ $this->uid, $id ]);
+
                 foreach ($actions as $action) {
                     $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid, status) VALUES (?,?,?, 'Hidden');", [
                         $this->uid,

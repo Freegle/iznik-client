@@ -134,11 +134,11 @@ define([
                     });
                 });
 
-                var shares = new Iznik.Collection(sharelist);
-                shares.comparator = 'namedisplay';
-                shares.sort();
+                self.shares = new Iznik.Collection(sharelist);
+                self.shares.comparator = 'namedisplay';
+                self.shares.sort();
 
-                shares.each(function(share) {
+                self.shares.each(function(share) {
                     // Page shares happen on the server.  Group ones don't so need a Facebook session.
                     if (share.get('type') == 'Page' || (share.get('type') == 'Group' && Iznik.Session.hasFacebook())) {
                         var v = new Iznik.Views.ModTools.SocialAction.FacebookGroupShare({
@@ -156,7 +156,8 @@ define([
                 var v = new Iznik.Views.ModTools.SocialAction.FacebookPageHide({
                     actionid: self.model.get('id'),
                     action: self.model,
-                    hideWhenDone: self.$el
+                    hideWhenDone: self.$el,
+                    shares: self.shares
                 });
 
                 v.render().then(function() {
@@ -185,7 +186,7 @@ define([
                 type: 'POST',
                 data: {
                     id: self.options.actionid,
-                    groupid: self.model.get('id'),
+                    uid: self.model.get('uid'),
                     action: 'Do'
                 }
             });
@@ -206,13 +207,16 @@ define([
         hide: function() {
             var self = this;
 
-            $.ajax({
-                url: API + 'socialactions',
-                type: 'POST',
-                data: {
-                    id: self.options.actionid,
-                    action: 'Hide'
-                }
+            self.options.shares.each(function(share) {
+                $.ajax({
+                    url: API + 'socialactions',
+                    type: 'POST',
+                    data: {
+                        id: self.options.actionid,
+                        uid: share.get('uid'),
+                        action: 'Hide'
+                    }
+                });
             });
 
             self.options.hideWhenDone.fadeOut('slow');
