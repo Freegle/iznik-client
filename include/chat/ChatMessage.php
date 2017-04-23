@@ -185,6 +185,10 @@ class ChatMessage extends Entity
             }
         }
 
+        if (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE) {
+            $check = TRUE;
+        }
+
         return($check);
     }
 
