@@ -65,6 +65,11 @@ EOT;
                                                                                         <a href="$link" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff; max-width:200px;">Click&nbsp;to&nbsp;Login</a>
                                                                                     </td>
                                                                                 </tr>
+                                                                                <tr>
+                                                                                    <td>
+                                                                                        If you can't click on that, copy and paste this link: $link
+                                                                                    </td>
+                                                                                </tr>
                                                                             </table>
                                                                          </td>
                                                                     </tr>                                                                    

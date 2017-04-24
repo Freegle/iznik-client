@@ -59,7 +59,7 @@ class Item extends Entity
 
     public function typeahead($query) {
         $ctx = NULL;
-        $results = $this->s->search($query, $ctx, 10);
+        $results = $this->s->search($query, $ctx, 10, NULL, NULL, FALSE, 5);
         foreach ($results as &$result) {
             $i = new Item($this->dbhr, $this->dbhm, $result['id']);
 

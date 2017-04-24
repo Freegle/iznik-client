@@ -19,6 +19,8 @@
                 <% } else { %>
                 Left {{group.namedisplay}}
                 <% } %>
+            <% } else if (subtype == 'Edit') { %>
+                {{byuser.displayname}} edited group settings
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
@@ -100,7 +102,7 @@
             <% } else if (subtype == 'YahooApplied') { %>
             Triggered application to Yahoo Group {{obj.group.namedisplay}}.
             <% } else if (subtype == 'YahooJoined') { %>
-            Yahoo informed ModTools that the member {{text}} has joined.
+            Yahoo informed ModTools that the member {{text}} has joined {{group.namedisplay}}.
             <% } else if (subtype == 'SuspendMail') { %>
             Stop mailing this member as they are bouncing.
             <% } else if (subtype == 'Bounce') { %>

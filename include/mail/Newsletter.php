@@ -215,6 +215,12 @@ class Newsletter extends Entity
                     }
 
                     $sent++;
+
+                    if ($sent % 7 === 0) {
+                        # This is set so that sending a newsletter takes several days, to avoid disrupting our
+                        # normal mailing by flooding the system with these mails.
+                        sleep(1);
+                    }
                 } catch (Exception $e) {
                     error_log($email . " skipped with " . $e->getMessage());
                 }

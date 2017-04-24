@@ -48,49 +48,54 @@ class socialactionsAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
-        # Delete the last share so that there will be at least one.
-        $this->dbhm->preExec("DELETE FROM groups_facebook_shares WHERE groupid = $gid ORDER BY date DESC LIMIT 1;");
-        $this->dbhm->preExec("UPDATE groups_facebook SET valid = 1 WHERE groupid = $gid");
+        $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
 
-        $u->addMembership($gid, User::ROLE_MODERATOR);
+        foreach ($ids as $uid) {
+            # Delete the last share so that there will be at least one.
+            $this->dbhm->preExec("DELETE FROM groups_facebook_shares WHERE groupid = $gid ORDER BY date DESC LIMIT 1;");
+            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 1 WHERE groupid = $gid");
 
-        assertTrue($u->login('testpw'));
+            $u->addMembership($gid, User::ROLE_MODERATOR);
 
-        # Now we're talking.
-        $orig = $this->call('socialactions', 'GET', []);
-        assertEquals(0, $orig['ret']);
-        assertGreaterThan(0, count($orig['socialactions']));
+            assertTrue($u->login('testpw'));
 
-        $ret = $this->call('socialactions', 'POST', [
-            'id' => $orig['socialactions'][0]['id'],
-            'groupid' => $gid
-        ]);
+            # Now we're talking.
+            $orig = $this->call('socialactions', 'GET', []);
+            assertEquals(0, $orig['ret']);
+            assertGreaterThan(0, count($orig['socialactions']));
 
-        assertEquals(0, $ret['ret']);
+            $ret = $this->call('socialactions', 'POST', [
+                'id' => $orig['socialactions'][0]['id'],
+                'uid' => $uid
+            ]);
 
-        # Shouldn't show in list of groups now.
-        $ret = $this->call('socialactions', 'GET', []);
-        assertEquals(0, $ret['ret']);
+            assertEquals(0, $ret['ret']);
 
-        assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
+            # Shouldn't show in list of groups now.
+            $ret = $this->call('socialactions', 'GET', []);
+            error_log("Shouldn't show in " . var_export($ret, TRUE));
+            assertEquals(0, $ret['ret']);
 
-        # Force a failure for coverage.
-        $tokens = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = $gid;");
-        $this->dbhm->preExec("UPDATE groups_facebook SET token = 'a' WHERE groupid = $gid");
+            assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
 
-        $ret = $this->call('socialactions', 'POST', [
-            'id' => $orig['socialactions'][0]['id'],
-            'groupid' => $gid,
-            'dedup' => TRUE
-        ]);
+            # Force a failure for coverage.
+            $tokens = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = $gid;");
+            $this->dbhm->preExec("UPDATE groups_facebook SET token = 'a' WHERE groupid = $gid");
 
-        $this->dbhm->preExec("UPDATE groups_facebook SET token = '{$tokens[0]['token']}' WHERE groupid = $gid");
+            $ret = $this->call('socialactions', 'POST', [
+                'id' => $orig['socialactions'][0]['id'],
+                'uid' => $uid,
+                'dedup' => TRUE
+            ]);
 
-        assertEquals(0, $ret['ret']);
+            $this->dbhm->preExec("UPDATE groups_facebook SET token = '{$tokens[0]['token']}' WHERE groupid = $gid");
 
-        # Get again for coverage.
-        $ret = $this->call('socialactions', 'GET', []);
-        assertEquals(0, $ret['ret']);
+            assertEquals(0, $ret['ret']);
+
+            # Get again for coverage.
+            $ret = $this->call('socialactions', 'GET', []);
+            assertEquals(0, $ret['ret']);
+        }
 
         error_log(__METHOD__ . " end");
     }
@@ -107,32 +112,36 @@ class socialactionsAPITest extends IznikAPITestCase
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
-        # Delete the last share so that there will be at least one.
-        $this->dbhm->preExec("DELETE FROM groups_facebook_shares WHERE groupid = $gid ORDER BY date DESC LIMIT 1;");
-        $this->dbhm->preExec("UPDATE groups_facebook SET valid = 1 WHERE groupid = $gid");
+        $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
 
-        $u->addMembership($gid, User::ROLE_MODERATOR);
+        foreach ($ids as $uid) {
+            # Delete the last share so that there will be at least one.
+            $this->dbhm->preExec("DELETE FROM groups_facebook_shares WHERE groupid = $gid ORDER BY date DESC LIMIT 1;");
+            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 1 WHERE groupid = $gid");
 
-        assertTrue($u->login('testpw'));
+            $u->addMembership($gid, User::ROLE_MODERATOR);
 
-        # Now we're talking.
-        $orig = $this->call('socialactions', 'GET', []);
-        assertEquals(0, $orig['ret']);
-        assertGreaterThan(0, count($orig['socialactions']));
+            assertTrue($u->login('testpw'));
 
-        $ret = $this->call('socialactions', 'POST', [
-            'id' => $orig['socialactions'][0]['id'],
-            'groupid' => $gid,
-            'action' => 'Hide'
-        ]);
+            # Now we're talking.
+            $orig = $this->call('socialactions', 'GET', []);
+            assertEquals(0, $orig['ret']);
+            assertGreaterThan(0, count($orig['socialactions']));
 
-        assertEquals(0, $ret['ret']);
+            $ret = $this->call('socialactions', 'POST', [
+                'id' => $orig['socialactions'][0]['id'],
+                'uid' => $uid,
+                'action' => 'Hide'
+            ]);
 
-        # Shouldn't show in list of groups now.
-        $ret = $this->call('socialactions', 'GET', []);
-        assertEquals(0, $ret['ret']);
+            assertEquals(0, $ret['ret']);
 
-        assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
+            # Shouldn't show in list of groups now.
+            $ret = $this->call('socialactions', 'GET', []);
+            assertEquals(0, $ret['ret']);
+
+            assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
+        }
 
         error_log(__METHOD__ . " end");
     }

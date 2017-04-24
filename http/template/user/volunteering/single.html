@@ -19,8 +19,10 @@
         </table>
     </div>
 </div>
+<% if (obj.groups && groups.length > 0) { %>
 <a href="/volunteering/group/{{groups[0].id}}">
     <span class="btn btn-white">
         See more events on {{groups[0].namedisplay}} >>
     </span>
 </a>
+<% } %>

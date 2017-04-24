@@ -54,12 +54,10 @@ class AttachmentTest extends IznikTestCase {
         $attid = $a->create(NULL, 'image/jpeg', $data);
         assertNotNull($attid);
 
-        # Fake an archive
-        $a->archive();
+        assertTrue($a->archive());
         $dat2 = $a->getData();
 
-        # TODO We're not archiving images yet, so this doesn't work.  But we are keeping the code.
-        #assertEquals($data, $dat2);
+        assertEquals($data, $dat2);
 
         error_log(__METHOD__ . " end");
     }

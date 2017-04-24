@@ -6,9 +6,9 @@ define([
     'jquery',
     'backbone',
     'iznik/underscore',
+    'moment',
     'backbone.collectionView',
     'waypoints',
-    'moment',
     'timeago',
     'dateshim',
     'bootstrap',
@@ -21,7 +21,7 @@ define([
     'iznik/events',
     'iznik/utility',
     'iznik/majax'
-], function ($, Backbone, _) {
+], function ($, Backbone, _, moment) {
 
     // Promise polyfill for older browsers or IE11 which has less excuse.
     if (typeof window.Promise !== 'function') {
@@ -410,7 +410,22 @@ define([
             // Expand the template via the parent then set the times.
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                self.$('.timeago').timeago();
+                self.$('.timeago').each(function() {
+                    // We put it in the title, but we can have a more human-readable title if we move it into
+                    // datetime
+                    var $el = $(this);
+                    var d = $el.prop('title');
+
+                    if (d) {
+                        $el.prop('datetime', d);
+                        $el.timeago();
+
+                        // Prettify the title.  Need to do this afterwards, as otherwise we see (at least on some
+                        // old FF versions) that some timeagos fail.
+                        var s = (new moment(d)).format('LLLL');
+                        $el.prop('title', s);
+                    }
+                });
             });
             return(p);
         }

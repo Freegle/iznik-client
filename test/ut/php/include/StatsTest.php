@@ -53,6 +53,7 @@ class statsTest extends IznikTestCase {
             [
                 'uid' => $uid,
                 'email' => 'test@test.com',
+                'yahooModeratorStatus' => 'OWNER',
                 'yahooPostingStatus' => 'MODERATED',
                 'yahooDeliveryType' => 'DIGEST'
             ]

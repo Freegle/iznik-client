@@ -233,8 +233,8 @@ define([
                 });
     
                 Iznik.Session.get('groups').each(function (group) {
-                    //console.log("Consider membersync", group.get('nameshort'), group.get('lastyahoomembersync'), doSync(group, 'showmembers'));
-                    if (doSync(group, 'showmembers')) {
+                    //console.log("Consider membersync", group.get('nameshort'), group.get('lastyahoomembersync'), doSync(group));
+                    if (doSync(group)) {
                         var lastsync = group.get('lastyahoomembersync');
                         var last = moment(lastsync);
                         var hoursago = moment.duration(now.diff(last)).asHours();

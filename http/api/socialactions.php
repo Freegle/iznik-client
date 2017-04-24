@@ -5,7 +5,7 @@ function socialactions() {
     $ctx = presdef('context', $_REQUEST, NULL);
     $id = presdef('id', $_REQUEST, NULL);
     $id = $id ? intval($id) : $id;
-    $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+    $uid = intval(presdef('uid', $_REQUEST, NULL));
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -23,7 +23,7 @@ function socialactions() {
            break;
 
         case 'POST':
-            $f = new GroupFacebook($dbhr, $dbhm, $groupid);
+            $f = new GroupFacebook($dbhr, $dbhm, $uid);
             $action = presdef('action', $_REQUEST, GroupFacebook::ACTION_DO);
 
             switch ($action) {

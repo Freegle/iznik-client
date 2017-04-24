@@ -9,6 +9,7 @@ function dashboard() {
     $groupid = $groupid ? intval($groupid) : NULL;
     $type = presdef('grouptype', $_REQUEST, NULL);
     $start = presdef('start', $_REQUEST, '30 days ago');
+    $area = presdef('area', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -17,7 +18,7 @@ function dashboard() {
             # Check if we're logged in
             $ret = array('ret' => 0, 'status' => 'Success');
             $d = new Dashboard($dbhr, $dbhm, $me);
-            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $type, $start);
+            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $area, $type, $start);
 
             break;
         }

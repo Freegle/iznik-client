@@ -42,7 +42,7 @@ function session() {
                 $ret['emails'] = $me->getEmails();
 
                 # Get groups including work when we're on ModTools; don't need that on the user site.
-                $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS);
+                $ret['groups'] = $me->getMemberships(FALSE, NULL, MODTOOLS, TRUE);
 
                 if (MODTOOLS) {
                     # Tell them what mod work there is.  Similar code in Notifications.
@@ -51,22 +51,20 @@ function session() {
                     # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
                     # Facebook, even though that makes the code hackier.
                     $gids = [];
+                    $facebooks = [];
+
                     foreach ($ret['groups'] as $group) {
                         $gids[] = $group['id'];
+
+                        $facebooks[$group['id']] = GroupFacebook::listForGroup($dbhr, $dbhm, $group['id']);
                     }
 
                     $twitters = [];
-                    $facebooks = [];
-                    
+
                     if (count($gids) > 0) {
                         $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ");");
                         foreach ($tws as $tw) {
                             $twitters[$tw['groupid']] = $tw;
-                        }
-    
-                        $fbs = $dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid IN (" . implode(',', $gids) . ");");
-                        foreach ($fbs as $fb) {
-                            $facebooks[$fb['groupid']] = $fb;
                         }
                     }
                     
@@ -98,11 +96,15 @@ function session() {
 
                             # Ditto Facebook.
                             if (array_key_exists($group['id'], $facebooks)) {
-                                $f = new GroupFacebook($dbhr, $dbhm, $group['id'], $facebooks[$group['id']]);
-                                $atts = $f->getPublic();
-                                unset($atts['token']);
-                                $atts['authdate'] = ISODate($atts['authdate']);
-                                $group['facebook'] = $atts;
+                                $group['facebook'] = [];
+
+                                foreach ($facebooks[$group['id']] as $uid) {
+                                    $f = new GroupFacebook($dbhr, $dbhm, $uid);
+                                    $atts = $f->getPublic();
+                                    unset($atts['token']);
+                                    $atts['authdate'] = ISODate($atts['authdate']);
+                                    $group['facebook'][] = $atts;
+                                }
                             }
                         }
                     }

@@ -55,7 +55,7 @@ if ($id && $token) {
                     if ($gid) {
                         echo "Found group.  You can close this tab now.";
                         $f = new GroupFacebook($dbhr, $dbhm, $gid);
-                        $f->set($gid, $page['access_token'], $page['name'], $page['id'], GroupFacebook::TYPE_PAGE);
+                        $f->add($gid, $page['access_token'], $page['name'], $page['id'], GroupFacebook::TYPE_PAGE);
                         $found = TRUE;
                     }
                 }
@@ -63,50 +63,6 @@ if ($id && $token) {
 
             if (!$found) {
                 echo "Hmmm...couldn't find that page in your list.";
-            }
-        } else {
-            $pages = [];
-            $url = '/me/groups';
-            $getPages = $fb->get($url, $accessToken);
-            $pages = $getPages->getGraphEdge();
-
-            $totalGroups = array();
-
-            if ($fb->next($pages)) {
-                $pagesArray = $pages->asArray();
-                $totalGroups = array_merge($totalGroups, $pagesArray);
-                while ($pages = $fb->next($pages)) {
-                    $pagesArray = $pages->asArray();
-                    $totalGroups = array_merge($totalGroups, $pagesArray);
-                }
-            } else {
-                $pagesArray = $pages->asArray();
-                $totalGroups = array_merge($totalGroups, $pagesArray);
-            }
-
-            usort($totalGroups, function ($a, $b) {
-                return (strcmp($a['name'], $b['name']));
-            });
-
-            $found = FALSE;
-
-            foreach ($totalGroups as $group) {
-                #echo("Compare {$page['id']} vs $id");
-                if (strcmp($group['id'], $id) === 0) {
-                    $f = new GroupFacebook($dbhr, $dbhm);
-                    $gid = presdef('graffitigroup', $_SESSION, NULL);
-
-                    if ($gid) {
-                        echo "Found group.  You can close this tab now.";
-                        $f = new GroupFacebook($dbhr, $dbhm, $gid);
-                        $f->set($gid, $accessToken, $group['name'], $group['id'], GroupFacebook::TYPE_GROUP);
-                        $found = TRUE;
-                    }
-                }
-            }
-
-            if (!$found) {
-                echo "Hmmm...couldn't find that group in your list.";
             }
         }
     } catch (Exception $e) {

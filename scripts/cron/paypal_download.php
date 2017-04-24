@@ -1,5 +1,7 @@
 <?php
 
+# This is a fallback - donateipn catches them normally.
+
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
@@ -48,15 +50,15 @@ do {
                 if ($transaction['GrossAmount']['value'] > 0) {
                     $eid = $u->findByEmail($transaction['Payer']);
 
-                    error_log("{$transaction['Payer']} => $eid");
-                    $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?;", [
+                    $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
                         $eid,
                         $transaction['Payer'],
                         $transaction['PayerDisplayName'],
                         date("Y-m-d H:i:s", strtotime($transaction['Timestamp'])),
                         $transaction['TransactionID'],
                         $transaction['GrossAmount']['value'],
-                        $eid
+                        $eid,
+                        date("Y-m-d H:i:s", strtotime($transaction['Timestamp']))
                     ]);
                 }
             }

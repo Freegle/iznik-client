@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards.php');
+require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards_mods.php');
 
 class Request extends Entity
 {
@@ -104,9 +105,9 @@ class Request extends Entity
             case Request::TYPE_BUSINESS_CARDS: {
                 $u = User::get($this->dbhr, $this->dbhm, $this->request['userid']);
 
-                $html = business_cards($u->getName(), $u->getEmailPreferred());
-
                 try {
+                    $html = business_cards($u->getName(), $u->getEmailPreferred());
+
                     $message = Swift_Message::newInstance()
                         ->setSubject("Your cards are on their way...")
                         ->setFrom([NOREPLY_ADDR => SITE_NAME])
@@ -117,11 +118,44 @@ class Request extends Entity
 
                     list ($transport, $mailer) = getMailer();
                     $this->sendIt($mailer, $message);
+
+                    $this->notifyMods();
                 } catch (Exception $e) {}
 
                 break;
             }
         }
+    }
+
+    public function notifyMods() {
+        try {
+            error_log("Notify mods for {$this->request['userid']}");
+            $u = User::get($this->dbhr, $this->dbhm, $this->request['userid']);
+            $html = business_cards_mods($u->getName(), $u->getEmailPreferred());
+
+            $membs = $u->getMemberships();
+
+            foreach ($membs as $memb) {
+                if ($u->getPrivate('systemrole') == User::SYSTEMROLE_USER) {
+                    error_log("...group {$memb['id']}");
+                    $g = Group::get($this->dbhr, $this->dbhm, $memb['id']);
+
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("We've sent some Freegle business cards to someone on your group")
+                        ->setFrom([SUPPORT_ADDR => SITE_NAME])
+                        ->setTo([ $g->getModsEmail() => $g->getPrivate('nameshort') . ' Volunteers' ])
+                        ->setBody("When your members mark an item as TAKEN/RECEIVED on Freegle Direct, we sometimes ask them if they'd like business cards so that they can promote Freegle.  We have a few national volunteers who send these out.  We've recently sent cards to " . $u->getName() . " (" . $u->getEmailPreferred() . ")")
+                        ->addPart($html, 'text/html');
+
+                    list ($transport, $mailer) = getMailer();
+                    $this->sendIt($mailer, $message);
+
+                    $this->dbhm->preExec("UPDATE users_requests SET notifiedmods = NOW() WHERE id = ?;", [
+                        $this->id
+                    ]);
+                }
+            }
+        } catch (Exception $e) {}
     }
 
     public function delete() {

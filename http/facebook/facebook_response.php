@@ -53,35 +53,6 @@ try {
         foreach ($totalPages as $page) {
             echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($page['id']) . '&token=' . urlencode($page['access_token']) . '">' . $page['name'] . '</a><br />';
         }
-    } else {
-        $pages = [];
-        $url = '/me/groups';
-        $getPages = $fb->get($url, $accessToken);
-        $pages = $getPages->getGraphEdge();
-
-        $totalGroups = array();
-
-        if ($fb->next($pages)) {
-            $pagesArray = $pages->asArray();
-            $totalGroups = array_merge($totalGroups, $pagesArray);
-            while ($pages = $fb->next($pages)) {
-                $pagesArray = $pages->asArray();
-                $totalGroups = array_merge($totalGroups, $pagesArray);
-            }
-        } else {
-            $pagesArray = $pages->asArray();
-            $totalGroups = array_merge($totalGroups, $pagesArray);
-        }
-
-        usort($totalGroups, function ($a, $b) {
-            return (strcmp($a['name'], $b['name']));
-        });
-        ?>
-        <p>These are the Facebook groups you manage.  Click on the one you want to link to your group.</p>
-        <?php
-        foreach ($totalGroups as $group) {
-            echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($group['id']) . '&token=' . urlencode($accessToken) . '">' . $group['name'] . '</a><br />';
-        }
     }
 } catch(Facebook\Exceptions\FacebookResponseException $e) {
     // When Graph returns an error

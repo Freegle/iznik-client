@@ -1,6 +1,16 @@
 <div class="panel panel-success">
     <div class="panel-heading">
-        <h3><%-headline%></h3>
+        <h3>
+            <%-headline%>
+            <span class="pull-right btn btn-success js-like">
+                <span class="glyphicon glyphicon-heart" />&nbsp;
+                <% if (liked) { %>
+                    <% if (likes == 1) { %>You love<%} else { %>You + {{likes-1}} love<% } %> this
+                <% } else { %>
+                    <% if (likes == 0) { %>Love<% } else if (likes == 1) { %>1 loves<%} else { %>{{likes}} love<% } %> this
+                <% } %>
+            </span>
+        </h3>
         <span class="text-muted">From a member of {{groupname}}</span><a href="/story/{{id}}"><span class="pull-right text-muted">#{{id}}</span></a>
     </div>
     <div class="panel-body">

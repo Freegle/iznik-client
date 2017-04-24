@@ -109,35 +109,40 @@ define([
             var self = this;
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                // Show buttons for the remaining groups that haven't shared this.
+                // Show buttons for the remaining Facebook groups/pages that haven't shared this.
+                //
+                // We have a list of those inside each group in our session.
                 self.$('.js-buttons').empty();
-                var grouplist = [];
-                var groups = self.model.get('groups');
+                var sharelist = [];
+                var uids = self.model.get('uids');
+                var groups = Iznik.Session.get('groups');
 
-                _.each(groups, function(groupid) {
-                    var group = Iznik.Session.getGroup(groupid);
-
-                    if (group) {
-                        //console.log("Consider action for", self.model.get('id'), groupid, group.get('type'), group.get('nameshort'));
-
+                _.each(uids, function(uid) {
+                    groups.each(function(group) {
                         if (group.get('type') == 'Freegle') {
-                            grouplist.push(group);
+                            var facebooks = group.get('facebook');
+
+                            if (facebooks) {
+                                _.each(facebooks, function(facebook) {
+                                    if (facebook.uid == uid) {
+                                        // This is the one we would want to share on.
+                                        sharelist.push(new Iznik.Model(facebook));
+                                    }
+                                });
+                            }
                         }
-                    }
+                    });
                 });
 
-                var groups = new Iznik.Collection(grouplist);
-                groups.comparator = 'namedisplay';
-                groups.sort();
-                
-                groups.each(function(group) {
-                    var facebook = group.get('facebook');
+                self.shares = new Iznik.Collection(sharelist);
+                self.shares.comparator = 'namedisplay';
+                self.shares.sort();
 
-                    // Page shares happen on the server.  Group ones don't yet so need a Facebook session.
-                    // TODO Move to server too.
-                    if (facebook.type == 'Page' || (facebook.type == 'Group' && Iznik.Session.hasFacebook())) {
-                        var v = new Iznik.Views.ModTools.SocialAction.FacebookPageShare({
-                            model: group,
+                self.shares.each(function(share) {
+                    // Page shares happen on the server.  Group ones don't so need a Facebook session.
+                    if (share.get('type') == 'Page' || (share.get('type') == 'Group' && Iznik.Session.hasFacebook())) {
+                        var v = new Iznik.Views.ModTools.SocialAction.FacebookGroupShare({
+                            model: share,
                             actionid: self.model.get('id'),
                             action: self.model
                         });
@@ -151,7 +156,8 @@ define([
                 var v = new Iznik.Views.ModTools.SocialAction.FacebookPageHide({
                     actionid: self.model.get('id'),
                     action: self.model,
-                    hideWhenDone: self.$el
+                    hideWhenDone: self.$el,
+                    shares: self.shares
                 });
 
                 v.render().then(function() {
@@ -163,7 +169,7 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.SocialAction.FacebookPageShare = Iznik.View.extend({
+    Iznik.Views.ModTools.SocialAction.FacebookGroupShare = Iznik.View.extend({
         template: 'modtools_socialactions_facebookshare',
 
         tagName: 'li',
@@ -180,7 +186,7 @@ define([
                 type: 'POST',
                 data: {
                     id: self.options.actionid,
-                    groupid: self.model.get('id'),
+                    uid: self.model.get('uid'),
                     action: 'Do'
                 }
             });
@@ -201,13 +207,16 @@ define([
         hide: function() {
             var self = this;
 
-            $.ajax({
-                url: API + 'socialactions',
-                type: 'POST',
-                data: {
-                    id: self.options.actionid,
-                    action: 'Hide'
-                }
+            self.options.shares.each(function(share) {
+                $.ajax({
+                    url: API + 'socialactions',
+                    type: 'POST',
+                    data: {
+                        id: self.options.actionid,
+                        uid: share.get('uid'),
+                        action: 'Hide'
+                    }
+                });
             });
 
             self.options.hideWhenDone.fadeOut('slow');

@@ -287,6 +287,7 @@ define([
                                         remove: true
                                     }).then(function() {
                                         self.add(chat, { merge: true });
+                                        self.trigger('somethinghappened', data.newroom);
                                     });
                                 } else if (data.hasOwnProperty('roomid')) {
                                     // Activity on this room.  Fetch it.
@@ -304,10 +305,13 @@ define([
                                             remove: true
                                         }).then(function() {
                                             self.add(chat, { merge: true });
+                                            self.trigger('somethinghappened', data.roomid);
                                         });
                                     } else {
                                         // We already have it.
-                                        chat.fetch();
+                                        chat.fetch().then(function() {
+                                            self.trigger('somethinghappened', data.roomid);
+                                        });
                                     }
                                 }
                             }

@@ -12,7 +12,7 @@ require_once(IZNIK_BASE . '/mailtemplates/chat_chaseup_mod.php');
 class ChatRoom extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'name', 'chattype', 'groupid', 'description', 'user1', 'user2');
+    var $publicatts = array('id', 'name', 'chattype', 'groupid', 'description', 'user1', 'user2', 'synctofacebook');
     var $settableatts = array('name', 'description');
 
     const TYPE_MOD2MOD = 'Mod2Mod';
@@ -24,6 +24,12 @@ class ChatRoom extends Entity
     const STATUS_OFFLINE = 'Offline';
     const STATUS_AWAY = 'Away';
     const STATUS_CLOSED = 'Closed';
+
+    # States for syncing chats to Facebook.
+    const FACEBOOK_SYNC_DONT = 'Dont';                                      # Default - don't sync
+    const FACEBOOK_SYNC_REPLIED_ON_FACEBOOK = 'RepliedOnFacebook';          # We've had the initial reply from FB
+    const FACEBOOK_SYNC_REPLIED_ON_PLATFORM = 'RepliedOnPlatform';          # We've replied on our platform
+    const FACEBOOK_SYNC_POSTED_LINK = 'PostedLink';                         # We've posted a link to this chat on FB.
 
     /** @var  $log Log */
     private $log;
@@ -1157,7 +1163,8 @@ class ChatRoom extends Entity
                                 $lastfrom = $unmailedmsg['userid'];
 
                                 if ($unmailedmsg['imageid']) {
-                                    $path = Attachment::getPath($unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE);
+                                    $a = new Attachment($this->dbhr, $this->dbhm, $unmailedmsg['imageid'], Attachment::TYPE_CHAT_MESSAGE);
+                                    $path = $a->getPath(FALSE);
                                     $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
                                     $textsummary .= "Here's a picture: $path\r\n";
                                     $ccit = TRUE;
@@ -1384,6 +1391,22 @@ class ChatRoom extends Entity
         }
 
         return ($chats);
+    }
+
+    public function referencesMessage($msgid) {
+        $refs = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND refmsgid = ?;", [
+            $this->id,
+            $msgid
+        ]);
+        return($refs[0]['count'] > 0);
+    }
+
+    public function containsFBComment($fbid) {
+        $refs = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND facebookid = ?;", [
+            $this->id,
+            $fbid
+        ]);
+        return($refs[0]['count'] > 0);
     }
 
     public function delete()

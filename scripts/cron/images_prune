@@ -1,4 +1,0 @@
-#!/bin/bash
-#
-# Prune old images.  These will get recruited if needed in image.php - this stops us filling up the disk.
-find ../../http/imgcache/* -mtime +10 -type f -delete

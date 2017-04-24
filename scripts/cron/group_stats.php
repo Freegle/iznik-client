@@ -48,11 +48,16 @@ foreach ($totalact as $total) {
             $group['id']
         ]);
 
-        # Calculate fundraising target.  Round up to £10.
+        # Calculate fundraising target.  Round up to £50.
         $portion = ceil($pc * $target / 1000) * 10;
-        $portion = max(10, $portion);
+        $portion = max(50, $portion);
         error_log("{$group['nameshort']} target £$portion");
         $fundingcalc += $portion;
+
+        $dbhm->preExec("UPDATE groups SET fundingtarget = ? WHERE id = ?;", [
+            $portion,
+            $group['id']
+        ]);
     }
 }
 

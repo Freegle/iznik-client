@@ -3,11 +3,18 @@
         <div class="col-xs-12">
             <div class="pull-right margright">
                 <% if (obj.profile) { %>
-                <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded img-maxthumb botspace" />
+                <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded img-maxthumb botspace pull-right" />
                 <br class="clearfix" />
                 <% } %>
-                <div class="btn btn-white pull-right js-leave">
-                    <div class="glyphicon glyphicon-trash inline" /><span class="topspace">&nbsp;Leave&nbsp;Group</span>
+                <div class="pull-right">
+                    <div class="btn btn-white js-leave">
+                        <div class="glyphicon glyphicon-trash inline" /><span class="topspace">&nbsp;Leave&nbsp;Group</span>
+                    </div>
+                    <a href="/help" class="topspace">
+                        <span class="btn btn-white">
+                            <span class="glyphicon glyphicon-question-sign inline" /><span class="topspace">&nbsp;Contact volunteers</span>
+                        </span>
+                    </a>
                 </div>
             </div>
             <h1>

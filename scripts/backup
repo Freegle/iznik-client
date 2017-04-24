@@ -16,11 +16,11 @@ if [ $? == 0 ]; then
     $BACKUP | gzip - | /root/gsutil/gsutil cp - gs://freegle_backup/iznik-$timestamp.tar.gz > /tmp/gsutil.out 2>&1
 
     if [ $? == 0 ]; then
-      grep "0 B" /tmp/gsutil.out
+      grep "Operation completed" /tmp/gsutil.out
       if [ $? == 0 ]; then
-        cat /tmp/gsutil.out | mail -s "BACKUP ERROR: MySQL backup was empty" $EMAIL
-      else
         cat /tmp/gsutil.out | mail -s "BACKUP SUCCESS: MySQL backed up to $BACKUPDIR/$MOST_RECENT" $EMAIL
+      else
+        cat /tmp/gsutil.out | mail -s "BACKUP ERROR: MySQL backup didn't work" $EMAIL
       fi
     else
        # problem with initial backup :(

@@ -1114,11 +1114,17 @@ define([
         },
 
         send: function () {
-            this.model.reply(
-                this.$('.js-subject').val(),
-                this.$('.js-text').val(),
-                this.options.stdmsg.get('id')
-            );
+            var subj = this.$('.js-subject').val();
+
+            if (subj.length > 0) {
+                this.model.reply(
+                    this.$('.js-subject').val(),
+                    this.$('.js-text').val(),
+                    this.options.stdmsg.get('id')
+                );
+            } else {
+                this.$('.js-subject').focus();
+            }
         },
 
         render: function () {
@@ -1145,11 +1151,17 @@ define([
                 }
             });
 
-            this.model.reply(
-                this.$('.js-subject').val(),
-                this.$('.js-text').val(),
-                this.options.stdmsg.get('id')
-            );
+            var subj = this.$('.js-subject').val();
+
+            if (subj.length > 0) {
+                this.model.reply(
+                    this.$('.js-subject').val(),
+                    this.$('.js-text').val(),
+                    this.options.stdmsg.get('id')
+                );
+            } else {
+                this.$('.js-subject').focus();
+            }
         },
 
         render: function () {

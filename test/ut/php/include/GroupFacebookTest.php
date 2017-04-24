@@ -38,12 +38,9 @@ class groupFacebookTest extends IznikTestCase {
         $t->getPostsToShare('a', "last week");
         $t->getPostsToShare($t->getPublic()['sharefrom'], "last week");
 
-        $atts = $t->getPublic();
-        assertEquals($atts['groupid'], $t->findById($atts['id']));
-
         $gid = $g->create('testgroup', Group::GROUP_UT);
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
-        $t->set($gid, 'test', 'test', 'test');
+        $t->add($gid, 'test', 'test', 'test');
         assertEquals('test', $t->getPublic()['token']);
 
         error_log(__METHOD__ . " end");
@@ -59,44 +56,48 @@ class groupFacebookTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->findByShortName('FreeglePlayground');
 
-        $msg = $this->unique(file_get_contents('msgs/basic'));
-        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
 
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-        list($id, $already) = $m->save();
+        foreach ($ids as $uid) {
+            $msg = $this->unique(file_get_contents('msgs/basic'));
+            $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
-        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-        error_log("Approved message id $id");
+            $m = new Message($this->dbhr, $this->dbhm);
+            $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+            list($id, $already) = $m->save();
 
-        # Ensure we have consent to see this message
-        $a = new Message($this->dbhr, $this->dbhm, $id);
-        error_log("From user " . $a->getFromuser());
-        $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
-        $sender->setPrivate('publishconsent', 1);
+            $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+            $rc = $r->route();
+            assertEquals(MailRouter::APPROVED, $rc);
+            error_log("Approved message id $id");
 
-        $mock = $this->getMockBuilder('GroupFacebook')
-            ->setConstructorArgs([$this->dbhr, $this->dbhm, $gid])
-            ->setMethods(array('getFB'))
-            ->getMock();
+            # Ensure we have consent to see this message
+            $a = new Message($this->dbhr, $this->dbhm, $id);
+            error_log("From user " . $a->getFromuser());
+            $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
+            $sender->setPrivate('publishconsent', 1);
 
-        $mock->method('getFB')->willReturn($this);
+            $mock = $this->getMockBuilder('GroupFacebook')
+                ->setConstructorArgs([$this->dbhr, $this->dbhm, $uid])
+                ->setMethods(array('getFB'))
+                ->getMock();
 
-        # Fake message onto group.
-        $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
-            $id,
-            $id,
-            $gid
-        ]);
+            $mock->method('getFB')->willReturn($this);
 
-        $count = $mock->postMessages();
-        assertGreaterThanOrEqual(1, $count);
+            # Fake message onto group.
+            $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
+                $id,
+                $id,
+                $gid
+            ]);
 
-        # Should be none to post now.
-        $count = $mock->postMessages();
-        assertGreaterThanOrEqual(0, $count);
+            $count = $mock->postMessages();
+            assertGreaterThanOrEqual(1, $count);
+
+            # Should be none to post now.
+            $count = $mock->postMessages();
+            assertGreaterThanOrEqual(0, $count);
+        }
 
         error_log(__METHOD__ . " end");
     }

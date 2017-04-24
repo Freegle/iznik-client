@@ -365,8 +365,24 @@ function memberships() {
 
                         if ($emailfrequency !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));
+
+                            # We will only actually send emails if we have a membership with our own email domain.
+                            # This is to avoid memberships we know about from Yahoo getting emails they won't
+                            # understand.  If someone has previously used Yahoo and then uses FD, they'll see
+                            # the email frequency set to Never, because we filter that out in User.php using the
+                            # $pernickety parameter.  However if they then change the email frequency, we trigger
+                            # an application, as a way of ensuring that we will then send emails.
+                            $g = Group::get($dbhr, $dbhm, $groupid);
+
+                            if ($g->getPrivate('onyahoo')) {
+                                $membershipmail = $u->getEmailForYahooGroup($groupid, TRUE, TRUE)[1];
+
+                                if (!$membershipmail) {
+                                    $u->triggerYahooApplication($groupid);
+                                }
+                            }
                         }
-                        
+
                         if ($eventsallowed !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'eventsallowed', intval($eventsallowed));
                         }

@@ -228,7 +228,7 @@ class ChatMessage extends Entity
         return($spam);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL) {
         try {
             $review = 0;
             $spam = 0;
@@ -240,7 +240,7 @@ class ChatMessage extends Entity
                 $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [
                 $chatid,
                 $userid,
                 $message,
@@ -252,7 +252,8 @@ class ChatMessage extends Entity
                 $spamscore,
                 $reportreason,
                 $refchatid,
-                $imageid
+                $imageid,
+                $facebookid
             ]);
 
             $id = $this->dbhm->lastInsertId();
@@ -266,10 +267,38 @@ class ChatMessage extends Entity
                     $id
                 ]);
 
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+            $chattype = $r->getPrivate('chattype');
+
+            if ($chattype == ChatRoom::TYPE_USER2USER || $chattype == ChatRoom::TYPE_USER2MOD) {
+                # If anyone has closed this chat so that it no longer appears in their list, we want to open it again.
+                #
+                # This is rare, so rather than do an UPDATE which would always be a bit expensive even if we have
+                # nothing to do, we do a SELECT to see if there are any.
+                $closeds = $this->dbhr->preQuery("SELECT id FROM chat_roster WHERE chatid = ? AND status = ?;", [
+                    $chatid,
+                    ChatRoom::STATUS_CLOSED
+                ], FALSE, FALSE);
+
+                foreach ($closeds as $closed) {
+                    $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE id = ?;", [
+                        ChatRoom::STATUS_OFFLINE,
+                        $closed['id']
+                    ]);
+                }
+            }
+
             if (!$spam) {
-                $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
                 $r->pokeMembers();
                 $r->notifyMembers($u->getName(), $message, $userid);
+
+                if ($r->getPrivate('synctofacebook') == ChatRoom::FACEBOOK_SYNC_REPLIED_ON_FACEBOOK) {
+                    # We have had a reply from Facebook, which caused us to flag this conversation.
+                    # This is now the first reply from the other user.  So we want to post a link on Facebook which
+                    # will allow the user on there to read the message we've just created.  Set the state to
+                    # make this happen in the background.
+                    $r->setPrivate('synctofacebook', ChatRoom::FACEBOOK_SYNC_REPLIED_ON_PLATFORM);
+                }
             }
         } catch (Exception $e) {
             error_log("Failed to create chat " . $e->getMessage() . " at " . $e->getFile() . " line " . $e->getLine());
@@ -300,10 +329,11 @@ class ChatMessage extends Entity
 
         if (pres('imageid', $ret)) {
             # There is an image attached
+            $a = new Attachment($this->dbhr, $this->dbhm, $ret['imageid'], Attachment::TYPE_CHAT_MESSAGE);
             $ret['image'] = [
                 'id' => $ret['imageid'],
-                'path' => Attachment::getPath($ret['imageid'], Attachment::TYPE_CHAT_MESSAGE, FALSE),
-                'paththumb' => Attachment::getPath($ret['imageid'], Attachment::TYPE_CHAT_MESSAGE, TRUE)
+                'path' => $a->getPath(FALSE),
+                'paththumb' => $a->getPath(TRUE)
             ];
             unset($ret['imageid']);
         }

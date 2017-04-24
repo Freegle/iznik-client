@@ -78,7 +78,8 @@ class storiesAPITest extends IznikAPITestCase {
             'id' => $id,
             'headline' => 'Test2',
             'story' => 'Test2',
-            'public' => 0
+            'public' => 0,
+            'newsletter' => 1
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -121,11 +122,48 @@ class storiesAPITest extends IznikAPITestCase {
         $ret = $this->call('stories', 'GET', [ 'id' => $id ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['story']['id']);
+        assertEquals(0, $ret['story']['likes']);
+        assertFalse($ret['story']['liked']);
 
         # List for this group - should work.
         $ret = $this->call('stories', 'GET', [ 'groupid' => $this->groupid ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['stories'][0]['id']);
+
+        # List for review newsletter - should be there.
+        $ret = $this->call('stories', 'GET', [ 'reviewnewsletter' => TRUE ]);
+        assertEquals(0, $ret['ret']);
+        $found = FALSE;
+        foreach ($ret['stories'] as $story) {
+            if ($story['id'] == $id) {
+                $found = TRUE;
+            }
+        }
+        assertTrue($found);
+
+        # Like it.
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('stories', 'POST', [
+            'id' => $id,
+            'action' => Story::LIKE
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('stories', 'GET', [ 'id' => $id ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['story']['likes']);
+        assertTrue($ret['story']['liked']);
+
+        $ret = $this->call('stories', 'POST', [
+            'id' => $id,
+            'action' => Story::UNLIKE
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('stories', 'GET', [ 'id' => $id ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['story']['likes']);
+        assertFalse($ret['story']['liked']);
 
         # Delete logged out - should fail
         $_SESSION['id'] = NULL;

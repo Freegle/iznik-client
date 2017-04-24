@@ -44,6 +44,7 @@ class messagesTest extends IznikAPITestCase {
 
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: Thing (Place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -81,9 +82,45 @@ class messagesTest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $id);
-        $u->addMembership($group1);
+        $u->addMembership($group1, User::ROLE_OWNER);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+
+        # This should be outstanding for Facebook posting.  Add a Facebook group, and we can find it via the session.
+        $ret = $this->call('group', 'POST', [
+            'action' => 'AddFacebookGroup',
+            'id' => $group1,
+            'facebookid' => 'UTTest',
+            'name' => 'UTTest'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(1, count($ret['groups']));
+        self::assertEquals(1, count($ret['groups'][0]['facebook']));
+
+        $uid = $ret['groups'][0]['facebook'][0]['uid'];
+        error_log("UID is $uid");
+
+        $ret = $this->call('messages', 'GET', [
+            'uid' => $uid,
+            'facebook_postable' => TRUE
+        ]);
+        error_log("Get outstanding Facebook on $group1 should be $id " . var_export($ret, true));
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($a->getID(), $msgs[0]['id']);
+
+        error_log("Remove group");
+        $ret = $this->call('group', 'POST', [
+            'action' => 'RemoveFacebookGroup',
+            'id' => $group1,
+            'uid' => $uid
+        ]);
+        error_log("Remove returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
 
         # Omit groupid - should use groups for currently logged in user.
         $ret = $this->call('messages', 'GET', [
@@ -94,10 +131,11 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(1, count($msgs));
 
         # Test search by word
+        $u->addMembership($group1, User::ROLE_MEMBER);
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'searchmess',
             'groupid' => $group1,
-            'search' => 'basic'
+            'search' => 'thing'
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
@@ -171,14 +209,14 @@ class messagesTest extends IznikAPITestCase {
 
         # Filter by type
         $ret = $this->call('messages', 'GET', [
-            'types' => [ Message::TYPE_OTHER ]
+            'types' => [ Message::TYPE_OFFER ]
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
 
         $ret = $this->call('messages', 'GET', [
-            'types' => [ Message::TYPE_OFFER ]
+            'types' => [ Message::TYPE_OTHER ]
         ]);
         assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];

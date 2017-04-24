@@ -150,10 +150,12 @@ class CommunityEvent extends Entity
 
         $photos = $this->dbhr->preQuery("SELECT id FROM communityevents_images WHERE eventid = ?;", [ $this->id ]);
         foreach ($photos as $photo) {
+            $a = new Attachment($this->dbhr, $this->dbhm, $photo['id'], Attachment::TYPE_COMMUNITY_EVENT);
+
             $atts['photo'] = [
                 'id' => $photo['id'],
-                'path' => Attachment::getPath($photo['id'], Attachment::TYPE_COMMUNITY_EVENT, FALSE),
-                'paththumb' => Attachment::getPath($photo['id'], Attachment::TYPE_COMMUNITY_EVENT, TRUE)
+                'path' => $a->getPath(FALSE),
+                'paththumb' => $a->getPath(TRUE)
             ];
         }
 

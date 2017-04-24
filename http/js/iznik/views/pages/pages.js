@@ -244,11 +244,12 @@ define([
                     }
 
                     // Put self page in.  Need to know whether we're logged in first, in order to start the
-                    // chats, which some pages may rely on behing active.
+                    // chats, which some pages may rely on being active.
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                         if (loggedIn) {
                             var me = Iznik.Session.get('me');
-                            if (!me.email) {
+
+                            if (!self.noEmailOk && !me.email) {
                                 // We have no email.  This can happen for some login types.  Force them to provide one.
                                 require(["iznik/views/pages/user/settings"], function() {
                                     var v = new Iznik.Views.User.Pages.Settings.NoEmail();

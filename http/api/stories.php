@@ -9,6 +9,7 @@ function stories() {
     $reviewed = intval(array_key_exists('reviewed', $_REQUEST) ? $_REQUEST['reviewed'] : 1);
     $story = array_key_exists('story', $_REQUEST) ? filter_var($_REQUEST['story'], FILTER_VALIDATE_BOOLEAN) : TRUE;
     $newsletter = array_key_exists('newsletter', $_REQUEST) ? filter_var($_REQUEST['newsletter'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $reviewnewsletter = array_key_exists('reviewnewsletter', $_REQUEST) ? filter_var($_REQUEST['reviewnewsletter'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $limit = intval(presdef('limit', $_REQUEST, 20));
     $s = new Story($dbhr, $dbhm, $id);
     $me = whoAmI($dbhr, $dbhm);
@@ -27,6 +28,14 @@ function stories() {
                         'story' => $s->getPublic()
                     ];
                 }
+            } else if ($reviewnewsletter) {
+                $stories = $s->getStories($groupid, $story, $limit, TRUE);
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'stories' => $stories
+                ];
             } else if ($me && $reviewed === 0) {
                 $groupids = [ $groupid ];
                 $newsletter = $me->hasPermission(User::PERM_NEWSLETTER) ? $newsletter : FALSE;
@@ -88,6 +97,23 @@ function stories() {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             if ($s->canMod()) {
                 $s->setAttributes($_REQUEST);
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
+            }
+            break;
+        }
+
+        case 'POST': {
+            $ret = ['ret' => 2, 'status' => 'Permission denied'];
+            $action = presdef('action', $_REQUEST, Story::LIKE);
+
+            if ($me) {
+                switch ($action) {
+                    case Story::LIKE: $s->like(); break;
+                    case Story::UNLIKE: $s->unlike(); break;
+                }
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success'

@@ -22,9 +22,10 @@
                             Founded <span class="js-foundeddate" />.
                         </span>
                         <span class="js-membercount" /> current freeglers.<br />
-                        <span class="js-donationwrapper" style="display: none">Donations this year &pound;<span class="js-donations" />.  <a href="/donate">Donate here</a></span>
+                        <span class="js-donationwrapper" style="display: none">Donations this year &pound;<span class="js-donations" /> out of a target of &pound;{{fundingtarget}}.  <a href="/donate">Donate here</a></span>
                     </div>
                 <% } %>
+                <div class="js-arealist" />
             </div>
             <div class="col-xs-2">
                 <% if (obj.id) { %>

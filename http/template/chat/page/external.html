@@ -1,0 +1,67 @@
+<h1>Welcome to Freegle!</h1>
+<p>You've got a reply to your message about <b>{{subject}}</b>.</p>
+<div class="clickme hidden-xs btn-success btn-lg text-center js-next">
+    Continue to read the reply >>
+</div>
+<div class="visible-xs btn-success btn-lg text-center js-next">
+    Continue >>
+</div>
+<h3>Wondering why you're here?</h3>
+<p>
+    Freegle helps people give and get things for free nearby in local groups across the UK.  People post things
+    they want to give or find on our site, but we also post them on other places, e.g. Facebook buy and sell groups.
+</p>
+<p>
+    You replied on Facebook to this message:
+</p>
+<div class="nomargin panel panel-success botspace">
+    <div class="panel-heading nopad clearfix">
+        <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
+            <div class="col-sm-11 padmd">
+                <% if (attachments.length>0) { %>
+                <div class="pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
+                <% } %>
+                <div class="msgsubj panel-title">
+                  <span class="js-subject">
+                      <% if (obj.item && obj.keyword && obj.postcode && obj.area) { %>
+                        <span class="keyword">{{obj.keyword}}</span>: <span class="js-item">{{obj.item.name}}</span> (<span class="area">{{obj.area.name}}</span> <span class="postcode">{{obj.postcode.name}}</span>)
+                      <% } else { %>
+                        <span class="subject">{{subject}}</span>
+                      <% } %>
+                      <br />
+                  </span>
+                    <div class="hidden-xs js-groups" />
+                </div>
+                <div class="hidden-xs js-snippet">
+                    <% if (obj.snippet) { %>
+                    <h4 class="nomargin">{{snippet}}...</h4>
+                    <h4 class="black">
+                        <% if (obj.promised) { %>
+                        <div class="pull-right unfaded">
+                            <span title="This item has been promised to someone" class="glyphicons glyphicons-handshake" />
+                        </div>
+                        <% } %>
+                    </h4>
+                    <% } %>
+                </div>
+            </div>
+        </a>
+        <% if (obj.snippet) { %>
+        <div class="row hidden-xs hidden-sm hidden-md hidden-lg js-snippet">
+            <div class="col-xs-12">
+                <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
+                    <h3 class="padleft nomargin">{{snippet}}...</h3>
+                </a>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</div>
+<p>
+    We passed that message on the person who posted the original item.  Now they've replied,
+    and their reply is waiting for you.
+</p>
+<p>
+    When you continue to read this, you'll need to sign in, and we'll join you up to {{groups[0].namedisplay}}, which means
+    you'll get emails from us.  If you want to change your email settings, you can do so from the Settings tab.
+</p>

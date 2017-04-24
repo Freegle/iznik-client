@@ -27,6 +27,10 @@ define([
         render: function () {
             var self = this;
 
+            self.model = new Iznik.Model({
+                reviewnewsletter: self.options.reviewnewsletter
+            });
+
             var p = Iznik.Views.Page.prototype.render.call(this);
 
             p.then(function(self) {
@@ -42,7 +46,11 @@ define([
 
                 self.collectionView.render();
 
-                self.collection.fetch();
+                self.collection.fetch({
+                    data: {
+                        reviewnewsletter: self.options.reviewnewsletter
+                    }
+                });
             });
 
             return(p);
@@ -115,6 +123,34 @@ define([
     });
 
     Iznik.Views.User.Pages.Stories.One = Iznik.View.extend({
-        template: 'user_stories_one'
+        template: 'user_stories_one',
+
+        events: {
+            'click .js-like': 'like'
+        },
+
+        like: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                var p;
+
+                var liked = self.model.get('liked');
+
+                if (liked) {
+                    p = self.model.unlike();
+                } else {
+                    p = self.model.like();
+                }
+
+                p.then(function() {
+                    self.model.fetch().then(function() {
+                        self.render();
+                    });
+                });
+            });
+
+            Iznik.Session.forceLogin();
+        }
     });
 });

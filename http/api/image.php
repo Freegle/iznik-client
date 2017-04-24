@@ -32,44 +32,29 @@ function image() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            # We cache the data to files to avoid the DB queries where we can.
-            $fn = IZNIK_BASE . "/http/imgcache/img_{$shorttype}_{$id}_" . presdef('w', $_REQUEST, '') . "x" . presdef('h', $_REQUEST, '') . ".jpg";
+            $a = new Attachment($dbhr, $dbhm, $id, $type);
+            $data = $a->getData();
+            $i = new Image($data);
 
-            $data = @file_get_contents($fn);
+            $ret = [
+                'ret' => 1,
+                'status' => "Failed to create image $id of type $type"
+            ];
 
-            if ($data) {
+            if ($i->img) {
+                $w = intval(presdef('w', $_REQUEST, $i->width()));
+                $h = intval(presdef('h', $_REQUEST, $i->height()));
+
+                if (($w > 0) || ($h > 0)) {
+                    # Need to resize
+                    $i->scale($w, $h);
+                }
+
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'img' => $data
+                    'img' => $i->getData()
                 ];
-            } else {
-                $a = new Attachment($dbhr, $dbhm, $id, $type);
-                $data = $a->getData();
-                $i = new Image($data);
-
-                $ret = [
-                    'ret' => 1,
-                    'status' => "Failed to create image $id of type $type"
-                ];
-
-                if ($i->img) {
-                    $w = intval(presdef('w', $_REQUEST, $i->width()));
-                    $h = intval(presdef('h', $_REQUEST, $i->height()));
-
-                    if (($w > 0) || ($h > 0)) {
-                        # Need to resize
-                        $i->scale($w, $h);
-                    }
-
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'img' => $i->getData()
-                    ];
-
-                    file_put_contents($fn, $ret['img']);
-                }
             }
 
             break;
@@ -89,12 +74,6 @@ function image() {
                 $i->rotate($rotate);
                 $newdata = $i->getData(100);
                 $a->setData($newdata);
-
-                # Now clear any cached image files.  This will include any thumbnail, which
-                # will get created as a _250x250 file.
-                foreach (glob(IZNIK_BASE . "/http/imgcache/img_{$shorttype}_{$id}*") as $filename) {
-                    unlink($filename);
-                }
 
                 $ret = [
                     'ret' => 0,
@@ -158,13 +137,13 @@ function image() {
                             'ret' => 0,
                             'status' => 'Success',
                             'id' => $id,
-                            'path' => Attachment::getPath($id, $imgtype),
-                            'paththumb' => Attachment::getPath($id, $imgtype, TRUE)
+                            'path' => $a->getPath(FALSE),
+                            'paththumb' => $a->getPath(TRUE)
                         ];
 
                         # Return a new thumbnail (which might be a different orientation).
                         $ret['initialPreview'] =  [
-                            '<img src="' . Attachment::getPath($id, $imgtype, TRUE) . '" class="file-preview-image" width="130px">',
+                            '<img src="' . $a->getPath(TRUE) . '" class="file-preview-image" width="130px">',
                         ];
 
                         if ($identify) {

@@ -9,13 +9,15 @@ require_once(IZNIK_BASE . '/include/db.php');
 
 $lockh = lockScript(basename(__FILE__));
 
+error_log("Purge " . IZNIK_BASE . "/events");
+
 if ($handle = opendir(IZNIK_BASE . "/events")) {
     while (false !== ($file = readdir($handle))) {
         $fn = IZNIK_BASE . "/events/$file";
 
         $modified = filemtime($fn);
 
-        if (is_file($fn) && (time() - filemtime($fn) > 4 * 3600)) {
+        if (is_file($fn) && (time() - filemtime($fn) > 4 * 3600 || filesize($fn) > 1000000000)) {
             unlink($fn);
         }
     }

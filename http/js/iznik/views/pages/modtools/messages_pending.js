@@ -411,11 +411,17 @@ define([
         },
 
         send: function () {
-            this.model.reject(
-                this.$('.js-subject').val(),
-                this.$('.js-text').val(),
-                this.options.stdmsg ? this.options.stdmsg.get('id') : null
-            );
+            var subj = this.$('.js-subject').val();
+
+            if (subj.length > 0) {
+                this.model.reject(
+                    this.$('.js-subject').val(),
+                    this.$('.js-text').val(),
+                    this.options.stdmsg ? this.options.stdmsg.get('id') : null
+                );
+            } else {
+                this.$('.js-subject').focus();
+            }
         },
 
         render: function () {

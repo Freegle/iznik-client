@@ -947,7 +947,7 @@ define([
                 var m = new moment(self.model.get('added'));
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));
 
-                self.$('.js-eventsenabled').val(self.model.get('eventsenabled'));
+                self.$('.js-eventsenabled').val(self.model.get('eventsallowed'));
                 self.$('.js-yahoodelivery').val(self.model.get('yahooDeliveryType'));
 
                 self.$('.js-ourpostingstatus').val(self.model.get('ourpostingstatus'));

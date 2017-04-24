@@ -1,5 +1,7 @@
 <?php
-# Move attachments out of the database into archive storage.
+# We archive out of the DB into Azure.  This reduces load on the servers because we don't have to serve
+# the images up, and it also reduces the disk space we need within the DB (which is not an ideal
+# place to store large amounts of image data);
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
@@ -9,21 +11,18 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
-# TODO Make this host generic.
-
-$time = date('Y-m-d', strtotime("midnight 31 days ago"));
-$sql = "SELECT messages_attachments.id FROM messages INNER JOIN messages_attachments ON messages.id = messages_attachments.msgid WHERE arrival < '$time' AND data IS NOT NULL;";
-$atts = $dbhr->query($sql);
+$sql = "SELECT id FROM messages_attachments WHERE archived = 0;";
+$atts = $dbhr->preQuery($sql);
+error_log(count($atts) . " to archive");
 $count = 0;
+$total = count($atts);
 
 foreach ($atts as $att) {
     $a = new Attachment($dbhr, $dbhm, $att['id']);
     $a->archive();
 
     $count++;
-    if ($count % 1000 == 0) {
-      error_log("...$count");
-    }
+    error_log("...$count / $total");
 }
 
 unlockScript($lockh);
