@@ -17,7 +17,7 @@ $sharefroms = $dbhr->preQuery("SELECT DISTINCT sharefrom FROM groups_facebook;")
 
 foreach ($sharefroms as $sharefrom) {
     # Find a token we can use to access this page.  Get them all, as some may be invalid.
-    $tokens = $dbhr->preQuery("SELECT groupid FROM groups_facebook WHERE sharefrom = ? AND valid = 1;", [
+    $tokens = $dbhr->preQuery("SELECT id FROM groups_facebook WHERE sharefrom = ? AND valid = 1;", [
         $sharefrom['sharefrom']
     ]);
 

@@ -20,7 +20,7 @@ define([
         doInvite: function() {
             var self = this;
             var email = self.$('.js-inviteemail').val();
-            ABTestAction('SupportUs', 'invite');
+            ABTestAction('SupportUs', 'user_support_invite');
 
             if (isValidEmailAddress(email)) {
                 $.ajax({
@@ -47,18 +47,59 @@ define([
             var now = (new Date()).getTime();
             var p;
 
+
             if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
                 p = ABTestGetVariant('SupportUs', function(variant) {
                     self.template = variant.variant;
 
-                    var p = Iznik.Views.Modal.prototype.render.call(self);
-                    p.then(function() {
-                        var w = new Iznik.Views.DonationThermometer();
-                        w.render().then(function () {
-                            Storage.set('donationlastask', now);
-                            self.$('.js-thermometer').html(w.$el);
+                    if (variant.variant.indexOf('group') !== -1) {
+                        // Get home group to ask for per-group donation.
+                        var homegroup = Storage.get('myhomegroup');
+                        var group = Iznik.Session.getGroup(homegroup);
+
+                        if (!group) {
+                            var groups = Iznik.Session.get('groups');
+                            if (groups.length > 0) {
+                                homegroup = groups.at(0).get('id');
+                                group = groups.at(0);
+                            }
+                        }
+
+                        if (group) {
+                            self.donations = new Iznik.Models.Donations();
+                            self.donations.fetch({
+                                data: {
+                                    groupid: homegroup
+                                }
+                            }).then(function () {
+                                group.set('donations', self.donations.attributes);
+                                console.log("Render with", group);
+                                self.model = group;
+                                var p = Iznik.Views.Modal.prototype.render.call(self);
+                                p.then(function () {
+                                    var w = new Iznik.Views.DonationThermometer({
+                                        groupid: homegroup
+                                    });
+                                    w.render().then(function () {
+                                        Storage.set('donationlastask', now);
+                                        self.$('.js-thermometer').html(w.$el);
+                                    });
+                                });
+                            });
+                        }
+                    } else {
+                        // Global thermometer.
+                        var p = Iznik.Views.Modal.prototype.render.call(self);
+                        p.then(function () {
+                            var w = new Iznik.Views.DonationThermometer({
+                                groupid: null
+                            });
+                            w.render().then(function () {
+                                Storage.set('donationlastask', now);
+                                self.$('.js-thermometer').html(w.$el);
+                            });
                         });
-                    });
+                    }
 
                     ABTestShown('SupportUs', self.template);
                 });
@@ -95,11 +136,19 @@ define([
             var p = Iznik.View.prototype.render.call(this);
             p.then(function () {
                 self.donations = new Iznik.Models.Donations();
-                self.donations.fetch().then(function() {
+                self.donations.fetch({
+                    data: {
+                        groupid: self.options.groupid
+                    }
+                }).then(function() {
 
                     self.waitDOM(self, function() {
                         var valor1 = self.donations.get('raised');
                         var maxim = self.donations.get('target');
+
+                        // We might exceed the target.
+                        maxim = Math.round(Math.max(valor1 * 1.2, maxim) / 10) * 10;
+
                         var canvas = document.getElementById("termome");
                         var valor = valor1 / maxim;
                         var ctx = canvas.getContext("2d");
@@ -118,7 +167,7 @@ define([
                         var xxinc = parseInt(valor1 / 50);
                         if (xxinc == 0) xxinc = 1;
                         var AA = setInterval(DibujaTermo, 40);
-                        var target = 15000;
+                        var target = maxim;
                         var thermlines = 15;
 
                         function DibujaTermo() {
@@ -203,7 +252,9 @@ define([
                                 ctx.textBaseline="middle";
                                 ctx.textAlign="center";
                                 ctx.fillStyle = '#000';
-                                ctx.fillText('£' + i*val2 / 1000 + 'k', -radio*1.1 - 7, y);
+                                var v = Math.round(i*val2);
+                                v = target > 1000 ? (v / 1000 + 'k') : v;
+                                ctx.fillText('£' + v, -radio*1.1 - 7, y);
                             };
 
                             // Escribe Valor
@@ -314,5 +365,29 @@ define([
 
     Iznik.Views.User.BusinessCards.Thankyou = Iznik.Views.Modal.extend({
         template: 'user_support_businesscardsthanks'
+    });
+
+    Iznik.Views.User.SupportGroup = Iznik.Views.Modal.extend({
+        render: function() {
+            var self = this;
+
+
+            $.ajax({
+                url: API + 'dashboard',
+                data: {
+                    group: self.model.get('id'),
+                    start: '13 months ago',
+                    grouptype: 'Freegle',
+                    systemwide: self.options.id ? false : true
+                },
+                success: function (ret) {
+                    v.close();
+
+                    if (ret.dashboard) {
+                        self.$('.js-donations').html(ret.dashboard.donationsthisyear ? ret.dashboard.donationsthisyear : '0');
+                    }
+                }
+            });
+        }
     });
 });

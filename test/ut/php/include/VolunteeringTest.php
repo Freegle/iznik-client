@@ -63,19 +63,20 @@ class volunteeringTest extends IznikTestCase {
 
         # Not in the right group - shouldn't see.
         $ctx = NULL;
-        $events = $c->listForUser($uid, TRUE, $ctx);
+        $events = $c->listForUser($uid, TRUE, FALSE, $ctx);
         assertEquals(0, count($events));
 
         # Right group - shouldn't see pending.
         $u->addMembership($this->groupid);
         $ctx = NULL;
-        $events = $c->listForUser($uid, TRUE, $ctx);
+        $events = $c->listForUser($uid, TRUE, FALSE, $ctx);
         assertEquals(0, count($events));
 
         # Mark not pending - should see.
         $c->setPrivate('pending', 0);
         $ctx = NULL;
-        $events = $c->listForUser($uid, FALSE, $ctx);
+        $events = $c->listForUser($uid, FALSE, FALSE, $ctx);
+        error_log("Got when not pending " . var_export($events, TRUE));
         assertEquals(1, count($events));
         assertEquals($id, $events[0]['id']);
 
@@ -92,7 +93,7 @@ class volunteeringTest extends IznikTestCase {
         $c->addGroup($this->groupid);
         $c->delete();
         $ctx = NULL;
-        $events = $c->listForUser($uid, TRUE, $ctx);
+        $events = $c->listForUser($uid, TRUE, FALSE, $ctx);
         assertEquals(0, count($events));
 
         error_log(__METHOD__ . " end");

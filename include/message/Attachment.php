@@ -3,8 +3,11 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/message/Item.php');
+require_once(IZNIK_BASE . '/include/misc/Image.php');
 
 use Jenssegers\ImageHash\ImageHash;
+use WindowsAzure\Common\ServicesBuilder;
+use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
 
 # This is a base class
 class Attachment
@@ -13,7 +16,7 @@ class Attachment
     private $dbhr;
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
-    private $id, $table, $contentType, $hash;
+    private $id, $table, $contentType, $hash, $archived;
 
     /**
      * @return null
@@ -46,10 +49,10 @@ class Attachment
         return $this->contentType;
     }
 
-    public static function getPath($id, $type = Attachment::TYPE_MESSAGE, $thumb = FALSE) {
+    public function getPath($thumb = FALSE) {
         # We serve up our attachment names as though they are files.
         # When these are fetched it will go through image.php
-        switch ($type) {
+        switch ($this->type) {
             case Attachment::TYPE_MESSAGE: $name = 'img'; break;
             case Attachment::TYPE_GROUP: $name = 'gimg'; break;
             case Attachment::TYPE_NEWSLETTER: $name = 'nimg'; break;
@@ -58,8 +61,9 @@ class Attachment
         }
 
         $name = $thumb ? "t$name" : $name;
+        $domain = $this->archived ? IMAGE_ARCHIVED_DOMAIN : IMAGE_DOMAIN;
 
-        return("https://" . IMAGE_DOMAIN . "/{$name}_$id.jpg");
+        return("https://$domain/{$name}_{$this->id}.jpg");
     }
 
     public function getPublic() {
@@ -70,8 +74,8 @@ class Attachment
 
         if (stripos($this->contentType, 'image') !== FALSE) {
             # It's an image.  That's the only type we support.
-            $ret['path'] = Attachment::getPath($this->id, $this->type);
-            $ret['paththumb'] = Attachment::getPath($this->id, $this->type, TRUE);
+            $ret['path'] = $this->getPath(FALSE);
+            $ret['paththumb'] = $this->getPath(TRUE);
         }
 
         return($ret);
@@ -83,6 +87,7 @@ class Attachment
         $this->dbhm = $dbhm;
         $this->id = $id;
         $this->type = $type;
+        $this->archived = FALSE;
         
         switch ($type) {
             case Attachment::TYPE_MESSAGE: $this->table = 'messages_attachments'; $this->idatt = 'msgid'; break;
@@ -93,11 +98,12 @@ class Attachment
         }
 
         if ($id) {
-            $sql = "SELECT contenttype, hash FROM {$this->table} WHERE id = ?;";
+            $sql = "SELECT contenttype, hash, archived FROM {$this->table} WHERE id = ?;";
             $atts = $this->dbhr->preQuery($sql, [$id]);
             foreach ($atts as $att) {
                 $this->contentType = $att['contenttype'];
                 $this->hash = $att['hash'];
+                $this->archived = $att['archived'];
             }
         }
     }
@@ -137,9 +143,42 @@ class Attachment
     }
 
     public function archive() {
-        $rc = file_put_contents(IZNIK_BASE . "/http/attachments/img_{$this->id}.jpg", $this->getData());
-        #error_log("$rc for img_{$this->id}.jpg");
+        # We archive out of the DB into Azure.  This reduces load on the servers because we don't have to serve
+        # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
+        # place to store large amounts of image data);
+        #
+        # If we fail then we leave it unchanged for next time.
+        $data = $this->getData();
+        $rc = TRUE;
+
+        if ($data) {
+            $rc = FALSE;
+
+            try {
+                $blobRestProxy = ServicesBuilder::getInstance()->createBlobService(AZURE_CONNECTION_STRING);
+                $options = new CreateBlobOptions();
+                $options->setBlobContentType("image/jpeg");
+
+                # Upload the thumbnail.  If this fails we'll leave it untouched.
+                $i = new Image($data);
+                if ($i->img) {
+                    $i->scale(250, 250);
+                    $thumbdata = $i->getData(100);
+                    $blobRestProxy->createBlockBlob("images", "timg_{$this->id}.jpg", $thumbdata, $options);
+
+                    # Upload the full size image.
+                    $blobRestProxy->createBlockBlob("images", "img_{$this->id}.jpg", $data, $options);
+
+                    $rc = TRUE;
+                } else {
+                    error_log("...failed to create image");
+                }
+
+            } catch (Exception $e) {}
+        }
+
         if ($rc) {
+            # Remove from the DB.
             $sql = "UPDATE messages_attachments SET archived = 1, data = NULL WHERE id = {$this->id};";
             $this->dbhm->exec($sql);
         }
@@ -162,16 +201,15 @@ class Attachment
         $datas = $this->dbhm->preQuery($sql, [$this->id]);
         foreach ($datas as $data) {
             if ($data['archived']) {
-                # This attachment has been archived out of our database, to our archive host.  This happens to
-                # older attachments to save space in the DB.
+                # This attachment has been archived out of our database, to a CDN.  Normally we would expect
+                # that we wouldn't come through here, because we'd serve up an image link directly to the CDN, but
+                # there is a timing window where we could archive after we've served up a link, so we have
+                # to handle it.
                 #
                 # We fetch the data - not using SSL as we don't need to, and that host might not have a cert.  And
                 # we put it back in the DB, because we are probably going to fetch it again.
-                $ret = @file_get_contents('http://' . IMAGE_ARCHIVED_DOMAIN . "/img_{$this->id}.jpg");
-                $this->dbhm->preExec("UPDATE {$this->table} SET data = ?, archived = 0 WHERE id = ?;", [
-                    $ret,
-                    $this->id
-                ]);
+                $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/img_{$this->id}.jpg";
+                $ret = @file_get_contents($url);
             } else {
                 $ret = $data['data'];
             }

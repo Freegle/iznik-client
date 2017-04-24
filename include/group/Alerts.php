@@ -88,7 +88,8 @@ class Alert extends Entity
     }
 
     public function beacon($id) {
-        $this->dbhm->preExec("UPDATE alerts_tracking SET responded = NOW(), response = 'Read' WHERE id = ?;", [ $id] );
+        # Don't overwrite a Clicked response with a read one.
+        $this->dbhm->preExec("UPDATE alerts_tracking SET responded = NOW(), response = 'Read' WHERE id = ? AND response IS NULL;", [ $id] );
     }
 
     public function clicked($id) {
@@ -215,7 +216,7 @@ class Alert extends Entity
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
             $ret['responses']['groups'][] = [
                 'group' => $g->getPublic(),
-                'summary' => $data[0]
+                'summary' => $data
             ];
         }
 

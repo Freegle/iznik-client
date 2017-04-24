@@ -217,7 +217,7 @@ define([
                     }).then(function() {
                         // Add the group and dates.
                         var groups = self.model.get('groups');
-                        if (_.isUndefined(groups) || self.groupSelect.get() != groups[0]['id']) {
+                        if (_.isUndefined(groups) || (groups.length > 0 && self.groupSelect.get() != groups[0]['id'])) {
                             self.promises.push($.ajax({
                                 url: API + 'volunteering',
                                 type: 'PATCH',
@@ -227,7 +227,7 @@ define([
                                     groupid: self.groupSelect.get()
                                 },
                                 success: function (ret) {
-                                    if (!_.isUndefined(groups)) {
+                                    if (!_.isUndefined(groups) && groups.length > 0) {
                                         self.promises.push($.ajax({
                                             url: API + 'volunteering',
                                             type: 'PATCH',
@@ -262,7 +262,24 @@ define([
                             var end = date.getEnd();
                             var applyby = date.getApplyBy();
 
-                            if (start !== 'Invalid date') {
+                            // Remove invalid date values.
+                            start = (start !== 'Invalid date') ? start : null;
+                            end = (end !== 'Invalid date') ? end : null;
+                            applyby = (applyby !== 'Invalid date') ? applyby : null;
+
+                            // Because we just asked for the date, if we're in DST then we'll have been given the
+                            // previous day.  Add a couple of hours to make sure.
+                            if (start) {
+                                start = (new moment(start)).add(2, 'hours').toISOString();
+                            }
+                            if (end) {
+                                end = (new moment(end)).add(2, 'hours').toISOString();
+                            }
+                            if (applyby) {
+                                applyby = (new moment(applyby)).add(2, 'hours').toISOString();
+                            }
+
+                            if (start || applyby) {
                                 self.promises.push($.ajax({
                                     url: API + 'volunteering',
                                     type: 'PATCH',
@@ -296,13 +313,18 @@ define([
         groupChange: function() {
             var self = this;
             var groupid = self.groupSelect.get();
-            var group = Iznik.Session.getGroup(groupid);
-            if (group.get('settings').volunteering) {
-                this.$('.js-volunteeringdisabled').hide();
-                this.$('.js-save').show();
+
+            if (groupid > 0) {
+                var group = Iznik.Session.getGroup(groupid);
+                if (group.get('settings').volunteering) {
+                    this.$('.js-volunteeringdisabled').hide();
+                    this.$('.js-save').show();
+                } else {
+                    this.$('.js-volunteeringdisabled').fadeIn('slow');
+                    this.$('.js-save').hide();
+                }
             } else {
-                this.$('.js-volunteeringdisabled').fadeIn('slow');
-                this.$('.js-save').hide();
+                this.$('.js-save').show();
             }
         },
 
@@ -312,7 +334,7 @@ define([
             require([ 'fileinput' ], function() {
                 self.parentClass.prototype.render.call(self).then(function() {
                     self.groupSelect = new Iznik.Views.Group.Select({
-                        systemWide: false,
+                        systemWide: Iznik.Session.hasPermission('NationalVolunteers'),
                         all: false,
                         mod: false,
                         choose: false,
@@ -355,7 +377,7 @@ define([
                     }
 
                     self.datesCV = new Backbone.CollectionView({
-                        el: $('.js-dates'),
+                        el: self.$('.js-dates'),
                         modelView: Iznik.Views.User.Volunteering.Date,
                         collection: self.dates,
                         processKeyEvents: false,
@@ -365,7 +387,6 @@ define([
                     });
 
                     self.datesCV.render();
-                    self.dates.fetch();
 
                     // Need to make sure we're in the DOM else the validate plugin fails.
                     self.waitDOM(self, function() {

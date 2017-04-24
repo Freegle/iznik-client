@@ -11,7 +11,7 @@ function business_cards($toname, $to) {
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <title>Tell us your story!</title>
+    <title>Business Cards</title>
 EOT;
 
     $html .= mail_header();

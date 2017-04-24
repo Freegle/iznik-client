@@ -74,6 +74,7 @@ EOT;
                                                                     </tr>
                                                                 </table>
                                                                 
+                                                                <p>If your email doesn't let you click on those, just go to $siteurl and do it from there.</p>
                                                             </td>
                                                         </tr>        
                                                         <tr>

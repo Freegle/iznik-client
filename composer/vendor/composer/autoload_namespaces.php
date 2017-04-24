@@ -13,6 +13,10 @@ return array(
     'PayPal\\EBLBaseComponents' => array($vendorDir . '/paypal/merchant-sdk-php/lib'),
     'PayPal\\CoreComponentTypes' => array($vendorDir . '/paypal/merchant-sdk-php/lib'),
     'PayPal' => array($vendorDir . '/paypal/sdk-core-php/lib'),
+    'PEAR' => array($vendorDir . '/pear/pear_exception'),
     'MaxMind' => array($vendorDir . '/maxmind-db/reader/src'),
+    'Mail' => array($vendorDir . '/pear/mail_mime'),
+    'Console' => array($vendorDir . '/pear/console_getopt'),
     'Buzz' => array($vendorDir . '/kriswallsmith/buzz/lib'),
+    '' => array($vendorDir . '/pear/pear-core-minimal/src'),
 );

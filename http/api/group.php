@@ -61,11 +61,16 @@ function group() {
                     $ret['group']['twitter'] =  $atts;
 
                     # Ditto Facebook.
-                    $f = new GroupFacebook($dbhr, $dbhm, $id);
-                    $atts = $f->getPublic();
-                    unset($atts['token']);
-                    $atts['authdate'] = ISODate($atts['authdate']);
-                    $ret['group']['facebook'] =  $atts;
+                    $uids = GroupFacebook::listForGroup($dbhr, $dbhm, $id);
+                    $ret['group']['facebook'] = [];
+
+                    foreach ($uids as $uid) {
+                        $f = new GroupFacebook($dbhr, $dbhm, $uid);
+                        $atts = $f->getPublic();
+                        unset($atts['token']);
+                        $atts['authdate'] = ISODate($atts['authdate']);
+                        $ret['group']['facebook'][] =  $atts;
+                    }
                 }
 
                 $ret['group']['polygon'] = presdef('polygon', $_REQUEST, FALSE) ? $g->getPrivate('poly') : NULL;
@@ -149,12 +154,32 @@ function group() {
 
                         # Other support-settable attributes
                         if ($me->isAdminOrSupport()) {
-                            foreach (['publish', 'licenserequired', 'lat', 'lng', 'poly', 'polyofficial'] as $att) {
+                            foreach (['publish', 'licenserequired', 'lat', 'lng'] as $att) {
                                 $val = presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {
                                     $g->setPrivate($att, $val);
                                 }
                             }
+
+                            # For polygon attributes, check that they are valid before putting them into the DB.
+                            # Otherwise, we can break the whole site.
+                            foreach (['poly', 'polyofficial'] as $att) {
+                                $val = presdef($att, $_REQUEST, NULL);
+                                if (array_key_exists($att, $_REQUEST)) {
+                                    try {
+                                        $dbhr->preQuery("SELECT GeomFromText(?);", [
+                                            $val
+                                        ]);
+                                        $g->setPrivate($att, $val);
+                                    } catch (Exception $e) {
+                                        $ret = [
+                                            'ret' => 3,
+                                            'status' => 'Invalid polygon data'
+                                        ];
+                                    }
+                                }
+                            }
+
                         }
                     }
                 }
@@ -240,6 +265,33 @@ function group() {
                             } else {
                                 $ret = ['ret' => 2, 'status' => 'Failed'];
                             }
+                        }
+
+                        break;
+                    }
+
+                    case 'AddFacebookGroup': {
+                        $name = presdef('name', $_REQUEST, NULL);
+                        $facebookid = presdef('facebookid', $_REQUEST, NULL);
+                        $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
+
+                        if ($id && $name && $facebookid) {
+                            $f = new GroupFacebook($dbhr, $dbhm);
+                            $f->add($id, NULL, $name, $facebookid, GroupFacebook::TYPE_GROUP);
+                            $ret = ['ret' => 0, 'status' => 'Success'];
+                        }
+
+                        break;
+                    }
+
+                    case 'RemoveFacebookGroup': {
+                        $uid = intval(presdef('uid', $_REQUEST, NULL));
+                        $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
+
+                        if ($uid) {
+                            $f = new GroupFacebook($dbhr, $dbhm);
+                            $f->remove($uid);
+                            $ret = ['ret' => 0, 'status' => 'Success'];
                         }
 
                         break;

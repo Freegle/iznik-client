@@ -62,24 +62,36 @@ class Volunteering extends Entity
         ]);
     }
 
-    public function listForUser($userid, $pending, &$ctx) {
+    public function listForUser($userid, $pending, $systemwide, &$ctx) {
         $ret = [];
         $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
         $roleq = $pending ? " AND role IN ('Owner', 'Moderator') " : '';
-        $ctxq = $ctx ? " AND id > '{$ctx['id']}' " : '';
+        $ctxq = $ctx ? " AND volunteering.id < '{$ctx['id']}' " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT volunteering.id, volunteering.pending, volunteering_dates.end, volunteering_groups.groupid FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) AND deleted = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) $pendingq $ctxq ORDER BY id ASC LIMIT 20;";
+
+        # Get the ones for our group.
+        $sql = "SELECT volunteering.id, volunteering.pending, volunteering_dates.end, volunteering_groups.groupid FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) AND deleted = 0 $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
         $volunteerings = $this->dbhr->preQuery($sql, [
             $userid,
             $mysqltime,
             $mysqltime
         ]);
 
+        # Get the national ones, for display or approval.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if (!$pending || ($me && $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS))) {
+            $sql = "SELECT volunteering.id, volunteering.pending, volunteering_dates.end, NULL AS groupid FROM volunteering LEFT JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND deleted = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE groupid IS NULL AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) AND deleted = 0 $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
+            $volunteerings = array_merge($volunteerings, $this->dbhr->preQuery($sql, [
+                $mysqltime,
+                $mysqltime
+            ]));
+        }
+
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         foreach ($volunteerings as $volunteering) {
-            if (!$volunteering['pending'] || $u->activeModForGroup($volunteering['groupid'])) {
+            if (!$volunteering['pending'] || $volunteering['groupid'] === NULL || $u->activeModForGroup($volunteering['groupid'])) {
                 $ctx['id'] = $volunteering['id'];
                 $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
                 $atts = $e->getPublic();
@@ -102,10 +114,10 @@ class Volunteering extends Entity
         $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
         $roleq = $pending ? (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . " AND role IN ('Owner', 'Moderator')) ") : '';
         $groupq = $groupid ? (" AND groupid = " . intval($groupid)) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
-        $ctxq = $ctx ? " AND id > {$ctx['id']} " : '';
+        $ctxq = $ctx ? " AND volunteering.id < {$ctx['id']} " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT volunteering.id, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) $pendingq $ctxq ORDER BY id ASC LIMIT 20;";
+        $sql = "SELECT volunteering.id, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
         # error_log("$sql, $mysqltime");
         $volunteerings = $this->dbhr->preQuery($sql, [
             $mysqltime,

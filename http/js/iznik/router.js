@@ -156,12 +156,14 @@ define([
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "livemap": "liveMap",
+            "stats/area/:id": "userStatsArea",
             "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
             "communityevent(/:id)": "userCommunityEvent",
             "newuser": "newUser",
             "unsubscribe(/:id)": "unsubscribe",
             "chats": "userChats",
+            "chat/:id/external(/:id)": "userChatExternal",
             "chat/:id": "userChat",
             "alert/viewed/:id": "alertViewed",
             "mobile": "userMobile",
@@ -181,6 +183,7 @@ define([
             "plugins/group/:id": "groupPlugin",
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
+            "stories/fornewsletter": "userNewsletterReview",
             "stories": "userStories",
             "story/:id": "userStory",
             "streetwhack(/:id)": "findMyStreet",
@@ -295,6 +298,17 @@ define([
             Iznik.Session.forceLogin();
         },
 
+        userNewsletterReview: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/stories"], function() {
+                var page = new Iznik.Views.User.Pages.Stories({
+                    reviewnewsletter: true
+                });
+                self.loadRoute({page: page});
+            });
+        },
+
         userStories: function() {
             var self = this;
 
@@ -338,6 +352,17 @@ define([
                 });
 
                 Iznik.Session.forceLogin();
+            });
+        },
+
+        userChatExternal: function(chatid, msgid) {
+            var self = this;
+            require(["iznik/views/pages/chat"], function() {
+                var page = new Iznik.Views.Chat.External({
+                    chatid: chatid,
+                    msgid: msgid
+                });
+                self.loadRoute({page: page});
             });
         },
 
@@ -607,6 +632,17 @@ define([
 
             require(["iznik/views/pages/user/livemap"], function() {
                 var page = new Iznik.Views.User.Pages.LiveMap();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStatsArea: function(area) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stats"], function() {
+                var page = new Iznik.Views.User.Pages.StatsGroup({
+                    area: area
+                });
                 self.loadRoute({page: page});
             });
         },

@@ -39,6 +39,7 @@ class User extends Entity
     # Permissions
     const PERM_BUSINESS_CARDS = 'BusinessCards';
     const PERM_NEWSLETTER = 'Newsletter';
+    const PERM_NATIONAL_VOLUNTEERS = 'NationalVolunteers';
 
     const HAPPY = 'Happy';
     const FINE = 'Fine';
@@ -252,8 +253,9 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         try {
-            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooUserId, yahooid) VALUES (?, ?, ?, ?, ?)",
-                [$firstname, $lastname, $fullname, $yahooUserId, $yahooid]);
+            $src = presdef('src', $_SESSION, NULL);
+            $rc = $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, yahooUserId, yahooid, source) VALUES (?, ?, ?, ?, ?, ?)",
+                [ $firstname, $lastname, $fullname, $yahooUserId, $yahooid, $src ]);
             $id = $this->dbhm->lastInsertId();
         } catch (Exception $e) {
             $id = NULL;
@@ -611,7 +613,8 @@ class User extends Entity
             $collection
         ]);
         $membershipid = $this->dbhm->lastInsertId();
-        #error_log("Insert returned $rc membership $membershipid");
+        $added = $this->dbhm->rowsAffected();
+        #error_log("Insert returned $rc membership $membershipid row count $added");
 
         if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
@@ -651,7 +654,7 @@ class User extends Entity
         }
         // @codeCoverageIgnoreStart
 
-        if ($rc) {
+        if ($added) {
             # The membership didn't already exist.  We might want to send a welcome mail.
             $atts = $g->getPublic();
 
@@ -876,7 +879,7 @@ class User extends Entity
         return($rc);
     }
 
-    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE) {
+    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE, $pernickety = FALSE) {
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
@@ -892,19 +895,26 @@ class User extends Entity
             $one = $g->getPublic();
 
             $one['role'] = $group['role'];
+            $amod = ($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER);
             $one['configid'] = presdef('configid', $group, NULL);
 
-            if (!pres('configid', $one)) {
+            if ($amod && !pres('configid', $one)) {
+                # Get a config using defaults.
                 $one['configid'] = $c->getForGroup($this->id, $group['groupid']);
             }
 
             $one['mysettings'] = $this->getGroupSettings($group['groupid'], presdef('configid', $one, NULL));
 
+            # If we don't have our own email on this group we won't be sending mails.  This is what affects what
+            # gets shown on the Settings page for the user, and we only want to check this here
+            # for performance reasons.
+            $one['mysettings']['emailfrequency'] = ($pernickety || $this->sendOurMails($g, FALSE, FALSE)) ? $one['mysettings']['emailfrequency'] : 0;
+
             if ($getwork) {
                 # We only need finding out how much work there is if we are interested in seeing it.
                 $active = $this->activeModForGroup($group['groupid'], $one['mysettings']);
 
-                if ((($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER)) && $active) {
+                if ($amod && $active) {
                     if (!$g) {
                         # We need to have an actual group object for this.
                         $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
@@ -1493,7 +1503,7 @@ class User extends Entity
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
                     $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
 
-                    $memberof[] = [
+                    $thisone = [
                         'id' => $group['groupid'],
                         'membershipid' => $group['id'],
                         'namedisplay' => $name,
@@ -1509,6 +1519,8 @@ class User extends Entity
                         'onyahoo' => $group['onyahoo'],
                         'onhere' => $group['onhere']
                     ];
+
+                    $memberof[] = $thisone;
 
                     if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                         $visible = TRUE;
@@ -2750,7 +2762,7 @@ class User extends Entity
         return($url);
     }
 
-    public function sendOurMails($g) {
+    public function sendOurMails($g, $checkholiday = TRUE, $checkbouncing = TRUE) {
         # We always want to send our mails for groups which we host.
         $sendit = TRUE;
         $groupid = $g->getId();
@@ -2798,7 +2810,7 @@ class User extends Entity
             }
         }
 
-        if ($sendit) {
+        if ($sendit && $checkholiday) {
             # We might be on holiday.
             $hol = $this->getPrivate('onholidaytill');
             $till = $hol ? strtotime($hol) : 0;
@@ -2807,7 +2819,7 @@ class User extends Entity
             $sendit = time() > $till;
         }
 
-        if ($sendit) {
+        if ($sendit && $checkbouncing) {
             # And don't send if we're bouncing.
             $sendit = !$this->getPrivate('bouncing');
         }
@@ -2861,6 +2873,9 @@ class User extends Entity
         $q = $this->dbhr->quote("$search%");
         $backwards = strrev($search);
         $qb = $this->dbhr->quote("$backwards%");
+
+        # If we're searching for a notify address, switch to the user it.
+        $search = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
 
         $sql = "SELECT DISTINCT userid FROM
                 ((SELECT userid FROM users_emails WHERE email LIKE $q OR backwards LIKE $qb) UNION

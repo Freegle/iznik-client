@@ -1083,7 +1083,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $group1,
-            'subject' => 'Test edit'
+            'subject' => 'Test edit long'
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -1091,8 +1091,8 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id
         ]);
 
-        assertEquals('Test edit', $ret['message']['subject']);
-        assertEquals('Test edit', $ret['message']['suggestedsubject']);
+        assertEquals('Test edit long', $ret['message']['subject']);
+        assertEquals('Test edit long', $ret['message']['suggestedsubject']);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertTrue($m->isEdited());

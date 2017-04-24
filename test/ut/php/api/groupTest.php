@@ -188,6 +188,18 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         assertEquals(10, $ret['group']['lat']);
 
+        # Valid and invalid polygon
+        $ret = $this->call('group', 'PATCH', [
+            'id' => $this->groupid,
+            'poly' => 'POLYGON((59.58984375 9.102096738726456,54.66796875 -5.0909441750333855,65.7421875 -6.839169626342807,76.2890625 -4.740675384778361,74.8828125 6.4899833326706515,59.58984375 9.102096738726456))'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('group', 'PATCH', [
+            'id' => $this->groupid,
+            'poly' => 'POLYGON((59.58984375 9.102096738726456,54.66796875 -5.0909441750333855,65.7421875 -6.839169626342807,76.2890625 -4.740675384778361,74.8828125 6.4899833326706515,59.58984375 9.102096738726456)))'
+        ]);
+        assertEquals(3, $ret['ret']);
+
         # Profile
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);

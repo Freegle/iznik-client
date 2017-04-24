@@ -99,6 +99,9 @@ switch($host) {
 }
 
 # Image host domain - both for active, and archived.
+#
+# We archive to Azure CDN.
+define('AZURE_CONNECTION_STRING', 'zzzz');
 define('IMAGE_DOMAIN', 'zzzz');
 define('IMAGE_ARCHIVED_DOMAIN', 'zzz');
 

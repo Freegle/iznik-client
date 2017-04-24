@@ -14,6 +14,7 @@ function volunteering() {
     }
 
     $pending = array_key_exists('pending', $_REQUEST) ? filter_var($_REQUEST['pending'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $systemwide = array_key_exists('systemwide', $_REQUEST) ? filter_var($_REQUEST['systemwide'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ctx = presdef('context', $_REQUEST, NULL);
 
     $c = new Volunteering($dbhr, $dbhm, $id);
@@ -49,7 +50,7 @@ function volunteering() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'volunteerings' => $c->listForUser($me->getId(), $pending, $ctx),
+                            'volunteerings' => $c->listForUser($me->getId(), $pending, $systemwide, $ctx),
                             'context' => $ctx
                         ];
                     }

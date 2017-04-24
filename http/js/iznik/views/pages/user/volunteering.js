@@ -137,7 +137,7 @@ define([
                     if (loggedIn) {
                         // We can filter by group.
                         var v = new Iznik.Views.Group.Select({
-                            systemWide: false,
+                            systemWide: true,
                             all: true,
                             mod: false,
                             grouptype: 'Freegle',
