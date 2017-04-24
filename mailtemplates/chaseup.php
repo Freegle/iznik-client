@@ -52,7 +52,7 @@ EOT;
                                                             </td>    
                                                             <td class="mobile" align="left" valign="top">
                                                                 <p>Dear $toname,<p>
-                                                                <p>Can you let us know what happened to your post <b><i>$subject</i></b>?  Please click on one of the following buttons:</p>
+                                                                <p>Please click one of the following buttons to let us know what happened to your post <b><i>$subject</i></b></p>
                                                                 
                                                                 <table width="350" cellpadding="10" cellspacing="10" align="left" border="0">
                                                                     <tr>
