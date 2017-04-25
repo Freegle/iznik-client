@@ -2395,9 +2395,17 @@ define([
             var groups = Iznik.Session.get('groups');
             groups.each(function(group) {
                 var role = group.get('role');
-                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner') &&
-                    (!group.get('facebook') || !group.get('facebook').valid)) {
-                    missingFacebook.push(group.get('namedisplay') + ' - ' + (group.get('facebook') ? ' token invalid' : ' not linked'));
+                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner')) {
+                    var facebooks = group.get('facebook');
+                    if (!facebooks) {
+                        missingFacebook.push(group.get('namedisplay') + ' - not linked');
+                    } else {
+                        _.each(facebooks, function(facebook) {
+                            if (!facebook.valid) {
+                                missingFacebook.push(group.get('namedisplay') + ' - token invalid');
+                            }
+                        });
+                    }
                 }
             });
 
