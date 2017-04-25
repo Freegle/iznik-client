@@ -292,7 +292,7 @@ class ChatMessage extends Entity
                 }
             }
 
-            if (!$spam) {
+            if (!$spam && !$review) {
                 $r->pokeMembers();
                 $r->notifyMembers($u->getName(), $message, $userid);
 
