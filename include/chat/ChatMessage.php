@@ -185,6 +185,10 @@ class ChatMessage extends Entity
             }
         }
 
+        if (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE) {
+            $check = TRUE;
+        }
+
         return($check);
     }
 
@@ -288,7 +292,7 @@ class ChatMessage extends Entity
                 }
             }
 
-            if (!$spam) {
+            if (!$spam && !$review) {
                 $r->pokeMembers();
                 $r->notifyMembers($u->getName(), $message, $userid);
 

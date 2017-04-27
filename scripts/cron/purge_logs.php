@@ -14,6 +14,21 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
+error_log("Purge email logs");
+
+try {
+    $start = date('Y-m-d', strtotime("midnight 7 days ago"));
+    $total = 0;
+    do {
+        $count = $dbhm->exec("DELETE FROM logs_emails WHERE `timestamp` < '$start' LIMIT 1000;");
+        $total += $count;
+        error_log("...$total");
+        set_time_limit(60);
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete non-Freegle logs " . $e->getMessage());
+}
+
 error_log("Purge main logs");
 
 try {

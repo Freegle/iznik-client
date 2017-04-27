@@ -1897,11 +1897,41 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE sessions SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE chat_roster SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET user1 = $id1 WHERE user1 = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE chat_rooms SET user2 = $id1 WHERE user2 = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE chat_messages SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_searches SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_donations SET userid = $id1 WHERE userid = $id2;");
+
+                        # Merge chat rooms.  There might have be two separate rooms already, which means that we need
+                        # to make sure that messages from both end up in the same one.
+                        $rooms = $this->dbhr->preQuery("SELECT * FROM chat_rooms WHERE (user1 = $id2 OR user2 = $id2) AND chattype IN (?,?);", [
+                            ChatRoom::TYPE_USER2MOD,
+                            ChatRoom::TYPE_USER2USER
+                        ]);
+
+                        foreach ($rooms as $room) {
+                            # Now see if there is already a chat room between the destination user and whatever this
+                            # one is.
+                            switch ($room['chattype']) {
+                                case ChatRoom::TYPE_USER2MOD;
+                                    $sql = "SELECT id FROM chat_rooms WHERE user1 = $id1 AND groupid = {$room['groupid']};";
+                                    break;
+                                case ChatRoom::TYPE_USER2USER;
+                                    $other = $room['user1'] == $id2 ? $room['user2'] : $room['user1'];
+                                    $sql = "SELECT id FROM chat_rooms WHERE (user1 = $id1 AND user2 = $other) OR (user2 = $id1 AND user1 = $other);";
+                                    break;
+                            }
+
+                            $alreadys = $this->dbhr->preQuery($sql);
+
+                            if (count($alreadys) > 0) {
+                                # Yes, there already is one.
+                                $this->dbhm->preExec("UPDATE chat_messages SET chatid = {$alreadys[0]['id']} WHERE chatid = {$room['id']}");
+                            } else {
+                                # No, there isn't, so we can update our old one.
+                                $this->dbhm->preExec("UPDATE chat_rooms SET user1 = $id1 WHERE id = {$room['id']};");
+                            }
+                        }
+
+                        $this->dbhm->preExec("UPDATE chat_messages SET userid = $id1 WHERE userid = $id2;");
                     }
 
                     # Merge attributes we want to keep if we have them in id2 but not id1.  Some will have unique
