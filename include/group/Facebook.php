@@ -264,10 +264,11 @@ class GroupFacebook {
 
     public function getPostableMessages() {
         # We want to post any messages since the last one, with a max of 1 hour ago to avoid flooding things.
-        $mysqltime = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
-        $sql = "SELECT messages_groups.msgid AS id, messages_groups.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.uid = ? WHERE messages_groups.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages_groups.arrival ASC;";
-        $msgs = $this->dbhr->preQuery($sql, [ $this->uid, $mysqltime ]);
-        error_log("Get postable $sql, {$this->uid}, $mysqltime returned " . var_export($msgs, TRUE));
+        $mysqltime1 = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "24 hours ago"));
+        $mysqltime2 = date ("Y-m-d H:i:s.u", strtotime("72 hours ago"));
+        $sql = "SELECT messages_groups.msgid AS id, messages.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.uid = ? WHERE messages.arrival > ? AND messages.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC;";
+        $msgs = $this->dbhr->preQuery($sql, [ $this->uid, $mysqltime1, $mysqltime2 ]);
+        error_log("Get postable $sql, {$this->uid}, $mysqltime1, $mysqltime2 returned " . var_export($msgs, TRUE));
         return($msgs);
     }
 
@@ -317,6 +318,7 @@ class GroupFacebook {
     }
 
     public function updatePostableMessages($msgid, $msgarrival) {
+        error_log("Update postable $msgid, $msgarrival, {$this->uid}");
         if ($msgarrival) {
             $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE uid = ?;", [$msgid, $msgarrival, $this->uid]);
         }
