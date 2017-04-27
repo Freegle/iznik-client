@@ -2294,11 +2294,11 @@ define([
                     group.set('name', group.get('nameshort'))
                 }
 
-                if (self.showCore) {
+                if (self.showDPA) {
                     self.cores.push(self.mapWKT(poly, group));
                 }
 
-                if (self.showDPA) {
+                if (self.showCore) {
                     var group2 = group.clone();
                     group2.set('name', group.get('nameshort') + ' Core Group Area')
                     self.dpas.push(self.mapWKT(polyofficial, group2, 'blue'));
@@ -2395,9 +2395,17 @@ define([
             var groups = Iznik.Session.get('groups');
             groups.each(function(group) {
                 var role = group.get('role');
-                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner') &&
-                    (!group.get('facebook') || !group.get('facebook').valid)) {
-                    missingFacebook.push(group.get('namedisplay') + ' - ' + (group.get('facebook') ? ' token invalid' : ' not linked'));
+                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner')) {
+                    var facebooks = group.get('facebook');
+                    if (!facebooks) {
+                        missingFacebook.push(group.get('namedisplay') + ' - not linked');
+                    } else {
+                        _.each(facebooks, function(facebook) {
+                            if (!facebook.valid) {
+                                missingFacebook.push(group.get('namedisplay') + ' - token invalid');
+                            }
+                        });
+                    }
                 }
             });
 

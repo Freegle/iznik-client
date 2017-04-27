@@ -685,6 +685,9 @@ class Message
         # Remove any group subject tag.
         $ret['subject'] = preg_replace('/^\[.*?\]\s*/', '', $ret['subject']);
         $ret['subject'] = preg_replace('/\[.*Attachment.*\]\s*/', '', $ret['subject']);
+        
+        # Decode any HTML which is wrongly in there.
+        $ret['subject'] = html_entity_decode($ret['subject']);
 
         # Get the item.  Although it's an extra DB call, we use this in creating structured data for SEO.
         if ($this->itemid) {

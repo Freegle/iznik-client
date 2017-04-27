@@ -262,6 +262,9 @@ class chatMessagesTest extends IznikTestCase {
         # Keywords
         assertTrue($m->checkReview('spamspamspam'));
 
+        # Money
+        assertTrue($m->checkReview("£100"));
+
         error_log(__METHOD__ . " end");
     }
 

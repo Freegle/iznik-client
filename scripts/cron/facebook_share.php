@@ -17,12 +17,12 @@ $sharefroms = $dbhr->preQuery("SELECT DISTINCT sharefrom FROM groups_facebook;")
 
 foreach ($sharefroms as $sharefrom) {
     # Find a token we can use to access this page.  Get them all, as some may be invalid.
-    $tokens = $dbhr->preQuery("SELECT id FROM groups_facebook WHERE sharefrom = ? AND valid = 1;", [
+    $tokens = $dbhr->preQuery("SELECT uid, token FROM groups_facebook WHERE sharefrom = ? AND valid = 1 AND token IS NOT NULL;", [
         $sharefrom['sharefrom']
     ]);
 
     foreach ($tokens as $token) {
-        $f = new GroupFacebook($dbhr, $dbhm, $token['groupid']);
+        $f = new GroupFacebook($dbhr, $dbhm, $token['uid']);
         $f->getPostsToShare($sharefrom['sharefrom']);
     }
 }

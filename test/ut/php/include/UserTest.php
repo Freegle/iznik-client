@@ -32,7 +32,7 @@ class userTest extends IznikTestCase {
     }
 
     protected function tearDown() {
-        parent::tearDown ();
+//        parent::tearDown ();
     }
 
     public function __construct() {
@@ -334,6 +334,7 @@ class userTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create(NULL, NULL, 'Test User');
         $id2 = $u->create(NULL, NULL, 'Test User');
+        $id3 = $u->create(NULL, NULL, 'Test User');
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         assertGreaterThan(0, $u1->addEmail('test1@test.com'));
@@ -349,6 +350,20 @@ class userTest extends IznikTestCase {
         $u2->setGroupSettings($group2, $settings);
         $u1->clearMembershipCache();
         assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1 ], $u1->getGroupSettings($group2));
+
+        # Set up some chats
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $cid1 = $c->createConversation($id1, $id3);
+        $cid2 = $c->createConversation($id2, $id3);
+        $cid3 = $c->createUser2Mod($id2, $group1);
+        error_log("Created to mods $cid3");
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $str = "Test from $id1 to $id3 in $cid1";
+        $mid1 = $cm->create($cid1, $id1, $str);
+        error_log("Created $mid1 $str");
+        $str = "Test from $id2 to $id3 in $cid2";
+        $mid2 = $cm->create($cid2, $id2, $str);
+        error_log("Created $mid2 $str");
 
         # We should get the group back and a default config.
         assertEquals(1, $u2->getGroupSettings($group2)['test'] );
@@ -386,6 +401,17 @@ class userTest extends IznikTestCase {
         assertEquals(1, $emails[0]['preferred']);
         assertEquals('test2@test.com', $emails[1]['email']);
         assertEquals(0, $emails[1]['preferred']);
+
+        # Check chats
+        $cid1a = $c->createConversation($id1, $id3);
+        self::assertEquals($cid1a, $cid1);
+        $c = new ChatRoom($this->dbhr, $this->dbhm, $cid1);
+        list ($msgs, $users) = $c->getMessages();
+        error_log("Messages " . var_export($msgs, TRUE));
+        assertEquals(2, count($msgs));
+
+        $cid3a = $c->createUser2Mod($id1, $group1);
+        self::assertEquals($cid3a, $cid3);
 
 //        Merged logs are hidden.
 //        $atts = $u1->getPublic(NULL, FALSE, TRUE);

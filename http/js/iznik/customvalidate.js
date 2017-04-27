@@ -1,4 +1,8 @@
 require(['jquery.validate.min'], function() {
+    $.extend($.validator.messages, {
+        url: "Please enter a valid URL, including http:// or https://."
+    });
+
     $.validator.addMethod('mindate',function(v,el,self){
         for (var i = 0; i < self.dates.length; i++) {
             var start = new Date(self.dates[i].getStart());

@@ -252,7 +252,7 @@ class Story extends Entity
     public function sendToCentral($id = NULL) {
         $idq = $id ? " AND id = $id " : "";
         $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE mailedtocentral = 0 AND public = 1 AND reviewed = 1 $idq;");
-        $url = "https://" . USER_SITE . "stories/fornewsletter";
+        $url = "https://" . USER_SITE . "/stories/fornewsletter";
         $html = "<p><span style=\"color: red\">Please go  <a href=\"$url\">here</a> to vote for which go into the next member newsletter.</span></p>";
         $text = "Please go to $url to vote for which go into the next member newsletter\n\n";
         $count = 0;

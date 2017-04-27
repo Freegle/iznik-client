@@ -53,7 +53,7 @@ EOT;
                                                             <td class="mobile" align="left" valign="top">
                                                                 <p>Dear $toname,<p>
                                                                 <p>We will automatically repost your message <b><i>$subject</i></b> soon, so that more people will see it.</p>
-                                                                <p>If you <b>don't</b> want us to do that, please let us know:</p>
+                                                                <p>If you <b>don't</b> want us to do that, please click on one of the following buttons to let us know:</p>
                                                                 
                                                                 <table width="350" cellpadding="10" cellspacing="10" align="left" border="0">
                                                                     <tr>
