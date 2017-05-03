@@ -33,6 +33,17 @@ console.log("Find react on", el);
 var r = FindReact(el);
 if (r) {
     console.log("Returned injected", r);
+    var span = el.getElementsByTagName('span');
+    console.log("Span", span);
+    var r2 = FindReact(span[0]);
+    r2.stateNode.innerText = 'testing';
+
+    var event = new Event('input', {
+        'bubbles': true,
+        'cancelable': true
+    });
+
+    r2.stateNode.dispatchEvent(event);
 }
 
 var hnd = FindReactHandles(document.getElementById('composer_text_input_box'));

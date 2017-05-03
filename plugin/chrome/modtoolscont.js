@@ -244,29 +244,29 @@ function postMessage(details) {
                                     //
                                     // window.setTimeout(function () {
                                     //     // console.log("Do inject");
-                                    //     // injectScript( chrome.extension.getURL('/modtoolsinject.js'), 'body');
+                                    injectScript( chrome.extension.getURL('/modtoolsinject.js'), 'body');
                                     // }, 5000);
 
-                                    window.setTimeout(function () {
-                                        $.ajax({
-                                            url: 'https://iznik.modtools.org/api/messages',
-                                            type: 'POST',
-                                            data: {
-                                                'action': 'UpdateFacebookPostable',
-                                                'uid': details.facebook.uid,
-                                                'id': message.id,
-                                                'arrival': message.arrival
-                                            },
-                                            success: function (ret) {
-                                                $('#pagelet_group_composer button').click();
-                                                if (postmsgs.length > 0) {
-                                                    window.setTimeout(postMessage, 30000, details);
-                                                } else {
-                                                    postMessages();
-                                                }
-                                            }
-                                        });
-                                    }, 1000);
+                                    // window.setTimeout(function () {
+                                    //     $.ajax({
+                                    //         url: 'https://iznik.modtools.org/api/messages',
+                                    //         type: 'POST',
+                                    //         data: {
+                                    //             'action': 'UpdateFacebookPostable',
+                                    //             'uid': details.facebook.uid,
+                                    //             'id': message.id,
+                                    //             'arrival': message.arrival
+                                    //         },
+                                    //         success: function (ret) {
+                                    //             $('#pagelet_group_composer button').click();
+                                    //             if (postmsgs.length > 0) {
+                                    //                 window.setTimeout(postMessage, 30000, details);
+                                    //             } else {
+                                    //                 postMessages();
+                                    //             }
+                                    //         }
+                                    //     });
+                                    // }, 1000);
                                 }, 1000);
                             } catch (e) {
                                 console.log("Failed on location", e.message);
