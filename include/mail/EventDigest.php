@@ -92,7 +92,7 @@ class EventDigest
                 $atts = $e->getPublic();
 
                 foreach ($atts['dates'] as $date) {
-                    if (strtotime($date['start']) >= time())  {
+                    if (strtotime($date['end']) >= time())  {
                         $htmlsumm .= digest_event($atts, $date['start'], $date['end']);
 
                         # Get a string representation of the date in UK time.
