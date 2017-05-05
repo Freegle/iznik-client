@@ -42,6 +42,11 @@
         </div>
     </div>
     <div class="panel-footer">
+        <% if (obj.public) { %>
+        <div class="alert alert-info">
+            The member has said this story isn't public, so this is just for you to read and then click <em>Hide</em>.
+        </div>
+        <% } %>
         <ul class="list-inline list-unstyled">
             <% if (obj.public) { %>
             <div class="btn btn-success js-use">
