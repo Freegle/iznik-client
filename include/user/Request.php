@@ -110,7 +110,7 @@ class Request extends Entity
 
                     $message = Swift_Message::newInstance()
                         ->setSubject("Your cards are on their way...")
-                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setFrom([NOREPLY_ADDR => 'Freegle'])
                         ->setReturnPath($u->getBounce())
                         ->setTo([ $u->getEmailPreferred() => $u->getName() ])
                         ->setBody("Thanks for asking for some cards to promote Freegle.  They should now be on their way.  Please allow a week or so for them to arrive.")
