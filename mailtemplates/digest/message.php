@@ -48,7 +48,7 @@ EOT;
                         <td width="45%" height="24" bgcolor="#377615" align="center" valign="middle"
                             style="font-family: Century Gothic, Arial, sans-serif; font-size: 12px; color: #ffffff;
                                 line-height:18px; border-radius:3px;">
-                            <a href="$replyemail" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Reply&nbsp;via&nbsp;Email&nbsp;</a>
+                            <a href="$replyemail" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Reply&nbsp;via&nbsp;Email&nbsp;</a>
                         </td>
                     </tr>
                 </table>    
