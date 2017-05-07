@@ -65,8 +65,16 @@ define([
             p.then(function () {
                 try {
                     var fop = Storage.get('FOP');
+                    console.log("Storage FOP", fop);
                     if (fop !== null) {
                         self.$('.js-fop').prop('checked', parseInt(fop) ? true : false);
+
+                        if (!parseInt(fop)) {
+                            console.log("Turn off");
+
+                            // FOP defaults on, so make sure that it's off.
+                            self.fop();
+                        }
                     }
                 } catch (e) {
                 }
