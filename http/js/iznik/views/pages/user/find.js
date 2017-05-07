@@ -329,6 +329,34 @@ define([
 
     Iznik.Views.User.Pages.Find.WhatNext = Iznik.Views.User.Pages.WhatNext.extend({
         template: "user_find_whatnext",
-        title: "Find something"
+
+        title: "Find something",
+
+        render: function () {
+            var self = this;
+
+            var p = Iznik.Views.User.Pages.WhatNext.prototype.render.call(this);
+            p.then(function () {
+                try {
+                    var v = new Iznik.Views.User.Pages.Find.Share({
+                        model: new Iznik.Models.Message({
+                            id: Storage.get('lastpost')
+                        })
+                    });
+
+                    v.model.fetch().then(function() {
+                        v.render();
+                    });
+
+                } catch (e) {
+                }
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.User.Pages.Find.Share = Iznik.Views.User.Pages.WhatNext.Share.extend({
+        template: "user_find_share"
     });
 });

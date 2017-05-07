@@ -4,10 +4,11 @@ define([
     'backbone',
     'iznik/base',
     'iznik/facebook',
+    'clipboard',
     'iznik/views/pages/pages',
     'typeahead',
     'jquery.scrollTo'
-], function($, _, Backbone, Iznik, FBLoad) {
+], function($, _, Backbone, Iznik, FBLoad, Clipboard) {
     Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
         firstMatch: null,
 
@@ -514,28 +515,8 @@ define([
     });
 
     Iznik.Views.User.Pages.WhatNext = Iznik.Views.Page.extend({
-        events: {
-            'click .js-sharefb': 'sharefb'
-        },
-
         id: null,
         image: null,
-
-        sharefb: function() {
-            var self = this;
-
-            if (self.id) {
-                var params = {
-                    method: 'share',
-                    href: window.location.protocol + '//' + window.location.host + '/message/' + self.id,
-                    image: self.image
-                };
-
-                FB.ui(params, function (response) {
-                    self.$('.js-fbshare').fadeOut('slow');
-                });
-            }
-        },
 
         render: function() {
             var self = this;
@@ -590,6 +571,75 @@ define([
             });
 
             return(p)
+        }
+    });
+
+    Iznik.Views.User.Pages.WhatNext.Share = Iznik.Views.Modal.extend({
+        events: {
+            'click .js-sharefb': 'sharefb',
+            'click .js-close': 'clickclose',
+            'click .js-copy': 'copy'
+        },
+
+        clickclose: function() {
+            ABTestAction('sharepost', 'close');
+            this.close();
+        },
+
+        sharefb: function() {
+            var self = this;
+
+            var image = null;
+
+            var atts = self.model.get('attachments');
+            if (atts && atts.length > 0) {
+                image = atts[0].path;
+            }
+
+            var params = {
+                method: 'share',
+                href: self.url,
+                image: image
+            };
+
+            ABTestAction('sharepost', 'facebook');
+
+            FB.ui(params, function (response) {
+                self.close();
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+
+            self.url = window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbpost';
+
+            p.then(function() {
+                ABTestShown('sharepost', 'facebook');
+                ABTestShown('sharepost', 'clipboard');
+                ABTestShown('sharepost', 'close');
+
+                self.clipboard = new Clipboard('.js-clip', {
+                    text: function() {
+                        console.log("Get text", self.url);
+                        return self.url;
+                    }
+                });
+
+                self.clipboard.on('success', function(e) {
+                    ABTestAction('sharepost', 'clipboard');
+                    self.close();
+                });
+
+                self.clipboard.on('error', function(e) {
+                    console.error('Clipboard error', e);
+                    self.close();
+                });
+            });
+
+            return(p);
         }
     });
 });
