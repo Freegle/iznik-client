@@ -121,6 +121,9 @@ class ChatMessage extends Entity
     }
 
     public function checkReview($message) {
+        # Spammer trick is to encode the dot in URLs.
+        $message = str_replace('&#12290;', '.', $message);
+
         $check = FALSE;
 
         if (stripos($message, '<script') !== FALSE) {
