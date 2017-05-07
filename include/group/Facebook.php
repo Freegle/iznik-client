@@ -294,7 +294,7 @@ class GroupFacebook {
             try {
                 $fb = $this->getFB(FALSE);
                 $result = $fb->post($this->id . '/feed', $params, $this->token);
-                error_log("Post returned " . var_export($result, true));
+                #error_log("Post returned " . var_export($result, true));
 
                 # Try to avoid rate-limiting.  This number covers the traffic we expect.
                 sleep(30);
@@ -483,7 +483,7 @@ class GroupFacebook {
 
                 try {
                     $result = $fb->post($comment['facebookid'] . '/comments', $params, $this->token);
-                    error_log("Post returned " . var_export($result, true));
+                    #error_log("Post returned " . var_export($result, true));
                     $this->dbhm->preExec("UPDATE chat_rooms SET synctofacebook = ? WHERE id = ?;", [
                         ChatRoom::FACEBOOK_SYNC_POSTED_LINK,
                         $chat['id']
