@@ -453,9 +453,11 @@ class Group extends Entity
             # We're searching.  It turns out to be more efficient to get the userids using the indexes, and then
             # get the rest of the stuff we need.
             $q = $this->dbhr->quote("$search%");
+            $bq = $this->dbhr->quote(strrev($search) . "%");
             $sql = "$sqlpref 
               WHERE users.id IN (SELECT * FROM (
                 (SELECT userid FROM users_emails WHERE email LIKE $q) UNION
+                (SELECT userid FROM users_emails WHERE backwards LIKE $bq) UNION
                 (SELECT id FROM users WHERE id = " . $this->dbhr->quote($search) . ") UNION
                 (SELECT id FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id FROM users WHERE yahooid LIKE $q) UNION
