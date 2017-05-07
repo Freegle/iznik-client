@@ -273,7 +273,7 @@ class MailRouter
                 $this->mail($fromheader[0]['address'], $to, "Yes please", "I confirm this");
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
-``                # This is a request by Yahoo to confirm a subscription for one of our members.  We always confirm this.
+                # This is a request by Yahoo to confirm a subscription for one of our members.  We always confirm this.
                 # If you are tempted to only confirm if the member is pending or approved then be aware that this caused
                 # a problem that I can no longer remember and turned out to be a bad idea.
                 if ($log) { error_log("Confirm subscription"); }
