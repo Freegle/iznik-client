@@ -325,6 +325,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="/css/glyphicons.css">
+    <link rel="stylesheet" href="/css/glyphicons-social.css">
     <link rel="stylesheet" href="/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="/css/bootstrap-switch.min.css">
     <link rel="stylesheet" href="/css/datepicker3.css">
