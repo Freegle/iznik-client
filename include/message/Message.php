@@ -2367,8 +2367,21 @@ class Message
             # For approved messages which only reach us as pending later, we don't want to change the approved
             # version.
             if ($this->source == Message::YAHOO_APPROVED && !$this->isEdited()) {
+                # Subject is a special case because Yahoo can add a subject tag in.
+                #
+                # We would never really want to have a subject that was empty (once we've stripped the tag).
+                # This seems to happen sometimes due to Yahoo oddities when editing.
+                $subj = $this->getPrivate('subject');
+                $subj = trim(preg_replace('/^\[.*?\]\s*/', '', $subj));
+
+                if (strlen($subj) && $subj != $m->getPrivate('subject')) {
+                    # The new subject isn't empty.
+                    $m->setPrivate('subject', $this->getPrivate('subject'));
+                    $changed .= ' subject';
+                }
+
                 # Other atts which we want the latest version of.
-                foreach (['date', 'subject', 'message', 'textbody', 'htmlbody'] as $att) {
+                foreach (['date', 'message', 'textbody', 'htmlbody'] as $att) {
                     $oldval = $m->getPrivate($att);
                     $newval = $this->getPrivate($att);
 
