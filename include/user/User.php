@@ -1921,13 +1921,15 @@ class User extends Entity
                             }
 
                             $alreadys = $this->dbhr->preQuery($sql);
+                            #error_log("Check room {$room['id']} {$room['user1']} => {$room['user2']} $sql " . count($alreadys));
 
                             if (count($alreadys) > 0) {
                                 # Yes, there already is one.
                                 $this->dbhm->preExec("UPDATE chat_messages SET chatid = {$alreadys[0]['id']} WHERE chatid = {$room['id']}");
                             } else {
                                 # No, there isn't, so we can update our old one.
-                                $this->dbhm->preExec("UPDATE chat_rooms SET user1 = $id1 WHERE id = {$room['id']};");
+                                $sql = $room['user1'] == $id2 ? "UPDATE chat_rooms SET user1 = $id1 WHERE id = {$room['id']};" : "UPDATE chat_rooms SET user2 = $id1 WHERE id = {$room['id']};";
+                                $this->dbhm->preExec($sql);
                             }
                         }
 
