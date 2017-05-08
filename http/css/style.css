@@ -975,6 +975,11 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     background-color: white;
 }
 
+.white {
+    color: white !important;
+    line-height: 18px !important;
+}
+
 .backwarning {
     background-color: #fbeed5;
 }
