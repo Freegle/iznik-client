@@ -578,6 +578,7 @@ define([
         events: {
             'click .js-sharefb': 'sharefb',
             'click .js-close': 'clickclose',
+            'click .js-whatsapp': 'whatsapp',
             'click .js-copy': 'copy'
         },
 
@@ -609,6 +610,14 @@ define([
             });
         },
 
+        whatsapp: function() {
+            var self = this;
+
+            ABTestAction('sharepost', 'whatsapp');
+            var url = 'whatsapp://send?text=' + encodeURI(self.model.get('subject') + " - see more at " + self.url);
+            window.open(url);
+        },
+
         render: function() {
             var self = this;
 
@@ -620,6 +629,7 @@ define([
                 ABTestShown('sharepost', 'facebook');
                 ABTestShown('sharepost', 'clipboard');
                 ABTestShown('sharepost', 'close');
+                ABTestShown('sharepost', 'whatsapp');
 
                 self.clipboard = new Clipboard('.js-clip', {
                     text: function() {
