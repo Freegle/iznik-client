@@ -71,10 +71,13 @@ class VolunteeringDigest
 
         if ($this->errorlog) { error_log("#$groupid " . $g->getPrivate('nameshort')); }
 
-        # We want to send all outstanding volunteer opportunities.
-        $sql = "SELECT DISTINCT volunteering.id FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND groupid = ? WHERE pending = 0 AND deleted = 0 AND expired = 0 ORDER BY volunteering.id DESC;";
-        error_log("Look for groups to process $sql, $groupid");
-        $volunteerings = $this->dbhr->preQuery($sql, [ $groupid ]);
+        # We want to send all outstanding volunteer opportunities for this group, or with no group.
+        #
+        # Don't test the groupid in the query, as we want to include ones with no group, and if we add an IS NULL
+        # clause then we'll get all of them.
+        $sql = "SELECT DISTINCT volunteering.id, volunteering_groups.groupid FROM volunteering LEFT JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id WHERE pending = 0 AND deleted = 0 AND expired = 0 ORDER BY volunteering.id DESC;";
+        #error_log("Look for groups to process $sql");
+        $volunteerings = $this->dbhr->preQuery($sql);
 
         if ($this->errorlog) { error_log("Consider " . count($volunteerings) . " volunteerings"); }
 
@@ -85,101 +88,109 @@ class VolunteeringDigest
         $tz2 = new DateTimeZone('Europe/London');
 
         if (count($volunteerings) > 0) {
+            $count = 0;
+
             foreach ($volunteerings as $volunteering) {
-                if ($this->errorlog) { error_log("Start group $groupid"); }
+                if (!$volunteering['groupid'] || $volunteering['groupid'] === $groupid) {
+                    $count++;
+                    if ($this->errorlog) { error_log("Start group $groupid"); }
 
-                $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
-                $atts = $e->getPublic();
-                $htmlsumm .= digest_volunteering($atts);
-                $textsumm .= $atts['title'] . " at " . $atts['location'] . "\r\n";
-            }
-
-            $html = digest_volunteerings($htmlsumm,
-                USER_SITE,
-                USERLOGO,
-                $gatts['namedisplay']
-            );
-
-            $tosend = [
-                'subject' => '[' . $gatts['namedisplay'] . "] Volunteer Opportunity Roundup",
-                'from' => $g->getAutoEmail(),
-                'fromname' => $gatts['namedisplay'],
-                'replyto' => $g->getModsEmail(),
-                'replytoname' => $gatts['namedisplay'],
-                'html' => $html,
-                'text' => $textsumm
-            ];
-
-            # Now find the users we want to send to on this group for this frequency.  We build up an array of
-            # the substitutions we need.
-            # TODO This isn't that well indexed in the table.
-            $replacements = [];
-
-            $sql = "SELECT userid FROM memberships WHERE groupid = ? AND volunteeringallowed = 1 ORDER BY userid ASC;";
-            $users = $this->dbhr->preQuery($sql, [ $groupid, ]);
-
-            if ($this->errorlog) { error_log("Consider " . count($users) . " users "); }
-            foreach ($users as $user) {
-                $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
-                if ($this->errorlog) {
-                    error_log("Consider user {$user['userid']}");
-                }
-
-                # We are only interested in sending opportunities to users for whom we have a preferred address -
-                # otherwise where would we send them?
-                $email = $u->getEmailPreferred();
-                if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
-
-                if ($email && $u->sendOurMails($g)) {
-                    if ($this->errorlog) { error_log("Send to them"); }
-                    $replacements[$email] = [
-                        '{{toname}}' => $u->getName(),
-                        '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_VOLUNTEERING_DIGEST),
-                        '{{email}}' => $email,
-                        '{{noemail}}' => 'volunteeringoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
-                        '{{post}}' => "https://" . USER_SITE . "/volunteering",
-                        '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid"
-                    ];
+                    $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
+                    $atts = $e->getPublic();
+                    $htmlsumm .= digest_volunteering($atts);
+                    error_log("{$atts['id']} {$atts['title']}");
+                    $textsumm .= $atts['title'] . " at " . $atts['location'] . "\r\n";
                 }
             }
 
-            if (count($replacements) > 0) {
-                error_log("#$groupid {$gatts['nameshort']} to " . count($replacements) . " users");
+            if ($count) {
+                $html = digest_volunteerings($htmlsumm,
+                    USER_SITE,
+                    USERLOGO,
+                    $gatts['namedisplay']
+                );
 
-                # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
-                # rather than lose it.
-                list ($transport, $mailer) = getMailer();
+                $tosend = [
+                    'subject' => '[' . $gatts['namedisplay'] . "] Volunteer Opportunity Roundup",
+                    'from' => $g->getAutoEmail(),
+                    'fromname' => $gatts['namedisplay'],
+                    'replyto' => $g->getModsEmail(),
+                    'replytoname' => $gatts['namedisplay'],
+                    'html' => $html,
+                    'text' => $textsumm
+                ];
 
-                # We're decorating using the information we collected earlier.  However the decorator doesn't
-                # cope with sending to multiple recipients properly (headers just get decorated with the first
-                # recipient) so we create a message for each recipient.
-                $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
-                $mailer->registerPlugin($decorator);
+                # Now find the users we want to send to on this group for this frequency.  We build up an array of
+                # the substitutions we need.
+                # TODO This isn't that well indexed in the table.
+                $replacements = [];
 
-                # We don't want to send too many mails before we reconnect.  This plugin breaks it up.
-                $mailer->registerPlugin(new Swift_Plugins_AntiFloodPlugin(900));
+                $sql = "SELECT userid FROM memberships WHERE groupid = ? AND volunteeringallowed = 1 ORDER BY userid ASC;";
+                $users = $this->dbhr->preQuery($sql, [ $groupid, ]);
 
-                $_SERVER['SERVER_NAME'] = USER_DOMAIN;
+                if ($this->errorlog) { error_log("Consider " . count($users) . " users "); }
+                foreach ($users as $user) {
+                    $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
+                    if ($this->errorlog) {
+                        error_log("Consider user {$user['userid']}");
+                    }
 
-                foreach ($replacements as $email => $rep) {
-                    $message = Swift_Message::newInstance()
-                        ->setSubject($tosend['subject'])
-                        ->setFrom([$tosend['from'] => $tosend['fromname']])
-                        ->setReturnPath($u->getBounce())
-                        ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
-                        ->setBody($tosend['text'])
-                        ->addPart($tosend['html'], 'text/html');
+                    # We are only interested in sending opportunities to users for whom we have a preferred address -
+                    # otherwise where would we send them?
+                    $email = $u->getEmailPreferred();
+                    if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
 
-                    $headers = $message->getHeaders();
-                    $headers->addTextHeader('List-Unsubscribe', '<mailto:{{volunteeringoff}}>, <{{unsubscribe}}>');
+                    if ($email && $u->sendOurMails($g)) {
+                        if ($this->errorlog) { error_log("Send to them"); }
+                        $replacements[$email] = [
+                            '{{toname}}' => $u->getName(),
+                            '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_VOLUNTEERING_DIGEST),
+                            '{{email}}' => $email,
+                            '{{noemail}}' => 'volunteeringoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
+                            '{{post}}' => "https://" . USER_SITE . "/volunteering",
+                            '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid"
+                        ];
+                    }
+                }
 
-                    try {
-                        $message->setTo([ $email => $rep['{{toname}}'] ]);
-                        #error_log("...$email");
-                        $this->sendOne($mailer, $message);
-                        $sent++;
-                    } catch (Exception $e) {
-                        error_log($email . " skipped with " . $e->getMessage());
+                if (count($replacements) > 0) {
+                    error_log("#$groupid {$gatts['nameshort']} to " . count($replacements) . " users");
+
+                    # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
+                    # rather than lose it.
+                    list ($transport, $mailer) = getMailer();
+
+                    # We're decorating using the information we collected earlier.  However the decorator doesn't
+                    # cope with sending to multiple recipients properly (headers just get decorated with the first
+                    # recipient) so we create a message for each recipient.
+                    $decorator = new Swift_Plugins_DecoratorPlugin($replacements);
+                    $mailer->registerPlugin($decorator);
+
+                    # We don't want to send too many mails before we reconnect.  This plugin breaks it up.
+                    $mailer->registerPlugin(new Swift_Plugins_AntiFloodPlugin(900));
+
+                    $_SERVER['SERVER_NAME'] = USER_DOMAIN;
+
+                    foreach ($replacements as $email => $rep) {
+                        $message = Swift_Message::newInstance()
+                            ->setSubject($tosend['subject'])
+                            ->setFrom([$tosend['from'] => $tosend['fromname']])
+                            ->setReturnPath($u->getBounce())
+                            ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
+                            ->setBody($tosend['text'])
+                            ->addPart($tosend['html'], 'text/html');
+
+                        $headers = $message->getHeaders();
+                        $headers->addTextHeader('List-Unsubscribe', '<mailto:{{volunteeringoff}}>, <{{unsubscribe}}>');
+
+                        try {
+                            $message->setTo([ $email => $rep['{{toname}}'] ]);
+                            #error_log("...$email");
+                            $this->sendOne($mailer, $message);
+                            $sent++;
+                        } catch (Exception $e) {
+                            error_log($email . " skipped with " . $e->getMessage());
+                        }
                     }
                 }
             }

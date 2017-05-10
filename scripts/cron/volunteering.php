@@ -2,6 +2,7 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/group/Volunteering.php');
 require_once(IZNIK_BASE . '/include/mail/VolunteeringDigest.php');
 
 $opts = getopt('m:v:');
@@ -19,6 +20,10 @@ if (count($opts) < 1) {
     $total = 0;
 
     $e = new VolunteeringDigest($dbhr, $dbhm, FALSE);
+
+    # Ensure any old ones are marked as so.
+    $v = new Volunteering($dbhr, $dbhm);
+    $v->expire();
 
     # We only send opportunities for Freegle groups.
     #

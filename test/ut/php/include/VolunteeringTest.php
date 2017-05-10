@@ -31,6 +31,8 @@ class volunteeringTest extends IznikTestCase {
 
     protected function tearDown() {
         parent::tearDown ();
+        $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test vacancy';");
+        $this->dbhm->preExec("DELETE FROM volunteering WHERE title LIKE 'Test volunteering%';");
     }
 
     public function __construct() {
