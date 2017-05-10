@@ -629,7 +629,10 @@ define([
                 ABTestShown('sharepost', 'facebook');
                 ABTestShown('sharepost', 'clipboard');
                 ABTestShown('sharepost', 'close');
-                ABTestShown('sharepost', 'whatsapp');
+
+                if (isSM()) {
+                    ABTestShown('sharepost', 'whatsapp');
+                }
 
                 self.clipboard = new Clipboard('.js-clip', {
                     text: function() {
