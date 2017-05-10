@@ -296,14 +296,14 @@ define([
                 }
 
                 self.$(".js-emailswitch").bootstrapSwitch({
-                    onText: 'Emails On',
-                    offText: 'Emails Off',
+                    onText: 'Emails&nbsp;On',
+                    offText: 'Emails&nbsp;Off',
                     state: notifs.hasOwnProperty('email') ? notifs.email : true
                 });
 
                 self.$(".js-emailmineswitch").bootstrapSwitch({
-                    onText: 'Yes Please',
-                    offText: 'No Thanks',
+                    onText: 'Yes&nbsp;Please',
+                    offText: 'No&nbsp;Thanks',
                     state: notifs.hasOwnProperty('emailmine') ? notifs.emailmine : false
                 });
 
@@ -311,8 +311,8 @@ define([
 
                 if (me.hasOwnProperty('notifications')) {
                     self.$(".js-pushswitch").bootstrapSwitch({
-                        onText: 'Browser Popups On',
-                        offText: 'Browser Popups Off',
+                        onText: 'Browser&nbsp;Popups&nbsp;On',
+                        offText: 'Browser&nbsp;Popups&nbsp;Off',
                         state: notifs.hasOwnProperty('push') ? notifs.push: true
                     });
 
@@ -321,8 +321,8 @@ define([
 
                 if (me.hasOwnProperty('notifications')) {
                     self.$(".js-appswitch").bootstrapSwitch({
-                        onText: 'App Notifications On',
-                        offText: 'App Notifications Off',
+                        onText: 'App&nbsp;Notifications&nbsp;On',
+                        offText: 'App&nbsp;Notifications&nbsp;Off',
                         state: notifs.hasOwnProperty('app') ? notifs.app: true
                     });
 
@@ -333,8 +333,8 @@ define([
                 
                 if (facebook) {
                     self.$(".js-facebookswitch").bootstrapSwitch({
-                        onText: 'Facebook Notifications On',
-                        offText: 'Facebook Notifications Off',
+                        onText: 'Facebook&nbsp;Notifications&nbsp;On',
+                        offText: 'Facebook&nbsp;Notifications&nbsp;Off',
                         state: notifs.hasOwnProperty('facebook') ? notifs.facebook: true
                     });
 
