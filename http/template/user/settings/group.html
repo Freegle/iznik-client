@@ -6,7 +6,7 @@
     <div class="col-lg-8 col-md-8 col-sm-2 col-xs-8">
         <b>{{namedisplay}}<% if (role == 'Moderator' || role == 'Owner') { %>&nbsp;<div class="glyphicons glyphicons-crown" /><% } %></b>
     </div>
-    <div class="hidden-lg hidden-md col-sm-3 hidden-xs">
+    <div class="hidden-lg hidden-md col-sm-2 hidden-xs">
         <select class="form-control js-frequency">
             <option value="-1">Immediately</option>
             <option value="1">Every hour</option>
@@ -17,23 +17,29 @@
             <option value="0">Never</option>
         </select>
     </div>
-    <div class="hidden-lg hidden-md col-sm-3 hidden-xs">
+    <div class="hidden-lg hidden-md col-sm-2 hidden-xs">
         <select class="form-control js-events">
             <option value="1">Events On</option>
             <option value="0">Events Off</option>
         </select>
     </div>
+    <div class="hidden-lg hidden-md col-sm-3 hidden-xs">
+        <select class="form-control js-volunteering">
+            <option value="1">Volunteering On</option>
+            <option value="0">Volunteering Off</option>
+        </select>
+    </div>
     <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1 vcenter">
         <div class="glyphicon glyphicon-ok-sign success hidden js-ok" />
     </div>
-    <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 nopad">
+    <div class="col-lg-2 col-md-2 col-sm-1 col-xs-2 nopad">
         <div class="botspace btn btn-white  <% if (role == 'Moderator' || role == 'Owner') { %>faded<% } else { %>js-leave<% } %>">
             <div class="glyphicon glyphicon-trash inline" />&nbsp;Leave
         </div>
     </div>
 </div>
 <div class="row visible-lg visible-md hidden-sm visible-xs">
-    <div class="col-md-6 col-xs-6">
+    <div class="col-md-4 col-xs-4">
         <select class="form-control js-frequency">
             <option value="-1">Immediately</option>
             <option value="1">Every hour</option>
@@ -44,10 +50,16 @@
             <option value="0">Never</option>
         </select>
     </div>
-    <div class="col-md-6 col-xs-6">
+    <div class="col-md-4 col-xs-4">
         <select class="form-control js-events">
             <option value="1">Events On</option>
             <option value="0">Events Off</option>
+        </select>
+    </div>
+    <div class="col-md-4 col-xs-4">
+        <select class="form-control js-volunteering">
+            <option value="1">Volunteering On</option>
+            <option value="0">Volunteering Off</option>
         </select>
     </div>
 </div>

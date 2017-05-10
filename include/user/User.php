@@ -78,6 +78,7 @@ class User extends Entity
     const SRC_PUSHNOTIF = 'pushnotif'; // From JS
     const SRC_TWITTER = 'twitter';
     const SRC_EVENT_DIGEST = 'eventdigest';
+    const SRC_VOLUNTEERING_DIGEST = 'voldigest';
     const SRC_NEWSLETTER = 'newsletter';
 
     /** @var  $log Log */
@@ -883,7 +884,7 @@ class User extends Entity
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
-        $sql = "SELECT memberships.settings, emailfrequency, eventsallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
+        $sql = "SELECT memberships.settings, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
         #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
 
@@ -1177,7 +1178,8 @@ class User extends Entity
             'active' => 1,
             'showchat' => 1,
             'pushnotify' => 1,
-            'eventsallowed' => 1
+            'eventsallowed' => 1,
+            'volunteeringallowed' => 1
         ];
 
         $settings = $defaults;
@@ -1208,6 +1210,7 @@ class User extends Entity
 
             $settings['emailfrequency'] = $set['emailfrequency'];
             $settings['eventsallowed'] = $set['eventsallowed'];
+            $settings['volunteeringallowed'] = $set['volunteeringallowed'];
         }
 
         return($settings);
@@ -1514,6 +1517,7 @@ class User extends Entity
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
+                        'volunteeringallowed' => $group['volunteeringallowed'],
                         'ourPostingStatus' => $group['ourPostingStatus'],
                         'type' => $group['type'],
                         'onyahoo' => $group['onyahoo'],
@@ -1561,6 +1565,7 @@ class User extends Entity
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
+                        'volunteeringallowed' => $group['volunteeringallowed'],
                         'ourpostingstatus' => $group['ourPostingStatus'],
                         'type' => $group['type'],
                         'onyahoo' => $group['onyahoo'],

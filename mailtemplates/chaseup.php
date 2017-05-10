@@ -59,17 +59,17 @@ EOT;
                                                                         <td width="170" height="36" bgcolor="#ff0000" align="center" valign="middle"
                                                                             style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                 line-height:18px; border-radius:3px;">
-                                                                            <a href="$repost" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Repost it please!</a>
+                                                                            <a href="$repost" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Repost it please!</a>
                                                                         </td>
                                                                         <td width="170" height="36" bgcolor="#006400" align="center" valign="middle"
                                                                             style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                 line-height:18px; border-radius:3px;">
-                                                                            <a href="$completed" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Mark as $type</a>
+                                                                            <a href="$completed" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Mark as $type</a>
                                                                         </td>
                                                                         <td width="170" height="36" bgcolor="#00008B" align="center" valign="middle"
                                                                             style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                 line-height:18px; border-radius:3px;">
-                                                                            <a href="$gaveup" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Withdraw</a>
+                                                                            <a href="$gaveup" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Withdraw</a>
                                                                         </td>
                                                                     </tr>
                                                                 </table>

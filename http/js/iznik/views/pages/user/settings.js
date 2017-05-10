@@ -267,8 +267,8 @@ define([
 
                 // console.log("On holiday?", me.onholidaytill, me.onholidaytill != undefined);
                 self.$(".js-holidayswitch").bootstrapSwitch({
-                    onText: 'Mails Paused',
-                    offText: 'Mails On',
+                    onText: 'Mails&nbsp;Paused',
+                    offText: 'Mails&nbsp;On',
                     state: me.onholidaytill != undefined
                 });
                 self.onholiday();
@@ -368,6 +368,7 @@ define([
         events: {
             'change .js-frequency': 'changeFreq',
             'change .js-events': 'changeEvents',
+            'change .js-volunteering': 'changeVolunteering',
             'click .js-leave': 'leave'
         },
 
@@ -444,6 +445,27 @@ define([
             });
         },
 
+        changeVolunteering: function(e) {
+            var self = this;
+            var me = Iznik.Session.get('me');
+            var data = {
+                userid: me.id,
+                groupid: self.model.get('id'),
+                volunteeringallowed: $(e.target).val()
+            };
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PATCH',
+                data: data,
+                success: function(ret) {
+                    if (ret.ret === 0) {
+                        self.$('.js-ok').removeClass('hidden');
+                    }
+                }
+            });
+        },
+
         render: function() {
             var self = this;
             Iznik.View.prototype.render.call(this).then(function() {
@@ -451,6 +473,8 @@ define([
                 self.$('.js-frequency').val(freq);
                 var events = parseInt(self.model.get('mysettings').eventsallowed);
                 self.$('.js-events').val(events);
+                var volunteering = parseInt(self.model.get('mysettings').volunteeringallowed);
+                self.$('.js-volunteering').val(volunteering);
             })
         }
     });

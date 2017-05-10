@@ -78,7 +78,7 @@ EOT;
                                                                                 <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
                                                                                     style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                         line-height:18px; border-radius:3px;">
-                                                                                    <a href="$url" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">View and Reply</a>
+                                                                                    <a href="$url" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">View and Reply</a>
                                                                                 </td>
                                                                             </tr>
                                                                         </table>

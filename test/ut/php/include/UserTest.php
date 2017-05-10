@@ -349,7 +349,7 @@ class userTest extends IznikTestCase {
         $settings = [ 'test' => 1];
         $u2->setGroupSettings($group2, $settings);
         $u1->clearMembershipCache();
-        assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1 ], $u1->getGroupSettings($group2));
+        assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1, 'volunteeringallowed' => 1], $u1->getGroupSettings($group2));
 
         # Set up some chats
         $c = new ChatRoom($this->dbhr, $this->dbhm);

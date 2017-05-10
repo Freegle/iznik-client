@@ -540,6 +540,7 @@ class Group extends Entity
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
             $thisone['eventsallowed'] = $member['eventsallowed'];
+            $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
 
             # Our posting status only applies for groups we host.  In that case, the default is moderated.
             $thisone['ourpostingstatus'] = presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);

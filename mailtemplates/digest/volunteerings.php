@@ -2,15 +2,13 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function invite($fromname, $fromemail, $url) {
-    $logo = USERLOGO;
-    $vols = GEEKS_ADDR;
-
+function digest_volunteerings($htmlsumm, $domain, $logo, $groupname) {
+    $siteurl = "https://$domain";
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <title>$fromname has invited you to try Freegle!</title>
+    <title>Volunteering Roundup</title>
 EOT;
 
     $html .= mail_header();
@@ -45,17 +43,17 @@ EOT;
                                                                 <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
                                                                     <tr>
                                                                         <td>                                                           
-                                                                            <a href="$url">
-                                                                                <img src="$logo" width="100" height="100" style="border-radius:3px; margin:0; padding:0; border:none; display:block;" alt="" class="imgClass" />
+                                                                            <a href="$siteurl">
+                                                                                <img src="$logo" style="width: 100px; height: 100px; border-radius:3px; margin:0; padding:0; border:none; display:block;" alt="" class="imgClass" />
                                                                             </a>
                                                                         </td>
                                                                     </tr>
                                                                 </table>               
                                                             </td>    
                                                             <td>
-                                                                <h1>$fromname ($fromemail) has invited you to try Freegle!</h1>                                                              
-                                                                <p>Got stuff you don't need? Freegle helps you find someone to come and take it.  Looking for something? We'll pair you with someone giving it away.
-                                                                <p>It's free to join, free to use, and everything on it is free.</p>
+                                                                <p>Charities, community organisations and good causes are welcome to ask our lovely freeglers for volunteers.  If
+                                                                you'd like to add one, click <a href="{{post}}">here</a>.</p>
+                                                                <p>You've received this automated mail because you're a member of <a href="{{visit}}">$groupname</a>.</p>
                                                                 <table width="100%">
                                                                     <tr>
                                                                         <td>
@@ -64,26 +62,54 @@ EOT;
                                                                                     <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
                                                                                         style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                             line-height:18px; border-radius:3px;">
-                                                                                        <a href="$url" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Try&nbsp;Freegle</a>
+                                                                                        <a href="{{post}}" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Add&nbsp;your&nbsp;own!&nbsp;</a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                         </td>
+                                                                        <td>
+                                                                            <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
+                                                                                <tr>
+                                                                                    <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
+                                                                                        style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
+                                                                                            line-height:18px; border-radius:3px;">
+                                                                                        <a href="{{visit}}" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Browse&nbsp;the&nbsp;group&nbsp;</a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                        <td>
+                                                                            <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
+                                                                                <tr>
+                                                                                    <td width="50%" height="36" bgcolor="#336666" align="center" valign="middle"
+                                                                                        style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
+                                                                                            line-height:18px; border-radius:3px;">
+                                                                                        <a href="{{unsubscribe}}" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Unsubscribe&nbsp;</a>
                                                                                     </td>
                                                                                 </tr>
                                                                             </table>
                                                                          </td>
                                                                     </tr>                                                                    
-                                                                </table>                                                                
-                                                                <p>$fromemail said they knew you - but if you don't know them, or don't want any more of these invitations, please mail <a href="mailto:$vols">$vols</a>.</p>
+                                                                </table>
                                                             </td>
                                                         </tr>        
                                                         <tr>
-                                                            <td height="20" style="font-size:10px; line-height:10px;"> </td>
+                                                            <td height="20" style="font-size:10px; line-height:10px;"> </td><!-- Spacer -->
                                                         </tr>
                                                         <tr>
                                                             <td colspan="2">
                                                                 <font color=gray><hr></font>
                                                             </td>
-                                                        </tr>        
+                                                        </tr>   
+                                                        <tr>
+                                                            <td colspan="2">
+                                                                $htmlsumm
+                                                            </td>
+                                                        </tr>   
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
+                                                                <p>This mail was sent to {{email}}.  You are set to receive updates for $groupname volunteering opportunities.</p>
+                                                                <p>You can change your settings by clicking <a href="$siteurl/settings">here</a>, or turn these volunteering emails off by emailing <a href="mailto:{{noemail}}">{{noemail}}</a></p>
                                                                 <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
                                                             </td>
                                                         </tr>        
@@ -98,7 +124,7 @@ EOT;
                     </td>
                 </tr>
                 <tr>
-                    <td height="10" style="font-size:10px; line-height:10px;"> </td>
+                    <td height=\"10\" style=\"font-size:10px; line-height:10px;\"> </td>
                 </tr>
            </table>
        </td>

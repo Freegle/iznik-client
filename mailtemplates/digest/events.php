@@ -60,7 +60,7 @@ EOT;
                                                                                     <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
                                                                                         style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                             line-height:18px; border-radius:3px;">
-                                                                                        <a href="{{post}}" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Add&nbsp;your&nbsp;own!&nbsp;</a>
+                                                                                        <a href="{{post}}" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Add&nbsp;your&nbsp;own!&nbsp;</a>
                                                                                     </td>
                                                                                 </tr>
                                                                             </table>
@@ -71,7 +71,7 @@ EOT;
                                                                                     <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
                                                                                         style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                             line-height:18px; border-radius:3px;">
-                                                                                        <a href="{{visit}}" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Browse&nbsp;the&nbsp;group&nbsp;</a>
+                                                                                        <a href="{{visit}}" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Browse&nbsp;the&nbsp;group&nbsp;</a>
                                                                                     </td>
                                                                                 </tr>
                                                                             </table>
@@ -82,7 +82,7 @@ EOT;
                                                                                     <td width="50%" height="36" bgcolor="#336666" align="center" valign="middle"
                                                                                         style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                             line-height:18px; border-radius:3px;">
-                                                                                        <a href="{{unsubscribe}}" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Unsubscribe&nbsp;</a>
+                                                                                        <a href="{{unsubscribe}}" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Unsubscribe&nbsp;</a>
                                                                                     </td>
                                                                                 </tr>
                                                                             </table>

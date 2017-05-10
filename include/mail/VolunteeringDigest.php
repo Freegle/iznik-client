@@ -3,12 +3,12 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
-require_once(IZNIK_BASE . '/mailtemplates/digest/events.php');
-require_once(IZNIK_BASE . '/mailtemplates/digest/event.php');
-require_once(IZNIK_BASE . '/mailtemplates/digest/eventsoff.php');
+require_once(IZNIK_BASE . '/include/group/Volunteering.php');
+require_once(IZNIK_BASE . '/mailtemplates/digest/volunteerings.php');
+require_once(IZNIK_BASE . '/mailtemplates/digest/volunteering.php');
+require_once(IZNIK_BASE . '/mailtemplates/digest/volunteeringoff.php');
 
-class EventDigest
+class VolunteeringDigest
 {
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
@@ -32,7 +32,7 @@ class EventDigest
 
     public function off($uid, $groupid) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->setMembershipAtt($groupid, 'eventsallowed', 0);
+        $u->setMembershipAtt($groupid, 'volunteeringallowed', 0);
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
         # We can receive messages for emails from the old system where the group id is no longer valid.
@@ -56,7 +56,7 @@ class EventDigest
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReturnPath($u->getBounce())
                     ->setTo([ $email => $u->getName() ])
-                    ->setBody("We've turned your community event emails off on $groupname.")
+                    ->setBody("We've turned your volunteering emails off on $groupname.")
                     ->addPart($html, 'text/html');
 
                 $this->sendOne($mailer, $message);
@@ -71,12 +71,12 @@ class EventDigest
 
         if ($this->errorlog) { error_log("#$groupid " . $g->getPrivate('nameshort')); }
 
-        # We want to send all events which start within the next month for this group.
-        $sql = "SELECT DISTINCT communityevents.id FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id AND groupid = ? INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id WHERE start >= NOW() AND DATEDIFF(NOW(), start) <= 30 AND pending = 0 AND deleted = 0 ORDER BY communityevents_dates.start ASC;";
-        #error_log("Look for groups to process $sql, $groupid");
-        $events = $this->dbhr->preQuery($sql, [ $groupid ]);
+        # We want to send all outstanding volunteer opportunities.
+        $sql = "SELECT DISTINCT volunteering.id FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND groupid = ? WHERE pending = 0 AND deleted = 0 AND expired = 0 ORDER BY volunteering.id DESC;";
+        error_log("Look for groups to process $sql, $groupid");
+        $volunteerings = $this->dbhr->preQuery($sql, [ $groupid ]);
 
-        if ($this->errorlog) { error_log("Consider " . count($events) . " events"); }
+        if ($this->errorlog) { error_log("Consider " . count($volunteerings) . " volunteerings"); }
 
         $textsumm = '';
         $htmlsumm = '';
@@ -84,38 +84,24 @@ class EventDigest
         $tz1 = new DateTimeZone('UTC');
         $tz2 = new DateTimeZone('Europe/London');
 
-        if (count($events) > 0) {
-            foreach ($events as $event) {
+        if (count($volunteerings) > 0) {
+            foreach ($volunteerings as $volunteering) {
                 if ($this->errorlog) { error_log("Start group $groupid"); }
 
-                $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id']);
+                $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
                 $atts = $e->getPublic();
-
-                foreach ($atts['dates'] as $date) {
-                    if (strtotime($date['end']) >= time())  {
-                        $htmlsumm .= digest_event($atts, $date['start'], $date['end']);
-
-                        # Get a string representation of the date in UK time.
-                        $datetime = new DateTime($date['start'], $tz1);
-                        $datetime->setTimezone($tz2);
-                        $datestr = $datetime->format('D, jS F g:ia');
-
-                        $textsumm .= $atts['title'] . " starts $datestr at " . $atts['location'] . "\r\n";
-
-                        # Only send the first occurrence that happens in this period.
-                        break;
-                    }
-                }
+                $htmlsumm .= digest_volunteering($atts);
+                $textsumm .= $atts['title'] . " at " . $atts['location'] . "\r\n";
             }
 
-            $html = digest_events($htmlsumm,
+            $html = digest_volunteerings($htmlsumm,
                 USER_SITE,
                 USERLOGO,
                 $gatts['namedisplay']
             );
 
             $tosend = [
-                'subject' => '[' . $gatts['namedisplay'] . "] Community Event Roundup",
+                'subject' => '[' . $gatts['namedisplay'] . "] Volunteer Opportunity Roundup",
                 'from' => $g->getAutoEmail(),
                 'fromname' => $gatts['namedisplay'],
                 'replyto' => $g->getModsEmail(),
@@ -129,7 +115,7 @@ class EventDigest
             # TODO This isn't that well indexed in the table.
             $replacements = [];
 
-            $sql = "SELECT userid FROM memberships WHERE groupid = ? AND eventsallowed = 1 ORDER BY userid ASC;";
+            $sql = "SELECT userid FROM memberships WHERE groupid = ? AND volunteeringallowed = 1 ORDER BY userid ASC;";
             $users = $this->dbhr->preQuery($sql, [ $groupid, ]);
 
             if ($this->errorlog) { error_log("Consider " . count($users) . " users "); }
@@ -139,7 +125,7 @@ class EventDigest
                     error_log("Consider user {$user['userid']}");
                 }
 
-                # We are only interested in sending events to users for whom we have a preferred address -
+                # We are only interested in sending opportunities to users for whom we have a preferred address -
                 # otherwise where would we send them?
                 $email = $u->getEmailPreferred();
                 if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
@@ -148,10 +134,10 @@ class EventDigest
                     if ($this->errorlog) { error_log("Send to them"); }
                     $replacements[$email] = [
                         '{{toname}}' => $u->getName(),
-                        '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_EVENT_DIGEST),
+                        '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_VOLUNTEERING_DIGEST),
                         '{{email}}' => $email,
-                        '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
-                        '{{post}}' => "https://" . USER_SITE . "/communityevents",
+                        '{{noemail}}' => 'volunteeringoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
+                        '{{post}}' => "https://" . USER_SITE . "/volunteering",
                         '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid"
                     ];
                 }
@@ -185,7 +171,7 @@ class EventDigest
                         ->addPart($tosend['html'], 'text/html');
 
                     $headers = $message->getHeaders();
-                    $headers->addTextHeader('List-Unsubscribe', '<mailto:{{eventsoff}}>, <{{unsubscribe}}>');
+                    $headers->addTextHeader('List-Unsubscribe', '<mailto:{{volunteeringoff}}>, <{{unsubscribe}}>');
 
                     try {
                         $message->setTo([ $email => $rep['{{toname}}'] ]);
@@ -199,7 +185,7 @@ class EventDigest
             }
         }
 
-        $this->dbhm->preExec("UPDATE groups SET lasteventsroundup = NOW() WHERE id = ?;", [ $groupid ]);
+        $this->dbhm->preExec("UPDATE groups SET lastvolunteeringroundup = NOW() WHERE id = ?;", [ $groupid ]);
         Group::clearCache($groupid);
 
         return($sent);
