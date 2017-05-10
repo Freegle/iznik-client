@@ -218,6 +218,9 @@ class Message
             # In the interests of accessibility, let's create a text version of the HTML
             $html = new \Html2Text\Html2Text($htmlbody);
             $textbody = $html->getText();
+
+            # Make sure we have a text value, otherwise we might return a missing body.
+            $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
         }
 
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -227,9 +230,6 @@ class Message
         $text .= ($location ? "New location $location" : '');
         $text .= "Text body changed to len " . strlen($textbody);
         $text .= " HTML body changed to len " . strlen($htmlbody);
-
-        # Make sure we have a text value, otherwise we might return a missing body.
-        $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
 
         if ($type) {
             $this->setPrivate('type', $type);
