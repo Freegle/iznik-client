@@ -3137,7 +3137,7 @@ class User extends Entity
                         $message = Swift_Message::newInstance()
                             ->setSubject("$fromname has invited you to try Freegle!")
                             ->setFrom([ NOREPLY_ADDR => SITE_NAME ])
-                            ->setReplyTo(GEEKS_ADDR)
+                            ->setReplyTo($frommail)
                             ->setTo($email)
                             ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
                         $headers = $message->getHeaders();
