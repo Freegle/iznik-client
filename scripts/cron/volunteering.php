@@ -42,7 +42,7 @@ if (count($opts) < 1) {
 
     $duration = time() - $start;
 
-    error_log("Finish events at " . date("Y-m-d H:i:s") . ", sent $total mails in $duration seconds");
+    error_log("Finish volunteering at " . date("Y-m-d H:i:s") . ", sent $total mails in $duration seconds");
 
     unlockScript($lockh);
 }
