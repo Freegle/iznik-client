@@ -119,6 +119,7 @@ function injectScript(file, node) {
     var s = document.createElement('script');
     s.setAttribute('type', 'text/javascript');
     s.setAttribute('src', file);
+    s.setAttribute('sync', true);
     th.appendChild(s);
 }
 
@@ -244,7 +245,7 @@ function postMessage(details) {
                                     //
                                     // window.setTimeout(function () {
                                     //     // console.log("Do inject");
-                                    injectScript( chrome.extension.getURL('/modtoolsinject.js'), 'body');
+                                    // injectScript( chrome.extension.getURL('/modtoolsinject.js'), 'body');
                                     // }, 5000);
 
                                     // window.setTimeout(function () {
@@ -404,23 +405,26 @@ $(document).ready(function() {
                         console.log("LS exception", e.message);
                     }
 
-                    if (!confirmed) {
-                        status('Asking...');
-                        confirmed = window.confirm("May ModTools post " + msgcount + " post" + ((msgcount != 1) ? 's' : '') + '?');
-                        try {
-                            localStorage.setItem('mtconfirmed', confirmed);
-                        } catch (e) {
-                            console.log("LS exception", e.message);
-                        }
-                    }
+                    injectScript( chrome.extension.getURL('/modtoolsinject.js'), 'body');
 
-                    if (confirmed) {
-                        // Shuffle so that if we keep interrupting, we will give different groups a chance.
-                        // topost = shuffle(topost);
-                        postMessages();
-                    } else {
-                        statusHide();
-                    }
+                    //
+                    // if (!confirmed) {
+                    //     status('Asking...');
+                    //     confirmed = window.confirm("May ModTools post " + msgcount + " post" + ((msgcount != 1) ? 's' : '') + '?');
+                    //     try {
+                    //         localStorage.setItem('mtconfirmed', confirmed);
+                    //     } catch (e) {
+                    //         console.log("LS exception", e.message);
+                    //     }
+                    // }
+                    //
+                    // if (confirmed) {
+                    //     // Shuffle so that if we keep interrupting, we will give different groups a chance.
+                    //     // topost = shuffle(topost);
+                    //     postMessages();
+                    // } else {
+                    //     statusHide();
+                    // }
                 });
             } else {
                 // We don't know who we are yet - we mustn't have yet loaded MT with this plugin.
