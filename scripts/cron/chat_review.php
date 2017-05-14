@@ -20,7 +20,7 @@ error_log($dbhm->rowsAffected() . " messages stuck in review");
 
 # Now look for chat which has been pending review for 48 hours.
 $mysqltime = date("Y-m-d", strtotime("48 hours ago"));
-$groups = $dbhr->preQuery("SELECT DISTINCT(groupid), COUNT(*) AS count FROM memberships INNER JOIN chat_messages ON memberships.userid = chat_messages.userid WHERE chat_messages.date < ? AND reviewrequired = 1 AND reviewedby IS NULL GROUP BY groupid;", [
+$groups = $dbhr->preQuery("SELECT DISTINCT(memberships.groupid), COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_rooms.user1 = chat_messages.userid THEN chat_rooms.user2 ELSE chat_rooms.user1 END) WHERE chat_messages.date < ? AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 GROUP BY groupid;", [
     $mysqltime
 ]);
 
