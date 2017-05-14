@@ -6,14 +6,12 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 
-$dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
-
 $u = new User($dbhr, $dbhm);
 $uid = $u->findByEmail(MODERATOR_EMAIL);
 
 # We look for users who are not whitelisted, but where we have marked multiple chat messages from them
-# as spam.
-$users = $dbhr->preQuery("SELECT DISTINCT chat_messages.userid, COUNT(*) AS count FROM chat_messages LEFT JOIN spam_users ON spam_users.userid = chat_messages.userid INNER JOIN users ON users.id = chat_messages.userid WHERE reviewrejected = 1 AND (collection IS NULL OR collection != 'Whitelisted') AND systemrole = 'User' GROUP BY chat_messages.userid HAVING count > 5  ORDER BY count DESC;");
+# as spam.  Exclude messages automarked as spam.
+$users = $dbhr->preQuery("SELECT DISTINCT chat_messages.userid, COUNT(*) AS count FROM chat_messages LEFT JOIN spam_users ON spam_users.userid = chat_messages.userid INNER JOIN users ON users.id = chat_messages.userid WHERE reviewrejected = 1 AND reviewrejected != $uid (collection IS NULL OR collection != 'Whitelisted') AND systemrole = 'User' GROUP BY chat_messages.userid HAVING count > 5  ORDER BY count DESC;");
 $count = 0;
 
 foreach ($users as $user) {
