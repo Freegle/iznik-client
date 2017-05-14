@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 $opts = getopt('n:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm group_native.php -n <shortname of group>\n";
+    echo "Usage: hhvm group_resub.php -n <shortname of group>\n";
 } else {
     $name = $opts['n'];
     $g = Group::get($dbhr, $dbhm);
