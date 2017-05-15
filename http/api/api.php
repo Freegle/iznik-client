@@ -103,6 +103,7 @@ require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
 require_once(IZNIK_BASE . '/http/api/request.php');
 require_once(IZNIK_BASE . '/http/api/stories.php');
+require_once(IZNIK_BASE . '/http/api/status.php');
 require_once(IZNIK_BASE . '/http/api/volunteering.php');
 
 $includetime = microtime(true) - $scriptstart;
@@ -314,6 +315,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'donations':
                     $ret = donations();
+                    break;
+                case 'status':
+                    $ret = status();
                     break;
                 case 'volunteering':
                     $ret = volunteering();
