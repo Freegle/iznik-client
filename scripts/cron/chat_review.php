@@ -24,6 +24,8 @@ $groups = $dbhr->preQuery("SELECT DISTINCT(memberships.groupid), COUNT(*) AS cou
     $mysqltime
 ]);
 
+$mentors = '';
+
 $count = 0;
 foreach ($groups as $group) {
     $g = new Group($dbhr, $dbhm, $group['groupid']);
@@ -31,19 +33,33 @@ foreach ($groups as $group) {
         $g->getPrivate('publish') == 1) {
         $count += $group['count'];
         error_log($g->getPrivate('nameshort') . " count " . $group['count']);
+        $mentors .= $g->getPrivate('nameshort') . " count " . $group['count'] . "\r\n";
 
         list ($transport, $mailer) = getMailer();
         $message = Swift_Message::newInstance()
             ->setSubject($group['count'] . " message" . ($group['count'] == 1 ? '' : 's') . " waiting for your review on " . $g->getPrivate('nameshort'))
             ->setFrom([SUPPORT_ADDR => 'Freegle'])
             ->setTo($g->getModsEmail())
-            ->setCc(MENTORS_ADDR)
             ->setDate(time())
             ->setBody(
                 "Dear " . $g->getPrivate('nameshort') . " Volunteers,\r\n\r\nMessages between members are scanned to spot spam.  For some of these, we need you to review them to check whether they are really spam or not.\r\n\r\nYou currently have some messages which have been waiting for 48 hours for review.  Some of these may be real messages which members won't have received yet, so they may be wondering what's going on.\r\n\r\nPlease can you review these at https://" . MOD_SITE . "/modtools/conversations/spam ?  They will automatically be deleted after 7 days.\r\n\r\nThanks.\r\n\r\nP.S. This is an automated mail sent once a day.  If you need help using ModTools, please ask the Mentor folk at " . MENTORS_ADDR . "."
             );
         $mailer->send($message);
     }
+}
+
+if ($count > 0) {
+    list ($transport, $mailer) = getMailer();
+    $message = Swift_Message::newInstance()
+        ->setSubject("Summary of chat messages waiting for review")
+        ->setFrom([SUPPORT_ADDR => 'Freegle'])
+        ->setTo(MENTORS_ADDR)
+        ->setCc('log@ehibbert.org.uk')
+        ->setDate(time())
+        ->setBody(
+            "Here's a list of groups which have chat messages pending review for more than 48 hours:\r\n\r\n$mentors"
+        );
+    $mailer->send($message);
 }
 
 error_log("\r\n\r\nTotal $count");
