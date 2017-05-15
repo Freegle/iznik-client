@@ -116,6 +116,11 @@ function status()
     }
 
     $html .="
+    <script>
+        window.setTimeout(function() {
+            document.location = '/status.html?' + (new Date()).getTime();
+        }, 30000);
+    </script>
     </body>
 </html>";
 
