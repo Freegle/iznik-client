@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/user/Story.php');
 use Abraham\TwitterOAuth\TwitterOAuth;
 
 class Twitter {
-    var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'lasterror', 'lasterrortime'];
+    var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid', 'locked', 'msgid', 'msgarrival', 'eventid', 'lasterror', 'lasterrortime'];
     
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid, $fetched = NULL)
     {
@@ -65,6 +65,7 @@ class Twitter {
         $ret = NULL;
         $rc = FALSE;
         $valid = TRUE;
+        $locked = FALSE;
 
         if ($content) {
             if ($media) {
@@ -105,6 +106,11 @@ class Twitter {
                     #error_log("Now invalid");
                     $valid = FALSE;
                 }
+
+                if ($ret['errors'][0]['code'] == 326) {
+                    # Locked.
+                    $locked = TRUE;
+                }
             } else {
                 $rc = TRUE;
             }
@@ -113,6 +119,12 @@ class Twitter {
         if (!$valid) {
             $this->dbhm->preExec("UPDATE groups_twitter SET valid = 0 WHERE groupid = ?;", [ $this->groupid ]);
             $this->valid = FALSE;
+            #error_log("Twitter link not valid for {$this->groupid}");
+        }
+
+        if (!$locked) {
+            $this->dbhm->preExec("UPDATE groups_twitter SET locked = 1 WHERE groupid = ?;", [ $this->groupid ]);
+            $this->locked = TRUE;
             #error_log("Twitter link not valid for {$this->groupid}");
         }
 

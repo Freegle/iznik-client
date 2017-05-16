@@ -122,6 +122,19 @@ class twitterTest extends IznikTestCase {
         error_log("After fail " . var_export($atts, TRUE));
         assertFalse($atts['valid']);
 
+        $mock->method('post')->willReturn([
+            'errors' => [
+                [
+                    'code' => 326
+                ]
+            ]
+        ]);
+
+        assertFalse($t->tweet('test', NULL));
+        $atts = $t->getPublic();
+        error_log("After lock " . var_export($atts, TRUE));
+        assertTrue($atts['locked']);
+
         error_log(__METHOD__ . " end");
     }
 
