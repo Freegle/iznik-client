@@ -35,6 +35,7 @@ class Twitter {
     public function getPublic() {
         $ret = [];
         foreach ($this->publicatts as $att) {
+            error_log("Return $att = {$this->$att}");
             $ret[$att] = $this->$att;
         }
         
@@ -94,8 +95,6 @@ class Twitter {
 
             $ret = json_decode(json_encode($ret), TRUE);
 
-            #error_log("Twitter returned" . var_export($ret, TRUE));
-
             if (pres('errors', $ret)) {
                 # Something failed.
                 #error_log("Tweet failed " . var_export($ret, TRUE));
@@ -113,6 +112,13 @@ class Twitter {
                 }
             } else {
                 $rc = TRUE;
+
+                if ($this->locked || !$this->valid) {
+                    # Tweeted successfully - no longer locked or invalid.
+                    $this->dbhm->preExec("UPDATE groups_twitter SET locked = 0, valid = 1 WHERE groupid = ?;", [ $this->groupid ]);
+                    $this->locked = FALSE;
+                    $this->valid = TRUE;
+                }
             }
         }
 
@@ -122,10 +128,9 @@ class Twitter {
             #error_log("Twitter link not valid for {$this->groupid}");
         }
 
-        if (!$locked) {
+        if ($locked) {
             $this->dbhm->preExec("UPDATE groups_twitter SET locked = 1 WHERE groupid = ?;", [ $this->groupid ]);
             $this->locked = TRUE;
-            #error_log("Twitter link not valid for {$this->groupid}");
         }
 
         return($rc);
