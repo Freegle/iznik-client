@@ -675,6 +675,8 @@ define([
 
                             if (!twitter.valid) {
                                 self.$('.js-twitternotlinked').show();
+                            } else  if (twitter.locked) {
+                                self.$('.js-twitterlocked').show();
                             } else {
                                 var mom = new moment(twitter.authdate);
                                 self.$('.js-twitterauthdate').html(mom.format('ll'));
