@@ -2356,9 +2356,14 @@ define([
             var groups = Iznik.Session.get('groups');
             groups.each(function(group) {
                 var role = group.get('role');
-                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner') &&
-                    (!group.get('twitter') || !group.get('twitter').valid)) {
-                    missingTwitter.push(group.get('namedisplay') + ' - ' + (group.get('twitter') ? ' token invalid' : ' not linked'));
+                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner')) {
+                    if (!group.get('twitter')) {
+                        missingTwitter.push(group.get('namedisplay') + ' - not linked');
+                    } else if (!group.get('twitter').valid) {
+                        missingTwitter.push(group.get('namedisplay') + ' - token invalid');
+                    } else if (group.get('twitter').locked) {
+                        missingTwitter.push(group.get('namedisplay') + ' - account locked');
+                    }
                 }
             });
 
