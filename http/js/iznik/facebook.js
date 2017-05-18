@@ -18,7 +18,7 @@ define([
     isDisabled: function () {
       return this.FBDisabled;
     },
-    /* // CC render: function () {
+    render: function () {
       var self = this;
       // console.log("Render FBLoad");
 
@@ -30,14 +30,14 @@ define([
         self.FBLoading = true;
 
         // The load might fail if we have a blocker.  The only way to deal with this is via a timeout.
-        // CC self.timeout = window.setTimeout(function () {
-        // CC   console.error("Facebook API load failed - blocked?");
-        // CC   self.FBLoading = false;
-        // CC   self.FBLoaded = true;
-        // CC   self.FBDisabled = true;
-        // CC   $('.js-privacy').show();
-        // CC   self.trigger('fbloaded');
-        // CC }, 30000);
+        self.timeout = window.setTimeout(function () {
+            console.error("Facebook API load failed - blocked?");
+            self.FBLoading = false;
+            self.FBLoaded = true;
+            self.FBDisabled = true;
+            $('.js-privacy').show();
+            self.trigger('fbloaded');
+        }, 30000);
 
         // Load the SDK asynchronously
         (function (d, s, id) {
@@ -53,7 +53,7 @@ define([
           // console.log("FB asyncInit");
           self.FBLoading = false;
           self.FBLoaded = true;
-          // CC clearTimeout(self.timeout);
+          clearTimeout(self.timeout);
 
           try {
             FB.init({
@@ -68,7 +68,11 @@ define([
             console.log("Facebook init failed");
             console.log(e);
           }
-        },*/
+        }
+      } else {
+        // console.log("FB still loading...");
+      }
+    },
 
         signin: function () {  // CC..
             var self = this;

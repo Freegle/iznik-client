@@ -79,7 +79,7 @@ while ($line = fgets($fh)) {
                 } else if (preg_match('/to=\<(.*)>.*status=(.*)$/', $line, $matches)) {
                     $msgs[$msgid]['to'] = $matches[1];
                     $msgs[$msgid]['status'] = $matches[2];
-                } else if (preg_match('/(no signature data)|(no signing table match for)|(client=localhost)|(key data is not secure)/', $line)) {
+                } else if (preg_match('/(no signature data)|(no signing table match for)|(client=localhost)|(key data is not secure)|(daemon started)/', $line)) {
                     # Just ignore.
                 } else {
                     #error_log("Unknown $line");

@@ -3,8 +3,19 @@
         <div class="navbar-header">
             <ul class="nav navbar-nav js-navbar fdnavbar nomargin completefull">
                 <li class="notop js-home clickme padleft pull-left">
-                    <img src="/images/modtools_logo.png" class="padmd img-responsive img-rounded inline"/>
-                    <img style="display: none; opacity: 0.5" id="spinner" src="/images/ajax-loader.gif" />
+                    <ul class="list-unstyled list-inline">
+                        <li>
+                            <img src="/images/modtools_logo.png" class="padmd img-responsive img-rounded inline"/>
+                        </li>
+                        <li>
+                            <a target="_blank" data-realurl="" href="/status.html">
+                                <span id="js-status" />
+                            </a>
+                        </li>
+                        <li>
+                            <img style="display: none; opacity: 0.5" id="spinner" src="/images/ajax-loader.gif" />
+                        </li>
+                    </ul>
                 </li>
                 <li class="pull-right" role="presentation">
                     <button class="reallyHide btn btn-info js-signin js-loggedoutonly margtop" style="display:none">Sign

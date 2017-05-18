@@ -62,7 +62,7 @@ EOT;
                                                                                     <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
                                                                                         style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                             line-height:18px; border-radius:3px;">
-                                                                                        <a href="$link" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff; max-width:200px;">Click&nbsp;to&nbsp;Login</a>
+                                                                                        <a href="$link" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff; max-width:200px;">Click&nbsp;to&nbsp;Login</a>
                                                                                     </td>
                                                                                 </tr>
                                                                                 <tr>

@@ -453,9 +453,11 @@ class Group extends Entity
             # We're searching.  It turns out to be more efficient to get the userids using the indexes, and then
             # get the rest of the stuff we need.
             $q = $this->dbhr->quote("$search%");
+            $bq = $this->dbhr->quote(strrev($search) . "%");
             $sql = "$sqlpref 
               WHERE users.id IN (SELECT * FROM (
                 (SELECT userid FROM users_emails WHERE email LIKE $q) UNION
+                (SELECT userid FROM users_emails WHERE backwards LIKE $bq) UNION
                 (SELECT id FROM users WHERE id = " . $this->dbhr->quote($search) . ") UNION
                 (SELECT id FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id FROM users WHERE yahooid LIKE $q) UNION
@@ -538,6 +540,7 @@ class Group extends Entity
             $thisone['joincomment'] = $member['joincomment'];
             $thisone['emailfrequency'] = $member['emailfrequency'];
             $thisone['eventsallowed'] = $member['eventsallowed'];
+            $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
 
             # Our posting status only applies for groups we host.  In that case, the default is moderated.
             $thisone['ourpostingstatus'] = presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
@@ -609,7 +612,7 @@ class Group extends Entity
     public function processSetMembers($groupid = NULL) {
         # This is called from the background script.  It's serialised, so we don't need to worry about other
         # copies.
-        $sql = $groupid ? "SELECT * FROM memberships_yahoo_dump WHERE groupid = $groupid;" : "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed AND backgroundok = 1;";
+        $sql = $groupid ? "SELECT * FROM memberships_yahoo_dump WHERE groupid = $groupid;" : "SELECT * FROM memberships_yahoo_dump WHERE lastprocessed IS NULL OR lastupdated > lastprocessed AND backgroundok = 1 AND groupid != 353440;";
         $groups = $this->dbhr->preQuery($sql);
         $count = 0;
 

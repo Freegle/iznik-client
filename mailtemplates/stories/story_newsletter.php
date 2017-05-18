@@ -44,7 +44,7 @@ function story_newsletter() {
                                                                 <td width="90%" height="36" bgcolor="#00A1CB" align="center" valign="middle"
                                                                     style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                         line-height:18px; border-radius:3px;">
-                                                                    <a href="$storyurl" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Tell us your story!</a>
+                                                                    <a href="$storyurl" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Tell us your story!</a>
                                                                 </td>
                                                             </tr>
                                                         </table>               
@@ -55,7 +55,7 @@ function story_newsletter() {
                                                                 <td width="90%" height="36" bgcolor="#61AE24" align="center" valign="middle"
                                                                     style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                         line-height:18px; border-radius:3px;">
-                                                                    <a href="$give" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Give&nbsp;something&nbsp;</a>
+                                                                    <a href="$give" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Give&nbsp;something&nbsp;</a>
                                                                 </td>
                                                             </tr>
                                                         </table>               
@@ -66,7 +66,7 @@ function story_newsletter() {
                                                                 <td width="90%" height="36" bgcolor="#61AE24" align="center" valign="middle"
                                                                     style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                         line-height:18px; border-radius:3px;">
-                                                                    <a href="$find" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Find&nbsp;something&nbsp;</a>
+                                                                    <a href="$find" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Find&nbsp;something&nbsp;</a>
                                                                 </td>
                                                             </tr>
                                                         </table>               

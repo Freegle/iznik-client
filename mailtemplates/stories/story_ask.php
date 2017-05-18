@@ -63,7 +63,7 @@ EOT;
                                                                         <td width="170" height="36" bgcolor="#006400" align="center" valign="middle"
                                                                             style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                 line-height:18px; border-radius:3px;">
-                                                                            <a href="$storyurl" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Tell us your story!</a>
+                                                                            <a href="$storyurl" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Tell us your story!</a>
                                                                         </td>
                                                                     </tr>
                                                                 </table>                                                                

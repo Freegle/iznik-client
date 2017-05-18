@@ -39,6 +39,7 @@ class Volunteering extends Entity
             $end,
             $applyby
         ]);
+        return($this->dbhm->lastInsertId());
     }
 
     public function removeDate($id) {
@@ -71,7 +72,7 @@ class Volunteering extends Entity
         $mysqltime = date("Y-m-d H:i:s", time());
 
         # Get the ones for our group.
-        $sql = "SELECT volunteering.id, volunteering.pending, volunteering_dates.end, volunteering_groups.groupid FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) AND deleted = 0 $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
+        $sql = "SELECT volunteering.id, volunteering.pending, volunteering_dates.end, volunteering_groups.groupid FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND groupid IN (SELECT groupid FROM memberships WHERE userid = ? $roleq) LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) AND deleted = 0 AND expired = 0 $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
         $volunteerings = $this->dbhr->preQuery($sql, [
             $userid,
             $mysqltime,
@@ -81,17 +82,17 @@ class Volunteering extends Entity
         # Get the national ones, for display or approval.
         $me = whoAmI($this->dbhr, $this->dbhm);
         if (!$pending || ($me && $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS))) {
-            $sql = "SELECT volunteering.id, volunteering.pending, volunteering_dates.end, NULL AS groupid FROM volunteering LEFT JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND deleted = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE groupid IS NULL AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) AND deleted = 0 $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
-            $volunteerings = array_merge($volunteerings, $this->dbhr->preQuery($sql, [
-                $mysqltime,
-                $mysqltime
-            ]));
+            $sql = "SELECT volunteering.id, volunteering.pending, volunteering_dates.end, volunteering_dates.applyby AS groupid FROM volunteering LEFT JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE groupid IS NULL AND deleted = 0 AND expired = 0 $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
+            $volunteerings = array_merge($volunteerings, $this->dbhr->preQuery($sql));
         }
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         foreach ($volunteerings as $volunteering) {
-            if (!$volunteering['pending'] || $volunteering['groupid'] === NULL || $u->activeModForGroup($volunteering['groupid'])) {
+            if ((!$volunteering['pending'] || $volunteering['groupid'] === NULL || $u->activeModForGroup($volunteering['groupid'])) &&
+                (!pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
+                (!pres('end', $volunteering) || time() < strtotime($volunteering['end']))
+            ) {
                 $ctx['id'] = $volunteering['id'];
                 $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
                 $atts = $e->getPublic();
@@ -117,8 +118,7 @@ class Volunteering extends Entity
         $ctxq = $ctx ? " AND volunteering.id < {$ctx['id']} " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT volunteering.id, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
-        # error_log("$sql, $mysqltime");
+        $sql = "SELECT volunteering.id, volunteering_dates.applyby, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
         $volunteerings = $this->dbhr->preQuery($sql, [
             $mysqltime,
             $mysqltime
@@ -128,13 +128,17 @@ class Volunteering extends Entity
         $myid = $me ? $me->getId() : $me;
 
         foreach ($volunteerings as $volunteering) {
-            $ctx['id'] = $volunteering['id'];
-            $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
-            $atts = $e->getPublic();
+            if ((!pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
+                (!pres('end', $volunteering) || time() < strtotime($volunteering['end']))
+            ) {
+                $ctx['id'] = $volunteering['id'];
+                $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id']);
+                $atts = $e->getPublic();
 
-            $atts['canmodify'] = $e->canModify($myid);
+                $atts['canmodify'] = $e->canModify($myid);
 
-            $ret[] = $atts;
+                $ret[] = $atts;
+            }
         }
 
         return($ret);
@@ -191,6 +195,24 @@ class Volunteering extends Entity
         }
 
         return($canmodify);
+    }
+
+    public function expire() {
+        # If an opportunities has any dates, then check that at least one is in the future, otherwise it's expired.  Some
+        # opportunities run indefinitely.
+        $ids = $this->dbhr->preQuery("SELECT DISTINCT volunteeringid FROM volunteering INNER JOIN volunteering_dates ON volunteering.id = volunteering_dates.volunteeringid WHERE end <= NOW() AND expired = 0;");
+
+        foreach ($ids as $id) {
+            $futures = $this->dbhr->preQuery("SELECT volunteeringid FROM volunteering_dates WHERE volunteeringid = ? AND end > NOW();", [
+                $id['volunteeringid']
+            ]);
+
+            if (count($futures) === 0) {
+                $this->dbhm->preExec("UPDATE volunteering SET expired = 1 WHERE id = ?;", [
+                    $id['volunteeringid']
+                ]);
+            }
+        }
     }
 
     public function delete() {

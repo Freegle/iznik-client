@@ -39,7 +39,7 @@ class Relevant {
             $message = Swift_Message::newInstance()
                 ->setSubject("Email Change Confirmation")
                 ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                ->setReturnPath('bounce@direct.ilovefreegle.org')
+                ->setReturnPath($u->getBounce())
                 ->setTo([ $email => $u->getName() ])
                 ->setBody("Thanks - we've turned off the mails of posts you might be interested in.")
                 ->addPart($html, 'text/html');

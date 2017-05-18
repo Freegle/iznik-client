@@ -132,7 +132,7 @@ function verify_email($email, $confirm, $logo) {
                                                                                 <td width="170" height="36" bgcolor="#00008B" align="center" valign="middle"
                                                                                     style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                         line-height:18px; border-radius:3px;">
-                                                                                    <a href="$confirm" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Yes, this is my email</a>
+                                                                                    <a href="$confirm" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">Yes, this is my email</a>
                                                                                 </td>
                                                                             </tr>
                                                                             <tr>

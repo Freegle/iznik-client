@@ -54,7 +54,7 @@ class EventDigest
                 $message = Swift_Message::newInstance()
                     ->setSubject("Email Change Confirmation")
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                    ->setReturnPath('bounce@direct.ilovefreegle.org')
+                    ->setReturnPath($u->getBounce())
                     ->setTo([ $email => $u->getName() ])
                     ->setBody("We've turned your community event emails off on $groupname.")
                     ->addPart($html, 'text/html');
@@ -92,7 +92,7 @@ class EventDigest
                 $atts = $e->getPublic();
 
                 foreach ($atts['dates'] as $date) {
-                    if (strtotime($date['start']) >= time())  {
+                    if (strtotime($date['end']) >= time())  {
                         $htmlsumm .= digest_event($atts, $date['start'], $date['end']);
 
                         # Get a string representation of the date in UK time.
@@ -145,7 +145,6 @@ class EventDigest
                 if ($this->errorlog) { error_log("Preferred $email, send " . $u->sendOurMails($g)); }
 
                 if ($email && $u->sendOurMails($g)) {
-                    # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
                     if ($this->errorlog) { error_log("Send to them"); }
                     $replacements[$email] = [
                         '{{toname}}' => $u->getName(),
@@ -180,7 +179,7 @@ class EventDigest
                     $message = Swift_Message::newInstance()
                         ->setSubject($tosend['subject'])
                         ->setFrom([$tosend['from'] => $tosend['fromname']])
-                        ->setReturnPath('bounce@direct.ilovefreegle.org')
+                        ->setReturnPath($u->getBounce())
                         ->setReplyTo($tosend['replyto'], $tosend['replytoname'])
                         ->setBody($tosend['text'])
                         ->addPart($tosend['html'], 'text/html');

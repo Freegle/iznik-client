@@ -87,7 +87,7 @@ EOT;
                                                                                 <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
                                                                                     style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                         line-height:18px; border-radius:3px;">
-                                                                                    <a href="$click" target="_blank" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">I got this</a>
+                                                                                    <a href="$click" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">I got this</a>
                                                                                 </td>
                                                                             </tr>
                                                                         </table>

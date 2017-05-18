@@ -730,6 +730,7 @@ define([
 
         adjust: function() {
             var self = this;
+            self.adjustTimerRunning = false;
 
             if (self.inDOM()) {
                 var windowInnerHeight = $(window).innerHeight();
@@ -743,10 +744,11 @@ define([
                 var str = "Heights " + height + " " + windowInnerHeight + " " + bodyMargin + " " + chatSearchHolderHeight + " " + chatWarningHeight + " " + chatHeaderHeight + " " + footerHeight;
                 var currHeight = self.$('.js-scroll').css('height').replace('px', '');
 
-                if (currHeight != height) {
+                // Don't adjust 1px differences immediately - leads to jittering.
+                if (currHeight != height && (self.currentAdjustDelay > 10 || Math.abs(currHeight - height) > 1)) {
                     self.$('.js-scroll').css('height', height + 'px');
                     self.currentAdjustDelay = 10;
-                    console.log(str);
+                    // console.log(str);
                 } else {
                     self.currentAdjustDelay *= 2;
                     self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
@@ -754,7 +756,10 @@ define([
 
                 // self.$('.js-message').val(str);
 
-                _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
+                if (!self.adjustTimerRunning) {
+                    self.adjustTimerRunning = true;
+                    _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
+                }
             } else {
                 console.log("Not in DOM");
             }
@@ -794,8 +799,8 @@ define([
                 // Show any warning for a while.
                 self.$('.js-chatwarning').show();
                 window.setTimeout(_.bind(function () {
-                    this.$('.js-chatwarning').slideUp('slow');
-                }, self), 30000);
+                    self.$('.js-chatwarning').slideUp('slow');
+                }, self), 3000);
 
                 // Set any roster status.
                 try {

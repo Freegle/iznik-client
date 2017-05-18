@@ -428,6 +428,30 @@ body, #bodyContent {
     display: none;
 }
 
+.statusok {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    background-color: limegreen;
+    display: block;
+}
+
+.statuswarning {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    background-color: orange;
+    display: block;
+}
+
+.statuserror {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    background-color: red;
+    display: block;
+}
+
 @media(min-width:768px) {
     .mapimage {
         display: block;

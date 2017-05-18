@@ -218,6 +218,9 @@ class Message
             # In the interests of accessibility, let's create a text version of the HTML
             $html = new \Html2Text\Html2Text($htmlbody);
             $textbody = $html->getText();
+
+            # Make sure we have a text value, otherwise we might return a missing body.
+            $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
         }
 
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -227,9 +230,6 @@ class Message
         $text .= ($location ? "New location $location" : '');
         $text .= "Text body changed to len " . strlen($textbody);
         $text .= " HTML body changed to len " . strlen($htmlbody);
-
-        # Make sure we have a text value, otherwise we might return a missing body.
-        $textbody = strlen($textbody) == 0 ? ' ' : $textbody;
 
         if ($type) {
             $this->setPrivate('type', $type);
@@ -2367,8 +2367,21 @@ class Message
             # For approved messages which only reach us as pending later, we don't want to change the approved
             # version.
             if ($this->source == Message::YAHOO_APPROVED && !$this->isEdited()) {
+                # Subject is a special case because Yahoo can add a subject tag in.
+                #
+                # We would never really want to have a subject that was empty (once we've stripped the tag).
+                # This seems to happen sometimes due to Yahoo oddities when editing.
+                $subj = $this->getPrivate('subject');
+                $subj = trim(preg_replace('/^\[.*?\]\s*/', '', $subj));
+
+                if (strlen($subj) && $subj != $m->getPrivate('subject')) {
+                    # The new subject isn't empty.
+                    $m->setPrivate('subject', $this->getPrivate('subject'));
+                    $changed .= ' subject';
+                }
+
                 # Other atts which we want the latest version of.
-                foreach (['date', 'subject', 'message', 'textbody', 'htmlbody'] as $att) {
+                foreach (['date', 'message', 'textbody', 'htmlbody'] as $att) {
                     $oldval = $m->getPrivate($att);
                     $newval = $this->getPrivate($att);
 

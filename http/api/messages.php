@@ -228,16 +228,21 @@ function messages() {
 
         case 'POST': {
             $action = presdef('action', $_REQUEST, NULL);
+            $ret = [ 'ret' => 4, 'status' => 'Unknown action' ];
 
             switch ($action) {
                 case 'UpdateFacebookPostable':
                     # We have posted some messages on Facebook.  We don't have to be logged in for this, as we're
                     # not in the context of the Facebook tab.  There's no security risk.
-                    $f = new GroupFacebook($dbhr, $dbhm, $groupid);
+                    $uid = intval(presdef('uid', $_REQUEST, NULL));
+                    $id = intval(presdef('id', $_REQUEST, NULL));
+                    $date = date("Y-m-d H:i:s", strtotime(presdef('arrival', $_REQUEST, NULL)));
+                    $f = new GroupFacebook($dbhr, $dbhm, $uid);
                     $f->updatePostableMessages(
-                        presdef('id', $_REQUEST, NULL),
-                        date("Y-m-d H:i:s", strtotime(presdef('arrival', $_REQUEST, NULL)))
+                        $id,
+                        $date
                     );
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
                     break;
                 default:
                     # Correlation.

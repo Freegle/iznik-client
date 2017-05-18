@@ -275,8 +275,8 @@ define([
 
                 // console.log("On holiday?", me.onholidaytill, me.onholidaytill != undefined);
                 self.$(".js-holidayswitch").bootstrapSwitch({
-                    onText: 'Mails Paused',
-                    offText: 'Mails On',
+                    onText: 'Mails&nbsp;Paused',
+                    offText: 'Mails&nbsp;On',
                     state: me.onholidaytill != undefined
                 });
                 self.onholiday();
@@ -304,14 +304,14 @@ define([
                 }
 
                 self.$(".js-emailswitch").bootstrapSwitch({
-                    onText: 'Emails On',
-                    offText: 'Emails Off',
+                    onText: 'Emails&nbsp;On',
+                    offText: 'Emails&nbsp;Off',
                     state: notifs.hasOwnProperty('email') ? notifs.email : true
                 });
 
                 self.$(".js-emailmineswitch").bootstrapSwitch({
-                    onText: 'Yes Please',
-                    offText: 'No Thanks',
+                    onText: 'Yes&nbsp;Please',
+                    offText: 'No&nbsp;Thanks',
                     state: notifs.hasOwnProperty('emailmine') ? notifs.emailmine : false
                 });
 
@@ -319,8 +319,8 @@ define([
 
                 if (me.hasOwnProperty('notifications')) {
                     self.$(".js-pushswitch").bootstrapSwitch({
-                        onText: 'Browser Popups On',
-                        offText: 'Browser Popups Off',
+                        onText: 'Browser&nbsp;Popups&nbsp;On',
+                        offText: 'Browser&nbsp;Popups&nbsp;Off',
                         state: notifs.hasOwnProperty('push') ? notifs.push: true
                     });
 
@@ -329,8 +329,8 @@ define([
 
                 if (me.hasOwnProperty('notifications')) {
                     self.$(".js-appswitch").bootstrapSwitch({
-                        onText: 'App Notifications On',
-                        offText: 'App Notifications Off',
+                        onText: 'App&nbsp;Notifications&nbsp;On',
+                        offText: 'App&nbsp;Notifications&nbsp;Off',
                         state: notifs.hasOwnProperty('app') ? notifs.app: true
                     });
 
@@ -341,8 +341,8 @@ define([
                 
                 if (facebook) {
                     self.$(".js-facebookswitch").bootstrapSwitch({
-                        onText: 'Facebook Notifications On',
-                        offText: 'Facebook Notifications Off',
+                        onText: 'Facebook&nbsp;Notifications&nbsp;On',
+                        offText: 'Facebook&nbsp;Notifications&nbsp;Off',
                         state: notifs.hasOwnProperty('facebook') ? notifs.facebook: true
                     });
 
@@ -376,6 +376,7 @@ define([
         events: {
             'change .js-frequency': 'changeFreq',
             'change .js-events': 'changeEvents',
+            'change .js-volunteering': 'changeVolunteering',
             'click .js-leave': 'leave'
         },
 
@@ -452,6 +453,27 @@ define([
             });
         },
 
+        changeVolunteering: function(e) {
+            var self = this;
+            var me = Iznik.Session.get('me');
+            var data = {
+                userid: me.id,
+                groupid: self.model.get('id'),
+                volunteeringallowed: $(e.target).val()
+            };
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PATCH',
+                data: data,
+                success: function(ret) {
+                    if (ret.ret === 0) {
+                        self.$('.js-ok').removeClass('hidden');
+                    }
+                }
+            });
+        },
+
         render: function() {
             var self = this;
             Iznik.View.prototype.render.call(this).then(function() {
@@ -459,6 +481,8 @@ define([
                 self.$('.js-frequency').val(freq);
                 var events = parseInt(self.model.get('mysettings').eventsallowed);
                 self.$('.js-events').val(events);
+                var volunteering = parseInt(self.model.get('mysettings').volunteeringallowed);
+                self.$('.js-volunteering').val(volunteering);
             })
         }
     });

@@ -15,6 +15,7 @@ function memberships() {
     $settings = presdef('settings', $_REQUEST, NULL);
     $emailfrequency = array_key_exists('emailfrequency', $_REQUEST) ? intval($_REQUEST['emailfrequency']) : NULL;
     $eventsallowed = array_key_exists('eventsallowed', $_REQUEST) ? intval($_REQUEST['eventsallowed']) : NULL;
+    $volunteeringallowed = array_key_exists('volunteeringallowed', $_REQUEST) ? intval($_REQUEST['volunteeringallowed']) : NULL;
     $ourpostingstatus = array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL;
     $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
     $message = presdef('message', $_REQUEST, NULL);
@@ -385,6 +386,10 @@ function memberships() {
 
                         if ($eventsallowed !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'eventsallowed', intval($eventsallowed));
+                        }
+
+                        if ($volunteeringallowed !== NULL) {
+                            $rc &= $u->setMembershipAtt($groupid, 'volunteeringallowed', intval($volunteeringallowed));
                         }
 
                         if ($ourpostingstatus !== NULL) {
