@@ -135,7 +135,7 @@ define([
                 });
 
                 self.shares = new Iznik.Collection(sharelist);
-                self.shares.comparator = 'namedisplay';
+                self.shares.comparator = 'name';
                 self.shares.sort();
 
                 self.shares.each(function(share) {

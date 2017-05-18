@@ -136,7 +136,7 @@ try {
     error_log("Email logs:");
     $total = 0;
     do {
-        $count = $dbhm->exec("DELETE FROM logs_email WHERE `date` < '$start' LIMIT 1000;");
+        $count = $dbhm->exec("DELETE FROM logs_emails WHERE `date` < '$start' LIMIT 1000;");
         $total += $count;
         set_time_limit(60);
         error_log("...$total");

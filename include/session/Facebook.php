@@ -269,8 +269,22 @@ class Facebook
             $fb->setDefaultAccessToken(FBAPP_ID . '|' . FBAPP_SECRET);
 
             $result = $fb->post("/$fbid/notifications", $notif);
+            error_log("...notified $fbid OK");
             #error_log("Notify returned " . var_export($result, TRUE));
-        } catch (Exception $e) { error_log("FB notify failed with " . $e->getMessage()); }
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            error_log("FB notify failed with " . $msg);
+
+            if (strpos($msg, '(#803) Some of the aliases you requested do not exist:') !== FALSE ||
+                strpos($msg, '(#200) Cannot send notifications to a user who has not installed the app') !== FALSE) {
+                # Our Facebook info is no longer valid.
+                error_log("...remove");
+                $this->dbhm->preExec("DELETE FROM users_logins WHERE uid = ? AND type = ?;", [
+                    $fbid,
+                    User::LOGIN_FACEBOOK
+                ]);
+            }
+        }
     }
 
     public function uthook($rc = NULL) {

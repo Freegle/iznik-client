@@ -13,7 +13,7 @@ $maxoverlap = 0;
 $maxpoly = NULL;
 $polyname = 'polyofficial';
 $polyname = 'COALESCE(poly, polyofficial)';
-$threshold = 0.1;
+$threshold = 0.05;
 
 foreach ($groups as $group) {
     try {

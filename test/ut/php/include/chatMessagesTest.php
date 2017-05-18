@@ -265,6 +265,11 @@ class chatMessagesTest extends IznikTestCase {
         # Money
         assertTrue($m->checkReview("£100"));
 
+        assertTrue($m->checkReview('No word boundary:http://spam'));
+
+        # Porn
+        assertTrue($m->checkReview('http://spam&#12290;ru'));
+
         error_log(__METHOD__ . " end");
     }
 

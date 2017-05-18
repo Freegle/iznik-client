@@ -103,6 +103,7 @@ require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
 require_once(IZNIK_BASE . '/http/api/request.php');
 require_once(IZNIK_BASE . '/http/api/stories.php');
+require_once(IZNIK_BASE . '/http/api/status.php');
 require_once(IZNIK_BASE . '/http/api/volunteering.php');
 
 $includetime = microtime(true) - $scriptstart;
@@ -138,7 +139,7 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     $_SESSION['modorowner'] = presdef('modorowner', $_SESSION, []);
 
     # Update our last access time for this user.  We do this every 60 seconds.  This is used to return our
-    # roster status in ChatRoom.php
+    # roster status in ChatRoom.php, and also for spotting idle members.
     $id = pres('id', $_SESSION);
     $last = presdef('lastaccessupdate', $_SESSION, 0);
     if ($id && (time() - $last > 60)) {
@@ -314,6 +315,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'donations':
                     $ret = donations();
+                    break;
+                case 'status':
+                    $ret = status();
                     break;
                 case 'volunteering':
                     $ret = volunteering();

@@ -353,6 +353,11 @@ class Spam {
         switch ($collection) {
             case Spam::TYPE_WHITELIST: {
                 $text = "Whitelisted: $reason";
+
+                # Ensure nobody who is whitelisted is banned.
+                $this->dbhm->preExec("DELETE FROM users_banned WHERE userid IN (SELECT userid FROM spam_users WHERE collection = ?);", [
+                    Spam::TYPE_WHITELIST
+                ]);
                 break;
             }
             case Spam::TYPE_PENDING_ADD: {

@@ -67,12 +67,35 @@ define([
                     var fop = Storage.get('FOP');
                     if (fop !== null) {
                         self.$('.js-fop').prop('checked', parseInt(fop) ? true : false);
+
+                        if (!parseInt(fop)) {
+                            // FOP defaults on, so make sure that it's off.
+                            self.fop();
+                        }
                     }
+                } catch (e) {
+                }
+
+                try {
+                    var v = new Iznik.Views.User.Pages.Give.Share({
+                        model: new Iznik.Models.Message({
+                            id: Storage.get('lastpost')
+                        })
+                    });
+
+                    v.model.fetch().then(function() {
+                        v.render();
+                    });
+
                 } catch (e) {
                 }
             });
 
             return (p);
         }
+    });
+
+    Iznik.Views.User.Pages.Give.Share = Iznik.Views.User.Pages.WhatNext.Share.extend({
+        template: "user_give_share"
     });
 });

@@ -325,6 +325,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="/css/glyphicons.css">
+    <link rel="stylesheet" href="/css/glyphicons-social.css">
     <link rel="stylesheet" href="/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="/css/bootstrap-switch.min.css">
     <link rel="stylesheet" href="/css/datepicker3.css">
@@ -332,7 +333,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=175">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=177">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -352,7 +353,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <!-- And then some custom styles for our different apps -->
     <?php
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
-        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=23"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=24"><?php
     } else {
         ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=135"><?php
     }

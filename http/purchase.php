@@ -62,7 +62,7 @@ try {
                     $voucher = $g->createVoucher();
 
                     $headers = "From: ModTools <edward@ehibbert.org.uk>\r\nTo: $payer_email\r\nCC: log@ehibbert.org.uk";
-                    mail(NULL, "ModTools - Thanks for your payment", "Thanks for buying a license for ModTools.  Your voucher code is\n\n" . $supp['voucher'] .
+                    mail(NULL, "ModTools - Thanks for your payment", "Thanks for buying a license for ModTools.  Your voucher code is\n\n$voucher" .
                         "\n\nTo use this voucher, sign in at http://modtools.org, go to Settings->Personal Settings and click the 'Use Voucher' button.  Please use copy and paste for the voucher code to reduce typos.\n\n" .
                         "The license will then be credited to your account.  Once you have done this, go to Settings->Groups and add the license to your group.\n\n" .
                         "You can find more information at http://wiki.modtools.org/index.php?title=Main_Page .  The Getting Started section will help you get going.\n\n" .

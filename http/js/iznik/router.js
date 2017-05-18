@@ -147,6 +147,7 @@ define([
             "give/whoami": "userGiveWhoAmI",
             "give/whatnext": "userGiveWhatNext",
             "edit/:id": "userEdit",
+            "m/:id": "userMessage",
             "message/:id": "userMessage",
             "mygroups": "userMyGroups",
             "settings/confirmmail/(:key)": "userConfirmMail",

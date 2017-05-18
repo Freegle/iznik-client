@@ -182,6 +182,14 @@ define([
                         } else {
                             $('.js-supporters').show();
                         }
+
+                        // Status LED
+                        if (Iznik.Session.isAdminOrSupport()) {
+                            var v = new Iznik.Views.Status();
+                            v.render().then(function() {
+                                $('#js-status').html(v.el);
+                            });
+                        }
                     } else {
                         if (!self.footer) {
                             // Put bottom left links in.
@@ -497,5 +505,44 @@ define([
         id: 'social',
         className: 'padleft hidden-sm hidden-xs',
         template: 'user_social'
-    })    
+    });
+
+    Iznik.Views.Status = Iznik.View.extend({
+        template: 'status',
+
+        update: function() {
+            $.ajax({
+                url: API + 'status',
+                type: 'GET',
+                success: function(ret) {
+                    console.log("API returned", ret);
+                    self.$('.js-statuserror').hide();
+                    self.$('.js-statuswarning').hide();
+                    self.$('.js-statusok').hide();
+
+                    if (ret.ret === 0) {
+                        if (ret.error) {
+                            self.$('.js-statuserror').show();
+                        } else if (ret.warning) {
+                            self.$('.js-statuswarning').show();
+                        } else {
+                            self.$('.js-statusok').show();
+                        }
+                    } else {
+                        self.$('.js-statuserror').show();
+                    }
+                }, complete: function() {
+                    _.delay(_.bind(self.update, self), 60000);
+                }
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(self.update);
+            return(p);
+        }
+    });
 });

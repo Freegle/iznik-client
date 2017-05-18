@@ -22,16 +22,22 @@
 
 
   "background": {
-    "scripts": [ "jquery-1.10.2.min.js", "modtools.js" ],
+    "scripts": [
+      "jquery-1.10.2.min.js",
+      "modtools.js"
+    ],
     "persistent": true
   },
 
   "content_scripts": [
     {
       "matches": [ "*://modtools.org/*", "*://www.modtools.org/*", "*://dev.modtools.org/*", "*://iznik.modtools.org/*",  "*://www.facebook.com/*" ],
-      "js": ["jquery-1.10.2.min.js", "modtoolscont.js"]
+      "js": [
+        "jquery-1.10.2.min.js",
+        "modtoolscont.js"
+      ]
     }
   ],
 
-  "web_accessible_resources": ["manifest.json"]
+  "web_accessible_resources": ["manifest.json", "modtoolsinject.js"]
 }

@@ -78,6 +78,7 @@ class User extends Entity
     const SRC_PUSHNOTIF = 'pushnotif'; // From JS
     const SRC_TWITTER = 'twitter';
     const SRC_EVENT_DIGEST = 'eventdigest';
+    const SRC_VOLUNTEERING_DIGEST = 'voldigest';
     const SRC_NEWSLETTER = 'newsletter';
 
     /** @var  $log Log */
@@ -883,7 +884,7 @@ class User extends Entity
         $ret = [];
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
-        $sql = "SELECT memberships.settings, emailfrequency, eventsallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
+        $sql = "SELECT memberships.settings, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND groups.publish = 1 WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [ $this->id ]);
         #error_log("getMemberships $sql {$this->id} " . var_export($groups, TRUE));
 
@@ -1177,7 +1178,8 @@ class User extends Entity
             'active' => 1,
             'showchat' => 1,
             'pushnotify' => 1,
-            'eventsallowed' => 1
+            'eventsallowed' => 1,
+            'volunteeringallowed' => 1
         ];
 
         $settings = $defaults;
@@ -1208,6 +1210,7 @@ class User extends Entity
 
             $settings['emailfrequency'] = $set['emailfrequency'];
             $settings['eventsallowed'] = $set['eventsallowed'];
+            $settings['volunteeringallowed'] = $set['volunteeringallowed'];
         }
 
         return($settings);
@@ -1514,6 +1517,7 @@ class User extends Entity
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
+                        'volunteeringallowed' => $group['volunteeringallowed'],
                         'ourPostingStatus' => $group['ourPostingStatus'],
                         'type' => $group['type'],
                         'onyahoo' => $group['onyahoo'],
@@ -1561,6 +1565,7 @@ class User extends Entity
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
                         'emailfrequency' => $group['emailfrequency'],
                         'eventsallowed' => $group['eventsallowed'],
+                        'volunteeringallowed' => $group['volunteeringallowed'],
                         'ourpostingstatus' => $group['ourPostingStatus'],
                         'type' => $group['type'],
                         'onyahoo' => $group['onyahoo'],
@@ -1921,13 +1926,15 @@ class User extends Entity
                             }
 
                             $alreadys = $this->dbhr->preQuery($sql);
+                            #error_log("Check room {$room['id']} {$room['user1']} => {$room['user2']} $sql " . count($alreadys));
 
                             if (count($alreadys) > 0) {
                                 # Yes, there already is one.
                                 $this->dbhm->preExec("UPDATE chat_messages SET chatid = {$alreadys[0]['id']} WHERE chatid = {$room['id']}");
                             } else {
                                 # No, there isn't, so we can update our old one.
-                                $this->dbhm->preExec("UPDATE chat_rooms SET user1 = $id1 WHERE id = {$room['id']};");
+                                $sql = $room['user1'] == $id2 ? "UPDATE chat_rooms SET user1 = $id1 WHERE id = {$room['id']};" : "UPDATE chat_rooms SET user2 = $id1 WHERE id = {$room['id']};";
+                                $this->dbhm->preExec($sql);
                             }
                         }
 
@@ -3130,7 +3137,7 @@ class User extends Entity
                         $message = Swift_Message::newInstance()
                             ->setSubject("$fromname has invited you to try Freegle!")
                             ->setFrom([ NOREPLY_ADDR => SITE_NAME ])
-                            ->setReplyTo(GEEKS_ADDR)
+                            ->setReplyTo($frommail)
                             ->setTo($email)
                             ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
                         $headers = $message->getHeaders();

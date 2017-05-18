@@ -273,9 +273,9 @@ class MailRouter
                 $this->mail($fromheader[0]['address'], $to, "Yes please", "I confirm this");
                 $ret = MailRouter::TO_SYSTEM;
             } else if ($replyto && preg_match('/confirm-s2-(.*)-(.*)=(.*)@yahoogroups.co.*/', $replyto, $matches) === 1) {
-                # This is a request by Yahoo to confirm a subscription for one of our members.  We do that if the
-                # member is still pending or approved; if not then this might be an earlier subscription request which has
-                # finally found its way to Yahoo.  Confirming this might lead to a resubscribe after a rejection.
+                # This is a request by Yahoo to confirm a subscription for one of our members.  We always confirm this.
+                # If you are tempted to only confirm if the member is pending or approved then be aware that this caused
+                # a problem that I can no longer remember and turned out to be a bad idea.
                 if ($log) { error_log("Confirm subscription"); }
 
                 if (preg_match('/Please confirm your request to join (.*)/', $this->msg->getSubject(), $matches)) {
@@ -534,12 +534,23 @@ class MailRouter
                 $ret = MailRouter::TO_SYSTEM;
             }
         } else if (preg_match('/relevantoff-(.*)@/', $to, $matches) == 1) {
-            # Request to turn newsletters off.
+            # Request to turn "interested in" off.
             $uid = intval($matches[1]);
 
             if ($uid) {
                 $d = new Relevant($this->dbhr, $this->dbhm);
                 $d->off($uid);
+
+                $ret = MailRouter::TO_SYSTEM;
+            }
+        } else if (preg_match('/volunteeringoff-(.*)-(.*)@/', $to, $matches) == 1) {
+            # Request to turn events email off.
+            $uid = intval($matches[1]);
+            $groupid = intval($matches[2]);
+
+            if ($uid && $groupid) {
+                $d = new VolunteerDigest($this->dbhr, $this->dbhm);
+                $d->off($uid, $groupid);
 
                 $ret = MailRouter::TO_SYSTEM;
             }
