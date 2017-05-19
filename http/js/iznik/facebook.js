@@ -22,7 +22,7 @@ define([
             var self = this;
             // console.log("Render FBLoad");
 
-            if (self.FBLoaded) {
+            /*if (self.FBLoaded) {
                 // console.log("Already loaded");
                 this.trigger('fbloaded');
             } else if ((!self.FBLoaded) && (!self.FBLoading)) {
@@ -71,7 +71,7 @@ define([
                 }
             } else {
                 // console.log("FB still loading...");
-            }
+            }*/
         },
 
         signin: function () {  // CC..
