@@ -648,7 +648,7 @@ define([
 
             var p = Iznik.Views.Modal.prototype.render.call(self);
 
-            /* // CC self.url = window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbpost';
+            self.url = window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbpost';
 
             p.then(function() {
                 ABTestShown('sharepost', 'facebook');
@@ -675,7 +675,7 @@ define([
                     console.error('Clipboard error', e);
                     self.close();
                 });
-            });*/
+            });
 
             return(p);
         }

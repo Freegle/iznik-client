@@ -337,7 +337,7 @@ define([
 
             var p = Iznik.Views.User.Pages.WhatNext.prototype.render.call(this);
             p.then(function () {
-                try {
+                /* // CCtry {
                     var v = new Iznik.Views.User.Pages.Find.Share({
                         model: new Iznik.Models.Message({
                             id: Storage.get('lastpost')
@@ -349,7 +349,7 @@ define([
                     });
 
                 } catch (e) {
-                }
+                }*/
             });
 
             return (p);
