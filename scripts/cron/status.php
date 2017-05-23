@@ -20,6 +20,7 @@ function status()
 
     foreach ($hosts as $host) {
         # Each host runs monit, so we ssh in and see what's happening.
+        error_log("Check $host");
         $error = FALSE;
         $warning = FALSE;
         $warningtext = NULL;

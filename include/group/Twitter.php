@@ -35,7 +35,6 @@ class Twitter {
     public function getPublic() {
         $ret = [];
         foreach ($this->publicatts as $att) {
-            error_log("Return $att = {$this->$att}");
             $ret[$att] = $this->$att;
         }
         

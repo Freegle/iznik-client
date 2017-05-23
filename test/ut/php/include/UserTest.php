@@ -824,6 +824,10 @@ class userTest extends IznikTestCase {
 
         assertEquals('test@testcom', User::canonMail('test@test.com'));
         assertEquals('test@testcom', User::canonMail('test+fake@test.com'));
+        assertEquals('firstlast@gmailcom', User::canonMail('first.last@gmail.com', TRUE));
+        assertEquals('firstlast@gmailcom', User::canonMail('first.last@gmail.com', FALSE));
+        assertEquals('first.last@othercom', User::canonMail('first.last@other.com', FALSE));
+        assertEquals('firstlast@othercom', User::canonMail('first.last@other.com', TRUE));
         assertEquals('test@usertrashnothingcom', User::canonMail('test-g1@user.trashnothing.com'));
         assertEquals('test@usertrashnothingcom', User::canonMail('test-x1@user.trashnothing.com'));
         assertEquals('test-x1@usertrashnothingcom', User::canonMail('test-x1-x2@user.trashnothing.com'));
