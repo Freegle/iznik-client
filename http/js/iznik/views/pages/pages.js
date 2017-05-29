@@ -511,11 +511,16 @@ define([
         template: 'status',
 
         update: function() {
+            var self = this;
+            console.log("Status update", self);
+
             $.ajax({
                 url: API + 'status',
                 type: 'GET',
+                context: self,
                 success: function(ret) {
-                    console.log("API returned", ret);
+                    var self = this;
+
                     self.$('.js-statuserror').hide();
                     self.$('.js-statuswarning').hide();
                     self.$('.js-statusok').hide();
@@ -539,9 +544,11 @@ define([
 
         render: function() {
             var self = this;
-
             var p = Iznik.View.prototype.render.call(this);
-            p.then(self.update);
+            p.then(function() {
+                _.delay(_.bind(self.update, self), 10000);
+            });
+
             return(p);
         }
     });

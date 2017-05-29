@@ -260,7 +260,7 @@ define([
                             // Escribe Valor
                             ctx.font = radio*0.8 + "px calibri";
                             ctx.fillStyle = '#000';
-                            ctx.fillText(Math.round(100 * xx1 / maxim) + '%', 0, 0);
+                            ctx.fillText(Math.round(100 * xx1 / self.donations.get('target')) + '%', 0, 0);
                             ctx.fillText("£" + Math.round(valor1), 0, radio*1.6);
                             ctx.fillText("Raised", 0, radio*2.4);
                         };

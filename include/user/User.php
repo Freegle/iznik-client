@@ -404,8 +404,9 @@ class User extends Entity
 
     public function getIdForEmail($email) {
         # Email is a unique key but conceivably we could be called with an email for another user.
-        $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE canon = ?;", [
-            User::canonMail($email)
+        $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE (canon = ? OR canon = ?);", [
+            User::canonMail($email),
+            User::canonMail($email, TRUE)
         ]);
 
         foreach ($ids as $id) {
@@ -418,7 +419,7 @@ class User extends Entity
     public function getEmailById($id) {
         # Email is a unique key but conceivably we could be called with an email for another user.
         $emails = $this->dbhr->preQuery("SELECT email FROM users_emails WHERE id = ?;", [
-            User::canonMail($id)
+            $id
         ]);
 
         $ret = NULL;
@@ -434,8 +435,11 @@ class User extends Entity
         # Take care not to pick up empty or null else that will cause is to overmerge.
         #
         # Use canon to match - that handles variant TN addresses or % addressing.
-        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE canon = ? AND canon IS NOT NULL AND LENGTH(canon) > 0;",
-            [ User::canonMail($email) ]);
+        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE (canon = ? OR canon = ?) AND canon IS NOT NULL AND LENGTH(canon) > 0;",
+            [
+                User::canonMail($email),
+                User::canonMail($email, TRUE)
+            ]);
 
         foreach ($users as $user) {
             return($user['userid']);
@@ -456,7 +460,8 @@ class User extends Entity
         return(NULL);
     }
 
-    public static function canonMail($email) {
+    # TODO The $old paramter can be retired after 01/07/17
+    public static function canonMail($email, $old = FALSE) {
         # Canonicalise TN addresses.
         if (preg_match('/(.*)\-(.*)(@user.trashnothing.com)/', $email, $matches)) {
             $email = $matches[1] . $matches[3];
@@ -468,9 +473,24 @@ class User extends Entity
             $email = $matches[1] . $matches[3];
         }
 
-        # Remove dots, which are ignored by gmail and can therefore be used to give the appearance of separate
+        # Remove dots in LHS, which are ignored by gmail and can therefore be used to give the appearance of separate
         # emails.
-        $email = str_replace('.', '', $email);
+        #
+        # TODO For migration purposes we can remove them from all domains.  This will disappear in time.
+        $p = strpos($email, '@');
+
+        if ($p !== FALSE) {
+            $lhs = substr($email, 0, $p);
+            $rhs = substr($email, $p);
+
+            if (stripos($rhs, '@gmail') !== FALSE || stripos($rhs, '@googlemail') !== FALSE || $old) {
+                $lhs = str_replace('.', '', $lhs);
+            }
+
+            # Remove dots from the RHS - saves a little space and is the format we have historically used.
+            # Very unlikely to introduce ambiguity.
+            $email = $lhs . str_replace('.', '', $rhs);
+        }
 
         return($email);
     }

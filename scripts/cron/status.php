@@ -20,6 +20,7 @@ function status()
 
     foreach ($hosts as $host) {
         # Each host runs monit, so we ssh in and see what's happening.
+        error_log("Check $host");
         $error = FALSE;
         $warning = FALSE;
         $warningtext = NULL;
@@ -116,6 +117,11 @@ function status()
     }
 
     $html .="
+    <script>
+        window.setTimeout(function() {
+            document.location = '/status.html?' + (new Date()).getTime();
+        }, 30000);
+    </script>
     </body>
 </html>";
 

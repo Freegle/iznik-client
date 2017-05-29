@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/user/Story.php');
 use Abraham\TwitterOAuth\TwitterOAuth;
 
 class Twitter {
-    var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'lasterror', 'lasterrortime'];
+    var $publicatts = ['name', 'token', 'secret', 'authdate', 'valid', 'locked', 'msgid', 'msgarrival', 'eventid', 'lasterror', 'lasterrortime'];
     
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid, $fetched = NULL)
     {
@@ -65,6 +65,7 @@ class Twitter {
         $ret = NULL;
         $rc = FALSE;
         $valid = TRUE;
+        $locked = FALSE;
 
         if ($content) {
             if ($media) {
@@ -93,8 +94,6 @@ class Twitter {
 
             $ret = json_decode(json_encode($ret), TRUE);
 
-            #error_log("Twitter returned" . var_export($ret, TRUE));
-
             if (pres('errors', $ret)) {
                 # Something failed.
                 #error_log("Tweet failed " . var_export($ret, TRUE));
@@ -105,8 +104,20 @@ class Twitter {
                     #error_log("Now invalid");
                     $valid = FALSE;
                 }
+
+                if ($ret['errors'][0]['code'] == 326) {
+                    # Locked.
+                    $locked = TRUE;
+                }
             } else {
                 $rc = TRUE;
+
+                if ($this->locked || !$this->valid) {
+                    # Tweeted successfully - no longer locked or invalid.
+                    $this->dbhm->preExec("UPDATE groups_twitter SET locked = 0, valid = 1 WHERE groupid = ?;", [ $this->groupid ]);
+                    $this->locked = FALSE;
+                    $this->valid = TRUE;
+                }
             }
         }
 
@@ -114,6 +125,11 @@ class Twitter {
             $this->dbhm->preExec("UPDATE groups_twitter SET valid = 0 WHERE groupid = ?;", [ $this->groupid ]);
             $this->valid = FALSE;
             #error_log("Twitter link not valid for {$this->groupid}");
+        }
+
+        if ($locked) {
+            $this->dbhm->preExec("UPDATE groups_twitter SET locked = 1 WHERE groupid = ?;", [ $this->groupid ]);
+            $this->locked = TRUE;
         }
 
         return($rc);
