@@ -56,6 +56,7 @@ class Request extends Entity
 
         $u = User::get($this->dbhr, $this->dbhm, $ret['userid']);
         $ret['user'] = $u->getPublic();
+        $ret['user']['email'] = $u->getEmailPreferred();
         unset($ret['userid']);
 
         $ret['date'] = ISODate($ret['date']);
