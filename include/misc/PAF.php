@@ -141,7 +141,7 @@ class PAF
                     $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
                 }
 
-                $addresses = $this->dbhr->preQuery("SELECT * FROM paf_addresses WHERE udprn = ?;", [ $udprn ]);
+                $addresses = $this->dbhr->preQuery("SELECT * FROM paf_addresses WHERE udprn = ?;", [ $udprn ], FALSE, FALSE);
                 foreach ($addresses as $address) {
                     # Compare the values
                     foreach ($address as $key => $val) {
