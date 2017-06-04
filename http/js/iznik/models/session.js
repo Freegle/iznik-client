@@ -276,7 +276,7 @@ define([
                                     });
 
                                     // CC window.location.reload(true);
-                                    Router.navigate("/", true);
+                                    Router.navigate("/modtools/", true);
                                 }
 
                                 // We use this to decide whether to show sign up or sign in.

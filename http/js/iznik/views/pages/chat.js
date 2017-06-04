@@ -356,7 +356,7 @@ define([
                         cached: nullFn
                     }).then(function() {
                         // CC window.location.reload();
-                        Router.navigate("/chats", true);
+                        Router.navigate("/modtools/chats", true);
                     });
                 });
             });
