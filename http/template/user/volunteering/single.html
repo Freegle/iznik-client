@@ -1,4 +1,32 @@
 <h1>{{title}}</h1>
+<div class="alert alert-info">
+    <div class="js-nowarn" style="display: none">
+        <% if (obj.expired) { %>
+        <p>We've stopped showing this opportunity, but you can reactivate it.</p>
+        <% } else { %>
+        <p>You created this opportunity.  Please click to let us know if it's still active.</p>
+        <% } %>
+    </div>
+    <div class="js-warn" style="display: none">
+        <div class="alert alert-warning">
+            <% if (obj.expired) { %>
+            <p>We've stopped showing this opportunity, but you can reactivate it.</p>
+            <% } else { %>
+            <p>We'll stop showing this opportunity soon unless you tell us it's still active.  Please click to let us know.</p>
+            <% } %>
+        </div>
+    </div>
+    <div class="row text-center">
+        <div class="col-md-6">
+            <div class="btn btn-success btn-lg js-renew"><span class="glyphicon glyphicon-ok" />&nbsp;Yes, it's still active</div>
+        </div>
+        <div class="col-md-6">
+            <% if (!obj.expired) { %>
+            <div class="btn btn-white btn-lg js-expire"><span class="glyphicon glyphicon-trash" />&nbsp;No, please remove it</div>
+            <% } %>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="<% if (obj.photo) { %>col-md-8<% } else { %>col-md-12<% } %>">
         <table class="botspace nomargin table borderless table-condensed eventtable fullholder">

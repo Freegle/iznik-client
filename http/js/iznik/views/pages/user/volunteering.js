@@ -70,17 +70,53 @@ define([
     Iznik.Views.User.Volunteering.Single = Iznik.View.extend({
         template: 'user_volunteering_single',
 
+        events: {
+            'click .js-renew': 'renew',
+            'click .js-expire': 'expire'
+        },
+
+        renew: function() {
+            this.model.renew();
+        },
+
+        expire: function() {
+            this.model.expire();
+        },
+
         render: function() {
             var self = this;
 
             var p = Iznik.View.prototype.render.call(this);
             p.then(function() {
                 self.$('.js-dates').empty();
-                _.each(self.model.get('dates'), function(date) {
+                var dates = self.model.get('dates');
+                _.each(dates, function(date) {
                     var start = (new moment(date.start)).format('ddd, Do MMM YYYY HH:mm');
                     var end = (new moment(date.end)).format('ddd, Do MMM YYYY HH:mm');
                     self.$('.js-dates').append(start + ' - ' + end + '<br />');
                 });
+
+                var me = Iznik.Session.get('me');
+                var myid = me ? me.id : null;
+
+                if (dates.length === 0 && self.model.get('user').id == myid) {
+                    // Check if this will expire soon.
+                    var added = self.model.get('added');
+                    var renewed = self.model.get('renewed');
+                    var warn = false;
+
+                    if (renewed) {
+                        warn = ((new Date()).getTime() - (new Date(renewed)).getTime()) > 31 * 24 * 60 * 60 * 1000;
+                    } else {
+                        warn = ((new Date()).getTime() - (new Date(added)).getTime()) > 31 * 24 * 60 * 60 * 1000;
+                    }
+
+                    if (warn) {
+                        self.$('.js-warn').show();
+                    } else {
+                        self.$('.js-nowarn').show();
+                    }
+                }
             });
 
             return(p);
