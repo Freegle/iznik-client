@@ -38,7 +38,7 @@ foreach ($groups as $group) {
 
         list ($transport, $mailer) = getMailer();
         $message = Swift_Message::newInstance()
-            ->setSubject($group['count'] . " message" . ($group['count'] == 1 ? '' : 's') . " waiting for your review on " . $g->getPrivate('nameshort'))
+            ->setSubject($group['count'] . " message" . ($group['count'] == 1 ? '' : 's') . " between members waiting for your review on " . $g->getPrivate('nameshort'))
             ->setFrom([SUPPORT_ADDR => 'Freegle'])
             ->setTo($g->getModsEmail())
             ->setDate(time())
