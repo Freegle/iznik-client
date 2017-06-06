@@ -300,8 +300,9 @@ define([
 
         submit: function() {
             var self = this;
-            var pafid = self.postalAddress.address();
+            var pafid = self.postalAddress.pafaddress();
             var to = self.postalAddress.to();
+            var instr = self.postalAddress.instructions();
 
             if (pafid) {
                 $.ajax({

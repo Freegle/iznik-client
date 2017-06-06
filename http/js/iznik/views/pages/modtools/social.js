@@ -250,11 +250,10 @@ define([
 
         submit: function() {
             var self = this;
-            var pafid = self.postalAddress.address();
+            var pafid = self.postalAddress.pafaddress();
             var to = self.postalAddress.to();
 
             if (pafid) {
-
                 $.ajax({
                     url: API + '/address',
                     type: 'PUT',

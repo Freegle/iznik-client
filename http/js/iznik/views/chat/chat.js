@@ -1306,6 +1306,9 @@ define([
                     case 'Image':
                         tpl = 'chat_image';
                         break;
+                    case 'Address':
+                        tpl = 'chat_address';
+                        break;
                     default:
                         tpl = 'chat_message';
                         break;

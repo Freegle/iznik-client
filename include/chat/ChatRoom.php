@@ -308,7 +308,7 @@ class ChatRoom extends Entity
             $ret['refmsgids'][] = $refmsg['refmsgid'];
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
+        $lasts = $this->dbhr->preQuery("SELECT id, date, message, type FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
         $ret['lastmsg'] = 0;
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
@@ -316,7 +316,7 @@ class ChatRoom extends Entity
         foreach ($lasts as $last) {
             $ret['lastmsg'] = $last['id'];
             $ret['lastdate'] = ISODate($last['date']);
-            $ret['snippet'] = substr($last['message'], 0, 30);
+            $ret['snippet'] = $last['type'] == ChatMessage::TYPE_ADDRESS ? 'Address sent...' : substr($last['message'], 0, 30);
         }
 
         return ($ret);
@@ -1128,6 +1128,29 @@ class ChatRoom extends Entity
 
                                 case ChatMessage::TYPE_REPORTEDUSER: {
                                     $thisone = "This member reported another member with the comment: {$unmailedmsg['message']}";
+                                    break;
+                                }
+
+                                case ChatMessage::TYPE_ADDRESS: {
+                                    # There's no text stored for this - we invent it on the client.  Do so here
+                                    # too.
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You sent an address to " . $otheru->getName() . ".") : ($otheru->getName() . " sent you an address.");
+                                    $thisone .= "\r\n\r\n";
+                                    $addid = intval($unmailedmsg['message']);
+                                    $a = new Address($this->dbhr, $this->dbhm, $addid);
+
+                                    if ($a->getId()) {
+                                        $atts = $a->getPublic();
+
+                                        if (pres('multiline', $atts)) {
+                                            $thisone .= $atts['multiline'];
+
+                                            if (pres('instructions', $atts)) {
+                                                $thisone .= "\r\n\r\n{$atts['instructions']}";
+                                            }
+                                        }
+                                    }
+
                                     break;
                                 }
 

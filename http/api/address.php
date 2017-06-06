@@ -53,7 +53,8 @@ function address() {
 
             case 'PUT':
                 $id = $a->create($me->getId(),
-                    intval(presdef('pafid', $_REQUEST, NULL)));
+                    intval(presdef('pafid', $_REQUEST, NULL)),
+                    presdef('instructions', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 0,

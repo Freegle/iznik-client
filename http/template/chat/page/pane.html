@@ -67,16 +67,17 @@
         <div class="col-xs-6">
             <div class="row botspace">
                 <% if (chattype == 'User2User') { %>
-                <div class="col-xs-4">
+                <div class="col-xs-3">
                     <span class="clickme success glyphicons glyphicons-handshake gi-2x js-promise" alt="Promise" title="Promise an item to this person" id="chat-promise-{{id}}" />
                 </div>
-                <% } %>
-                <% if (chattype == 'User2User') { %>
-                <div class="col-xs-4">
+                <div class="col-xs-3">
+                    <span class="clickme success glyphicons glyphicons-address-book gi-2x js-address" alt="Address" title="Send your address" id="chat-address-{{id}}" />
+                </div>
+                <div class="col-xs-3">
                     <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x js-info" alt="Info" title="Info about this member" />
                 </div>
                 <% } %>
-                <div class="col-xs-4">
+                <div class="col-xs-3">
                     <input type="file" class="js-photo" name="photo" multiple="" />
                 </div>
             </div>
