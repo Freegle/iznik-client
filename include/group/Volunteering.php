@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/mailtemplates/volunteerrenew.php');
 
 class Volunteering extends Entity
 {
@@ -220,20 +221,65 @@ class Volunteering extends Entity
         # If an opportunity has no dates, and it is older than 31 days, then check that it has been renewed within the
         # last 31 days.  We send out renewal reminders 7 days beforehand.
         $mysqltime = date("Y-m-d H:i:s", strtotime("Midnight 31 days ago"));
-        $ids = $this->dbhr->preQuery("SELECT DISTINCT volunteeringid FROM volunteering LEFT JOIN volunteering_dates ON volunteering.id = volunteering_dates.volunteeringid WHERE `end` IS NULL AND expired = 0 AND added < ? AND (renewed IS NULL OR renewed < ?) $idq;", [
+        $ids = $this->dbhr->preQuery("SELECT DISTINCT volunteering.id FROM volunteering LEFT JOIN volunteering_dates ON volunteering.id = volunteering_dates.volunteeringid WHERE `end` IS NULL AND expired = 0 AND added < ? AND (renewed IS NULL OR renewed < ?) $idq;", [
             $mysqltime,
             $mysqltime
         ]);
 
         foreach ($ids as $id) {
             $this->dbhm->preExec("UPDATE volunteering SET expired = 1 WHERE id = ?;", [
-                $id['volunteeringid']
+                $id['id']
             ]);
         }
     }
 
     public function delete() {
         $this->dbhm->preExec("UPDATE volunteering SET deleted = 1 WHERE id = ?;", [ $this->id ]);
+    }
+
+    # Split out for UT to override
+    public function sendMail($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function askRenew($id = NULL) {
+        $count = 0;
+
+        # For opportunities with no dates, we want to mail people to ask them if they are still active.
+        $idq = $id ? " AND volunteering.id = $id " : '';
+
+        $mysqltime = date("Y-m-d H:i:s", strtotime("Midnight 31 days ago"));
+        $sql = "SELECT DISTINCT volunteering.id FROM volunteering LEFT JOIN volunteering_dates ON volunteering.id = volunteering_dates.volunteeringid WHERE `end` IS NULL AND expired = 0 AND added < ? AND (renewed IS NULL OR renewed < ?) $idq;";
+        $ids = $this->dbhr->preQuery($sql, [
+            $mysqltime,
+            $mysqltime
+        ]);
+
+        list ($transport, $mailer) = getMailer();
+
+        foreach ($ids as $id) {
+            $v = new Volunteering($this->dbhr, $this->dbhm, $id['id']);
+            $u = new User($this->dbhr, $this->dbhm, $v->getPrivate('userid'));
+
+            if ($u->getId()) {
+                # The user is still around.
+                $url = $u->loginLink(USER_SITE, $u->getId(), '/volunteering' . $id['id'], User::SRC_VOLUNTEERING_DIGEST);
+                $html = volunteering_renew(USER_SITE, USERLOGO, $v->getPrivate('title'), $url);
+
+                $message = Swift_Message::newInstance()
+                    ->setSubject("Re: " . $v->getPrivate('title'))
+                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                    ->setReturnPath($u->getBounce())
+                    ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                    ->setBody("Please can you let us know whether this volunteer opportunity is still active?  If we don't hear from you, we'll stop showing it soon.  Please let us know at $url")
+                    ->addPart($html, 'text/html');
+
+                $this->sendMail($mailer, $message);
+                $count++;
+            }
+        }
+
+        return($count);
     }
 }
 

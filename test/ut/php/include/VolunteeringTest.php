@@ -106,8 +106,14 @@ class volunteeringTest extends IznikTestCase {
         error_log(__METHOD__);
 
         # Test one with a date.
-        $c = new Volunteering($this->dbhm, $this->dbhm);
-        $id = $c->create(NULL, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        $c = new Volunteering($this->dbhr, $this->dbhm);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addEmail('test@test.com');
+
+        $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
         assertNotNull($id);
         $c->addGroup($this->groupid);
 
@@ -135,7 +141,7 @@ class volunteeringTest extends IznikTestCase {
         assertEquals(0, count($volunteerings));
 
         # Now test one with no date.
-        $id = $c->create(NULL, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
         assertNotNull($id);
         $c->addGroup($this->groupid);
         $c->setPrivate('pending', 0);
@@ -150,6 +156,9 @@ class volunteeringTest extends IznikTestCase {
 
         # Now make it old enough to expire.
         $c->setPrivate('added', '2017-01-01');
+
+        # Ask them to confirm to check we get the mail sent.
+        self::assertEquals(1, $c->askRenew($id));
         $c->expire($id);
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
         assertEquals(0, count($volunteerings));

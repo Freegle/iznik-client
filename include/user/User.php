@@ -79,6 +79,7 @@ class User extends Entity
     const SRC_TWITTER = 'twitter';
     const SRC_EVENT_DIGEST = 'eventdigest';
     const SRC_VOLUNTEERING_DIGEST = 'voldigest';
+    const SRC_VOLUNTEERING_RENEWAL = 'volrenew';
     const SRC_NEWSLETTER = 'newsletter';
 
     /** @var  $log Log */
