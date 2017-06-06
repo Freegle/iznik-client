@@ -249,7 +249,7 @@ class Volunteering extends Entity
         $idq = $id ? " AND volunteering.id = $id " : '';
 
         $mysqltime = date("Y-m-d H:i:s", strtotime("Midnight 31 days ago"));
-        $sql = "SELECT DISTINCT volunteering.id FROM volunteering LEFT JOIN volunteering_dates ON volunteering.id = volunteering_dates.volunteeringid WHERE `end` IS NULL AND expired = 0 AND added < ? AND (renewed IS NULL OR renewed < ?) $idq;";
+        $sql = "SELECT DISTINCT volunteering.id FROM volunteering LEFT JOIN volunteering_dates ON volunteering.id = volunteering_dates.volunteeringid WHERE `end` IS NULL AND deleted = 0 AND expired = 0 AND added < ? AND (renewed IS NULL OR renewed < ?) $idq;";
         $ids = $this->dbhr->preQuery($sql, [
             $mysqltime,
             $mysqltime
@@ -275,6 +275,7 @@ class Volunteering extends Entity
                     ->addPart($html, 'text/html');
 
                 $this->sendMail($mailer, $message);
+                error_log($v->getId() . " " . $v->getPrivate('title'));
                 $count++;
             }
         }
