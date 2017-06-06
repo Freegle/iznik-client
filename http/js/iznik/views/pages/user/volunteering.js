@@ -91,8 +91,8 @@ define([
                 self.$('.js-dates').empty();
                 var dates = self.model.get('dates');
                 _.each(dates, function(date) {
-                    var start = (new moment(date.start)).format('ddd, Do MMM YYYY HH:mm');
-                    var end = (new moment(date.end)).format('ddd, Do MMM YYYY HH:mm');
+                    var start = (new moment(date.start)).format('ddd, Do MMM YYYY');
+                    var end = (new moment(date.end)).format('ddd, Do MMM YYYY');
                     self.$('.js-dates').append(start + ' - ' + end + '<br />');
                 });
 
