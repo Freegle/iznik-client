@@ -263,7 +263,7 @@ class Volunteering extends Entity
 
             if ($u->getId()) {
                 # The user is still around.
-                $url = $u->loginLink(USER_SITE, $u->getId(), '/volunteering' . $id['id'], User::SRC_VOLUNTEERING_DIGEST);
+                $url = $u->loginLink(USER_SITE, $u->getId(), '/volunteering/' . $id['id'], User::SRC_VOLUNTEERING_DIGEST);
                 $html = volunteering_renew(USER_SITE, USERLOGO, $v->getPrivate('title'), $url);
 
                 $message = Swift_Message::newInstance()

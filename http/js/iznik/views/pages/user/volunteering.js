@@ -77,10 +77,12 @@ define([
 
         renew: function() {
             this.model.renew();
+            Router.navigate('/volunteering/' + this.model.get('id'), true);
         },
 
         expire: function() {
             this.model.expire();
+            Router.navigate('/volunteering', true);
         },
 
         render: function() {
