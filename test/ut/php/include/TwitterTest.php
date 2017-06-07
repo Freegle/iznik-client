@@ -101,6 +101,7 @@ class twitterTest extends IznikTestCase {
 
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);
 
+        # Fake a fail
         $mock = $this->getMockBuilder('TwitterOAuth')
             ->setMethods(['post', 'get', 'setTimeouts'])
             ->getMock();
@@ -121,6 +122,44 @@ class twitterTest extends IznikTestCase {
         $atts = $t->getPublic();
         error_log("After fail " . var_export($atts, TRUE));
         assertFalse($atts['valid']);
+
+        # Now fake a lock
+        $mock = $this->getMockBuilder('TwitterOAuth')
+            ->setMethods(['post', 'get', 'setTimeouts'])
+            ->getMock();
+
+        $mock->method('get')->willReturn(true);
+        $mock->method('setTimeouts')->willReturn(true);
+        $mock->method('post')->willReturn([
+            'errors' => [
+                [
+                    'code' => 326
+                ]
+            ]
+        ]);
+        $t->setTw($mock);
+
+        assertFalse($t->tweet('test', NULL));
+        $atts = $t->getPublic();
+        error_log("After lock " . var_export($atts, TRUE));
+        assertTrue($atts['locked']);
+
+        error_log("Now tweet successfully and reset");
+        $mock = $this->getMockBuilder('TwitterOAuth')
+            ->setMethods(['post', 'get', 'setTimeouts'])
+            ->getMock();
+
+        $mock->method('get')->willReturn(true);
+        $mock->method('setTimeouts')->willReturn(true);
+        $mock->method('post')->willReturn([
+            'test' => TRUE
+        ]);
+        $t->setTw($mock);
+
+        assertTrue($t->tweet('test', NULL));
+        $atts = $t->getPublic();
+        assertTrue($atts['valid']);
+        assertFalse($atts['locked']);
 
         error_log(__METHOD__ . " end");
     }

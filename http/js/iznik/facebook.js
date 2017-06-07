@@ -114,7 +114,6 @@ define([
                 $('.js-signin-msg').show();
             }
         }
-
     });
 
     // This is a singleton view.

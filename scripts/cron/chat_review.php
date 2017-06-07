@@ -18,9 +18,10 @@ $msgs = $dbhm->preExec("UPDATE chat_messages SET reviewedby = ?, reviewrejected 
 
 error_log($dbhm->rowsAffected() . " messages stuck in review");
 
-# Now look for chat which has been pending review for 48 hours.
+# Now look for chat which has been pending review for 48 hours.  Randomise an order so that if only the first few
+# get through then different groups will get notified each time.
 $mysqltime = date("Y-m-d", strtotime("48 hours ago"));
-$groups = $dbhr->preQuery("SELECT DISTINCT(memberships.groupid), COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_rooms.user1 = chat_messages.userid THEN chat_rooms.user2 ELSE chat_rooms.user1 END) WHERE chat_messages.date < ? AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 GROUP BY groupid;", [
+$groups = $dbhr->preQuery("SELECT DISTINCT(memberships.groupid), COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_rooms.user1 = chat_messages.userid THEN chat_rooms.user2 ELSE chat_rooms.user1 END) WHERE chat_messages.date < ? AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 GROUP BY groupid ORDER BY RAND();", [
     $mysqltime
 ]);
 
@@ -45,6 +46,9 @@ foreach ($groups as $group) {
                 "Dear " . $g->getPrivate('nameshort') . " Volunteers,\r\n\r\nMessages between members are scanned to spot spam.  For some of these, we need you to review them to check whether they are really spam or not.\r\n\r\nYou currently have some messages which have been waiting for 48 hours for review.  Some of these may be real messages which members won't have received yet, so they may be wondering what's going on.\r\n\r\nPlease can you review these at https://" . MOD_SITE . "/modtools/conversations/spam ?  They will automatically be deleted after 7 days.\r\n\r\nThanks.\r\n\r\nP.S. This is an automated mail sent once a day.  If you need help using ModTools, please ask the Mentor folk at " . MENTORS_ADDR . "."
             );
         $mailer->send($message);
+
+        # Delay to reduce chance of Yahoo blocking.
+        sleep(600);
     }
 }
 
