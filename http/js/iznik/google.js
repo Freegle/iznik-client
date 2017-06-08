@@ -51,6 +51,7 @@ define([
 
         signInButton: function (id) {
             try {
+                console.log("google.signInButton");
                 var self = this;
                 self.buttonId = id;
                 self.scopes = "profile email";
@@ -91,8 +92,37 @@ define([
         googleAuth: function () { // CC
             var self = this;
             if (self.tryingGoogleLogin) { return; }
+            self.clientId = $('meta[name=google-signin-client_id]').attr("content");
+            console.log("Google clientId: " + self.clientId);
+            alert(self.clientId);
             self.tryingGoogleLogin = true;
-            var googleScope = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email';
+
+            //window.plugins.googleplus.trySilentLogin(
+            window.plugins.googleplus.login(
+                {
+                    //'scopes': '... ', // optional - space-separated list of scopes, If not included or empty, defaults to `profile` and `email`.
+                    'webClientId': self.clientId, // optional - clientId of your Web application from Credentials settings of your project - On Android, this MUST be included to get an idToken. On iOS, it is not required.
+                    'offline': true, // Must be true to get  serverAuthCode
+                    //Optional, but requires the webClientId - if set to true the plugin will also return a serverAuthCode, which can be used to grant offline access to a non-Google server
+                },
+                function (obj) {
+                    alert(JSON.stringify(obj)); // do something useful instead of alerting
+                    self.tryingGoogleLogin = false;
+                    // Try logging in again at FD with given authcode
+                    var authResult = { code: obj.serverAuthCode };  // accessToken
+                    authResult['access_token'] = true;
+                    self.onSignInCallback(authResult);
+                },
+                function (msg) {
+                    alert('error: ' + msg);
+                    self.tryingGoogleLogin = false;
+                    $('.js-signin-msg').text("Google error:" + msg);
+                    $('.js-signin-msg').show();
+                    console.log("Google error:" + msg, { typ: 1 });
+                }
+            );
+
+            /*var googleScope = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email';
             self.clientId = $('meta[name=google-signin-client_id]').attr("content");
             console.log("Google clientId: " + self.clientId);
             // Build the OAuth2 consent page URL
@@ -149,7 +179,7 @@ define([
                 }
                 self.tryingGoogleLogin = false;
             });
-
+            */
         },
 
         noop: function (authResult) {
