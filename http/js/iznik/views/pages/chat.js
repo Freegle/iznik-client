@@ -554,7 +554,6 @@ define([
             var v = new Iznik.Views.PostalAddress.Modal();
 
             self.listenToOnce(v, 'address', function(id) {
-                console.log("Chose address", id);
                 var tempmod = new Iznik.Models.Chat.Message({
                     roomid: self.model.get('id'),
                     addressid: id

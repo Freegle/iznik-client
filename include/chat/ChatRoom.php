@@ -463,24 +463,6 @@ class ChatRoom extends Entity
                         # We can see this if we're one of the users.
                         # TODO or a mod on the group.
                         $cansee = ($userid == $room['user1'] || $userid == $room['user2']);
-                        if ($cansee) {
-                            # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
-                            # be spam.
-                            $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
-                                $room['id']
-                            ]);
-
-                            $validcount = 0;
-                            $invalidcount = 0;
-                            foreach ($unheld as $un) {
-                                $validcount = ($un['valid'] == 1) ? ++$validcount : $validcount;
-                                $invalidcount = ($un['valid'] == 0) ? ++$invalidcount : $invalidcount;
-                            }
-
-                            $cansee = count($unheld) == 0 || $validcount > 0;
-                            #error_log("Cansee for {$room['id']} is $cansee from " . var_export($unheld, TRUE));
-                        }
-
                         break;
                     case ChatRoom::TYPE_MOD2MOD:
                         # We can see this if we're one of the mods.
@@ -494,6 +476,24 @@ class ChatRoom extends Entity
                         # We can see this if we're an approved member..
                         $cansee = $u->isApprovedMember($room['groupid']);
                         break;
+                }
+
+                if ($cansee) {
+                    # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
+                    # be spam.
+                    $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
+                        $room['id']
+                    ]);
+
+                    $validcount = 0;
+                    $invalidcount = 0;
+                    foreach ($unheld as $un) {
+                        $validcount = ($un['valid'] == 1) ? ++$validcount : $validcount;
+                        $invalidcount = ($un['valid'] == 0) ? ++$invalidcount : $invalidcount;
+                    }
+
+                    $cansee = count($unheld) == 0 || $validcount > 0;
+                    #error_log("Cansee for {$room['id']} is $cansee from " . var_export($unheld, TRUE));
                 }
 
                 if ($cansee) {
