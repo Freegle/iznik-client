@@ -12,12 +12,15 @@ define([
     function logout() {
         try {
             // We might be signed in to Google.  Make sure we're not.
+            alert("Google signout start");
             gapi.auth.signOut();
             console.log("Google signed out");
             var GoogleLoad = new Iznik.Views.GoogleLoad();
             GoogleLoad.disconnectUser();
             console.log("Google access token revoked");
+            alert("Google signout end");
         } catch (e) {
+            alert("Google signout failed");
             console.log("Google signout failed", e);
         };
 

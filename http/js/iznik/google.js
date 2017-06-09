@@ -209,6 +209,19 @@ define([
         },
 
         disconnectUser: function () {
+
+            alert("Disconnecting");
+            try{
+                window.plugins.googleplus.disconnect(
+                    function (msg) {
+                        alert("Disconnected");
+                        alert(msg); // do something useful instead of alerting
+                    }
+                );
+            } catch (e) {
+                alert("Disconnect except "+e);
+            }
+
             var self = this;
             var access_token = self.accessToken;
             var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' +
