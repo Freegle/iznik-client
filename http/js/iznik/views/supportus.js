@@ -3,10 +3,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/facebook',
     'typeahead',
     'iznik/models/donations',
     'iznik/views/postaladdress'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, FBLoad) {
     Iznik.Views.SupportUs = Iznik.Views.Modal.extend({
         events: {
             'click .js-invite': 'doInvite',
@@ -389,6 +390,54 @@ define([
                     }
                 }
             });
+        }
+    });
+
+    Iznik.Views.User.SupportShare = Iznik.Views.Modal.extend({
+        template: 'user_support_facebookshare',
+
+        events: {
+            'click .js-close': 'closeIt',
+            'click .js-sharefb': 'shareFB'
+        },
+
+        closeIt: function() {
+            var self = this;
+            ABTestAction('FacebookShare', 'Close');
+            self.close();
+        },
+
+        shareFB: function() {
+            var self = this;
+            ABTestAction('FacebookShare', 'Favour');
+
+            var params = {
+                method: 'share',
+                href: window.location.protocol + '//' + window.location.host + '?src=pleaseshare',
+            };
+
+            FB.ui(params, function (response) {
+                self.close();
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            // Only do this if we know that they have a Facebook login.
+            if (Iznik.Session.hasFacebook) {
+                // And only every month.
+                var lastshow = Storage.get('lastpleaseshare');
+                var show = !lastshow || (((new Date()).getTime() - (new Date(lastshow)).getTime()) > 31 * 24 * 60 * 60 * 1000);
+
+                if (show) {
+                    Storage.set('lastpleaseshare', (new Date()).getTime());
+                    FBLoad().render();
+
+                    ABTestShown('FacebookShare', 'Favour');
+                    Iznik.Views.Modal.prototype.render.call(self);
+                }
+            }
         }
     });
 });
