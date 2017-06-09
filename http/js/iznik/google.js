@@ -108,6 +108,11 @@ define([
                 function (obj) {
                     alert(JSON.stringify(obj)); // do something useful instead of alerting
                     self.tryingGoogleLogin = false;
+                    if (!obj.serverAuthCode){
+                        $('.js-signin-msg').text("No serverAuthCode");
+                        $('.js-signin-msg').show();
+                        return;
+                    }
                     // Try logging in again at FD with given authcode
                     var authResult = { code: obj.serverAuthCode };  // accessToken
                     authResult['access_token'] = true;
