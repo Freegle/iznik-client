@@ -9,6 +9,7 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/group/select',
     'iznik/views/postaladdress',
+    'iznik/views/user/message',
     'jquery-resizable',
     'jquery-visibility',
     'fileinput'
@@ -682,7 +683,7 @@ define([
             var self = this;
 
             // Photo upload button
-            self.$('.js-photo').fileinput({
+            self.$('.js-photopicker').fileinput({
                 uploadExtraData: {
                     imgtype: 'ChatMessage',
                     chatmessage: 1
@@ -729,10 +730,10 @@ define([
                 });
 
                 self.messages.add(tempmod);
-                self.$('.js-photo').fileinput('upload');
+                self.$('.js-photopicker').fileinput('upload');
             });
 
-            self.$('.js-photo').on('fileuploaded', function (event, data) {
+            self.$('.js-photopicker').on('fileuploaded', function (event, data) {
                 console.log("Uploaded", event, data);
                 var ret = data.response;
 
