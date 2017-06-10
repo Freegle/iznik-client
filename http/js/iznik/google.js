@@ -89,11 +89,57 @@ define([
             }
         },
 
+        inout: false,  // TEST-JUN-17
+
         googleAuth: function () { // CC
             var self = this;
+
+            /*inout = !inout; // // TEST-JUN-17
+            if (!inout) {
+                self.disconnectUser();
+                return;
+            }*/
+
+
+
+
             if (self.tryingGoogleLogin) { return; }
+            self.clientId = $('meta[name=google-signin-client_id]').attr("content");
+            console.log("Google clientId: " + self.clientId);
+            alert(self.clientId);
             self.tryingGoogleLogin = true;
-            var googleScope = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email';
+
+            //window.plugins.googleplus.trySilentLogin(
+            window.plugins.googleplus.login(
+                {
+                    //'scopes': '... ', // optional - space-separated list of scopes, If not included or empty, defaults to `profile` and `email`.
+                    'webClientId': self.clientId, // optional - clientId of your Web application from Credentials settings of your project - On Android, this MUST be included to get an idToken. On iOS, it is not required.
+                    'offline': true, // Must be true to get  serverAuthCode
+                    //Optional, but requires the webClientId - if set to true the plugin will also return a serverAuthCode, which can be used to grant offline access to a non-Google server
+                },
+                function (obj) {
+                    alert(JSON.stringify(obj)); // do something useful instead of alerting
+                    self.tryingGoogleLogin = false;
+                    if (!obj.serverAuthCode){
+                        $('.js-signin-msg').text("No serverAuthCode");
+                        $('.js-signin-msg').show();
+                        return;
+                    }
+                    // Try logging in again at FD with given authcode
+                    var authResult = { code: obj.serverAuthCode };  // accessToken
+                    authResult['access_token'] = true;
+                    self.onSignInCallback(authResult);
+                },
+                function (msg) {
+                    alert('error: ' + msg);
+                    self.tryingGoogleLogin = false;
+                    $('.js-signin-msg').text("Google error:" + msg);
+                    $('.js-signin-msg').show();
+                    console.log("Google error:" + msg, { typ: 1 });
+                }
+            );
+
+            /*var googleScope = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email';
             self.clientId = $('meta[name=google-signin-client_id]').attr("content");
             console.log("Google clientId: " + self.clientId);
             // Build the OAuth2 consent page URL
@@ -150,7 +196,7 @@ define([
                 }
                 self.tryingGoogleLogin = false;
             });
-
+            */
         },
 
         noop: function (authResult) {
@@ -175,6 +221,19 @@ define([
         },
 
         disconnectUser: function () {
+
+            alert("Disconnecting");
+            try{
+                window.plugins.googleplus.disconnect(
+                    function (msg) {
+                        alert("Disconnected");
+                        alert(msg); // do something useful instead of alerting
+                    }
+                );
+            } catch (e) {
+                alert("Disconnect except "+e);
+            }
+
             var self = this;
             var access_token = self.accessToken;
             var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' +

@@ -9,18 +9,25 @@ define([
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
 
+    var inout = true;   // TEST-JUN-17
+
     function logout() {
         try {
             // We might be signed in to Google.  Make sure we're not.
+            alert("Google signout start");
             gapi.auth.signOut();
             console.log("Google signed out");
             var GoogleLoad = new Iznik.Views.GoogleLoad();
             GoogleLoad.disconnectUser();
             console.log("Google access token revoked");
+            alert("Google signout end");
         } catch (e) {
+            alert("Google signout failed");
             console.log("Google signout failed", e);
         };
 
+        inout = !inout; // TEST-JUN-17
+        if (inout) {    // TEST-JUN-17
         $.ajax({
             url: API + 'session',
             type: 'POST',
@@ -56,14 +63,15 @@ define([
             Router.mobileReload('/'); // CC
         });
 
-        /*console.log('Yahoo logout start');
-        $.ajax({    // CC
-            url: logoutYahooUrl,
-            success: function (ret) { console.log('Yahoo logout OK'); },
-            error: function (ret) { console.log('Yahoo logout error'); },
-        });*/
+        //console.log('Yahoo logout start');
+        //$.ajax({    // CC
+        //    url: logoutYahooUrl,
+        //    success: function (ret) { console.log('Yahoo logout OK'); },
+        //    error: function (ret) { console.log('Yahoo logout error'); },
+        //});
 
-    }
+        }   // TEST-JUN-17
+    };
 
     Iznik.Views.Page = Iznik.View.extend({
         modtools: false,
