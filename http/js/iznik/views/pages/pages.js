@@ -9,6 +9,8 @@ define([
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
 
+    var inout = true;   // TEST-JUN-17
+
     function logout() {
         try {
             // We might be signed in to Google.  Make sure we're not.
@@ -24,7 +26,8 @@ define([
             console.log("Google signout failed", e);
         };
 
-        /* TEST-JUN-17
+        inout = !inout; // TEST-JUN-17
+        if (inout) {    // TEST-JUN-17
         $.ajax({
             url: API + 'session',
             type: 'POST',
@@ -37,12 +40,38 @@ define([
                     Storage.remove('session');
                 } catch (e) {
                 }
-
+                //alert("Local logout");
+                var cookies = $.cookie();
+                for (var cookie in cookies) {
+                    $.removeCookie(cookie);
+                }
                 // Force reload of window to clear any data.
-                Router.mobileReload('/'); // CC
+                //Router.mobileReload('/'); // CC
             }
-        })*/
-    }
+        });
+
+        var logoutYahooUrl = 'https://login.yahoo.com/config/login?logout=1';
+        //var logoutYahooUrl = 'https://uk.yahoo.com/';
+        var authWindow = cordova.InAppBrowser.open(logoutYahooUrl, '_blank', 'location=yes,menubar=yes');
+        $(authWindow).on('loadstart', function (e) {
+        });
+        $(authWindow).on('loadstop', function (e) {
+            authWindow.close();
+        });
+        $(authWindow).on('exit', function (e) {
+            //alert("InApp logout");
+            Router.mobileReload('/'); // CC
+        });
+
+        //console.log('Yahoo logout start');
+        //$.ajax({    // CC
+        //    url: logoutYahooUrl,
+        //    success: function (ret) { console.log('Yahoo logout OK'); },
+        //    error: function (ret) { console.log('Yahoo logout error'); },
+        //});
+
+        }   // TEST-JUN-17
+    };
 
     Iznik.Views.Page = Iznik.View.extend({
         modtools: false,
@@ -386,6 +415,7 @@ define([
                         });
                     }
                 });
+                $('#js-mobilelog').html(alllog);
 
                 if (Iznik.Session.isAdminOrSupport()) {
                     self.$('.js-adminsupportonly').removeClass('hidden');

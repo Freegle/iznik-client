@@ -94,11 +94,11 @@ define([
         googleAuth: function () { // CC
             var self = this;
 
-            inout = !inout; // // TEST-JUN-17
+            /*inout = !inout; // // TEST-JUN-17
             if (!inout) {
                 self.disconnectUser();
                 return;
-            }
+            }*/
 
 
 
