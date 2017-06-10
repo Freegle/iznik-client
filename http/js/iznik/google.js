@@ -89,8 +89,20 @@ define([
             }
         },
 
+        inout: false,  // TEST-JUN-17
+
         googleAuth: function () { // CC
             var self = this;
+
+            inout = !inout; // // TEST-JUN-17
+            if (!inout) {
+                self.disconnectUser();
+                return;
+            }
+
+
+
+
             if (self.tryingGoogleLogin) { return; }
             self.clientId = $('meta[name=google-signin-client_id]').attr("content");
             console.log("Google clientId: " + self.clientId);

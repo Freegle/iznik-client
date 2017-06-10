@@ -24,6 +24,7 @@ define([
             console.log("Google signout failed", e);
         };
 
+        /* TEST-JUN-17
         $.ajax({
             url: API + 'session',
             type: 'POST',
@@ -40,7 +41,7 @@ define([
                 // Force reload of window to clear any data.
                 Router.mobileReload('/'); // CC
             }
-        })
+        })*/
     }
 
     Iznik.Views.Page = Iznik.View.extend({
