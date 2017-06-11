@@ -89,36 +89,24 @@ define([
             }
         },
 
-        inout: false,  // TEST-JUN-17
-
         googleAuth: function () { // CC
             var self = this;
-
-            /*inout = !inout; // // TEST-JUN-17
-            if (!inout) {
-                self.disconnectUser();
-                return;
-            }*/
-
-
-
 
             if (self.tryingGoogleLogin) { return; }
             self.clientId = $('meta[name=google-signin-client_id]').attr("content");
             console.log("Google clientId: " + self.clientId);
-            alert(self.clientId);
             self.tryingGoogleLogin = true;
 
-            //window.plugins.googleplus.trySilentLogin(
+            // Not needed: window.plugins.googleplus.trySilentLogin(
             window.plugins.googleplus.login(
                 {
                     //'scopes': '... ', // optional - space-separated list of scopes, If not included or empty, defaults to `profile` and `email`.
                     'webClientId': self.clientId, // optional - clientId of your Web application from Credentials settings of your project - On Android, this MUST be included to get an idToken. On iOS, it is not required.
-                    'offline': true, // Must be true to get  serverAuthCode
-                    //Optional, but requires the webClientId - if set to true the plugin will also return a serverAuthCode, which can be used to grant offline access to a non-Google server
+                    'offline': true, // Must be true to get serverAuthCode
                 },
-                function (obj) {
-                    alert(JSON.stringify(obj)); // do something useful instead of alerting
+                function (obj) {    // SUCCESS
+                    //alert(JSON.stringify(obj)); // do something useful instead of alerting
+                    console.log(obj);
                     self.tryingGoogleLogin = false;
                     if (!obj.serverAuthCode){
                         $('.js-signin-msg').text("No serverAuthCode");
@@ -130,7 +118,7 @@ define([
                     authResult['access_token'] = true;
                     self.onSignInCallback(authResult);
                 },
-                function (msg) {
+                function (msg) {    // ERROR
                     alert('error: ' + msg);
                     self.tryingGoogleLogin = false;
                     $('.js-signin-msg').text("Google error:" + msg);
@@ -138,65 +126,6 @@ define([
                     console.log("Google error:" + msg, { typ: 1 });
                 }
             );
-
-            /*var googleScope = 'https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email';
-            self.clientId = $('meta[name=google-signin-client_id]').attr("content");
-            console.log("Google clientId: " + self.clientId);
-            // Build the OAuth2 consent page URL
-            var authUrl = 'https://accounts.google.com/o/oauth2/auth?' + $.param({
-                client_id: self.clientId,
-                redirect_uri: 'http://localhost', // Must match that in Google console API credentials
-                response_type: 'code',
-                //response_type: 'token',
-                scope: googleScope
-            });
-
-            var authGiven = false;
-
-            // Open the OAuth2 consent page in the InAppBrowser
-            var authWindow = window.open(authUrl, '_blank', 'location=yes,menubar=yes'); // Show location so user knows it's OK
-
-            $(authWindow).on('loadstart', function (e) {
-                // This is called more than once, eg on first load, when button pressed and when redirected to localhost with code or error
-                var url = e.originalEvent.url;
-                console.log("gloadstart: " + url);
-                var code = /\?code=(.+)$/.exec(url); 	// code[0] is entire match, code[1] is submatch ie the code
-                var error = /\?error=(.+)$/.exec(url); // error[0] is entire match, error[1] is submatch ie the error
-
-                if (code || error) {
-                    //Always close the browser when match is found
-                    //console.log("Close: " + code + " - " + error);
-                    authWindow.close();
-                }
-
-                if (code) {
-                    if (authGiven) return;
-                    authGiven = true;
-
-                    code = code[1].split('&')[0]; // Remove any other returned parameters
-                    console.log("code: " + code);
-
-                    // Try logging in again at FD with given authcode
-                    var authResult = { code: code };
-                    authResult['access_token'] = true;
-                    self.onSignInCallback(authResult);
-                } else if (error) {
-                    // The user denied access to the app
-                    $('.js-signin-msg').text("Google error:" + error[1]);
-                    $('.js-signin-msg').show();
-                    console.log("Google error:" + error[1], { typ: 1 });
-                }
-            });
-
-            $(authWindow).on('exit', function (e) {
-                if (!authGiven) {
-                    $('.js-signin-msg').text("Google permission not given or failed");
-                    $('.js-signin-msg').show();
-                    console.log("Google permission not given or failed");
-                }
-                self.tryingGoogleLogin = false;
-            });
-            */
         },
 
         noop: function (authResult) {
@@ -222,16 +151,16 @@ define([
 
         disconnectUser: function () {
 
-            alert("Disconnecting");
+            //alert("Disconnecting");
             try{
                 window.plugins.googleplus.disconnect(
                     function (msg) {
-                        alert("Disconnected");
-                        alert(msg); // do something useful instead of alerting
+                        //alert("Disconnected");
+                        console.log(msg); // do something useful instead of alerting
                     }
                 );
             } catch (e) {
-                alert("Disconnect except "+e);
+                console.log("Disconnect except "+e);
             }
 
             var self = this;

@@ -14,20 +14,15 @@ define([
     function logout() {
         try {
             // We might be signed in to Google.  Make sure we're not.
-            alert("Google signout start");
             gapi.auth.signOut();
             console.log("Google signed out");
             var GoogleLoad = new Iznik.Views.GoogleLoad();
             GoogleLoad.disconnectUser();
             console.log("Google access token revoked");
-            alert("Google signout end");
         } catch (e) {
-            alert("Google signout failed");
             console.log("Google signout failed", e);
         };
 
-        inout = !inout; // TEST-JUN-17
-        if (inout) {    // TEST-JUN-17
         $.ajax({
             url: API + 'session',
             type: 'POST',
@@ -46,10 +41,11 @@ define([
                     $.removeCookie(cookie);
                 }
                 // Force reload of window to clear any data.
-                //Router.mobileReload('/'); // CC
+                // Remove for MODTOOLS: Router.mobileReload('/'); // CC
             }
         });
 
+        // MODTOOLS only
         var logoutYahooUrl = 'https://login.yahoo.com/config/login?logout=1';
         //var logoutYahooUrl = 'https://uk.yahoo.com/';
         var authWindow = cordova.InAppBrowser.open(logoutYahooUrl, '_blank', 'location=yes,menubar=yes');
@@ -69,8 +65,6 @@ define([
         //    success: function (ret) { console.log('Yahoo logout OK'); },
         //    error: function (ret) { console.log('Yahoo logout error'); },
         //});
-
-        }   // TEST-JUN-17
     };
 
     Iznik.Views.Page = Iznik.View.extend({

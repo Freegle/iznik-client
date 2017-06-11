@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML>
 <html>
 <head>
-  <meta name="iznik_mobile_version" content="0.0.18, 10 June 2017">
+  <meta name="iznik_mobile_version" content="0.0.18, 11 June 2017">
   <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, -->
   <!-- or help make the code better at https://github.com/Freegle/iznik ?  -->
   <!--meta http-equiv="Content-Security-Policy" content="default-src *; media-src *"-->
@@ -11,7 +11,15 @@
     https://www.html5rocks.com/en/tutorials/security/content-security-policy/
     -->
   <!--
+    config.xml is not in git project:
+  
+    android-minSdkVersion: 15 - so only Android 4.4+ supported as the WebView works and kept up to date
+  
+    android-targetSdkVersion: 20
+    CLI: not sure if this applies as pre-4.4 not supported - but kept in place anyway.
     Android target SDK has to be 20 so notification icon(s) are correct
+
+    CLI: no longer applies:
     Use phonegap-plugin-push-1.8.4 as compatible with our Cordova, amended to remove gradle script
     Generate prod push cert on Mac: http://stackoverflow.com/questions/21250510/generate-pem-file-used-to-setup-apple-push-notification
     ModTools: Amend inAppBrowser to add getCookies
