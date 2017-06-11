@@ -35,11 +35,6 @@ define([
                     Storage.remove('session');
                 } catch (e) {
                 }
-                //alert("Local logout");
-                var cookies = $.cookie();
-                for (var cookie in cookies) {
-                    $.removeCookie(cookie);
-                }
                 // Force reload of window to clear any data.
                 // Remove for MODTOOLS: Router.mobileReload('/'); // CC
             }
