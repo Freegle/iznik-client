@@ -139,15 +139,12 @@ if (!initialURL) {
     initialURL = window.location.href;
 }
 
-$.ajaxSetup({
-    mobileapp: 1
-});
-
 if (!isiOS) {   // vertical swipe on iOS stops scrolling
     var androidVersion = parseFloat(device.version);    // Not using Crosswalk so only enable swipe refresh for Android 4.4+
     if (androidVersion >= 4.4) {
         useSwipeRefresh = true;
     }
+    useSwipeRefresh = false;    // CC Hammer doesn't work in CLI version on Nexus
 }
 setTimeout(function(){  // Have small delay at startup to try to avoid cannot load index.html error
 require([
@@ -163,6 +160,10 @@ require([
         console.error("Backbone failed to fetch");
         panicReload();
     }
+
+    $.ajaxSetup({
+        mobileapp: 1
+    });
 
     // Template to add link to /mobiledebug is in template/user/layout/layout.html
     var oldconsolelog = console.log; 
@@ -188,9 +189,14 @@ require([
 
     if (useSwipeRefresh) {
         //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+        //alert(typeof Hammer);
         hammer = new Hammer(window);
+        //alert("got hammer");
+        //alert(typeof hammer);
+        //alert(JSON.stringify(hammer));
         hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
         hammer.on('swipedown', function (ev) {
+            //alert("hammer down");
             //console.log(ev);
             var posn = $(window).scrollTop();
             //console.log("posn=" + posn);
