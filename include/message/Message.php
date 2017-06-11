@@ -1370,7 +1370,7 @@ class Message
         }
 
         if (!$this->sourceheader) {
-            if (stripos($this->fromaddr, 'ilovefreegle.org') !== FALSE) {
+            if (ourDomain($this->fromaddr)) {
                 $this->sourceheader = 'Platform';
             } else {
                 $this->sourceheader = 'Yahoo-Email';
@@ -3311,7 +3311,7 @@ class Message
                     $u->getName(),
                     $email,
                     $subj,
-                    ($happiness == User::HAPPY || User::FINE) ? $comment : ''
+                    ($happiness == User::HAPPY || $happiness == User::FINE) ? $comment : ''
                 );
             }
         }
