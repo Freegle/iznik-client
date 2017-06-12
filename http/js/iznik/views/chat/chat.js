@@ -1142,6 +1142,7 @@ define([
 
                     self.trigger('rendered');
 
+                    // CC older code for the windows at the bottom right: will gradually disappear Ed, 12/6/17
                     // Photo upload button
                     self.$('.js-photo').fileinput({
                         uploadExtraData: {
@@ -1224,7 +1225,7 @@ define([
                     });
 
                     self.$('.js-photo').on('fileuploaded', function (event, data) {
-                        console.log("Uploaded", event, data);
+                        console.log("Uploaded 11111", event, data);
                         var ret = data.response;
 
                         // Create a chat message to hold it.

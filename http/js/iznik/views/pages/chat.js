@@ -680,9 +680,10 @@ define([
             self.trigger('countupdated', unseen);
         },
 
-        photoUpload: function() {
+        photoUpload: function () {   // CC newer for the whole page view.
             var self = this;
 
+            console.log("chat photoUpload ======================", event, data);
             // Photo upload button
             self.$('.js-photopicker').fileinput({
                 uploadExtraData: {
@@ -715,9 +716,37 @@ define([
                     '</div>'
                 }
             });
+            self.$('.js-photopicker').on('filebrowse', function (event) {
+                console.log("FILE BROWSE ......................");
+            });
 
-            self.$('.js-photo').on('fileimagesresized', function (event) {
+
+            self.$('.js-photopicker').on('change', function (event) {
+                console.log("FILE CHANGE ----------------------");
+            });
+
+            self.$('.js-photopicker').on('fileloaded', function (event, file, previewId, index, reader) {
+                console.log("FILE UPLOADED ----------------");
+            });
+
+            self.$('.js-photopicker').on('fileerror', function (event, data, msg) {
+                console.log(data);
+                alert(msg);
+            });
+
+            self.$('.js-photopicker').on('fileimageresizeerror', function (event, data, msg) {
+                console.log(data);
+                alert(msg);
+            });
+
+            self.$('.js-photopicker').on('fileuploaderror', function (event, data, msg) {
+                console.log(data);
+                alert(msg);
+            });
+
+            self.$('.js-photopicker').on('fileimagesresized', function (event) {    // CC
                 // Upload as soon as we have it.  Add an entry for the progress bar.
+                console.log("fileimagesresized 2222", event, data);
                 $('.file-preview, .kv-upload-progress').hide();
                 var prelast = self.messages.last();
                 var nextid = prelast ? (prelast.get('id') + 1) : 1;
@@ -735,7 +764,7 @@ define([
             });
 
             self.$('.js-photopicker').on('fileuploaded', function (event, data) {
-                console.log("Uploaded", event, data);
+                console.log("Uploaded 2222", event, data);
                 var ret = data.response;
 
                 // Create a chat message to hold it.
