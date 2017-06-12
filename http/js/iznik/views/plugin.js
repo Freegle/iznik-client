@@ -369,9 +369,7 @@ define([
         },
     
         checkPluginStatus: function () {
-            console.log("checkPluginStatus "+(new Date()).toTimeString());
-            //var e = new Error();
-            //console.log(e.stack);
+            //console.log("checkPluginStatus "+(new Date()).toTimeString());
             var self = this;
     
             function checkResponse(self) {

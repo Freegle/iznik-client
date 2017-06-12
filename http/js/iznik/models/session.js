@@ -206,7 +206,7 @@ define([
             try {
                 sess = Storage.get('session');
                 if (sess) {
-                    console.log("testLoggedIn: OK");
+                    //console.log("testLoggedIn: OK");
                     //console.log(sess.substring(0,30));
                     parsed = JSON.parse(sess);
                 }

@@ -1177,6 +1177,7 @@ define([
 
                     self.$('.js-photo').on('fileimagesresized', function (event) {
                         // Upload as soon as we have it.  Add an entry for the progress bar.
+                        console.log(".js-photo fileimagesresized");
                         $('.file-preview, .kv-upload-progress').hide();
                         var prelast = self.messages.last();
                         var nextid = prelast ? (prelast.get('id') + 1) : 1;
