@@ -192,6 +192,7 @@ define([
             "volunteering": "userVolunteerings",
             "volunteering/group/(/:id)": "userVolunteerings",
             "volunteering/:id": "userVolunteering",
+            "volunteering(:id)": "userVolunteering", // TODO Remove after 2017-07-01
             "why": "userWhy",
             "*path": "userHome"
         },

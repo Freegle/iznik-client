@@ -8,6 +8,8 @@ define([
     'iznik/models/chat/chat',
     'iznik/views/pages/pages',
     'iznik/views/group/select',
+    'iznik/views/postaladdress',
+    'iznik/views/user/message',
     'jquery-resizable',
     'jquery-visibility',
     'fileinput'
@@ -305,6 +307,7 @@ define([
             'click .js-enter': 'enter',
             'focus .js-message': 'messageFocused',
             'click .js-promise': 'promise',
+            'click .js-address': 'address',
             'click .js-info': 'info',
             'click .js-photo': 'photo',
             'click .js-send': 'send',
@@ -547,6 +550,26 @@ define([
             });
         },
 
+        address: function() {
+            var self = this;
+
+            var v = new Iznik.Views.PostalAddress.Modal();
+
+            self.listenToOnce(v, 'address', function(id) {
+                var tempmod = new Iznik.Models.Chat.Message({
+                    roomid: self.model.get('id'),
+                    addressid: id
+                });
+
+                tempmod.save().then(function() {
+                    // Fetch the messages again to pick up this new one.
+                    self.messages.fetch();
+                });
+            });
+
+            v.render();
+        },
+
         info: function () {
             var self = this;
 
@@ -661,7 +684,7 @@ define([
             var self = this;
 
             // Photo upload button
-            self.$('.js-photo').fileinput({
+            self.$('.js-photopicker').fileinput({
                 uploadExtraData: {
                     imgtype: 'ChatMessage',
                     chatmessage: 1
@@ -708,10 +731,10 @@ define([
                 });
 
                 self.messages.add(tempmod);
-                self.$('.js-photo').fileinput('upload');
+                self.$('.js-photopicker').fileinput('upload');
             });
 
-            self.$('.js-photo').on('fileuploaded', function (event, data) {
+            self.$('.js-photopicker').on('fileuploaded', function (event, data) {
                 console.log("Uploaded", event, data);
                 var ret = data.response;
 

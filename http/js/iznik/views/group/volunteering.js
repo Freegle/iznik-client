@@ -157,9 +157,9 @@ define([
                     self.$('.js-dates').empty();
                     _.each(dates, function(date) {
                         var startm = new moment(date.start);
-                        var start = startm.format('ddd, Do MMM YYYY HH:mm');
+                        var start = startm.format('ddd, Do MMM YYYY');
                         var endm = new moment(date.end);
-                        var end = endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm');
+                        var end = endm.isSame(startm, 'day') ? '' : endm.format('ddd, Do MMM YYYY');
                         self.$('.js-dates').append(start + ' - ' + end + '<br />');
                     });
                 } else {

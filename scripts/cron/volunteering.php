@@ -23,6 +23,7 @@ if (count($opts) < 1) {
 
     # Ensure any old ones are marked as so.
     $v = new Volunteering($dbhr, $dbhm);
+    $v->askRenew();
     $v->expire();
 
     # We only send opportunities for Freegle groups.

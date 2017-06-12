@@ -105,8 +105,15 @@ class volunteeringTest extends IznikTestCase {
     public function testExpire() {
         error_log(__METHOD__);
 
-        $c = new Volunteering($this->dbhm, $this->dbhm);
-        $id = $c->create(NULL, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        # Test one with a date.
+        $c = new Volunteering($this->dbhr, $this->dbhm);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addEmail('test@test.com');
+
+        $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
         assertNotNull($id);
         $c->addGroup($this->groupid);
 
@@ -129,7 +136,30 @@ class volunteeringTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM volunteering_dates WHERE id = $did;");
 
         # Should now expire
-        $c->expire();
+        $c->expire($id);
+        $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
+        assertEquals(0, count($volunteerings));
+
+        # Now test one with no date.
+        $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        assertNotNull($id);
+        $c->addGroup($this->groupid);
+        $c->setPrivate('pending', 0);
+
+        # Should see it as not yet expired.
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $u->addMembership($this->groupid);
+        $ctx = NULL;
+        $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
+        assertEquals(1, count($volunteerings));
+
+        # Now make it old enough to expire.
+        $c->setPrivate('added', '2017-01-01');
+
+        # Ask them to confirm to check we get the mail sent.
+        self::assertEquals(1, $c->askRenew($id));
+        $c->expire($id);
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
         assertEquals(0, count($volunteerings));
 

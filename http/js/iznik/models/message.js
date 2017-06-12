@@ -205,7 +205,10 @@ define([
             }
 
             $.ajax({
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 url: API + 'message',
                 data: self.data2,
                 success: function (ret) {

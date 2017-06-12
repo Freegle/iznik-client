@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 
@@ -21,6 +22,7 @@ class ChatMessage extends Entity
     const TYPE_REPORTEDUSER = 'ReportedUser';
     const TYPE_COMPLETED = 'Completed';
     const TYPE_IMAGE = 'Image';
+    const TYPE_ADDRESS = 'Address';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_REJECT = 'Reject';
@@ -344,6 +346,13 @@ class ChatMessage extends Entity
                 'paththumb' => $a->getPath(TRUE)
             ];
             unset($ret['imageid']);
+        }
+
+        if ($ret['type'] == ChatMessage::TYPE_ADDRESS) {
+            $id = intval($ret['message']);
+            $ret['message'] = NULL;
+            $a = new Address($this->dbhr, $this->dbhm, $id);
+            $ret['address'] = $a->getPublic();
         }
 
         # Strip any remaining quoted text in replies.

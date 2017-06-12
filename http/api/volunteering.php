@@ -104,6 +104,15 @@ function volunteering() {
                         case 'RemoveGroup': $c->removeGroup(intval(presdef('groupid', $_REQUEST, 0))); break;
                         case 'AddDate': $c->addDate(presdef('start', $_REQUEST, NULL), presdef('end', $_REQUEST, NULL), presdef('applyby', $_REQUEST, NULL)); break;
                         case 'RemoveDate': $c->removeDate(intval(presdef('dateid', $_REQUEST, NULL))); break;
+                        case 'Renew':
+                            # Set the renewal date.  Also make sure it's not marked as expired, in case they
+                            # do this after that has happened.
+                            $c->setPrivate('renewed', date("Y-m-d H:i:s", time()));
+                            $c->setPrivate('expired', 0);
+                            break;
+                        case 'Expire':
+                            $c->setPrivate('expired', 1);
+                            break;
                     }
 
                     $ret = [

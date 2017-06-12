@@ -198,7 +198,7 @@ define([
                 // console.log("With values", dom);
                 // console.log("Without", $('body').html());
 
-                if (dom.length > 0) {
+                if (dom && dom.length > 0) {
                     var timestamp = (new Date()).getTime();
                     self.trackEvent('body', 'mutation', null, null, dom, timestamp);
                 }

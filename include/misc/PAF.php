@@ -121,83 +121,88 @@ class PAF
             # Parse the line.
             $fields = str_getcsv($row);
             $postcode = $l->findByName($fields[0]);
-            $udprn = $fields[12];
-            $buildingnumber = $fields[6];
-            $postcodetype = $fields[13];
-            $suorganisationindicator = $fields[14];
-            $deliverypointsuffix = $fields[15];
 
-            $ix = 1;
+            if (!$postcode) {
+                error_log("Failed to find postcode for {$fields[0]} - is Doogal cron running OK?");
+            } else {
+                $udprn = $fields[12];
+                $buildingnumber = $fields[6];
+                $postcodetype = $fields[13];
+                $suorganisationindicator = $fields[14];
+                $deliverypointsuffix = $fields[15];
 
-            foreach ($this->idfields1 as $field) {
-                $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
-            }
-
-            foreach ($this->idfields2 as $field) {
-                $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
-            }
-
-            $addresses = $this->dbhr->preQuery("SELECT * FROM paf_addresses WHERE udprn = ?;", [ $udprn ]);
-            foreach ($addresses as $address) {
-                # Compare the values
-                foreach ($address as $key => $val) {
-                    if (!is_int($key) && $key != 'id') {
-                        $v = str_replace('id', '', $key);
-                        $$v = $$v == ' ' ? NULL : $$v;
-                        $$v = $$v == '' ? NULL : $$v;
-
-                        if ($val != $$v) {
-                            error_log("UDPRN $udprn differs in $key $val => {$$v}");
-                            $differs++;
-                            $this->dbhm->preExec("UPDATE paf_addresses SET $key = ? WHERE id = ?;", [
-                                $$v,
-                                $address['id']
-                            ]);
-                        }
-                    }
-                }
-            }
-
-            if (count($addresses) === 0) {
-                # This is a new entry.
-                $sql = "INSERT INTO paf_addresses (postcodeid, buildingnumber, postcodetype, suorganisationindicator, deliverypointsuffix";
-                $values = [];
                 $ix = 1;
 
                 foreach ($this->idfields1 as $field) {
-                    $sql .= ", {$field}id";
-                    $v = $$field;
-                    $v = $v == ' ' ? NULL : $v;
-                    $v = $v == '' ? NULL : $v;
-
-                    $values[] = $v;
+                    $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
                 }
 
                 foreach ($this->idfields2 as $field) {
-                    $sql .= ", {$field}id";
-                    $v = $$field;
-                    $v = $v == ' ' ? NULL : $v;
-                    $v = $v == '' ? NULL : $v;
-
-                    $values[] = $v;
+                    $$field = $this->getRefId("paf_$field", $field, $fields[$ix++]);
                 }
 
-                $sql .= ") VALUES ($postcode, " . $this->dbhm->quote($buildingnumber) . ", " . $this->dbhm->quote($postcodetype) . ", " . $this->dbhm->quote($suorganisationindicator) . ", " . $this->dbhm->quote($deliverypointsuffix);
-                $ix = 0;
+                $addresses = $this->dbhr->preQuery("SELECT * FROM paf_addresses WHERE udprn = ?;", [ $udprn ], FALSE, FALSE);
+                foreach ($addresses as $address) {
+                    # Compare the values
+                    foreach ($address as $key => $val) {
+                        if (!is_int($key) && $key != 'id') {
+                            $v = str_replace('id', '', $key);
+                            $$v = $$v == ' ' ? NULL : $$v;
+                            $$v = $$v == '' ? NULL : $$v;
 
-                foreach ($this->idfields1 as $field) {
-                    $val = $values[$ix++];
-                    $sql .= ", " . ($val ? $this->dbhm->quote($val) : 'NULL');
+                            if ($val != $$v) {
+                                error_log("UDPRN $udprn differs in $key $val => {$$v}");
+                                $differs++;
+                                $this->dbhm->preExec("UPDATE paf_addresses SET $key = ? WHERE id = ?;", [
+                                    $$v,
+                                    $address['id']
+                                ]);
+                            }
+                        }
+                    }
                 }
 
-                foreach ($this->idfields2 as $field) {
-                    $val = $values[$ix++];
-                    $sql .= ", " . ($val ? $this->dbhm->quote($val) : 'NULL');
-                }
+                if (count($addresses) === 0) {
+                    # This is a new entry.
+                    $sql = "INSERT INTO paf_addresses (postcodeid, buildingnumber, postcodetype, suorganisationindicator, deliverypointsuffix";
+                    $values = [];
+                    $ix = 1;
 
-                $sql .= ");";
-                $differs++;
-                $this->dbhm->preExec($sql);
+                    foreach ($this->idfields1 as $field) {
+                        $sql .= ", {$field}id";
+                        $v = $$field;
+                        $v = $v == ' ' ? NULL : $v;
+                        $v = $v == '' ? NULL : $v;
+
+                        $values[] = $v;
+                    }
+
+                    foreach ($this->idfields2 as $field) {
+                        $sql .= ", {$field}id";
+                        $v = $$field;
+                        $v = $v == ' ' ? NULL : $v;
+                        $v = $v == '' ? NULL : $v;
+
+                        $values[] = $v;
+                    }
+
+                    $sql .= ") VALUES ($postcode, " . $this->dbhm->quote($buildingnumber) . ", " . $this->dbhm->quote($postcodetype) . ", " . $this->dbhm->quote($suorganisationindicator) . ", " . $this->dbhm->quote($deliverypointsuffix);
+                    $ix = 0;
+
+                    foreach ($this->idfields1 as $field) {
+                        $val = $values[$ix++];
+                        $sql .= ", " . ($val ? $this->dbhm->quote($val) : 'NULL');
+                    }
+
+                    foreach ($this->idfields2 as $field) {
+                        $val = $values[$ix++];
+                        $sql .= ", " . ($val ? $this->dbhm->quote($val) : 'NULL');
+                    }
+
+                    $sql .= ");";
+                    $differs++;
+                    $this->dbhm->preExec($sql);
+                }
             }
 
             $count++;

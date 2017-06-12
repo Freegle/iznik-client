@@ -8,6 +8,7 @@ define([
     'iznik/models/chat/chat',
     'iznik/models/message',
     'iznik/models/user/user',
+    'iznik/views/postaladdress',
     'jquery-resizable',
     'jquery-visibility',
     'fileinput'
@@ -415,6 +416,7 @@ define([
             'click .js-enter': 'enter',
             'focus .js-message': 'messageFocus',
             'click .js-promise': 'promise',
+            'click .js-address': 'address',
             'click .js-info': 'info',
             'click .js-photo': 'photo',
             'click .js-send': 'send',
@@ -648,6 +650,26 @@ define([
                     v.render();
                 }
             });
+        },
+
+        address: function() {
+            var self = this;
+
+            var v = new Iznik.Views.PostalAddress.Modal();
+
+            self.listenToOnce(v, 'address', function(id) {
+                var tempmod = new Iznik.Models.Chat.Message({
+                    roomid: self.model.get('id'),
+                    addressid: id
+                });
+
+                tempmod.save().then(function() {
+                    // Fetch the messages again to pick up this new one.
+                    self.messages.fetch();
+                });
+            });
+
+            v.render();
         },
 
         info: function () {
@@ -1318,6 +1340,9 @@ define([
                         break;
                     case 'Image':
                         tpl = 'chat_image';
+                        break;
+                    case 'Address':
+                        tpl = 'chat_address';
                         break;
                     default:
                         tpl = 'chat_message';
