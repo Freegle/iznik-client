@@ -301,6 +301,7 @@ define([
 
         maxAdjustDelay: 300,
         currentAdjustDelay: 10,
+        shownAddress: false,
 
         events: {
             'click .js-report, touchstart .js-report': 'report',
@@ -405,6 +406,24 @@ define([
                         self.send();
                     }
                 }
+            }
+        },
+
+        checkAddress: function() {
+            var self = this;
+
+            if (!self.shownAddress && self.inDOM()) {
+                var msg = self.$('.js-message').val();
+
+                if (msg.indexOf('address') !== -1) {
+                    self.$('.js-address').tooltip('show');
+                    self.shownAddress = true;
+                    _.delay(_.bind(function() {
+                        this.$('.js-address').tooltip('hide');
+                    }, self), 10000);
+                }
+
+                _.delay(_.bind(self.checkAddress, self), 1000);
             }
         },
 
@@ -800,6 +819,8 @@ define([
                     self.$('.js-promise').hide();
                 }
 
+                self.$('.js-tooltip').tooltip();
+
                 self.messages = new Iznik.Collections.Chat.Messages({
                     roomid: self.model.get('id')
                 });
@@ -873,6 +894,8 @@ define([
                 self.messageViews.render();
 
                 self.photoUpload();
+
+                _.delay(_.bind(self.checkAddress, self), 1000);
             });
 
             return (p);
