@@ -683,7 +683,7 @@ define([
         photoUpload: function () {   // CC newer for the whole page view.
             var self = this;
 
-            console.log("chat photoUpload ======================", event, data);
+            console.log("chat photoUpload ======================");
             // Photo upload button
             self.$('.js-photopicker').fileinput({
                 uploadExtraData: {
@@ -746,7 +746,7 @@ define([
 
             self.$('.js-photopicker').on('fileimagesresized', function (event) {    // CC
                 // Upload as soon as we have it.  Add an entry for the progress bar.
-                console.log("fileimagesresized 2222", event, data);
+                console.log("fileimagesresized 2222", event);
                 $('.file-preview, .kv-upload-progress').hide();
                 var prelast = self.messages.last();
                 var nextid = prelast ? (prelast.get('id') + 1) : 1;
