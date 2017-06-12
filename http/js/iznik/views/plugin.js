@@ -379,7 +379,7 @@ define([
                         console.log("plugin ret=" + ret.substring(0,50));
                     }
                     if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
-                        console.log("checkResponse OK");
+                        //console.log("checkResponse OK");
                         $('.js-pluginonly').show();
                         $('#js-loginbuildup').fadeOut('slow');
     
