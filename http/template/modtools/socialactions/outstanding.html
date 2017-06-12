@@ -2,7 +2,7 @@
 <div class="panel panel-warning">
     <div class="panel-heading">
         <h3>
-            <% if (obj.to) { %>{{to}}<% } else { %>{{obj.user.displayname}}<% } %> asked for business cards.
+            <% if (obj.to) { %>{{to}}<% } else { %>{{obj.user.displayname}}<% } %> ({{user.email}}) asked for business cards.
         </h3>
         <span class="text-muted">
              <abbr class="timeago" title="{{date}}" />

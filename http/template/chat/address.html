@@ -1,0 +1,34 @@
+<div class="panel panel-success padmd">
+    <div class="panel-heading">
+        <div class="row">
+            <% if (obj.user) { %>
+                <% if (obj.left) { %>
+                <span class="text-muted padmd">{{user.displayname}} sent an address</span>
+                <% } else { %>
+                <span class="text-muted padmd">You sent an address</span>
+                <% } %>
+            <% } %>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-8">
+                <pre><%-address.multiline%></pre>
+            </div>
+            <div class="col-md-4">
+                <% if (address.postcode) { %>
+                    <a class="pull-right" data-realurl="true" href="http://maps.google.com/?q={{address.postcode.lat}},{{address.postcode.lng}}" target="_blank">
+                        <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&center={{address.postcode.lat}},{{address.postcode.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{address.postcode.lat}},{{address.postcode.lng}}&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom=12" style="cursor:pointer" />
+                    </a>
+                <% } %>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <% if (address.instructions) { %>
+                {{address.instructions}}
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>

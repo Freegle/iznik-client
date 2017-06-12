@@ -3,6 +3,7 @@
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/misc/PAF.php');
 
 class Address extends Entity
 {
@@ -48,6 +49,15 @@ class Address extends Entity
             $p = new PAF($this->dbhr, $this->dbhm);
             $ret['singleline'] = $p->getSingleLine($ret['pafid']);
             $ret['multiline'] = $p->getFormatted($ret['pafid'], "\n");
+
+            $pcs = $this->dbhr->preQuery("SELECT postcodeid FROM paf_addresses WHERE id = ?;", [
+                $ret['pafid']
+            ]);
+
+            foreach ($pcs as $pc) {
+                $l = new Location($this->dbhr, $this->dbhm, $pc['postcodeid']);
+                $ret['postcode'] = $l->getPublic();
+            }
         }
 
         return($ret);

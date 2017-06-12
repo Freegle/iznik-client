@@ -308,7 +308,7 @@ class ChatRoom extends Entity
             $ret['refmsgids'][] = $refmsg['refmsgid'];
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id, date, message FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
+        $lasts = $this->dbhr->preQuery("SELECT id, date, message, type FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
         $ret['lastmsg'] = 0;
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
@@ -316,7 +316,7 @@ class ChatRoom extends Entity
         foreach ($lasts as $last) {
             $ret['lastmsg'] = $last['id'];
             $ret['lastdate'] = ISODate($last['date']);
-            $ret['snippet'] = substr($last['message'], 0, 30);
+            $ret['snippet'] = $last['type'] == ChatMessage::TYPE_ADDRESS ? 'Address sent...' : substr($last['message'], 0, 30);
         }
 
         return ($ret);
@@ -463,24 +463,6 @@ class ChatRoom extends Entity
                         # We can see this if we're one of the users.
                         # TODO or a mod on the group.
                         $cansee = ($userid == $room['user1'] || $userid == $room['user2']);
-                        if ($cansee) {
-                            # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
-                            # be spam.
-                            $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
-                                $room['id']
-                            ]);
-
-                            $validcount = 0;
-                            $invalidcount = 0;
-                            foreach ($unheld as $un) {
-                                $validcount = ($un['valid'] == 1) ? ++$validcount : $validcount;
-                                $invalidcount = ($un['valid'] == 0) ? ++$invalidcount : $invalidcount;
-                            }
-
-                            $cansee = count($unheld) == 0 || $validcount > 0;
-                            #error_log("Cansee for {$room['id']} is $cansee from " . var_export($unheld, TRUE));
-                        }
-
                         break;
                     case ChatRoom::TYPE_MOD2MOD:
                         # We can see this if we're one of the mods.
@@ -494,6 +476,24 @@ class ChatRoom extends Entity
                         # We can see this if we're an approved member..
                         $cansee = $u->isApprovedMember($room['groupid']);
                         break;
+                }
+
+                if ($cansee) {
+                    # We also don't want to see non-empty chats where all the messages are held for review, because they are likely to
+                    # be spam.
+                    $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
+                        $room['id']
+                    ]);
+
+                    $validcount = 0;
+                    $invalidcount = 0;
+                    foreach ($unheld as $un) {
+                        $validcount = ($un['valid'] == 1) ? ++$validcount : $validcount;
+                        $invalidcount = ($un['valid'] == 0) ? ++$invalidcount : $invalidcount;
+                    }
+
+                    $cansee = count($unheld) == 0 || $validcount > 0;
+                    #error_log("Cansee for {$room['id']} is $cansee from " . var_export($unheld, TRUE));
                 }
 
                 if ($cansee) {
@@ -1128,6 +1128,29 @@ class ChatRoom extends Entity
 
                                 case ChatMessage::TYPE_REPORTEDUSER: {
                                     $thisone = "This member reported another member with the comment: {$unmailedmsg['message']}";
+                                    break;
+                                }
+
+                                case ChatMessage::TYPE_ADDRESS: {
+                                    # There's no text stored for this - we invent it on the client.  Do so here
+                                    # too.
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You sent an address to " . $otheru->getName() . ".") : ($otheru->getName() . " sent you an address.");
+                                    $thisone .= "\r\n\r\n";
+                                    $addid = intval($unmailedmsg['message']);
+                                    $a = new Address($this->dbhr, $this->dbhm, $addid);
+
+                                    if ($a->getId()) {
+                                        $atts = $a->getPublic();
+
+                                        if (pres('multiline', $atts)) {
+                                            $thisone .= $atts['multiline'];
+
+                                            if (pres('instructions', $atts)) {
+                                                $thisone .= "\r\n\r\n{$atts['instructions']}";
+                                            }
+                                        }
+                                    }
+
                                     break;
                                 }
 

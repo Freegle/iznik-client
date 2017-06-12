@@ -13,6 +13,36 @@ define([
             } else {
                 return(ret);
             }
+        },
+
+        renew: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + 'volunteering/' + self.get('id'),
+                method: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
+                data: {
+                    action: 'Renew'
+                }
+            });
+        },
+
+        expire: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + 'volunteering/' + self.get('id'),
+                method: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
+                data: {
+                    action: 'Expire'
+                }
+            });
         }
     });
 

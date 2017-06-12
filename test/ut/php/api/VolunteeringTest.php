@@ -141,6 +141,7 @@ class volunteeringAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
         assertEquals('UTTest3', $ret['volunteering']['title']);
+        self::assertFalse(pres('renewed', $ret['volunteering']));
 
         $dateid = $ret['volunteering']['dates'][0]['id'];
 
@@ -160,6 +161,30 @@ class volunteeringAPITest extends IznikAPITestCase {
             'action' => 'RemoveDate'
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Test renew
+        $ret = $this->call('volunteering', 'PATCH', [
+            'id' => $id,
+            'action' => 'Renew'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('volunteering', 'GET', [
+            'id' => $id
+        ]);
+        self::assertNotNull($ret['volunteering']['renewed']);
+
+        # Test expire
+        $ret = $this->call('volunteering', 'PATCH', [
+            'id' => $id,
+            'action' => 'Expire'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('volunteering', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(1, $ret['volunteering']['expired']);
 
         $ret = $this->call('volunteering', 'DELETE', [
             'id' => $id
