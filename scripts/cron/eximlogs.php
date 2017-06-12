@@ -25,8 +25,8 @@ function logIt($msg) {
     ]);
 
     if (count($logs) == 0) {
-        # We don't - just insert.
-        $dbhm->preExec("INSERT INTO logs_emails (timestamp, eximid, userid, `from`, `to`, messageid, subject, status) VALUES (?,?,?,?,?,?,?,?);", [
+        # We don't - just insert.  Use IGNORE in case we have a stupid long eximid.
+        $dbhm->preExec("INSERT IGNORE INTO logs_emails (timestamp, eximid, userid, `from`, `to`, messageid, subject, status) VALUES (?,?,?,?,?,?,?,?);", [
             $timestamp,
             $msg['eximid'],
             $uid,
