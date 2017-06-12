@@ -1175,6 +1175,35 @@ define([
                         },
                     });
 
+                    self.$('.js-photo').on('filebrowse', function (event) {
+                        console.log("FILE BROWSE ......................");
+                    });
+
+
+                    self.$('.js-photo').on('change', function (event) {
+                        console.log("FILE CHANGE ----------------------");
+                    });
+
+                    self.$('.js-photo').on('fileloaded', function (event, file, previewId, index, reader) {
+                        console.log("FILE UPLOADED ----------------");
+                    });
+
+                    self.$('.js-photo').on('fileerror', function (event, data, msg) {
+                        console.log(data);
+                        alert(msg);
+                    });
+
+                    self.$('.js-photo').on('fileimageresizeerror', function (event, data, msg) {
+                        console.log(data);
+                        alert(msg);
+                    });
+
+                    self.$('.js-photo').on('fileuploaderror', function (event, data, msg) {
+                        console.log(data);
+                        alert(msg);
+                    });
+
+
                     self.$('.js-photo').on('fileimagesresized', function (event) {
                         // Upload as soon as we have it.  Add an entry for the progress bar.
                         console.log(".js-photo fileimagesresized");
