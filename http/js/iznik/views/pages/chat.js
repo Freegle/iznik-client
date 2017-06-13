@@ -716,40 +716,10 @@ define([
                     '</div>'
                 }
             });
-            self.$('.js-photopicker').on('filebrowse', function (event) {
-                console.log("FILE BROWSE ......................");
-            });
-
-
-            self.$('.js-photopicker').on('change', function (event) {
-                console.log("FILE CHANGE ----------------------");
-            });
-
-            self.$('.js-photopicker').on('fileloaded', function (event, file, previewId, index, reader) {
-                console.log("FILE UPLOADED ----------------");
-            });
-
-            self.$('.js-photopicker').on('fileerror', function (event, data, msg) {
-                console.log("FILE ERROR ----------------");
-                console.log(data);
-                alert(msg);
-            });
-
-            self.$('.js-photopicker').on('fileimageresizeerror', function (event, data, msg) {
-                console.log("FILE IMAGERESIZERROR ----------------");
-                console.log(data);
-                alert(msg);
-            });
-
-            self.$('.js-photopicker').on('fileuploaderror', function (event, data, msg) {
-                console.log("FILE UPLOADERROR ----------------");
-                console.log(data);
-                alert(msg);
-            });
 
             self.$('.js-photopicker').on('fileimagesresized', function (event) {    // CC
                 // Upload as soon as we have it.  Add an entry for the progress bar.
-                console.log("fileimagesresized 2222 -------------------");
+                console.log("fileimagesresized ======================");
                 $('.file-preview, .kv-upload-progress').hide();
                 var prelast = self.messages.last();
                 var nextid = prelast ? (prelast.get('id') + 1) : 1;
@@ -767,7 +737,7 @@ define([
             });
 
             self.$('.js-photopicker').on('fileuploaded', function (event, data) {
-                console.log("Uploaded 2222 --------------");
+                console.log("Uploaded ======================");
                 var ret = data.response;
 
                 // Create a chat message to hold it.
