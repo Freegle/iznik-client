@@ -3,10 +3,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/facebook',
     'typeahead',
     'iznik/models/donations',
     'iznik/views/postaladdress'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, FBLoad) {
     Iznik.Views.SupportUs = Iznik.Views.Modal.extend({
         events: {
             'click .js-invite': 'doInvite',
@@ -48,9 +49,10 @@ define([
             var p;
 
 
-            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
+            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000) || true) {
                 p = ABTestGetVariant('SupportUs', function(variant) {
                     self.template = variant.variant;
+                    var showglobal = false;
 
                     if (variant.variant.indexOf('group') !== -1) {
                         // Get home group to ask for per-group donation.
@@ -73,10 +75,19 @@ define([
                                 }
                             }).then(function () {
                                 group.set('donations', self.donations.attributes);
-                                console.log("Render with", group);
-                                self.model = group;
+
+                                if (self.donations.attributes.raised < self.donations.attributes.target) {
+                                    // Not reached the target - show the per-group appeal.
+                                    self.model = group;
+                                } else {
+                                    // Reached the group target - show the global appeal
+                                    homegroup = null;
+                                    self.template = 'user_support_askdonation';
+                                }
+
                                 var p = Iznik.Views.Modal.prototype.render.call(self);
                                 p.then(function () {
+                                    console.log("Show for ", homegroup);
                                     var w = new Iznik.Views.DonationThermometer({
                                         groupid: homegroup
                                     });
@@ -141,7 +152,6 @@ define([
                         groupid: self.options.groupid
                     }
                 }).then(function() {
-
                     self.waitDOM(self, function() {
                         var valor1 = self.donations.get('raised');
                         var maxim = self.donations.get('target');
@@ -389,6 +399,54 @@ define([
                     }
                 }
             });
+        }
+    });
+
+    Iznik.Views.User.SupportShare = Iznik.Views.Modal.extend({
+        template: 'user_support_facebookshare',
+
+        events: {
+            'click .js-close': 'closeIt',
+            'click .js-sharefb': 'shareFB'
+        },
+
+        closeIt: function() {
+            var self = this;
+            ABTestAction('FacebookShare', 'Close');
+            self.close();
+        },
+
+        shareFB: function() {
+            var self = this;
+            ABTestAction('FacebookShare', 'Favour');
+
+            var params = {
+                method: 'share',
+                href: window.location.protocol + '//' + window.location.host + '?src=pleaseshare',
+            };
+
+            FB.ui(params, function (response) {
+                self.close();
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            // Only do this if we know that they have a Facebook login.
+            if (Iznik.Session.hasFacebook) {
+                // And only every month.
+                var lastshow = Storage.get('lastpleaseshare');
+                var show = !lastshow || (((new Date()).getTime() - (new Date(lastshow)).getTime()) > 31 * 24 * 60 * 60 * 1000);
+
+                if (show) {
+                    Storage.set('lastpleaseshare', (new Date()).getTime());
+                    FBLoad().render();
+
+                    ABTestShown('FacebookShare', 'Favour');
+                    Iznik.Views.Modal.prototype.render.call(self);
+                }
+            }
         }
     });
 });

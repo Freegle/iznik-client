@@ -204,6 +204,11 @@ define([
                 self.$('.js-nooffers').hide();
             }
 
+            if (self.offers.length > 0 || self.wanteds.length > 0) {
+                // They've made some posts.  Maybe ask them to share.
+                // (new Iznik.Views.User.SupportShare()).render();
+            }
+
             // We might have now found out that something which was in our cache is taken/received and should
             // therefore no longer show.  Refresh.
             self.offersView.reapplyFilter('visibleModels');

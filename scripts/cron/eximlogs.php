@@ -19,22 +19,37 @@ function logIt($msg) {
     $timestamp = date("Y-m-d H:i:s", strtotime($msg['date']));
     $uid = pres('to', $msg) ? $u->findByEmail($msg['to']) : NULL;
 
-    $dbhm->preExec("INSERT INTO logs_emails (timestamp, eximid, userid, `from`, `to`, messageid, subject, status) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, `from` = ?, `to` = ?, messageid = ?, subject = ?, status = ?;", [
-        $timestamp,
-        $msg['eximid'],
-        $uid,
-        presdef('from', $msg, NULL),
-        presdef('to', $msg, NULL),
-        presdef('messageid', $msg, NULL),
-        presdef('subject', $msg, NULL),
-        presdef('status', $msg, NULL),
-        $uid,
-        presdef('from', $msg, NULL),
-        presdef('to', $msg, NULL),
-        presdef('messageid', $msg, NULL),
-        presdef('subject', $msg, NULL),
-        presdef('status', $msg, NULL)
+    # We might already have a row for this eximid.
+    $logs = $dbhm->preQuery("SELECT * FROM logs_emails WHERE eximid = ?;", [
+        $msg['eximid']
     ]);
+
+    if (count($logs) == 0) {
+        # We don't - just insert.  Use IGNORE in case we have a stupid long eximid.
+        $dbhm->preExec("INSERT IGNORE INTO logs_emails (timestamp, eximid, userid, `from`, `to`, messageid, subject, status) VALUES (?,?,?,?,?,?,?,?);", [
+            $timestamp,
+            $msg['eximid'],
+            $uid,
+            presdef('from', $msg, NULL),
+            presdef('to', $msg, NULL),
+            presdef('messageid', $msg, NULL),
+            presdef('subject', $msg, NULL),
+            presdef('status', $msg, NULL)
+        ], FALSE);
+    } else {
+        # We do.  We might have extra info.
+        foreach ($logs as $log) {
+            foreach (['userid', 'from', 'to', 'messageid', 'subject'] as $key) {
+                if (!pres($key, $log) && pres($key, $msg)) {
+                    error_log("...add $key = {$msg[$key]} to {$log['id']} for {$msg['eximid']}");
+                    $dbhm->preExec("UPDATE logs_emails SET $key = ? WHERE id = ?;", [
+                        $msg[$key],
+                        $log['id']
+                    ], FALSE);
+                }
+            }
+        }
+    }
 }
 
 # We store the time we're upto to speed reparsing.

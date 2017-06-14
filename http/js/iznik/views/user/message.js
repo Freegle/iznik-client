@@ -4,8 +4,9 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'clipboard',
     'iznik/views/infinite'
-], function($, _, Backbone, Iznik, moment) {
+], function($, _, Backbone, Iznik, moment, Clipboard) {
     Iznik.Views.User.Message = Iznik.View.extend({
         className: "marginbotsm botspace",
 
@@ -25,6 +26,8 @@ define([
 
             FB.ui(params, function (response) {
                 self.$('.js-fbshare').fadeOut('slow');
+
+                ABTestAction('messagebutton', 'Facebook Share');
             });
         },
 
@@ -169,7 +172,8 @@ define([
         render: function() {
             var self = this;
 
-            // console.log("Render message", self.model.get('id'), self.rendering);
+            // console.log("Render message", self.model.get('id'), self.rendering, self.model);
+
             if (!self.rendering) {
                 var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
@@ -326,6 +330,14 @@ define([
                         // If the number of promises changes, then we want to update what we display.
                         self.listenTo(self.model, 'change:promisecount', self.render);
 
+                        self.laughsAndLikes = new Iznik.Views.User.Message.LaughsAndLikes({
+                            model: self.model
+                        });
+
+                        self.laughsAndLikes.render().then(function() {
+                            self.$('.js-laughsandlikes').html(self.laughsAndLikes.el)
+                        });
+
                         // By adding this at the end we avoid border flicker.
                         self.$el.addClass('panel panel-info');
                         
@@ -343,6 +355,59 @@ define([
             }
 
             return(self.rendering);
+        }
+    });
+
+    Iznik.Views.User.Message.LaughsAndLikes = Iznik.View.extend({
+        template: 'user_message_laughsandlikes',
+
+        className: 'inline',
+
+        events: {
+            'click .js-love': 'love',
+            'click .js-unlove': 'unlove',
+            'click .js-laugh': 'laugh',
+            'click .js-unlaugh': 'unlaugh'
+        },
+
+        love: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                self.model.love().then(_.bind(self.render, self));
+            });
+
+            Iznik.Session.forceLogin();
+        },
+
+        unlove: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                self.model.unlove().then(_.bind(self.render, self));
+            });
+
+            Iznik.Session.forceLogin();
+        },
+
+        laugh: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                self.model.laugh().then(_.bind(self.render, self));
+            });
+
+            Iznik.Session.forceLogin();
+        },
+
+        unlaugh: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                self.model.unlaugh().then(_.bind(self.render, self));
+            });
+
+            Iznik.Session.forceLogin();
         }
     });
 
@@ -964,6 +1029,18 @@ define([
                     // Show the map on expand.  This reduces costs
                     self.$('.panel').on('shown.bs.collapse', function() {
                         self.showMap();
+                    });
+
+                    self.clipboard = new Clipboard('.js-clip', {
+                        text: function() {
+                            var url = self.model.get('url');
+                            return url;
+                        }
+                    });
+
+                    self.clipboard.on('success', function(e) {
+                        ABTestAction('messagebutton', 'Copy Link');
+                        self.close();
                     });
                 })
             }
