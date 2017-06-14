@@ -843,7 +843,7 @@ define([
                 self.$('.js-chatwarning').show();
                 window.setTimeout(_.bind(function () {
                     self.$('.js-chatwarning').slideUp('slow');
-                }, self), 3000);
+                }, self), 30000);
 
                 // Set any roster status.
                 try {

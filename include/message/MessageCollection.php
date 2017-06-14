@@ -89,7 +89,7 @@ class MessageCollection
             });
 
             if (count($collection) > 0) {
-                $typeq = $types ? (" AND `msgtype` IN ('" . implode("','", $types) . "') ") : '';
+                $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
 
                 # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
                 # message arrived for the very first time, or when it was reposted.
@@ -127,7 +127,7 @@ class MessageCollection
                     $sql = "SELECT msgid AS id, messages.arrival, messages_groups.collection FROM messages_groups INNER JOIN $seltab ON messages_groups.msgid = messages.id AND messages.deleted IS NULL WHERE $dateq $oldest $typeq $groupq $collectionq AND messages_groups.deleted = 0 ORDER BY messages_groups.arrival DESC LIMIT $limit";
                 } else if (count($groupids) > 0) {
                     # The messages_groups table has a multi-column index which makes it quick to find the relevant messages.
-                    $typeq = $types ? (" AND `msgtype` IN ('" . implode("','", $types) . "') ") : '';
+                    $typeq = $types ? (" AND `msgtype` IN (" . implode(',', $types) . ") ") : '';
                     $sql = "SELECT msgid as id, arrival, messages_groups.collection FROM messages_groups WHERE 1=1 $groupq $collectionq AND messages_groups.deleted = 0 AND $dateq $oldest $typeq ORDER BY arrival DESC LIMIT $limit;";
                 } else {
                     # We are not searching within a specific group, so we have no choice but to do a larger join.

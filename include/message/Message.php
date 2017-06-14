@@ -32,6 +32,9 @@ class Message
     const OUTCOME_RECEIVED = 'Received';
     const OUTCOME_WITHDRAWN = 'Withdrawn';
 
+    const LIKE_LOVE = 'Love';
+    const LIKE_LAUGH = 'Laugh';
+
     // Bounce checks.
     private $bounce_subjects = [
         "Mail delivery failed",
@@ -917,6 +920,37 @@ class Message
                 $ret['postings'][] = $post;
             }
         }
+
+        # Loves and laughs.
+        $ret['loved'] = FALSE;
+        $ret['laughed'] = FALSE;
+        $love = 0;
+        $laugh = 0;
+
+        if ($myid) {
+            $likes = $this->dbhr->preQuery("SELECT * FROM messages_likes WHERE msgid = ?;", [
+                $this->id
+            ], FALSE, FALSE);
+
+            foreach ($likes as $like) {
+                if ($like['userid'] == $myid) {
+                    if ($like['type'] == Message::LIKE_LOVE) {
+                        $ret['loved'] = TRUE;
+                    } else if ($like['type'] == Message::LIKE_LAUGH) {
+                        $ret['laughed'] = TRUE;
+                    }
+                }
+
+                if ($like['type'] == Message::LIKE_LOVE) {
+                    $love++;
+                } else if ($like['type'] == Message::LIKE_LAUGH) {
+                    $laugh++;
+                }
+            }
+        }
+
+        $ret['loves'] = $love;
+        $ret['laughs'] = $laugh;
 
         return($ret);
     }
@@ -3771,5 +3805,27 @@ class Message
 
     public function isEdited() {
         return($this->editedby !== NULL);
+    }
+
+    public function like($type) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            $this->dbhm->preExec("INSERT IGNORE INTO messages_likes (userid, msgid, `type`) VALUES (?, ?, ?);", [
+                $me->getId(),
+                $this->id,
+                $type
+            ]);
+        }
+    }
+
+    public function unlike($type) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            $this->dbhm->preExec("DELETE FROM messages_likes WHERE msgid = ? AND userid = ? AND `type` = ?;", [
+                $this->id,
+                $me->getId(),
+                $type
+            ]);
+        }
     }
 }

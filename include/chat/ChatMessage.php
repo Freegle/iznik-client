@@ -203,11 +203,13 @@ class ChatMessage extends Entity
         # Check keywords which are known as spam.
         $this->getSpamWords();
         foreach ($this->spamwords as $word) {
-            $exp = '/\b' . preg_quote($word['word']) . '\b/';
-            if ($word['action'] == 'Spam' &&
-                preg_match($exp, $message) &&
-                (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
-                $spam = TRUE;
+            if (strlen(trim($word['word'])) > 0) {
+                $exp = '/\b' . preg_quote($word['word']) . '\b/';
+                if ($word['action'] == 'Spam' &&
+                    preg_match($exp, $message) &&
+                    (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
+                    $spam = TRUE;
+                }
             }
         }
 
