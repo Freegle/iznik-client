@@ -49,9 +49,10 @@ define([
             var p;
 
 
-            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
+            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000) || true) {
                 p = ABTestGetVariant('SupportUs', function(variant) {
                     self.template = variant.variant;
+                    var showglobal = false;
 
                     if (variant.variant.indexOf('group') !== -1) {
                         // Get home group to ask for per-group donation.
@@ -74,10 +75,19 @@ define([
                                 }
                             }).then(function () {
                                 group.set('donations', self.donations.attributes);
-                                console.log("Render with", group);
-                                self.model = group;
+
+                                if (self.donations.attributes.raised < self.donations.attributes.target) {
+                                    // Not reached the target - show the per-group appeal.
+                                    self.model = group;
+                                } else {
+                                    // Reached the group target - show the global appeal
+                                    homegroup = null;
+                                    self.template = 'user_support_askdonation';
+                                }
+
                                 var p = Iznik.Views.Modal.prototype.render.call(self);
                                 p.then(function () {
+                                    console.log("Show for ", homegroup);
                                     var w = new Iznik.Views.DonationThermometer({
                                         groupid: homegroup
                                     });
@@ -142,7 +152,6 @@ define([
                         groupid: self.options.groupid
                     }
                 }).then(function() {
-
                     self.waitDOM(self, function() {
                         var valor1 = self.donations.get('raised');
                         var maxim = self.donations.get('target');
