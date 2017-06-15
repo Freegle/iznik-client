@@ -9,7 +9,7 @@
             <div class="panel-heading">
                 <div class="row">
                     <% if (obj.user) { %>
-                        <img src="{{user.profile}}" class="img-circle img-smallerthumbnail" />
+                        <img src="{{user.profile.url}}" class="img-circle img-smallerthumbnail" />
                         <% if (refmsg.mine) { %>
                         <span class="text-muted padmd">{{user.displayname}} is interested in:</span>
                         <% } else { %>

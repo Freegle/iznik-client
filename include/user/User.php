@@ -1312,30 +1312,63 @@ class User extends Entity
             $atts[$att] = strpos($atts[$att], '@') !== FALSE ? substr($atts[$att], 0, strpos($atts[$att], '@')) : $atts[$att];
         }
 
-        $logins = $this->getLogins(TRUE);
-        $atts['profile'] = '/images/defaultprofile.png';
-        $atts['profiledefault'] = TRUE;
-        $atts['profilefacebook'] = FALSE;
+        $atts['profile'] = [
+            'url' => '/images/defaultprofile.png',
+            'default' => TRUE
+        ];
 
-        # Find the most recent image.
-        $profiles = $this->dbhr->preQuery("SELECT id FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
-            $this->id
-        ]);
+        if (!array_key_exists('useprofile', $atts['settings']) || $atts['settings']['useprofile']) {
+            # Find the most recent image.
+            $profiles = $this->dbhr->preQuery("SELECT id, url FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
+                $this->id
+            ]);
 
-        if (count($profiles) > 0) {
-            # Uploaded trumps Facebook.
-            foreach ($profiles as $profile) {
-                $atts['profile'] = "/uimg_{$profile['id']}.jpg";
-                $atts['profiledefault'] = FALSE;
-            }
-        } else {
-            # Try for Facebook.
-            foreach ($logins as $login) {
-                if ($login['type'] == User::LOGIN_FACEBOOK) {
-                    if (presdef('usefacebookprofile', $atts['settings'], TRUE)) {
-                        $atts['profile'] = "https://graph.facebook.com/{$login['uid']}/picture";
-                        $atts['profiledefault'] = FALSE;
-                        $atts['profilefacebook'] = TRUE;
+            $emails = NULL;
+
+            if (count($profiles) > 0) {
+                # Anything we have wins
+                foreach ($profiles as $profile) {
+                    $atts['profile'] = [
+                        'url' => pres('url', $profile) ? $profile['url'] : "/uimg_{$profile['id']}.jpg",
+                        'default' => FALSE
+                    ];
+                }
+            } else {
+                $emails = $this->getEmails();
+
+                foreach ($emails as $email) {
+                    if (stripos($email['email'], 'gmail')) {
+                        # We can try to find profiles for gmail users.
+                        $json = file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
+                        $j = json_decode($json, TRUE);
+
+                        if ($j && pres('entry', $j) && pres('gphoto$thumbnail', $j['entry']) && pres('$t', $j['entry']['gphoto$thumbnail'])) {
+                            $atts['profile'] = [
+                                'url' => $j['entry']['gphoto$thumbnail']['$t'],
+                                'default' => FALSE,
+                                'google' => TRUE
+                            ];
+
+                            # Save for next time
+                            $this->dbhm->preExec("INSERT INTO users_images (userid, url) VALUES (?, ?);", [
+                                $this->id,
+                                $atts['profile']['url']
+                            ]);
+                        }
+                    }
+                }
+
+                # Try for Facebook.
+                $logins = $this->getLogins(TRUE);
+                foreach ($logins as $login) {
+                    if ($login['type'] == User::LOGIN_FACEBOOK) {
+                        if (presdef('useprofile', $atts['settings'], TRUE)) {
+                            $atts['profile'] = [
+                                'url' => "https://graph.facebook.com/{$login['uid']}/picture",
+                                'default' => FALSE,
+                                'facebook' => TRUE
+                            ];
+                        }
                     }
                 }
             }
@@ -1343,7 +1376,8 @@ class User extends Entity
 
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
-            $atts['emails'] = $me->getEmails();
+            $emails = $emails ? $emails : $me->getEmails();
+            $atts['emails'] = $emails;
             $atts['email'] = $me->getEmailPreferred();
             $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
             $atts['permissions'] = $me->getPrivate('permissions');
