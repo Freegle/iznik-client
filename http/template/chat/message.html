@@ -10,7 +10,7 @@
             <div class="col-sm-2 padsmall ellipsis" title="<% if (user.id != obj.myid) { %>{{user.displayname}}<% } %>">
                 <% if (obj.left && !obj.sameaslast) { %>
                     <img src="{{user.profile}}" class="img-circle img-tinythumbnail" />
-                    <% if (user.id != obj.myid) { %><br />{{user.displayname}}<% } %>
+                    <% if (user.id != obj.myid) { %><br class="hidden-xs" />{{user.displayname}}<% } %>
                 <% } %>
                 </div>
                 <div class="col-xs-12 col-sm-10 nopad">
