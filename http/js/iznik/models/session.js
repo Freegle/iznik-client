@@ -41,7 +41,7 @@ define([
 
         save: function(attrs, options) {
             var self = this;
-            Backbone.Model.prototype.save.call(this, attrs, options).then(function() {
+            return Backbone.Model.prototype.save.call(this, attrs, options).then(function() {
                 self.testLoggedIn();
             });
         },
@@ -700,10 +700,10 @@ define([
         },
 
         hasFacebook: function() {
-            var facebook = false;
+            var facebook = null;
             _.each(this.get('logins'), function(login) {
                 if (login.type == 'Facebook') {
-                    facebook = true;
+                    facebook = login;
                 }
             });
 

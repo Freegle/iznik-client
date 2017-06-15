@@ -285,6 +285,10 @@ body {
     margin-left: 10px;
 }
 
+.margleftsm {
+    margin-left: 5px;
+}
+
 .margtop {
     margin-top: 20px;
 }
@@ -579,9 +583,20 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 .img-smallerthumbnail {
     min-height:50px !important;
+    max-height:50px !important;
     height:50px !important;
     min-width:50px !important;
+    max-width:50px !important;
     width:50px !important;
+}
+
+.img-tinythumbnail {
+    min-height:25px !important;
+    max-height:25px !important;
+    height:25px !important;
+    min-width:25px !important;
+    max-width:50px !important;
+    width:25px !important;
 }
 
 .img-maxthumb {
