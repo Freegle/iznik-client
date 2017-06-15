@@ -285,7 +285,7 @@ define([
 
                 // Profile
                 var hasFacebook = Iznik.Session.hasFacebook();
-                if (hasFacebook) {
+                if (hasFacebook && me.profilefacebook) {
                     self.$('.js-hasfacebook').show();
 
                     self.$("#facebookprofile").bootstrapSwitch({
@@ -309,7 +309,7 @@ define([
                     uploadUrl: API + 'image',
                     resizeImage: true,
                     maxImageWidth: 200,
-                    browseLabel: 'Upload image',
+                    browseLabel: 'Upload photo',
                     browseClass: 'btn btn-primary nowrap',
                     browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
                     showCaption: false,

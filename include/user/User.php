@@ -1315,6 +1315,7 @@ class User extends Entity
         $logins = $this->getLogins(TRUE);
         $atts['profile'] = '/images/defaultprofile.png';
         $atts['profiledefault'] = TRUE;
+        $atts['profilefacebook'] = FALSE;
 
         # Find the most recent image.
         $profiles = $this->dbhr->preQuery("SELECT id FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
@@ -1334,6 +1335,7 @@ class User extends Entity
                     if (presdef('usefacebookprofile', $atts['settings'], TRUE)) {
                         $atts['profile'] = "https://graph.facebook.com/{$login['uid']}/picture";
                         $atts['profiledefault'] = FALSE;
+                        $atts['profilefacebook'] = TRUE;
                     }
                 }
             }
