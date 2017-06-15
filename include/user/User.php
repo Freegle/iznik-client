@@ -1316,11 +1316,25 @@ class User extends Entity
         $atts['profile'] = '/images/defaultprofile.png';
         $atts['profiledefault'] = TRUE;
 
-        foreach ($logins as $login) {
-            if ($login['type'] == User::LOGIN_FACEBOOK) {
-                if (presdef('usefacebookprofile', $atts['settings'], TRUE)) {
-                    $atts['profile'] = "https://graph.facebook.com/{$login['uid']}/picture";
-                    $atts['profiledefault'] = FALSE;
+        # Find the most recent image.
+        $profiles = $this->dbhr->preQuery("SELECT id FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
+            $this->id
+        ]);
+
+        if (count($profiles) > 0) {
+            # Uploaded trumps Facebook.
+            foreach ($profiles as $profile) {
+                $atts['profile'] = "/uimg_{$profile['id']}.jpg";
+                $atts['profiledefault'] = FALSE;
+            }
+        } else {
+            # Try for Facebook.
+            foreach ($logins as $login) {
+                if ($login['type'] == User::LOGIN_FACEBOOK) {
+                    if (presdef('usefacebookprofile', $atts['settings'], TRUE)) {
+                        $atts['profile'] = "https://graph.facebook.com/{$login['uid']}/picture";
+                        $atts['profiledefault'] = FALSE;
+                    }
                 }
             }
         }
