@@ -203,8 +203,8 @@ class sessionTest extends IznikAPITestCase
         ]);
         assertEquals(10, $ret['ret']);
         $ret = $this->call('session', 'GET', []);
-        assertEquals(0, $ret['ret']);
         error_log(var_export($ret, true));
+        assertEquals(0, $ret['ret']);
         assertEquals('{"test":1}', $ret['me']['settings']);
         assertEquals('Testing User', $ret['me']['displayname']);
         assertEquals('test@test.com', $ret['me']['email']);

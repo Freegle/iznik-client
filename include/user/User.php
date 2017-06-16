@@ -1296,6 +1296,19 @@ class User extends Entity
         return($ret);
     }
 
+    private function gravatar( $email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array() ) {
+        $url = 'https://www.gravatar.com/avatar/';
+        $url .= md5( strtolower( trim( $email ) ) );
+        $url .= "?s=$s&d=$d&r=$r";
+        if ( $img ) {
+            $url = '<img src="' . $url . '"';
+            foreach ( $atts as $key => $val )
+                $url .= ' ' . $key . '="' . $val . '"';
+            $url .= ' />';
+        }
+        return $url;
+    }
+
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE) {
         $atts = parent::getPublic();
 
@@ -1317,13 +1330,13 @@ class User extends Entity
             'default' => TRUE
         ];
 
-        if (!array_key_exists('useprofile', $atts['settings']) || $atts['settings']['useprofile']) {
+        $emails = NULL;
+
+        if (gettype($atts['settings']) == 'array' && (!array_key_exists('useprofile', $atts['settings']) || $atts['settings']['useprofile'])) {
             # Find the most recent image.
             $profiles = $this->dbhr->preQuery("SELECT id, url FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
                 $this->id
             ]);
-
-            $emails = NULL;
 
             if (count($profiles) > 0) {
                 # Anything we have wins
@@ -1337,7 +1350,7 @@ class User extends Entity
                 $emails = $this->getEmails();
 
                 foreach ($emails as $email) {
-                    if (stripos($email['email'], 'gmail')) {
+                    if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
                         # We can try to find profiles for gmail users.
                         $json = file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
                         $j = json_decode($json, TRUE);
@@ -1354,6 +1367,19 @@ class User extends Entity
                                 $this->id,
                                 $atts['profile']['url']
                             ]);
+                        }
+                    } else if (!ourDomain($email['email'])){
+                        # Try for gravatar
+                        $gurl = $this->gravatar($email['email'], 200, 404);
+                        error_log("Try gravatar $gurl");
+                        $g = @file_get_contents($gurl);
+
+                        if ($g) {
+                            $atts['profile'] = [
+                                'url' => $gurl,
+                                'default' => FALSE,
+                                'gravatar' => TRUE
+                            ];
                         }
                     }
                 }

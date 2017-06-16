@@ -916,7 +916,7 @@ class userTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testGmailProfile() {
+    public function testProfile() {
         error_log(__METHOD__);
 
         $u = new User($this->dbhr, $this->dbhm);
@@ -927,6 +927,11 @@ class userTest extends IznikTestCase {
         error_log("Profile " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['google']);
         error_log("URL {$atts['profile']['url']}");
+
+        $uid = $u->create("Test", "User", "Test User");
+        $u->addEmail('gravatar@ehibbert.org.uk');
+        $atts = $u->getPublic();
+        assertTrue($atts['profile']['gravatar']);
 
         error_log(__METHOD__ . " end");
     }

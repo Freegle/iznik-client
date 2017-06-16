@@ -16,7 +16,11 @@
                 </ul>
                 <% } %>
             </div>
+            <% if (chattype == 'User2User' || chattype == 'User2Mod') { %>
+            <span class="clickme js-info">{{name}}</span>
+            <% } else { %>
             {{name}}
+            <% } %>
             <span class="js-count badge badge-unread" style="display: none;"></span>
             &nbsp;
             <div class="js-privacy inline">
