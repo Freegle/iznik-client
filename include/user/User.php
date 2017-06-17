@@ -19,6 +19,8 @@ require_once(IZNIK_BASE . '/mailtemplates/donations/thank.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
+use Jenssegers\ImageHash\ImageHash;
+
 class User extends Entity
 {
     # We have a cache of users, because we create users a _lot_, and this can speed things up significantly by avoiding
@@ -1334,17 +1336,19 @@ class User extends Entity
 
         if (gettype($atts['settings']) == 'array' && (!array_key_exists('useprofile', $atts['settings']) || $atts['settings']['useprofile'])) {
             # Find the most recent image.
-            $profiles = $this->dbhr->preQuery("SELECT id, url FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
+            $profiles = $this->dbhr->preQuery("SELECT id, url, `default` FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
                 $this->id
             ]);
 
             if (count($profiles) > 0) {
                 # Anything we have wins
                 foreach ($profiles as $profile) {
-                    $atts['profile'] = [
-                        'url' => pres('url', $profile) ? $profile['url'] : "/uimg_{$profile['id']}.jpg",
-                        'default' => FALSE
-                    ];
+                    if (!$profile['default']) {
+                        $atts['profile'] = [
+                            'url' => pres('url', $profile) ? $profile['url'] : "/uimg_{$profile['id']}.jpg",
+                            'default' => FALSE
+                        ];
+                    }
                 }
             } else {
                 $emails = $this->getEmails();
@@ -1362,16 +1366,19 @@ class User extends Entity
                                 'google' => TRUE
                             ];
 
-                            # Save for next time
-                            $this->dbhm->preExec("INSERT INTO users_images (userid, url) VALUES (?, ?);", [
-                                $this->id,
-                                $atts['profile']['url']
-                            ]);
+                            break;
                         }
+                    } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
+                        # TrashNothing has an API we can use.
+                        $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . USER_SITE . '/images/defaultprofile.png');
+                        $atts['profile'] = [
+                            'url' => $url,
+                            'default' => FALSE,
+                            'TN' => TRUE
+                        ];
                     } else if (!ourDomain($email['email'])){
                         # Try for gravatar
                         $gurl = $this->gravatar($email['email'], 200, 404);
-                        error_log("Try gravatar $gurl");
                         $g = @file_get_contents($gurl);
 
                         if ($g) {
@@ -1380,23 +1387,61 @@ class User extends Entity
                                 'default' => FALSE,
                                 'gravatar' => TRUE
                             ];
+
+                            break;
                         }
                     }
                 }
 
-                # Try for Facebook.
-                $logins = $this->getLogins(TRUE);
-                foreach ($logins as $login) {
-                    if ($login['type'] == User::LOGIN_FACEBOOK) {
-                        if (presdef('useprofile', $atts['settings'], TRUE)) {
-                            $atts['profile'] = [
-                                'url' => "https://graph.facebook.com/{$login['uid']}/picture",
-                                'default' => FALSE,
-                                'facebook' => TRUE
-                            ];
+                if ($atts['profile']['default']) {
+                    # Try for Facebook.
+                    $logins = $this->getLogins(TRUE);
+                    foreach ($logins as $login) {
+                        if ($login['type'] == User::LOGIN_FACEBOOK) {
+                            if (presdef('useprofile', $atts['settings'], TRUE)) {
+                                $atts['profile'] = [
+                                    'url' => "https://graph.facebook.com/{$login['uid']}/picture",
+                                    'default' => FALSE,
+                                    'facebook' => TRUE
+                                ];
+                            }
                         }
                     }
                 }
+
+                $hash = NULL;
+
+                if (!$atts['profile']['default']) {
+                    # We think we have a profile.  Make sure we can fetch it and filter out other people's
+                    # default images.
+                    $atts['profile']['default'] = TRUE;
+                    $hasher = new ImageHash;
+                    $data = @file_get_contents($atts['profile']['url']);
+
+                    if ($data) {
+                        $img = @imagecreatefromstring($data);
+
+                        if ($img) {
+                            $hash = $hasher->hash($img);
+                            $atts['profile']['default'] = FALSE;
+                        }
+                    }
+
+                    if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24') {
+                        # This is a default profile - replace it with ours.
+                        $atts['profile']['url'] = '/images/defaultprofile.png';
+                        $atts['profile']['default'] = TRUE;
+                        $hash = NULL;
+                    }
+                }
+
+                # Save for next time.
+                $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`, hash) VALUES (?, ?, ?, ?);", [
+                    $this->id,
+                    $atts['profile']['default'] ? NULL : $atts['profile']['url'],
+                    $atts['profile']['default'],
+                    $hash
+                ]);
             }
         }
 

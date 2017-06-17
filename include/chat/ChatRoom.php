@@ -493,7 +493,7 @@ class ChatRoom extends Entity
                     }
 
                     $cansee = count($unheld) == 0 || $validcount > 0;
-                    error_log("Cansee for {$room['id']} is $cansee from " . var_export($unheld, TRUE));
+                    #error_log("Cansee for {$room['id']} is $cansee from " . var_export($unheld, TRUE));
                 }
 
                 if ($cansee) {

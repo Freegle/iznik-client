@@ -933,6 +933,11 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic();
         assertTrue($atts['profile']['gravatar']);
 
+        $uid = $u->create("Test", "User", "Test User");
+        $u->addEmail('atrusty-gxxxx@user.trashnothing.com');
+        $atts = $u->getPublic();
+        assertTrue($atts['profile']['TN']);
+
         error_log(__METHOD__ . " end");
     }
 //

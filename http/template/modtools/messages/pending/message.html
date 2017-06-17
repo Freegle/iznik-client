@@ -112,7 +112,7 @@
                             </div>
                             <% if (obj.replyto) { %>
                             <div class="ellipsis">
-                                <span data-toggle="tooltip" title="Email was sent reqesting replies to {{replyto}}">
+                                <span data-toggle="tooltip" title="Email was sent requesting replies to {{replyto}}">
                                     <div class="glyphicon glyphicon-share-alt icon-flipped-y" />&nbsp;{{replyto}}
                                 </span>
                             </div>
@@ -122,6 +122,9 @@
                                 <span data-toggle="tooltip" title="Friendly name is {{fromuser.displayname}}, in message was {{fromname}}">
                                     <div class="glyphicon glyphicon-user" />&nbsp;{{fromuser.displayname}}
                                 </span>
+                            </div>
+                            <div>
+                                <img src="{{fromuser.profile.url}}" class="img-smallerthumbnail img-circle" />
                             </div>
                             <% } %>
                             <div class="yahoouserinfo js-yahoo"></div>
