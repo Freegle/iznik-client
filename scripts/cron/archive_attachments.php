@@ -28,6 +28,15 @@ foreach ($pics as $pic) {
     }
 }
 
+# We delete older profile images.  This is because the upload function does an INSERT.
+$dups = $dbhr->preQuery("SELECT userid, MAX(id) AS max, COUNT(*) AS count FROM `users_images` GROUP BY userid HAVING count > 1;");
+foreach ($dups as $dup) {
+    $dbhm->preExec("DELETE FROM users_images WHERE userid = ? AND id < ?;", [
+        $dup['userid'],
+        $dup['max']
+    ]);
+}
+
 # We archive message photos of the DB into Azure.  This reduces load on the servers because we don't have to serve
 # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
 # place to store large amounts of image data);
