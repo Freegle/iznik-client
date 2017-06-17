@@ -1295,6 +1295,29 @@ class User extends Entity
         ]);
 
         $ret['wanteds'] = $replies[0]['count'];
+
+        # Distance away.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        if ($me) {
+            $mylid = $me->getPrivate('lastlocation');
+            $ulid = $this->getPrivate('lastlocation');
+
+            if ($mylid && $ulid) {
+                $myl = new Location($this->dbhr, $this->dbhm, $mylid);
+                $ul = new Location($this->dbhr, $this->dbhm, $ulid);
+                $p1 = new POI($myl->getPrivate('lat'), $myl->getPrivate('lng'));
+                $p2 = new POI($ul->getPrivate('lat'), $ul->getPrivate('lng'));
+                $metres = $p1->getDistanceInMetersTo($p2);
+                $miles = $metres / 1609.344;
+                $miles = $miles > 10 ? round($miles) : round($miles, 1);
+                $ret['milesaway'] = $miles;
+
+                $al = new Location($this->dbhr, $this->dbhm, $ul->getPrivate('areaid'));
+                $ret['area'] = $al->getPublic();
+            }
+        }
+
         return($ret);
     }
 
@@ -1356,7 +1379,7 @@ class User extends Entity
                 foreach ($emails as $email) {
                     if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
                         # We can try to find profiles for gmail users.
-                        $json = file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
+                        $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
                         $j = json_decode($json, TRUE);
 
                         if ($j && pres('entry', $j) && pres('gphoto$thumbnail', $j['entry']) && pres('$t', $j['entry']['gphoto$thumbnail'])) {
