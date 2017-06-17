@@ -1312,6 +1312,19 @@ class User extends Entity
             $atts[$att] = strpos($atts[$att], '@') !== FALSE ? substr($atts[$att], 0, strpos($atts[$att], '@')) : $atts[$att];
         }
 
+        $logins = $this->getLogins(TRUE);
+        $atts['profile'] = '/images/defaultprofile.png';
+        $atts['profiledefault'] = TRUE;
+
+        foreach ($logins as $login) {
+            if ($login['type'] == User::LOGIN_FACEBOOK) {
+                if (presdef('usefacebookprofile', $atts['settings'], TRUE)) {
+                    $atts['profile'] = "https://graph.facebook.com/{$login['uid']}/picture";
+                    $atts['profiledefault'] = FALSE;
+                }
+            }
+        }
+
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
             $atts['emails'] = $me->getEmails();

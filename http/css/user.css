@@ -370,7 +370,7 @@ h1,h2,h3,h4 {
     max-height: 400px !important;
 }
 
-#js-eventcontainer {
+#js-eventcontainer, #js-volunteeringcontainer {
     overflow-y: scroll;
 }
 

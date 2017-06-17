@@ -34,6 +34,7 @@ define([
             'switchChange.bootstrapSwitch .js-facebookswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-relevant': 'relevantSwitch',
             'switchChange.bootstrapSwitch .js-newsletter': 'newsletterSwitch',
+            'switchChange.bootstrapSwitch #facebookprofile': 'facebookProfileSwitch',
             'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
             'click .js-savename': 'nameChange',
@@ -112,6 +113,25 @@ define([
                 relevantallowed: relevant
             }, {
                 patch: true
+            });
+        },
+
+        facebookProfileSwitch: function() {
+            var me = Iznik.Session.get('me');
+            var fbprofile = this.$('#facebookprofile').bootstrapSwitch('state');
+
+            var me = Iznik.Session.get('me');
+            me.settings.usefacebookprofile = fbprofile;
+
+            Iznik.Session.save({
+                id: me.id,
+                settings: me.settings
+            }, {
+                patch: true
+            }).then(function() {
+                Iznik.Session.fetch().then(function() {
+                    self.$('.js-profileimg').attr('src', Iznik.Session.get('me').profile);
+                })
             });
         },
 
@@ -247,8 +267,11 @@ define([
         render: function () {
             var self = this;
 
+            var settings = Iznik.Session.get('me').settings;
+            console.log("Settings", settings);
+
             var p = Iznik.Views.User.Pages.WhereAmI.prototype.render.call(this, {
-                model: new Iznik.Model(Iznik.Session.get('settings'))
+                model: new Iznik.Model(settings)
             });
 
             p.then(function() {
@@ -267,6 +290,21 @@ define([
 
                 var me = Iznik.Session.get('me');
                 self.$('.js-name').val(me.displayname);
+
+                // Profile
+                var hasFacebook = Iznik.Session.hasFacebook();
+                if (hasFacebook) {
+                    self.$('.js-hasfacebook').show();
+
+                    self.$("#facebookprofile").bootstrapSwitch({
+                        onText: 'Shown',
+                        offText: 'Hidden',
+                        state: settings.hasOwnProperty('usefacebookprofile') && settings.usefacebookprofile
+                    });
+                }
+
+                self.$('.js-profileimg').attr('src', me.profile);
+
                 self.$('.js-email').val(me.email);
 
                 if (me.bouncing) {

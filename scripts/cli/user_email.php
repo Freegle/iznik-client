@@ -5,16 +5,17 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
-$opts = getopt('e:a:r:');
+$opts = getopt('e:a:r:i:');
 
 if (count($opts) < 1) {
-    echo "Usage: hhvm user_email.php -e <email to find> (-a <email to add> -r <email to remove>\n";
+    echo "Usage: hhvm user_email.php (-e <email to find> or -i <user id>) (-a <email to add> -r <email to remove>\n";
 } else {
-    $find = $opts['e'];
+    $uid = presdef('i', $opts, NULL);
+    $find = presdef('e', $opts, NULL);
     $add = presdef('a', $opts, NULL);
     $remove = presdef('r', $opts, NULL);
     $u = User::get($dbhr, $dbhm);
-    $uid = $u->findByEmail($find);
+    $uid = $uid ? $uid : $u->findByEmail($find);
 
     if ($uid) {
         error_log("Found user $uid");
@@ -29,5 +30,7 @@ if (count($opts) < 1) {
             error_log("Removed email $remove");
             $u->removeEmail($remove);
         }
+    } else {
+        error_log("Couldn't find user for $find");
     }
 }

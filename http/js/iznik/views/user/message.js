@@ -1031,11 +1031,11 @@ define([
                         self.showMap();
                     });
 
-                    self.clipboard = new Clipboard('.js-clip', {
-                        text: function() {
-                            var url = self.model.get('url');
+                    self.clipboard = new Clipboard('#js-clip-' + self.model.id, {
+                        text: _.bind(function() {
+                            var url = this.model.get('url');
                             return url;
-                        }
+                        }, self)
                     });
 
                     self.clipboard.on('success', function(e) {

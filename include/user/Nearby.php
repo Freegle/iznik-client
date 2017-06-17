@@ -95,7 +95,7 @@ class Nearby
                                                 ->addPart($html, 'text/html');
 
                                             $this->sendOne($mailer, $message);
-                                            error_log("Message {$msg['id']} " . $m->getSubject() . " Nearby user {$user['id']} dist $miles");
+                                            error_log("...user {$user['id']} dist $miles");
                                             $count++;
                                         } catch (Exception $e) {
                                             error_log("Send to $email failed with " . $e->getMessage());
