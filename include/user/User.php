@@ -1427,7 +1427,7 @@ class User extends Entity
                         }
                     }
 
-                    if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24') {
+                    if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash = 'c0c0e070e0603100') {
                         # This is a default profile - replace it with ours.
                         $atts['profile']['url'] = '/images/defaultprofile.png';
                         $atts['profile']['default'] = TRUE;
