@@ -581,6 +581,15 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     border-radius: 12px;
 }
 
+.img-smallishthumbnail {
+    min-height:75px !important;
+    max-height:75px !important;
+    height:75px !important;
+    min-width:75px !important;
+    max-width:75px !important;
+    width:75px !important;
+}
+
 .img-smallerthumbnail {
     min-height:50px !important;
     max-height:50px !important;
