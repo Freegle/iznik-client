@@ -1320,7 +1320,7 @@ define([
 
                 switch (this.model.get('type')) {
                     case 'ModMail':
-                        tpl = this.model.get('refmsg') ? 'chat_modmail' : 'chat_message';
+                        tpl = this.model.get('refmsg') ? 'chat_modmail' : 'chat_modnote';
                         break;
                     case 'Interested':
                         tpl = this.model.get('refmsg') ? 'chat_interested' : 'chat_message';
