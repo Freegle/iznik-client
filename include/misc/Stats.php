@@ -444,6 +444,7 @@ class Stats
 
     public function getHeatmap($type = Stats::HEATMAP_MESSAGES) {
         # We return counts per postcode.  Postcodes on average cover 15 properties, so there is some anonymity.
+        # TODO Would be nice to only look at messages within the last year but that's not indexed well.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 1 year ago"));
         $sql = $type == Stats::HEATMAP_USERS ? "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT lastlocation, COUNT(*) AS count FROM users WHERE lastaccess > '$mysqltime' AND lastlocation IS NOT NULL GROUP BY lastlocation) t ON t.lastlocation = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL;" : "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT locationid, COUNT(*) AS count FROM messages INNER JOIN locations ON locations.id = messages.locationid WHERE locationid IS NOT NULL AND locations.type = 'Postcode' AND INSTR(locations.name, ' ') GROUP BY locationid) t ON t.locationid = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL;";
         $areas = $this->dbhr->preQuery($sql);
