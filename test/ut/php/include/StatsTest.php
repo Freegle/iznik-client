@@ -141,5 +141,16 @@ class statsTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+
+    public function testHeatmap() {
+        error_log(__METHOD__);
+
+        $s = new Stats($this->dbhr, $this->dbhm);
+        $map = $s->getHeatmap();
+        assertGreaterThan(0, count($map));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

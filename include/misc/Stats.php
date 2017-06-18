@@ -32,6 +32,9 @@ class Stats
     CONST TYPE_COUNT = 1;
     CONST TYPE_BREAKDOWN = 2;
 
+    CONST HEATMAP_USERS = 'Users';
+    CONST HEATMAP_MESSAGES = 'Messages';
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
         $this->dbhr = $dbhr;
@@ -437,5 +440,14 @@ class Stats
         }
 
         return($ret);
+    }
+
+    public function getHeatmap($type = Stats::HEATMAP_MESSAGES) {
+        # We return counts per postcode.  Postcodes on average cover 15 properties, so there is some anonymity.
+        # Don't support users yet.
+        # $sql = $type == Stats::HEATMAP_USERS ? "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT areaid, COUNT(*) AS count FROM users INNER JOIN locations ON locations.id = users.lastlocation WHERE areaid IS NOT NULL GROUP BY areaid) t ON t.areaid = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL;" : "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT areaid, COUNT(*) AS count FROM messages INNER JOIN locations ON locations.id = messages.locationid WHERE areaid IS NOT NULL GROUP BY areaid) t ON t.areaid = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL;";
+        $sql = "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT locationid, COUNT(*) AS count FROM messages INNER JOIN locations ON locations.id = messages.locationid WHERE locationid IS NOT NULL AND locations.type = 'Postcode' AND INSTR(locations.name, ' ') GROUP BY locationid) t ON t.locationid = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL;";
+        $areas = $this->dbhr->preQuery($sql);
+        return($areas);
     }
 }
