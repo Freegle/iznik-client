@@ -451,6 +451,20 @@ class User extends Entity
         return(NULL);
     }
 
+    public function findByEmailHash($hash) {
+        # Take care not to pick up empty or null else that will cause is to overmerge.
+        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE md5hash LIKE ? AND md5hash IS NOT NULL AND LENGTH(md5hash) > 0;",
+            [
+                User::canonMail($hash),
+            ]);
+
+        foreach ($users as $user) {
+            return($user['userid']);
+        }
+
+        return(NULL);
+    }
+
     public function findByYahooId($id) {
         # Take care not to pick up empty or null else that will cause is to overmerge.
         $users = $this->dbhr->preQuery("SELECT id FROM users WHERE yahooid = ? AND yahooid IS NOT NULL AND LENGTH(yahooid) > 0;",

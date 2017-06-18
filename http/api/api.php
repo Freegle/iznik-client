@@ -98,6 +98,7 @@ require_once(IZNIK_BASE . '/http/api/chatrooms.php');
 require_once(IZNIK_BASE . '/http/api/chatmessages.php');
 require_once(IZNIK_BASE . '/http/api/locations.php');
 require_once(IZNIK_BASE . '/http/api/image.php');
+require_once(IZNIK_BASE . '/http/api/profile.php');
 require_once(IZNIK_BASE . '/http/api/event.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
@@ -234,6 +235,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     throw new Exception();
                 case 'image':
                     $ret = image();
+                    break;
+                case 'profile':
+                    $ret = profile();
                     break;
                 case 'event':
                     $ret = event();

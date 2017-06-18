@@ -142,7 +142,6 @@ class statsTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-
     public function testHeatmap() {
         error_log(__METHOD__);
 
