@@ -31,7 +31,10 @@ define([
                 });
 
                 mod.save().then(function() {
-                    self.feed.add(mod);
+                    mod.fetch().then(function() {
+                        self.feed.add(mod);
+                        self.$('.js-message').val('');
+                    });
                 });
             }
         },
@@ -76,7 +79,12 @@ define([
 
     Iznik.Views.User.Feed.Base = Iznik.View.Timeago.extend({
         events: {
-            'click .js-profile': 'showProfile'
+            'click .js-profile': 'showProfile',
+            'click .js-reply': 'reply'
+        },
+
+        reply: function() {
+            this.$('.js-comment').focus();
         },
 
         showProfile: function() {
@@ -117,9 +125,7 @@ define([
                     });
                     
                     mod.save().then(function() {
-                        // mod.fetch().then(function() {
-                        //     self.replies.add(mod);
-                        // });
+                        self.model.fetch();
                     });
                 }
             }
@@ -146,6 +152,9 @@ define([
 
                 self.collectionView.render();
 
+                // Each reply can ask us to focus on the reply box.
+                self.listenTo(self.replies, 'reply', _.bind(self.reply, self));
+
                 autosize(self.$('.js-comment'));
             });
 
@@ -158,6 +167,10 @@ define([
 
         events: {
             'click .js-reply': 'reply'
+        },
+
+        reply: function() {
+            this.model.collection.trigger('reply');
         }
     })
 });

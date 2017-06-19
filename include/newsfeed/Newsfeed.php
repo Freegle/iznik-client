@@ -18,23 +18,18 @@ class Newsfeed extends Entity
     private $log;
     var $feed;
 
-    const DISTANCE = 2000000;
+    const DISTANCE = 0;
+//    const DISTANCE = 15000;
 
     const TYPE_MESSAGE = 'Message';
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->log = new Log($dbhr, $dbhm);
-    }
 
-    /**
-     * @param LoggedPDO $dbhm
-     */
-    public function setDbhm($dbhm)
-    {
-        $this->dbhm = $dbhm;
+        $this->fetch($dbhr, $dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
     }
 
     public function create($userid, $message, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL) {
@@ -61,7 +56,24 @@ class Newsfeed extends Entity
             $message
         ]);
 
-        return($this->dbhm->lastInsertId());
+        $id = $this->dbhm->lastInsertId();
+
+        if ($id) {
+            $this->fetch($this->dbhr, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
+        }
+
+        return($id);
+    }
+
+    public function getPublic() {
+        $atts = parent::getPublic();
+        $users = [];
+
+        $this->fillIn($atts, $users);
+        $atts['user'] = array_pop($users);
+        unset($atts['userid']);
+
+        return($atts);
     }
 
     private function fillIn(&$entry, &$users) {
@@ -80,13 +92,12 @@ class Newsfeed extends Entity
         }
 
         $entry['timestamp'] = ISODate($entry['timestamp']);
-        $ctx = [ 'id' => $entry['id'] ];
 
         $entry['loved'] = FALSE;
         $entry['loves'] = 0;
     }
 
-    public function get($userid, &$ctx) {
+    public function getFeed($userid, &$ctx) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $users = [];
         $items = [];
@@ -106,9 +117,11 @@ class Newsfeed extends Entity
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
             # We return most recent first.
-            $idq = $ctx ? " AND newsfeed.id > {$ctx['id']}" : '';
+            $idq = $ctx ? "newsfeed.id > {$ctx['id']}" : 'newsfeed.id > 0';
+            $first = Newsfeed::DISTANCE ? "MBRContains($box, position) AND $idq" : $idq;
 
-            $sql = "SELECT * FROM newsfeed WHERE MBRContains($box, position) $idq AND replyto IS NULL ORDER BY id DESC LIMIT 10;";
+            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 10;";
+            error_log($sql);
             $entries = $this->dbhr->preQuery($sql);
 
             foreach ($entries as &$entry) {
@@ -123,6 +136,7 @@ class Newsfeed extends Entity
                     $entry['replies'][] = $reply;
                 }
 
+                $ctx = [ 'id' => $entry['id'] ];
                 $items[] = $entry;
             }
         }

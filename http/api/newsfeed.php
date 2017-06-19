@@ -7,20 +7,32 @@ function newsfeed() {
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
     if ($me) {
-        $n = new Newsfeed($dbhr, $dbhm);
+        $id = intval(presdef('id', $_REQUEST, NULL));
+        $n = new Newsfeed($dbhr, $dbhm, $id);
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
         switch ($_REQUEST['type']) {
             case 'GET': {
-                $ctx = presdef('context', $_REQUEST, NULL);
-                list ($users, $items) = $n->get($me->getId(), $ctx);
 
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'newsfeed' => $items,
-                    'users' => $users
-                ];
+                if ($id) {
+                    $entry = $n->getPublic();
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'newsfeed' => $entry
+                    ];
+                } else {
+                    $ctx = presdef('context', $_REQUEST, NULL);
+                    list ($users, $items) = $n->getFeed($me->getId(), $ctx);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'newsfeed' => $items,
+                        'users' => $users
+                    ];
+                }
                 break;
             }
 

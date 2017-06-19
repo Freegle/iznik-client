@@ -78,6 +78,13 @@ class newsfeedAPITest extends IznikAPITestCase {
         error_log("Created feed {$ret['id']}");
         $nid = $ret['id'];
 
+        # Get this individual one
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals($nid, $ret['newsfeed']['id']);
+
         # Hack it to have a message for coverage
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
@@ -108,6 +115,19 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['users']));
         self::assertEquals($this->uid, array_pop($ret['users'])['id']);
         self::assertEquals($mid, $ret['newsfeed'][0]['refmsg']['id']);
+
+        # Reply
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test',
+            'replyto' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', []);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['newsfeed']));
+        assertEquals(1, count($ret['newsfeed'][0]['replies']));
 
         error_log(__METHOD__ . " end");
     }
