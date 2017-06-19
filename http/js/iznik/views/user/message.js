@@ -765,11 +765,27 @@ define([
 
         events: {
             'click .js-send': 'send',
+            'click .js-profile': 'showProfile',
             'click .js-mapzoom': 'mapZoom'
         },
 
         initialize: function(){
             this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events);
+        },
+
+        showProfile: function(e) {
+            var self = this;
+
+            require([ 'iznik/views/user/user' ], function() {
+                var v = new Iznik.Views.UserInfo({
+                    model: new Iznik.Model(self.model.get('fromuser'))
+                });
+
+                v.render();
+            });
+
+            e.preventDefault();
+            e.stopPropagation();
         },
 
         showMap: function() {

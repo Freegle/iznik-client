@@ -8,6 +8,7 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
     'iznik/views/group/communityevents',
+    'iznik/views/group/volunteering',
     'iznik/views/pages/user/post',
     'iznik/views/pages/user/group',
     'iznik/views/group/select',
@@ -80,6 +81,12 @@ define([
                         });
                         v.render().then(function () {
                             $('#js-eventcontainer').html(v.$el);
+                        });
+
+                        // Right menu is volunteer vacancies
+                        var w = new Iznik.Views.User.VolunteeringSidebar();
+                        w.render().then(function () {
+                            $('#js-volunteeringcontainer').append(w.$el);
                         });
                     });
 

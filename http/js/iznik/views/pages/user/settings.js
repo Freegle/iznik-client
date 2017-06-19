@@ -34,7 +34,7 @@ define([
             'switchChange.bootstrapSwitch .js-facebookswitch': 'notifSwitch',
             'switchChange.bootstrapSwitch .js-relevant': 'relevantSwitch',
             'switchChange.bootstrapSwitch .js-newsletter': 'newsletterSwitch',
-            'switchChange.bootstrapSwitch #facebookprofile': 'facebookProfileSwitch',
+            'switchChange.bootstrapSwitch #useprofile': 'useProfileSwitch',
             'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
             'click .js-savename': 'nameChange',
@@ -116,12 +116,12 @@ define([
             });
         },
 
-        facebookProfileSwitch: function() {
+        useProfileSwitch: function() {
             var me = Iznik.Session.get('me');
-            var fbprofile = this.$('#facebookprofile').bootstrapSwitch('state');
+            var profile = this.$('#useprofile').bootstrapSwitch('state');
 
             var me = Iznik.Session.get('me');
-            me.settings.usefacebookprofile = fbprofile;
+            me.settings.useprofile = profile;
 
             Iznik.Session.save({
                 id: me.id,
@@ -130,7 +130,7 @@ define([
                 patch: true
             }).then(function() {
                 Iznik.Session.fetch().then(function() {
-                    self.$('.js-profileimg').attr('src', Iznik.Session.get('me').profile);
+                    self.$('.js-profileimg').attr('src', Iznik.Session.get('me').profile.url);
                 })
             });
         },
@@ -292,18 +292,62 @@ define([
                 self.$('.js-name').val(me.displayname);
 
                 // Profile
-                var hasFacebook = Iznik.Session.hasFacebook();
-                if (hasFacebook) {
-                    self.$('.js-hasfacebook').show();
+                self.$("#useprofile").bootstrapSwitch({
+                    onText: 'Shown',
+                    offText: 'Hidden',
+                    state: settings.hasOwnProperty('useprofile') && settings.useprofile
+                });
 
-                    self.$("#facebookprofile").bootstrapSwitch({
-                        onText: 'Shown',
-                        offText: 'Hidden',
-                        state: settings.hasOwnProperty('usefacebookprofile') && settings.usefacebookprofile
-                    });
-                }
+                self.$('.js-profileimg').attr('src', me.profile.url);
 
-                self.$('.js-profileimg').attr('src', me.profile);
+                // File upload
+                self.$('.js-profileupload').fileinput({
+                    uploadExtraData: {
+                        imgtype: 'User',
+                        msgid: Iznik.Session.get('me').id,
+                        user: 1
+                    },
+                    showUpload: false,
+                    allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                    uploadUrl: API + 'image',
+                    resizeImage: true,
+                    maxImageWidth: 200,
+                    browseLabel: 'Upload photo',
+                    browseClass: 'btn btn-primary nowrap',
+                    browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
+                    showCaption: false,
+                    showRemove: false,
+                    showCancel: false,
+                    showPreview: true,
+                    showUploadedThumbs: false,
+                    dropZoneEnabled: false,
+                    buttonLabelClass: '',
+                    fileActionSettings: {
+                        showZoom: false,
+                        showRemove: false,
+                        showUpload: false
+                    },
+                    layoutTemplates: {
+                        footer: '<div class="file-thumbnail-footer">\n' +
+                        '    {actions}\n' +
+                        '</div>'
+                    }
+                });
+
+                // Upload as soon as we have it.
+                self.$('.js-profileupload').on('fileimagesresized', function (event) {
+                    // Upload as soon as we have it.
+                    self.$('.js-profileimg').attr('src', '/images/userloader.gif');
+
+                    $('.file-preview, .kv-upload-progress').hide();
+                    self.$('.js-profileupload').fileinput('upload');
+                });
+
+                // Watch for all uploaded
+                self.$('.js-profileupload').on('fileuploaded', function(event, data) {
+                    self.$('.js-profileimg').attr('src', data.response.path);
+                    Iznik.Session.fetch();
+                });
 
                 self.$('.js-email').val(me.email);
 

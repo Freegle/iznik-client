@@ -157,6 +157,7 @@ define([
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "livemap": "liveMap",
+            "stats/heatmap": "userStatsHeatMap",
             "stats/area/:id": "userStatsArea",
             "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
@@ -179,6 +180,7 @@ define([
             "help": "userContact",
             "invite/:id": "userInvited",
             "invite": "userInvite",
+            "newsfeed": "userNewsfeed",
             "plugins/events/:id": "communityEventsPlugin",
             "plugins/group?groupid=:id(&*t)": "groupPlugin",
             "plugins/group/:id": "groupPlugin",
@@ -582,6 +584,15 @@ define([
             });
         },
 
+        userNewsfeed: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/newsfeed"], function() {
+                var page = new Iznik.Views.User.Pages.Newsfeed();
+                self.loadRoute({page: page});
+            });
+        },
+
         userInvited: function(id) {
             // Record result of invitation.
             var self = this;
@@ -634,6 +645,15 @@ define([
 
             require(["iznik/views/pages/user/livemap"], function() {
                 var page = new Iznik.Views.User.Pages.LiveMap();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStatsHeatMap: function(area) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stats"], function() {
+                var page = new Iznik.Views.User.Pages.Heatmap();
                 self.loadRoute({page: page});
             });
         },

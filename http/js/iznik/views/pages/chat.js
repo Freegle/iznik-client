@@ -560,8 +560,8 @@ define([
                     });
 
                     self.listenToOnce(v, 'promised', function () {
-                        msg.fetch();
                         self.model.trigger('promised');
+                        self.messages.fetch();
                     });
 
                     v.render();
@@ -592,12 +592,14 @@ define([
         info: function () {
             var self = this;
 
-            var v = new Iznik.Views.Chat.UserInfo({
-                model: new Iznik.Model(self.model.get('user1').id != Iznik.Session.get('me').id ?
-                    self.model.get('user1') : self.model.get('user2'))
-            });
+            require([ 'iznik/views/user/user' ], function() {
+                var v = new Iznik.Views.UserInfo({
+                    model: new Iznik.Model(self.model.get('user1').id != Iznik.Session.get('me').id ?
+                        self.model.get('user1') : self.model.get('user2'))
+                });
 
-            v.render();
+                v.render();
+            });
         },
 
         messageFocused: function () {

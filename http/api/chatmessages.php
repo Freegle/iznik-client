@@ -97,7 +97,7 @@ function chatmessages() {
                         $type = ChatMessage::TYPE_ADDRESS;
                         $message = $addressid;
                     } else {
-                        $type = ChatMessage::TYPE_DEFAULT;
+                        $type = pres('modnote', $_REQUEST) ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_DEFAULT;
                     }
 
                     $id = $m->create($roomid,

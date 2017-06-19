@@ -5,7 +5,7 @@ $type = array_key_exists('type', $_REQUEST) ? $_REQUEST['type'] : 'GET';
 // We allow anyone to use our API.
 //
 // Suppress errors on the header command for UT
-if (!($call == 'image' && $type == 'GET')) {
+if (!(($call == 'image' || $call == 'profile') && $type == 'GET')) {
     # For images we'll set the content type later.
     @header('Content-type: application/json');
 }

@@ -63,7 +63,7 @@ class Nearby
                                 $p2 = new POI($user['lat'], $user['lng']);
                                 $metres = $p1->getDistanceInMetersTo($p2);
                                 $miles = $metres / 1609.344;
-                                $miles = round($miles, 1);
+                                $miles = $miles > 10 ? round($miles) : round($miles, 1);
 
                                 # We mail the most nearby people - but too far it's probably not worth it.
                                 if ($miles <= 2) {

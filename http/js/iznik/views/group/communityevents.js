@@ -377,7 +377,7 @@ define([
                         // Re-render the first date to make sure the delete button only appears when there are
                         // multiple.
                         console.log("Collection updated", self.dates.length);
-                        self.datesCV.viewManager.findByIndex(0).render();
+                        self.datesCV.viewManager.findByIndex(0).showHideDel();
                     });
 
                     // Need to make sure we're in the DOM else the validate plugin fails.
@@ -559,13 +559,18 @@ define([
                 }
 
                 self.$('select').addClass('form-control');
-
-                if (self.options.collection.length > 1) {
-                    self.$('.js-deldate').show();
-                }
+                self.showHideDel();
             });
 
             return(p);
+        },
+
+        showHideDel: function() {
+            var self = this;
+
+            if (self.options.collection.length > 1) {
+                self.$('.js-deldate').show();
+            }
         },
 
         getDate: function(key) {
