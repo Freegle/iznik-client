@@ -267,7 +267,7 @@ define([
                 self.waiting = true;
 
                 $.ajax({
-                    url: window.location.protocol + '//' + self.chathost + '/subscribe/' + myid,
+                    url: 'https://' + self.chathost + '/subscribe/' + myid, // CC
                     global: false, // don't trigger ajaxStart to avoid showing a busy icon all the time
                     success: function (ret) {
                         self.waiting = false;
