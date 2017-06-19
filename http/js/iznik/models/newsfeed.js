@@ -7,6 +7,30 @@ define([
     Iznik.Models.Newsfeed= Iznik.Model.extend({
         urlRoot: API + 'newsfeed',
 
+        love: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'Love'
+                }
+            }));
+        },
+
+        unlove: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'Unlove'
+                }
+            }));
+        },
+
         parse: function (ret) {
             if (ret.hasOwnProperty('newsfeed')) {
                 return (ret.newsfeed);
@@ -52,5 +76,9 @@ define([
                 return(null);
             }
         }
+    });
+
+    Iznik.Collections.Replies = Iznik.Collections.Newsfeed.extend({
+        comparator: 'id'
     });
 });

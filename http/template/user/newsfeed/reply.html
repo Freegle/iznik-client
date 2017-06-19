@@ -9,14 +9,7 @@
                     <abbr class="timeago nodecor" title="{{timestamp}}" />
                     <span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}
                     &bull;
-                    <span class="<% if (loved) { %>js-unlove<% } else { %>js-love<% } %>">
-                        <% if (loved) { %><b>Love this</b><% } else { %>Love this<% } %>
-                        <% if (loves > 0) { %>
-                            <span class="glyphicons glyphicons-heart vcenter" />{{loves}}
-                        <% } %>
-                    </span>
-                    &bull;
-                    <span class="js-reply">Reply</span>
+                    <span class="js-replyloves" />
                 </small>
             </div>
         </div>

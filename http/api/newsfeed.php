@@ -13,7 +13,6 @@ function newsfeed() {
 
         switch ($_REQUEST['type']) {
             case 'GET': {
-
                 if ($id) {
                     $entry = $n->getPublic();
 
@@ -39,14 +38,31 @@ function newsfeed() {
             case 'POST': {
                 $message = presdef('message', $_REQUEST, NULL);
                 $replyto = pres('replyto', $_REQUEST) ? intval($_REQUEST['replyto']) : NULL;
+                $action = presdef('action', $_REQUEST, NULL);
 
-                $id = $n->create($me->getId(), $message, NULL, NULL, $replyto, NULL);
+                if ($action == 'Love') {
+                    $n->like();
 
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'id' => $id
-                ];
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == 'Unlove') {
+                    $n->unlike();
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else {
+                    $id = $n->create($me->getId(), $message, NULL, NULL, $replyto, NULL);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'id' => $id
+                    ];
+                }
                 break;
             }
         }

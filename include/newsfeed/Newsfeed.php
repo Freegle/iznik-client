@@ -18,8 +18,7 @@ class Newsfeed extends Entity
     private $log;
     var $feed;
 
-    const DISTANCE = 0;
-//    const DISTANCE = 15000;
+    const DISTANCE = 15000;
 
     const TYPE_MESSAGE = 'Message';
 
@@ -93,8 +92,22 @@ class Newsfeed extends Entity
 
         $entry['timestamp'] = ISODate($entry['timestamp']);
 
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid = ?;", [
+            $entry['id']
+        ], FALSE, FALSE);
+
+        $entry['loves'] = $likes[0]['count'];
         $entry['loved'] = FALSE;
-        $entry['loves'] = 0;
+
+        if ($me) {
+            $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid = ? AND userid = ?;", [
+                $entry['id'],
+                $me->getId()
+            ], FALSE, FALSE);
+            $entry['loved'] = $likes[0]['count'] > 0;
+        }
     }
 
     public function getFeed($userid, &$ctx) {
@@ -121,7 +134,6 @@ class Newsfeed extends Entity
             $first = Newsfeed::DISTANCE ? "MBRContains($box, position) AND $idq" : $idq;
 
             $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 10;";
-            error_log($sql);
             $entries = $this->dbhr->preQuery($sql);
 
             foreach ($entries as &$entry) {
@@ -142,5 +154,25 @@ class Newsfeed extends Entity
         }
 
         return([$users, $items]);
+    }
+
+    public function like() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            $this->dbhm->preExec("INSERT IGNORE INTO newsfeed_likes (newsfeedid, userid) VALUES (?,?);", [
+                $this->id,
+                $me->getId()
+            ]);
+        }
+    }
+
+    public function unlike() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            $this->dbhm->preExec("DELETE FROM newsfeed_likes WHERE newsfeedid = ? AND userid = ?;", [
+                $this->id,
+                $me->getId()
+            ]);
+        }
     }
 }

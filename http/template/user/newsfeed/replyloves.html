@@ -1,0 +1,11 @@
+<span class="js-unlove" <% if (!loved) { %>style="display: none"<% } %>>
+<span class="glyphicons glyphicons-heart vcenter" />Love this
+</span>
+<span class="js-love" <% if (loved) { %>style="display: none"<% } %>>
+<span class="glyphicons glyphicons-heart-empty vcenter" />Love this
+</span>
+&bull;
+<span class="js-reply">Reply</span>
+<span class="js-loves" <% if (loves == 0) { %>style="display:none"<% } %>>
+&bull;<span class="glyphicons glyphicons-heart vcenter" /><span class="js-lovecount">{{loves}}</span>
+</span>

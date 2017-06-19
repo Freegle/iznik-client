@@ -43,9 +43,9 @@ class newsfeedAPITest extends IznikAPITestCase {
     }
 
     protected function tearDown() {
-        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
-        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+//        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
+//        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+//        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         parent::tearDown ();
     }
 
@@ -108,13 +108,38 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         error_log("Logged in - one item");
         $ret = $this->call('newsfeed', 'GET', []);
-        error_log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
         self::assertEquals('Test', $ret['newsfeed'][0]['message']);
         assertEquals(1, count($ret['users']));
         self::assertEquals($this->uid, array_pop($ret['users'])['id']);
         self::assertEquals($mid, $ret['newsfeed'][0]['refmsg']['id']);
+
+        # Like
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'Like'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(1, $ret['newsfeed']['loves']);
+        self::assertTrue($ret['newsfeed']['loved']);
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'Unlike'
+        ]);
+        assertEquals(0, $ret['ret']);
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(0, $ret['newsfeed']['loves']);
+        self::assertFalse($ret['newsfeed']['loved']);
 
         # Reply
         $ret = $this->call('newsfeed', 'POST', [

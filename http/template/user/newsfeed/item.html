@@ -17,15 +17,7 @@
             <div class="col-xs-12">
                 <b>{{message}}</b>
                 <hr class="text-muted nomargin botspace" />
-                <span class="btn btn-white btn-xs <% if (loved) { %>js-unlove<% } else { %>js-love<% } %>">
-                    <span class="glyphicons <% if (loved) { %>glyphicons-heart<% } else { %>glyphicons-heart-empty<% } %> vcenter" /><% if (loved) { %><b>Love this</b><% } else { %>Love this<% } %>
-                    <% if (loves > 0) { %>
-                        <span class="glyphicons glyphicons-heart vcenter" />{{loves}}
-                    <% } %>
-                </span>
-                <span class="btn btn-white btn-xs js-reply">
-                    <span class="glyphicons glyphicons-comments vcenter" />&nbsp;Comment
-                </span>
+                <div class="js-itemloves" />
             </div>
         </div>
     </div>
