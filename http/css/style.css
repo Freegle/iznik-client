@@ -515,6 +515,11 @@ body {
     cursor: pointer;
 }
 
+.nodecor {
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+
 .panel-heading {
     cursor: pointer;
 }
@@ -604,8 +609,17 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     max-height:25px !important;
     height:25px !important;
     min-width:25px !important;
-    max-width:50px !important;
+    max-width:25px !important;
     width:25px !important;
+}
+
+.img-tinierthumbnail {
+    min-height:10px !important;
+    max-height:10px !important;
+    height:10px !important;
+    min-width:10px !important;
+    max-width:10px !important;
+    width:10px !important;
 }
 
 .img-maxthumb {

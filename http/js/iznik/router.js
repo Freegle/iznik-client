@@ -179,6 +179,7 @@ define([
             "help": "userContact",
             "invite/:id": "userInvited",
             "invite": "userInvite",
+            "newsfeed": "userNewsfeed",
             "plugins/events/:id": "communityEventsPlugin",
             "plugins/group?groupid=:id(&*t)": "groupPlugin",
             "plugins/group/:id": "groupPlugin",
@@ -573,6 +574,15 @@ define([
 
             require(["iznik/views/pages/user/invite"], function() {
                 var page = new Iznik.Views.User.Pages.Invite();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userNewsfeed: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/newsfeed"], function() {
+                var page = new Iznik.Views.User.Pages.Newsfeed();
                 self.loadRoute({page: page});
             });
         },

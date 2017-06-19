@@ -1348,6 +1348,21 @@ class User extends Entity
         return $url;
     }
 
+    public function getPublicLocation() {
+        $ret = NULL;
+
+        # Get the name of the last area we used.
+        $areas = $this->dbhr->preQuery("SELECT name FROM locations WHERE id IN (SELECT areaid FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE users.id = ?);", [
+            $this->id
+        ]);
+
+        foreach ($areas as $area) {
+            $ret = $area['name'];
+        }
+
+        return($ret);
+    }
+
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE) {
         $atts = parent::getPublic();
 
@@ -1365,7 +1380,7 @@ class User extends Entity
         }
 
         $atts['profile'] = [
-            'url' => '/images/defaultprofile.png',
+            'url' => 'https://' . USER_SITE . '/images/defaultprofile.png',
             'default' => TRUE
         ];
 
@@ -1466,7 +1481,7 @@ class User extends Entity
 
                     if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash = 'c0c0e070e0603100') {
                         # This is a default profile - replace it with ours.
-                        $atts['profile']['url'] = '/images/defaultprofile.png';
+                        $atts['profile']['url'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
                         $atts['profile']['default'] = TRUE;
                         $hash = NULL;
                     }

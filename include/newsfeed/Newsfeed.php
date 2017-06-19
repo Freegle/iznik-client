@@ -18,7 +18,7 @@ class Newsfeed extends Entity
     private $log;
     var $feed;
 
-    const DISTANCE = 15000;
+    const DISTANCE = 2000000;
 
     const TYPE_MESSAGE = 'Message';
 
@@ -64,6 +64,28 @@ class Newsfeed extends Entity
         return($this->dbhm->lastInsertId());
     }
 
+    private function fillIn(&$entry, &$users) {
+        unset($entry['position']);
+
+        if ($entry['userid'] && !array_key_exists($entry['userid'], $users)) {
+            $u = User::get($this->dbhr, $this->dbhm, $entry['userid']);
+            $uctx = NULL;
+            $users[$entry['userid']] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+            $users[$entry['userid']]['publiclocation'] = $u->getPublicLocation();
+        }
+
+        if (pres('msgid', $entry)) {
+            $m = new Message($this->dbhr, $this->dbhm, $entry['msgid']);
+            $entry['refmsg'] = $m->getPublic(FALSE, FALSE);
+        }
+
+        $entry['timestamp'] = ISODate($entry['timestamp']);
+        $ctx = [ 'id' => $entry['id'] ];
+
+        $entry['loved'] = FALSE;
+        $entry['loves'] = 0;
+    }
+
     public function get($userid, &$ctx) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $users = [];
@@ -82,26 +104,25 @@ class Newsfeed extends Entity
             $sw = GreatCircle::getPositionByDistance(Newsfeed::DISTANCE, 225, $lat, $lng);
 
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
-            error_log("Check $lat, $lng box $box");
 
             # We return most recent first.
             $idq = $ctx ? " AND newsfeed.id > {$ctx['id']}" : '';
 
-            $entries = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE MBRContains($box, position) $idq ORDER BY id DESC LIMIT 10;");
+            $sql = "SELECT * FROM newsfeed WHERE MBRContains($box, position) $idq AND replyto IS NULL ORDER BY id DESC LIMIT 10;";
+            $entries = $this->dbhr->preQuery($sql);
 
-            foreach ($entries as $entry) {
-                if ($entry['userid'] && !array_key_exists($entry['userid'], $users)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $entry['userid']);
-                    $uctx = NULL;
-                    $users[$entry['userid']] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+            foreach ($entries as &$entry) {
+                $this->fillIn($entry, $users);
+                $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
+                    $entry['id']
+                ]);
+
+                $entry['replies'] = [];
+                foreach ($replies as &$reply) {
+                    $this->fillIn($reply, $users);
+                    $entry['replies'][] = $reply;
                 }
 
-                if (pres('msgid', $entry)) {
-                    $m = new Message($this->dbhr, $this->dbhm, $entry['msgid']);
-                    $entry['refmsg'] = $m->getPublic(FALSE, FALSE);
-                }
-
-                $ctx = [ 'id' => $entry['id'] ];
                 $items[] = $entry;
             }
         }

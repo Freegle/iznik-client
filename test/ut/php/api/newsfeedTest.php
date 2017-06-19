@@ -43,9 +43,9 @@ class newsfeedAPITest extends IznikAPITestCase {
     }
 
     protected function tearDown() {
-//        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
-//        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-//        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
+        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         parent::tearDown ();
     }
 

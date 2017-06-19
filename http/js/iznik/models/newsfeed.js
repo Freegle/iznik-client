@@ -1,0 +1,50 @@
+define([
+    'jquery',
+    'underscore',
+    'backbone',
+    'iznik/base'
+], function($, _, Backbone, Iznik) {
+    Iznik.Models.Newsfeed= Iznik.Model.extend({
+        urlRoot: API + 'newsfeed',
+
+        parse: function (ret) {
+            if (ret.hasOwnProperty('newsfeed')) {
+                return (ret.newsfeed);
+            } else {
+                return (ret);
+            }
+        }
+    });
+
+    Iznik.Collections.Newsfeed = Iznik.Collection.extend({
+        model: Iznik.Models.Newsfeed,
+
+        url: API + 'newsfeed',
+
+        parse: function(ret) {
+            var self = this;
+
+            if (ret.hasOwnProperty('newsfeed')) {
+                // Fill in the users - each item has the user object below it for our convenience, even though the server
+                // returns them in a separate object for bandwidth reasons.
+                _.each(ret.newsfeed, function(item, index, list) {
+                    if (item.userid) {
+                        item.user = ret.users[item.userid];
+                    }
+
+                    if (item.replies) {
+                        _.each(item.replies, function(reply, index, list) {
+                            if (reply.userid) {
+                                reply.user = ret.users[item.userid];
+                            }
+                        });
+                    }
+                });
+
+                return ret.newsfeed;
+            } else {
+                return(null);
+            }
+        }
+    });
+});

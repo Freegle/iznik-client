@@ -1,0 +1,21 @@
+<div class="padleft">
+    <div class="row">
+        <div class="col-xs-12 clickme js-profile">
+            <img src="{{user.profile.url}}" class="img-circle img-tinythumbnail clickme botspace pull-left margright" />
+            <div class="">
+                <b><span class="success">{{user.displayname}}</span></b>&nbsp;<b>{{message}}</b>
+                <br />
+                <small class="text-muted">
+                    <abbr class="timeago nodecor" title="{{timestamp}}" />
+                    <span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}
+                    <span class="<% if (loved) { %>js-unlove<% } else { %>js-love<% } %>">
+                    <span class="glyphicons <% if (loved) { %>glyphicons-heart<% } else { %>glyphicons-heart-empty<% } %> vcenter" /><% if (loved) { %><b>Love this</b><% } else { %>Love this<% } %>
+                        <% if (loves > 0) { %>
+                            <span class="glyphicons glyphicons-heart vcenter" />{{loves}}
+                        <% } %>
+                    </span>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
