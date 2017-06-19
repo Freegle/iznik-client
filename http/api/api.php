@@ -66,6 +66,7 @@ require_once(IZNIK_BASE . '/include/misc/Events.php');
 require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/config/StdMessage.php');
 require_once(IZNIK_BASE . '/include/config/BulkOp.php');
+require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/abtest.php');
@@ -83,6 +84,7 @@ require_once(IZNIK_BASE . '/http/api/donations.php');
 require_once(IZNIK_BASE . '/http/api/error.php');
 require_once(IZNIK_BASE . '/http/api/messages.php');
 require_once(IZNIK_BASE . '/http/api/message.php');
+require_once(IZNIK_BASE . '/http/api/newsfeed.php');
 require_once(IZNIK_BASE . '/http/api/invitation.php');
 require_once(IZNIK_BASE . '/http/api/item.php');
 require_once(IZNIK_BASE . '/http/api/usersearch.php');
@@ -325,6 +327,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'volunteering':
                     $ret = volunteering();
+                    break;
+                case 'newsfeed':
+                    $ret = newsfeed();
                     break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);
