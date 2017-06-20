@@ -9,6 +9,7 @@ require_once IZNIK_BASE . '/include/newsfeed/Newsfeed.php';
 require_once IZNIK_BASE . '/include/misc/Location.php';
 require_once IZNIK_BASE . '/include/group/CommunityEvent.php';
 require_once IZNIK_BASE . '/include/group/Volunteering.php';
+require_once IZNIK_BASE . '/include/group/Facebook.php';
 
 /**
  * @backupGlobals disabled
@@ -93,7 +94,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
-        $g->setPrivate('lat', 8.4);
+        $g->setPrivate('lat', 8.5);
 
         $m = new Message($this->dbhr, $this->dbhm);
 
@@ -120,7 +121,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         # Like
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
-            'action' => 'Like'
+            'action' => 'Love'
         ]);
         assertEquals(0, $ret['ret']);
         $ret = $this->call('newsfeed', 'GET', [
@@ -133,7 +134,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
-            'action' => 'Unlike'
+            'action' => 'Unlove'
         ]);
         assertEquals(0, $ret['ret']);
         $ret = $this->call('newsfeed', 'GET', [
@@ -170,11 +171,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
-        $g->setPrivate('lat', 8.4);
+        $g->setPrivate('lat', 8.5);
 
         $e = new CommunityEvent($this->dbhr, $this->dbhm);
         $eid = $e->create($this->uid, 'Test event', 'Test location', NULL, NULL, NULL, NULL, NULL);
         $e->addGroup($gid);
+        $e->setPrivate('pending', 0);
 
         $ret = $this->call('newsfeed', 'GET', []);
         error_log("Feed " . var_export($ret, TRUE));
@@ -190,23 +192,52 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         assertTrue($this->user->login('testpw'));
 
-        # Create an event - should result in a newsfeed item
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
-        $g->setPrivate('lat', 8.4);
+        $g->setPrivate('lat', 8.5);
 
         $e = new Volunteering($this->dbhr, $this->dbhm);
         $eid = $e->create($this->uid, 'Test opp', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
         $e->addGroup($gid);
+        $e->setPrivate('pending', 0);
 
         $ret = $this->call('newsfeed', 'GET', []);
         error_log("Feed " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
         self::assertEquals('Test opp', $ret['newsfeed'][0]['volunteering']['title']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testPublicity() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+
+        # Find a publicity post so that we can issue the API call from that point.
+        $posts = $this->dbhr->preQuery("SELECT id FROM newsfeed WHERE `type` = ? LIMIT 1;", [
+            Newsfeed::TYPE_CENTRAL_PUBLICITY
+        ]);
+
+        self::assertEquals(1, count($posts));
+        $ctx = [
+            'distance' => 0,
+            'id' => $posts[0]['id'] + 1
+        ];
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'context' => $ctx
+        ]);
+
+        error_log("Feed " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertGreaterThan(1, count($ret['newsfeed']));
+        self::assertEquals(Newsfeed::TYPE_CENTRAL_PUBLICITY, $ret['newsfeed'][0]['type']);
+        assertNotFalse(pres('postid', $ret['newsfeed'][0]['publicity']));
 
         error_log(__METHOD__ . " end");
     }

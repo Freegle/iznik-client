@@ -23,8 +23,7 @@ function newsfeed() {
                     ];
                 } else {
                     $ctx = presdef('context', $_REQUEST, NULL);
-                    $dist = intval(array_key_exists('distance', $ctx) ? $ctx['distance'] : Newsfeed::DISTANCE);
-                    error_log("Distance $dist from " . var_export($ctx, TRUE));
+                    $dist = ($ctx && intval(array_key_exists('distance', $ctx)) ? $ctx['distance'] : Newsfeed::DISTANCE);
                     list ($users, $items) = $n->getFeed($me->getId(), $dist, $ctx);
 
                     $ret = [

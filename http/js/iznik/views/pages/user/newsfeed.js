@@ -213,9 +213,10 @@ define([
 
             self.template = null;
             switch (self.model.get('type')) {
-                case 'Message':         self.template = 'user_newsfeed_item'; break;
-                case 'CommunityEvent':  self.template = 'user_newsfeed_communityevent'; break;
-                case 'VolunteerOpportunity':    self.template = 'user_newsfeed_volunteering'; break;
+                case 'Message':                  self.template = 'user_newsfeed_item'; break;
+                case 'CommunityEvent':           self.template = 'user_newsfeed_communityevent'; break;
+                case 'VolunteerOpportunity':     self.template = 'user_newsfeed_volunteering'; break;
+                case 'CentralPublicity':         self.template = 'user_newsfeed_centralpublicity'; break;
             }
 
             var p = resolvedPromise();

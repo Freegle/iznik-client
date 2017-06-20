@@ -39,16 +39,16 @@ class Newsfeed extends Entity
     public function create($type, $userid, $message, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-        $lid = $u->getPrivate('lastlocation');
+        $lid = $userid ? $u->getPrivate('lastlocation') : NULL;
         $lat = NULL;
         $id = NULL;
 
-        if ($lid) {
+        if ($lid || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $l = new Location($this->dbhr, $this->dbhm, $lid);
             $lat = $l->getPrivate('lat');
             $lng = $l->getPrivate('lng');
-            $pos = "GeomFromText('POINT($lng $lat)')";
+            $pos = $lid ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
             $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, message, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos);", [
                 $type,
@@ -118,6 +118,20 @@ class Newsfeed extends Entity
             }
         }
 
+        if (pres('publicityid', $entry)) {
+            $pubs = $this->dbhr->preQuery("SELECT postid FROM groups_facebook_toshare WHERE id = ?;", [ $entry['publicityid'] ]);
+
+            if (preg_match('/(.*)_(.*)/', $pubs[0]['postid'], $matches)) {
+                # Create the iframe version of the Facebook plugin.
+                $pageid = $matches[1];
+                $postid = $matches[2];
+                $entry['publicity'] = [
+                    'id' => $entry['publicityid'],
+                    'iframe' => '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
+                ];
+            }
+        }
+
         $entry['timestamp'] = ISODate($entry['timestamp']);
 
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -161,10 +175,10 @@ class Newsfeed extends Entity
 
             # We return most recent first.
             $idq = pres('id', $ctx) ? "newsfeed.id < {$ctx['id']}" : 'newsfeed.id > 0';
-            $first = $dist ? "MBRContains($box, position) AND $idq" : $idq;
+            $first = $dist ? "(MBRContains($box, position) OR publicityid IS NOT NULL) AND $idq" : $idq;
 
             $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 5;";
-            error_log($sql);
+            #error_log($sql);
             $entries = $this->dbhr->preQuery($sql);
 
             foreach ($entries as &$entry) {

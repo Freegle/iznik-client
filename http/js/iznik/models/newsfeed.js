@@ -45,10 +45,8 @@ define([
 
         url: API + 'newsfeed',
 
-        comparator: function(a, b) {
-            // Use a comparator to show in most recent first order
-            var ret = b.get('id') - a.get('id');
-            return(ret);
+        comparator: function(a) {
+            return(-(new Date(a.get('timestamp'))).getTime());
         },
 
         parse: function(ret) {
