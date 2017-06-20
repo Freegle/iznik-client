@@ -4,7 +4,7 @@
             <div class="col-xs-12 clickme js-profile">
                 <img src="{{user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
                 <div class="">
-                    <b><span class="success">{{user.displayname}}</span></b>
+                    <b><span class="success">{{user.displayname}}</span></b> created an event
                     <br />
                     <small class="text-muted">
                         <abbr class="timeago nodecor" title="{{timestamp}}" />
@@ -15,9 +15,9 @@
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <b>{{message}}</b>
+                <div class="js-eventsumm" />
                 <hr class="text-muted nomargin botspace" />
-                <div class="js-itemloves" />
+                <div class="inline js-itemloves" />
             </div>
         </div>
     </div>

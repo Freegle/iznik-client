@@ -5,6 +5,7 @@ require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/mailtemplates/volunteerrenew.php');
+require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 
 class Volunteering extends Entity
 {
@@ -28,6 +29,9 @@ class Volunteering extends Entity
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
             $this->fetch($this->dbhr, $this->dbhm, $id, 'volunteering', 'volunteering', $this->publicatts);
+
+            $n = new Newsfeed($this->dbhr, $this->dbhm);
+            $fid = $n->create(Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY, $userid, NULL, NULL, NULL, NULL, NULL, NULL, $id, NULL);
         }
 
         return($id);

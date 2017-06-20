@@ -7,6 +7,8 @@ require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/user/User.php';
 require_once IZNIK_BASE . '/include/newsfeed/Newsfeed.php';
 require_once IZNIK_BASE . '/include/misc/Location.php';
+require_once IZNIK_BASE . '/include/group/CommunityEvent.php';
+require_once IZNIK_BASE . '/include/group/Volunteering.php';
 
 /**
  * @backupGlobals disabled
@@ -43,9 +45,9 @@ class newsfeedAPITest extends IznikAPITestCase {
     }
 
     protected function tearDown() {
-//        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
-//        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-//        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
+        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         parent::tearDown ();
     }
 
@@ -153,6 +155,58 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
         assertEquals(1, count($ret['newsfeed'][0]['replies']));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testCommunityEvent() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+
+        # Create an event - should result in a newsfeed item
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+
+        $g->setPrivate('lng', 179.15);
+        $g->setPrivate('lat', 8.4);
+
+        $e = new CommunityEvent($this->dbhr, $this->dbhm);
+        $eid = $e->create($this->uid, 'Test event', 'Test location', NULL, NULL, NULL, NULL, NULL);
+        $e->addGroup($gid);
+
+        $ret = $this->call('newsfeed', 'GET', []);
+        error_log("Feed " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['newsfeed']));
+        self::assertEquals('Test event', $ret['newsfeed'][0]['communityevent']['title']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testVolunteering() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+
+        # Create an event - should result in a newsfeed item
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+
+        $g->setPrivate('lng', 179.15);
+        $g->setPrivate('lat', 8.4);
+
+        $e = new Volunteering($this->dbhr, $this->dbhm);
+        $eid = $e->create($this->uid, 'Test opp', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        $e->addGroup($gid);
+
+        $ret = $this->call('newsfeed', 'GET', []);
+        error_log("Feed " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['newsfeed']));
+        self::assertEquals('Test opp', $ret['newsfeed'][0]['volunteering']['title']);
 
         error_log(__METHOD__ . " end");
     }

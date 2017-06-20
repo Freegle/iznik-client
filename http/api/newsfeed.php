@@ -23,7 +23,8 @@ function newsfeed() {
                     ];
                 } else {
                     $ctx = presdef('context', $_REQUEST, NULL);
-                    $dist = intval(presdef('distance', $_REQUEST, Newsfeed::DISTANCE));
+                    $dist = intval(array_key_exists('distance', $ctx) ? $ctx['distance'] : Newsfeed::DISTANCE);
+                    error_log("Distance $dist from " . var_export($ctx, TRUE));
                     list ($users, $items) = $n->getFeed($me->getId(), $dist, $ctx);
 
                     $ret = [
@@ -57,7 +58,7 @@ function newsfeed() {
                         'status' => 'Success'
                     ];
                 } else {
-                    $id = $n->create($me->getId(), $message, NULL, NULL, $replyto, NULL);
+                    $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
 
                     $ret = [
                         'ret' => 0,

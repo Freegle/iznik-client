@@ -6,13 +6,15 @@ require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
+require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+require_once(IZNIK_BASE . '/include/group/Volunteering.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
 class Newsfeed extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'timestamp', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'message', 'position');
+    var $publicatts = array('id', 'timestamp', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'volunteeringid', 'publicityid', 'message', 'position');
 
     /** @var  $log Log */
     private $log;
@@ -34,34 +36,38 @@ class Newsfeed extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
     }
 
-    public function create($userid, $message, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL) {
+    public function create($type, $userid, $message, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         $lid = $u->getPrivate('lastlocation');
         $lat = NULL;
-        $pos = 'NULL';
+        $id = NULL;
 
         if ($lid) {
+            # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $l = new Location($this->dbhr, $this->dbhm, $lid);
             $lat = $l->getPrivate('lat');
             $lng = $l->getPrivate('lng');
             $pos = "GeomFromText('POINT($lng $lat)')";
-        }
 
-        $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, message, position) VALUES (?, ?, ?, ?, ?, ?, ?, $pos);", [
-            Newsfeed::TYPE_MESSAGE,
-            $userid,
-            $imageid,
-            $msgid,
-            $replyto,
-            $groupid,
-            $message
-        ]);
+            $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, message, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos);", [
+                $type,
+                $userid,
+                $imageid,
+                $msgid,
+                $replyto,
+                $groupid,
+                $eventid,
+                $volunteeringid,
+                $publicityid,
+                $message
+            ]);
 
-        $id = $this->dbhm->lastInsertId();
+            $id = $this->dbhm->lastInsertId();
 
-        if ($id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
+            if ($id) {
+                $this->fetch($this->dbhr, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
+            }
         }
 
         return($id);
@@ -80,6 +86,7 @@ class Newsfeed extends Entity
 
     private function fillIn(&$entry, &$users) {
         unset($entry['position']);
+        $use = TRUE;
 
         if ($entry['userid'] && !array_key_exists($entry['userid'], $users)) {
             $u = User::get($this->dbhr, $this->dbhm, $entry['userid']);
@@ -91,6 +98,24 @@ class Newsfeed extends Entity
         if (pres('msgid', $entry)) {
             $m = new Message($this->dbhr, $this->dbhm, $entry['msgid']);
             $entry['refmsg'] = $m->getPublic(FALSE, FALSE);
+        }
+
+        if (pres('eventid', $entry)) {
+            $e = new CommunityEvent($this->dbhr, $this->dbhm, $entry['eventid']);
+            $use = FALSE;
+            if (!$e->getPrivate('pending') && !$e->getPrivate('deleted')) {
+                $use = TRUE;
+                $entry['communityevent'] = $e->getPublic();
+            }
+        }
+
+        if (pres('volunteeringid', $entry)) {
+            $v = new Volunteering($this->dbhr, $this->dbhm, $entry['volunteeringid']);
+            $use = FALSE;
+            if (!$v->getPrivate('pending') && !$v->getPrivate('deleted')) {
+                $use = TRUE;
+                $entry['volunteering'] = $v->getPublic();
+            }
         }
 
         $entry['timestamp'] = ISODate($entry['timestamp']);
@@ -111,6 +136,8 @@ class Newsfeed extends Entity
             ], FALSE, FALSE);
             $entry['loved'] = $likes[0]['count'] > 0;
         }
+
+        return($use);
     }
 
     public function getFeed($userid, $dist = Newsfeed::DISTANCE, &$ctx) {
@@ -133,29 +160,34 @@ class Newsfeed extends Entity
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
             # We return most recent first.
-            $idq = presdef('id', $ctx) ? "newsfeed.id < {$ctx['id']}" : 'newsfeed.id > 0';
-            $first = Newsfeed::DISTANCE ? "MBRContains($box, position) AND $idq" : $idq;
+            $idq = pres('id', $ctx) ? "newsfeed.id < {$ctx['id']}" : 'newsfeed.id > 0';
+            $first = $dist ? "MBRContains($box, position) AND $idq" : $idq;
 
             $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 5;";
+            error_log($sql);
             $entries = $this->dbhr->preQuery($sql);
 
             foreach ($entries as &$entry) {
-                $this->fillIn($entry, $users);
-                $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
-                    $entry['id']
-                ]);
+                $use = $this->fillIn($entry, $users);
 
-                $entry['replies'] = [];
-                foreach ($replies as &$reply) {
-                    $this->fillIn($reply, $users);
-                    $entry['replies'][] = $reply;
+                if ($use) {
+                    $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
+                        $entry['id']
+                    ]);
+
+                    $entry['replies'] = [];
+                    foreach ($replies as &$reply) {
+                        $this->fillIn($reply, $users);
+                        $entry['replies'][] = $reply;
+                    }
+
+                    $items[] = $entry;
                 }
 
                 $ctx = [
                     'id' => $entry['id'],
                     'distance' => $dist
                 ];
-                $items[] = $entry;
             }
         }
 

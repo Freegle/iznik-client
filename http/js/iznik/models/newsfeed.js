@@ -68,7 +68,7 @@ define([
                     if (item.replies) {
                         _.each(item.replies, function(reply, index, list) {
                             if (reply.userid) {
-                                reply.user = ret.users[item.userid];
+                                reply.user = ret.users[reply.userid];
                             }
                         });
                     }
