@@ -55,6 +55,9 @@ define([
             var self = this;
 
             if (ret.hasOwnProperty('newsfeed')) {
+                // Save return used by infinite scroll.
+                self.ret = ret;
+
                 // Fill in the users - each item has the user object below it for our convenience, even though the server
                 // returns them in a separate object for bandwidth reasons.
                 _.each(ret.newsfeed, function(item, index, list) {

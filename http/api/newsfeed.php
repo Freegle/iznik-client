@@ -27,6 +27,7 @@ function newsfeed() {
 
                     $ret = [
                         'ret' => 0,
+                        'context' => $ctx,
                         'status' => 'Success',
                         'newsfeed' => $items,
                         'users' => $users

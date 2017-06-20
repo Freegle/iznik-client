@@ -9,12 +9,15 @@ define([
     'iznik/models/newsfeed',
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
-    'iznik/views/pages/pages'
+    'iznik/views/pages/pages',
+    'iznik/views/infinite'
 ], function($, _, Backbone, Iznik, autosize) {
     Iznik.Views.User.Feed = {};
     
-    Iznik.Views.User.Pages.Newsfeed = Iznik.Views.Page.extend({
+    Iznik.Views.User.Pages.Newsfeed = Iznik.Views.Infinite.extend({
         template: "user_newsfeed_main",
+
+        retField: 'newsfeed',
 
         events: {
             'click .js-post': 'post'
@@ -32,7 +35,7 @@ define([
 
                 mod.save().then(function() {
                     mod.fetch().then(function() {
-                        self.feed.add(mod);
+                        self.collection.add(mod);
                         self.$('.js-message').val('');
                     });
                 });
@@ -42,7 +45,7 @@ define([
         render: function () {
             var self = this;
 
-            var p = Iznik.Views.Page.prototype.render.call(this);
+            var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
                 // Left menu is community events
@@ -58,17 +61,18 @@ define([
                 });
                 
                 // List invitations.
-                self.feed = new Iznik.Collections.Newsfeed();
+                self.context = null;
+                self.collection = new Iznik.Collections.Newsfeed();
 
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-feed'),
                     modelView: Iznik.Views.User.Feed.Item,
-                    collection: self.feed,
+                    collection: self.collection,
                     processKeyEvents: false
                 });
 
                 self.collectionView.render();
-                self.feed.fetch();
+                self.fetch();
 
                 autosize(self.$('.js-message'));
             });

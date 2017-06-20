@@ -130,10 +130,10 @@ class Newsfeed extends Entity
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
             # We return most recent first.
-            $idq = $ctx ? "newsfeed.id > {$ctx['id']}" : 'newsfeed.id > 0';
+            $idq = $ctx ? "newsfeed.id < {$ctx['id']}" : 'newsfeed.id > 0';
             $first = Newsfeed::DISTANCE ? "MBRContains($box, position) AND $idq" : $idq;
 
-            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 10;";
+            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 5;";
             $entries = $this->dbhr->preQuery($sql);
 
             foreach ($entries as &$entry) {
