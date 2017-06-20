@@ -809,12 +809,13 @@ define([
         },
 
         hasFacebook: function() {
-            var facebook = null;
+            var facebook = true;    // CC true on mobile to enable any sharing
+            /*var facebook = null;
             _.each(this.get('logins'), function(login) {
                 if (login.type == 'Facebook') {
                     facebook = login;
                 }
-            });
+            });*/
 
             return(facebook);
         },

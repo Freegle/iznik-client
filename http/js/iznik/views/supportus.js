@@ -417,7 +417,8 @@ define([
 
         shareFB: function() {
             var self = this;
-            ABTestAction('FacebookShare', 'Favour');
+            alert("SUPPORTUS shareFB");
+            /*ABTestAction('FacebookShare', 'Favour');
 
             var params = {
                 method: 'share',
@@ -426,7 +427,7 @@ define([
 
             FB.ui(params, function (response) {
                 self.close();
-            });
+            });*/
         },
 
         render: function() {

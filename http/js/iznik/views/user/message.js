@@ -18,17 +18,42 @@ define([
 
         sharefb: function() {
             var self = this;
-            var params = {
+            /*var params = {
                 method: 'share',
                 href: window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbshare',
                 image: self.image
-            };
+            };*/
+            var href = 'https://www.ilovefreegle.org/message/' + self.model.get('id') + '?src=mobileshare';
+            alert("SHARE2b " + href);
+            // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
+            // this is the complete list of currently supported params you can pass to the plugin (all optional)
+            var options = {
+                message: 'Please share this post: ', // not supported on some apps (Facebook, Instagram)
+                subject: 'Freegle post: ', // fi. for email
+                //files: ['', ''], // an array of filenames either locally or remotely
+                url: href,
+                //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
+            }
+            if (self.image) {
+                alert("SHARE2c " + self.image);
+                options.files = [self.image];
+            }
 
-            FB.ui(params, function (response) {
+            var onSuccess = function (result) {
+                console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
+                console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+            }
+
+            var onError = function (msg) {
+                console.log("Sharing failed with message: " + msg);
+            }
+
+            window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
+            /*FB.ui(params, function (response) {
                 self.$('.js-fbshare').fadeOut('slow');
 
                 ABTestAction('messagebutton', 'Facebook Share');
-            });
+            });*/
         },
 
         expanded: false,
@@ -193,7 +218,8 @@ define([
                     Iznik.View.prototype.render.call(self).then(function() {
                         if (Iznik.Session.hasFacebook()) {
 
-                            require(['iznik/facebook'], function(FBLoad) {
+                            self.$('.js-sharefb').show();
+                            /*require(['iznik/facebook'], function(FBLoad) {
                                 self.listenToOnce(FBLoad(), 'fbloaded', function () {
                                     if (!FBLoad().isDisabled()) {
                                         self.$('.js-sharefb').show();
@@ -201,7 +227,7 @@ define([
                                 });
 
                                 FBLoad().render();
-                            });
+                            });*/
                         }
 
                         if (self.expanded) {
