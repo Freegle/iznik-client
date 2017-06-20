@@ -615,40 +615,33 @@ define([
         sharefb: function() {
             var self = this;
 
-            var image = null;
+            // Can get the image but sharing both image and link on FB means that only image shown and we want link - so image won't be available to other share types
+            // var image = null;
+            // var atts = self.model.get('attachments');
+            // if (atts && atts.length > 0) {
+            //     image = atts[0].path;
+            // }
 
-            var atts = self.model.get('attachments');
-            if (atts && atts.length > 0) {
-                image = atts[0].path;
-            }
-
-            /*var params = {
-                method: 'share',
-                href: self.url,
-                image: image
-            };*/
-
+            var href = 'https://www.ilovefreegle.org/message/' + self.model.get('id') + '?src=mobileshare';
             var subject = self.model.get('subject');
 
-            ABTestAction('sharepost', 'facebook');
-            alert("SHARE1a " + self.url);
-            alert("SHARE1b " + image);
+            ABTestAction('sharepost', 'Mobile Share');
             // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
-            // this is the complete list of currently supported params you can pass to the plugin (all optional)
             var options = {
-                message: "I've just posted this on <b>Freegle</b> - interested?:<br>\nnext line", // not supported on some apps (Facebook, Instagram)
-                subject: 'Freegle post: ' + subject, // fi. for email
+                message: "I've just posted this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
+                subject: 'Freegle post: ' + subject, // for email
                 //files: ['', ''], // an array of filenames either locally or remotely
-                url: self.url,
+                url: href,
                 //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
             }
-            if( image){
-                options.files = [image];
-            }
+            // if( image){
+            //     options.files = [image];
+            // }
 
             var onSuccess = function (result) {
                 console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
                 console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+                self.close();
             }
 
             var onError = function (msg) {
