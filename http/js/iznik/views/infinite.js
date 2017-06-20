@@ -81,7 +81,7 @@ define([
                         data: data,
                         remove: self.selected != self.lastFetched,
                         success: function (collection, response, options) {
-                            console.log("Check response", self.retField, response);
+                            // console.log("Check response", self.retField, response);
                             if (response.hasOwnProperty(self.retField) && response[self.retField].length > 0) {
                                 // We want find last one, so that we can tell when we've scrolled to it.  We might
                                 // be using visibleModelsFilter, so we need to watch for that class.

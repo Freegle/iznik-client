@@ -21,6 +21,9 @@ class Newsfeed extends Entity
     const DISTANCE = 15000;
 
     const TYPE_MESSAGE = 'Message';
+    const TYPE_COMMUNITY_EVENT = 'CommunityEvent';
+    const TYPE_VOLUNTEER_OPPORTUNITY = 'VolunteerOpportunity';
+    const TYPE_CENTRAL_PUBLICITY = 'CentralPublicity';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -110,7 +113,7 @@ class Newsfeed extends Entity
         }
     }
 
-    public function getFeed($userid, &$ctx) {
+    public function getFeed($userid, $dist = Newsfeed::DISTANCE, &$ctx) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $users = [];
         $items = [];
@@ -124,13 +127,13 @@ class Newsfeed extends Entity
             $lng = $l->getPrivate('lng');
 
             # To use the spatial index we need to have a box.
-            $ne = GreatCircle::getPositionByDistance(Newsfeed::DISTANCE, 45, $lat, $lng);
-            $sw = GreatCircle::getPositionByDistance(Newsfeed::DISTANCE, 225, $lat, $lng);
+            $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
+            $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
             # We return most recent first.
-            $idq = $ctx ? "newsfeed.id < {$ctx['id']}" : 'newsfeed.id > 0';
+            $idq = presdef('id', $ctx) ? "newsfeed.id < {$ctx['id']}" : 'newsfeed.id > 0';
             $first = Newsfeed::DISTANCE ? "MBRContains($box, position) AND $idq" : $idq;
 
             $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 5;";
@@ -148,7 +151,10 @@ class Newsfeed extends Entity
                     $entry['replies'][] = $reply;
                 }
 
-                $ctx = [ 'id' => $entry['id'] ];
+                $ctx = [
+                    'id' => $entry['id'],
+                    'distance' => $dist
+                ];
                 $items[] = $entry;
             }
         }

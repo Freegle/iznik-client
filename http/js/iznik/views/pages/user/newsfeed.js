@@ -10,6 +10,7 @@ define([
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
+    'iznik/selectpersist',
     'iznik/views/infinite'
 ], function($, _, Backbone, Iznik, autosize) {
     Iznik.Views.User.Feed = {};
@@ -20,7 +21,17 @@ define([
         retField: 'newsfeed',
 
         events: {
-            'click .js-post': 'post'
+            'click .js-post': 'post',
+            'change .js-distance': 'changeDist'
+        },
+
+        changeDist: function() {
+            var self = this;
+            self.collection.reset();
+            self.context = {
+                'distance': self.$('.js-distance').val()
+            };
+            self.fetch();
         },
 
         post: function() {
@@ -59,9 +70,15 @@ define([
                 w.render().then(function () {
                     $('#js-volunteeringcontainer').append(w.$el);
                 });
-                
-                // List invitations.
-                self.context = null;
+
+                // Sticky distance filter.
+                self.$('.js-distance').selectpicker();
+                self.$('.js-distance').selectPersist();
+
+                self.context = {
+                    'distance': self.$('.js-distance').val()
+                };
+
                 self.collection = new Iznik.Collections.Newsfeed();
 
                 self.collectionView = new Backbone.CollectionView({
