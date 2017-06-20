@@ -622,11 +622,13 @@ define([
                 image = atts[0].path;
             }
 
-            var params = {
+            /*var params = {
                 method: 'share',
                 href: self.url,
                 image: image
-            };
+            };*/
+
+            var subject = self.model.get('subject');
 
             ABTestAction('sharepost', 'facebook');
             alert("SHARE1a " + self.url);
@@ -634,8 +636,8 @@ define([
             // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
             // this is the complete list of currently supported params you can pass to the plugin (all optional)
             var options = {
-                message: 'Please share this post: ', // not supported on some apps (Facebook, Instagram)
-                subject: 'Freegle post: ', // fi. for email
+                message: "I've just posted this on <b>Freegle</b> - interested?:<br>\nnext line", // not supported on some apps (Facebook, Instagram)
+                subject: 'Freegle post: ' + subject, // fi. for email
                 //files: ['', ''], // an array of filenames either locally or remotely
                 url: self.url,
                 //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
