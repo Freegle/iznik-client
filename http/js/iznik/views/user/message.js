@@ -24,12 +24,16 @@ define([
                 image: self.image
             };*/
             var href = 'https://www.ilovefreegle.org/message/' + self.model.get('id') + '?src=mobileshare';
+            var subject = self.model.get('subject');
             alert("SHARE2b " + href);
+            alert("SHARE2d " + subject);
+            console.log(self.model);
+            //console.log(self);
             // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
             // this is the complete list of currently supported params you can pass to the plugin (all optional)
             var options = {
                 message: 'Please share this post: ', // not supported on some apps (Facebook, Instagram)
-                subject: 'Freegle post: ', // fi. for email
+                subject: 'Freegle post: '+subject, // fi. for email
                 //files: ['', ''], // an array of filenames either locally or remotely
                 url: href,
                 //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
