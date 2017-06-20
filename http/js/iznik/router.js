@@ -581,10 +581,14 @@ define([
         userNewsfeed: function() {
             var self = this;
 
-            require(["iznik/views/pages/user/newsfeed"], function() {
-                var page = new Iznik.Views.User.Pages.Newsfeed();
-                self.loadRoute({page: page});
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                require(["iznik/views/pages/user/newsfeed"], function() {
+                    var page = new Iznik.Views.User.Pages.Newsfeed();
+                    self.loadRoute({page: page});
+                });
             });
+
+            Iznik.Session.forceLogin();
         },
 
         userInvited: function(id) {
