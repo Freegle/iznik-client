@@ -433,7 +433,7 @@ define([
             var self = this;
 
             // Only do this if we know that they have a Facebook login.
-            if (Iznik.Session.hasFacebook) {
+            if (Iznik.Session.hasFacebook()) {
                 // And only every month.
                 var lastshow = Storage.get('lastpleaseshare');
                 var show = !lastshow || (((new Date()).getTime() - (new Date(lastshow)).getTime()) > 31 * 24 * 60 * 60 * 1000);
