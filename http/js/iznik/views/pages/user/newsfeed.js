@@ -26,9 +26,11 @@ define([
 
         changeDist: function() {
             var self = this;
+            var dist = self.$('.js-distance').val();
+            Storage.set('newsfeeddist', dist);
             self.collection.reset();
             self.context = {
-                'distance': self.$('.js-distance').val()
+                'distance': dist
             };
             self.fetch();
         },
@@ -69,6 +71,12 @@ define([
                 w.render().then(function () {
                     $('#js-volunteeringcontainer').append(w.$el);
                 });
+
+                // Sticky select.
+                var dist = Storage.get('newsfeeddist');
+                console.log("Dist is", dist)
+                dist = dist !== null ? dist : 32186;
+                self.$('.js-distance').val(dist);
 
                 self.context = {
                     'distance': self.$('.js-distance').val()
