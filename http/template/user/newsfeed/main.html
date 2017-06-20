@@ -1,31 +1,82 @@
-<div class="panel">
-    <div class="panel-body">
-        <textarea rows="2" maxlength="1024" class="form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether." />
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-5 col-xs-6">
+                        <a href="/give">
+                            <div class="btn btn-lg btn-block btn-success">
+                            <span class="hidden-xs">
+                                <span class="glyphicon glyphicon-gift" />&nbsp;Give stuff
+                            </span>
+                                <span class="visible-xs">
+                                <span class="glyphicon glyphicon-gift" />&nbsp;Give
+                            </span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-sm-2 hidden-xs">
+                    </div>
+                    <div class="col-sm-5 col-xs-6">
+                        <a href="/find">
+                            <div class="btn btn-lg btn-block btn-primary">
+                            <span class="hidden-xs">
+                                <span class="glyphicon glyphicon-search" />&nbsp;Find stuff
+                            </span>
+                                <span class="visible-xs">
+                                <span class="glyphicon glyphicon-search" />&nbsp;Find
+                            </span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12 text-center">
+                        <h4>
+                            Looking for your own posts?  Click <a href="/myposts">here</a>.
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="panel-footer backwhite">
-        <div class="row">
-            <div class="col-xs-4">
-                <div class="pull-left">
-                    <a class="text-muted" href="/settings">
-                        <span class="glyphicon glyphicon-map-marker" />&nbsp;{{me.settings.mylocation.area.name}}
-                    </a>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <textarea rows="2" maxlength="1024" class="topspace form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether." />
+                    </div>
                 </div>
             </div>
-            <div class="col-xs-7 text-muted">
-                <div class="pull-left">
-                    <select id='newsfeeddist' class="form-control js-distance">
-                        <option value="1609">Show news within 1 mile</option>
-                        <option value="3218">Show news within 2 miles</option>
-                        <option value="8046">Show news within 5 miles</option>
-                        <option value="16093">Show news within 10 miles</option>
-                        <option value="32186" selected>Show news within 20 miles</option>
-                        <option value="80467">Show news within 50 miles</option>
-                        <option value="0">Show news from anywhere</option>
-                    </select>
+            <div class="panel-footer backwhite">
+                <div class="row">
+                    <div class="col-xs-4">
+                        <div class="pull-left">
+                            <a class="text-muted" href="/settings">
+                                <span class="glyphicon glyphicon-map-marker" />&nbsp;{{me.settings.mylocation.area.name}}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-xs-7 text-muted">
+                        <div class="pull-left">
+                            <select id='newsfeeddist' class="form-control input-sm js-distance">
+                                <option value="1609">Show news within 1 mile</option>
+                                <option value="3218">Show news within 2 miles</option>
+                                <option value="8046">Show news within 5 miles</option>
+                                <option value="16093">Show news within 10 miles</option>
+                                <option value="32186" selected>Show news within 20 miles</option>
+                                <option value="80467">Show news within 50 miles</option>
+                                <option value="0">Show news from anywhere</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-xs-1">
+                        <div class="btn btn-success pull-right js-post">Post it!</div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-xs-1">
-                <div class="btn btn-success btn-lg pull-right js-post">Post</div>
             </div>
         </div>
     </div>
