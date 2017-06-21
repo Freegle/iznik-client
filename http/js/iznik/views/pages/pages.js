@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
+    'iznik/models/notification',
     'iznik/events'
 ], function($, _, Backbone, Iznik, ChatHolder, monitor) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
@@ -102,6 +103,32 @@ define([
 
         logout: function() {
             logout();
+        },
+
+        notificationCheck: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + 'notification?count=true',
+                type: 'GET',
+                context: self,
+                success: function(ret) {
+                    if (ret.ret == 0) {
+                        $('#js-notifications .js-notifcount').html(ret.count);
+
+                        if (ret.count) {
+                            $('#js-notifications .js-notifcount').show();
+                            self.notifications.fetch();
+                        }
+                        else {
+                            $('#js-notifications .js-notifcount').hide();
+                            self.notifications.reset();
+                        }
+                    }
+                }, complete: function() {
+                    _.delay(_.bind(this.notificationCheck, this), 30000);
+                }
+            });
         },
 
         render: function (options) {
@@ -258,6 +285,27 @@ define([
                                 // Default is that we pass the session as the model.
                                 self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
                             }
+
+                            // Notifications count and dropdown.
+                            self.notificationCheck();
+                            self.notifications = new Iznik.Collections.Notification();
+
+                            self.notificationsCV = new Backbone.CollectionView({
+                                el: $('#js-notiflist'),
+                                modelView: Iznik.Views.Notification,
+                                collection: self.notifications,
+                                processKeyEvents: false
+                            });
+
+                            self.notificationsCV.render();
+                            self.notifications.fetch();
+
+                            $("#js-notifications").click(function (e) {
+                                // Fetch the notifications, which the CV will then render.
+                                self.notifications.fetch().then(function() {
+                                    console.log("Notifications", self.notifications);
+                                });
+                            });
 
                             $('.js-pageContent').html(self.$el);
 
@@ -544,4 +592,12 @@ define([
             return(p);
         }
     });
+
+    Iznik.Views.Notification = Iznik.View.Timeago.extend({
+        tagName: 'li',
+
+        className: 'notification',
+
+        template: 'user_newsfeed_notification'
+    })
 });

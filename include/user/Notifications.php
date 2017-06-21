@@ -49,7 +49,19 @@ class Notifications
 
                 foreach ($nots as $not) {
                     unset($not['position']);
-                    $not['message'] = $not['message'] ? substr($not['message'], 0, 60) : NULL;
+                    $not['message'] = $not['message'] ? (substr($not['message'], 0, 60) . '...') : NULL;
+
+                    if ($not['replyto']) {
+                        $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [
+                            $not['replyto']
+                        ]);
+
+                        foreach ($origs as $orig) {
+                            $orig['message'] = $orig['message'] ? (substr($orig['message'], 0, 60) . '...') : NULL;
+                            $not['replyto'] = $orig;
+                        }
+                    }
+
                     $notif['newsfeed'] = $not;
                 }
             }
@@ -65,10 +77,14 @@ class Notifications
     }
 
     public function add($from, $to, $type, $newsfeedid) {
-        $rc = NULL;
-        $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, ?);";
-        $rc = $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid ]);
-        return($this->dbhm->lastInsertId());
+        $id = NULL;
+
+        if ($from != $to) {
+            $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, ?);";
+            $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid ]);
+            $id = $this->dbhm->lastInsertId();
+        }
+        return($id);
     }
 
     public function seen($userid, $id) {

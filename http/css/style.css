@@ -1676,6 +1676,10 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     height: 20px;
 }
 
+.dropdown-menu {
+    min-width: 320px !important;
+}
+
 /*==================================================
 =            Bootstrap 3 Media Queries             =
 ==================================================*/

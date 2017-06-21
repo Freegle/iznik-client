@@ -68,6 +68,25 @@
                 </ul>
                 <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly">
                     <li>
+                        <a href="#" id="js-notifications"  class="margleft nopad text-center dropdown-toggle" data-toggle="dropdown" title="Notifications">
+                            <div class="fullholder glyphicons glyphicon-larger glyphicons-globe vcenter-left"/>
+                            <br />
+                            <span>
+                                News
+                                <span class="js-notifcount badge badge-unread" style="display: none;" />
+                            </span>
+                        </a>
+                        <div class="dropdown-container">
+                            <div class="dropdown-toolbar">
+                                <div class="dropdown-toolbar-actions">
+                                    <a href="#">Mark all as read</a>
+                                </div>
+                                <h3 class="dropdown-toolbar-title">&nbsp;</h3>
+                            </div>
+                            <ul class="dropdown-menu" id="js-notiflist"></ul>
+                        </div>
+                    </li>
+                    <li>
                         <a href="/chats" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers">
                             <div class="fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button" />
                             <br />
@@ -85,12 +104,6 @@
                                 Invite
                                 <span class="js-invitesleft badge badge-invite" style="display: none;" />
                             </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" id="js-notifications"  class="margleft nopad text-center" title="Notifications" style="display: none;">
-                            <div class="fullholder glyphicons glyphicon-larger glyphicons-globe vcenter-left"/>
-                            <span class="navbar-dropdown-text hidden-sm">Notifications</span>
                         </a>
                     </li>
                     <li>
