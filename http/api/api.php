@@ -47,6 +47,7 @@ require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/include/misc/PAF.php');
 require_once(IZNIK_BASE . '/include/misc/Donations.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
+require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
 require_once(IZNIK_BASE . '/include/group/Admin.php');
@@ -108,6 +109,7 @@ require_once(IZNIK_BASE . '/http/api/request.php');
 require_once(IZNIK_BASE . '/http/api/stories.php');
 require_once(IZNIK_BASE . '/http/api/status.php');
 require_once(IZNIK_BASE . '/http/api/volunteering.php');
+require_once(IZNIK_BASE . '/http/api/notification.php');
 
 $includetime = microtime(true) - $scriptstart;
 
@@ -330,6 +332,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'newsfeed':
                     $ret = newsfeed();
+                    break;
+                case 'notification':
+                    $ret = notification();
                     break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);

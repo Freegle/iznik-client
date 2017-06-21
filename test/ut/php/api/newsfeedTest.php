@@ -110,7 +110,11 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
 
         error_log("Logged in - one item");
-        $ret = $this->call('newsfeed', 'GET', []);
+        $ret = $this->call('newsfeed', 'GET', [
+            'types' => [
+                Newsfeed::TYPE_MESSAGE
+            ]
+        ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
         self::assertEquals('Test', $ret['newsfeed'][0]['message']);
@@ -132,6 +136,27 @@ class newsfeedAPITest extends IznikAPITestCase {
         self::assertEquals(1, $ret['newsfeed']['loves']);
         self::assertTrue($ret['newsfeed']['loved']);
 
+        # Should have generated a notification
+        $ret = $this->call('notification', 'GET', [
+            'count' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(1, $ret['count']);
+
+        $ret = $this->call('notification', 'GET', []);
+        error_log("Notifications " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(1, count($ret['notifications']));
+        self::assertEquals($this->uid, $ret['notifications'][0]['fromuser']['id']);
+        $notifid = $ret['notifications'][0]['id'];
+
+        # Mark it as seen
+        $ret = $this->call('notification', 'POST', [
+            'id' => $notifid,
+            'action' => 'Seen'
+        ]);
+        assertEquals(0, $ret['ret']);
+
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'Unlove'
@@ -151,7 +176,11 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('newsfeed', 'GET', []);
+        $ret = $this->call('newsfeed', 'GET', [
+            'types' => [
+                Newsfeed::TYPE_MESSAGE
+            ]
+        ]);
         error_log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
@@ -178,7 +207,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         $e->addGroup($gid);
         $e->setPrivate('pending', 0);
 
-        $ret = $this->call('newsfeed', 'GET', []);
+        $ret = $this->call('newsfeed', 'GET', [
+            'types' => [
+                Newsfeed::TYPE_COMMUNITY_EVENT
+            ]
+        ]);
+
         error_log("Feed " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
@@ -204,7 +238,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         $e->addGroup($gid);
         $e->setPrivate('pending', 0);
 
-        $ret = $this->call('newsfeed', 'GET', []);
+        $ret = $this->call('newsfeed', 'GET', [
+            'types' => [
+                Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY
+            ]
+        ]);
+
         error_log("Feed " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
@@ -230,12 +269,15 @@ class newsfeedAPITest extends IznikAPITestCase {
         ];
 
         $ret = $this->call('newsfeed', 'GET', [
-            'context' => $ctx
+            'context' => $ctx,
+            'types' => [
+                Newsfeed::TYPE_CENTRAL_PUBLICITY
+            ]
         ]);
 
         error_log("Feed " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        assertGreaterThan(1, count($ret['newsfeed']));
+        assertEquals(1, count($ret['newsfeed']));
         self::assertEquals(Newsfeed::TYPE_CENTRAL_PUBLICITY, $ret['newsfeed'][0]['type']);
         assertNotFalse(pres('postid', $ret['newsfeed'][0]['publicity']));
 

@@ -8,6 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 require_once(IZNIK_BASE . '/include/group/Volunteering.php');
+require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
@@ -67,6 +68,25 @@ class Newsfeed extends Entity
 
             if ($id) {
                 $this->fetch($this->dbhr, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
+
+                if ($replyto) {
+                    $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [ $replyto ]);
+                    foreach ($origs as $orig) {
+                        # Comment on thread.  We want to notify the original poster and anyone else who
+                        # has commented on this thread.
+                        $n = new Notifications($this->dbhr, $this->dbhm);
+                        $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id);
+
+                        $commenters = $this->dbhr->preQuery("SELECT DISTINCT userid FROM newsfeed WHERE replyto = ? AND userid != ?;", [
+                            $replyto,
+                            $orig['userid']
+                        ]);
+
+                        foreach ($commenters as $commenter) {
+                            $n->add($userid, $commenter['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id);
+                        }
+                    }
+                }
             }
         }
 
@@ -132,6 +152,7 @@ class Newsfeed extends Entity
                 $postid = $matches[2];
                 $entry['publicity'] = [
                     'id' => $entry['publicityid'],
+                    'postid' => $pubs[0]['postid'],
                     'iframe' => '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
                 ];
             }
@@ -174,7 +195,7 @@ class Newsfeed extends Entity
         return($use);
     }
 
-    public function getFeed($userid, $dist = Newsfeed::DISTANCE, &$ctx) {
+    public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $users = [];
         $items = [];
@@ -194,10 +215,11 @@ class Newsfeed extends Entity
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
             # We return most recent first.
-            $idq = pres('id', $ctx) ? "newsfeed.id < {$ctx['id']}" : 'newsfeed.id > 0';
+            $idq = pres('id', $ctx) ? ("newsfeed.id < " . intval($ctx['id'])) : 'newsfeed.id > 0';
             $first = $dist ? "(MBRContains($box, position) OR publicityid IS NOT NULL) AND $idq" : $idq;
+            $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
-            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 5;";
+            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY id DESC LIMIT 5;";
             #error_log($sql);
             $entries = $this->dbhr->preQuery($sql);
 
@@ -225,6 +247,11 @@ class Newsfeed extends Entity
                 $this->id,
                 $me->getId()
             ]);
+
+            # We want to notify the original poster.  The type depends on whether this was the start of a thread or
+            # a comment on it.
+            $n = new Notifications($this->dbhr, $this->dbhm);
+            $n->add($me->getId(), $this->feed['userid'], $this->feed['replyto'] ? Notifications::TYPE_LOVED_COMMENT : Notifications::TYPE_LOVED_POST, $this->id);
         }
     }
 
