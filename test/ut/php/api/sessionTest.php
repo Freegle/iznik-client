@@ -5,7 +5,7 @@ if (!defined('UT_DIR')) {
 }
 require_once UT_DIR . '/IznikAPITestCase.php';
 require_once IZNIK_BASE . '/include/mail/MailRouter.php';
-require_once IZNIK_BASE . '/include/user/Notifications.php';
+require_once IZNIK_BASE . '/include/user/PushNotifications.php';
 
 /**
  * @backupGlobals disabled
@@ -244,14 +244,14 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # Quick test for notification coverage.
-        $mock = $this->getMockBuilder('Notifications')
+        $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('curl_exec'))
             ->getMock();
         $mock->method('curl_exec')->willReturn('NotRegistered');
         $mock->notify($id);
 
-        $mock = $this->getMockBuilder('Notifications')
+        $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('uthook'))
             ->getMock();

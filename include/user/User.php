@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
