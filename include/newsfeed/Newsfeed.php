@@ -197,7 +197,7 @@ class Newsfeed extends Entity
             $idq = pres('id', $ctx) ? "newsfeed.id < {$ctx['id']}" : 'newsfeed.id > 0';
             $first = $dist ? "(MBRContains($box, position) OR publicityid IS NOT NULL) AND $idq" : $idq;
 
-            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL AND `type` != 'CentralPublicity' ORDER BY id DESC LIMIT 5;";
+            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 5;";
             #error_log($sql);
             $entries = $this->dbhr->preQuery($sql);
 

@@ -47,6 +47,15 @@ define([
             self.fetch();
         },
 
+        refetch: function() {
+            var self = this;
+            var dist = self.$('.js-distance').val();
+            self.context = {
+                'distance': dist
+            };
+            self.fetch();
+        },
+
         post: function() {
             var self = this;
 
@@ -90,7 +99,6 @@ define([
             p.then(function(self) {
                 // Sticky select.
                 var dist = Storage.get('newsfeeddist');
-                console.log("Dist is", dist)
                 dist = dist !== null ? dist : 32186;
                 self.$('.js-distance').val(dist);
 
@@ -109,6 +117,9 @@ define([
 
                 self.collectionView.render();
                 self.fetch();
+
+                // We can be asked to refetch by the first news
+                self.listenTo(self.collection, 'refetch', _.bind(self.refetch, self));
 
                 // Delay load of sidebars to give the main feed chance to load first.
                 _.delay(_.bind(self.sidebars, self), 10000);
@@ -261,6 +272,12 @@ define([
 
                         if (self.replies.length != replies.length) {
                             self.replies.add(replies);
+                        }
+
+                        if (self.model.collection.indexOf(self.model) === 0) {
+                            // This is the first one.  Fetch the collection so that if there are any new items
+                            // we'll pick them up.
+                            self.model.collection.trigger('refetch');
                         }
 
                         _.delay(_.bind(self.checkUpdate, self), 30000);
