@@ -122,7 +122,6 @@ define([
                         }
                         else {
                             $('#js-notifications .js-notifcount').hide();
-                            self.notifications.reset();
                         }
                     }
                 }, complete: function() {
@@ -278,6 +277,40 @@ define([
                             }
                         }
 
+                        // Notifications count and dropdown.
+                        self.notificationCheck();
+                        self.notifications = new Iznik.Collections.Notification();
+
+                        self.notificationsCV = new Backbone.CollectionView({
+                            el: $('#js-notiflist'),
+                            modelView: Iznik.Views.Notification,
+                            collection: self.notifications,
+                            processKeyEvents: false
+                        });
+
+                        self.notificationsCV.render();
+                        self.notifications.fetch();
+
+                        $("#js-notifications").click(function (e) {
+                            // Fetch the notifications, which the CV will then render.
+                            self.notifications.fetch().then(function() {
+                                console.log("Notifications", self.notifications);
+                            });
+                        });
+
+                        $("#js-markallnotifread").click(function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            self.notifications.each(function(notif) {
+                                if (!notif.get('seen')) {
+                                    notif.seen();
+                                }
+                            });
+
+                            $('#js-notifications .js-notifcount').hide();
+                        });
+
                         templateFetch(self.template).then(function(tpl) {
                             if (self.model) {
                                 self.$el.html(window.template(tpl)(self.model.toJSON2()));
@@ -285,27 +318,6 @@ define([
                                 // Default is that we pass the session as the model.
                                 self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
                             }
-
-                            // Notifications count and dropdown.
-                            self.notificationCheck();
-                            self.notifications = new Iznik.Collections.Notification();
-
-                            self.notificationsCV = new Backbone.CollectionView({
-                                el: $('#js-notiflist'),
-                                modelView: Iznik.Views.Notification,
-                                collection: self.notifications,
-                                processKeyEvents: false
-                            });
-
-                            self.notificationsCV.render();
-                            self.notifications.fetch();
-
-                            $("#js-notifications").click(function (e) {
-                                // Fetch the notifications, which the CV will then render.
-                                self.notifications.fetch().then(function() {
-                                    console.log("Notifications", self.notifications);
-                                });
-                            });
 
                             $('.js-pageContent').html(self.$el);
 

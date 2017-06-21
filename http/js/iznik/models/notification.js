@@ -11,9 +11,10 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/notification/' + self.get('id'),
+                url: API + '/notification',
                 type: 'POST',
                 data: {
+                    id: self.get('id'),
                     action: 'Seen'
                 }
             }));
