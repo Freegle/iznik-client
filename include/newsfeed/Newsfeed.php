@@ -81,10 +81,15 @@ class Newsfeed extends Entity
         $atts['user'] = array_pop($users);
         unset($atts['userid']);
 
+        foreach ($atts['replies'] as &$reply) {
+            $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
+            $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        }
+
         return($atts);
     }
 
-    private function fillIn(&$entry, &$users) {
+    private function fillIn(&$entry, &$users, $checkreplies = TRUE) {
         unset($entry['position']);
         $use = TRUE;
 
@@ -151,6 +156,21 @@ class Newsfeed extends Entity
             $entry['loved'] = $likes[0]['count'] > 0;
         }
 
+        $entry['replies'] = [];
+
+        if ($checkreplies) {
+            # Don't cache replies - might be lots and might change frequently.
+            $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
+                $entry['id']
+            ], FALSE);
+
+            foreach ($replies as &$reply) {
+                # Replies only one deep at present.
+                $this->fillIn($reply, $users, FALSE);
+                $entry['replies'][] = $reply;
+            }
+        }
+
         return($use);
     }
 
@@ -177,7 +197,7 @@ class Newsfeed extends Entity
             $idq = pres('id', $ctx) ? "newsfeed.id < {$ctx['id']}" : 'newsfeed.id > 0';
             $first = $dist ? "(MBRContains($box, position) OR publicityid IS NOT NULL) AND $idq" : $idq;
 
-            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL ORDER BY id DESC LIMIT 5;";
+            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL AND `type` != 'CentralPublicity' ORDER BY id DESC LIMIT 5;";
             #error_log($sql);
             $entries = $this->dbhr->preQuery($sql);
 
@@ -185,16 +205,6 @@ class Newsfeed extends Entity
                 $use = $this->fillIn($entry, $users);
 
                 if ($use) {
-                    $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
-                        $entry['id']
-                    ]);
-
-                    $entry['replies'] = [];
-                    foreach ($replies as &$reply) {
-                        $this->fillIn($reply, $users);
-                        $entry['replies'][] = $reply;
-                    }
-
                     $items[] = $entry;
                 }
 

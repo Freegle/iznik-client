@@ -126,15 +126,17 @@ define([
         render: function() {
             var self = this;
 
-            p = Iznik.View.Timeago.prototype.render.call(this);
-            p.then(function (self) {
-                var v = new Iznik.Views.User.Feed.Loves({
-                    model: self.model
-                });
+            var p = new Promise(function(resolve, reject) {
+                Iznik.View.Timeago.prototype.render.call(self).then(function () {
+                    var v = new Iznik.Views.User.Feed.Loves({
+                        model: self.model
+                    });
 
-                v.template = self.lovetemplate;
-                v.render().then(function() {
-                    self.$(self.lovesel).html(v.$el);
+                    v.template = self.lovetemplate;
+                    v.render().then(function() {
+                        self.$(self.lovesel).html(v.$el);
+                        resolve();
+                    });
                 });
             });
 
@@ -152,6 +154,7 @@ define([
 
         love: function() {
             var self = this;
+            console.log("Love");
 
             self.model.love().then(function() {
                 self.model.fetch().then(function() {
@@ -206,72 +209,121 @@ define([
             }
         },
 
+        checkUpdate: function() {
+            var self = this;
+            // console.log("Consider update", self.model.get('id'));
+
+            if (self.inDOM()) {
+                // console.log("Newsfeed visible", self.model.get('id'), self.$el.isOnScreen());
+                // Only update when we're in the viewport.
+                if (self.$el.isOnScreen()) {
+                    // Get the latest info to update our view.
+                    self.model.fetch().then(function() {
+                        // Update the loves.
+                        // console.log("Update loves", self.model);
+                        self.loves.model = self.model;
+                        self.loves.render().then(function() {
+                            self.$('.js-itemloves').html(self.loves.$el);
+                        });
+
+                        // Update the replies collection.
+                        var replies = self.model.get('replies');
+                        // console.log("Replies", self.replies.length, replies.length);
+
+                        if (self.replies.length != replies.length) {
+                            self.replies.add(replies);
+                        }
+
+                        _.delay(_.bind(self.checkUpdate, self), 30000);
+                    });
+                }
+            }
+        },
+
+        startCheck: function() {
+            var self = this;
+
+            if (!self.checking && !self.model.get('replyto')) {
+                // Check periodically for updates to this item.  We don't check replies, because they are returned
+                // in the parent.
+                self.checking = true;
+                _.delay(_.bind(self.checkUpdate, self), 30000);
+            }
+        },
+
         render: function() {
             var self = this;
 
-            self.model.set('me', Iznik.Session.get('me'));
-
-            self.template = null;
-            switch (self.model.get('type')) {
-                case 'Message':                  self.template = 'user_newsfeed_item'; break;
-                case 'CommunityEvent':           self.template = 'user_newsfeed_communityevent'; break;
-                case 'VolunteerOpportunity':     self.template = 'user_newsfeed_volunteering'; break;
-                case 'CentralPublicity':         self.template = 'user_newsfeed_centralpublicity'; break;
-            }
-
             var p = resolvedPromise();
 
-            if (self.template) {
-                p = Iznik.View.Timeago.prototype.render.call(this, {
-                    model: self.model
-                });
+            if (!self.rendered) {
+                self.rendered = true;
+                console.log("Render", self.model.get('id')); if (self.model.get('id') == 700) { console.trace(); }
 
-                if (self.model.get('eventid')) {
-                    var v = new Iznik.Views.User.CommunityEvent({
-                        model: new Iznik.Model(this.model.get('communityevent'))
-                    });
+                self.model.set('me', Iznik.Session.get('me'));
 
-                    v.render().then(function() {
-                        self.$('.js-eventsumm').html(v.$el);
-                    });
+                self.template = null;
+                switch (self.model.get('type')) {
+                    case 'Message':                  self.template = 'user_newsfeed_item'; break;
+                    case 'CommunityEvent':           self.template = 'user_newsfeed_communityevent'; break;
+                    case 'VolunteerOpportunity':     self.template = 'user_newsfeed_volunteering'; break;
+                    case 'CentralPublicity':         self.template = 'user_newsfeed_centralpublicity'; break;
                 }
 
-                if (self.model.get('volunteeringid')) {
-                    var v = new Iznik.Views.User.Volunteering({
-                        model: new Iznik.Model(this.model.get('volunteering'))
-                    });
-
-                    v.render().then(function() {
-                        self.$('.js-volunteeringsumm').html(v.$el);
-                    });
-                }
-
-                p.then(function(self) {
-                    self.replies = new Iznik.Collections.Replies(self.model.get('replies'));
-
-                    self.collectionView = new Backbone.CollectionView({
-                        el: self.$('.js-replies'),
-                        modelView: Iznik.Views.User.Feed.Reply,
-                        collection: self.replies,
-                        processKeyEvents: false
-                    });
-
-                    self.collectionView.render();
-
-                    var v = new Iznik.Views.User.Feed.Loves({
+                if (self.template) {
+                    p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
                         model: self.model
                     });
 
-                    v.template = self.lovetemplate;
-                    v.render().then(function() {
-                        self.$('.js-itemloves').html(v.$el);
+                    p.then(function() {
+                        if (self.model.get('eventid')) {
+                            var v = new Iznik.Views.User.CommunityEvent({
+                                model: new Iznik.Model(self.model.get('communityevent'))
+                            });
+
+                            v.render().then(function() {
+                                self.$('.js-eventsumm').html(v.$el);
+                            });
+                        }
+
+                        if (self.model.get('volunteeringid')) {
+                            var v = new Iznik.Views.User.Volunteering({
+                                model: new Iznik.Model(self.model.get('volunteering'))
+                            });
+
+                            v.render().then(function() {
+                                self.$('.js-volunteeringsumm').html(v.$el);
+                            });
+                        }
+
+                        self.replies = new Iznik.Collections.Replies(self.model.get('replies'));
+
+                        self.collectionView = new Backbone.CollectionView({
+                            el: self.$('.js-replies'),
+                            modelView: Iznik.Views.User.Feed.Reply,
+                            collection: self.replies,
+                            processKeyEvents: false
+                        });
+
+                        self.collectionView.render();
+
+                        self.loves = new Iznik.Views.User.Feed.Loves({
+                            model: self.model
+                        });
+
+                        self.loves.template = self.lovetemplate;
+                        self.loves.render().then(function() {
+                            self.$('.js-itemloves').html(self.loves.$el);
+                        });
+
+                        // Each reply can ask us to focus on the reply box.
+                        self.listenTo(self.replies, 'reply', _.bind(self.reply, self));
+
+                        autosize(self.$('.js-comment'));
+
+                        self.startCheck();
                     });
-
-                    // Each reply can ask us to focus on the reply box.
-                    self.listenTo(self.replies, 'reply', _.bind(self.reply, self));
-
-                    autosize(self.$('.js-comment'));
-                });
+                }
             }
 
             return(p);
