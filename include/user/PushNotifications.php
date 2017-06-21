@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 use Minishlink\WebPush\WebPush;
 use Pheanstalk\Pheanstalk;
 
-class Notifications
+class PushNotifications
 {
     const PUSH_GOOGLE = 'Google';
     const PUSH_FIREFOX = 'Firefox';
@@ -95,14 +95,14 @@ class Notifications
         try {
             #error_log("Execute send type $notiftype params " . var_export($params, TRUE) . " payload " . var_export($payload, TRUE) . " endpoint $endpoint");
             switch ($notiftype) {
-                case Notifications::PUSH_GOOGLE:
-                case Notifications::PUSH_FIREFOX:
-                case Notifications::PUSH_ANDROID:
+                case PushNotifications::PUSH_GOOGLE:
+                case PushNotifications::PUSH_FIREFOX:
+                case PushNotifications::PUSH_ANDROID:
                     $params = $params ? $params : [];
                     $webPush = new WebPush($params);
                     $rc = $webPush->sendNotification($endpoint, $payload, NULL, TRUE);
                     break;
-                case Notifications::PUSH_IOS:
+                case PushNotifications::PUSH_IOS:
                     try {
                         $deviceToken = $endpoint;
                         $ctx = stream_context_create();
@@ -167,19 +167,19 @@ class Notifications
             $params = [];
 
             switch ($notif['type']) {
-                case Notifications::PUSH_GOOGLE: {
+                case PushNotifications::PUSH_GOOGLE: {
                     $proceed = $u->notifsOn(User::NOTIFS_PUSH);
                     $params = [
                         'GCM' => GOOGLE_PUSH_KEY
                     ];
                     break;
                 }
-                case Notifications::PUSH_FIREFOX: {
+                case PushNotifications::PUSH_FIREFOX: {
                     $proceed = $u->notifsOn(User::NOTIFS_PUSH);
                     $params = [];
                     break;
                 }
-                case Notifications::PUSH_ANDROID: {
+                case PushNotifications::PUSH_ANDROID: {
                     $proceed = $u->notifsOn(User::NOTIFS_APP);
 
                     if ($proceed) {
@@ -207,7 +207,7 @@ class Notifications
 
                     break;
                 }
-                case Notifications::PUSH_IOS: {
+                case PushNotifications::PUSH_IOS: {
                     $proceed = $u->notifsOn(User::NOTIFS_APP);
 
                     if ($proceed) {

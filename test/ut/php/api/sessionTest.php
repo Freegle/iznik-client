@@ -415,8 +415,8 @@ class sessionTest extends IznikAPITestCase
         $id = $u->create('Test', 'User', NULL);
         error_log("Created user $id");
 
-        $n = new Notifications($this->dbhr, $this->dbhm);
-        assertTrue($n->add($id, Notifications::PUSH_TEST, 'test'));
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        assertTrue($n->add($id, PushNotifications::PUSH_TEST, 'test'));
         
         $ret = $this->call('session', 'GET', []);
         assertEquals(1, $ret['ret']);

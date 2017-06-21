@@ -392,7 +392,7 @@ class Message
         $this->dbhm = $dbhm;
 
         $this->log = new Log($this->dbhr, $this->dbhm);
-        $this->notif = new Notifications($this->dbhr, $this->dbhm);
+        $this->notif = new PushNotifications($this->dbhr, $this->dbhm);
 
         if ($id) {
             # When constructing we do some LEFT JOINs with other tables where we expect to only have one row at most.

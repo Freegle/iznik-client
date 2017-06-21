@@ -140,7 +140,7 @@ class MailRouter
 
         # Notify mods of new work
         $groups = $this->msg->getGroups();
-        $n = new Notifications($this->dbhr, $this->dbhm);
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
 
         foreach ($groups as $groupid) {
             $n->notifyGroupMods($groupid);
@@ -420,7 +420,7 @@ class MailRouter
                         }
 
                         if ($notify) {
-                            $n = new Notifications($this->dbhr, $this->dbhm);
+                            $n = new PushNotifications($this->dbhr, $this->dbhm);
                             $n->notifyGroupMods($gid);
                         }
                     }

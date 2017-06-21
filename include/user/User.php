@@ -95,7 +95,7 @@ class User extends Entity
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->log = new Log($dbhr, $dbhm);
-        $this->notif = new Notifications($dbhr, $dbhm);
+        $this->notif = new PushNotifications($dbhr, $dbhm);
 
         $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
     }
