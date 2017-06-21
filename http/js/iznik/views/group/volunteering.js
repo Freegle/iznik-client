@@ -4,7 +4,6 @@ define([
     'backbone',
     'iznik/base',
     'moment',
-    'jquery.dotdotdot',
     'combodate',
     'jquery.validate.min',
     'jquery.validate.additional-methods',
@@ -105,7 +104,7 @@ define([
             var self = this;
 
             var desc = self.model.get('description');
-            if (desc.length > 100) {
+            if (desc && desc.length > 100) {
                 self.model.set('description', desc.substring(0, 100) + '...');
             }
 

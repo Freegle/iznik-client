@@ -21,7 +21,19 @@ define([
 
         events: {
             'click .js-post': 'post',
-            'change .js-distance': 'changeDist'
+            'change .js-distance': 'changeDist',
+            'focus .js-message': 'autoSize'
+        },
+
+        autoSize: function() {
+            // Autosize is expensive, so only do it when we focus on the input field.  That means we only do it
+            // when someone is actually going to make a comment.
+            var self = this;
+
+            if (!self.autosized) {
+                self.autosized = true;
+                autosize(self.$('.js-message'));
+            }
         },
 
         changeDist: function() {
@@ -54,24 +66,28 @@ define([
             }
         },
 
+        sidebars: function() {
+            var self = this;
+
+            // Left menu is community events
+            var v = new Iznik.Views.User.CommunityEventsSidebar();
+            v.render().then(function () {
+                $('#js-eventcontainer').append(v.$el);
+            });
+
+            // Right menu is volunteer vacancies
+            var w = new Iznik.Views.User.VolunteeringSidebar();
+            w.render().then(function () {
+                $('#js-volunteeringcontainer').append(w.$el);
+            });
+        },
+
         render: function () {
             var self = this;
 
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
-                // Left menu is community events
-                var v = new Iznik.Views.User.CommunityEventsSidebar();
-                v.render().then(function () {
-                    $('#js-eventcontainer').append(v.$el);
-                });
-                
-                // Right menu is volunteer vacancies
-                var w = new Iznik.Views.User.VolunteeringSidebar();
-                w.render().then(function () {
-                    $('#js-volunteeringcontainer').append(w.$el);
-                });
-
                 // Sticky select.
                 var dist = Storage.get('newsfeeddist');
                 console.log("Dist is", dist)
@@ -94,7 +110,8 @@ define([
                 self.collectionView.render();
                 self.fetch();
 
-                autosize(self.$('.js-message'));
+                // Delay load of sidebars to give the main feed chance to load first.
+                _.delay(_.bind(self.sidebars, self), 10000);
             });
 
             return(p);
@@ -127,13 +144,13 @@ define([
             var self = this;
 
             var p = new Promise(function(resolve, reject) {
-                Iznik.View.Timeago.prototype.render.call(self).then(function () {
-                    var v = new Iznik.Views.User.Feed.Loves({
-                        model: self.model
-                    });
+                var v = new Iznik.Views.User.Feed.Loves({
+                    model: self.model
+                });
 
-                    v.template = self.lovetemplate;
-                    v.render().then(function() {
+                v.template = self.lovetemplate;
+                v.render().then(function() {
+                    Iznik.View.Timeago.prototype.render.call(self).then(function () {
                         self.$(self.lovesel).html(v.$el);
                         resolve();
                     });
@@ -179,7 +196,19 @@ define([
         lovesel: '.js-itemloves',
 
         events: {
-            'keydown .js-comment': 'sendComment'
+            'keydown .js-comment': 'sendComment',
+            'focus .js-comment': 'autoSize'
+        },
+
+        autoSize: function() {
+            // Autosize is expensive, so only do it when we focus on the input field.  That means we only do it
+            // when someone is actually going to make a comment.
+            var self = this;
+
+            if (!self.autosized) {
+                self.autosized = true;
+                autosize(self.$('.js-comment'));
+            }
         },
 
         sendComment: function (e) {
@@ -258,7 +287,7 @@ define([
 
             if (!self.rendered) {
                 self.rendered = true;
-                console.log("Render", self.model.get('id')); if (self.model.get('id') == 700) { console.trace(); }
+                // console.log("Render", self.model.get('id')); if (self.model.get('id') == 700) { console.trace(); }
 
                 self.model.set('me', Iznik.Session.get('me'));
 
@@ -318,9 +347,6 @@ define([
 
                         // Each reply can ask us to focus on the reply box.
                         self.listenTo(self.replies, 'reply', _.bind(self.reply, self));
-
-                        autosize(self.$('.js-comment'));
-
                         self.startCheck();
                     });
                 }
