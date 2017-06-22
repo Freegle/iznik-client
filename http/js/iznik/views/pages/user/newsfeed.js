@@ -176,8 +176,10 @@ define([
         tagName: 'span',
 
         events: {
-            'click .js-love': 'love',
-            'click .js-unlove': 'unlove'
+            'click .js-replylove': 'love',
+            'click .js-itemlove': 'love',
+            'click .js-replyunlove': 'unlove',
+            'click .js-itemunlove': 'unlove'
         },
 
         love: function() {
@@ -193,6 +195,7 @@ define([
 
         unlove: function() {
             var self = this;
+            console.log("Unlove");
 
             self.model.unlove().then(function() {
                 self.model.fetch().then(function() {

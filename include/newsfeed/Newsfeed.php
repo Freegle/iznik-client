@@ -38,18 +38,15 @@ class Newsfeed extends Entity
     }
 
     public function create($type, $userid, $message, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL) {
-        $u = User::get($this->dbhr, $this->dbhm, $userid);
-
-        $lid = $userid ? $u->getPrivate('lastlocation') : NULL;
-        $lat = NULL;
         $id = NULL;
 
-        if ($lid || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY) {
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+        list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
+        error_log("$lat, $lng for $userid");
+
+        if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
-            $l = new Location($this->dbhr, $this->dbhm, $lid);
-            $lat = $l->getPrivate('lat');
-            $lng = $l->getPrivate('lng');
-            $pos = $lid ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
+            $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
             $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, message, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos);", [
                 $type,
@@ -200,41 +197,36 @@ class Newsfeed extends Entity
         $users = [];
         $items = [];
 
-        $lid = $u->getPrivate('lastlocation');
+        # We want the newsfeed items which are close to us.  Use the location in settings, or failing that the
+        # last location they've posted from.
+        list ($lat, $lng) = $u->getLatLng();
 
-        if ($lid) {
-            # We want the newsfeed items which are close to us.
-            $l = new Location($this->dbhr, $this->dbhm, $lid);
-            $lat = $l->getPrivate('lat');
-            $lng = $l->getPrivate('lng');
+        # To use the spatial index we need to have a box.
+        $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
+        $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
-            # To use the spatial index we need to have a box.
-            $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
-            $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
+        $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
-            $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
+        # We return most recent first.
+        $idq = pres('id', $ctx) ? ("newsfeed.id < " . intval($ctx['id'])) : 'newsfeed.id > 0';
+        $first = $dist ? "(MBRContains($box, position) OR publicityid IS NOT NULL) AND $idq" : $idq;
+        $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
-            # We return most recent first.
-            $idq = pres('id', $ctx) ? ("newsfeed.id < " . intval($ctx['id'])) : 'newsfeed.id > 0';
-            $first = $dist ? "(MBRContains($box, position) OR publicityid IS NOT NULL) AND $idq" : $idq;
-            $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
+        $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY id DESC LIMIT 5;";
+        #error_log($sql);
+        $entries = $this->dbhr->preQuery($sql);
 
-            $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY id DESC LIMIT 5;";
-            #error_log($sql);
-            $entries = $this->dbhr->preQuery($sql);
+        foreach ($entries as &$entry) {
+            $use = $this->fillIn($entry, $users);
 
-            foreach ($entries as &$entry) {
-                $use = $this->fillIn($entry, $users);
-
-                if ($use) {
-                    $items[] = $entry;
-                }
-
-                $ctx = [
-                    'id' => $entry['id'],
-                    'distance' => $dist
-                ];
+            if ($use) {
+                $items[] = $entry;
             }
+
+            $ctx = [
+                'id' => $entry['id'],
+                'distance' => $dist
+            ];
         }
 
         return([$users, $items]);

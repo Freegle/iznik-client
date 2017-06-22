@@ -3408,4 +3408,35 @@ class User extends Entity
 
         return($ret);
     }
+
+    public function getLatLng() {
+        $s = $this->getPrivate('settings');
+        $lat = NULL;
+        $lng = NULL;
+
+        if ($s) {
+            $settings = json_decode($s, TRUE);
+
+            if (pres('mylocation', $settings)) {
+                $lat = $settings['mylocation']['lat'];
+                $lng = $settings['mylocation']['lng'];
+            }
+        }
+
+        if (!$lat) {
+            $lid = $this->getPrivate('lastlocation');
+
+            if ($lid) {
+                $l = new Location($this->dbhr, $this->dbhm, $lid);
+                $lat = $l->getPrivate('lat');
+                $lng = $l->getPrivate('lng');
+            }
+        }
+
+        # ...or failing that, a default.
+        $lat = $lat ? $lat : 53.9450;
+        $lng = $lng ? $lng : -2.5209;
+
+        return([$lat, $lng]);
+    }
 }

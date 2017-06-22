@@ -114,14 +114,14 @@ define([
                 context: self,
                 success: function(ret) {
                     if (ret.ret == 0) {
-                        $('#js-notifications .js-notifcount').html(ret.count);
+                        $('.js-notifholder .js-notifcount').html(ret.count);
 
                         if (ret.count) {
-                            $('#js-notifications .js-notifcount').show();
+                            $('.js-notifholder .js-notifcount').show();
                             self.notifications.fetch();
                         }
                         else {
-                            $('#js-notifications .js-notifcount').hide();
+                            $('.js-notifholder .js-notifcount').hide();
                         }
                     }
                 }, complete: function() {
@@ -277,29 +277,37 @@ define([
                             }
                         }
 
-                        if ($('#js-notiflist').length) {
+                        if ($('.js-notiflist').length) {
                             // Notifications count and dropdown.
                             self.notificationCheck();
                             self.notifications = new Iznik.Collections.Notification();
 
-                            self.notificationsCV = new Backbone.CollectionView({
-                                el: $('#js-notiflist'),
+                            self.notificationsCV1 = new Backbone.CollectionView({
+                                el: $('.js-notiflist1'),
                                 modelView: Iznik.Views.Notification,
                                 collection: self.notifications,
                                 processKeyEvents: false
                             });
 
-                            self.notificationsCV.render();
+                            self.notificationsCV2 = new Backbone.CollectionView({
+                                el: $('.js-notiflist2'),
+                                modelView: Iznik.Views.Notification,
+                                collection: self.notifications,
+                                processKeyEvents: false
+                            });
+
+                            self.notificationsCV1.render();
+                            self.notificationsCV2.render();
                             self.notifications.fetch();
 
-                            $("#js-notifications").click(function (e) {
+                            $(".js-notifcount").click(function (e) {
                                 // Fetch the notifications, which the CV will then render.
                                 self.notifications.fetch().then(function() {
                                     console.log("Notifications", self.notifications);
                                 });
                             });
 
-                            $("#js-markallnotifread").click(function (e) {
+                            $(".js-markallnotifread").click(function (e) {
                                 e.preventDefault();
                                 e.stopPropagation();
 
@@ -309,7 +317,7 @@ define([
                                     }
                                 });
 
-                                $('#js-notifications .js-notifcount').hide();
+                                $('.js-notifholder .js-notifcount').hide();
                             });
                         }
 
