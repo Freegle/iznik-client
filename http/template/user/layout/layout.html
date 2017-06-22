@@ -5,11 +5,31 @@
             <ul class="list-inline nomargin pull-right visible-xs">
                 <li>
                     <div class="clickme ">
-                        <a href="/chats" class="visible-xs visible-sm js-loggedinonly">
-                            <span class="white fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left padbot" type="button">
-                                <span class="js-chattotalcount badge badge-unread notifchat" />
-                            </span>
-                        </a>
+                        <ul class="list-unstyled list-inline">
+                            <li>
+                                <a href="/chats" class="visible-xs visible-sm js-loggedinonly">
+                                    <span class="white fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left padbot" type="button">
+                                        <span class="js-chattotalcount badge badge-unread notifchat" />
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="visible-xs visible-sm js-loggedinonly dropdown-toggle js-notifholder" data-toggle="dropdown" title="Notifications">
+                                    <span class="white fullholder glyphicons glyphicon-larger glyphicons-globe vcenter-left padbot" type="button">
+                                        <span class="js-notifcount badge badge-unread" style="display: none;" />
+                                    </span>
+                                </a>
+                                <div class="dropdown-container">
+                                    <div class="dropdown-toolbar">
+                                        <div class="dropdown-toolbar-actions">
+                                            <a href="#" class="js-markallnotifread">Mark all as read</a>
+                                        </div>
+                                        <h3 class="dropdown-toolbar-title">&nbsp;</h3>
+                                    </div>
+                                    <ul class="dropdown-menu js-notiflist js-notiflist1"></ul>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
                 </li>
                 <li>
@@ -73,8 +93,8 @@
                     </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly">
-                    <li>
-                        <a href="#" id="js-notifications" class="margleft nopad text-center dropdown-toggle" data-toggle="dropdown" title="Notifications">
+                    <li class="hidden-xs hidden-sm">
+                        <a href="#" class="margleft nopad text-center dropdown-toggle js-notifholder" data-toggle="dropdown" title="Notifications">
                             <div class="fullholder glyphicons glyphicon-larger glyphicons-globe vcenter-left"/>
                             <br />
                             <span>
@@ -85,11 +105,11 @@
                         <div class="dropdown-container">
                             <div class="dropdown-toolbar">
                                 <div class="dropdown-toolbar-actions">
-                                    <a href="#" id="js-markallnotifread">Mark all as read</a>
+                                    <a href="#" class="js-markallnotifread">Mark all as read</a>
                                 </div>
                                 <h3 class="dropdown-toolbar-title">&nbsp;</h3>
                             </div>
-                            <ul class="dropdown-menu" id="js-notiflist"></ul>
+                            <ul class="dropdown-menu js-notiflist js-notiflist2"></ul>
                         </div>
                     </li>
                     <li>
