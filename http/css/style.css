@@ -245,6 +245,10 @@ body {
     float: left !important;
 }
 
+.vtop {
+    vertical-align: top !important;
+}
+
 .dd {
     min-width: 250px !important;
 }
