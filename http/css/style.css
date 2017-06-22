@@ -1022,6 +1022,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     background-color: #fbeed5;
 }
 
+.backinfo {
+    background-color: rgba(143, 183, 112, 0.19);
+}
+
 /* Chat */
 .chat-list-holder {
     height: calc(100vh - 60px);

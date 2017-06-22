@@ -277,39 +277,41 @@ define([
                             }
                         }
 
-                        // Notifications count and dropdown.
-                        self.notificationCheck();
-                        self.notifications = new Iznik.Collections.Notification();
+                        if ($('#js-notiflist').length) {
+                            // Notifications count and dropdown.
+                            self.notificationCheck();
+                            self.notifications = new Iznik.Collections.Notification();
 
-                        self.notificationsCV = new Backbone.CollectionView({
-                            el: $('#js-notiflist'),
-                            modelView: Iznik.Views.Notification,
-                            collection: self.notifications,
-                            processKeyEvents: false
-                        });
-
-                        self.notificationsCV.render();
-                        self.notifications.fetch();
-
-                        $("#js-notifications").click(function (e) {
-                            // Fetch the notifications, which the CV will then render.
-                            self.notifications.fetch().then(function() {
-                                console.log("Notifications", self.notifications);
-                            });
-                        });
-
-                        $("#js-markallnotifread").click(function (e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            self.notifications.each(function(notif) {
-                                if (!notif.get('seen')) {
-                                    notif.seen();
-                                }
+                            self.notificationsCV = new Backbone.CollectionView({
+                                el: $('#js-notiflist'),
+                                modelView: Iznik.Views.Notification,
+                                collection: self.notifications,
+                                processKeyEvents: false
                             });
 
-                            $('#js-notifications .js-notifcount').hide();
-                        });
+                            self.notificationsCV.render();
+                            self.notifications.fetch();
+
+                            $("#js-notifications").click(function (e) {
+                                // Fetch the notifications, which the CV will then render.
+                                self.notifications.fetch().then(function() {
+                                    console.log("Notifications", self.notifications);
+                                });
+                            });
+
+                            $("#js-markallnotifread").click(function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                self.notifications.each(function(notif) {
+                                    if (!notif.get('seen')) {
+                                        notif.seen();
+                                    }
+                                });
+
+                                $('#js-notifications .js-notifcount').hide();
+                            });
+                        }
 
                         templateFetch(self.template).then(function(tpl) {
                             if (self.model) {
@@ -610,6 +612,21 @@ define([
 
         className: 'notification',
 
-        template: 'user_newsfeed_notification'
+        template: 'user_newsfeed_notification',
+
+        events: {
+            'click': 'markSeen',
+            'mouseover': 'markSeen'
+        },
+
+        markSeen: function() {
+            var self = this;
+
+            if (!self.model.get('seen')) {
+                self.model.seen().then(function() {
+                    self.render();
+                });
+            }
+        }
     })
 });
