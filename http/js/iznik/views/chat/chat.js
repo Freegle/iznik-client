@@ -675,12 +675,14 @@ define([
         info: function () {
             var self = this;
 
-            var v = new Iznik.Views.Chat.UserInfo({
-                model: new Iznik.Model(self.model.get('user1').id != Iznik.Session.get('me').id ?
+            require([ 'iznik/views/user/user' ], function() {
+                var v = new Iznik.Views.UserInfo({
+                    model: new Iznik.Model(self.model.get('user1').id != Iznik.Session.get('me').id ?
                         self.model.get('user1') : self.model.get('user2'))
-            });
+                });
 
-            v.render();
+                v.render();
+            });
         },
 
         messageFocus: function () {
@@ -1223,7 +1225,20 @@ define([
         events: {
             'click .js-viewchat': 'viewChat',
             'click .chat-when': 'msgZoom',
-            'click .js-imgzoom': 'imageZoom'
+            'click .js-imgzoom': 'imageZoom',
+            'click .js-profile': 'showProfile'
+        },
+
+        showProfile: function() {
+            var self = this;
+
+            require([ 'iznik/views/user/user' ], function() {
+                var v = new Iznik.Views.UserInfo({
+                    model: new Iznik.Model(self.model.get('user'))
+                });
+
+                v.render();
+            });
         },
 
         imageZoom: function(e) {
@@ -1320,7 +1335,7 @@ define([
 
                 switch (this.model.get('type')) {
                     case 'ModMail':
-                        tpl = this.model.get('refmsg') ? 'chat_modmail' : 'chat_message';
+                        tpl = this.model.get('refmsg') ? 'chat_modmail' : 'chat_modnote';
                         break;
                     case 'Interested':
                         tpl = this.model.get('refmsg') ? 'chat_interested' : 'chat_message';
@@ -1532,34 +1547,6 @@ define([
                 self.collectionView.render();
                 self.messages.fetch({
                     remove: true
-                });
-            });
-
-            return (p);
-        }
-    });
-
-    Iznik.Views.Chat.UserInfo = Iznik.Views.Modal.extend({
-        template: 'chat_userinfo',
-
-        render: function () {
-            var self = this;
-            var userid = self.model.get('id');
-
-            self.model = new Iznik.Models.ModTools.User({
-                id: userid
-            });
-
-            var p = self.model.fetch({
-                data: {
-                    info: true
-                }
-            });
-
-            p.then(function() {
-                Iznik.Views.Modal.prototype.render.call(self).then(function () {
-                    var mom = new moment(self.model.get('added'));
-                    self.$('.js-since').html(mom.format('DD-MMM-YY'));
                 });
             });
 

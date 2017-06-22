@@ -24,6 +24,9 @@
             <% } %>
             <div class="msgsubj panel-title">
                   <span class="js-subject">
+                      <% if (obj.fromuser) { %>
+                      <img src="{{fromuser.profile.url}}" class="img-circle img-smallerthumbnail clickme hidden-xs js-profile"/>
+                      <% } %>
                       <% if (obj.item && obj.keyword && obj.postcode && obj.area) { %>
                         <span class="keyword">{{obj.keyword}}</span>: <span class="js-item">{{obj.item.name}}</span> (<span class="area">{{obj.area.name}}</span> <span class="postcode">{{obj.postcode.name}}</span>)
                       <% } else { %>
@@ -78,6 +81,7 @@
                     <div class="lead prewrap forcebreak js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
                     <% if (obj.fromuser) { %>
                     <span class="text-muted">
+                        <img src="{{fromuser.profile.url}}" class="img-circle img-smallerthumbnail clickme visible-xs js-profile" />
                         <% if (obj.mine) { %>
                         You posted this.
                         <% } else { %>
@@ -91,18 +95,9 @@
                     </span>
                     <% } %>
                     <% if (FOP) { %>
-                    <div class="btn btn-warning js-fop">
+                    <div class="btn btn-warning btn-xs js-fop">
                         <span class="glyphicon glyphicon-info-sign" />&nbsp;Fair Offer Policy
                     </div>
-                    <% } %>
-                    <% if (obj.replycount) { %>
-                        <div class="topspace text-muted">
-                            <br /><span class="glyphicon glyphicon-user" />&nbsp;{{replycount}} freegler<% if (replycount != 1) { %>s<% } %> replied
-                        </div>
-                    <% } else { %>
-                        <div class="topspace text-muted">
-                            <br /><span class="glyphicon glyphicon-user" />&nbsp;No replies yet
-                        </div>
                     <% } %>
                 </div>
                 <div class="hidden-xs col-sm-2 js-mapzoom" style="display:none">
@@ -113,6 +108,28 @@
                     <% } else if (obj.area) { %>
                     <div class="mapimage margleft topspace pull-right area">
                         <img alt="Thumbnail map" class="img-thumbnail js-map" />
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-10">
+                    <div class="btn btn-success topspace fbshare js-sharefb" style="display: none">
+                        <div class="glyphicons glyphicons-share-alt vcenter" />&nbsp;<span class="hidden-xs">Share on Facebook</span>
+                    </div>
+                    <div class="btn btn-white topspace" id="js-clip-{{id}}">
+                        <div class="glyphicons glyphicons-copy vcenter" />&nbsp;<span class="hidden-xs">Copy to Clipboard</span>
+                    </div>
+                    <div class="js-laughsandlikes inline" />
+                </div>
+                <div class="col-md-2">
+                    <% if (obj.replycount) { %>
+                    <div class="text-muted">
+                        <br /><span class="glyphicon glyphicon-user" />&nbsp;{{replycount}} freegler<% if (replycount != 1) { %>s<% } %> replied
+                    </div>
+                    <% } else { %>
+                    <div class="text-muted">
+                        <br /><span class="glyphicon glyphicon-user" />&nbsp;No replies yet
                     </div>
                     <% } %>
                 </div>

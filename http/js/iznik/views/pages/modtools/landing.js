@@ -176,6 +176,8 @@ define([
                 var p = Iznik.Views.Page.prototype.render.call(this);
                 p.then(function (self) {
                     console.log("landing.render");
+
+                    // Get Yahoo login info
                     new majax({
                         type: "GET",
                         url: "https://groups.yahoo.com/neo",
@@ -263,5 +265,22 @@ define([
 
         Iznik.Views.ModTools.Pages.Landing.ModInfo = Iznik.View.Timeago.extend({
             template: 'modtools_landing_modinfo'
+        });
+
+        Iznik.Views.ModTools.Pages.Landing.FreeStock = Iznik.Views.Help.Box.extend({
+            template: 'modtools_landing_freestock',
+
+            events: {
+                'click .js-info': 'info'
+            },
+
+            info: function() {
+                var v = new Iznik.Views.ModTools.Pages.Landing.FreeStock.Info();
+                v.render();
+            }
+        });
+
+        Iznik.Views.ModTools.Pages.Landing.FreeStock.Info = Iznik.Views.Modal.extend({
+            template: 'modtools_landing_freestockinfo'
         });
 });

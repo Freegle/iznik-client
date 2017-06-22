@@ -86,7 +86,14 @@ define([
         events: {
             'click .js-approve': 'approve',
             'click .js-delete': 'deleteMe',
+            'click .js-modnote': 'modnote',
             'click .js-view': 'view'
+        },
+
+        modnote: function() {
+            (new Iznik.Views.ModTools.ChatReview.ModNote({
+                model: this.model
+            })).render();
         },
 
         approve: function() {
@@ -137,4 +144,25 @@ define([
             });
         }
     });
+
+    Iznik.Views.ModTools.ChatReview.ModNote = Iznik.Views.Modal.extend({
+        template: 'modtools_chatreview_modnote',
+
+        events: {
+            'click .js-add': 'add'
+        },
+
+        add: function() {
+            var self = this;
+            var msg = self.$('.js-note').val();
+
+            var chat = new Iznik.Models.Chat.Room({
+                id: self.model.get('chatid')
+            });
+
+            chat.fetch().then(function() {
+                chat.modnote(msg).then(self.close());
+            });
+        }
+    })
 });

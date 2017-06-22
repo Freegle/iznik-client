@@ -301,6 +301,7 @@ define([
 
         maxAdjustDelay: 300,
         currentAdjustDelay: 10,
+        shownAddress: false,
 
         events: {
             'click .js-report, touchstart .js-report': 'report',
@@ -406,6 +407,24 @@ define([
                         self.send();
                     }
                 }
+            }
+        },
+
+        checkAddress: function() {
+            var self = this;
+
+            if (!self.shownAddress && self.inDOM()) {
+                var msg = self.$('.js-message').val();
+
+                if (msg.indexOf('address') !== -1) {
+                    self.$('.js-address').tooltip('show');
+                    self.shownAddress = true;
+                    _.delay(_.bind(function() {
+                        this.$('.js-address').tooltip('hide');
+                    }, self), 10000);
+                }
+
+                _.delay(_.bind(self.checkAddress, self), 1000);
             }
         },
 
@@ -541,8 +560,8 @@ define([
                     });
 
                     self.listenToOnce(v, 'promised', function () {
-                        msg.fetch();
                         self.model.trigger('promised');
+                        self.messages.fetch();
                     });
 
                     v.render();
@@ -573,12 +592,14 @@ define([
         info: function () {
             var self = this;
 
-            var v = new Iznik.Views.Chat.UserInfo({
-                model: new Iznik.Model(self.model.get('user1').id != Iznik.Session.get('me').id ?
-                    self.model.get('user1') : self.model.get('user2'))
-            });
+            require([ 'iznik/views/user/user' ], function() {
+                var v = new Iznik.Views.UserInfo({
+                    model: new Iznik.Model(self.model.get('user1').id != Iznik.Session.get('me').id ?
+                        self.model.get('user1') : self.model.get('user2'))
+                });
 
-            v.render();
+                v.render();
+            });
         },
 
         messageFocused: function () {
@@ -717,7 +738,7 @@ define([
                 }
             });
 
-            self.$('.js-photopicker').on('fileimagesresized', function (event) {    // CC
+            self.$('.js-photopicker').on('fileimagesresized', function (event) {
                 // Upload as soon as we have it.  Add an entry for the progress bar.
                 console.log("fileimagesresized ======================");
                 $('.file-preview, .kv-upload-progress').hide();
@@ -803,6 +824,8 @@ define([
                     self.$('.js-promise').hide();
                 }
 
+                self.$('.js-tooltip').tooltip();
+
                 self.messages = new Iznik.Collections.Chat.Messages({
                     roomid: self.model.get('id')
                 });
@@ -825,7 +848,7 @@ define([
                 self.$('.js-chatwarning').show();
                 window.setTimeout(_.bind(function () {
                     self.$('.js-chatwarning').slideUp('slow');
-                }, self), 3000);
+                }, self), 30000);
 
                 // Set any roster status.
                 try {
@@ -876,6 +899,8 @@ define([
                 self.messageViews.render();
 
                 self.photoUpload();
+
+                _.delay(_.bind(self.checkAddress, self), 1000);
             });
 
             return (p);

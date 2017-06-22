@@ -94,7 +94,6 @@ class ChatMessage extends Entity
         $ret = FALSE;
 
         $parsed = parse_url( $url );
-        error_log("Spamhaus check $url");
 
         if (isset($parsed['host'])) {
             // Remove www. from domain (but not from www.com)
@@ -106,12 +105,12 @@ class ChatMessage extends Entity
 
             foreach ($blacklists as $blacklist) {
                 $domain = $parsed['host'] . '.' . $blacklist . '.';
-                $record = dns_get_record($domain);
+                $record = @dns_get_record($domain, DNS_A);
 
                 if ($record != NULL && count($record) > 0) {
                     foreach ($record as $entry) {
                         if (array_key_exists('ip', $entry) && strpos($entry['ip'], '127.0.1') === 0) {
-                            error_log("Spamhaus blocked $url");
+                            #error_log("Spamhaus blocked $url");
                             $ret = TRUE;
                         }
                     }
@@ -204,11 +203,13 @@ class ChatMessage extends Entity
         # Check keywords which are known as spam.
         $this->getSpamWords();
         foreach ($this->spamwords as $word) {
-            $exp = '/\b' . preg_quote($word['word']) . '\b/';
-            if ($word['action'] == 'Spam' &&
-                preg_match($exp, $message) &&
-                (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
-                $spam = TRUE;
+            if (strlen(trim($word['word'])) > 0) {
+                $exp = '/\b' . preg_quote($word['word']) . '\b/';
+                if ($word['action'] == 'Spam' &&
+                    preg_match($exp, $message) &&
+                    (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
+                    $spam = TRUE;
+                }
             }
         }
 
@@ -248,8 +249,13 @@ class ChatMessage extends Entity
             if (!$u->isModerator()) {
                 $review = $this->checkReview($message);
                 $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
+
+                # If we decided it was spam then it doesn't need reviewing.
+                $review = $spam ? 0 : $review;
             }
 
+            # Even if it's spam, we still create the message, so that if we later decide that it wasn't spam after all
+            # it's still around to unblock.
             $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [
                 $chatid,
                 $userid,

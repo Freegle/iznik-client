@@ -90,7 +90,7 @@ function status()
          <h2>Overall Status</h2>";
 
     if ($overallerror) {
-        $html .= "<div class=\"alert alert-danger\">There is a serious problem.  Please make sure the Geeks are investigating.</div>";
+        $html .= "<div class=\"alert alert-danger\">There is a serious problem.  Please make sure the Geeks are investigating if this persists for more than a few minutes.</div>";
     } else if ($overallwarning) {
         $html .= "<div class=\"alert alert-warning\">There is a problem.  Please alert the Geeks if this persists for more than an hour.</div>";
     } else {

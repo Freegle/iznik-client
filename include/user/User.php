@@ -19,6 +19,8 @@ require_once(IZNIK_BASE . '/mailtemplates/donations/thank.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
+use Jenssegers\ImageHash\ImageHash;
+
 class User extends Entity
 {
     # We have a cache of users, because we create users a _lot_, and this can speed things up significantly by avoiding
@@ -440,6 +442,20 @@ class User extends Entity
             [
                 User::canonMail($email),
                 User::canonMail($email, TRUE)
+            ]);
+
+        foreach ($users as $user) {
+            return($user['userid']);
+        }
+
+        return(NULL);
+    }
+
+    public function findByEmailHash($hash) {
+        # Take care not to pick up empty or null else that will cause is to overmerge.
+        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE md5hash LIKE ? AND md5hash IS NOT NULL AND LENGTH(md5hash) > 0;",
+            [
+                User::canonMail($hash),
             ]);
 
         foreach ($users as $user) {
@@ -1293,6 +1309,57 @@ class User extends Entity
         ]);
 
         $ret['wanteds'] = $replies[0]['count'];
+
+        # Distance away.
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        if ($me) {
+            $mylid = $me->getPrivate('lastlocation');
+            $ulid = $this->getPrivate('lastlocation');
+
+            if ($mylid && $ulid) {
+                $myl = new Location($this->dbhr, $this->dbhm, $mylid);
+                $ul = new Location($this->dbhr, $this->dbhm, $ulid);
+                $p1 = new POI($myl->getPrivate('lat'), $myl->getPrivate('lng'));
+                $p2 = new POI($ul->getPrivate('lat'), $ul->getPrivate('lng'));
+                $metres = $p1->getDistanceInMetersTo($p2);
+                $miles = $metres / 1609.344;
+                $miles = $miles > 10 ? round($miles) : round($miles, 1);
+                $ret['milesaway'] = $miles;
+
+                $al = new Location($this->dbhr, $this->dbhm, $ul->getPrivate('areaid'));
+                $ret['area'] = $al->getPublic();
+            }
+        }
+
+        return($ret);
+    }
+
+    private function gravatar( $email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array() ) {
+        $url = 'https://www.gravatar.com/avatar/';
+        $url .= md5( strtolower( trim( $email ) ) );
+        $url .= "?s=$s&d=$d&r=$r";
+        if ( $img ) {
+            $url = '<img src="' . $url . '"';
+            foreach ( $atts as $key => $val )
+                $url .= ' ' . $key . '="' . $val . '"';
+            $url .= ' />';
+        }
+        return $url;
+    }
+
+    public function getPublicLocation() {
+        $ret = NULL;
+
+        # Get the name of the last area we used.
+        $areas = $this->dbhr->preQuery("SELECT name FROM locations WHERE id IN (SELECT areaid FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE users.id = ?);", [
+            $this->id
+        ]);
+
+        foreach ($areas as $area) {
+            $ret = $area['name'];
+        }
+
         return($ret);
     }
 
@@ -1312,9 +1379,128 @@ class User extends Entity
             $atts[$att] = strpos($atts[$att], '@') !== FALSE ? substr($atts[$att], 0, strpos($atts[$att], '@')) : $atts[$att];
         }
 
+        $atts['profile'] = [
+            'url' => 'https://' . USER_SITE . '/images/defaultprofile.png',
+            'default' => TRUE
+        ];
+
+        $emails = NULL;
+
+        if (gettype($atts['settings']) == 'array' && (!array_key_exists('useprofile', $atts['settings']) || $atts['settings']['useprofile'])) {
+            # Find the most recent image.
+            $profiles = $this->dbhr->preQuery("SELECT id, url, `default` FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
+                $this->id
+            ]);
+
+            if (count($profiles) > 0) {
+                # Anything we have wins
+                foreach ($profiles as $profile) {
+                    if (!$profile['default']) {
+                        $atts['profile'] = [
+                            'url' => pres('url', $profile) ? $profile['url'] : "/uimg_{$profile['id']}.jpg",
+                            'default' => FALSE
+                        ];
+                    }
+                }
+            } else {
+                $emails = $this->getEmails();
+
+                foreach ($emails as $email) {
+                    if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
+                        # We can try to find profiles for gmail users.
+                        $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
+                        $j = json_decode($json, TRUE);
+
+                        if ($j && pres('entry', $j) && pres('gphoto$thumbnail', $j['entry']) && pres('$t', $j['entry']['gphoto$thumbnail'])) {
+                            $atts['profile'] = [
+                                'url' => $j['entry']['gphoto$thumbnail']['$t'],
+                                'default' => FALSE,
+                                'google' => TRUE
+                            ];
+
+                            break;
+                        }
+                    } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
+                        # TrashNothing has an API we can use.
+                        $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . USER_SITE . '/images/defaultprofile.png');
+                        $atts['profile'] = [
+                            'url' => $url,
+                            'default' => FALSE,
+                            'TN' => TRUE
+                        ];
+                    } else if (!ourDomain($email['email'])){
+                        # Try for gravatar
+                        $gurl = $this->gravatar($email['email'], 200, 404);
+                        $g = @file_get_contents($gurl);
+
+                        if ($g) {
+                            $atts['profile'] = [
+                                'url' => $gurl,
+                                'default' => FALSE,
+                                'gravatar' => TRUE
+                            ];
+
+                            break;
+                        }
+                    }
+                }
+
+                if ($atts['profile']['default']) {
+                    # Try for Facebook.
+                    $logins = $this->getLogins(TRUE);
+                    foreach ($logins as $login) {
+                        if ($login['type'] == User::LOGIN_FACEBOOK) {
+                            if (presdef('useprofile', $atts['settings'], TRUE)) {
+                                $atts['profile'] = [
+                                    'url' => "https://graph.facebook.com/{$login['uid']}/picture",
+                                    'default' => FALSE,
+                                    'facebook' => TRUE
+                                ];
+                            }
+                        }
+                    }
+                }
+
+                $hash = NULL;
+
+                if (!$atts['profile']['default']) {
+                    # We think we have a profile.  Make sure we can fetch it and filter out other people's
+                    # default images.
+                    $atts['profile']['default'] = TRUE;
+                    $hasher = new ImageHash;
+                    $data = @file_get_contents($atts['profile']['url']);
+
+                    if ($data) {
+                        $img = @imagecreatefromstring($data);
+
+                        if ($img) {
+                            $hash = $hasher->hash($img);
+                            $atts['profile']['default'] = FALSE;
+                        }
+                    }
+
+                    if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash = 'c0c0e070e0603100') {
+                        # This is a default profile - replace it with ours.
+                        $atts['profile']['url'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+                        $atts['profile']['default'] = TRUE;
+                        $hash = NULL;
+                    }
+                }
+
+                # Save for next time.
+                $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`, hash) VALUES (?, ?, ?, ?);", [
+                    $this->id,
+                    $atts['profile']['default'] ? NULL : $atts['profile']['url'],
+                    $atts['profile']['default'],
+                    $hash
+                ]);
+            }
+        }
+
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
-            $atts['emails'] = $me->getEmails();
+            $emails = $emails ? $emails : $me->getEmails();
+            $atts['emails'] = $emails;
             $atts['email'] = $me->getEmailPreferred();
             $atts['relevantallowed'] = $me->getPrivate('relevantallowed');
             $atts['permissions'] = $me->getPrivate('permissions');

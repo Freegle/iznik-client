@@ -57,7 +57,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
     protected function tearDown()
     {
-        parent::tearDown();
+//        parent::tearDown();
     }
 
     public function __construct()
@@ -75,6 +75,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);;
         $mid = $m->create($this->cid, $this->uid, 'Test');
+        error_log("Created chat message $mid");
 
         # Just because it exists, doesn't mean we should be able to see it.
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
@@ -92,6 +93,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         # Now we're talking.
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
+        error_log("Now we're talking " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatmessages']));
         assertEquals($mid, $ret['chatmessages'][0]['id']);

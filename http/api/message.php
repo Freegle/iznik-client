@@ -279,6 +279,18 @@ function message() {
                         $r = new MailRouter($dbhr, $dbhm);
                         $r->route($m, TRUE);
                         break;
+                    case 'Love':
+                        $m->like(Message::LIKE_LOVE);
+                        break;
+                    case 'Unlove':
+                        $m->unlike(Message::LIKE_LOVE);
+                        break;
+                    case 'Laugh':
+                        $m->like(Message::LIKE_LAUGH);
+                        break;
+                    case 'Unlaugh':
+                        $m->unlike(Message::LIKE_LAUGH);
+                        break;
                     case 'Spam':
                         # Don't trust normal mods to categorise this correctly.  Often they will mark a message from
                         # a scammer trying to extort as spam, though the message itself is ok.  This tends to poison

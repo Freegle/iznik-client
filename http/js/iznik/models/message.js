@@ -40,6 +40,43 @@ define([
             })
         },
 
+        like: function(type) {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    type: 'POST',
+                    url: API + 'message',
+                    data: {
+                        id: self.get('id'),
+                        action: type
+                    }, success: function(ret) {
+                        self.fetch().then(function() {
+                            resolve();
+                        })
+                    }
+                })
+            });
+
+            return p;
+        },
+
+        love: function() {
+            return(this.like('Love'));
+        },
+
+        unlove: function() {
+            return(this.like('Unlove'));
+        },
+
+        laugh: function() {
+            return(this.like('Laugh'));
+        },
+
+        unlaugh: function() {
+            return(this.like('Unlaugh'));
+        },
+
         approve: function(subject, body, stdmsgid) {
             var self = this;
             // We approve the message on all groups.  Future enhancement?

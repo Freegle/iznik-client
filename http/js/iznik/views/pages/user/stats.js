@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'gmaps',
     'iznik/views/pages/pages',
     'iznik/views/dashboard',
     'iznik/models/group'
@@ -253,6 +254,130 @@ define([
                             }
                         }
                     });
+                });
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.User.Pages.Heatmap = Iznik.Views.Page.extend({
+        template: 'user_stats_heatmap',
+
+        events: {
+        },
+
+        filterData: function() {
+            var self = this;
+            var bounds = self.map.getBounds();
+
+            var data = [];
+            _.each(self.data, function(d) {
+                if (bounds.contains(d.location)) {
+                    data.push(d);
+                }
+            });
+
+            self.heatmap.setMap(null);
+            self.heatmap = new google.maps.visualization.HeatmapLayer({
+                data: data
+            });
+
+            var zoom = self.map.getZoom();
+            console.log("Zoom is ", zoom);
+            if (zoom > 10) {
+                self.heatmap.setOptions({radius:zoom * 2});
+            }
+
+            self.heatmap.setMap(self.map);
+        },
+
+        render: function () {
+            var self = this;
+
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function() {
+                var mapWidth = self.$('.js-usermap').outerWidth();
+                $(self.$('.js-usermap')).css('height', mapWidth + 'px');
+
+                var mapOptions = {
+                    mapTypeControl      : false,
+                    streetViewControl   : false,
+                    center              : new google.maps.LatLng(53.9450, -2.5209),
+                    panControl          : mapWidth > 400,
+                    zoomControl         : mapWidth > 400,
+                    zoom                : 6,
+                    maxZoom             : 13
+                };
+
+                self.map = new google.maps.Map(self.$('.js-usermap').get()[0], mapOptions);
+
+
+                // Searchbox
+                var input = document.getElementById('pac-input');
+                self.searchBox = new google.maps.places.SearchBox(input);
+                self.map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+
+                self.map.addListener('bounds_changed', function() {
+                    self.searchBox.setBounds(self.map.getBounds());
+                });
+
+                self.searchBox.addListener('places_changed', function() {
+                    // Put the map here.
+                    var places = self.searchBox.getPlaces();
+
+                    if (places.length == 0) {
+                        return;
+                    }
+
+                    var bounds = new google.maps.LatLngBounds();
+                    places.forEach(function(place) {
+                        if (place.geometry.viewport) {
+                            // Only geocodes have viewport.
+                            bounds.union(place.geometry.viewport);
+                        } else {
+                            bounds.extend(place.geometry.location);
+                        }
+                    });
+
+                    self.map.fitBounds(bounds);
+                });
+
+                var v = new Iznik.Views.PleaseWait({
+                    timeout: 1
+                });
+                v.render();
+
+                $.ajax({
+                    url: API + 'dashboard',
+                    data: {
+                        heatmap: true
+                    },
+                    success: function (ret) {
+                        v.close();
+
+                        self.data = [];
+
+                        if (ret.heatmap) {
+                            _.each(ret.heatmap, function(loc) {
+                                var ent = {
+                                    location: new google.maps.LatLng(loc.lat, loc.lng),
+                                    weight: loc.count
+                                };
+
+                                self.data.push(ent);
+                            })
+                        }
+
+                        self.heatmap = new google.maps.visualization.HeatmapLayer({
+                            data: self.data
+                        });
+                        self.heatmap.setMap(self.map);
+
+                        google.maps.event.addListener(self.map, 'idle', function () {
+                            self.filterData();
+                        });
+                    }
                 });
             });
 

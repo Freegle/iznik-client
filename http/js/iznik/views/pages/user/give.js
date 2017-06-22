@@ -76,7 +76,7 @@ define([
                 } catch (e) {
                 }
 
-                /* // CCtry {
+                try {
                     var v = new Iznik.Views.User.Pages.Give.Share({
                         model: new Iznik.Models.Message({
                             id: Storage.get('lastpost')
@@ -88,7 +88,7 @@ define([
                     });
 
                 } catch (e) {
-                }*/
+                }
             });
 
             return (p);

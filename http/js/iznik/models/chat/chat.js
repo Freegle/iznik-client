@@ -49,6 +49,29 @@ define([
             self.sendQueue();
         },
 
+        modnote: function(message) {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: API + 'chatmessages',
+                    type: 'POST',
+                    data: {
+                        roomid: self.get('id'),
+                        message: message,
+                        modnote: true
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            resolve();
+                        }
+                    }
+                });
+
+            });
+
+            return(p);
+        },
+
         sendQueue: function() {
             var self = this;
 
@@ -267,7 +290,7 @@ define([
                 self.waiting = true;
 
                 $.ajax({
-                    url: window.location.protocol + '//' + self.chathost + '/subscribe/' + myid,
+                    url: 'https://' + self.chathost + '/subscribe/' + myid, // CC
                     global: false, // don't trigger ajaxStart to avoid showing a busy icon all the time
                     success: function (ret) {
                         self.waiting = false;

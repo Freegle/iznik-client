@@ -915,6 +915,31 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testProfile() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail('norfolkmod@gmail.com');
+        $this->dbhm->preExec("DELETE FROM users_images WHERE userid = ?;", [ $uid ]);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $atts = $u->getPublic();
+        error_log("Profile " . var_export($atts['profile'], TRUE));
+        assertTrue($atts['profile']['google']);
+        error_log("URL {$atts['profile']['url']}");
+
+        $uid = $u->create("Test", "User", "Test User");
+        $u->addEmail('gravatar@ehibbert.org.uk');
+        $atts = $u->getPublic();
+        assertTrue($atts['profile']['gravatar']);
+
+        $uid = $u->create("Test", "User", "Test User");
+        $u->addEmail('atrusty-gxxxx@user.trashnothing.com');
+        $atts = $u->getPublic();
+        assertTrue($atts['profile']['TN']);
+
+        error_log(__METHOD__ . " end");
+    }
 //
 //    public function testSpecial() {
 //        error_log(__METHOD__);

@@ -11,7 +11,8 @@ var mobilePushId = false;
 var mobilePush = false;
 var lastPushMsgid = false;
 var badgeconsole = '';
-var showDebugConsole = true;
+var divertConsole = false;
+var showDebugConsole = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -138,6 +139,8 @@ if (!initialURL) {
     initialURL = window.location.href;
 }
 
+console.log(device);
+
 if (!isiOS) {   // vertical swipe on iOS stops scrolling
     var androidVersion = parseFloat(device.version);    // Not using Crosswalk so only enable swipe refresh for Android 4.4+
     if (androidVersion >= 4.4) {
@@ -165,22 +168,24 @@ require([
     });
 
     // Template to add link to /mobiledebug is in template/user/layout/layout.html
-    var oldconsolelog = console.log; 
-    console.log = function () {
-        if (showDebugConsole) {
-            var msg = '';
-            for (var i = 0; i < arguments.length; i++) {
-                var arg = arguments[i];
-                if (typeof arg !== "string") {
-                    arg = JSON.stringify(arg);
+    if (divertConsole) {
+        var oldconsolelog = console.log;
+        console.log = function () {
+            if (showDebugConsole) {
+                var msg = '';
+                for (var i = 0; i < arguments.length; i++) {
+                    var arg = arguments[i];
+                    if (typeof arg !== "string") {
+                        arg = JSON.stringify(arg);
+                    }
+                    msg += arg + ' ';
                 }
-                msg += arg + ' ';
+                msg += "\r\n";
+                logtog = !logtog;
+                alllog = msg + alllog;
+                $('#js-mobilelog').val(alllog);
+                //oldconsolelog(msg); 
             }
-            msg += "\r\n";
-            logtog = !logtog;
-            alllog = msg + alllog;
-            $('#js-mobilelog').val(alllog);
-            //oldconsolelog(msg); 
         }
     }
 

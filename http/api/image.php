@@ -12,7 +12,10 @@ function image() {
     $newsletter = presdef('newsletter', $_REQUEST, NULL);
     $communityevent = presdef('communityevent', $_REQUEST, NULL);
     $chatmessage = presdef('chatmessage', $_REQUEST, NULL);
+    $user = presdef('user', $_REQUEST, NULL);
 
+    $sizelimit = 800;
+    
     if ($chatmessage) {
         $type = Attachment::TYPE_CHAT_MESSAGE;
         $shorttype = '_m';
@@ -25,6 +28,9 @@ function image() {
     } else if ($group) {
         $type = Attachment::TYPE_GROUP;
         $shorttype = '_g';
+    } else if ($user) {
+        $type = Attachment::TYPE_USER;
+        $shorttype = '_u';
     } else {
         $type = Attachment::TYPE_MESSAGE;
         $shorttype = '';
@@ -125,9 +131,9 @@ function image() {
                         $h = $i->height();
                         $w = $i->width();
 
-                        if ($w > 800) {
-                            $h = $h * 800 / $w;
-                            $w = 800;
+                        if ($w > $sizelimit) {
+                            $h = $h * $sizelimit / $w;
+                            $w = $sizelimit;
                             $i->scale($w, $h);
                             $data = $i->getData(100);
                             $a->setPrivate('data', $data);

@@ -4,8 +4,9 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'clipboard',
     'iznik/views/infinite'
-], function($, _, Backbone, Iznik, moment) {
+], function($, _, Backbone, Iznik, moment, Clipboard) {
     Iznik.Views.User.Message = Iznik.View.extend({
         className: "marginbotsm botspace",
 
@@ -17,15 +18,43 @@ define([
 
         sharefb: function() {
             var self = this;
-            var params = {
-                method: 'share',
-                href: window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbshare',
-                image: self.image
-            };
+            // Can get the image but sharing both image and link on FB means that only image shown and we want link - so image won't be available to other share types
+            // var image = null;
+            // var atts = self.model.get('attachments');
+            // if (atts && atts.length > 0) {
+            //     image = atts[0].path;
+            // }
+            var href = 'https://www.ilovefreegle.org/message/' + self.model.get('id') + '?src=mobileshare';
+            var subject = self.model.get('subject');
+            // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
+            var options = {
+                message: "I've posted this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
+                subject: 'Freegle post: ' + subject, // for email
+                //files: ['', ''], // an array of filenames either locally or remotely
+                url: href,
+                //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
+            }
+            // if (image) {
+            //     options.files = [image];
+            // }
 
-            FB.ui(params, function (response) {
+            var onSuccess = function (result) {
+                console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
+                console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
                 self.$('.js-fbshare').fadeOut('slow');
-            });
+                ABTestAction('messagebutton', 'Mobile Share');
+            }
+
+            var onError = function (msg) {
+                console.log("Sharing failed with message: " + msg);
+            }
+
+            window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
+            /*FB.ui(params, function (response) {
+                self.$('.js-fbshare').fadeOut('slow');
+
+                ABTestAction('messagebutton', 'Facebook Share');
+            });*/
         },
 
         expanded: false,
@@ -169,7 +198,8 @@ define([
         render: function() {
             var self = this;
 
-            // console.log("Render message", self.model.get('id'), self.rendering);
+            // console.log("Render message", self.model.get('id'), self.rendering, self.model);
+
             if (!self.rendering) {
                 var replies = self.model.get('replies');
                 self.replies = new Iznik.Collection(replies);
@@ -189,7 +219,8 @@ define([
                     Iznik.View.prototype.render.call(self).then(function() {
                         if (Iznik.Session.hasFacebook()) {
 
-                            require(['iznik/facebook'], function(FBLoad) {
+                            self.$('.js-sharefb').show();
+                            /*require(['iznik/facebook'], function(FBLoad) {
                                 self.listenToOnce(FBLoad(), 'fbloaded', function () {
                                     if (!FBLoad().isDisabled()) {
                                         self.$('.js-sharefb').show();
@@ -197,7 +228,7 @@ define([
                                 });
 
                                 FBLoad().render();
-                            });
+                            });*/
                         }
 
                         if (self.expanded) {
@@ -326,6 +357,14 @@ define([
                         // If the number of promises changes, then we want to update what we display.
                         self.listenTo(self.model, 'change:promisecount', self.render);
 
+                        self.laughsAndLikes = new Iznik.Views.User.Message.LaughsAndLikes({
+                            model: self.model
+                        });
+
+                        self.laughsAndLikes.render().then(function() {
+                            self.$('.js-laughsandlikes').html(self.laughsAndLikes.el)
+                        });
+
                         // By adding this at the end we avoid border flicker.
                         self.$el.addClass('panel panel-info');
                         
@@ -343,6 +382,59 @@ define([
             }
 
             return(self.rendering);
+        }
+    });
+
+    Iznik.Views.User.Message.LaughsAndLikes = Iznik.View.extend({
+        template: 'user_message_laughsandlikes',
+
+        className: 'inline',
+
+        events: {
+            'click .js-love': 'love',
+            'click .js-unlove': 'unlove',
+            'click .js-laugh': 'laugh',
+            'click .js-unlaugh': 'unlaugh'
+        },
+
+        love: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                self.model.love().then(_.bind(self.render, self));
+            });
+
+            Iznik.Session.forceLogin();
+        },
+
+        unlove: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                self.model.unlove().then(_.bind(self.render, self));
+            });
+
+            Iznik.Session.forceLogin();
+        },
+
+        laugh: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                self.model.laugh().then(_.bind(self.render, self));
+            });
+
+            Iznik.Session.forceLogin();
+        },
+
+        unlaugh: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                self.model.unlaugh().then(_.bind(self.render, self));
+            });
+
+            Iznik.Session.forceLogin();
         }
     });
 
@@ -700,11 +792,27 @@ define([
 
         events: {
             'click .js-send': 'send',
+            'click .js-profile': 'showProfile',
             'click .js-mapzoom': 'mapZoom'
         },
 
         initialize: function(){
             this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events);
+        },
+
+        showProfile: function(e) {
+            var self = this;
+
+            require([ 'iznik/views/user/user' ], function() {
+                var v = new Iznik.Views.UserInfo({
+                    model: new Iznik.Model(self.model.get('fromuser'))
+                });
+
+                v.render();
+            });
+
+            e.preventDefault();
+            e.stopPropagation();
         },
 
         showMap: function() {
@@ -964,6 +1072,18 @@ define([
                     // Show the map on expand.  This reduces costs
                     self.$('.panel').on('shown.bs.collapse', function() {
                         self.showMap();
+                    });
+
+                    self.clipboard = new Clipboard('#js-clip-' + self.model.id, {
+                        text: _.bind(function() {
+                            var url = this.model.get('url');
+                            return url;
+                        }, self)
+                    });
+
+                    self.clipboard.on('success', function(e) {
+                        ABTestAction('messagebutton', 'Copy Link');
+                        self.close();
                     });
                 })
             }
