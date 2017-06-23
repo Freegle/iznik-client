@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML>
 <html>
 <head>
-  <meta name="iznik_mobile_version" content="0.0.19, 22 June 2017">
+  <meta name="iznik_mobile_version" content="0.0.20, 22 June 2017">
   <!-- Hi there.  We always need geek volunteers.  Why not mail geeks@ilovefreegle.org to get in touch, -->
   <!-- or help make the code better at https://github.com/Freegle/iznik ?  -->
   <!--meta http-equiv="Content-Security-Policy" content="default-src *; media-src *"-->
@@ -58,19 +58,6 @@
 	<script src="cordova.js"></script>          <!-- CC phantom library, needed for Cordova api calls, added during build -->	
   <script src="xdk/init-dev.js"></script>     <!-- CC normalizes device and document ready events, see README for details -->
 
-  <script type="text/javascript">
-      // Start a timer to reload if we fail to get the page rendered.  Do this now as any JS errors might prevent
-      // us doing it later.  This is a last resort so the timer can be long.
-      window.setTimeout(function() {
-          var loader = document.getElementById('pageloader');
-          if (loader) {
-              // We've not managed to render and remove the page.  Probably a network issue.  Reload.
-              console.log("Loader found - force reload", loader);
-              //window.location.reload();
-          }
-      }, 120000);
-  </script>    
-
   <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/jekkhomlnoblcnangfcdohhaipmmaddc">
 
   <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -115,17 +102,6 @@
 
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta name="HandheldFriendly" content="true">
-
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script>
-        (function() {
-            var po = document.createElement('script');
-            po.type = 'text/javascript'; po.async = true;
-            po.src = 'https://plus.google.com/js/client:plusone.js';
-            var s = document.getElementsByTagName('script')[0];
-            s.parentNode.insertBefore(po, s);
-        })();
-    </script>
 </head>
 <body style="background-color: #dff2d1;">
 	<noscript>
