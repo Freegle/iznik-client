@@ -56,7 +56,7 @@ define([
                         FB.init({
                             appId: facebookAppId,
                             cookie: true,  // enable cookies to allow the server to access the session
-                            version: 'v2.2' // use version 2.2
+                            version: 'v2.5'
                         });
 
                         self.trigger('fbloaded');
