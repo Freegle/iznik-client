@@ -24,6 +24,11 @@ function newsfeed() {
                 } else {
                     $ctx = presdef('context', $_REQUEST, NULL);
                     $dist = ($ctx && intval(array_key_exists('distance', $ctx)) ? $ctx['distance'] : Newsfeed::DISTANCE);
+
+                    if ($dist == 'nearby') {
+                        $dist = $n->getNearbyDistance($me->getId());
+                    }
+
                     $types = presdef('types', $_REQUEST, NULL);
 
                     list ($users, $items) = $n->getFeed($me->getId(), $dist, $types, $ctx);

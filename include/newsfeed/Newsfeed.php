@@ -192,6 +192,32 @@ class Newsfeed extends Entity
         return($use);
     }
 
+    public function getNearbyDistance($userid) {
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+        # We want to calculate a distance which includes at least 100 other people who have posted a message.
+        # Start at fairly close and keep doubling until we reach that, or get too far away.
+        list ($lat, $lng) = $u->getLatLng();
+        $dist = 2.5;
+        $limit = 3;
+
+        do {
+            $dist *= 2;
+
+            # To use the spatial index we need to have a box.
+            $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
+            $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
+
+            $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
+
+            $sql = "SELECT DISTINCT userid FROM newsfeed WHERE MBRContains($box, position) AND replyto IS NULL AND `type` = ? LIMIT $limit;";
+            $others = $this->dbhr->preQuery($sql, [ Newsfeed::TYPE_MESSAGE ]);
+            error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid");
+        } while ($dist < 320 && count($others) < $limit);
+
+        return($dist);
+    }
+
     public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $users = [];

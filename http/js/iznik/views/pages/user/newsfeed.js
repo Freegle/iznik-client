@@ -99,7 +99,7 @@ define([
             p.then(function(self) {
                 // Sticky select.
                 var dist = Storage.get('newsfeeddist');
-                dist = dist !== null ? dist : 32186;
+                dist = dist !== null ? dist : 'nearby';
                 self.$('.js-distance').val(dist);
 
                 self.context = {
