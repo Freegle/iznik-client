@@ -632,7 +632,8 @@ define([
 
             // We want the start of the thread.
             var newsfeed = self.model.get('newsfeed');
-
+            var url = self.model.get('url');
+            console.log("URL", url);
             if (newsfeed) {
                 var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
 
@@ -643,6 +644,8 @@ define([
                 } else {
                     Router.navigate('/newsfeed/' + id, true);
                 }
+            } else if (url) {
+                Router.navigate(url, true);
             }
         },
 

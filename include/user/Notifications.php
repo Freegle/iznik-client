@@ -11,6 +11,7 @@ class Notifications
     const TYPE_COMMENT_ON_COMMENT = 'CommentOnCommented';
     const TYPE_LOVED_POST = 'LovedPost';
     const TYPE_LOVED_COMMENT = 'LovedComment';
+    const TYPE_TRY_FEED = 'TryFeed';
 
     private $dbhr, $dbhm, $log;
 
@@ -76,12 +77,12 @@ class Notifications
         return($ret);
     }
 
-    public function add($from, $to, $type, $newsfeedid) {
+    public function add($from, $to, $type, $newsfeedid, $url = NULL) {
         $id = NULL;
 
         if ($from != $to) {
-            $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, ?);";
-            $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid ]);
+            $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`, `url`) VALUES (?, ?, ?, ?, ?);";
+            $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid, $url ]);
             $id = $this->dbhm->lastInsertId();
         }
         return($id);
