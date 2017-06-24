@@ -1155,7 +1155,7 @@ class ChatRoom extends Entity
                                 }
 
                                 case ChatMessage::TYPE_MODMAIL: {
-                                    $thisone = "Message from Volunteers:\r\n\r\n";
+                                    $thisone = "Message from Volunteers:\r\n\r\n{$unmailedmsg['message']}";
                                     break;
                                 }
 
