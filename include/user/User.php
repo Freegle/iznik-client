@@ -1397,7 +1397,7 @@ class User extends Entity
                 foreach ($profiles as $profile) {
                     if (!$profile['default']) {
                         $atts['profile'] = [
-                            'url' => pres('url', $profile) ? $profile['url'] : "/uimg_{$profile['id']}.jpg",
+                            'url' => pres('url', $profile) ? $profile['url'] : ('https://' . USER_SITE . "/uimg_{$profile['id']}.jpg"),
                             'default' => FALSE
                         ];
                     }
