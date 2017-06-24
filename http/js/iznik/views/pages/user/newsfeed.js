@@ -173,7 +173,33 @@ define([
     Iznik.Views.User.Feed.Base = Iznik.View.Timeago.extend({
         events: {
             'click .js-profile': 'showProfile',
+            'click .js-delete': 'deleteMe',
+            'click .js-report': 'report',
             'click .js-reply': 'reply'
+        },
+
+        report: function(e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            var v = new Iznik.Views.User.Feed.Report({
+                model: self.model
+            });
+
+            self.listenToOnce(v, 'reported', function() {
+                self.$el.fadeOut('slow');
+            });
+
+            v.render();
+        },
+
+        deleteMe: function() {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            self.model.destroy();
         },
 
         reply: function() {
@@ -205,6 +231,10 @@ define([
                     Iznik.View.Timeago.prototype.render.call(self).then(function () {
                         self.$(self.lovesel).html(v.$el);
                         resolve();
+
+                        if (Iznik.Session.isFreegleMod()) {
+                            self.$('.js-modonly').show();
+                        }
                     });
                 });
             });
@@ -430,4 +460,22 @@ define([
             this.model.collection.trigger('reply');
         }
     })
+
+    Iznik.Views.User.Feed.Report = Iznik.Views.Modal.extend({
+        template: 'user_newsfeed_report',
+
+        events: {
+            'click .js-report': 'report'
+        },
+
+        report: function() {
+            var self = this;
+            var reason = self.$('.js-reason').val();
+
+            if (reason.length > 0) {
+                self.model.report(reason);
+                self.trigger('reported');
+            }
+        }
+    });
 });

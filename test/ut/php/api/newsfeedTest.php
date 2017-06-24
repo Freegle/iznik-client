@@ -196,6 +196,22 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['newsfeed']));
         assertEquals(1, count($ret['newsfeed'][0]['replies']));
 
+        # Report it
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'Report',
+            'reason' => "Test"
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Delete it
+        $this->user->addMembership($gid, User::ROLE_MODERATOR);
+
+        $ret = $this->call('newsfeed', 'DELETE', [
+            'id' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+
         error_log(__METHOD__ . " end");
     }
 

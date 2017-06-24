@@ -108,7 +108,7 @@ class Newsfeed extends Entity
 
     private function fillIn(&$entry, &$users, $checkreplies = TRUE) {
         unset($entry['position']);
-        $use = TRUE;
+        $use = !presdef('reviewrequired', $entry, FALSE) && !presdef('deleted', $entry, FALSE);
 
         if ($entry['userid'] && !array_key_exists($entry['userid'], $users)) {
             $u = User::get($this->dbhr, $this->dbhm, $entry['userid']);
@@ -279,6 +279,31 @@ class Newsfeed extends Entity
             $this->dbhm->preExec("DELETE FROM newsfeed_likes WHERE newsfeedid = ? AND userid = ?;", [
                 $this->id,
                 $me->getId()
+            ]);
+        }
+    }
+
+    public function delete() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            $this->dbhm->preExec("UPDATE newsfeed SET deleted = NOW(), deletedby = ? WHERE id = ?;", [
+                $me->getId(),
+                $this->id
+            ]);
+        }
+    }
+
+    public function report($reason) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        if ($me) {
+            $this->dbhm->preExec("UPDATE newsfeed SET reviewrequired = 1 WHERE id = ?;", [
+                $this->id
+            ]);
+
+            $this->dbhm->preExec("INSERT INTO newsfeed_reports (userid, newsfeedid, reason) VALUES (?, ?, ?);", [
+                $me->getId(),
+                $this->id,
+                $reason
             ]);
         }
     }

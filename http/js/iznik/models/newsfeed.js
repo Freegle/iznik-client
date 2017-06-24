@@ -4,7 +4,7 @@ define([
     'backbone',
     'iznik/base'
 ], function($, _, Backbone, Iznik) {
-    Iznik.Models.Newsfeed= Iznik.Model.extend({
+    Iznik.Models.Newsfeed = Iznik.Model.extend({
         urlRoot: API + 'newsfeed',
 
         love: function() {
@@ -15,6 +15,19 @@ define([
                 type: 'POST',
                 data: {
                     action: 'Love'
+                }
+            }));
+        },
+
+        report: function(reason) {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'Report',
+                    reason: reason
                 }
             }));
         },

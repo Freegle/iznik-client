@@ -48,6 +48,7 @@ function newsfeed() {
                 $message = presdef('message', $_REQUEST, NULL);
                 $replyto = pres('replyto', $_REQUEST) ? intval($_REQUEST['replyto']) : NULL;
                 $action = presdef('action', $_REQUEST, NULL);
+                $reason = presdef('reason', $_REQUEST, NULL);
 
                 if ($action == 'Love') {
                     $n->like();
@@ -63,6 +64,13 @@ function newsfeed() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+                } else if ($action == 'Report') {
+                    $n->report($reason);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
                 } else {
                     $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
 
@@ -72,6 +80,21 @@ function newsfeed() {
                         'id' => $id
                     ];
                 }
+                break;
+            }
+
+
+            case 'DELETE': {
+                $id = intval(presdef('id', $_REQUEST, NULL));
+
+                if ($me->isModerator()) {
+                    $n->delete($me->getId(), $id);
+                }
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
                 break;
             }
         }

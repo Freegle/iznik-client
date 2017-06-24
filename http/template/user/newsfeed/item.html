@@ -1,9 +1,22 @@
 <div class="panel fadein">
     <div class="panel-body">
         <div class="row">
-            <div class="col-xs-12 clickme js-profile">
-                <img src="{{user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
-                <div class="">
+            <div class="col-xs-12 clickme">
+                <a href="#" class="dropdown-toggle js-notifholder pull-right" data-toggle="dropdown" title="Options">
+                    <span class="caret"></span>
+                </a>
+                <div class="dropdown-container  dropdown-position-bottomright">
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="#" class="js-report">Report this post or one of its replies</a>
+                        </li>
+                        <li class="js-modonly" style="display: none">
+                            <a href="#" class="js-delete">Delete this post</a>
+                        </li>
+                    </ul>
+                </div>
+                <img src="{{user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
+                <div class="js-profile">
                     <b><span class="success">{{user.displayname}}</span></b>
                     <br />
                     <small class="text-muted">
