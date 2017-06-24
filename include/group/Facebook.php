@@ -162,6 +162,10 @@ class GroupFacebook {
                         $remaining[$post['id']] = $post;
                         unset($remaining[$post['id']]['uid']);
                         $remaining[$post['id']]['uids'] = [];
+                        $data = json_decode($post['data'], TRUE);
+                        $remaining[$post['id']]['full_picture'] = presdef('full_picture', $data, NULL);
+                        $remaining[$post['id']]['message'] = presdef('message', $data, NULL);
+                        $remaining[$post['id']]['type'] = presdef('type', $data, NULL);
 
                         if (preg_match('/(.*)_(.*)/', $post['postid'], $matches)) {
                             # Create the iframe version of the Facebook plugin.

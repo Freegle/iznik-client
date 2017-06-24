@@ -43,6 +43,11 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->uid = $this->user->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->user->setPrivate('lastlocation', $this->fullpcid);
+
+        $this->user2 = User::get($this->dbhr, $this->dbhm);
+        $this->uid2 = $this->user2->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->user2->setPrivate('lastlocation', $this->fullpcid);
     }
 
     protected function tearDown() {
@@ -123,6 +128,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         self::assertEquals($mid, $ret['newsfeed'][0]['refmsg']['id']);
 
         # Like
+        assertTrue($this->user2->login('testpw'));
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'Love'
@@ -136,7 +142,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         self::assertEquals(1, $ret['newsfeed']['loves']);
         self::assertTrue($ret['newsfeed']['loved']);
 
-        # Should have generated a notification
+        # Will have generated a notification
+        assertTrue($this->user->login('testpw'));
         $ret = $this->call('notification', 'GET', [
             'count' => TRUE
         ]);
@@ -147,7 +154,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         error_log("Notifications " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(1, count($ret['notifications']));
-        self::assertEquals($this->uid, $ret['notifications'][0]['fromuser']['id']);
+        self::assertEquals($this->uid2, $ret['notifications'][0]['fromuser']['id']);
         $notifid = $ret['notifications'][0]['id'];
 
         # Mark it as seen
@@ -157,11 +164,14 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
+        assertTrue($this->user2->login('testpw'));
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'Unlove'
         ]);
         assertEquals(0, $ret['ret']);
+
+        assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
         ]);

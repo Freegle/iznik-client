@@ -116,7 +116,14 @@ define([
                 });
 
                 self.collectionView.render();
-                self.fetch();
+                self.fetch({
+                    types: [
+                        'Message',
+                        'CommunityEvent',
+                        'VolunteerOpportunity',
+                        'CentralPublicity'
+                    ]
+                });
 
                 // We can be asked to refetch by the first news
                 self.listenTo(self.collection, 'refetch', _.bind(self.refetch, self));
