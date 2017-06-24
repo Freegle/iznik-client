@@ -129,6 +129,40 @@ define([
         }
     });
 
+    Iznik.Views.User.Pages.Newsfeed.Single = Iznik.Views.Page.extend({
+        template: "user_newsfeed_single",
+
+        render: function () {
+            var self = this;
+
+            var p = Iznik.Views.Page.prototype.render.call(this);
+
+            p.then(function(self) {
+                self.model = new Iznik.Models.Newsfeed({
+                    id: self.options.id
+                });
+
+                self.model.fetch({
+                    success: function() {
+                        var v = new Iznik.Views.User.Feed.Item({
+                            model: self.model
+                        });
+
+                        v.render().then(function() {
+                            self.$('.js-item').html(v.$el);
+                        })
+                    },
+                    error: function() {
+                        console.log("Error");
+                        self.$('.js-error').fadeIn('slow');
+                    }
+                })
+            });
+
+            return(p);
+        }
+    });
+
     Iznik.Views.User.Feed.Base = Iznik.View.Timeago.extend({
         events: {
             'click .js-profile': 'showProfile',
