@@ -90,7 +90,7 @@ class GroupFacebook {
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
-            $ret = $fb->get($sharefrom . "/posts?since=$since&fields=id,link,message,type,caption,icon,name", $this->token);
+            $ret = $fb->get($sharefrom . "/posts?since=$since&fields=id,link,message,type,caption,icon,name,full_picture", $this->token);
 
             $posts = $ret->getDecodedBody();
             #error_log("Posts " . var_export($posts, TRUE));
