@@ -42,7 +42,6 @@ class Newsfeed extends Entity
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
-        error_log("$lat, $lng for $userid");
 
         if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
@@ -83,6 +82,14 @@ class Newsfeed extends Entity
                             $n->add($userid, $commenter['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id);
                         }
                     }
+
+                    # We might have notifications which refer to this thread.  But there's no need to show them
+                    # now.
+                    $this->dbhm->preExec("UPDATE users_notifications SET seen = 1 WHERE touser = ? AND (newsfeedid = ? OR newsfeedid IN (SELECT id FROM newsfeed WHERE replyto = ?));", [
+                        $userid,
+                        $replyto,
+                        $replyto
+                    ]);
                 }
             }
         }
@@ -212,7 +219,7 @@ class Newsfeed extends Entity
 
             $sql = "SELECT DISTINCT userid FROM newsfeed WHERE MBRContains($box, position) AND replyto IS NULL AND `type` = ? LIMIT $limit;";
             $others = $this->dbhr->preQuery($sql, [ Newsfeed::TYPE_MESSAGE ]);
-            error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid");
+            #error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid");
         } while ($dist < 320 && count($others) < $limit);
 
         return($dist);
