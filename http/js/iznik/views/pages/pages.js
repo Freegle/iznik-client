@@ -632,15 +632,17 @@ define([
 
             // We want the start of the thread.
             var newsfeed = self.model.get('newsfeed');
-            console.log("Go to ", newsfeed);
-            var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
 
-            if (!self.model.get('seen')) {
-                self.model.seen().then(function() {
+            if (newsfeed) {
+                var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
+
+                if (!self.model.get('seen')) {
+                    self.model.seen().then(function() {
+                        Router.navigate('/newsfeed/' + id, true);
+                    });
+                } else {
                     Router.navigate('/newsfeed/' + id, true);
-                });
-            } else {
-                Router.navigate('/newsfeed/' + id, true);
+                }
             }
         },
 
