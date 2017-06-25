@@ -121,92 +121,94 @@ class Newsfeed extends Entity
         unset($entry['position']);
         $use = !presdef('reviewrequired', $entry, FALSE) && !presdef('deleted', $entry, FALSE);
 
-        if ($entry['userid'] && !array_key_exists($entry['userid'], $users)) {
-            $u = User::get($this->dbhr, $this->dbhm, $entry['userid']);
-            $uctx = NULL;
-            $users[$entry['userid']] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
-            $users[$entry['userid']]['publiclocation'] = $u->getPublicLocation();
-        }
-
-        if (pres('msgid', $entry)) {
-            $m = new Message($this->dbhr, $this->dbhm, $entry['msgid']);
-            $entry['refmsg'] = $m->getPublic(FALSE, FALSE);
-        }
-
-        if (pres('eventid', $entry)) {
-            $e = new CommunityEvent($this->dbhr, $this->dbhm, $entry['eventid']);
-            $use = FALSE;
-            if (!$e->getPrivate('pending') && !$e->getPrivate('deleted')) {
-                $use = TRUE;
-                $entry['communityevent'] = $e->getPublic();
+        if ($use) {
+            if ($entry['userid'] && !array_key_exists($entry['userid'], $users)) {
+                $u = User::get($this->dbhr, $this->dbhm, $entry['userid']);
+                $uctx = NULL;
+                $users[$entry['userid']] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $users[$entry['userid']]['publiclocation'] = $u->getPublicLocation();
             }
-        }
 
-        if (pres('volunteeringid', $entry)) {
-            $v = new Volunteering($this->dbhr, $this->dbhm, $entry['volunteeringid']);
-            $use = FALSE;
-            if (!$v->getPrivate('pending') && !$v->getPrivate('deleted')) {
-                $use = TRUE;
-                $entry['volunteering'] = $v->getPublic();
+            if (pres('msgid', $entry)) {
+                $m = new Message($this->dbhr, $this->dbhm, $entry['msgid']);
+                $entry['refmsg'] = $m->getPublic(FALSE, FALSE);
             }
-        }
 
-        if (pres('publicityid', $entry)) {
-            $pubs = $this->dbhr->preQuery("SELECT postid FROM groups_facebook_toshare WHERE id = ?;", [ $entry['publicityid'] ]);
-
-            if (preg_match('/(.*)_(.*)/', $pubs[0]['postid'], $matches)) {
-                # Create the iframe version of the Facebook plugin.
-                $pageid = $matches[1];
-                $postid = $matches[2];
-                $entry['publicity'] = [
-                    'id' => $entry['publicityid'],
-                    'postid' => $pubs[0]['postid'],
-                    'iframe' => '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
-                ];
+            if (pres('eventid', $entry)) {
+                $e = new CommunityEvent($this->dbhr, $this->dbhm, $entry['eventid']);
+                $use = FALSE;
+                if (!$e->getPrivate('pending') && !$e->getPrivate('deleted')) {
+                    $use = TRUE;
+                    $entry['communityevent'] = $e->getPublic();
+                }
             }
-        }
 
-        if (pres('storyid', $entry)) {
-            $s = new Story($this->dbhr, $this->dbhm, $entry['storyid']);
-            $use = FALSE;
-            if ($s->getPrivate('reviewed') && $s->getPrivate('public')) {
-                $use = TRUE;
-                $entry['story'] = $s->getPublic();
+            if (pres('volunteeringid', $entry)) {
+                $v = new Volunteering($this->dbhr, $this->dbhm, $entry['volunteeringid']);
+                $use = FALSE;
+                if (!$v->getPrivate('pending') && !$v->getPrivate('deleted')) {
+                    $use = TRUE;
+                    $entry['volunteering'] = $v->getPublic();
+                }
             }
-        }
+
+            if (pres('publicityid', $entry)) {
+                $pubs = $this->dbhr->preQuery("SELECT postid FROM groups_facebook_toshare WHERE id = ?;", [ $entry['publicityid'] ]);
+
+                if (preg_match('/(.*)_(.*)/', $pubs[0]['postid'], $matches)) {
+                    # Create the iframe version of the Facebook plugin.
+                    $pageid = $matches[1];
+                    $postid = $matches[2];
+                    $entry['publicity'] = [
+                        'id' => $entry['publicityid'],
+                        'postid' => $pubs[0]['postid'],
+                        'iframe' => '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
+                    ];
+                }
+            }
+
+            if (pres('storyid', $entry)) {
+                $s = new Story($this->dbhr, $this->dbhm, $entry['storyid']);
+                $use = FALSE;
+                if ($s->getPrivate('reviewed') && $s->getPrivate('public')) {
+                    $use = TRUE;
+                    $entry['story'] = $s->getPublic();
+                }
+            }
 
 
-        $entry['timestamp'] = ISODate($entry['timestamp']);
+            $entry['timestamp'] = ISODate($entry['timestamp']);
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
+            $me = whoAmI($this->dbhr, $this->dbhm);
 
-        $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid = ?;", [
-            $entry['id']
-        ], FALSE, FALSE);
-
-        $entry['loves'] = $likes[0]['count'];
-        $entry['loved'] = FALSE;
-
-        if ($me) {
-            $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid = ? AND userid = ?;", [
-                $entry['id'],
-                $me->getId()
-            ], FALSE, FALSE);
-            $entry['loved'] = $likes[0]['count'] > 0;
-        }
-
-        $entry['replies'] = [];
-
-        if ($checkreplies) {
-            # Don't cache replies - might be lots and might change frequently.
-            $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
+            $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid = ?;", [
                 $entry['id']
-            ], FALSE);
+            ], FALSE, FALSE);
 
-            foreach ($replies as &$reply) {
-                # Replies only one deep at present.
-                $this->fillIn($reply, $users, FALSE);
-                $entry['replies'][] = $reply;
+            $entry['loves'] = $likes[0]['count'];
+            $entry['loved'] = FALSE;
+
+            if ($me) {
+                $likes = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid = ? AND userid = ?;", [
+                    $entry['id'],
+                    $me->getId()
+                ], FALSE, FALSE);
+                $entry['loved'] = $likes[0]['count'] > 0;
+            }
+
+            $entry['replies'] = [];
+
+            if ($checkreplies) {
+                # Don't cache replies - might be lots and might change frequently.
+                $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
+                    $entry['id']
+                ], FALSE);
+
+                foreach ($replies as &$reply) {
+                    # Replies only one deep at present.
+                    $this->fillIn($reply, $users, FALSE);
+                    $entry['replies'][] = $reply;
+                }
             }
         }
 
