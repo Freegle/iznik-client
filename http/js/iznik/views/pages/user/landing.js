@@ -47,7 +47,7 @@ define([
         }
     });
 
-    Iznik.Views.User.Pages.Landing.Story = Iznik.View.extend({
+    Iznik.Views.User.Pages.Landing.Story = Iznik.View.Timeago.extend({
         template: "user_landing_story",
 
         tagName: 'li'
