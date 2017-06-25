@@ -3,6 +3,7 @@ require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
 function digest_single($msghtml, $siteurl, $logo, $groupname, $subject) {
+    $newsfeed = "https://" . USER_SITE . "/newsfeed";
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -50,6 +51,7 @@ EOT;
                                                                 </table>               
                                                             </td>    
                                                             <td>
+                                                                <p style="color: red">Now you can chat to local freeglers - ask for advice, recommendations, or just natter.  Try it <a href="$newsfeed">here</a>.</p>  
                                                                 <p>You've received this automated mail because you're a member of <a href="{{visit}}">$groupname</a>.</p>
                                                                 <table width="100%">
                                                                     <tr>

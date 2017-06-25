@@ -3433,6 +3433,16 @@ class User extends Entity
             }
         }
 
+        if (!$lat) {
+            # Try for user groups
+            $membs = $this->getMemberships();
+
+            if (count($membs) > 0) {
+                $lat = $membs[0]['lat'];
+                $lng = $membs[0]['lng'];
+            }
+        }
+
         # ...or failing that, a default.
         $lat = $lat ? $lat : 53.9450;
         $lng = $lng ? $lng : -2.5209;

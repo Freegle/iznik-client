@@ -238,8 +238,8 @@ class Newsfeed extends Entity
 
             $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
-            $sql = "SELECT DISTINCT userid FROM newsfeed WHERE MBRContains($box, position) AND replyto IS NULL AND `type` = ? LIMIT $limit;";
-            $others = $this->dbhr->preQuery($sql, [ Newsfeed::TYPE_MESSAGE ]);
+            $sql = "SELECT DISTINCT userid FROM newsfeed WHERE MBRContains($box, position) AND replyto IS NULL LIMIT $limit;";
+            $others = $this->dbhr->preQuery($sql);
             #error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid using $sql");
         } while ($dist < 204800 && count($others) < $limit);
 
