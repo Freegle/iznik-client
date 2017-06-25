@@ -9,6 +9,7 @@ define([
     'jquery.validate.additional-methods',
     'iznik/models/communityevent',
     'iznik/views/group/select',
+    'iznik/views/supportus',
     'iznik/customvalidate'
 ], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.CommunityEventsSidebar = Iznik.View.extend({
@@ -593,7 +594,7 @@ define([
         }
     });
 
-    Iznik.Views.User.CommunityEvent.Confirm = Iznik.Views.Modal.extend({
+    Iznik.Views.User.CommunityEvent.Confirm = Iznik.Views.User.BusinessCards.extend({
         template: "communityevents_confirm"
     });
 });
