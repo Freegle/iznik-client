@@ -13,7 +13,7 @@
                             <br />
                             <small class="text-muted">
                                 <abbr class="timeago nodecor" title="{{timestamp}}" />
-                                <span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}
+                                <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
                                 &bull;
                                 <span class="js-replyloves" />
                             </small>

@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 
 $n = new Newsfeed($dbhr, $dbhm);
 
-$mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
+$mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
 
 $storys = $dbhr->preQuery("SELECT * FROM users_stories WHERE `date` > '$mysqltime'");
 foreach ($storys as $story) {

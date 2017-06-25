@@ -21,7 +21,7 @@
                     <br />
                     <small class="text-muted">
                         <abbr class="timeago nodecor" title="{{timestamp}}" />
-                        <span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}
+                        <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
                     </small>
                 </div>
             </div>
@@ -39,7 +39,7 @@
                 <hr class="text-muted nomargin botspace" />
                 <div class="js-itemloves inline" />
                 <a href="/stories">
-                    <span class="inline btn btn-success"><span class="glyphicons glyphicons-book-open" />&nbsp;Tell us your story</span>
+                    <span class="inline btn btn-success btn-xs pull-right"><span class="glyphicons glyphicons-book-open vcenter" />&nbsp;Tell us your story</span>
                 </a>
             </div>
         </div>
