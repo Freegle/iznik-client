@@ -243,7 +243,7 @@ class Newsfeed extends Entity
 
         # We return most recent first.
         $tq = pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
-        $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert') AND $tq" : $tq;
+        $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert')) AND $tq" : $tq;
         $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
         $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
