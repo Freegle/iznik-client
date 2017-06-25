@@ -27,6 +27,7 @@ class Newsfeed extends Entity
     const TYPE_COMMUNITY_EVENT = 'CommunityEvent';
     const TYPE_VOLUNTEER_OPPORTUNITY = 'VolunteerOpportunity';
     const TYPE_CENTRAL_PUBLICITY = 'CentralPublicity';
+    const TYPE_ALERT = 'Alert';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -43,7 +44,7 @@ class Newsfeed extends Entity
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
 
-        if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY) {
+        if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
@@ -242,7 +243,7 @@ class Newsfeed extends Entity
 
         # We return most recent first.
         $tq = pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
-        $first = $dist ? "(MBRContains($box, position) OR publicityid IS NOT NULL) AND $tq" : $tq;
+        $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert') AND $tq" : $tq;
         $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
         $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";

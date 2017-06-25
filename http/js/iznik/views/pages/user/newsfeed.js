@@ -121,7 +121,8 @@ define([
                         'Message',
                         'CommunityEvent',
                         'VolunteerOpportunity',
-                        'CentralPublicity'
+                        'CentralPublicity',
+                        'Alert'
                     ]
                 });
 
@@ -388,6 +389,7 @@ define([
                     case 'CommunityEvent':           self.template = 'user_newsfeed_communityevent'; break;
                     case 'VolunteerOpportunity':     self.template = 'user_newsfeed_volunteering'; break;
                     case 'CentralPublicity':         self.template = 'user_newsfeed_centralpublicity'; break;
+                    case 'Alert':                    self.template = 'user_newsfeed_alert'; self.model.set('sitename', $('meta[name=izniksitename]').attr("content")); break;
                 }
 
                 if (self.template) {
