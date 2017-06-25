@@ -41,6 +41,23 @@
         </div>
     </div>
 </div>
+<% if (!me.settings.mylocation) { %>
+<div class="alert alert-warning js-nolocation">
+    <h3>Please tell us where you are!</h3>
+    <p>We to know where you are so that we can show you news from nearby.</p>
+    <div class="form-group">
+        <span class="help-block"><div class="glyphicon glyphicon-lock" />&nbsp;Other freeglers won't see this.</span>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="btn btn-primary js-geoloconly js-getloc botspace">
+                    <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
+                </div>
+                <p>Or enter it manually in <a href="/settings">Settings</a>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<% } %>
 <div class="row">
     <div class="col-xs-12">
         <div class="panel panel-default">
@@ -55,9 +72,11 @@
                 <div class="row">
                     <div class="col-xs-4">
                         <div class="pull-left">
+                            <% if (me.settings.mylocation) { %>
                             <a class="text-muted" href="/settings">
                                 <span class="glyphicon glyphicon-map-marker" />&nbsp;{{me.settings.mylocation.area.name}}
                             </a>
+                            <% } %>
                         </div>
                     </div>
                     <div class="col-xs-7 text-muted">

@@ -21,8 +21,57 @@ define([
 
         events: {
             'click .js-post': 'post',
+            'click .js-getloc': 'getLocation',
             'change .js-distance': 'changeDist',
             'focus .js-message': 'autoSize'
+        },
+
+        getLocation: function() {
+            var self = this;
+            self.wait = new Iznik.Views.PleaseWait();
+            self.wait.render();
+
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
+        },
+
+        gotLocation: function(position) {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                }, success: function(ret) {
+                    if (ret.ret == 0 && ret.location) {
+                        self.$('.js-nolocation').fadeOut('slow');
+                        self.recordLocation(ret.location);
+                        self.refetch();
+                    }
+                }, complete: function() {
+                    if (self.wait) {
+                        self.wait.close();
+                    }
+                }
+            });
+        },
+
+        recordLocation: function(location) {
+            var self = this;
+
+            if (!_.isUndefined(location)) {
+                try {
+                    var l = location;
+                    delete l.groupsnear;
+                    Iznik.Session.setSetting('mylocation', l);
+                    Storage.set('mylocation', JSON.stringify(l))
+                } catch (e) {
+                    console.log("Exception", e.message);
+                };
+
+                self.trigger('gotlocation', location);
+            }
         },
 
         autoSize: function() {
