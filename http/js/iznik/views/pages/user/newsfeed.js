@@ -194,7 +194,7 @@ define([
             v.render();
         },
 
-        deleteMe: function() {
+        deleteMe: function(e) {
             var self = this;
             e.preventDefault();
             e.stopPropagation()

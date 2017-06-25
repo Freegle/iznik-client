@@ -28,9 +28,26 @@ if (count($opts) < 2) {
 
         $sendcount = 0;
         $skipcount = 0;
+        $alreadycount = 0;
 
         foreach ($membs as $memb) {
             $u = new User($dbhr, $dbhm, $memb['userid']);
+
+            if ($type == Notifications::TYPE_TRY_FEED) {
+                # Don't send these too often.  Helps when notifying multiple groups
+                $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
+                $recent = $dbhr->preQuery("SELECT * FROM users_notifications WHERE touser = ? AND type = ? AND timestamp > '$mysqltime';", [
+                    $memb['userid'],
+                    $type
+                ]);
+
+                if (count($recent) > 0) {
+                    error_log($u->getEmailPreferred() . "..already");
+                    $alreadycount++;
+                    break;
+                }
+            }
+
             $send = FALSE;
             $emails = $u->getEmails();
             foreach ($emails as $email) {
@@ -49,6 +66,6 @@ if (count($opts) < 2) {
             }
         }
 
-        error_log("Sent to $sendcount, skipped $skipcount");
+        error_log("Sent to $sendcount, skipped $skipcount, already $alreadycount");
     }
 }

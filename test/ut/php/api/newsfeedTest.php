@@ -284,14 +284,19 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         # Find a publicity post so that we can issue the API call from that point.
-        $posts = $this->dbhr->preQuery("SELECT id FROM newsfeed WHERE `type` = ? LIMIT 1;", [
+        $posts = $this->dbhr->preQuery("SELECT id, timestamp FROM newsfeed WHERE `type` = ? ORDER BY timestamp DESC LIMIT 1;", [
             Newsfeed::TYPE_CENTRAL_PUBLICITY
         ]);
 
         self::assertEquals(1, count($posts));
+        $time = strtotime($posts[0]['timestamp']);
+        $time++;
+        $newtime = ISODate('@' . $time);
+        error_log("{$posts[0]['timestamp']} => $newtime");
+
         $ctx = [
             'distance' => 0,
-            'id' => $posts[0]['id'] + 1
+            'timestamp' => $newtime
         ];
 
         $ret = $this->call('newsfeed', 'GET', [
@@ -303,7 +308,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         error_log("Feed " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['newsfeed']));
+        assertGreaterThan(1, count($ret['newsfeed']));
         self::assertEquals(Newsfeed::TYPE_CENTRAL_PUBLICITY, $ret['newsfeed'][0]['type']);
         assertNotFalse(pres('postid', $ret['newsfeed'][0]['publicity']));
 

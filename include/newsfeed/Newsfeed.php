@@ -202,11 +202,11 @@ class Newsfeed extends Entity
     public function getNearbyDistance($userid) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-        # We want to calculate a distance which includes at least 100 other people who have posted a message.
+        # We want to calculate a distance which includes at least some other people who have posted a message.
         # Start at fairly close and keep doubling until we reach that, or get too far away.
         list ($lat, $lng) = $u->getLatLng();
-        $dist = 2.5;
-        $limit = 3;
+        $dist = 800;
+        $limit = 10;
 
         do {
             $dist *= 2;
@@ -219,8 +219,8 @@ class Newsfeed extends Entity
 
             $sql = "SELECT DISTINCT userid FROM newsfeed WHERE MBRContains($box, position) AND replyto IS NULL AND `type` = ? LIMIT $limit;";
             $others = $this->dbhr->preQuery($sql, [ Newsfeed::TYPE_MESSAGE ]);
-            #error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid");
-        } while ($dist < 320 && count($others) < $limit);
+            #error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid using $sql");
+        } while ($dist < 204800 && count($others) < $limit);
 
         return($dist);
     }
@@ -241,11 +241,11 @@ class Newsfeed extends Entity
         $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
         # We return most recent first.
-        $idq = pres('id', $ctx) ? ("newsfeed.id < " . intval($ctx['id'])) : 'newsfeed.id > 0';
-        $first = $dist ? "(MBRContains($box, position) OR publicityid IS NOT NULL) AND $idq" : $idq;
+        $tq = pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
+        $first = $dist ? "(MBRContains($box, position) OR publicityid IS NOT NULL) AND $tq" : $tq;
         $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
-        $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY id DESC LIMIT 5;";
+        $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
         #error_log($sql);
         $entries = $this->dbhr->preQuery($sql);
 
@@ -257,7 +257,7 @@ class Newsfeed extends Entity
             }
 
             $ctx = [
-                'id' => $entry['id'],
+                'timestamp' => ISODate($entry['timestamp']),
                 'distance' => $dist
             ];
         }

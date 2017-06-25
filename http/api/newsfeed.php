@@ -23,11 +23,17 @@ function newsfeed() {
                     ];
                 } else {
                     $ctx = presdef('context', $_REQUEST, NULL);
-                    $dist = ($ctx && intval(array_key_exists('distance', $ctx)) ? $ctx['distance'] : Newsfeed::DISTANCE);
+                    $dist = Newsfeed::DISTANCE;
 
-                    if ($dist == 'nearby') {
-                        $dist = $n->getNearbyDistance($me->getId());
+                    if ($ctx && array_key_exists('distance', $ctx)) {
+                        $dist = $ctx['distance'];
+
+                        if ($dist == 'nearby') {
+                            $dist = $n->getNearbyDistance($me->getId());
+                        }
                     }
+
+                    $dist = intval($dist);
 
                     $types = presdef('types', $_REQUEST, NULL);
 
