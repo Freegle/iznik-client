@@ -120,6 +120,7 @@ class Newsfeed extends Entity
     private function fillIn(&$entry, &$users, $checkreplies = TRUE) {
         unset($entry['position']);
         $use = !presdef('reviewrequired', $entry, FALSE) && !presdef('deleted', $entry, FALSE);
+        error_log("Use $use for type {$entry['type']} from " . presdef('reviewrequired', $entry, FALSE) . "," . presdef('deleted', $entry, FALSE));
 
         if ($use) {
             if ($entry['userid'] && !array_key_exists($entry['userid'], $users)) {
@@ -137,6 +138,7 @@ class Newsfeed extends Entity
             if (pres('eventid', $entry)) {
                 $e = new CommunityEvent($this->dbhr, $this->dbhm, $entry['eventid']);
                 $use = FALSE;
+                error_log("Consider event " . $e->getPrivate('pending') . ", " . $e->getPrivate('deleted'));
                 if (!$e->getPrivate('pending') && !$e->getPrivate('deleted')) {
                     $use = TRUE;
                     $entry['communityevent'] = $e->getPublic();
@@ -146,6 +148,7 @@ class Newsfeed extends Entity
             if (pres('volunteeringid', $entry)) {
                 $v = new Volunteering($this->dbhr, $this->dbhm, $entry['volunteeringid']);
                 $use = FALSE;
+                error_log("Consider volunteering " . $v->getPrivate('pending') . ", " . $v->getPrivate('deleted'));
                 if (!$v->getPrivate('pending') && !$v->getPrivate('deleted')) {
                     $use = TRUE;
                     $entry['volunteering'] = $v->getPublic();
@@ -170,6 +173,7 @@ class Newsfeed extends Entity
             if (pres('storyid', $entry)) {
                 $s = new Story($this->dbhr, $this->dbhm, $entry['storyid']);
                 $use = FALSE;
+                error_log("Consider story " . $s->getPrivate('reviewed') . ", " . $s->getPrivate('public'));
                 if ($s->getPrivate('reviewed') && $s->getPrivate('public')) {
                     $use = TRUE;
                     $entry['story'] = $s->getPublic();
@@ -212,6 +216,8 @@ class Newsfeed extends Entity
             }
         }
 
+        error_log("Returning $use");
+        $entry['visible'] = $use;
         return($use);
     }
 
@@ -262,15 +268,13 @@ class Newsfeed extends Entity
         $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
         $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
-        #error_log($sql);
+        error_log($sql);
         $entries = $this->dbhr->preQuery($sql);
 
         foreach ($entries as &$entry) {
-            $use = $this->fillIn($entry, $users);
-
-            if ($use) {
-                $items[] = $entry;
-            }
+            # We return invisible entries - they are filtered on the client, and it makes the paging work.
+            $this->fillIn($entry, $users);
+            $items[] = $entry;
 
             $ctx = [
                 'timestamp' => ISODate($entry['timestamp']),

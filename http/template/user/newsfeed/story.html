@@ -15,17 +15,20 @@
                         </li>
                     </ul>
                 </div>
+                <% if (obj.user) { %>
                 <img src="{{user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
                 <div class="js-profile">
-                    <b><span class="success">{{user.displayname}}</span> told us their Freegle story</b>
+                    <b><span class="success">{{user.displayname}}</span> told their Freegle story</b>
                     <br />
                     <small class="text-muted">
                         <abbr class="timeago nodecor" title="{{timestamp}}" />
                         <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
                     </small>
                 </div>
+                <% } %>
             </div>
         </div>
+        <% if (obj.story && story.headline) { %>
         <div class="row">
             <div class="col-xs-12">
                 <div class="panel panel-success">
@@ -39,10 +42,11 @@
                 <hr class="text-muted nomargin botspace" />
                 <div class="js-itemloves inline" />
                 <a href="/stories">
-                    <span class="inline btn btn-success btn-xs pull-right"><span class="glyphicons glyphicons-book-open vcenter" />&nbsp;Tell us your story</span>
+                    <span class="inline btn btn-success btn-xs pull-right"><span class="glyphicons glyphicons-book-open vcenter" />&nbsp;Tell your story</span>
                 </a>
             </div>
         </div>
+        <% } %>
     </div>
     <div class="panel-footer">
         <ul class="list-unstyled js-replies" />

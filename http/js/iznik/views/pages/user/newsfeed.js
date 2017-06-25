@@ -91,6 +91,11 @@ define([
             });
         },
 
+        visible: function(model) {
+            var vis = model.get('visible');
+            return(vis);
+        },
+
         render: function () {
             var self = this;
 
@@ -112,6 +117,7 @@ define([
                     el: self.$('.js-feed'),
                     modelView: Iznik.Views.User.Feed.Item,
                     collection: self.collection,
+                    visibleModelsFilter: _.bind(self.visible, self),
                     processKeyEvents: false
                 });
 
@@ -422,14 +428,18 @@ define([
 
                         self.replies = new Iznik.Collections.Replies(self.model.get('replies'));
 
-                        self.collectionView = new Backbone.CollectionView({
-                            el: self.$('.js-replies'),
-                            modelView: Iznik.Views.User.Feed.Reply,
-                            collection: self.replies,
-                            processKeyEvents: false
-                        });
+                        var replyel = self.$('.js-replies');
 
-                        self.collectionView.render();
+                        if (replyel.length) {
+                            self.collectionView = new Backbone.CollectionView({
+                                el: replyel,
+                                modelView: Iznik.Views.User.Feed.Reply,
+                                collection: self.replies,
+                                processKeyEvents: false
+                            });
+
+                            self.collectionView.render();
+                        }
 
                         self.loves = new Iznik.Views.User.Feed.Loves({
                             model: self.model

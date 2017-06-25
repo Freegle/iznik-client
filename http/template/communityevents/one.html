@@ -28,8 +28,10 @@
                 <button class="js-info btn btn-white"><div class="glyphicon glyphicon-info-sign inline" /><div class="inline padleft">More info</div></button>
             </div>
         </div>
+        <% if (obj.groups) { %>
         <div class="row">
             <div class="topspace text-muted small text-center">Posted on {{groups[0].nameshort}}</div>
         </div>
+        <% } %>
     </div>
 </div>

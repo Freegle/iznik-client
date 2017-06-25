@@ -106,17 +106,19 @@ define([
             var p = Iznik.View.prototype.render.call(this).then(function() {
                 var dates = self.model.get('dates');
                 var count = 0;
-                for (var i = 0; i < dates.length; i++) {
-                    var date = dates[i];
-                    if (moment().diff(date.end) < 0  || moment().isSame(date.end, 'day')) {
-                        if (count == 0) {
-                            var startm = new moment(date.start);
-                            self.$('.js-start').html(startm.format('ddd, Do MMM HH:mm'));
-                            var endm = new moment(date.end);
-                            self.$('.js-end').html(endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm'));
-                        }
+                if (dates) {
+                    for (var i = 0; i < dates.length; i++) {
+                        var date = dates[i];
+                        if (moment().diff(date.end) < 0  || moment().isSame(date.end, 'day')) {
+                            if (count == 0) {
+                                var startm = new moment(date.start);
+                                self.$('.js-start').html(startm.format('ddd, Do MMM HH:mm'));
+                                var endm = new moment(date.end);
+                                self.$('.js-end').html(endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm'));
+                            }
 
-                        count++;
+                            count++;
+                        }
                     }
                 }
 
