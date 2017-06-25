@@ -9,6 +9,16 @@ $n = new Newsfeed($dbhr, $dbhm);
 
 $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
 
+$storys = $dbhr->preQuery("SELECT * FROM users_stories WHERE `date` > '$mysqltime'");
+foreach ($storys as $story) {
+    $exists = $dbhr->preQuery("SELECT * FROM newsfeed WHERE storyid = ?;", [ $story['id'] ]);
+    if (count($exists) == 0) {
+        if ($n->create(Newsfeed::TYPE_STORY, $story['userid'], NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $story['id'])) {
+            $n->setPrivate('timestamp', date ("Y-m-d H:i:s", strtotime($story['date'])));
+        }
+    }
+}
+
 $publicitys = $dbhr->preQuery("SELECT * FROM groups_facebook_toshare WHERE `date` > '$mysqltime'");
 foreach ($publicitys as $publicity) {
     $exists = $dbhr->preQuery("SELECT * FROM newsfeed WHERE publicityid = ?;", [ $publicity['id'] ]);

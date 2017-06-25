@@ -1,0 +1,60 @@
+<div class="panel fadein">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-12 clickme">
+                <a href="#" class="dropdown-toggle js-notifholder pull-right" data-toggle="dropdown" title="Options">
+                    <span class="caret"></span>
+                </a>
+                <div class="dropdown-container  dropdown-position-bottomright">
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="#" class="js-report">Report this post or one of its replies</a>
+                        </li>
+                        <li class="js-modonly" style="display: none">
+                            <a href="#" class="js-delete">Delete this post</a>
+                        </li>
+                    </ul>
+                </div>
+                <img src="{{user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
+                <div class="js-profile">
+                    <b><span class="success">{{user.displayname}}</span> told us their Freegle story</b>
+                    <br />
+                    <small class="text-muted">
+                        <abbr class="timeago nodecor" title="{{timestamp}}" />
+                        <span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        {{story.headline}}
+                    </div>
+                    <div class="panel-body">
+                        <b class="prewrap">{{story.story}}</b>
+                    </div>
+                </div>
+                <hr class="text-muted nomargin botspace" />
+                <div class="js-itemloves inline" />
+                <a href="/stories">
+                    <span class="inline btn btn-success"><span class="glyphicons glyphicons-book-open" />&nbsp;Tell us your story</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="panel-footer">
+        <ul class="list-unstyled js-replies" />
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="input-group">
+                    <span class="input-group-addon nopad">
+                        <img src="{{me.profile.url}}" class="img-circle img-tinythumbnail clickme" />
+                    </span>
+                    <textarea rows="1" class="form-control js-comment"  spellcheck="true" placeholder="Write a comment..." />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

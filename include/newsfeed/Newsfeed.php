@@ -9,6 +9,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 require_once(IZNIK_BASE . '/include/group/Volunteering.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
@@ -28,6 +29,7 @@ class Newsfeed extends Entity
     const TYPE_VOLUNTEER_OPPORTUNITY = 'VolunteerOpportunity';
     const TYPE_CENTRAL_PUBLICITY = 'CentralPublicity';
     const TYPE_ALERT = 'Alert';
+    const TYPE_STORY = 'Story';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -38,7 +40,7 @@ class Newsfeed extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
     }
 
-    public function create($type, $userid, $message, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL) {
+    public function create($type, $userid, $message, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL) {
         $id = NULL;
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
@@ -48,7 +50,7 @@ class Newsfeed extends Entity
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
-            $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, message, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos);", [
+            $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos);", [
                 $type,
                 $userid,
                 $imageid,
@@ -58,6 +60,7 @@ class Newsfeed extends Entity
                 $eventid,
                 $volunteeringid,
                 $publicityid,
+                $storyid,
                 $message
             ]);
 
@@ -162,6 +165,16 @@ class Newsfeed extends Entity
                 ];
             }
         }
+
+        if (pres('storyid', $entry)) {
+            $s = new Story($this->dbhr, $this->dbhm, $entry['storyid']);
+            $use = FALSE;
+            if ($s->getPrivate('reviewed') && $s->getPrivate('public')) {
+                $use = TRUE;
+                $entry['story'] = $s->getPublic();
+            }
+        }
+
 
         $entry['timestamp'] = ISODate($entry['timestamp']);
 

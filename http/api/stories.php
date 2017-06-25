@@ -101,6 +101,12 @@ function stories() {
                     'ret' => 0,
                     'status' => 'Success'
                 ];
+
+                if ($s->getPrivate('reviewed') && $s->getPrivate('public')) {
+                    # We have reviewed a public story.  We can push it to the newsfeed.
+                    $n = new Newsfeed($dbhr, $dbhm);
+                    $n->create(Newsfeed::TYPE_STORY, $s->getPrivate('userid'), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $s->getPrivate('id'));
+                }
             }
             break;
         }
