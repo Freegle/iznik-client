@@ -234,7 +234,12 @@ define([
             'click .js-profile': 'showProfile',
             'click .js-delete': 'deleteMe',
             'click .js-report': 'report',
+            'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply'
+        },
+
+        clickPreview: function() {
+            window.open(this.model.get('preview').url);
         },
 
         report: function(e) {

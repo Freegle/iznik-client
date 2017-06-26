@@ -10,6 +10,7 @@ require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 require_once(IZNIK_BASE . '/include/group/Volunteering.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');
+require_once(IZNIK_BASE . '/include/misc/Preview.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
@@ -21,6 +22,9 @@ class Newsfeed extends Entity
     /** @var  $log Log */
     private $log;
     var $feed;
+
+    # See also in ChatMessage.
+    private $urlPattern = '#(?i)\b(((?:(?:http|https):(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))|(\.com\/))#m';
 
     const DISTANCE = 15000;
 
@@ -123,6 +127,22 @@ class Newsfeed extends Entity
         #error_log("Use $use for type {$entry['type']} from " . presdef('reviewrequired', $entry, FALSE) . "," . presdef('deleted', $entry, FALSE));
 
         if ($use) {
+            if (preg_match_all($this->urlPattern, $entry['message'], $matches)) {
+                foreach ($matches as $val) {
+                    foreach ($val as $url) {
+                        $p = new Preview($this->dbhr, $this->dbhm);
+                        $id = $p->get($url);
+                        error_log("PReview $id");
+
+                        if ($id) {
+                            $entry['preview'] = $p->getPublic();
+                        }
+
+                        break 2;
+                    }
+                }
+            }
+
             if ($entry['userid'] && !array_key_exists($entry['userid'], $users)) {
                 $u = User::get($this->dbhr, $this->dbhm, $entry['userid']);
                 $uctx = NULL;
@@ -267,7 +287,7 @@ class Newsfeed extends Entity
         $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
         $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
-        error_log($sql);
+        #error_log($sql);
         $entries = $this->dbhr->preQuery($sql);
 
         foreach ($entries as &$entry) {

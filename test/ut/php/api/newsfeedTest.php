@@ -79,7 +79,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         # Post something.
         error_log("Post something");
         $ret = $this->call('newsfeed', 'POST', [
-            'message' => 'Test'
+            'message' => 'Test with url https://google.co.uk'
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
@@ -92,6 +92,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         self::assertEquals($nid, $ret['newsfeed']['id']);
+        self::assertEquals('Google', $ret['newsfeed']['preview']['title']);
 
         # Hack it to have a message for coverage
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -120,9 +121,10 @@ class newsfeedAPITest extends IznikAPITestCase {
                 Newsfeed::TYPE_MESSAGE
             ]
         ]);
+        error_log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
-        self::assertEquals('Test', $ret['newsfeed'][0]['message']);
+        self::assertEquals('Test with url https://google.co.uk', $ret['newsfeed'][0]['message']);
         assertEquals(1, count($ret['users']));
         self::assertEquals($this->uid, array_pop($ret['users'])['id']);
         self::assertEquals($mid, $ret['newsfeed'][0]['refmsg']['id']);
