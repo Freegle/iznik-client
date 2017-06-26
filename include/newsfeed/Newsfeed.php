@@ -132,7 +132,6 @@ class Newsfeed extends Entity
                     foreach ($val as $url) {
                         $p = new Preview($this->dbhr, $this->dbhm);
                         $id = $p->get($url);
-                        error_log("PReview $id");
 
                         if ($id) {
                             $entry['preview'] = $p->getPublic();
