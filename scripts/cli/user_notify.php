@@ -21,10 +21,16 @@ if (count($opts) < 2) {
     if ($id) {
         $n->add(NULL, $id, $type, NULL, $url);
     } else if ($gid) {
-        $membs = $dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND collection = ?;", [
-            $gid,
-            MembershipCollection::APPROVED
-        ]);
+        if ($gid == -1) {
+            $membs = $dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid IN (SELECT id FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1) AND collection = ?;", [
+                MembershipCollection::APPROVED
+            ]);
+        } else {
+            $membs = $dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND collection = ?;", [
+                $gid,
+                MembershipCollection::APPROVED
+            ]);
+        }
 
         $sendcount = 0;
         $skipcount = 0;
@@ -44,7 +50,7 @@ if (count($opts) < 2) {
                 if (count($recent) > 0) {
                     error_log($u->getEmailPreferred() . "..already");
                     $alreadycount++;
-                    break;
+                    continue;
                 }
             }
 
