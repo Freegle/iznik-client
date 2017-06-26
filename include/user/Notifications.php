@@ -57,12 +57,14 @@ class Notifications
                             $not['replyto']
                         ]);
 
-                        foreach ($origs as $orig) {
+                        foreach ($origs as &$orig) {
                             $orig['message'] = $orig['message'] ? (substr($orig['message'], 0, 60) . '...') : NULL;
+                            unset($orig['position']);
                             $not['replyto'] = $orig;
                         }
                     }
 
+                    unset($not['position']);
                     $notif['newsfeed'] = $not;
                 }
             }
