@@ -74,6 +74,72 @@ define([
             }
         },
 
+        shownFind: false,
+        shownGive: false,
+
+        checkMessage: function() {
+            var self = this;
+
+            if (self.inDOM()) {
+                var msg = self.$('.js-message').val();
+
+                if (msg.length > 0) {
+                    var checks = {
+                        'find': [
+                            'wanted',
+                            'looking for',
+                            'has anybody got',
+                            'has anyone got',
+                            'if anyone has'
+                        ],
+                        'give': [
+                            'offer',
+                            'giving away',
+                            'does anyone want'
+                        ]
+                    };
+
+                    if (!self.shownFind) {
+                        var showfind = false;
+
+                        _.each(checks.find, function(c) {
+                            if (msg.indexOf(c) !== -1) {
+                                showfind = true;
+                            }
+                        });
+
+                        if (showfind) {
+                            self.$('.js-find').tooltip('show');
+                            self.shownFind = true;
+                            _.delay(_.bind(function() {
+                                this.$('.js-find').tooltip('hide');
+                            }, self), 10000);
+                        }
+                    }
+
+                    if (!self.shownGive) {
+                        var showgive = false;
+
+                        _.each(checks.give, function(c) {
+                            if (msg.indexOf(c) !== -1) {
+                                showgive = true;
+                            }
+                        });
+
+                        if (showgive) {
+                            self.$('.js-give').tooltip('show');
+                            self.shownGive = true;
+                            _.delay(_.bind(function() {
+                                this.$('.js-give').tooltip('hide');
+                            }, self), 10000);
+                        }
+                    }
+                }
+
+                _.delay(_.bind(self.checkMessage, self), 1000);
+            }
+        },
+
         autoSize: function() {
             // Autosize is expensive, so only do it when we focus on the input field.  That means we only do it
             // when someone is actually going to make a comment.
@@ -183,6 +249,8 @@ define([
                         'Story'
                     ]
                 });
+
+                _.delay(_.bind(self.checkMessage, self), 1000);
 
                 // We can be asked to refetch by the first news
                 self.listenTo(self.collection, 'refetch', _.bind(self.refetch, self));

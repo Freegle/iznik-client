@@ -29,13 +29,15 @@ function updateCookies() {
 
             newcookie = '';
 
-            chrome.cookies.getAll({url: "http://groups.yahoo.com", storeId: stores[s].id}, function (cookies) {
+            // Use domain rather than url to get httpOnly cookies.  Not sure why that should make a difference,
+            // but when using url: http://yahoo.com we didn't get some such as the one called SSL.
+            chrome.cookies.getAll({domain: "yahoo.com", storeId: stores[s].id}, function (cookies) {
                 //chrome.cookies.getAll({ storeId: stores[s].id }, function (cookies) {
-                //console.log("Got cookies");
-                //console.log(cookies);
+                console.log("Got cookies");
+                console.log(cookies);
 
                 for (var j in cookies) {
-                    //console.log(cookies[j].domain);
+                    console.log(cookies[j].domain);
                     if ((cookies[j].domain === ".yahoo.com") ||
                         (cookies[j].domain === ".groups.yahoo.com")) {
                         //console.log("Add for " + cookies[j].domain);
