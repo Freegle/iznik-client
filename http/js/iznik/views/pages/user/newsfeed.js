@@ -221,7 +221,9 @@ define([
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
-                self.$('.js-message').focus();
+                if (!isXS()) {
+                    self.$('.js-message').focus();
+                }
 
                 // Sticky select.
                 var dist = Storage.get('newsfeeddist');

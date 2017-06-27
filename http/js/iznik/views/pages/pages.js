@@ -650,7 +650,6 @@ define([
         template: 'user_newsfeed_notification',
 
         events: {
-            'click': 'goto',
             'mouseover': 'markSeen'
         },
 
@@ -710,6 +709,11 @@ define([
                     var el = self.$('.js-emoji').get()[0];
                     twemoji.parse(el);
                 }
+
+                self.$el.on('click', _.bind(function(){
+                    // TODO Don't know why we need to do this rather than use events.
+                    self.goto();
+                }, self));
             });
 
             return(p)
