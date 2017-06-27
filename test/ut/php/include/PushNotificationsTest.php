@@ -12,7 +12,7 @@ require_once IZNIK_BASE . '/include/message/Message.php';
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class notificationsTest extends IznikTestCase {
+class pushNotificationsTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() {
@@ -39,21 +39,21 @@ class notificationsTest extends IznikTestCase {
         $id = $u->create('Test', 'User', NULL);
         error_log("Created $id");
 
-        $mock = $this->getMockBuilder('Notifications')
+        $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willThrowException(new Exception());
 
-        $n = new Notifications($this->dbhr, $this->dbhm);
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
         error_log("Send Google");
-        $n->add($id, Notifications::PUSH_GOOGLE, 'test');
+        $n->add($id, PushNotifications::PUSH_GOOGLE, 'test');
         assertEquals(1, $mock->notify($id));
         error_log("Send Firefox");
-        $n->add($id, Notifications::PUSH_FIREFOX, 'test2');
+        $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2');
         assertEquals(2, $n->notify($id));
         error_log("Send Android");
-        $n->add($id, Notifications::PUSH_ANDROID, 'test3');
+        $n->add($id, PushNotifications::PUSH_ANDROID, 'test3');
         assertEquals(3, $n->notify($id));
 
         error_log(__METHOD__ . " end");
@@ -66,19 +66,19 @@ class notificationsTest extends IznikTestCase {
         $id = $u->create('Test', 'User', NULL);
         error_log("Created $id");
 
-        $mock = $this->getMockBuilder('Notifications')
+        $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willReturn(TRUE);
-        $mock->executeSend(0, Notifications::PUSH_GOOGLE, [], 'test', NULL);
+        $mock->executeSend(0, PushNotifications::PUSH_GOOGLE, [], 'test', NULL);
 
-        $mock = $this->getMockBuilder('Notifications')
+        $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willThrowException(new Exception());
-        $mock->executeSend(0, Notifications::PUSH_GOOGLE, [], 'test', NULL);
+        $mock->executeSend(0, PushNotifications::PUSH_GOOGLE, [], 'test', NULL);
 
         error_log(__METHOD__ . " end");
     }
@@ -90,28 +90,28 @@ class notificationsTest extends IznikTestCase {
         $id = $u->create('Test', 'User', NULL);
         error_log("Created $id");
 
-        $mock = $this->getMockBuilder('Notifications')
+        $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('fsockopen'))
             ->getMock();
         $mock->method('fsockopen')->willThrowException(new Exception());
         $mock->poke($id, [ 'ut' => 1 ]);
 
-        $mock = $this->getMockBuilder('Notifications')
+        $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('fputs'))
             ->getMock();
         $mock->method('fputs')->willThrowException(new Exception());
         $mock->poke($id, [ 'ut' => 1 ]);
 
-        $mock = $this->getMockBuilder('Notifications')
+        $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('fsockopen'))
             ->getMock();
         $mock->method('fsockopen')->willReturn(NULL);
         $mock->poke($id, [ 'ut' => 1 ]);
 
-        $mock = $this->getMockBuilder('Notifications')
+        $mock = $this->getMockBuilder('PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('puts'))
             ->getMock();

@@ -90,7 +90,7 @@ class Nearby
                                                 ->setSubject($subj)
                                                 ->setFrom([NOREPLY_ADDR => SITE_NAME ])
                                                 ->setReturnPath($u->getBounce())
-                                                ->setTo([ $email => $u->getName() ])
+                                                ->setTo([ $email => $u2->getName() ])
                                                 ->setBody($textbody)
                                                 ->addPart($html, 'text/html');
 

@@ -4,7 +4,6 @@ define([
     'backbone',
     'iznik/base',
     'moment',
-    'jquery.dotdotdot',
     'combodate',
     'jquery.validate.min',
     'jquery.validate.additional-methods',
@@ -103,13 +102,14 @@ define([
 
         render: function() {
             var self = this;
+
+            var desc = self.model.get('description');
+            if (desc && desc.length > 100) {
+                self.model.set('description', desc.substring(0, 100) + '...');
+            }
+
             var p = Iznik.View.prototype.render.call(this).then(function() {
                 self.$el.closest('li').addClass('completefull');
-
-                self.$('.js-description').dotdotdot({
-                    height: 60
-                });
-
                 self.model.on('change', self.render, self);
             });
 

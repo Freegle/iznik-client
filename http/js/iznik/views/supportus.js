@@ -48,7 +48,7 @@ define([
             var now = (new Date()).getTime();
             var p;
 
-            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
+            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000) || true) {
                 p = ABTestGetVariant('SupportUs', function(variant) {
                     self.template = variant.variant;
                     var showglobal = false;
@@ -434,7 +434,7 @@ define([
             var self = this;
 
             // Only do this if we know that they have a Facebook login.
-            if (Iznik.Session.hasFacebook) {
+            if (Iznik.Session.hasFacebook()) {
                 // And only every month.
                 var lastshow = Storage.get('lastpleaseshare');
                 var show = !lastshow || (((new Date()).getTime() - (new Date(lastshow)).getTime()) > 31 * 24 * 60 * 60 * 1000);

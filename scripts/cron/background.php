@@ -5,7 +5,7 @@
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/session/Facebook.php');
 global $dbhr, $dbhm;
 
@@ -56,7 +56,7 @@ try {
                         }
 
                         case 'webpush': {
-                            $n = new Notifications($dbhr, $dbhm);
+                            $n = new PushNotifications($dbhr, $dbhm);
                             $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
                             break;
                         }

@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 
 class CommunityEvent extends Entity
 {
@@ -31,6 +32,9 @@ class CommunityEvent extends Entity
             if ($photo) {
                 $this->dbhm->preExec("UPDATE communityevents_images SET eventid = ? WHERE id = ?;", [ $id, $photo ]);
             }
+
+            $n = new Newsfeed($this->dbhr, $this->dbhm);
+            $fid = $n->create(Newsfeed::TYPE_COMMUNITY_EVENT, $userid, NULL, NULL, NULL, NULL, NULL, $id, NULL, NULL);
         }
 
         return($id);

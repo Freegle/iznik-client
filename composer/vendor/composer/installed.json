@@ -2216,7 +2216,7 @@
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/kartik-v/bootstrap-fileinput/zipball/c103391dc8f87c62dc4b9adaefb1e67bc3ccaac5",
+            "url": "https://api.github.com/repos/kartik-v/bootstrap-fileinput/zipball/28c89de2708f32814879241b6f112ee27b8f4ec8",
             "reference": "b71f878364677bfcf45f5c229819f0b9940e024a",
             "shasum": ""
         },
@@ -3739,6 +3739,55 @@
             "azure",
             "php",
             "sdk"
+        ]
+    },
+    {
+        "name": "kasp3r/link-preview",
+        "version": "v2.0.0",
+        "version_normalized": "2.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/kasp3r/link-preview.git",
+            "reference": "468c0209f1640f270e62a13e5a41da1272e6098c"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/kasp3r/link-preview/zipball/468c0209f1640f270e62a13e5a41da1272e6098c",
+            "reference": "468c0209f1640f270e62a13e5a41da1272e6098c",
+            "shasum": ""
+        },
+        "require": {
+            "guzzlehttp/guzzle": "^6.2",
+            "php": ">=5.6"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^5.3"
+        },
+        "time": "2016-04-14 11:21:07",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "LinkPreview": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Tadas Juozapaitis",
+                "email": "kasp3rito@gmail.com",
+                "homepage": "http://jugbit.com"
+            }
+        ],
+        "description": "Link preview library for PHP",
+        "homepage": "http://github.com/kasp3r/link-preview",
+        "keywords": [
+            "php",
+            "scraping",
+            "url"
         ]
     }
 ]

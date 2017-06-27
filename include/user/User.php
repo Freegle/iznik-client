@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/config/ModConfig.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
@@ -95,7 +95,7 @@ class User extends Entity
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->log = new Log($dbhr, $dbhm);
-        $this->notif = new Notifications($dbhr, $dbhm);
+        $this->notif = new PushNotifications($dbhr, $dbhm);
 
         $this->fetch($dbhr, $dbhm, $id, 'users', 'user', $this->publicatts);
     }
@@ -1397,7 +1397,7 @@ class User extends Entity
                 foreach ($profiles as $profile) {
                     if (!$profile['default']) {
                         $atts['profile'] = [
-                            'url' => pres('url', $profile) ? $profile['url'] : "/uimg_{$profile['id']}.jpg",
+                            'url' => pres('url', $profile) ? $profile['url'] : ('https://' . USER_SITE . "/uimg_{$profile['id']}.jpg"),
                             'default' => FALSE
                         ];
                     }
@@ -3407,5 +3407,46 @@ class User extends Entity
         }
 
         return($ret);
+    }
+
+    public function getLatLng() {
+        $s = $this->getPrivate('settings');
+        $lat = NULL;
+        $lng = NULL;
+
+        if ($s) {
+            $settings = json_decode($s, TRUE);
+
+            if (pres('mylocation', $settings)) {
+                $lat = $settings['mylocation']['lat'];
+                $lng = $settings['mylocation']['lng'];
+            }
+        }
+
+        if (!$lat) {
+            $lid = $this->getPrivate('lastlocation');
+
+            if ($lid) {
+                $l = new Location($this->dbhr, $this->dbhm, $lid);
+                $lat = $l->getPrivate('lat');
+                $lng = $l->getPrivate('lng');
+            }
+        }
+
+        if (!$lat) {
+            # Try for user groups
+            $membs = $this->getMemberships();
+
+            if (count($membs) > 0) {
+                $lat = $membs[0]['lat'];
+                $lng = $membs[0]['lng'];
+            }
+        }
+
+        # ...or failing that, a default.
+        $lat = $lat ? $lat : 53.9450;
+        $lng = $lng ? $lng : -2.5209;
+
+        return([$lat, $lng]);
     }
 }

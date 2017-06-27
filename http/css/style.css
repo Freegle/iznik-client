@@ -245,6 +245,10 @@ body {
     float: left !important;
 }
 
+.vtop {
+    vertical-align: top !important;
+}
+
 .dd {
     min-width: 250px !important;
 }
@@ -1033,6 +1037,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     background-color: #fbeed5;
 }
 
+.backinfo {
+    background-color: rgba(143, 183, 112, 0.19);
+}
+
 /* Chat */
 .chat-list-holder {
     height: calc(100vh - 60px);
@@ -1697,6 +1705,10 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 .thermometer-inner {
     background: #3f83f7;
     height: 20px;
+}
+
+.dropdown-menu {
+    min-width: 320px !important;
 }
 
 /*==================================================

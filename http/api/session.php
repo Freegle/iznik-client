@@ -23,7 +23,7 @@ function session() {
                 # Don't need to return this, and it might be large.
                 $ret['me']['messagehistory'] = NULL;
 
-                $n = new Notifications($dbhr, $dbhm);
+                $n = new PushNotifications($dbhr, $dbhm);
                 $ret['me']['notifications'] = [
                     'push' => $n->get($ret['me']['id'])
                 ];
@@ -251,14 +251,14 @@ function session() {
 
                 $notifs = presdef('notifications', $_REQUEST, NULL);
                 if ($notifs) {
-                    $n = new Notifications($dbhr, $dbhm);
+                    $n = new PushNotifications($dbhr, $dbhm);
                     $push = presdef('push', $notifs, NULL);
                     if ($push) {
                         switch ($push['type']) {
-                            case Notifications::PUSH_GOOGLE:
-                            case Notifications::PUSH_FIREFOX:
-                            case Notifications::PUSH_ANDROID:
-                            case Notifications::PUSH_IOS:
+                            case PushNotifications::PUSH_GOOGLE:
+                            case PushNotifications::PUSH_FIREFOX:
+                            case PushNotifications::PUSH_ANDROID:
+                            case PushNotifications::PUSH_IOS:
                                 $n->add($me->getId(), $push['type'], $push['subscription']);
                                 break;
                         }

@@ -90,10 +90,11 @@ class GroupFacebook {
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
-            $ret = $fb->get($sharefrom . "/posts?since=$since&fields=id,link,message,type,caption,icon,name", $this->token);
+            $ret = $fb->get($sharefrom . "/posts?since=$since&fields=id,link,message,type,caption,icon,name,full_picture", $this->token);
 
             $posts = $ret->getDecodedBody();
             #error_log("Posts " . var_export($posts, TRUE));
+            $id = NULL;
 
             foreach ($posts['data'] as $wallpost) {
                 $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [
@@ -101,6 +102,16 @@ class GroupFacebook {
                     $wallpost['id'],
                     json_encode($wallpost)
                 ]);
+
+                if ($rc) {
+                    $id = $this->dbhm->lastInsertId();
+                }
+            }
+
+            if ($id) {
+                # We only want one copy of this in our newsfeed because it's shown to everyone.
+                $n = new Newsfeed($this->dbhr, $this->dbhm);
+                $fid = $n->create(Newsfeed::TYPE_CENTRAL_PUBLICITY, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $id);
             }
         } catch (Exception $e) {
             $code = $e->getCode();
@@ -151,6 +162,10 @@ class GroupFacebook {
                         $remaining[$post['id']] = $post;
                         unset($remaining[$post['id']]['uid']);
                         $remaining[$post['id']]['uids'] = [];
+                        $data = json_decode($post['data'], TRUE);
+                        $remaining[$post['id']]['full_picture'] = presdef('full_picture', $data, NULL);
+                        $remaining[$post['id']]['message'] = presdef('message', $data, NULL);
+                        $remaining[$post['id']]['type'] = presdef('type', $data, NULL);
 
                         if (preg_match('/(.*)_(.*)/', $post['postid'], $matches)) {
                             # Create the iframe version of the Facebook plugin.

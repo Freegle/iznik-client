@@ -242,8 +242,8 @@ class locationTest extends IznikTestCase {
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $groups = $l->groupsNear();
-        assertEquals(1, count($groups));
-        assertEquals($gid, $groups[0]);
+        error_log(var_export($groups, TRUE));
+        assertTrue(in_array($gid, $groups));
 
         error_log(__METHOD__ . " end");
     }

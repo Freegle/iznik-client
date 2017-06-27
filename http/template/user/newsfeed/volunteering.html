@@ -1,0 +1,37 @@
+<div class="panel fadein">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-12 clickme js-profile">
+                <img src="{{user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
+                <div class="">
+                    <b><span class="success">{{user.displayname}}</span></b> posted a volunteering opportunity
+                    <br />
+                    <small class="text-muted">
+                        <abbr class="timeago nodecor" title="{{timestamp}}" />
+                        <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="js-volunteeringsumm" />
+                <hr class="text-muted nomargin botspace" />
+                <div class="inline js-itemloves" />
+            </div>
+        </div>
+    </div>
+    <div class="panel-footer">
+        <ul class="list-unstyled js-replies" />
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="input-group">
+                    <span class="input-group-addon nopad">
+                        <img src="{{me.profile.url}}" class="img-circle img-tinythumbnail clickme" />
+                    </span>
+                    <textarea rows="1" class="form-control js-comment" placeholder="Write a comment..." />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

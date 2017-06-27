@@ -12,7 +12,7 @@ require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Image.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/include/misc/Search.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/mailtemplates/autorepost.php');
 require_once(IZNIK_BASE . '/mailtemplates/chaseup.php');
 
@@ -392,7 +392,7 @@ class Message
         $this->dbhm = $dbhm;
 
         $this->log = new Log($this->dbhr, $this->dbhm);
-        $this->notif = new Notifications($this->dbhr, $this->dbhm);
+        $this->notif = new PushNotifications($this->dbhr, $this->dbhm);
 
         if ($id) {
             # When constructing we do some LEFT JOINs with other tables where we expect to only have one row at most.

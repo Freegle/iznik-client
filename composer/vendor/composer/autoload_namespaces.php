@@ -16,6 +16,7 @@ return array(
     'PEAR' => array($vendorDir . '/pear/pear_exception'),
     'MaxMind' => array($vendorDir . '/maxmind-db/reader/src'),
     'Mail' => array($vendorDir . '/pear/mail_mime'),
+    'LinkPreview' => array($vendorDir . '/kasp3r/link-preview/src'),
     'Console' => array($vendorDir . '/pear/console_getopt'),
     'Buzz' => array($vendorDir . '/kriswallsmith/buzz/lib'),
     '' => array($vendorDir . '/pear/pear-core-minimal/src'),

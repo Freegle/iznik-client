@@ -32,6 +32,7 @@ class ChatMessage extends Entity
 
     # Use matching based on https://gist.github.com/gruber/249502, but changed:
     # - to only look for http/https, otherwise here:http isn't caught
+    # See also in Newsfeed.
     private $urlPattern = '#(?i)\b(((?:(?:http|https):(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))|(\.com\/))#m';
 
     # ...but this matches some bad character patterns.
@@ -88,37 +89,6 @@ class ChatMessage extends Entity
                 }
             }
         }
-    }
-
-    private function checkSpamhaus($url) {
-        $ret = FALSE;
-
-        $parsed = parse_url( $url );
-
-        if (isset($parsed['host'])) {
-            // Remove www. from domain (but not from www.com)
-            $parsed['host'] = preg_replace('/^www\.(.+\.)/i', '$1', $parsed['host']);
-
-            $blacklists = array(
-                'dbl.spamhaus.org',
-            );
-
-            foreach ($blacklists as $blacklist) {
-                $domain = $parsed['host'] . '.' . $blacklist . '.';
-                $record = @dns_get_record($domain, DNS_A);
-
-                if ($record != NULL && count($record) > 0) {
-                    foreach ($record as $entry) {
-                        if (array_key_exists('ip', $entry) && strpos($entry['ip'], '127.0.1') === 0) {
-                            #error_log("Spamhaus blocked $url");
-                            $ret = TRUE;
-                        }
-                    }
-                }
-            }
-        }
-
-        return $ret;
     }
 
     public function checkReview($message) {
@@ -228,7 +198,7 @@ class ChatMessage extends Entity
 
                     if (!$bad && strlen($url) > 0) {
                         $url = substr($url, strpos($url, '://') + 3);
-                        if ($this->checkSpamhaus("http://$url")) {
+                        if (checkSpamhaus("http://$url")) {
                             $spam = TRUE;
                         }
                     }

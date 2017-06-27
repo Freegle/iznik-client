@@ -180,6 +180,7 @@ define([
             "help": "userContact",
             "invite/:id": "userInvited",
             "invite": "userInvite",
+            "newsfeed/:id": "userNewsfeedSingle",
             "newsfeed": "userNewsfeed",
             "plugins/events/:id": "communityEventsPlugin",
             "plugins/group?groupid=:id(&*t)": "groupPlugin",
@@ -587,10 +588,29 @@ define([
         userNewsfeed: function() {
             var self = this;
 
-            require(["iznik/views/pages/user/newsfeed"], function() {
-                var page = new Iznik.Views.User.Pages.Newsfeed();
-                self.loadRoute({page: page});
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                require(["iznik/views/pages/user/newsfeed"], function() {
+                    var page = new Iznik.Views.User.Pages.Newsfeed();
+                    self.loadRoute({page: page});
+                });
             });
+
+            Iznik.Session.forceLogin();
+        },
+
+        userNewsfeedSingle: function(id) {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                require(["iznik/views/pages/user/newsfeed"], function() {
+                    var page = new Iznik.Views.User.Pages.Newsfeed.Single({
+                        id: id
+                    });
+                    self.loadRoute({page: page});
+                });
+            });
+
+            Iznik.Session.forceLogin();
         },
 
         userInvited: function(id) {
