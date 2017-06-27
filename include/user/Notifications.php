@@ -29,6 +29,14 @@ class Notifications
         return($counts[0]['count']);
     }
 
+    private function snip(&$msg) {
+        if ($msg) {
+            if (strlen($msg) > 57) {
+                $msg = substr($msg, 0, strpos(wordwrap($msg, 60), "\n")) . '...';
+            }
+        }
+    }
+
     public function get($userid, &$ctx) {
         $ret = [];
         $idq = $ctx && pres('id', $ctx) ? (" AND id < " . intval($ctx['id'])) : '';
@@ -50,7 +58,7 @@ class Notifications
 
                 foreach ($nots as $not) {
                     unset($not['position']);
-                    $not['message'] = $not['message'] ? (substr($not['message'], 0, 60) . '...') : NULL;
+                    $this->snip($not['message']);
 
                     if ($not['replyto']) {
                         $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [
@@ -58,7 +66,7 @@ class Notifications
                         ]);
 
                         foreach ($origs as &$orig) {
-                            $orig['message'] = $orig['message'] ? (substr($orig['message'], 0, 60) . '...') : NULL;
+                            $this->snip($orig['message']);
                             unset($orig['position']);
                             $not['replyto'] = $orig;
                         }

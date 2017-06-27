@@ -4,7 +4,6 @@ define([
     'backbone',
     'iznik/base',
     'autosize',
-    'twemoji',
     'iznik/models/message',
     'iznik/models/user/search',
     'iznik/models/newsfeed',
@@ -91,6 +90,7 @@ define([
                             'looking for',
                             'has anybody got',
                             'has anyone got',
+                            'does anyone have',
                             'if anyone has'
                         ],
                         'give': [
@@ -360,16 +360,7 @@ define([
             var msg = self.model.get('message');
 
             if (msg) {
-                msg = msg.replace(/\\\\u(.*?)\\\\u/g, function(match, contents, offset, s) {
-                    var s = contents.split('-');
-                    var ret = '';
-                    _.each(s, function(t) {
-                        ret += twemoji.convert.fromCodePoint(t);
-                    });
-
-                    return(ret);
-                });
-
+                msg = twem(msg);
                 self.model.set('message', msg);
             }
 

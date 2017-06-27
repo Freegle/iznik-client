@@ -431,3 +431,19 @@ function ABTestGetVariant(uid, cb) {
 }
 
 function nullFn() {}
+
+function twem(msg) {
+    if (msg) {
+        msg = msg.replace(/\\\\u(.*?)\\\\u/g, function(match, contents, offset, s) {
+            var s = contents.split('-');
+            var ret = '';
+            _.each(s, function(t) {
+                ret += twemoji.convert.fromCodePoint(t);
+            });
+
+            return(ret);
+        });
+    }
+
+    return(msg);
+}

@@ -632,9 +632,7 @@ define([
 
             // We want the start of the thread.
             var newsfeed = self.model.get('newsfeed');
-            console.log("Newsfeed", newsfeed);
             var url = self.model.get('url');
-            console.log("URL", url);
             if (newsfeed) {
                 var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
 
@@ -657,6 +655,38 @@ define([
                     self.render();
                 });
             }
+        },
+
+        render: function() {
+            var self = this;
+            var newsfeed = self.model.get('newsfeed');
+
+            if (newsfeed) {
+                console.log("Render notif", self.model.attributes);
+                if (newsfeed.message) {
+                    newsfeed.message = twem(newsfeed.message);
+                }
+
+                var replyto = newsfeed.replyto;
+                console.log("Tweak replyto", replyto);
+
+                if (replyto && replyto.message) {
+                    newsfeed.replyto.message = twem(replyto.message);
+                }
+
+                self.model.set('newsfeed', newsfeed);
+            }
+
+            var p = Iznik.View.Timeago.prototype.render.call(this);
+
+            p.then(function(){
+                if (self.$('.js-emoji').length) {
+                    var el = self.$('.js-emoji').get()[0];
+                    twemoji.parse(el);
+                }
+            });
+
+            return(p)
         }
     })
 });
