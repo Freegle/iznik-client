@@ -1,5 +1,5 @@
 <span class="btn btn-white btn-xs js-itemunlove" <% if (!obj.loved) { %>style="display: none"<% } %>>
-    <span class="glyphicons glyphicons-heart vcenter" />Love this
+    <span class="glyphicons glyphicons-heart error vcenter" />Love this
 </span>
 <span class="btn btn-white btn-xs js-itemlove" <% if (obj.loved) { %>style="display: none"<% } %>>
     <span class="glyphicons glyphicons-heart-empty vcenter" />Love this
@@ -8,5 +8,5 @@
     <span class="glyphicons glyphicons-comments vcenter" />&nbsp;Comment
 </span>
 <span class="js-loves" <% if (obj.loves == 0) { %>style="display:none"<% } %>>
-    <span class="glyphicons glyphicons-heart vcenter" /><span class="js-lovecount">{{loves}}</span>
+    <span class="glyphicons glyphicons-heart vcenter error" /><span class="js-lovecount">{{loves}}</span>
 </span>

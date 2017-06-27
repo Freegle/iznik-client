@@ -1,5 +1,5 @@
 <span class="js-replyunlove" <% if (!obj.loved) { %>style="display: none"<% } %>>
-<span class="glyphicons glyphicons-heart vcenter" />Love this
+<span class="glyphicons glyphicons-heart vcenter error" />Love this
 </span>
 <span class="js-replylove" <% if (obj.loved) { %>style="display: none"<% } %>>
 <span class="glyphicons glyphicons-heart-empty vcenter" />Love this
@@ -7,5 +7,5 @@
 &bull;
 <span class="js-reply">Reply</span>
 <span class="js-obj.loves" <% if (obj.loves == 0) { %>style="display:none"<% } %>>
-&bull;<span class="glyphicons glyphicons-heart vcenter" /><span class="js-lovecount">{{obj.loves}}</span>
+&bull;<span class="glyphicons glyphicons-heart vcenter error" /><span class="js-lovecount">{{obj.loves}}</span>
 </span>
