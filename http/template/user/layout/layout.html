@@ -1,220 +1,220 @@
 <nav class="navbar navbar-custom navbar-fixed-top">
-    <div class="nopad completefull container-fluid">
-        <div class="nopad nomargin completefull navbar-header">
-            <button class="reallyHide btn btn-white js-signin js-loggedoutonly margtopsm margright pull-right">Sign in</button>
-            <ul class="list-inline nomargin pull-right navsmallmenu">
-                <li>
-                    <div class="clickme ">
-                        <ul class="list-unstyled list-inline">
-                            <li>
-                                <a href="/chats" class="js-loggedinonly">
-                                    <span class="white fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left padbot" type="button">
-                                        <span class="js-chattotalcount badge badge-unread notifchat" />
-                                    </span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="js-loggedinonly dropdown-toggle js-notifholder" data-toggle="dropdown" title="Notifications">
-                                    <span class="white fullholder glyphicons glyphicon-larger glyphicons-globe vcenter-left padbot" type="button">
-                                        <span class="js-notifcount badge badge-unread notifchat" style="display: none;" />
-                                    </span>
-                                </a>
-                                <div class="dropdown-container">
-                                    <div class="dropdown-toolbar">
-                                        <div class="dropdown-toolbar-actions">
-                                            <a href="#" class="js-markallnotifread">Mark all as read</a>
-                                        </div>
-                                        <h3 class="dropdown-toolbar-title">&nbsp;</h3>
-                                    </div>
-                                    <ul class="dropdown-menu js-notiflist js-notiflist1"></ul>
-                                </div>
-                            </li>
-                        </ul>
+  <div class="nopad completefull container-fluid">
+    <div class="nopad nomargin completefull navbar-header">
+      <button class="reallyHide btn btn-white js-signin js-loggedoutonly margtopsm margright pull-right">Sign in</button>
+      <ul class="list-inline nomargin pull-right navsmallmenu">
+        <li>
+          <div class="clickme ">
+            <ul class="list-unstyled list-inline">
+              <li>
+                <a href="/chats" class="js-loggedinonly">
+                  <span class="white fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left padbot" type="button">
+                    <span class="js-chattotalcount badge badge-unread notifchat" />
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="js-loggedinonly dropdown-toggle js-notifholder" data-toggle="dropdown" title="Notifications">
+                  <span class="white fullholder glyphicons glyphicon-larger glyphicons-globe vcenter-left padbot" type="button">
+                    <span class="js-notifcount badge badge-unread notifchat" style="display: none;" />
+                  </span>
+                </a>
+                <div class="dropdown-container">
+                  <div class="dropdown-toolbar">
+                    <div class="dropdown-toolbar-actions">
+                      <a href="#" class="js-markallnotifread">Mark all as read</a>
                     </div>
-                </li>
-                <li>
-                    <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navsmallmenu navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
-                        <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
-                    </button>
-                </li>
+                    <h3 class="dropdown-toolbar-title">&nbsp;</h3>
+                  </div>
+                  <ul class="dropdown-menu js-notiflist js-notiflist1"></ul>
+                </div>
+              </li>
             </ul>
-            <div id="nonetwork" class="margright pull-right">
-              <span class="glyphicon glyphicon-cloud" aria-hidden="true" />
+          </div>
+        </li>
+        <li>
+          <button id="dropdownmenu" class="js-menu reallyHide js-loggedinonly navsmallmenu navbar-toggle collapsed btn btn-default" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-haspopup="true" role="button" aria-expanded="false">
+            <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true" />
+          </button>
+        </li>
+      </ul>
+      <!--div id="nonetwork" class="margright pull-right">
+        <span class="glyphicon glyphicon-cloud" aria-hidden="true" />
+      </div>
+      <button id="refreshbutton" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();">
+        <span class="glyphicon glyphicon-repeat" aria-hidden="true" />
+      </button>
+      <div id="refreshicon" class="margright pull-right">
+        <img src="/images/userloader.gif" />
+      </div-->
+      <div class="notop js-home clickme padleft pull-left">
+        <img src="/images/user_logo.png" class="padmd img-responsive img-morerounded inline" />
+      </div>
+      <!--div class="navbar-title">Freegle</div-->
+      <div class="collapse navbar-collapse" id="navbar-collapse">
+        <ul class="nav navbar-nav navbar-left reallyHide js-loggedinonly">
+          <li>
+            <a href="/newsfeed" class="margleft nopad text-center" title="Newsfeed">
+              <div class="fullholder glyphicons glyphicon-larger glyphicons-newspaper vcenter-left" />
+              <br /><span>News</span>
+            </a>
+          </li>
+          <li>
+            <a href="/" class="margleft nopad text-center">
+              <div class="fullholder glyphicons glyphicons-home glyphicon-larger vcenter-left" title="My Posts" />
+              <br /><span class="">My&nbsp;Posts</span>
+            </a>
+          </li>
+          <li>
+            <a href="/give" class="margleft nopad text-center">
+              <div class="fullholder glyphicons glyphicons-gift glyphicon-larger vcenter-left" title="Give stuff" />
+              <br /><span class="">Give</span>
+            </a>
+          </li>
+          <li>
+            <a href="/find" class="margleft nopad text-center">
+              <div class="fullholder glyphicons glyphicons-search glyphicon-larger vcenter-left" title="Find stuff" />
+              <br /><span class="">Find</span>
+            </a>
+          </li>
+          <li>
+            <a href="/mygroups" class="margleft nopad text-center">
+              <div class="fullholder glyphicons glyphicons-group glyphicon-larger vcenter-left" title="Your Freegle Groups" />
+              <br /><span class="">My&nbsp;Groups</span>
+            </a>
+          </li>
+          <li>
+            <a href="/explore" class="margleft nopad text-center">
+              <div class="fullholder glyphicons glyphicons-map glyphicon-larger vcenter-left" title="Explore Groups" />
+              <br /><span class="">Explore</span>
+            </a>
+          </li>
+          <li>
+            <a href="/communityevents" class="margleft nopad text-center">
+              <div class="fullholder glyphicons glyphicons-calendar glyphicon-larger vcenter-left" title="Community Events" />
+              <br /><span class="">Events</span>
+            </a>
+          </li>
+          <li>
+            <a href="/volunteering" class="margleft nopad text-center">
+              <div class="fullholder glyphicons glyphicons-flower glyphicon-larger vcenter-left" title="Volunteer" />
+              <br /><span class="">Volunteer</span>
+            </a>
+          </li>
+          <li id="mobile-debug" style="display:none !important;">
+            <a href="/mobiledebug" class="margleft nopad text-center">
+              <div class="fullholder glyphicons glyphicons-sunglasses glyphicon-larger vcenter-left" title="Debug" />
+              <br /><span class="">Debug</span>
+            </a>
+          </li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly">
+          <li class="hidden-xs hidden-sm">
+            <a href="#" class="margleft nopad text-center dropdown-toggle js-notifholder" data-toggle="dropdown" title="Notifications">
+              <div class="fullholder glyphicons glyphicon-larger glyphicons-globe vcenter-left" />
+              <br />
+              <span>
+                Notifications
+                <span class="js-notifcount badge badge-unread" style="display: none;" />
+              </span>
+            </a>
+            <div class="dropdown-container">
+              <div class="dropdown-toolbar">
+                <div class="dropdown-toolbar-actions">
+                  <a href="#" class="js-markallnotifread">Mark all as read</a>
+                </div>
+                <h3 class="dropdown-toolbar-title">&nbsp;</h3>
+              </div>
+              <ul class="dropdown-menu js-notiflist js-notiflist2"></ul>
             </div>
-            <button id="refreshbutton" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();">
-              <span class="glyphicon glyphicon-repeat" aria-hidden="true" />
-            </button>
-            <div id="refreshicon" class="margright pull-right">
-              <img src="/images/userloader.gif" />
-            </div>
-            <div class="notop js-home clickme padleft pull-left">
-                <img src="/images/user_logo.png" class="padmd img-responsive img-morerounded inline" />
-            </div>
-            <!--div class="navbar-title">Freegle</div-->
-            <div class="collapse navbar-collapse" id="navbar-collapse">
-                <ul class="nav navbar-nav navbar-left reallyHide js-loggedinonly">
-                    <li>
-                        <a href="/newsfeed" class="margleft nopad text-center" title="NEwsfeed">
-                            <div class="fullholder glyphicons glyphicon-larger glyphicons-newspaper vcenter-left"/>
-                            <br /><span>News</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/" class="margleft nopad text-center">
-                            <div class="fullholder glyphicons glyphicons-home glyphicon-larger vcenter-left" title="My Posts" />
-                            <br /><span class="">My&nbsp;Posts</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/give" class="margleft nopad text-center">
-                            <div class="fullholder glyphicons glyphicons-gift glyphicon-larger vcenter-left" title="Give stuff" />
-                            <br /><span class="">Give</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/find" class="margleft nopad text-center">
-                            <div class="fullholder glyphicons glyphicons-search glyphicon-larger vcenter-left" title="Find stuff" />
-                            <br /><span class="">Find</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/mygroups" class="margleft nopad text-center">
-                            <div class="fullholder glyphicons glyphicons-group glyphicon-larger vcenter-left" title="Your Freegle Groups" />
-                            <br /><span class="">My&nbsp;Groups</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/explore" class="margleft nopad text-center">
-                            <div class="fullholder glyphicons glyphicons-map glyphicon-larger vcenter-left" title="Explore Groups" />
-                            <br /><span class="">Explore</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/communityevents" class="margleft nopad text-center">
-                            <div class="fullholder glyphicons glyphicons-calendar glyphicon-larger vcenter-left" title="Community Events" />
-                            <br /><span class="">Events</span>
-                        </a>
-                    </li>
-                    <li id="mobile-debug" style="display:none !important;">
-                        <a href="/mobiledebug" class="margleft nopad text-center">
-                            <div class="fullholder glyphicons glyphicons-sunglasses glyphicon-larger vcenter-left" title="Debug" />
-                            <br /><span class="">Debug</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/volunteering" class="margleft nopad text-center">
-                            <div class="fullholder glyphicons glyphicons-flower glyphicon-larger vcenter-left" title="Volunteer" />
-                            <br /><span class="">Volunteer</span>
-                        </a>
-                    </li>
-                </ul>
-                <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly">
-                    <li class="hidden-xs hidden-sm">
-                        <a href="#" class="margleft nopad text-center dropdown-toggle js-notifholder" data-toggle="dropdown" title="Notifications">
-                            <div class="fullholder glyphicons glyphicon-larger glyphicons-globe vcenter-left"/>
-                            <br />
-                            <span>
-                                Notifications
-                                <span class="js-notifcount badge badge-unread" style="display: none;" />
-                            </span>
-                        </a>
-                        <div class="dropdown-container">
-                            <div class="dropdown-toolbar">
-                                <div class="dropdown-toolbar-actions">
-                                    <a href="#" class="js-markallnotifread">Mark all as read</a>
-                                </div>
-                                <h3 class="dropdown-toolbar-title">&nbsp;</h3>
-                            </div>
-                            <ul class="dropdown-menu js-notiflist js-notiflist2"></ul>
-                        </div>
-                    </li>
-                    <li>
-                        <a href="/chats" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers">
-                            <div class="fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button" />
-                            <br />
-                            <span>
-                                Chat
-                                <span class="js-chattotalcount badge badge-unread" style="display: none;" />
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/invite" class="margleft dropdown-toggle nopad text-center" title="Invite other people to Freegle">
-                            <div class="fullholder glyphicons glyphicon-larger glyphicons-plus vcenter-left" type="button" />
-                            <br />
-                            <span>
-                                Invite
-                                <span class="js-invitesleft badge badge-invite" style="display: none;" />
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/help"  class="margleft nopad text-center" title="Help and Support">
-                            <div class="fullholder glyphicons glyphicons-question-sign glyphicon-larger vcenter-left" />
-                            <br /><span class="">Help</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/settings" class="margleft nopad text-center">
-                            <div class="fullholder glyphicons glyphicons-cogwheels glyphicon-larger vcenter-left" title="Settings" />
-                            <br /><span class="">Settings</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#"  class="margleft margright nopad text-center js-logout" title="Logout">
-                            <div class="fullholder glyphicons glyphicons-log-out glyphicon-larger vcenter-left" />
-                            <br /><span class="">Logout</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-</div>
+          </li>
+          <li>
+            <a href="/chats" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers">
+              <div class="fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button" />
+              <br />
+              <span>
+                Chat
+                <span class="js-chattotalcount badge badge-unread" style="display: none;" />
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="/invite" class="margleft dropdown-toggle nopad text-center" title="Invite other people to Freegle">
+              <div class="fullholder glyphicons glyphicon-larger glyphicons-plus vcenter-left" type="button" />
+              <br />
+              <span>
+                Invite
+                <span class="js-invitesleft badge badge-invite" style="display: none;" />
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="/help" class="margleft nopad text-center" title="Help and Support">
+              <div class="fullholder glyphicons glyphicons-question-sign glyphicon-larger vcenter-left" />
+              <br /><span class="">Help</span>
+            </a>
+          </li>
+          <li>
+            <a href="/settings" class="margleft nopad text-center">
+              <div class="fullholder glyphicons glyphicons-cogwheels glyphicon-larger vcenter-left" title="Settings" />
+              <br /><span class="">Settings</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="margleft margright nopad text-center js-logout" title="Logout">
+              <div class="fullholder glyphicons glyphicons-log-out glyphicon-larger vcenter-left" />
+              <br /><span class="">Logout</span>
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
+  </div>
 </nav>
 <div class="container completefull nopad">
-    <div class="row-fluid">
-        <div class="col-md-3 hidden-sm hidden-xs js-leftsidebar">
-            <div class="sidebar-nav-fixed fullholder pull-left affix">
-                <div class="nopad js-loggedinonly">
-                    <ul class="nav ">
-                        <div id="js-leftbar">
-                            <div class="panel fullholder" id="js-eventcontainer" style="display: none">
-                            </div>
-                        </div>
-                    </ul>
-                </div>
+  <div class="row-fluid">
+    <div class="col-md-3 hidden-sm hidden-xs js-leftsidebar">
+      <div class="sidebar-nav-fixed fullholder pull-left affix">
+        <div class="nopad js-loggedinonly">
+          <ul class="nav ">
+            <div id="js-leftbar">
+              <div class="panel fullholder" id="js-eventcontainer" style="display: none">
+              </div>
             </div>
+          </ul>
         </div>
-        <div class="col-xs-12 col-sm-12 col-md-6 nopad">
-            <div class="js-alerts" />
-            <div class="pageContent img-rounded js-pageContent" />
-        </div>
-        <div class="col-md-3 hidden-sm hidden-xs" id="js-rightsidebar">
-            <div class="sidebar-nav-fixed fullholder pull-right affix">
-                <div class="nav js-rightcontent">
-                    <ul class="list-group nomargin list-unstyled">
-                        <li id="js-weightless" />
-                    </ul>
-                    <div id="js-appbuttons" style="display: none">
-                        <div class="row completefull">
-                            <div class="col-xs-12">
-                                <a href="https://play.google.com/store/apps/details?id=org.ilovefreegle.direct" data-realurl="true" class="pull-right" alt="Android app">
-                                    <img alt="Freegle Android app on Google Play" title="Freegle Android app on Google Play"  class="img-responsive" src="/images/en-play-badge.png">
-                                </a>
-                            </div>
-                        </div>
-                        <div class="row completefull">
-                            <div class="col-xs-12">
-                                <a href="https://itunes.apple.com/gb/app/freegle/id970045029?ls=1&amp;mt=8"data-realurl="true" class="pull-right topspace" alt="IOS app">
-                                    <img alt="Freegle app for iPhone, iPad, and iPod touch" title="Freegle app for iPhone, iPad, and iPod touch" class="img-responsive" src="/images/app-store-black-sm.png">
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="panel fullholder" id="js-volunteeringcontainer" style="display: none" />
-        </div>
+      </div>
     </div>
-    <div style="display:none;" id="googleshim"></div>
+    <div class="col-xs-12 col-sm-12 col-md-6 nopad">
+      <div class="js-alerts" />
+      <div class="pageContent img-rounded js-pageContent" />
+    </div>
+    <div class="col-md-3 hidden-sm hidden-xs" id="js-rightsidebar">
+      <div class="sidebar-nav-fixed fullholder pull-right affix">
+        <div class="nav js-rightcontent">
+          <ul class="list-group nomargin list-unstyled">
+            <li id="js-weightless" />
+          </ul>
+          <div id="js-appbuttons" style="display: none">
+            <div class="row completefull">
+              <div class="col-xs-12">
+                <a href="https://play.google.com/store/apps/details?id=org.ilovefreegle.direct" data-realurl="true" class="pull-right" alt="Android app">
+                  <img alt="Freegle Android app on Google Play" title="Freegle Android app on Google Play" class="img-responsive" src="/images/en-play-badge.png">
+                </a>
+              </div>
+            </div>
+            <div class="row completefull">
+              <div class="col-xs-12">
+                <a href="https://itunes.apple.com/gb/app/freegle/id970045029?ls=1&amp;mt=8" data-realurl="true" class="pull-right topspace" alt="IOS app">
+                  <img alt="Freegle app for iPhone, iPad, and iPod touch" title="Freegle app for iPhone, iPad, and iPod touch" class="img-responsive" src="/images/app-store-black-sm.png">
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel fullholder" id="js-volunteeringcontainer" style="display: none" />
+    </div>
+  </div>
+  <div style="display:none;" id="googleshim"></div>
 </div>
