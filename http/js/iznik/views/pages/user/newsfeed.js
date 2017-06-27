@@ -288,11 +288,13 @@ define([
 
                         v.render().then(function() {
                             self.$('.js-item').html(v.$el);
+                            self.$('.js-back').fadeIn('slow');
                         })
                     },
                     error: function() {
                         console.log("Error");
                         self.$('.js-error').fadeIn('slow');
+                        self.$('.js-back').fadeIn('slow');
                     }
                 })
             });
