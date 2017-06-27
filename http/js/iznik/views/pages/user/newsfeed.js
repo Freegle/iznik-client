@@ -622,7 +622,8 @@ define([
         lovesel: '.js-replyloves',
 
         events: {
-            'click .js-reply': 'reply'
+            'click .js-reply': 'reply',
+            'click .js-replyprofile': 'showProfile'
         },
 
         reply: function() {

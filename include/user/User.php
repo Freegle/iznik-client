@@ -1314,22 +1314,15 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         if ($me) {
-            $mylid = $me->getPrivate('lastlocation');
-            $ulid = $this->getPrivate('lastlocation');
-
-            if ($mylid && $ulid) {
-                $myl = new Location($this->dbhr, $this->dbhm, $mylid);
-                $ul = new Location($this->dbhr, $this->dbhm, $ulid);
-                $p1 = new POI($myl->getPrivate('lat'), $myl->getPrivate('lng'));
-                $p2 = new POI($ul->getPrivate('lat'), $ul->getPrivate('lng'));
-                $metres = $p1->getDistanceInMetersTo($p2);
-                $miles = $metres / 1609.344;
-                $miles = $miles > 10 ? round($miles) : round($miles, 1);
-                $ret['milesaway'] = $miles;
-
-                $al = new Location($this->dbhr, $this->dbhm, $ul->getPrivate('areaid'));
-                $ret['area'] = $al->getPublic();
-            }
+            list ($mylat, $mylng) = $me->getLatLng();
+            list ($tlat, $tlng) = $this->getLatLng();
+            $p1 = new POI($mylat, $mylng);
+            $p2 = new POI($tlat, $tlng);
+            $metres = $p1->getDistanceInMetersTo($p2);
+            $miles = $metres / 1609.344;
+            $miles = $miles > 10 ? round($miles) : round($miles, 1);
+            $ret['milesaway'] = $miles;
+            $ret['publiclocation'] = $this->getPublicLocation();
         }
 
         return($ret);
