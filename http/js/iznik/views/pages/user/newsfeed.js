@@ -510,6 +510,9 @@ define([
                             // This is the first one.  Fetch the collection so that if there are any new items
                             // we'll pick them up.
                             self.model.collection.trigger('refetch');
+
+                            // This is the most recent one we've seen.
+                            self.model.seen();
                         }
 
                         _.delay(_.bind(self.checkUpdate, self), 30000);

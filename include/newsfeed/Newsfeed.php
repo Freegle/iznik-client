@@ -265,7 +265,7 @@ class Newsfeed extends Entity
         return($dist);
     }
 
-    public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx) {
+    public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx, $fillin = TRUE) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $users = [];
         $items = [];
@@ -291,7 +291,9 @@ class Newsfeed extends Entity
 
         foreach ($entries as &$entry) {
             # We return invisible entries - they are filtered on the client, and it makes the paging work.
-            $this->fillIn($entry, $users);
+            if ($fillin) {
+                $this->fillIn($entry, $users);
+            }
             $items[] = $entry;
 
             $ctx = [
@@ -336,6 +338,38 @@ class Newsfeed extends Entity
                 $this->id
             ]);
         }
+    }
+
+    public function seen($userid) {
+        $this->dbhm->preExec("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES (?, ?);", [
+            $userid,
+            $this->id
+        ]);
+    }
+
+    public function getUnseen($userid) {
+        # Find the last one we saw.
+        $seens = $this->dbhr->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
+            $userid
+        ]);
+
+        $lastseen = 0;
+        foreach ($seens as $seen) {
+            $lastseen = $seen['newsfeedid'];
+        }
+
+        # Get the first few user-posted messages.  This keeps the unseen count low - if it gets too high
+        # it puts people off.
+        $ctx = NULL;
+        list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
+        $count = 0;
+        foreach ($feeds as $feed) {
+            if ($feed['id'] > $lastseen) {
+                $count++;
+            }
+        }
+
+        return($count);
     }
 
     public function report($reason) {

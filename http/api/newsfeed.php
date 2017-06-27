@@ -22,30 +22,40 @@ function newsfeed() {
                         'newsfeed' => $entry
                     ];
                 } else {
-                    $ctx = presdef('context', $_REQUEST, NULL);
-                    $dist = Newsfeed::DISTANCE;
+                    $count = array_key_exists('count', $_REQUEST) ? filter_var($_REQUEST['count'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
-                    if ($ctx && array_key_exists('distance', $ctx)) {
-                        $dist = $ctx['distance'];
+                    if ($count) {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'unseencount' => $n->getUnseen($me->getId())
+                        ];
+                    } else {
+                        $ctx = presdef('context', $_REQUEST, NULL);
+                        $dist = Newsfeed::DISTANCE;
 
-                        if ($dist == 'nearby') {
-                            $dist = $n->getNearbyDistance($me->getId());
+                        if ($ctx && array_key_exists('distance', $ctx)) {
+                            $dist = $ctx['distance'];
+
+                            if ($dist == 'nearby') {
+                                $dist = $n->getNearbyDistance($me->getId());
+                            }
                         }
+
+                        $dist = intval($dist);
+
+                        $types = presdef('types', $_REQUEST, NULL);
+
+                        list ($users, $items) = $n->getFeed($me->getId(), $dist, $types, $ctx);
+
+                        $ret = [
+                            'ret' => 0,
+                            'context' => $ctx,
+                            'status' => 'Success',
+                            'newsfeed' => $items,
+                            'users' => $users
+                        ];
                     }
-
-                    $dist = intval($dist);
-
-                    $types = presdef('types', $_REQUEST, NULL);
-
-                    list ($users, $items) = $n->getFeed($me->getId(), $dist, $types, $ctx);
-
-                    $ret = [
-                        'ret' => 0,
-                        'context' => $ctx,
-                        'status' => 'Success',
-                        'newsfeed' => $items,
-                        'users' => $users
-                    ];
                 }
                 break;
             }
@@ -72,6 +82,13 @@ function newsfeed() {
                     ];
                 } else if ($action == 'Report') {
                     $n->report($reason);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == 'Seen') {
+                    $n->seen($me->getId());
 
                     $ret = [
                         'ret' => 0,

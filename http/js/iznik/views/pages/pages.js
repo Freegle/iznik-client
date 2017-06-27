@@ -133,6 +133,31 @@ define([
                     _.delay(_.bind(this.notificationCheck, this), 30000);
                 }
             });
+
+            $.ajax({
+                url: API + 'newsfeed?count=true',
+                type: 'GET',
+                context: self,
+                success: function(ret) {
+                    console.log("Got count", ret);
+                    if (ret.ret == 0) {
+                        var el = $('.js-unseennews');
+                        console.log("Compare", el.html(), ret.unseencount);
+                        if (el.html() != ret.unseencount) {
+                            el.html(ret.unseencount);
+
+                            if (ret.unseencount) {
+                                $('.js-unseennews').show();
+                            }
+                            else {
+                                $('.js-unseennews').hide();
+                            }
+                        }
+                    }
+                }, complete: function() {
+                    _.delay(_.bind(this.notificationCheck, this), 30000);
+                }
+            });
         },
 
         render: function (options) {
