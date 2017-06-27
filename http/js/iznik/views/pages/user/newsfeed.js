@@ -81,7 +81,7 @@ define([
             var self = this;
 
             if (self.inDOM()) {
-                var msg = self.$('.js-message').val();
+                var msg = self.$('.js-message').val().toLowerCase();
 
                 if (msg.length > 0) {
                     var checks = {

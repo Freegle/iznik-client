@@ -447,3 +447,29 @@ function twem(msg) {
 
     return(msg);
 }
+
+var chatTitleCount = 0;
+var newsfeedTitleCount = 0;
+
+function setTitleCounts(chat, newsfeed) {
+    if (chat !== null) {
+        chatTitleCount = chat;
+    }
+
+    if (newsfeed !== null) {
+        newsfeedTitleCount = newsfeed;
+    }
+
+    var unseen = chatTitleCount + newsfeedTitleCount;
+
+    // We'll adjust the count in the window title.
+    var title = document.title;
+    var match = /\(.*\) (.*)/.exec(title);
+    title = match ? match[1] : title;
+
+    if (unseen) {
+        document.title = '(' + unseen + ') ' + title;
+    } else {
+        document.title = title;
+    }
+}

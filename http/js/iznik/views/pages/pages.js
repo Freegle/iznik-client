@@ -114,14 +114,19 @@ define([
                 context: self,
                 success: function(ret) {
                     if (ret.ret == 0) {
-                        $('.js-notifholder .js-notifcount').html(ret.count);
+                        var el = $('.js-notifholder .js-notifcount');
+                        if (el.html() != ret.count) {
+                            el.html(ret.count);
 
-                        if (ret.count) {
-                            $('.js-notifholder .js-notifcount').show();
-                            self.notifications.fetch();
-                        }
-                        else {
-                            $('.js-notifholder .js-notifcount').hide();
+                            if (ret.count) {
+                                $('.js-notifholder .js-notifcount').show();
+                                self.notifications.fetch();
+                            }
+                            else {
+                                $('.js-notifholder .js-notifcount').hide();
+                            }
+
+                            setTitleCounts(null, ret.count);
                         }
                     }
                 }, complete: function() {
@@ -633,6 +638,7 @@ define([
             // We want the start of the thread.
             var newsfeed = self.model.get('newsfeed');
             var url = self.model.get('url');
+            console.log("Goto", url);
             if (newsfeed) {
                 var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
 
@@ -662,13 +668,11 @@ define([
             var newsfeed = self.model.get('newsfeed');
 
             if (newsfeed) {
-                console.log("Render notif", self.model.attributes);
                 if (newsfeed.message) {
                     newsfeed.message = twem(newsfeed.message);
                 }
 
                 var replyto = newsfeed.replyto;
-                console.log("Tweak replyto", replyto);
 
                 if (replyto && replyto.message) {
                     newsfeed.replyto.message = twem(replyto.message);
