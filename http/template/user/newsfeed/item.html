@@ -15,6 +15,7 @@
                         </li>
                     </ul>
                 </div>
+                <% if (obj.user) { %>
                 <img src="{{user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
                 <div class="js-profile">
                     <b><span class="success">{{user.displayname}}</span></b>
@@ -24,11 +25,12 @@
                         <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
                     </small>
                 </div>
+                <% } %>
             </div>
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <b class="prewrap forcebreak">{{message}}</b>
+                <b class="prewrap forcebreak js-emoji"><%-message%></b>
                 <% if (obj.preview && !preview.invalid && !preview.spam) { %>
                     <div class="panel panel-default topspace clickme preview js-preview">
                         <div class="row">

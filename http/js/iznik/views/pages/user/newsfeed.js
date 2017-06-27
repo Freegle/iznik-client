@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'autosize',
+    'twemoji',
     'iznik/models/message',
     'iznik/models/user/search',
     'iznik/models/newsfeed',
@@ -175,6 +176,9 @@ define([
             var self = this;
 
             var msg = self.$('.js-message').val();
+            msg = twemoji.replace(msg, function(emoji) {
+                return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
+            });
 
             if (msg) {
                 var mod = new Iznik.Models.Newsfeed({
@@ -353,6 +357,22 @@ define([
         render: function() {
             var self = this;
 
+            var msg = self.model.get('message');
+
+            if (msg) {
+                msg = msg.replace(/\\\\u(.*?)\\\\u/g, function(match, contents, offset, s) {
+                    var s = contents.split('-');
+                    var ret = '';
+                    _.each(s, function(t) {
+                        ret += twemoji.convert.fromCodePoint(t);
+                    });
+
+                    return(ret);
+                });
+
+                self.model.set('message', msg);
+            }
+
             var p = new Promise(function(resolve, reject) {
                 var v = new Iznik.Views.User.Feed.Loves({
                     model: self.model
@@ -369,6 +389,13 @@ define([
                         }
                     });
                 });
+            });
+
+            p.then(function() {
+                if (self.$('.js-emoji').length) {
+                    var el = self.$('.js-emoji').get()[0];
+                    twemoji.parse(el);
+                }
             });
 
             return(p);
@@ -440,9 +467,15 @@ define([
                     // They've used the alt/shift trick.
                     self.$('.js-comment').val(self.$('.js-comment').val() + "\n");
                 } else  {
+                    var msg = self.$('.js-comment').val();
+
+                    msg = twemoji.replace(msg, function(emoji) {
+                        return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
+                    });
+
                     var mod = new Iznik.Models.Newsfeed({
                         replyto: self.model.get('id'),
-                        message: self.$('.js-comment').val()
+                        message: msg
                     });
                     
                     mod.save().then(function() {
@@ -525,6 +558,8 @@ define([
                 }
 
                 if (self.template) {
+                    var msg = self.model.get('message');
+
                     p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
                         model: self.model
                     });
@@ -597,7 +632,7 @@ define([
         reply: function() {
             this.model.collection.trigger('reply');
         }
-    })
+    });
 
     Iznik.Views.User.Feed.Report = Iznik.Views.Modal.extend({
         template: 'user_newsfeed_report',
