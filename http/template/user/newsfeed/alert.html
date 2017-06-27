@@ -1,0 +1,38 @@
+<div class="panel fadein">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-12 clickme">
+                <img src="/images/user_logo.png" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
+                <div class="">
+                    <b><span class="success">{{sitename}}</span></b>
+                    <br />
+                    <small class="text-muted">
+                        <abbr class="timeago nodecor" title="{{timestamp}}" />
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="alert alert-info">
+                    <b class="prewrap">{{message}}</b>
+                </div>
+                <hr class="text-muted nomargin botspace" />
+                <div class="js-itemloves" />
+            </div>
+        </div>
+    </div>
+    <div class="panel-footer">
+        <ul class="list-unstyled js-replies" />
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="input-group">
+                    <span class="input-group-addon nopad">
+                        <img src="{{me.profile.url}}" class="img-circle img-tinythumbnail clickme" />
+                    </span>
+                    <textarea rows="1" class="form-control js-comment"  spellcheck="true" placeholder="Write a comment..." />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

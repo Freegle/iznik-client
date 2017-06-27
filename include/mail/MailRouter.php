@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
-require_once(IZNIK_BASE . '/include/user/Notifications.php');
+require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/mail/Digest.php');
 require_once(IZNIK_BASE . '/include/mail/EventDigest.php');
@@ -140,7 +140,7 @@ class MailRouter
 
         # Notify mods of new work
         $groups = $this->msg->getGroups();
-        $n = new Notifications($this->dbhr, $this->dbhm);
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
 
         foreach ($groups as $groupid) {
             $n->notifyGroupMods($groupid);
@@ -420,7 +420,7 @@ class MailRouter
                         }
 
                         if ($notify) {
-                            $n = new Notifications($this->dbhr, $this->dbhm);
+                            $n = new PushNotifications($this->dbhr, $this->dbhm);
                             $n->notifyGroupMods($gid);
                         }
                     }

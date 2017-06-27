@@ -2,14 +2,59 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title js-modal-title">Thanks!</h4>
+                <div class="glyphicon glyphicon-remove-circle clickme pull-right glyphicon-larger clickme" class="close" data-dismiss="modal" />
+                <h4 class="modal-title js-modal-title">Thanks</h4>
             </div>
             <div class="modal-body js-modal-body">
-                <p>One of our volunteers will check over your event, and then we'll publicise it to other freeglers.</p>
-                <p>Hope it goes well!</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-error js-cancel">Close</button>
+                <p>One of our volunteers will check over your event, and then we'll publicise it to other freeglers.  Hope it goes well!</p>
+                <div class="alert alert-info">It would be lovely if you could promote Freegle at this event - fair's fair!  We can send you some little Freegle cards to give out to people.</div>
+                <div class="js-howmany">
+                    <p class="text-center">Would you like some?</p>
+                    <div class="row">
+                        <div class="col-xs-4 text-center">
+                            <div class="btn btn-white btn-lg botspace js-justafew">About 15</div>
+                        </div>
+                        <div class="col-xs-4 text-center">
+                            <div class="btn btn-white btn-lg botspace js-more">More than 15</div>
+                        </div>
+                        <div class="col-xs-4 text-center">
+                            <div class="btn btn-white btn-lg botspace js-close">No thanks</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="js-afew" style="display: none">
+                    <p>One of our lovely volunteers will post some to you for free.</p>
+                    <p>Please give us a postal address to send them to.</p>
+                    <div class="js-postaladdress" />
+                </div>
+                <div class="js-more" style="display: none">
+                    <p>We can't afford to send larger numbers, but you can order them directly.</p>
+                    <p>You can do this from Moo - they're not the cheapest, but we've uploaded the design.  Register
+                        and click to create a product.</p>
+                    <div class="row">
+                        <div class="col-xs-12 text-center">
+                            <a href="https://www.moo.com/m4b/account/signup/landing/29f50f18-fe02-4b54-b95a-f10dea647081" data-realurl="true" target="_blank">
+                                <span class="btn btn-success btn-lg">
+                                    Order from Moo
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                    <p>Or you can download the design and then upload it to other sites (e.g.
+                        <a href="http://www.vistaprint.co.uk" data-realurl="true" target="_blank">Vistaprint</a> or
+                        <a href="instantprint.co.uk" data-realurl="true" target="_blank">Instantprint</a>).  A bit
+                        more effort, but cheaper.
+                    </p>
+                    <div class="row">
+                        <div class="col-xs-12 text-center">
+                            <a class="js-nodefault" href="/misc/businesscards/FreegleBusinessCardFront.pdf" data-realurl="true" target="_blank">
+                                <span class="btn btn-white btn-lg">
+                                    Download Design
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
+    'iznik/models/notification',
     'iznik/events'
 ], function($, _, Backbone, Iznik, ChatHolder, monitor) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
@@ -124,6 +125,31 @@ define([
 
         logout: function() {
             logout();
+        },
+
+        notificationCheck: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + 'notification?count=true',
+                type: 'GET',
+                context: self,
+                success: function(ret) {
+                    if (ret.ret == 0) {
+                        $('.js-notifholder .js-notifcount').html(ret.count);
+
+                        if (ret.count) {
+                            $('.js-notifholder .js-notifcount').show();
+                            self.notifications.fetch();
+                        }
+                        else {
+                            $('.js-notifholder .js-notifcount').hide();
+                        }
+                    }
+                }, complete: function() {
+                    _.delay(_.bind(this.notificationCheck, this), 30000);
+                }
+            });
         },
 
         render: function (options) {
@@ -273,6 +299,50 @@ define([
                             } else {
                                 $('.js-invitesleft').html('').show();
                             }
+                        }
+
+                        if ($('.js-notiflist').length) {
+                            // Notifications count and dropdown.
+                            self.notificationCheck();
+                            self.notifications = new Iznik.Collections.Notification();
+
+                            self.notificationsCV1 = new Backbone.CollectionView({
+                                el: $('.js-notiflist1'),
+                                modelView: Iznik.Views.Notification,
+                                collection: self.notifications,
+                                processKeyEvents: false
+                            });
+
+                            self.notificationsCV2 = new Backbone.CollectionView({
+                                el: $('.js-notiflist2'),
+                                modelView: Iznik.Views.Notification,
+                                collection: self.notifications,
+                                processKeyEvents: false
+                            });
+
+                            self.notificationsCV1.render();
+                            self.notificationsCV2.render();
+                            self.notifications.fetch();
+
+                            $(".js-notifcount").click(function (e) {
+                                // Fetch the notifications, which the CV will then render.
+                                self.notifications.fetch().then(function() {
+                                    console.log("Notifications", self.notifications);
+                                });
+                            });
+
+                            $(".js-markallnotifread").click(function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                self.notifications.each(function(notif) {
+                                    if (!notif.get('seen')) {
+                                        notif.seen();
+                                    }
+                                });
+
+                                $('.js-notifholder .js-notifcount').hide();
+                            });
                         }
 
                         templateFetch(self.template).then(function(tpl) {
@@ -575,4 +645,49 @@ define([
             return(p);
         }
     });
+
+    Iznik.Views.Notification = Iznik.View.Timeago.extend({
+        tagName: 'li',
+
+        className: 'notification',
+
+        template: 'user_newsfeed_notification',
+
+        events: {
+            'click': 'goto',
+            'mouseover': 'markSeen'
+        },
+
+        goto: function() {
+            var self = this;
+
+            // We want the start of the thread.
+            var newsfeed = self.model.get('newsfeed');
+            console.log("Newsfeed", newsfeed);
+            var url = self.model.get('url');
+            console.log("URL", url);
+            if (newsfeed) {
+                var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
+
+                if (!self.model.get('seen')) {
+                    self.model.seen();
+                    Router.navigate('/newsfeed/' + id, true);
+                } else {
+                    Router.navigate('/newsfeed/' + id, true);
+                }
+            } else if (url) {
+                Router.navigate(url, true);
+            }
+        },
+
+        markSeen: function() {
+            var self = this;
+
+            if (!self.model.get('seen')) {
+                self.model.seen().then(function() {
+                    self.render();
+                });
+            }
+        }
+    })
 });

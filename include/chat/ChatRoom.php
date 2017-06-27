@@ -156,7 +156,7 @@ class ChatRoom extends Entity
             $myid = $me ? $me->getId() : NULL;
 
             # Poke the (other) member(s) to let them know to pick up the new chat
-            $n = new Notifications($this->dbhr, $this->dbhm);
+            $n = new PushNotifications($this->dbhr, $this->dbhm);
 
             foreach ([$user1, $user2] as $user) {
                 if ($myid != $user) {
@@ -221,7 +221,7 @@ class ChatRoom extends Entity
             $this->updateRoster($user1, NULL);
 
             # Poke the group mods to let them know to pick up the new chat
-            $n = new Notifications($this->dbhr, $this->dbhm);
+            $n = new PushNotifications($this->dbhr, $this->dbhm);
 
             $n->pokeGroupMods($groupid, [
                 'newroom' => $this->id
@@ -637,7 +637,7 @@ class ChatRoom extends Entity
             if ($rc && $this->dbhm->rowsAffected()) {
                 # We have updated our last seen.  Notify ourselves because we might have multiple devices which
                 # have counts/notifications which need updating.
-                $n = new Notifications($this->dbhr, $this->dbhm);
+                $n = new PushNotifications($this->dbhr, $this->dbhm);
                 #error_log("Update roster for $userid set last seen $lastmsgseen from {$_SERVER['REMOTE_ADDR']}");
                 $n->notify($userid);
             }
@@ -717,7 +717,7 @@ class ChatRoom extends Entity
         }
 
 
-        $n = new Notifications($this->dbhr, $this->dbhm);
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
         $count = 0;
 
         #error_log("Chat #{$this->id} Poke mods $mods users " . var_export($userids, TRUE));
@@ -792,7 +792,7 @@ class ChatRoom extends Entity
         }
 
         # Now Push.
-        $n = new Notifications($this->dbhr, $this->dbhm);
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
         foreach ($userids as $userid) {
             if ($userid != $excludeuser) {
                 $n->notify($userid);
@@ -1155,7 +1155,7 @@ class ChatRoom extends Entity
                                 }
 
                                 case ChatMessage::TYPE_MODMAIL: {
-                                    $thisone = "Message from Volunteers:\r\n\r\n";
+                                    $thisone = "Message from Volunteers:\r\n\r\n{$unmailedmsg['message']}";
                                     break;
                                 }
 

@@ -104,7 +104,7 @@ define([
 
             self.events.fetch(args).then(function() {
                 self.$('.js-list').fadeIn('slow');
-                if (self.events.length == 0) {
+                if (self.events && self.events.length == 0) {
                     self.$('.js-none').fadeIn('slow');
                 }
             });

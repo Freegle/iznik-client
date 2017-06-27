@@ -545,6 +545,38 @@ function wordsInCommon($sentence1, $sentence2)
     return($ret);
 }
 
+function checkSpamhaus($url) {
+    $ret = FALSE;
+
+    $parsed = parse_url( $url );
+
+    if (isset($parsed['host'])) {
+        // Remove www. from domain (but not from www.com)
+        $parsed['host'] = preg_replace('/^www\.(.+\.)/i', '$1', $parsed['host']);
+
+        $blacklists = array(
+            'dbl.spamhaus.org',
+        );
+
+        foreach ($blacklists as $blacklist) {
+            $domain = $parsed['host'] . '.' . $blacklist . '.';
+            $record = @dns_get_record($domain, DNS_A);
+
+            if ($record != NULL && count($record) > 0) {
+                foreach ($record as $entry) {
+                    if (array_key_exists('ip', $entry) && strpos($entry['ip'], '127.0.1') === 0) {
+                        #error_log("Spamhaus blocked $url");
+                        $ret = TRUE;
+                    }
+                }
+            }
+        }
+    }
+
+    return $ret;
+}
+
+
 function randomFloat($min = 0, $max = 1) {
     return $min + mt_rand() / mt_getrandmax() * ($max - $min);
 }

@@ -52,6 +52,8 @@ class Story extends Entity
 
     public function getPublic() {
         $ret = parent::getPublic();
+
+        $ret['date'] = ISODate($ret['date']);
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         $u = User::get($this->dbhr, $this->dbhm, $this->story['userid']);

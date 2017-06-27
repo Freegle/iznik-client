@@ -25,12 +25,14 @@ class volunteeringTest extends IznikTestCase {
 
         $g = Group::get($dbhr, $dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
         $dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test vacancy';");
         $dbhm->preExec("DELETE FROM volunteering WHERE title LIKE 'Test volunteering%';");
     }
 
     protected function tearDown() {
         parent::tearDown ();
+        $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test vacancy';");
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title LIKE 'Test volunteering%';");
     }

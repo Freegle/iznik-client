@@ -244,7 +244,7 @@ define([
                             // Add the default standard actions.
                             var configs = Iznik.Session.get('configs');
                             var sessgroup = Iznik.Session.get('groups').get(group.id);
-                            var config = configs.get(sessgroup.get('configid'));
+                            var config = sessgroup ? configs.get(sessgroup.get('configid')) : undefined;
 
                             if (!_.isUndefined(config) &&
                                 config.get('subjlen') &&

@@ -4,8 +4,45 @@ define([
     'backbone',
     'iznik/base'
 ], function($, _, Backbone, Iznik) {
-    Iznik.Models.Newsfeed= Iznik.Model.extend({
+    Iznik.Models.Newsfeed = Iznik.Model.extend({
         urlRoot: API + 'newsfeed',
+
+        love: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'Love'
+                }
+            }));
+        },
+
+        report: function(reason) {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'Report',
+                    reason: reason
+                }
+            }));
+        },
+
+        unlove: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'Unlove'
+                }
+            }));
+        },
 
         parse: function (ret) {
             if (ret.hasOwnProperty('newsfeed')) {
@@ -21,10 +58,17 @@ define([
 
         url: API + 'newsfeed',
 
+        comparator: function(a) {
+            return(-(new Date(a.get('timestamp'))).getTime());
+        },
+
         parse: function(ret) {
             var self = this;
 
             if (ret.hasOwnProperty('newsfeed')) {
+                // Save return used by infinite scroll.
+                self.ret = ret;
+
                 // Fill in the users - each item has the user object below it for our convenience, even though the server
                 // returns them in a separate object for bandwidth reasons.
                 _.each(ret.newsfeed, function(item, index, list) {
@@ -35,7 +79,7 @@ define([
                     if (item.replies) {
                         _.each(item.replies, function(reply, index, list) {
                             if (reply.userid) {
-                                reply.user = ret.users[item.userid];
+                                reply.user = ret.users[reply.userid];
                             }
                         });
                     }
@@ -46,5 +90,9 @@ define([
                 return(null);
             }
         }
+    });
+
+    Iznik.Collections.Replies = Iznik.Collections.Newsfeed.extend({
+        comparator: 'id'
     });
 });
