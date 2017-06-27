@@ -120,7 +120,6 @@ define([
 
                             if (ret.count) {
                                 $('.js-notifholder .js-notifcount').show();
-                                self.notifications.fetch();
                             }
                             else {
                                 $('.js-notifholder .js-notifcount').hide();
@@ -135,10 +134,8 @@ define([
                         type: 'GET',
                         context: self,
                         success: function(ret) {
-                            console.log("Got count", ret);
                             if (ret.ret == 0) {
                                 var el = $('.js-unseennews');
-                                console.log("Compare", el.html(), ret.unseencount);
                                 if (el.html() != ret.unseencount) {
                                     el.html(ret.unseencount);
 
@@ -328,12 +325,14 @@ define([
                             self.notificationsCV2.render();
                             self.notifications.fetch();
 
-                            $(".js-notifcount").click(function (e) {
+                            $(".js-notifholder").click(_.bind(function (e) {
+                                var self = this;
                                 // Fetch the notifications, which the CV will then render.
+                                console.log("Clicked on notifications");
                                 self.notifications.fetch().then(function() {
                                     console.log("Notifications", self.notifications);
                                 });
-                            });
+                            }, self));
 
                             $(".js-markallnotifread").click(function (e) {
                                 e.preventDefault();

@@ -81,7 +81,9 @@ class Newsfeed extends Entity
                         $n = new Notifications($this->dbhr, $this->dbhm);
                         $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id);
 
-                        $commenters = $this->dbhr->preQuery("SELECT DISTINCT userid FROM newsfeed WHERE replyto = ? AND userid != ?;", [
+                        $commenters = $this->dbhr->preQuery("SELECT DISTINCT userid FROM newsfeed WHERE replyto = ? AND userid != ? UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = ? AND userid != ? ;", [
+                            $replyto,
+                            $orig['userid'],
                             $replyto,
                             $orig['userid']
                         ]);
