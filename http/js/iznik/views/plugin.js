@@ -114,7 +114,7 @@ define([
 
                     var count = self.collection.length; // CC
                     $("#js-work2").text("Background work: "+count);
-                    //console.log("plugin render " + count + " work item(s)");
+                    console.log("plugin render " + count + " work item(s)");    // REMOVE
 
                     // Update our count when the number of work items changes.
                     self.listenTo(self.collection, 'add remove', self.updatePluginCount);
@@ -314,7 +314,7 @@ define([
 
             var count = self.collection.length; // CC
             $("#js-work2").text("Background work: " + count);
-            //console.log("plugin checkWork " + count + " work item(s)");
+            console.log("plugin checkWork " + count + " work item(s)"); // REMOVE
     
             if (self.connected) {
                 // Get any first item of work to do.
@@ -322,7 +322,7 @@ define([
     
                 if (first && !first.get('running')) {
                     first.set('running', true);
-                    //console.log("First item", first);
+console.log("First item", first);   // REMOVE
     
                     var groupname;
                     var v = first.get('subview');

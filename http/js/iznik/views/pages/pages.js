@@ -209,17 +209,12 @@ define([
                         rightaccordion = $('#rightaccordion');
 
                         if (!rightbar) {
-                            var s = new Iznik.Views.Supporters();
-                            s.render().then(function(s) {
-                                rightaccordion.append(s.el);
-
-                                require(['iznik/accordionpersist', 'iznik/views/plugin'], function() {
-                                    window.IznikPlugin = new Iznik.Views.Plugin.Main();
-                                    IznikPlugin.render().then(function(v) {
-                                        rightaccordion.append(v.el);
-                                    })
-                                    rightaccordion.accordionPersist();
-                                });
+                            require(['iznik/accordionpersist', 'iznik/views/plugin'], function() {
+                                window.IznikPlugin = new Iznik.Views.Plugin.Main();
+                                IznikPlugin.render().then(function(v) {
+                                    rightaccordion.append(v.el);
+                                })
+                                rightaccordion.accordionPersist();
                             });
                         } else {
                             rightaccordion.empty().append(rightbar);
