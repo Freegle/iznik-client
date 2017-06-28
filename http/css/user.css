@@ -1,4 +1,3 @@
-/* This contains styles which are predominantly differences in colours */
 .bodyback {
     background-image: url('/images/wallpaper.png');
 }
@@ -39,7 +38,7 @@
     background-color: #61AE24 !important;
     border-color: #002d08 #002d08 hsl(131, 100%, 0%);
     color: #fff !important;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.59);
+    /*text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.59);*/
     -webkit-font-smoothing: antialiased;
 }
 

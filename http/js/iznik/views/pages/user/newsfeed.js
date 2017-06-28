@@ -221,7 +221,7 @@ define([
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
-                if (!isXS()) {
+                if (!isXS() && !isSM()) {
                     self.$('.js-message').focus();
                 }
 

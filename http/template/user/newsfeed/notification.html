@@ -7,7 +7,7 @@
             </div>
         </div>
         <div class="media-body">
-            <span class="notification-title"><span class="small">{{fromuser.displayname}} commented on "{{newsfeed.replyto.message}}"</span></span>
+            <span class="notification-title"><span class="small">{{fromuser.displayname}} commented <% if (newsfeed.replyto.message) { %>on "{{newsfeed.replyto.message}}<% } %>"</span></span>
             <p class="notification-desc">
                 <strong class="js-emoji">{{newsfeed.message}}</strong>
             </p>
@@ -24,7 +24,7 @@
             </div>
         </div>
         <div class="media-body">
-            <span class="notification-title"><span class="small">{{fromuser.displayname}} commented on your post "{{newsfeed.replyto.message}}"</span></span>
+            <span class="notification-title"><span class="small">{{fromuser.displayname}} commented on your post <% if (newsfeed.replyto.message) { %>"{{newsfeed.replyto.message}}"<% } %></span></span>
             <p class="notification-desc">
                 <strong class="js-emoji">{{newsfeed.message}}</strong>
             </p>
@@ -41,7 +41,7 @@
             </div>
         </div>
         <div class="media-body">
-            <span class="notification-title"><span class="small">{{fromuser.displayname}} loves your post "{{newsfeed.message}}"</span></span>
+            <span class="notification-title"><span class="small">{{fromuser.displayname}} loves your post<% if (newsfeed.message) { %> "{{newsfeed.message}}"<% } %></span></span>
             <p class="notification-desc">
             </p>
             <div class="notification-meta">
