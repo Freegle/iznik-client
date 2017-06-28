@@ -94,10 +94,21 @@ define([
         },
 
         info: function() {
-            var v = new Iznik.Views.User.Volunteering.Details({
-                model: this.model
+            var self = this;
+
+            // We might have a snippet.  Fetch the full thing.
+            self.model = new Iznik.Models.Volunteering({
+                id: self.model.get('id')
             });
-            v.render();
+
+            self.model.fetch({
+                merge: true
+            }).then(function() {
+                var v = new Iznik.Views.User.Volunteering.Details({
+                    model: self.model
+                });
+                v.render();
+            });
         },
 
         render: function() {
