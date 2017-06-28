@@ -211,6 +211,20 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['newsfeed']));
         assertEquals(1, count($ret['newsfeed'][0]['replies']));
 
+        # Refer it to WANTED - generates another reply.
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'ReferToWanted'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(2, count($ret['newsfeed']['replies']));
+
         # Report it
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,

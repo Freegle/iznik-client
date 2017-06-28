@@ -416,12 +416,21 @@ define([
             'click .js-replylove': 'love',
             'click .js-itemlove': 'love',
             'click .js-replyunlove': 'unlove',
-            'click .js-itemunlove': 'unlove'
+            'click .js-itemunlove': 'unlove',
+            'click .js-loves': 'lovelist'
+        },
+
+        lovelist: function() {
+            var self = this;
+            if (self.model.get('loves')) {
+                (new Iznik.Views.User.Feed.Loves.List({
+                    model: self.model
+                })).render();
+            }
         },
 
         love: function() {
             var self = this;
-            console.log("Love");
 
             self.model.love().then(function() {
                 self.model.fetch().then(function() {
@@ -432,7 +441,6 @@ define([
 
         unlove: function() {
             var self = this;
-            console.log("Unlove");
 
             self.model.unlove().then(function() {
                 self.model.fetch().then(function() {
@@ -440,6 +448,44 @@ define([
                 });
             });
         }
+    });
+
+    Iznik.Views.User.Feed.Loves.List = Iznik.Views.Modal.extend({
+        template: 'user_newsfeed_lovelist',
+
+        render: function() {
+            var self = this;
+
+            var p = self.model.fetch({
+                data: {
+                    lovelist: true
+                }
+            });
+
+            p.then(function() {
+                Iznik.Views.Modal.prototype.render.call(self, {
+                    model: self.model
+                }).then(function() {
+                    self.collection = new Iznik.Collection(self.model.get('lovelist'));
+                    console.log("Loves", self.model.attributes, self.collection);
+
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-list'),
+                        modelView: Iznik.Views.User.Feed.Loves.List.One,
+                        collection: self.collection,
+                        processKeyEvents: false
+                    });
+
+                    self.collectionView.render();
+                });
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Feed.Loves.List.One = Iznik.View.extend({
+        template: 'user_newsfeed_onelove'
     });
 
     Iznik.Views.User.Feed.Item = Iznik.Views.User.Feed.Base.extend({

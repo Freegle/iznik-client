@@ -108,7 +108,7 @@ class Newsfeed extends Entity
         return($id);
     }
 
-    public function getPublic() {
+    public function getPublic($lovelist) {
         $atts = parent::getPublic();
         $users = [];
 
@@ -118,7 +118,23 @@ class Newsfeed extends Entity
 
         foreach ($atts['replies'] as &$reply) {
             $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
+            $ctx = NULL;
             $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        }
+
+        if ($lovelist) {
+            $atts['lovelist'] = [];
+            $loves = $this->dbhr->preQuery("SELECT * FROM newsfeed_likes WHERE newsfeedid = ?;", [
+                $this->id
+            ]);
+
+            foreach ($loves as $love) {
+                $u = User::get($this->dbhr, $this->dbhm, $love['userid']);
+                $ctx = NULL;
+                $uatts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $uatts['publiclocation'] = $u->getPublicLocation();
+                $atts['lovelist'][] = $uatts;
+            }
         }
 
         return($atts);

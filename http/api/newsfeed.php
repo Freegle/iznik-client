@@ -14,7 +14,8 @@ function newsfeed() {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 if ($id) {
-                    $entry = $n->getPublic();
+                    $lovelist = array_key_exists('lovelist', $_REQUEST) ? filter_var($_REQUEST['lovelist'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+                    $entry = $n->getPublic($lovelist);
 
                     $ret = [
                         'ret' => 0,
