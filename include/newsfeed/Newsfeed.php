@@ -245,11 +245,23 @@ class Newsfeed extends Entity
                 $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
                     $entry['id']
                 ], FALSE);
+                
+                $last = NULL;
 
                 foreach ($replies as &$reply) {
                     # Replies only one deep at present.
                     $this->fillIn($reply, $users, FALSE);
+
+                    if ($reply['visible'] &&
+                        $last['userid'] == $reply['userid'] &&
+                        $last['type'] == $reply['type'] &&
+                        $last['message'] == $reply['message']) {
+                        # Suppress duplicates.
+                        $reply['visible'] = FALSE;
+                    }
+                    
                     $entry['replies'][] = $reply;
+                    $last = $reply;
                 }
             }
         }
@@ -307,18 +319,30 @@ class Newsfeed extends Entity
         $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
         #error_log($sql);
         $entries = $this->dbhr->preQuery($sql);
+        $last = NULL;
 
         foreach ($entries as &$entry) {
             # We return invisible entries - they are filtered on the client, and it makes the paging work.
             if ($fillin) {
                 $this->fillIn($entry, $users);
             }
+
+            if ($entry['visible'] &&
+                $last['userid'] == $entry['userid'] &&
+                $last['type'] == $entry['type'] &&
+                $last['message'] == $entry['message']) {
+                # Suppress duplicates.
+                $entry['visible'] = FALSE;
+            }
+
             $items[] = $entry;
 
             $ctx = [
                 'timestamp' => ISODate($entry['timestamp']),
                 'distance' => $dist
             ];
+
+            $last = $entry;
         }
 
         return([$users, $items]);
