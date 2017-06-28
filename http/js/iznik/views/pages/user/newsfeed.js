@@ -327,7 +327,11 @@ define([
         },
 
         clickPreview: function() {
-            window.open(this.model.get('preview').url);
+            var p = this.model.get('preview');
+
+            if (p && p.hasOwnProperty('url') && p.url) {
+                window.open(p.url);
+            }
         },
 
         report: function(e) {
@@ -570,7 +574,7 @@ define([
                             self.replies.add(replies);
                         }
 
-                        if (self.model.collection.indexOf(self.model) === 0) {
+                        if (self.model.collection && self.model.collection.indexOf(self.model) === 0) {
                             // This is the first one.  Fetch the collection so that if there are any new items
                             // we'll pick them up.
                             self.model.collection.trigger('refetch');

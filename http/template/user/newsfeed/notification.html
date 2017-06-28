@@ -1,84 +1,86 @@
-<div class="<% if (!obj.seen) { %>backinfo<% } %>">
-    <% if (type == 'CommentOnCommented') { %>
-    <div class="media clickme">
-        <div class="media-left">
-            <div class="media-object topspace">
-                <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.url}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
+<div class="js-top">
+    <div class="<% if (!obj.seen) { %>backinfo<% } %>">
+        <% if (type == 'CommentOnCommented') { %>
+        <div class="media clickme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.url}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title"><span class="small">{{fromuser.displayname}} commented <% if (newsfeed.replyto.message) { %>on "{{newsfeed.replyto.message}}"<% } %></span></span>
+                <p class="notification-desc">
+                    <strong class="js-emoji">{{newsfeed.message}}</strong>
+                </p>
+                <div class="notification-meta">
+                    <abbr class="small timeago nodecor" title="{{timestamp}}" />
+                </div>
             </div>
         </div>
-        <div class="media-body">
-            <span class="notification-title"><span class="small">{{fromuser.displayname}} commented <% if (newsfeed.replyto.message) { %>on "{{newsfeed.replyto.message}}"<% } %></span></span>
-            <p class="notification-desc">
-                <strong class="js-emoji">{{newsfeed.message}}</strong>
-            </p>
-            <div class="notification-meta">
-                <abbr class="small timeago nodecor" title="{{timestamp}}" />
+        <% } else if (type == 'CommentOnYourPost') { %>
+        <div class="media clickme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <img class="img-circle img-tinythumbnail" src="<% if (obj.fromuser) { %>{{fromuser.profile.url}}<% } else { %>/images/user_logo.png<%} %>" title="<% if (obj.fromuser) { %>{{fromuser.displayname}}<% } else { %>Freegle<% } %>" data-holder-rendered="true">
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title"><span class="small"><% if (obj.fromuser) { %>{{fromuser.displayname}}<% } else { %>Freegle<% } %> commented on your post <% if (newsfeed.replyto.message) { %>"{{newsfeed.replyto.message}}"<% } %></span></span>
+                <p class="notification-desc">
+                    <strong class="js-emoji">{{newsfeed.message}}</strong>
+                </p>
+                <div class="notification-meta">
+                    <abbr class="small timeago nodecor" title="{{timestamp}}" />
+                </div>
             </div>
         </div>
+        <% } else if (type == 'LovedPost') { %>
+        <div class="media clickme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.url}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title"><span class="small">{{fromuser.displayname}} loves your post<% if (newsfeed.message) { %> "{{newsfeed.message}}"<% } %></span></span>
+                <p class="notification-desc">
+                </p>
+                <div class="notification-meta">
+                    <abbr class="small timeago nodecor" title="{{timestamp}}" />
+                </div>
+            </div>
+        </div>
+        <% } else if (type == 'LovedComment') { %>
+        <div class="media clickme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.url}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title"><span class="small js-emoji">{{fromuser.displayname}} loves your comment "{{newsfeed.message}}"</span></span>
+                <p class="notification-desc">
+                </p>
+                <div class="notification-meta">
+                    <abbr class="small timeago nodecor" title="{{timestamp}}" />
+                </div>
+            </div>
+        </div>
+        <% } else if (type == 'TryFeed') { %>
+        <div class="media clickme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <span class="glyphicon glyphicon-info-sign glyphicon-larger" />
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title">Try our news feed!</span>
+                <p class="notification-desc">
+                    We're testing a new feature which lets you chat to freeglers near you, so that you can ask for help,
+                    recommendations, or just talk.  You can try it by clicking here, or from the <em>News</em> menu option.
+                </p>
+            </div>
+        </div>
+        <% } %>
     </div>
-    <% } else if (type == 'CommentOnYourPost') { %>
-    <div class="media clickme">
-        <div class="media-left">
-            <div class="media-object topspace">
-                <img class="img-circle img-tinythumbnail" src="<% if (obj.fromuser) { %>{{fromuser.profile.url}}<% } else { %>/images/user_logo.png<%} %>" title="<% if (obj.fromuser) { %>{{fromuser.displayname}}<% } else { %>Freegle<% } %>" data-holder-rendered="true">
-            </div>
-        </div>
-        <div class="media-body">
-            <span class="notification-title"><span class="small"><% if (obj.fromuser) { %>{{fromuser.displayname}}<% } else { %>Freegle<% } %> commented on your post <% if (newsfeed.replyto.message) { %>"{{newsfeed.replyto.message}}"<% } %></span></span>
-            <p class="notification-desc">
-                <strong class="js-emoji">{{newsfeed.message}}</strong>
-            </p>
-            <div class="notification-meta">
-                <abbr class="small timeago nodecor" title="{{timestamp}}" />
-            </div>
-        </div>
-    </div>
-    <% } else if (type == 'LovedPost') { %>
-    <div class="media clickme">
-        <div class="media-left">
-            <div class="media-object topspace">
-                <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.url}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
-            </div>
-        </div>
-        <div class="media-body">
-            <span class="notification-title"><span class="small">{{fromuser.displayname}} loves your post<% if (newsfeed.message) { %> "{{newsfeed.message}}"<% } %></span></span>
-            <p class="notification-desc">
-            </p>
-            <div class="notification-meta">
-                <abbr class="small timeago nodecor" title="{{timestamp}}" />
-            </div>
-        </div>
-    </div>
-    <% } else if (type == 'LovedComment') { %>
-    <div class="media clickme">
-        <div class="media-left">
-            <div class="media-object topspace">
-                <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.url}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
-            </div>
-        </div>
-        <div class="media-body">
-            <span class="notification-title"><span class="small js-emoji">{{fromuser.displayname}} loves your comment "{{newsfeed.message}}"</span></span>
-            <p class="notification-desc">
-            </p>
-            <div class="notification-meta">
-                <abbr class="small timeago nodecor" title="{{timestamp}}" />
-            </div>
-        </div>
-    </div>
-    <% } else if (type == 'TryFeed') { %>
-    <div class="media clickme">
-        <div class="media-left">
-            <div class="media-object topspace">
-                <span class="glyphicon glyphicon-info-sign glyphicon-larger" />
-            </div>
-        </div>
-        <div class="media-body">
-            <span class="notification-title">Try our news feed!</span>
-            <p class="notification-desc">
-                We're testing a new feature which lets you chat to freeglers near you, so that you can ask for help,
-                recommendations, or just talk.  You can try it by clicking here, or from the <em>News</em> menu option.
-            </p>
-        </div>
-    </div>
-    <% } %>
 </div>

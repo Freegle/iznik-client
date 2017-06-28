@@ -162,7 +162,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         <meta itemprop="title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
-        <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>largetile.png"/>
+        <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>/largetile.png"/>
         <?php
         echo "<!-- requested " . $_SERVER["REQUEST_URI"] . " -->\r\n";
     }

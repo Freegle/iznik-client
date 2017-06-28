@@ -650,7 +650,8 @@ define([
         template: 'user_newsfeed_notification',
 
         events: {
-            'mouseover': 'markSeen'
+            'mouseover': 'markSeen',
+            'click .js-top': 'goto'
         },
 
         goto: function() {
@@ -686,36 +687,35 @@ define([
 
         render: function() {
             var self = this;
-            var newsfeed = self.model.get('newsfeed');
+            var p = resolvedPromise(self);
 
-            if (newsfeed) {
-                if (newsfeed.message) {
-                    newsfeed.message = twem(newsfeed.message);
+            if (!self.rendered) {
+                self.rendered = true;
+                var newsfeed = self.model.get('newsfeed');
+
+                if (newsfeed) {
+                    if (newsfeed.message) {
+                        newsfeed.message = twem(newsfeed.message);
+                    }
+
+                    var replyto = newsfeed.replyto;
+
+                    if (replyto && replyto.message) {
+                        newsfeed.replyto.message = twem(replyto.message);
+                    }
+
+                    self.model.set('newsfeed', newsfeed);
                 }
 
-                var replyto = newsfeed.replyto;
+                p = Iznik.View.Timeago.prototype.render.call(this);
 
-                if (replyto && replyto.message) {
-                    newsfeed.replyto.message = twem(replyto.message);
-                }
-
-                self.model.set('newsfeed', newsfeed);
+                p.then(function(){
+                    if (self.$('.js-emoji').length) {
+                        var el = self.$('.js-emoji').get()[0];
+                        twemoji.parse(el);
+                    }
+                });
             }
-
-            var p = Iznik.View.Timeago.prototype.render.call(this);
-
-            p.then(function(){
-                if (self.$('.js-emoji').length) {
-                    var el = self.$('.js-emoji').get()[0];
-                    twemoji.parse(el);
-                }
-
-                self.$el.on('click', _.bind(function(){
-                    // TODO Don't know why we need to do this rather than use events.
-                    console.log("Clicked on notification", self);
-                    self.goto();
-                }, self));
-            });
 
             return(p)
         }
