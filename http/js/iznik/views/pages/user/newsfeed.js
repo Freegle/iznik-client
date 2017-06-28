@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'autosize',
+    'jquery-show-last',
     'iznik/models/message',
     'iznik/models/user/search',
     'iznik/models/newsfeed',
@@ -526,21 +527,23 @@ define([
                 } else  {
                     var msg = self.$('.js-comment').val();
 
-                    msg = twemoji.replace(msg, function(emoji) {
-                        return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
-                    });
-
-                    var mod = new Iznik.Models.Newsfeed({
-                        replyto: self.model.get('id'),
-                        message: msg
-                    });
-                    
-                    mod.save().then(function() {
-                        self.$('.js-comment').val('');
-                        mod.fetch().then(function() {
-                            self.replies.add(mod);
+                    if (msg.length > 0) {
+                        msg = twemoji.replace(msg, function(emoji) {
+                            return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
                         });
-                    });
+
+                        var mod = new Iznik.Models.Newsfeed({
+                            replyto: self.model.get('id'),
+                            message: msg
+                        });
+
+                        mod.save().then(function() {
+                            self.$('.js-comment').val('');
+                            mod.fetch().then(function() {
+                                self.replies.add(mod);
+                            });
+                        });
+                    }
                 }
             }
         },
@@ -564,6 +567,7 @@ define([
                         self.loves.model = self.model;
                         self.loves.render().then(function() {
                             self.$('.js-itemloves').html(self.loves.$el);
+                            self.loves.delegateEvents();
                         });
 
                         // Update the replies collection.
@@ -601,6 +605,11 @@ define([
                 self.checking = true;
                 _.delay(_.bind(self.checkUpdate, self), 30000);
             }
+        },
+
+        visible: function(model) {
+            var vis = model.get('visible');
+            return(vis);
         },
 
         render: function() {
@@ -660,11 +669,15 @@ define([
                             self.collectionView = new Backbone.CollectionView({
                                 el: replyel,
                                 modelView: Iznik.Views.User.Feed.Reply,
+                                visibleModelsFilter: _.bind(self.visible, self),
                                 collection: self.replies,
                                 processKeyEvents: false
                             });
 
                             self.collectionView.render();
+
+                            // Don't want long threads to flood the feed.
+                            $(replyel).showLast();
                         }
 
                         self.loves = new Iznik.Views.User.Feed.Loves({
