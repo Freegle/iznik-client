@@ -492,7 +492,23 @@ define([
 
         events: {
             'keydown .js-comment': 'sendComment',
-            'focus .js-comment': 'autoSize'
+            'focus .js-comment': 'autoSize',
+            'click .js-addvolunteer': 'addVolunteer',
+            'click .js-addevent': 'addEvent'
+        },
+
+        addVolunteer: function() {
+            var v = new Iznik.Views.User.Volunteering.Editable({
+                model: new Iznik.Models.Volunteering({})
+            });
+            v.render();
+        },
+
+        addEvent: function() {
+            var v = new Iznik.Views.User.CommunityEvent.Editable({
+                model: new Iznik.Models.CommunityEvent({})
+            });
+            v.render();
         },
 
         autoSize: function() {
