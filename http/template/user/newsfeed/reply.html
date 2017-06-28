@@ -17,6 +17,25 @@
                                 &bull;
                                 <span class="js-replyloves" />
                             </small>
+                            <% if (obj.preview && !preview.invalid && !preview.spam) { %>
+                            <div class="panel panel-default clickme preview small js-preview">
+                                <div class="row">
+                                    <div class="col-xs-2">
+                                        <% if (preview.image) { %>
+                                        <img class="img-smallerthumbnail" src="{{preview.image}}" />
+                                        <% } %>
+                                    </div>
+                                    <div class="col-xs-9">
+                                        <% if (preview.title) { %>
+                                        <h4>{{preview.title}}</h4>
+                                        <% } %>
+                                        <% if (preview.description) { %>
+                                        <div class="prewrap forcebreak">{{preview.description}}</div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } %>
                         </div>
                     </td>
                 </tr>

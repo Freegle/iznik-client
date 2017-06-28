@@ -659,7 +659,7 @@ define([
             // We want the start of the thread.
             var newsfeed = self.model.get('newsfeed');
             var url = self.model.get('url');
-            console.log("Goto", url);
+            console.log("Goto", self.model);
             if (newsfeed) {
                 var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
 
@@ -712,6 +712,7 @@ define([
 
                 self.$el.on('click', _.bind(function(){
                     // TODO Don't know why we need to do this rather than use events.
+                    console.log("Clicked on notification", self);
                     self.goto();
                 }, self));
             });
