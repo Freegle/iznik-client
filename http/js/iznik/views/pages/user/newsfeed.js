@@ -23,8 +23,7 @@ define([
         events: {
             'click .js-post': 'post',
             'click .js-getloc': 'getLocation',
-            'change .js-distance': 'changeDist',
-            'focus .js-message': 'autoSize'
+            'change .js-distance': 'changeDist'
         },
 
         getLocation: function() {
@@ -142,17 +141,6 @@ define([
             }
         },
 
-        autoSize: function() {
-            // Autosize is expensive, so only do it when we focus on the input field.  That means we only do it
-            // when someone is actually going to make a comment.
-            var self = this;
-
-            if (!self.autosized) {
-                self.autosized = true;
-                autosize(self.$('.js-message'));
-            }
-        },
-
         changeDist: function() {
             var self = this;
             var dist = self.$('.js-distance').val();
@@ -222,6 +210,11 @@ define([
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
+                if (!self.autosized) {
+                    self.autosized = true;
+                    autosize(self.$('.js-message'));
+                }
+
                 if (!isXS() && !isSM()) {
                     self.$('.js-message').focus();
                 }
