@@ -34,6 +34,7 @@ class Newsfeed extends Entity
     const TYPE_CENTRAL_PUBLICITY = 'CentralPublicity';
     const TYPE_ALERT = 'Alert';
     const TYPE_STORY = 'Story';
+    const TYPE_REFER_TO_WANTED = 'ReferToWanted';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -44,13 +45,13 @@ class Newsfeed extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
     }
 
-    public function create($type, $userid, $message, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL) {
+    public function create($type, $userid = NULL, $message = NULL, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL) {
         $id = NULL;
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
 
-        if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT) {
+        if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT || $type == Newsfeed::TYPE_REFER_TO_WANTED) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
@@ -305,6 +306,13 @@ class Newsfeed extends Entity
         }
 
         return([$users, $items]);
+    }
+
+    public function referToWanted() {
+        # Create a kind of comment and notify the poster.
+        $id = $this->create(Newsfeed::TYPE_REFER_TO_WANTED, NULL, NULL, NULL, NULL, $this->id);
+        $n = new Notifications($this->dbhr, $this->dbhm);
+        $n->add(NULL, $this->feed['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
     }
 
     public function like() {

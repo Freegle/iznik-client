@@ -94,6 +94,13 @@ function newsfeed() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+                } else if ($action == 'ReferToWanted') {
+                    $n->referToWanted();
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
                 } else {
                     $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
 

@@ -310,8 +310,20 @@ define([
             'click .js-profile': 'showProfile',
             'click .js-delete': 'deleteMe',
             'click .js-report': 'report',
+            'click .js-refertowanted': 'referToWanted',
             'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply'
+        },
+
+        referToWanted: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            self.model.referToWanted().then(function() {
+                console.log("Referred", self);
+                self.checkUpdate();
+            });
         },
 
         clickPreview: function() {
@@ -483,8 +495,12 @@ define([
             }
         },
 
+        updateTimer: false,
+
         checkUpdate: function() {
             var self = this;
+            self.updateTimer = false;
+
             // console.log("Consider update", self.model.get('id'));
 
             if (self.inDOM()) {
@@ -517,7 +533,10 @@ define([
                             self.model.seen();
                         }
 
-                        _.delay(_.bind(self.checkUpdate, self), 30000);
+                        if (!self.updateTimer) {
+                            self.updateTimer = true;
+                            _.delay(_.bind(self.checkUpdate, self), 30000);
+                        }
                     });
                 }
             }
@@ -630,6 +649,21 @@ define([
 
         reply: function() {
             this.model.collection.trigger('reply');
+        },
+
+        render: function() {
+            var self = this;
+
+            if (self.model.get('type') == 'ReferToWanted') {
+                self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
+                self.template = 'user_newsfeed_refertowanted';
+            }
+
+            var p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
+                model: self.model
+            });
+
+            return(p);
         }
     });
 
