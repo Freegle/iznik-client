@@ -23,8 +23,10 @@ body {
     max-height: 100px;
 }
 
-.navbar-header {
-    width: 100% !important;
+@media only screen and (min-width : 768px) { /* CC */
+    .navbar-header {
+        width: 100% !important;
+    }
 }
 
 .navbar img {
