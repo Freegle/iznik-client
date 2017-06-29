@@ -288,7 +288,6 @@ define([
                         })
                     },
                     error: function() {
-                        console.log("Error");
                         self.$('.js-error').fadeIn('slow');
                         self.$('.js-back').fadeIn('slow');
                     }
