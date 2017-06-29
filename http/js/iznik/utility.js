@@ -436,6 +436,48 @@ function ABTestGetVariant(uid, cb) {
 
 function nullFn() {}
 
+function twem(msg) {
+    if (msg) {
+        msg = msg.replace(/\\\\u(.*?)\\\\u/g, function(match, contents, offset, s) {
+            var s = contents.split('-');
+            var ret = '';
+            _.each(s, function(t) {
+                ret += twemoji.convert.fromCodePoint(t);
+            });
+
+            return(ret);
+        });
+    }
+
+    return(msg);
+}
+
+var chatTitleCount = 0;
+var newsfeedTitleCount = 0;
+
+function setTitleCounts(chat, newsfeed) {
+    if (chat !== null) {
+        chatTitleCount = chat;
+    }
+
+    if (newsfeed !== null) {
+        newsfeedTitleCount = newsfeed;
+    }
+
+    var unseen = chatTitleCount + newsfeedTitleCount;
+
+    // We'll adjust the count in the window title.
+    var title = document.title;
+    var match = /\(.*\) (.*)/.exec(title);
+    title = match ? match[1] : title;
+
+    if (unseen) {
+        document.title = '(' + unseen + ') ' + title;
+    } else {
+        document.title = title;
+    }
+}
+
 var mobileGlobalRoot = false;   // CC
 var oneOffPathname = false; // CC
 

@@ -7,6 +7,18 @@ define([
     Iznik.Models.Newsfeed = Iznik.Model.extend({
         urlRoot: API + 'newsfeed',
 
+        seen: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'Seen'
+                }
+            }));
+        },
+
         love: function() {
             var self = this;
 

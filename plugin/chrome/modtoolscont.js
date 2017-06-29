@@ -366,7 +366,7 @@ $(document).ready(function() {
                 }
             }
         });
-    } else if (document.URL.indexOf('https://www.facebook.com') === 0) {
+    } else if (document.URL.indexOf('https://www.facebook.com') === 0 && false) {
         // We are loading on Facebook.  Find out who we are.
         chrome.storage.sync.get(null, function(obj) {
             console.log("MT ID", obj);

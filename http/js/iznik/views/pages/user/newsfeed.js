@@ -74,6 +74,73 @@ define([
             }
         },
 
+        shownFind: false,
+        shownGive: false,
+
+        checkMessage: function() {
+            var self = this;
+
+            if (self.inDOM()) {
+                var msg = self.$('.js-message').val().toLowerCase();
+
+                if (msg.length > 0) {
+                    var checks = {
+                        'find': [
+                            'wanted',
+                            'looking for',
+                            'has anybody got',
+                            'has anyone got',
+                            'does anyone have',
+                            'if anyone has'
+                        ],
+                        'give': [
+                            'offer',
+                            'giving away',
+                            'does anyone want'
+                        ]
+                    };
+
+                    if (!self.shownFind) {
+                        var showfind = false;
+
+                        _.each(checks.find, function(c) {
+                            if (msg.indexOf(c) !== -1) {
+                                showfind = true;
+                            }
+                        });
+
+                        if (showfind) {
+                            self.$('.js-find').tooltip('show');
+                            self.shownFind = true;
+                            _.delay(_.bind(function() {
+                                this.$('.js-find').tooltip('hide');
+                            }, self), 10000);
+                        }
+                    }
+
+                    if (!self.shownGive) {
+                        var showgive = false;
+
+                        _.each(checks.give, function(c) {
+                            if (msg.indexOf(c) !== -1) {
+                                showgive = true;
+                            }
+                        });
+
+                        if (showgive) {
+                            self.$('.js-give').tooltip('show');
+                            self.shownGive = true;
+                            _.delay(_.bind(function() {
+                                this.$('.js-give').tooltip('hide');
+                            }, self), 10000);
+                        }
+                    }
+                }
+
+                _.delay(_.bind(self.checkMessage, self), 1000);
+            }
+        },
+
         autoSize: function() {
             // Autosize is expensive, so only do it when we focus on the input field.  That means we only do it
             // when someone is actually going to make a comment.
@@ -109,6 +176,9 @@ define([
             var self = this;
 
             var msg = self.$('.js-message').val();
+            msg = twemoji.replace(msg, function(emoji) {
+                return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
+            });
 
             if (msg) {
                 var mod = new Iznik.Models.Newsfeed({
@@ -184,6 +254,8 @@ define([
                     ]
                 });
 
+                _.delay(_.bind(self.checkMessage, self), 1000);
+
                 // We can be asked to refetch by the first news
                 self.listenTo(self.collection, 'refetch', _.bind(self.refetch, self));
 
@@ -216,11 +288,13 @@ define([
 
                         v.render().then(function() {
                             self.$('.js-item').html(v.$el);
+                            self.$('.js-back').fadeIn('slow');
                         })
                     },
                     error: function() {
                         console.log("Error");
                         self.$('.js-error').fadeIn('slow');
+                        self.$('.js-back').fadeIn('slow');
                     }
                 })
             });
@@ -285,6 +359,13 @@ define([
         render: function() {
             var self = this;
 
+            var msg = self.model.get('message');
+
+            if (msg) {
+                msg = twem(msg);
+                self.model.set('message', msg);
+            }
+
             var p = new Promise(function(resolve, reject) {
                 var v = new Iznik.Views.User.Feed.Loves({
                     model: self.model
@@ -301,6 +382,13 @@ define([
                         }
                     });
                 });
+            });
+
+            p.then(function() {
+                if (self.$('.js-emoji').length) {
+                    var el = self.$('.js-emoji').get()[0];
+                    twemoji.parse(el);
+                }
             });
 
             return(p);
@@ -372,9 +460,15 @@ define([
                     // They've used the alt/shift trick.
                     self.$('.js-comment').val(self.$('.js-comment').val() + "\n");
                 } else  {
+                    var msg = self.$('.js-comment').val();
+
+                    msg = twemoji.replace(msg, function(emoji) {
+                        return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
+                    });
+
                     var mod = new Iznik.Models.Newsfeed({
                         replyto: self.model.get('id'),
-                        message: self.$('.js-comment').val()
+                        message: msg
                     });
                     
                     mod.save().then(function() {
@@ -416,6 +510,9 @@ define([
                             // This is the first one.  Fetch the collection so that if there are any new items
                             // we'll pick them up.
                             self.model.collection.trigger('refetch');
+
+                            // This is the most recent one we've seen.
+                            self.model.seen();
                         }
 
                         _.delay(_.bind(self.checkUpdate, self), 30000);
@@ -457,6 +554,8 @@ define([
                 }
 
                 if (self.template) {
+                    var msg = self.model.get('message');
+
                     p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
                         model: self.model
                     });
@@ -529,7 +628,7 @@ define([
         reply: function() {
             this.model.collection.trigger('reply');
         }
-    })
+    });
 
     Iznik.Views.User.Feed.Report = Iznik.Views.Modal.extend({
         template: 'user_newsfeed_report',

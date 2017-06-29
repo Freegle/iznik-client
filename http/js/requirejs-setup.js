@@ -68,9 +68,9 @@ requirejs.config({
         "underscore": "underscore",
         "jquery-show-first": "jquery-show-first",
         "tinymce": "https://cdn.tinymce.com/4/tinymce.min",
-        "gmaps": "https://maps.googleapis.com/maps/api/js?v=3&libraries=geometry,places,drawing,visualization", // CC
+        "gmaps": "https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization",
         "maplabel": "maplabel-compiled",
-        // CC
+        'twemoji': 'https://twemoji.maxcdn.com/2/twemoji.min.js?2.3.0',
 
         "iznik": iznikroot + "js/iznik"	// CC
     },
