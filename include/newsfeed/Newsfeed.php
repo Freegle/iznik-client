@@ -113,8 +113,13 @@ class Newsfeed extends Entity
         $users = [];
 
         $this->fillIn($atts, $users);
-        $atts['user'] = array_pop($users);
-        unset($atts['userid']);
+
+        foreach ($users as $user) {
+            if ($user['id'] == $atts['userid']) {
+                $atts['user'] = $user;
+                unset($atts['userid']);
+            }
+        }
 
         foreach ($atts['replies'] as &$reply) {
             $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
