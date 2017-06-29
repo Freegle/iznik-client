@@ -1350,14 +1350,28 @@ class User extends Entity
 
     public function getPublicLocation() {
         $ret = NULL;
+        
+        $aid = NULL;
+        
+        $s = $this->getPrivate('settings');
 
-        # Get the name of the last area we used.
-        $areas = $this->dbhr->preQuery("SELECT name FROM locations WHERE id IN (SELECT areaid FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE users.id = ?);", [
-            $this->id
-        ]);
+        if ($s) {
+            $settings = json_decode($s, TRUE);
 
-        foreach ($areas as $area) {
-            $ret = $area['name'];
+            if (pres('mylocation', $settings) && pres('area', $settings['mylocation'])) {
+                $ret = $settings['mylocation']['area']['name'];
+            }
+        }
+
+        if (!$ret) {
+            # Get the name of the last area we used.
+            $areas = $this->dbhr->preQuery("SELECT name FROM locations WHERE id IN (SELECT areaid FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE users.id = ?);", [
+                $this->id
+            ]);
+
+            foreach ($areas as $area) {
+                $ret = $area['name'];
+            }
         }
 
         return($ret);

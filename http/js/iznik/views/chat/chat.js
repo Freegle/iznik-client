@@ -172,21 +172,16 @@ define([
                 console.log("Unseen", unseen, chat);
             });*/
 
-            // We'll adjust the count in the window title.
-            var title = document.title;
-            var match = /\(.*\) (.*)/.exec(title);
-            title = match ? match[1] : title;
-
             // This if test improves browser performance by avoiding unnecessary show/hides.
             $('.js-chattotalcount').each(function() {
                 if ($(this).html() != unseen) {
                     if (unseen > 0) {
                         $(this).html(unseen).show();
-                        document.title = '(' + unseen + ') ' + title;
                     } else {
                         $(this).empty().hide();
-                        document.title = title;
                     }
+
+                    setTitleCounts(unseen, null);
                 }
             });
 

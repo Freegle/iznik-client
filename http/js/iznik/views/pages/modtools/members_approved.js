@@ -61,7 +61,7 @@ define([
                 url: API + 'memberships/' + self.selected,
                 context: self,
                 data: {
-                    limit: 1000,
+                    limit: 100,
                     context: self.exportContext ? self.exportContext : null
                 },
                 success: function (ret) {
@@ -90,7 +90,7 @@ define([
                                 member.yahooDeliveryType,
                                 member.yahooPostingStatus,
                                 JSON.stringify(member.settings, null, 0),
-                                member.ourPostingStatus,
+                                member.ourPostingStatus
                             ]);
                         });
 

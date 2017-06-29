@@ -7,17 +7,26 @@ define([
     Iznik.Models.Notification = Iznik.Model.extend({
         urlRoot: API + 'notification',
 
+        haveSeen: false,
+
         seen: function() {
             var self = this;
 
-            return($.ajax({
-                url: API + '/notification',
-                type: 'POST',
-                data: {
-                    id: self.get('id'),
-                    action: 'Seen'
-                }
-            }));
+            // Only want to mark as seen once.
+            if (self.haveSeen) {
+                return resolvedPromise(self);
+            } else {
+                self.haveSeen = true;
+
+                return($.ajax({
+                    url: API + '/notification',
+                    type: 'POST',
+                    data: {
+                        id: self.get('id'),
+                        action: 'Seen'
+                    }
+                }));
+            }
         },
 
         parse: function (ret) {

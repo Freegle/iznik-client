@@ -136,18 +136,46 @@ define([
                 context: self,
                 success: function(ret) {
                     if (ret.ret == 0) {
-                        $('.js-notifholder .js-notifcount').html(ret.count);
+                        var el = $('.js-notifholder .js-notifcount');
+                        if (el.html() != ret.count) {
+                            el.html(ret.count);
 
-                        if (ret.count) {
-                            $('.js-notifholder .js-notifcount').show();
-                            self.notifications.fetch();
-                        }
-                        else {
-                            $('.js-notifholder .js-notifcount').hide();
+                            if (ret.count) {
+                                $('.js-notifholder .js-notifcount').show();
+                                self.notifications.fetch();
+                            }
+                            else {
+                                $('.js-notifholder .js-notifcount').hide();
+                            }
+
+                            setTitleCounts(null, ret.count);
                         }
                     }
                 }, complete: function() {
-                    _.delay(_.bind(this.notificationCheck, this), 30000);
+                    $.ajax({
+                        url: API + 'newsfeed?count=true',
+                        type: 'GET',
+                        context: self,
+                        success: function(ret) {
+                            console.log("Got count", ret);
+                            if (ret.ret == 0) {
+                                var el = $('.js-unseennews');
+                                console.log("Compare", el.html(), ret.unseencount);
+                                if (el.html() != ret.unseencount) {
+                                    el.html(ret.unseencount);
+
+                                    if (ret.unseencount) {
+                                        $('.js-unseennews').show();
+                                    }
+                                    else {
+                                        $('.js-unseennews').hide();
+                                    }
+                                }
+                            }
+                        }, complete: function() {
+                            _.delay(_.bind(this.notificationCheck, this), 30000);
+                        }
+                    });
                 }
             });
         },
@@ -658,9 +686,8 @@ define([
 
             // We want the start of the thread.
             var newsfeed = self.model.get('newsfeed');
-            console.log("Newsfeed", newsfeed);
             var url = self.model.get('url');
-            console.log("URL", url);
+            console.log("Goto", url);
             if (newsfeed) {
                 var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
 
@@ -683,6 +710,36 @@ define([
                     self.render();
                 });
             }
+        },
+
+        render: function() {
+            var self = this;
+            var newsfeed = self.model.get('newsfeed');
+
+            if (newsfeed) {
+                if (newsfeed.message) {
+                    newsfeed.message = twem(newsfeed.message);
+                }
+
+                var replyto = newsfeed.replyto;
+
+                if (replyto && replyto.message) {
+                    newsfeed.replyto.message = twem(replyto.message);
+                }
+
+                self.model.set('newsfeed', newsfeed);
+            }
+
+            var p = Iznik.View.Timeago.prototype.render.call(this);
+
+            p.then(function(){
+                if (self.$('.js-emoji').length) {
+                    var el = self.$('.js-emoji').get()[0];
+                    twemoji.parse(el);
+                }
+            });
+
+            return(p)
         }
     })
 });

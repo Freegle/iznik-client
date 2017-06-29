@@ -169,7 +169,20 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertTrue($this->user2->login('testpw'));
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
+            'action' => 'Seen'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        assertTrue($this->user2->login('testpw'));
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
             'action' => 'Unlove'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('newsfeed', 'GET', [
+            'count' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
 
