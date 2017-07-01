@@ -164,6 +164,7 @@ define([
         post: function() {
             var self = this;
 
+            self.$('.js-message').prop('disabled', true);
             var msg = self.$('.js-message').val();
             msg = twemoji.replace(msg, function(emoji) {
                 return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
@@ -178,6 +179,7 @@ define([
                     mod.fetch().then(function() {
                         self.collection.add(mod);
                         self.$('.js-message').val('');
+                        self.$('.js-message').prop('disabled', false);
                     });
                 });
             }
@@ -302,10 +304,23 @@ define([
         events: {
             'click .js-profile': 'showProfile',
             'click .js-delete': 'deleteMe',
+            'click .js-open': 'open',
             'click .js-report': 'report',
             'click .js-refertowanted': 'referToWanted',
             'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply'
+        },
+
+        open: function (e) {
+            var self = this;
+
+            e.preventDefault();
+            e.stopPropagation()
+
+            var usersite = $('meta[name=iznikusersite]').attr("content");
+            var url = 'https://' + usersite + '/newsfeed/' + self.model.get('id');
+
+            window.open(url);
         },
 
         referToWanted: function (e) {
@@ -533,6 +548,7 @@ define([
                     // They've used the alt/shift trick.
                     self.$('.js-comment').val(self.$('.js-comment').val() + "\n");
                 } else  {
+                    self.$('.js-comment').prop('disabled', true);
                     var msg = self.$('.js-comment').val();
 
                     if (msg.length > 0) {
@@ -547,6 +563,7 @@ define([
 
                         mod.save().then(function() {
                             self.$('.js-comment').val('');
+                            self.$('.js-comment').prop('disabled', false);
                             mod.fetch().then(function() {
                                 self.replies.add(mod);
                             });

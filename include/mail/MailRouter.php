@@ -544,13 +544,23 @@ class MailRouter
                 $ret = MailRouter::TO_SYSTEM;
             }
         } else if (preg_match('/volunteeringoff-(.*)-(.*)@/', $to, $matches) == 1) {
-            # Request to turn events email off.
+            # Request to turn volunteering email off.
             $uid = intval($matches[1]);
             $groupid = intval($matches[2]);
 
             if ($uid && $groupid) {
                 $d = new VolunteerDigest($this->dbhr, $this->dbhm);
                 $d->off($uid, $groupid);
+
+                $ret = MailRouter::TO_SYSTEM;
+            }
+        } else if (preg_match('/notificationmailsoff-(.*)@/', $to, $matches) == 1) {
+            # Request to turn notification email off.
+            $uid = intval($matches[1]);
+
+            if ($uid) {
+                $d = new Notifications($this->dbhr, $this->dbhm);
+                $d->off($uid);
 
                 $ret = MailRouter::TO_SYSTEM;
             }

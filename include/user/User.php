@@ -1374,6 +1374,9 @@ class User extends Entity
         $atts = parent::getPublic();
 
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
+        error_log("Settings " . var_export($atts['settings'], TRUE));
+        $atts['settings']['notificationmails'] = array_key_exists('notificationmails', $atts['settings']) ? $atts['settings']['notificationmails'] : TRUE;
+
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
         $myid = $me ? $me->getId() : NULL;

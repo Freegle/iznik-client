@@ -127,6 +127,8 @@ define([
 
                             setTitleCounts(null, ret.count);
                         }
+
+                        setTitleCounts(null, ret.count);
                     }
                 }, complete: function() {
                     $.ajax({
