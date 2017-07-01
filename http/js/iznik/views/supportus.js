@@ -153,6 +153,7 @@ define([
                 }).then(function() {
                     self.waitDOM(self, function() {
                         var valor1 = self.donations.get('raised');
+                        valor1 = valor1 ? valor1 : 0;
                         var maxim = self.donations.get('target');
 
                         // We might exceed the target.
