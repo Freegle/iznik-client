@@ -508,7 +508,20 @@ define([
             'keydown .js-comment': 'sendComment',
             'focus .js-comment': 'autoSize',
             'click .js-addvolunteer': 'addVolunteer',
-            'click .js-addevent': 'addEvent'
+            'click .js-addevent': 'addEvent',
+            'click .js-showearlier': 'showEarlier'
+        },
+
+        showAll: false,
+
+        showEarlier: function(e) {
+            var self = this;
+
+            e.preventDefault();
+            e.stopPropagation();
+            self.showAll = true;
+            self.$('.js-showearlier').hide();
+            self.collectionView.render();
         },
 
         addVolunteer: function() {
@@ -633,7 +646,12 @@ define([
         },
 
         visible: function(model) {
+            var self = this;
             var vis = model.get('visible');
+
+            // Show last few.
+            vis = vis && (self.showAll || model.collection.length < 10 || model.collection.indexOf(model) > 10);
+
             return(vis);
         },
 
@@ -701,8 +719,9 @@ define([
 
                             self.collectionView.render();
 
-                            // Don't want long threads to flood the feed.
-                            $(replyel).showLast();
+                            if (self.replies.length > 10) {
+                                self.$('.js-showearlier').show();
+                            }
                         }
 
                         self.loves = new Iznik.Views.User.Feed.Loves({
