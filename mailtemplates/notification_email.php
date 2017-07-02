@@ -65,8 +65,7 @@ EOT;
                                                                             <a href="$url" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Go&nbsp;to&nbsp;Freegle</a>
                                                                         </td>
                                                                     </tr>
-                                                                </table>                                                                
-                                                                <p>Thanks for freegling!</p>
+                                                                </table> 
                                                             </td>
                                                         </tr>        
                                                         <tr>

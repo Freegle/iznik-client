@@ -142,7 +142,7 @@ class Notifications
         $mailer->send($message);
     }
 
-    public function sendEmails($userid, $before = '24 hours ago', $since = '7 days ago') {
+    public function sendEmails($userid = NULL, $before = '24 hours ago', $since = '7 days ago') {
         $count = 0;
         $userq = $userid ? " AND `touser` = $userid " : '';
 
@@ -166,24 +166,22 @@ class Notifications
                     if (!$notif['seen'] && $notif['type'] != Notifications::TYPE_TRY_FEED) {
                         switch ($notif['type']) {
                             case Notifications::TYPE_COMMENT_ON_COMMENT:
-                                $str .= "{$notif['fromuser']['displayname']} replied to your comment on {$notif['newsfeed']['replyto']['message']}\n";
+                                $str .= "{$notif['fromuser']['displayname']} replied to your comment on '{$notif['newsfeed']['replyto']['message']}'\n";
                                 break;
                             case Notifications::TYPE_COMMENT_ON_YOUR_POST:
-                                $str .= "{$notif['fromuser']['displayname']} commented on {$notif['newsfeed']['message']}\n";
+                                $str .= "{$notif['fromuser']['displayname']} commented on '{$notif['newsfeed']['message']}'\n";
                                 break;
                             case Notifications::TYPE_LOVED_POST:
-                                $str .= "{$notif['fromuser']['displayname']} loved your post {$notif['newsfeed']['message']}\n";
+                                $str .= "{$notif['fromuser']['displayname']} loved your post '{$notif['newsfeed']['message']}'\n";
                                 break;
                             case Notifications::TYPE_LOVED_COMMENT:
-                                $str .= "{$notif['fromuser']['displayname']} loved your comment {$notif['newsfeed']['message']}\n";
+                                $str .= "{$notif['fromuser']['displayname']} loved your comment '{$notif['newsfeed']['message']}'\n";
                                 break;
                         }
 
                         $count++;
                     }
                 }
-
-                error_log("Summ $str");
 
                 $url = $u->loginLink(USER_SITE, $user['touser'], '/newsfeed', 'notifemail');
                 $noemail = 'notificationmailsoff-' . $user['touser'] . "@" . USER_DOMAIN;
@@ -200,6 +198,7 @@ class Notifications
 
                 list ($transport, $mailer) = getMailer();
                 $this->sendIt($mailer, $message);
+                exit(0);
             }
         }
 
