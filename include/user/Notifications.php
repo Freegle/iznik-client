@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/mailtemplates/notification_email.php');
 
 class Notifications
 {
@@ -135,5 +136,73 @@ class Notifications
 
             $this->sendOne($mailer, $message);
         }
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function sendEmails($userid, $before = '24 hours ago', $since = '7 days ago') {
+        $count = 0;
+        $userq = $userid ? " AND `touser` = $userid " : '';
+
+        $mysqltime = date("Y-m-d H:i:s", strtotime($before));
+        $mysqltime2 = date("Y-m-d H:i:s", strtotime($since));
+        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' AND seen = 0 AND `type` != ? $userq;";
+        $users = $this->dbhr->preQuery($sql, [
+            Notifications::TYPE_TRY_FEED
+        ]);
+
+        foreach ($users as $user) {
+            $u = new User($this->dbhr, $this->dbhm, $user['touser']);
+            error_log("Consider {$user['touser']} email " . $u->getEmailPreferred());
+            if ($u->sendOurMails()) {
+                $ctx = NULL;
+                $notifs = $this->get($user['touser'], $ctx);
+
+                $str = '';
+
+                foreach ($notifs as $notif) {
+                    if (!$notif['seen'] && $notif['type'] != Notifications::TYPE_TRY_FEED) {
+                        switch ($notif['type']) {
+                            case Notifications::TYPE_COMMENT_ON_COMMENT:
+                                $str .= "{$notif['fromuser']['displayname']} replied to your comment on {$notif['newsfeed']['replyto']['message']}\n";
+                                break;
+                            case Notifications::TYPE_COMMENT_ON_YOUR_POST:
+                                $str .= "{$notif['fromuser']['displayname']} commented on {$notif['newsfeed']['message']}\n";
+                                break;
+                            case Notifications::TYPE_LOVED_POST:
+                                $str .= "{$notif['fromuser']['displayname']} loved your post {$notif['newsfeed']['message']}\n";
+                                break;
+                            case Notifications::TYPE_LOVED_COMMENT:
+                                $str .= "{$notif['fromuser']['displayname']} loved your comment {$notif['newsfeed']['message']}\n";
+                                break;
+                        }
+
+                        $count++;
+                    }
+                }
+
+                error_log("Summ $str");
+
+                $url = $u->loginLink(USER_SITE, $user['touser'], '/newsfeed', 'notifemail');
+                $noemail = 'notificationmailsoff-' . $user['touser'] . "@" . USER_DOMAIN;
+
+                $html = notification_email($url, $noemail, $u->getName(), $u->getEmailPreferred(), nl2br($str));
+
+                $message = Swift_Message::newInstance()
+                    ->setSubject("You have " . count($notifs) . " new notifications")
+                    ->setFrom([NOREPLY_ADDR => 'Freegle'])
+                    ->setReturnPath($u->getBounce())
+                    ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                    ->setBody("\r\n\r\nPlease click here to read them: $url")
+                    ->addPart($html, 'text/html');
+
+                list ($transport, $mailer) = getMailer();
+                $this->sendIt($mailer, $message);
+            }
+        }
+
+        return($count);
     }
 }

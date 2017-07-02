@@ -1374,7 +1374,6 @@ class User extends Entity
         $atts = parent::getPublic();
 
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
-        error_log("Settings " . var_export($atts['settings'], TRUE));
         $atts['settings']['notificationmails'] = array_key_exists('notificationmails', $atts['settings']) ? $atts['settings']['notificationmails'] : TRUE;
 
         $me = whoAmI($this->dbhr, $this->dbhm);
@@ -3016,48 +3015,50 @@ class User extends Entity
         return($url);
     }
 
-    public function sendOurMails($g, $checkholiday = TRUE, $checkbouncing = TRUE) {
-        # We always want to send our mails for groups which we host.
+    public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE) {
         $sendit = TRUE;
-        $groupid = $g->getId();
 
-        #error_log("On Yahoo? " . $g->getPrivate('onyahoo'));
+        if ($g) {
+            $groupid = $g->getId();
 
-        if ($g->getPrivate('onyahoo')) {
-            # We don't want to send out mails to users who are members directly on Yahoo, only
-            # for ones which have joined through this platform or its predecessor.
-            #
-            # We can check this in the Yahoo group membership table to check the email they use
-            # for membership.  However it might not be up to date because that relies on mods
-            # using ModTools.
-            #
-            # So if we don't find anything in there, then we check whether this user has any
-            # emails which we host.  That tells us whether they've joined any groups via our
-            # platform, which tells us whether it's reasonable to send them emails.
-            $sendit = FALSE;
-            $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE, TRUE)[1];
-            #error_log("Membership mail $membershipmail");
+            #error_log("On Yahoo? " . $g->getPrivate('onyahoo'));
 
-            if ($membershipmail) {
-                # They have a membership on Yahoo with one of our addresses.
-                $sendit = TRUE;
-            } else {
-                # They don't have a membership on Yahoo with one of our addresses.  If we have sync'd our
-                # membership fairly recently, then we can rely on that and it means that we shouldn't send
-                # it.
-                $lastsync = $g->getPrivate('lastyahoomembersync');
-                $lastsync = $lastsync ? strtotime($lastsync) : NULL;
-                $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
-                #error_log("Last sync $age");
+            if ($g->getPrivate('onyahoo')) {
+                # We don't want to send out mails to users who are members directly on Yahoo, only
+                # for ones which have joined through this platform or its predecessor.
+                #
+                # We can check this in the Yahoo group membership table to check the email they use
+                # for membership.  However it might not be up to date because that relies on mods
+                # using ModTools.
+                #
+                # So if we don't find anything in there, then we check whether this user has any
+                # emails which we host.  That tells us whether they've joined any groups via our
+                # platform, which tells us whether it's reasonable to send them emails.
+                $sendit = FALSE;
+                $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE, TRUE)[1];
+                #error_log("Membership mail $membershipmail");
 
-                if (!$age || $age > 7 * 24) {
-                    # We don't have a recent sync, because the mods aren't using ModTools regularly.
-                    #
-                    # Use email for them having any of ours as an approximation.
-                    $emails = $this->getEmails();
-                    foreach ($emails as $anemail) {
-                        if (ourDomain($anemail['email'])) {
-                            $sendit = TRUE;
+                if ($membershipmail) {
+                    # They have a membership on Yahoo with one of our addresses.
+                    $sendit = TRUE;
+                } else {
+                    # They don't have a membership on Yahoo with one of our addresses.  If we have sync'd our
+                    # membership fairly recently, then we can rely on that and it means that we shouldn't send
+                    # it.
+                    $lastsync = $g->getPrivate('lastyahoomembersync');
+                    $lastsync = $lastsync ? strtotime($lastsync) : NULL;
+                    $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
+                    #error_log("Last sync $age");
+
+                    if (!$age || $age > 7 * 24) {
+                        # We don't have a recent sync, because the mods aren't using ModTools regularly.
+                        #
+                        # Use email for them having any of ours as an approximation.
+                        $emails = $this->getEmails();
+                        foreach ($emails as $anemail) {
+                            if (ourDomain($anemail['email'])) {
+                                $sendit = TRUE;
+                            }
                         }
                     }
                 }
