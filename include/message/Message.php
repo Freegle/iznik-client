@@ -3290,7 +3290,7 @@ class Message
     }
 
     public function intendedOutcome($outcome) {
-        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
+        $sql = "INSERT IGNORE INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
         $this->dbhm->preExec($sql, [
             $this->id,
             $outcome
