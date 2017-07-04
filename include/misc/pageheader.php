@@ -42,7 +42,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             $atts = $m->getPublic();
 
             if ($m->canSee($atts)) {
-                $icon = (count($atts['attachments']) > 0) ? $atts['attachments'][0]['path'] : USERLOGO;
+                $icon = (count($atts['attachments']) > 0 && pres('path', $atts['attachments'][0])) ? $atts['attachments'][0]['path'] : USERLOGO;
 
                 $rsptext = '';
                 if ($m->getType() == Message::TYPE_OFFER) {
