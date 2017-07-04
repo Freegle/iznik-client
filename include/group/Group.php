@@ -90,6 +90,7 @@ class Group extends Entity
                 'chaseups' => 2
             ],
             'relevant' => 1,
+            'newsfeed' => 1,
             'newsletter' => 1,
             'businesscards' => 1
         ];

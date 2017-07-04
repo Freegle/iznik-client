@@ -13,6 +13,7 @@ require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/include/misc/Preview.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
+require_once(IZNIK_BASE . '/mailtemplates/newsfeed/digest.php');
 
 class Newsfeed extends Entity
 {
@@ -50,6 +51,7 @@ class Newsfeed extends Entity
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
+        error_log("Create at $lat, $lng");
 
         if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT || $type == Newsfeed::TYPE_REFER_TO_WANTED) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
@@ -275,7 +277,7 @@ class Newsfeed extends Entity
         return($use);
     }
 
-    public function getNearbyDistance($userid) {
+    public function getNearbyDistance($userid, $max = 204800) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         # We want to calculate a distance which includes at least some other people who have posted a message.
@@ -288,6 +290,7 @@ class Newsfeed extends Entity
             $dist *= 2;
 
             # To use the spatial index we need to have a box.
+            # TODO This doesn't work if the box spans the equator.  For us it only does for testing.
             $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
             $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
@@ -296,7 +299,7 @@ class Newsfeed extends Entity
             $sql = "SELECT DISTINCT userid FROM newsfeed WHERE MBRContains($box, position) AND replyto IS NULL LIMIT $limit;";
             $others = $this->dbhr->preQuery($sql);
             #error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid using $sql");
-        } while ($dist < 204800 && count($others) < $limit);
+        } while ($dist < $max && count($others) < $limit);
 
         return($dist);
     }
@@ -330,14 +333,14 @@ class Newsfeed extends Entity
             # We return invisible entries - they are filtered on the client, and it makes the paging work.
             if ($fillin) {
                 $this->fillIn($entry, $users);
-            }
 
-            if ($entry['visible'] &&
-                $last['userid'] == $entry['userid'] &&
-                $last['type'] == $entry['type'] &&
-                $last['message'] == $entry['message']) {
-                # Suppress duplicates.
-                $entry['visible'] = FALSE;
+                if ($entry['visible'] &&
+                    $last['userid'] == $entry['userid'] &&
+                    $last['type'] == $entry['type'] &&
+                    $last['message'] == $entry['message']) {
+                    # Suppress duplicates.
+                    $entry['visible'] = FALSE;
+                }
             }
 
             $items[] = $entry;
@@ -440,5 +443,91 @@ class Newsfeed extends Entity
                 $reason
             ]);
         }
+    }
+
+    private function snip(&$msg) {
+        if ($msg) {
+            $msg = str_replace("\n", ' ', $msg);
+            if (strlen($msg) > 117) {
+                $msg = substr($msg, 0, strpos(wordwrap($msg, 120), "\n")) . '...';
+            }
+        }
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function digest($userid) {
+        # We send a mail with unseen user-generated posts from quite nearby.
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+        $count = 0;
+
+        $latlng = $u->getLatLng(FALSE);
+
+        if ($latlng[0] || $latlng[1]) {
+            # We have a location for them.
+            # Find the last one we saw.
+            $seens = $this->dbhr->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
+                $userid
+            ]);
+
+            $lastseen = 0;
+            foreach ($seens as $seen) {
+                $lastseen = $seen['newsfeedid'];
+            }
+
+            # Get the first few user-posted messages.
+            $ctx = NULL;
+            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 8046), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
+            $summ = '';
+            $max = 0;
+
+            $oldest = ISODate(date("Y-m-d H:i:s", strtotime("midnight 7 days ago")));
+
+            foreach ($feeds as $feed) {
+                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest) {
+                    $count++;
+
+                    $str = $feed['message'];
+                    $this->snip($str);
+                    $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
+                    $summ .= $u->getName() . " posted '$str'\n\n";
+                    $max = max($max, $feed['id']);
+                }
+            }
+
+            if ($max) {
+                $this->dbhm->preExec("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES (?, ?);", [
+                    $userid,
+                    $max
+                ]);
+            }
+
+            if ($count > 0) {
+                # Got some to send
+                $u = new User($this->dbhr, $this->dbhm, $userid);
+                if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
+                    $url = $u->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
+                    $noemail = 'notificationmailsoff-' . $userid . "@" . USER_DOMAIN;
+
+                    $html = notification_digest($url, $noemail, $u->getName(), $u->getEmailPreferred(), nl2br($summ));
+
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("Freeglers near you are talking - $count new post" . ($count != 1 ? 's' : ''))
+                        ->setFrom([NOREPLY_ADDR => 'Freegle'])
+                        ->setReturnPath($u->getBounce())
+                        ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                        ->setBody("Recent posts from nearby freeglers:\r\n\r\n$summ\r\n\r\nPlease click here to read them: $url")
+                        ->addPart($html, 'text/html');
+
+                    error_log("..." . $u->getEmailPreferred() . " send $count");
+                    list ($transport, $mailer) = getMailer();
+                    $this->sendIt($mailer, $message);
+                }
+            }
+        }
+
+        return($count);
     }
 }

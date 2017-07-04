@@ -4,7 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
-require_once(IZNIK_BASE . '/mailtemplates/notification_email.php');
+require_once(IZNIK_BASE . '/mailtemplates/notifications/email.php');
 
 class Notifications
 {
@@ -156,7 +156,7 @@ class Notifications
         foreach ($users as $user) {
             $u = new User($this->dbhr, $this->dbhm, $user['touser']);
             error_log("Consider {$user['touser']} email " . $u->getEmailPreferred());
-            if ($u->sendOurMails()) {
+            if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
                 $ctx = NULL;
                 $notifs = $this->get($user['touser'], $ctx);
 
@@ -198,7 +198,6 @@ class Notifications
 
                 list ($transport, $mailer) = getMailer();
                 $this->sendIt($mailer, $message);
-                exit(0);
             }
         }
 

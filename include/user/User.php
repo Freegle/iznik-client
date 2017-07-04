@@ -1186,6 +1186,19 @@ class User extends Entity
         return($canmod);
     }
 
+    public function getSetting($setting, $default)
+    {
+        $ret = $default;
+        $s = $this->getPrivate('settings');
+
+        if ($s) {
+            $settings = json_decode($s, TRUE);
+            $ret = presdef($setting, $settings, $default);
+        }
+
+        return($ret);
+    }
+
     public function setGroupSettings($groupid, $settings) {
         $this->clearMembershipCache();
         $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
@@ -3189,6 +3202,14 @@ class User extends Entity
                 }
             }
 
+            # Add the public location and best guess lat/lng
+            $thisone['publiclocation'] = $u->getPublicLocation();
+            $latlng = $u->getLatLng();
+            $thisone['privateposition'] = [
+                'lat' => $latlng[0],
+                'lng' => $latlng[1]
+            ];
+
             $ret[] = $thisone;
         }
 
@@ -3420,7 +3441,7 @@ class User extends Entity
         return($ret);
     }
 
-    public function getLatLng() {
+    public function getLatLng($usedef = TRUE) {
         $s = $this->getPrivate('settings');
         $lat = NULL;
         $lng = NULL;
@@ -3454,9 +3475,11 @@ class User extends Entity
             }
         }
 
-        # ...or failing that, a default.
-        $lat = $lat ? $lat : 53.9450;
-        $lng = $lng ? $lng : -2.5209;
+        if ($usedef) {
+            # ...or failing that, a default.
+            $lat = $lat ? $lat : 53.9450;
+            $lng = $lng ? $lng : -2.5209;
+        }
 
         return([$lat, $lng]);
     }

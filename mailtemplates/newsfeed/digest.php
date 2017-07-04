@@ -2,8 +2,9 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function notification_email($url, $off, $toname, $to, $summ) {
+function notification_digest($url, $off, $toname, $to, $summ) {
     $siteurl = "https://" . USER_SITE;
+    $setting = $siteurl . '/settings';
     $sitename = SITE_NAME;
     $logo = USERLOGO;
 
@@ -55,17 +56,19 @@ EOT;
                                                             </td>    
                                                             <td class="mobile" align="left" valign="top">
                                                                 <p>Dear $toname,</p>
-                                                                <p>You have new notifications on Freegle:</p>
+                                                                <p>Now you can chat to nearby freeglers! This is a new feature - if you don't want these emails, turn them off by mailing <a href="mailto:$off">$off</a>
+                                                                <p>Here are some recent topics from freeglers near you:</p>
                                                                 <p>$summ</p>
                                                                 <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
                                                                     <tr>
                                                                         <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
                                                                             style="font-family: Century Gothic, Arial, sans-serif; font-size: 16px; color: #ffffff;
                                                                                 line-height:18px; border-radius:3px;">
-                                                                            <a href="$url" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Go&nbsp;to&nbsp;Freegle</a>
+                                                                            <a href="$url" alias="" style="font-family: Century Gothic, Arial, sans-serif; text-decoration: none; color: #ffffff;">&nbsp;Join&nbsp;the&nbsp;conversation!</a>
                                                                         </td>
                                                                     </tr>
                                                                 </table> 
+                                                                <p>If these aren't nearby, please check your postcode in <a href="$setting">Settings</a></p>
                                                             </td>
                                                         </tr>        
                                                         <tr>
@@ -80,7 +83,7 @@ EOT;
                                                         </tr>
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
-                                                                <p>You've received this automated mail because $to is a member of <a href="$siteurl">$sitename</a>.  You can turn these notification mails off from <a href="$siteurl/settings">here</a> or by emailing <a href="mailto:$off">$off</p>                                                            
+                                                                <p>You've received this automated mail because $to is a member of <a href="$siteurl">$sitename</a>.  You can turn these notification mails off from <a href="$siteurl/settings">here</a> or by emailing <a href="mailto:$off">$off</a></p>                                                            
                                                                 <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
                                                             </td>
                                                         </tr>        
