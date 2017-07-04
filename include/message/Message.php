@@ -631,7 +631,6 @@ class Message
         $ret = [];
         $role = $this->getRoleForMessage();
         $ret['myrole'] = $role;
-        debug_backtrace();
 
         foreach ($this->nonMemberAtts as $att) {
             $ret[$att] = $this->$att;
