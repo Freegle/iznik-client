@@ -95,10 +95,38 @@
                             <br /><span class="">Volunteer</span>
                         </a>
                     </li>
+                    <li class="visible-xs visible=sm">
+                        <a href="/invite" class="margleft dropdown-toggle nopad text-center" title="Invite other people to Freegle">
+                            <div class="fullholder glyphicons glyphicon-larger glyphicons-plus vcenter-left" type="button" />
+                            <br />
+                            <span>
+                                Invite
+                                <span class="js-invitesleft badge badge-invite" style="display: none;" />
+                            </span>
+                        </a>
+                    </li>
+                    <li class="visible-xs visible=sm">
+                        <a href="/help"  class="margleft nopad text-center" title="Help and Support">
+                            <div class="fullholder glyphicons glyphicons-question-sign glyphicon-larger vcenter-left" />
+                            <br /><span class="">Help</span>
+                        </a>
+                    </li>
+                    <li class="visible-xs visible=sm">
+                        <a href="/settings" class="margleft nopad text-center">
+                            <div class="fullholder glyphicons glyphicons-cogwheels glyphicon-larger vcenter-left" title="Settings" />
+                            <br /><span class="">Settings</span>
+                        </a>
+                    </li>
+                    <li class="visible-xs visible=sm">
+                        <a href="#"  class="margleft margright nopad text-center js-logout" title="Logout">
+                            <div class="fullholder glyphicons glyphicons-log-out glyphicon-larger vcenter-left" />
+                            <br /><span class="">Logout</span>
+                        </a>
+                    </li>
                 </ul>
-                <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly">
+                <ul class="nav navbar-nav navbar-right padright reallyHide js-loggedinonly hidden-xs hidden-sm">
                     <li class="">
-                        <a href="#" class="margleft nopad text-center dropdown-toggle hidden-xs hidden-sm js-notifholder" data-toggle="dropdown" title="Notifications">
+                        <a href="#" class="margleft nopad text-center dropdown-toggle js-notifholder" data-toggle="dropdown" title="Notifications">
                             <div class="fullholder glyphicons glyphicon-larger glyphicons-globe vcenter-left"/>
                             <br />
                             <span>
@@ -117,7 +145,7 @@
                         </div>
                     </li>
                     <li>
-                        <a href="/chats" id="js-notifchat" class="margleft dropdown-toggle nopad text-center hidden-xs hidden-sm" title="Messages from other Freeglers">
+                        <a href="/chats" id="js-notifchat" class="margleft dropdown-toggle nopad text-center" title="Messages from other Freeglers">
                             <div class="fullholder glyphicons glyphicon-larger glyphicons-conversation vcenter-left" type="button" />
                             <br />
                             <span>
