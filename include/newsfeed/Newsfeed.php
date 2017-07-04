@@ -51,7 +51,7 @@ class Newsfeed extends Entity
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
-        error_log("Create at $lat, $lng");
+#        error_log("Create at $lat, $lng");
 
         if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT || $type == Newsfeed::TYPE_REFER_TO_WANTED) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
@@ -82,7 +82,10 @@ class Newsfeed extends Entity
                         # Comment on thread.  We want to notify the original poster and anyone else who
                         # has commented on this thread.
                         $n = new Notifications($this->dbhr, $this->dbhm);
-                        $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id);
+
+                        if ($orig['userid']) {
+                            $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id);
+                        }
 
                         $commenters = $this->dbhr->preQuery("SELECT DISTINCT userid FROM newsfeed WHERE replyto = ? AND userid != ? UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = ? AND userid != ? ;", [
                             $replyto,
