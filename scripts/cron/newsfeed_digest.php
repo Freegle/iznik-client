@@ -13,7 +13,7 @@ require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 $lockh = lockScript(basename(__FILE__));
 
 $n = new Newsfeed($dbhr, $dbhm);
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 0 AND publish = 1 AND nameshort NOT LIKE '%playground%' ORDER BY RAND();");
+$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 1 AND publish = 1 AND nameshort NOT LIKE '%playground%' ORDER BY RAND();");
 foreach ($groups as $group) {
     $g = new Group($dbhr, $dbhm, $group['id']);
 
