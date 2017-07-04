@@ -422,7 +422,7 @@ class Newsfeed extends Entity
         list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
         $count = 0;
         foreach ($feeds as $feed) {
-            if ($feed['id'] > $lastseen) {
+            if ($feed['id'] > $lastseen && $feed['userid'] != $userid) {
                 $count++;
             }
         }

@@ -27,7 +27,9 @@ foreach ($groups as $group) {
 
         $count = 0;
         foreach ($membs as $memb) {
-            $count += $n->digest($memb['userid']);
+            try {
+                $count += $n->digest($memb['userid']);
+            } catch (Exception $e) {}
         }
 
         if ($count) {
