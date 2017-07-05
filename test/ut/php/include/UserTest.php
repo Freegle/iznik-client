@@ -952,6 +952,17 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testAFreegler() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', 'A freegler');
+        $atts = $u->getPublic();
+        self::assertNotEquals('A freegler', $atts['fullname']);
+
+        error_log(__METHOD__ . " end");
+    }
 //
 //    public function testSpecial() {
 //        error_log(__METHOD__);
