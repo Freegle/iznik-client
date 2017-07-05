@@ -759,6 +759,10 @@ define([
                             });
 
                             self.collectionView.render();
+
+                            if (self.replies.length > 10) {
+                                self.$('.js-showearlier').show();
+                            }
                         }
 
                         self.loves = new Iznik.Views.User.Feed.Loves({
