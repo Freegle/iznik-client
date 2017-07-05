@@ -67,8 +67,7 @@ define([
                     systemWide: false,
                     all: false,
                     mod: true,
-                    choose: true,
-                    id: 'adminGroupSelect'
+                    choose: true
                 });
 
                 self.listenTo(self.groupSelect, 'change', _.bind(self.fetchPrevious, self));
