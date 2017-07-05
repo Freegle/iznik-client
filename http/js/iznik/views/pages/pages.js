@@ -120,7 +120,6 @@ define([
 
                             if (ret.count) {
                                 $('.js-notifholder .js-notifcount').show();
-                                self.notifications.fetch();
                             }
                             else {
                                 $('.js-notifholder .js-notifcount').hide();
@@ -128,6 +127,8 @@ define([
 
                             setTitleCounts(null, ret.count);
                         }
+
+                        setTitleCounts(null, ret.count);
                     }
                 }, complete: function() {
                     $.ajax({
@@ -135,10 +136,8 @@ define([
                         type: 'GET',
                         context: self,
                         success: function(ret) {
-                            console.log("Got count", ret);
                             if (ret.ret == 0) {
                                 var el = $('.js-unseennews');
-                                console.log("Compare", el.html(), ret.unseencount);
                                 if (el.html() != ret.unseencount) {
                                     el.html(ret.unseencount);
 
@@ -330,12 +329,14 @@ define([
                             self.notificationsCV2.render();
                             self.notifications.fetch();
 
-                            $(".js-notifcount").click(function (e) {
+                            $(".js-notifholder").click(_.bind(function (e) {
+                                var self = this;
                                 // Fetch the notifications, which the CV will then render.
+                                console.log("Clicked on notifications");
                                 self.notifications.fetch().then(function() {
                                     console.log("Notifications", self.notifications);
                                 });
-                            });
+                            }, self));
 
                             $(".js-markallnotifread").click(function (e) {
                                 e.preventDefault();
@@ -660,25 +661,21 @@ define([
         template: 'user_newsfeed_notification',
 
         events: {
-            'click': 'goto',
-            'mouseover': 'markSeen'
+            'mouseover': 'markSeen',
+            'click .js-top': 'goto'
         },
 
         goto: function() {
             var self = this;
 
-            // We want the start of the thread.
             var newsfeed = self.model.get('newsfeed');
             var url = self.model.get('url');
-            console.log("Goto", url);
             if (newsfeed) {
-                var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
-
                 if (!self.model.get('seen')) {
                     self.model.seen();
-                    Router.navigate('/newsfeed/' + id, true);
+                    Router.navigate('/newsfeed/' + newsfeed.id, true);
                 } else {
-                    Router.navigate('/newsfeed/' + id, true);
+                    Router.navigate('/newsfeed/' + newsfeed.id, true);
                 }
             } else if (url) {
                 Router.navigate(url, true);
@@ -697,30 +694,35 @@ define([
 
         render: function() {
             var self = this;
-            var newsfeed = self.model.get('newsfeed');
+            var p = resolvedPromise(self);
 
-            if (newsfeed) {
-                if (newsfeed.message) {
-                    newsfeed.message = twem(newsfeed.message);
+            if (!self.rendered) {
+                self.rendered = true;
+                var newsfeed = self.model.get('newsfeed');
+
+                if (newsfeed) {
+                    if (newsfeed.message) {
+                        newsfeed.message = twem(newsfeed.message);
+                    }
+
+                    var replyto = newsfeed.replyto;
+
+                    if (replyto && replyto.message) {
+                        newsfeed.replyto.message = twem(replyto.message);
+                    }
+
+                    self.model.set('newsfeed', newsfeed);
                 }
 
-                var replyto = newsfeed.replyto;
+                p = Iznik.View.Timeago.prototype.render.call(this);
 
-                if (replyto && replyto.message) {
-                    newsfeed.replyto.message = twem(replyto.message);
-                }
-
-                self.model.set('newsfeed', newsfeed);
+                p.then(function(){
+                    if (self.$('.js-emoji').length) {
+                        var el = self.$('.js-emoji').get()[0];
+                        twemoji.parse(el);
+                    }
+                });
             }
-
-            var p = Iznik.View.Timeago.prototype.render.call(this);
-
-            p.then(function(){
-                if (self.$('.js-emoji').length) {
-                    var el = self.$('.js-emoji').get()[0];
-                    twemoji.parse(el);
-                }
-            });
 
             return(p)
         }

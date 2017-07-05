@@ -189,7 +189,7 @@ class sessionTest extends IznikAPITestCase
 
         # Set something
         $ret = $this->call('session', 'PATCH', [
-            'settings' => json_encode(['test' => 1]),
+            'settings' => ['test' => 1],
             'displayname' => "Testing User",
             'email' => 'test2@test.com',
             'onholidaytill' => ISODate('@' . time()),
@@ -205,7 +205,10 @@ class sessionTest extends IznikAPITestCase
         $ret = $this->call('session', 'GET', []);
         error_log(var_export($ret, true));
         assertEquals(0, $ret['ret']);
-        assertEquals('{"test":1}', $ret['me']['settings']);
+        assertEquals([
+            "test" => 1,
+            'notificationmails' => true
+        ], $ret['me']['settings']);
         assertEquals('Testing User', $ret['me']['displayname']);
         assertEquals('test@test.com', $ret['me']['email']);
         assertFalse(array_key_exists('relevantallowed', $ret['me']));

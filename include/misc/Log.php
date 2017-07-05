@@ -61,6 +61,7 @@ class Log
     const SUBTYPE_SUSPEND_MAIL = 'SuspendMail';
     const SUBTYPE_AUTO_REPOSTED = 'Autoreposted';
     const SUBTYPE_OUTCOME = 'Outcome';
+    const SUBTYPE_NOTIFICATIONOFF = 'NotificationOff';
 
     function __construct($dbhr, $dbhm)
     {

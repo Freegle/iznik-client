@@ -4,13 +4,15 @@ define([
     'backbone',
     'iznik/base',
     'autosize',
+    'jquery-show-last',
     'iznik/models/message',
     'iznik/models/user/search',
     'iznik/models/newsfeed',
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
-    'iznik/views/infinite'
+    'iznik/views/infinite',
+    'jquery.scrollTo'
 ], function($, _, Backbone, Iznik, autosize) {
     Iznik.Views.User.Feed = {};
     
@@ -22,8 +24,7 @@ define([
         events: {
             'click .js-post': 'post',
             'click .js-getloc': 'getLocation',
-            'change .js-distance': 'changeDist',
-            'focus .js-message': 'autoSize'
+            'change .js-distance': 'changeDist'
         },
 
         getLocation: function() {
@@ -91,6 +92,7 @@ define([
                             'has anybody got',
                             'has anyone got',
                             'does anyone have',
+                            'i really need',
                             'if anyone has'
                         ],
                         'give': [
@@ -141,17 +143,6 @@ define([
             }
         },
 
-        autoSize: function() {
-            // Autosize is expensive, so only do it when we focus on the input field.  That means we only do it
-            // when someone is actually going to make a comment.
-            var self = this;
-
-            if (!self.autosized) {
-                self.autosized = true;
-                autosize(self.$('.js-message'));
-            }
-        },
-
         changeDist: function() {
             var self = this;
             var dist = self.$('.js-distance').val();
@@ -175,6 +166,7 @@ define([
         post: function() {
             var self = this;
 
+            self.$('.js-message').prop('disabled', true);
             var msg = self.$('.js-message').val();
             msg = twemoji.replace(msg, function(emoji) {
                 return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
@@ -189,6 +181,7 @@ define([
                     mod.fetch().then(function() {
                         self.collection.add(mod);
                         self.$('.js-message').val('');
+                        self.$('.js-message').prop('disabled', false);
                     });
                 });
             }
@@ -221,7 +214,14 @@ define([
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
-                self.$('.js-message').focus();
+                if (!self.autosized) {
+                    self.autosized = true;
+                    autosize(self.$('.js-message'));
+                }
+
+                if (!isXS() && !isSM()) {
+                    self.$('.js-message').focus();
+                }
 
                 // Sticky select.
                 var dist = Storage.get('newsfeeddist');
@@ -276,23 +276,53 @@ define([
             var p = Iznik.Views.Page.prototype.render.call(this);
 
             p.then(function(self) {
+                // We are loading something which may be the start of the thread, or a reply.  We want to load
+                // the whole thread and focus on the reply.
                 self.model = new Iznik.Models.Newsfeed({
                     id: self.options.id
                 });
 
                 self.model.fetch({
                     success: function() {
-                        var v = new Iznik.Views.User.Feed.Item({
-                            model: self.model
-                        });
+                        console.log("Got model", self.model.attributes);
+                        if (self.model.get('replyto')) {
+                            // Notification is on a reply; render then make sure the reply is visible.
+                            console.log("Reply - get start of thread");
+                            self.model = new Iznik.Models.Newsfeed({
+                                id: self.model.get('replyto')
+                            });
 
-                        v.render().then(function() {
-                            self.$('.js-item').html(v.$el);
-                            self.$('.js-back').fadeIn('slow');
-                        })
+                            self.model.fetch({
+                                success: function() {
+                                    var v = new Iznik.Views.User.Feed.Item({
+                                        model: self.model,
+                                        highlight: self.options.id
+                                    });
+
+                                    v.render().then(function() {
+                                        self.$('.js-item').html(v.$el);
+                                        self.$('.js-back').fadeIn('slow');
+                                    });
+                                },
+                                error: function() {
+                                    self.$('.js-error').fadeIn('slow');
+                                    self.$('.js-back').fadeIn('slow');
+                                }
+                            });
+                        } else {
+                            // Start of thread.
+                            console.log("Start of thread");
+                            var v = new Iznik.Views.User.Feed.Item({
+                                model: self.model
+                            });
+
+                            v.render().then(function() {
+                                self.$('.js-item').html(v.$el);
+                                self.$('.js-back').fadeIn('slow');
+                            })
+                        }
                     },
                     error: function() {
-                        console.log("Error");
                         self.$('.js-error').fadeIn('slow');
                         self.$('.js-back').fadeIn('slow');
                     }
@@ -307,13 +337,42 @@ define([
         events: {
             'click .js-profile': 'showProfile',
             'click .js-delete': 'deleteMe',
+            'click .js-open': 'open',
             'click .js-report': 'report',
+            'click .js-refertowanted': 'referToWanted',
             'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply'
         },
 
+        open: function (e) {
+            var self = this;
+
+            e.preventDefault();
+            e.stopPropagation()
+
+            var usersite = $('meta[name=iznikusersite]').attr("content");
+            var url = 'https://' + usersite + '/newsfeed/' + self.model.get('id');
+
+            window.open(url);
+        },
+
+        referToWanted: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            self.model.referToWanted().then(function() {
+                console.log("Referred", self);
+                self.checkUpdate();
+            });
+        },
+
         clickPreview: function() {
-            window.open(this.model.get('preview').url);
+            var p = this.model.get('preview');
+
+            if (p && p.hasOwnProperty('url') && p.url) {
+                window.open(p.url);
+            }
         },
 
         report: function(e) {
@@ -402,12 +461,21 @@ define([
             'click .js-replylove': 'love',
             'click .js-itemlove': 'love',
             'click .js-replyunlove': 'unlove',
-            'click .js-itemunlove': 'unlove'
+            'click .js-itemunlove': 'unlove',
+            'click .js-loves': 'lovelist'
+        },
+
+        lovelist: function() {
+            var self = this;
+            if (self.model.get('loves')) {
+                (new Iznik.Views.User.Feed.Loves.List({
+                    model: self.model
+                })).render();
+            }
         },
 
         love: function() {
             var self = this;
-            console.log("Love");
 
             self.model.love().then(function() {
                 self.model.fetch().then(function() {
@@ -418,7 +486,6 @@ define([
 
         unlove: function() {
             var self = this;
-            console.log("Unlove");
 
             self.model.unlove().then(function() {
                 self.model.fetch().then(function() {
@@ -428,13 +495,80 @@ define([
         }
     });
 
+    Iznik.Views.User.Feed.Loves.List = Iznik.Views.Modal.extend({
+        template: 'user_newsfeed_lovelist',
+
+        render: function() {
+            var self = this;
+
+            var p = self.model.fetch({
+                data: {
+                    lovelist: true
+                }
+            });
+
+            p.then(function() {
+                Iznik.Views.Modal.prototype.render.call(self, {
+                    model: self.model
+                }).then(function() {
+                    self.collection = new Iznik.Collection(self.model.get('lovelist'));
+                    console.log("Loves", self.model.attributes, self.collection);
+
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-list'),
+                        modelView: Iznik.Views.User.Feed.Loves.List.One,
+                        collection: self.collection,
+                        processKeyEvents: false
+                    });
+
+                    self.collectionView.render();
+                });
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Feed.Loves.List.One = Iznik.View.extend({
+        template: 'user_newsfeed_onelove'
+    });
+
     Iznik.Views.User.Feed.Item = Iznik.Views.User.Feed.Base.extend({
         lovetemplate: 'user_newsfeed_itemloves',
         lovesel: '.js-itemloves',
 
         events: {
             'keydown .js-comment': 'sendComment',
-            'focus .js-comment': 'autoSize'
+            'focus .js-comment': 'autoSize',
+            'click .js-addvolunteer': 'addVolunteer',
+            'click .js-addevent': 'addEvent',
+            'click .js-showearlier': 'showEarlier'
+        },
+
+        showAll: false,
+
+        showEarlier: function(e) {
+            var self = this;
+
+            e.preventDefault();
+            e.stopPropagation();
+            self.showAll = true;
+            self.$('.js-showearlier').hide();
+            self.collectionView.render();
+        },
+
+        addVolunteer: function() {
+            var v = new Iznik.Views.User.Volunteering.Editable({
+                model: new Iznik.Models.Volunteering({})
+            });
+            v.render();
+        },
+
+        addEvent: function() {
+            var v = new Iznik.Views.User.CommunityEvent.Editable({
+                model: new Iznik.Models.CommunityEvent({})
+            });
+            v.render();
         },
 
         autoSize: function() {
@@ -460,29 +594,37 @@ define([
                     // They've used the alt/shift trick.
                     self.$('.js-comment').val(self.$('.js-comment').val() + "\n");
                 } else  {
+                    self.$('.js-comment').prop('disabled', true);
                     var msg = self.$('.js-comment').val();
 
-                    msg = twemoji.replace(msg, function(emoji) {
-                        return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
-                    });
-
-                    var mod = new Iznik.Models.Newsfeed({
-                        replyto: self.model.get('id'),
-                        message: msg
-                    });
-                    
-                    mod.save().then(function() {
-                        self.$('.js-comment').val('');
-                        mod.fetch().then(function() {
-                            self.replies.add(mod);
+                    if (msg.length > 0) {
+                        msg = twemoji.replace(msg, function(emoji) {
+                            return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
                         });
-                    });
+
+                        var mod = new Iznik.Models.Newsfeed({
+                            replyto: self.model.get('id'),
+                            message: msg
+                        });
+
+                        mod.save().then(function() {
+                            self.$('.js-comment').val('');
+                            self.$('.js-comment').prop('disabled', false);
+                            mod.fetch().then(function() {
+                                self.replies.add(mod);
+                            });
+                        });
+                    }
                 }
             }
         },
 
+        updateTimer: false,
+
         checkUpdate: function() {
             var self = this;
+            self.updateTimer = false;
+
             // console.log("Consider update", self.model.get('id'));
 
             if (self.inDOM()) {
@@ -496,6 +638,7 @@ define([
                         self.loves.model = self.model;
                         self.loves.render().then(function() {
                             self.$('.js-itemloves').html(self.loves.$el);
+                            self.loves.delegateEvents();
                         });
 
                         // Update the replies collection.
@@ -506,7 +649,7 @@ define([
                             self.replies.add(replies);
                         }
 
-                        if (self.model.collection.indexOf(self.model) === 0) {
+                        if (self.model.collection && self.model.collection.indexOf(self.model) === 0) {
                             // This is the first one.  Fetch the collection so that if there are any new items
                             // we'll pick them up.
                             self.model.collection.trigger('refetch');
@@ -515,7 +658,10 @@ define([
                             self.model.seen();
                         }
 
-                        _.delay(_.bind(self.checkUpdate, self), 30000);
+                        if (!self.updateTimer) {
+                            self.updateTimer = true;
+                            _.delay(_.bind(self.checkUpdate, self), 30000);
+                        }
                     });
                 }
             }
@@ -530,6 +676,16 @@ define([
                 self.checking = true;
                 _.delay(_.bind(self.checkUpdate, self), 30000);
             }
+        },
+
+        visible: function(model) {
+            var self = this;
+            var vis = model.get('visible');
+
+            // Show last few.
+            vis = vis && (self.showAll || model.collection.length < 10 || model.collection.indexOf(model) > 10);
+
+            return(vis);
         },
 
         render: function() {
@@ -589,6 +745,10 @@ define([
                             self.collectionView = new Backbone.CollectionView({
                                 el: replyel,
                                 modelView: Iznik.Views.User.Feed.Reply,
+                                visibleModelsFilter: _.bind(self.visible, self),
+                                modelViewOptions: {
+                                    highlight: self.options.highlight
+                                },
                                 collection: self.replies,
                                 processKeyEvents: false
                             });
@@ -622,11 +782,41 @@ define([
         lovesel: '.js-replyloves',
 
         events: {
-            'click .js-reply': 'reply'
+            'click .js-reply': 'reply',
+            'click .js-replyprofile': 'showProfile'
         },
 
         reply: function() {
             this.model.collection.trigger('reply');
+        },
+
+        render: function() {
+            var self = this;
+
+            if (self.model.get('type') == 'ReferToWanted') {
+                self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
+                self.template = 'user_newsfeed_refertowanted';
+            }
+
+            var p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
+                model: self.model
+            });
+
+            p.then(function() {
+                if (self.model.get('id') == self.options.highlight) {
+                    // Make sure it's visible.
+                    $(window).scrollTo(self.$el);
+
+                    // Set the initial background colour and then fade to normal.  This draws the eye to the
+                    // item we've clicked to see.
+                    self.$el.addClass('highlightin');
+                    _.delay(function() {
+                        self.$el.addClass('highlightout');
+                    }, 5000);
+                }
+            });
+
+            return(p);
         }
     });
 

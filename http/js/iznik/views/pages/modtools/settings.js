@@ -469,6 +469,13 @@ define([
                                 helpMessage: "Email specific messages to members based on their searches and posting history.  Members can turn this on/off themselves, so you would only turn this off if you want to override their decision."
                             },
                             {
+                                name: 'newsfeed',
+                                label: '(Freegle only) Send occasional digests of newsfeed to members?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "We can send an occasional mail to members of recent activity from other members on the discussion newsfeed (like the old cafe groups).  This encourages them to take part.  Members can turn this off themselves, so you would only turn this off if you want to override their decision."
+                            },
+                            {
                                 name: 'newsletter',
                                 label: '(Freegle only) Send newsletters to members?',
                                 control: 'radio',

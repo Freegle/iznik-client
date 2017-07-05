@@ -7,6 +7,18 @@ define([
     Iznik.Models.Newsfeed = Iznik.Model.extend({
         urlRoot: API + 'newsfeed',
 
+        referToWanted: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'ReferToWanted'
+                }
+            }));
+        },
+
         seen: function() {
             var self = this;
 
@@ -69,10 +81,6 @@ define([
         model: Iznik.Models.Newsfeed,
 
         url: API + 'newsfeed',
-
-        comparator: function(a) {
-            return(-(new Date(a.get('timestamp'))).getTime());
-        },
 
         parse: function(ret) {
             var self = this;

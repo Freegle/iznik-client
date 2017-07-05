@@ -76,7 +76,7 @@ define([
                     }
 
                     // Fetch more - and leave the old ones in the collection unless we're fetching another group.
-                    // console.log("Fetch vs", self.selected, self.lastFetched, self.selected != self.lastFetched, data);
+                    console.log("Fetch vs", self.selected, self.lastFetched, self.selected != self.lastFetched, data);
                     self.collection.fetch({
                         data: data,
                         remove: self.selected != self.lastFetched,

@@ -35,7 +35,9 @@ class Preview extends Entity
                 } else {
                     foreach ($parsed as $parserName => $link) {
                         $title = $link->getTitle();
+                        $title = preg_replace('/[[:^print:]]/', '', $title);
                         $desc = $link->getDescription();
+                        $desc = preg_replace('/[[:^print:]]/', '', $desc);
                         $pic = $link->getImage();
                         $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `title`, `description`, `image`) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
                             $url,

@@ -11,7 +11,7 @@
             </div>
             <div class="modal-body js-modal-body row">
                 <div class="col-xs-12">
-                    <p><% if (info.milesaway) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<%if (info.area && info.area.name) { %>{{info.area.name}}, <% } %>{{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.</span><% } %></p>
+                    <p><% if (info.milesaway) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %>{{info.publiclocation}}, <% } %>{{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.</span><% } %></p>
 
                     <p><span class="glyphicon glyphicon-calendar" />&nbsp;Freegler since <span class="js-since" />.</p>
                     <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>

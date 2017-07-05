@@ -15,14 +15,14 @@
                         </li>
                     </ul>
                 </div>
-                <% if (obj.user) { %>
-                <img src="{{user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
+                <% if (story.user) { %>
+                <img src="{{story.user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
                 <div class="js-profile">
-                    <b><span class="success">{{user.displayname}}</span> told their Freegle story</b>
+                    <b><span class="success">{{story.user.displayname}}</span> told their Freegle story</b>
                     <br />
                     <small class="text-muted">
                         <abbr class="timeago nodecor" title="{{timestamp}}" />
-                        <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
+                        <% if (story.user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{storyuser.publiclocation}}<% } %>
                     </small>
                 </div>
                 <% } %>
@@ -49,6 +49,7 @@
         <% } %>
     </div>
     <div class="panel-footer">
+        <a href="#" class="js-showearlier" style="display: none">Show earlier...</a>
         <ul class="list-unstyled js-replies" />
         <div class="row">
             <div class="col-xs-12">

@@ -13,11 +13,12 @@ require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/include/misc/Preview.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
+require_once(IZNIK_BASE . '/mailtemplates/newsfeed/digest.php');
 
 class Newsfeed extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'timestamp', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'volunteeringid', 'publicityid', 'message', 'position');
+    var $publicatts = array('id', 'timestamp', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position');
 
     /** @var  $log Log */
     private $log;
@@ -34,6 +35,7 @@ class Newsfeed extends Entity
     const TYPE_CENTRAL_PUBLICITY = 'CentralPublicity';
     const TYPE_ALERT = 'Alert';
     const TYPE_STORY = 'Story';
+    const TYPE_REFER_TO_WANTED = 'ReferToWanted';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -44,13 +46,14 @@ class Newsfeed extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
     }
 
-    public function create($type, $userid, $message, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL) {
+    public function create($type, $userid = NULL, $message = NULL, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL) {
         $id = NULL;
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
+#        error_log("Create at $lat, $lng");
 
-        if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT) {
+        if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT || $type == Newsfeed::TYPE_REFER_TO_WANTED) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
@@ -79,15 +82,17 @@ class Newsfeed extends Entity
                         # Comment on thread.  We want to notify the original poster and anyone else who
                         # has commented on this thread.
                         $n = new Notifications($this->dbhr, $this->dbhm);
-                        $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id);
 
-                        $commenters = $this->dbhr->preQuery("SELECT DISTINCT userid FROM newsfeed WHERE replyto = ? AND userid != ?;", [
-                            $replyto,
-                            $orig['userid']
-                        ]);
+                        if ($orig['userid']) {
+                            # Some posts don't have a userid, e.g. central publicity.
+                            $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id);
+                        }
+
+                        $sql = $orig['userid'] ? "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto AND userid != {$orig['userid']} UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto AND userid != {$orig['userid']};" : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto;";
+                        $commenters = $this->dbhr->preQuery($sql);
 
                         foreach ($commenters as $commenter) {
-                            $n->add($userid, $commenter['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id);
+                            $rc = $n->add($userid, $commenter['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id);
                         }
                     }
 
@@ -105,17 +110,38 @@ class Newsfeed extends Entity
         return($id);
     }
 
-    public function getPublic() {
+    public function getPublic($lovelist) {
         $atts = parent::getPublic();
         $users = [];
 
         $this->fillIn($atts, $users);
-        $atts['user'] = array_pop($users);
-        unset($atts['userid']);
+
+        foreach ($users as $user) {
+            if ($user['id'] == $atts['userid']) {
+                $atts['user'] = $user;
+                unset($atts['userid']);
+            }
+        }
 
         foreach ($atts['replies'] as &$reply) {
             $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
+            $ctx = NULL;
             $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        }
+
+        if ($lovelist) {
+            $atts['lovelist'] = [];
+            $loves = $this->dbhr->preQuery("SELECT * FROM newsfeed_likes WHERE newsfeedid = ?;", [
+                $this->id
+            ]);
+
+            foreach ($loves as $love) {
+                $u = User::get($this->dbhr, $this->dbhm, $love['userid']);
+                $ctx = NULL;
+                $uatts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $uatts['publiclocation'] = $u->getPublicLocation();
+                $atts['lovelist'][] = $uatts;
+            }
         }
 
         return($atts);
@@ -184,7 +210,7 @@ class Newsfeed extends Entity
                     $entry['publicity'] = [
                         'id' => $entry['publicityid'],
                         'postid' => $pubs[0]['postid'],
-                        'iframe' => '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
+                        'iframe' => '<iframe class="completefull" src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
                     ];
                 }
             }
@@ -226,11 +252,23 @@ class Newsfeed extends Entity
                 $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
                     $entry['id']
                 ], FALSE);
+                
+                $last = NULL;
 
                 foreach ($replies as &$reply) {
                     # Replies only one deep at present.
                     $this->fillIn($reply, $users, FALSE);
+
+                    if ($reply['visible'] &&
+                        $last['userid'] == $reply['userid'] &&
+                        $last['type'] == $reply['type'] &&
+                        $last['message'] == $reply['message']) {
+                        # Suppress duplicates.
+                        $reply['visible'] = FALSE;
+                    }
+                    
                     $entry['replies'][] = $reply;
+                    $last = $reply;
                 }
             }
         }
@@ -239,7 +277,7 @@ class Newsfeed extends Entity
         return($use);
     }
 
-    public function getNearbyDistance($userid) {
+    public function getNearbyDistance($userid, $max = 204800) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         # We want to calculate a distance which includes at least some other people who have posted a message.
@@ -252,6 +290,7 @@ class Newsfeed extends Entity
             $dist *= 2;
 
             # To use the spatial index we need to have a box.
+            # TODO This doesn't work if the box spans the equator.  For us it only does for testing.
             $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
             $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
@@ -260,7 +299,7 @@ class Newsfeed extends Entity
             $sql = "SELECT DISTINCT userid FROM newsfeed WHERE MBRContains($box, position) AND replyto IS NULL LIMIT $limit;";
             $others = $this->dbhr->preQuery($sql);
             #error_log("Found " . count($others) . " at $dist from $lat, $lng for $userid using $sql");
-        } while ($dist < 204800 && count($others) < $limit);
+        } while ($dist < $max && count($others) < $limit);
 
         return($dist);
     }
@@ -288,21 +327,40 @@ class Newsfeed extends Entity
         $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
         #error_log($sql);
         $entries = $this->dbhr->preQuery($sql);
+        $last = NULL;
 
         foreach ($entries as &$entry) {
             # We return invisible entries - they are filtered on the client, and it makes the paging work.
             if ($fillin) {
                 $this->fillIn($entry, $users);
+
+                if ($entry['visible'] &&
+                    $last['userid'] == $entry['userid'] &&
+                    $last['type'] == $entry['type'] &&
+                    $last['message'] == $entry['message']) {
+                    # Suppress duplicates.
+                    $entry['visible'] = FALSE;
+                }
             }
+
             $items[] = $entry;
 
             $ctx = [
                 'timestamp' => ISODate($entry['timestamp']),
                 'distance' => $dist
             ];
+
+            $last = $entry;
         }
 
         return([$users, $items]);
+    }
+
+    public function referToWanted() {
+        # Create a kind of comment and notify the poster.
+        $id = $this->create(Newsfeed::TYPE_REFER_TO_WANTED, NULL, NULL, NULL, NULL, $this->id);
+        $n = new Notifications($this->dbhr, $this->dbhm);
+        $n->add(NULL, $this->feed['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
     }
 
     public function like() {
@@ -364,7 +422,7 @@ class Newsfeed extends Entity
         list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
         $count = 0;
         foreach ($feeds as $feed) {
-            if ($feed['id'] > $lastseen) {
+            if ($feed['id'] > $lastseen && $feed['userid'] != $userid) {
                 $count++;
             }
         }
@@ -385,5 +443,91 @@ class Newsfeed extends Entity
                 $reason
             ]);
         }
+    }
+
+    private function snip(&$msg) {
+        if ($msg) {
+            $msg = str_replace("\n", ' ', $msg);
+            if (strlen($msg) > 117) {
+                $msg = substr($msg, 0, strpos(wordwrap($msg, 120), "\n")) . '...';
+            }
+        }
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function digest($userid) {
+        # We send a mail with unseen user-generated posts from quite nearby.
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+        $count = 0;
+
+        $latlng = $u->getLatLng(FALSE);
+
+        if ($latlng[0] || $latlng[1]) {
+            # We have a location for them.
+            # Find the last one we saw.
+            $seens = $this->dbhr->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
+                $userid
+            ]);
+
+            $lastseen = 0;
+            foreach ($seens as $seen) {
+                $lastseen = $seen['newsfeedid'];
+            }
+
+            # Get the first few user-posted messages.
+            $ctx = NULL;
+            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 8046), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
+            $summ = '';
+            $max = 0;
+
+            $oldest = ISODate(date("Y-m-d H:i:s", strtotime("midnight 7 days ago")));
+
+            foreach ($feeds as $feed) {
+                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest) {
+                    $count++;
+
+                    $str = $feed['message'];
+                    $this->snip($str);
+                    $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
+                    $summ .= $u->getName() . " posted '$str'\n\n";
+                    $max = max($max, $feed['id']);
+                }
+            }
+
+            if ($max) {
+                $this->dbhm->preExec("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES (?, ?);", [
+                    $userid,
+                    $max
+                ]);
+            }
+
+            if ($count > 0) {
+                # Got some to send
+                $u = new User($this->dbhr, $this->dbhm, $userid);
+                if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
+                    $url = $u->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
+                    $noemail = 'notificationmailsoff-' . $userid . "@" . USER_DOMAIN;
+
+                    $html = notification_digest($url, $noemail, $u->getName(), $u->getEmailPreferred(), nl2br($summ));
+
+                    $message = Swift_Message::newInstance()
+                        ->setSubject("Freeglers near you are talking - $count new post" . ($count != 1 ? 's' : ''))
+                        ->setFrom([NOREPLY_ADDR => 'Freegle'])
+                        ->setReturnPath($u->getBounce())
+                        ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                        ->setBody("Recent posts from nearby freeglers:\r\n\r\n$summ\r\n\r\nPlease click here to read them: $url")
+                        ->addPart($html, 'text/html');
+
+                    error_log("..." . $u->getEmailPreferred() . " send $count");
+                    list ($transport, $mailer) = getMailer();
+                    $this->sendIt($mailer, $message);
+                }
+            }
+        }
+
+        return($count);
     }
 }

@@ -48,7 +48,7 @@ define([
             var now = (new Date()).getTime();
             var p;
 
-            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000) || true) {
+            if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
                 p = ABTestGetVariant('SupportUs', function(variant) {
                     self.template = variant.variant;
                     var showglobal = false;
@@ -153,6 +153,7 @@ define([
                 }).then(function() {
                     self.waitDOM(self, function() {
                         var valor1 = self.donations.get('raised');
+                        valor1 = valor1 ? valor1 : 0;
                         var maxim = self.donations.get('target');
 
                         // We might exceed the target.
