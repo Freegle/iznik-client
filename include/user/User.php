@@ -1393,7 +1393,18 @@ class User extends Entity
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
         $myid = $me ? $me->getId() : NULL;
 
+        if (strlen($atts['fullname']) == 32 && $atts['fullname'] == $atts['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $atts['fullname'])) {
+            # We have some names derived from Yahoo IDs which are hex strings.  They look silly.  Replace them with
+            # something better.
+            $email = $this->inventEmail();
+            $atts['fullname'] = substr($email, 0, strpos($email, '-'));
+            $this->setPrivate('fullname', $atts['fullname']);
+        }
+
         $atts['displayname'] = $this->getName();
+
+        error_log("Len " . strlen($atts['displayname'])  . " matches {$atts['displayname']} vs {$atts['yahooid']} matches " . preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $atts['displayname']));
+
         $atts['added'] = ISODate($atts['added']);
 
         foreach(['fullname', 'firstname', 'lastname'] as $att) {

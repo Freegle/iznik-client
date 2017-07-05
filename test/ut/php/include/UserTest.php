@@ -940,6 +940,18 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testBadYahooId() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', '42decfdc9afca38d682324e2e5a02123');
+        $u->setPrivate('yahooid', '42decfdc9afca38d682324e2e5a02123');
+        $atts = $u->getPublic();
+        self::assertLessThan(32, $atts['fullname']);
+
+        error_log(__METHOD__ . " end");
+    }
 //
 //    public function testSpecial() {
 //        error_log(__METHOD__);
