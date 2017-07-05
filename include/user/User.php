@@ -1403,8 +1403,6 @@ class User extends Entity
 
         $atts['displayname'] = $this->getName();
 
-        error_log("Len " . strlen($atts['displayname'])  . " matches {$atts['displayname']} vs {$atts['yahooid']} matches " . preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $atts['displayname']));
-
         $atts['added'] = ISODate($atts['added']);
 
         foreach(['fullname', 'firstname', 'lastname'] as $att) {
