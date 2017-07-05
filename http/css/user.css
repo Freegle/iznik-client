@@ -380,6 +380,18 @@ h1,h2,h3,h4 {
     overflow-y: scroll;
 }
 
+.highlightin {
+    background: #dff0d8;
+}
+
+.highlightout {
+    -moz-transition: all 10s ease-out;
+    -o-transition: all 10s ease-out;
+    -webkit-transition: all 10s ease-out;
+    transition: all 10s ease-out;
+    background: #f5f5f5;
+}
+
 .groupdescription {
     max-height: 500px;
     overflow-y: auto;

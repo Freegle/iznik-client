@@ -659,18 +659,14 @@ define([
         goto: function() {
             var self = this;
 
-            // We want the start of the thread.
             var newsfeed = self.model.get('newsfeed');
             var url = self.model.get('url');
-            console.log("Goto", self.model);
             if (newsfeed) {
-                var id = newsfeed.replyto ? newsfeed.replyto.id : newsfeed.id;
-
                 if (!self.model.get('seen')) {
                     self.model.seen();
-                    Router.navigate('/newsfeed/' + id, true);
+                    Router.navigate('/newsfeed/' + newsfeed.id, true);
                 } else {
-                    Router.navigate('/newsfeed/' + id, true);
+                    Router.navigate('/newsfeed/' + newsfeed.id, true);
                 }
             } else if (url) {
                 Router.navigate(url, true);

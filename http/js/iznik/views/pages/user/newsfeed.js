@@ -11,7 +11,8 @@ define([
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
-    'iznik/views/infinite'
+    'iznik/views/infinite',
+    'jquery.scrollTo'
 ], function($, _, Backbone, Iznik, autosize) {
     Iznik.Views.User.Feed = {};
     
@@ -91,6 +92,7 @@ define([
                             'has anybody got',
                             'has anyone got',
                             'does anyone have',
+                            'i really need',
                             'if anyone has'
                         ],
                         'give': [
@@ -274,20 +276,51 @@ define([
             var p = Iznik.Views.Page.prototype.render.call(this);
 
             p.then(function(self) {
+                // We are loading something which may be the start of the thread, or a reply.  We want to load
+                // the whole thread and focus on the reply.
                 self.model = new Iznik.Models.Newsfeed({
                     id: self.options.id
                 });
 
                 self.model.fetch({
                     success: function() {
-                        var v = new Iznik.Views.User.Feed.Item({
-                            model: self.model
-                        });
+                        console.log("Got model", self.model.attributes);
+                        if (self.model.get('replyto')) {
+                            // Notification is on a reply; render then make sure the reply is visible.
+                            console.log("Reply - get start of thread");
+                            self.model = new Iznik.Models.Newsfeed({
+                                id: self.model.get('replyto')
+                            });
 
-                        v.render().then(function() {
-                            self.$('.js-item').html(v.$el);
-                            self.$('.js-back').fadeIn('slow');
-                        })
+                            self.model.fetch({
+                                success: function() {
+                                    var v = new Iznik.Views.User.Feed.Item({
+                                        model: self.model,
+                                        highlight: self.options.id
+                                    });
+
+                                    v.render().then(function() {
+                                        self.$('.js-item').html(v.$el);
+                                        self.$('.js-back').fadeIn('slow');
+                                    });
+                                },
+                                error: function() {
+                                    self.$('.js-error').fadeIn('slow');
+                                    self.$('.js-back').fadeIn('slow');
+                                }
+                            });
+                        } else {
+                            // Start of thread.
+                            console.log("Start of thread");
+                            var v = new Iznik.Views.User.Feed.Item({
+                                model: self.model
+                            });
+
+                            v.render().then(function() {
+                                self.$('.js-item').html(v.$el);
+                                self.$('.js-back').fadeIn('slow');
+                            })
+                        }
                     },
                     error: function() {
                         self.$('.js-error').fadeIn('slow');
@@ -713,15 +746,14 @@ define([
                                 el: replyel,
                                 modelView: Iznik.Views.User.Feed.Reply,
                                 visibleModelsFilter: _.bind(self.visible, self),
+                                modelViewOptions: {
+                                    highlight: self.options.highlight
+                                },
                                 collection: self.replies,
                                 processKeyEvents: false
                             });
 
                             self.collectionView.render();
-
-                            if (self.replies.length > 10) {
-                                self.$('.js-showearlier').show();
-                            }
                         }
 
                         self.loves = new Iznik.Views.User.Feed.Loves({
@@ -768,6 +800,20 @@ define([
 
             var p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
                 model: self.model
+            });
+
+            p.then(function() {
+                if (self.model.get('id') == self.options.highlight) {
+                    // Make sure it's visible.
+                    $(window).scrollTo(self.$el);
+
+                    // Set the initial background colour and then fade to normal.  This draws the eye to the
+                    // item we've clicked to see.
+                    self.$el.addClass('highlightin');
+                    _.delay(function() {
+                        self.$el.addClass('highlightout');
+                    }, 5000);
+                }
             });
 
             return(p);
