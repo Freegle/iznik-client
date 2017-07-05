@@ -44,7 +44,7 @@ if (count($opts) != 1) {
                     error_log("...not known");
                 }
 
-                $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
+                $rc = $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
                     $eid,
                     $email,
                     $name,
@@ -55,7 +55,7 @@ if (count($opts) != 1) {
                     $amount
                 ]);
 
-                if ($amount >= 20) {
+                if ($dbhm->rowsAffected() > 0 && $amount >= 20) {
                     $text = "$name ($email) donated £{$amount}.  Please can you thank them?";
                     $message = Swift_Message::newInstance()
                         ->setSubject("$name ({$email}) donated £{$amount} - please send thanks")
