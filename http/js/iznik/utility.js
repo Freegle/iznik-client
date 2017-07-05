@@ -473,3 +473,11 @@ function setTitleCounts(chat, newsfeed) {
         document.title = title;
     }
 }
+
+function ellipsical(str, len) {
+    if (str.length - 3 > len) {
+        str = str.substring(0, len - 3) + '...';
+    }
+
+    return(str);
+}

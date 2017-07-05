@@ -284,10 +284,8 @@ define([
 
                 self.model.fetch({
                     success: function() {
-                        console.log("Got model", self.model.attributes);
                         if (self.model.get('replyto')) {
                             // Notification is on a reply; render then make sure the reply is visible.
-                            console.log("Reply - get start of thread");
                             self.model = new Iznik.Models.Newsfeed({
                                 id: self.model.get('replyto')
                             });
@@ -311,7 +309,6 @@ define([
                             });
                         } else {
                             // Start of thread.
-                            console.log("Start of thread");
                             var v = new Iznik.Views.User.Feed.Item({
                                 model: self.model
                             });
@@ -712,6 +709,14 @@ define([
                 if (self.template) {
                     var msg = self.model.get('message');
 
+                    var preview = self.model.get('preview');
+                    if (preview) {
+                        // Don't allow previews which are too long.
+                        preview.title = ellipsical(strip_tags(preview.title), 120);
+                        preview.description = ellipsical(strip_tags(preview.description), 255);
+                        self.model.set('preview', preview);
+                    }
+
                     p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
                         model: self.model
                     });
@@ -796,6 +801,14 @@ define([
             if (self.model.get('type') == 'ReferToWanted') {
                 self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
                 self.template = 'user_newsfeed_refertowanted';
+            }
+
+            var preview = self.model.get('preview');
+            if (preview) {
+                // Don't allow previews which are too long.
+                preview.title = ellipsical(strip_tags(preview.title), 120);
+                preview.description = ellipsical(strip_tags(preview.description), 255);
+                self.model.set('preview', preview);
             }
 
             var p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
