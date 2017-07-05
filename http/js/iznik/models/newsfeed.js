@@ -82,10 +82,6 @@ define([
 
         url: API + 'newsfeed',
 
-        comparator: function(a) {
-            return(-(new Date(a.get('timestamp'))).getTime());
-        },
-
         parse: function(ret) {
             var self = this;
 
