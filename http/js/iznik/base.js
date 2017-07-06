@@ -17,7 +17,7 @@ define([
     'bootstrap-switch',
     'es6-promise',
     'text',
-    'twemoji',
+    'twemoji.min',
     'iznik/diff',
     'iznik/events',
     'iznik/utility',
