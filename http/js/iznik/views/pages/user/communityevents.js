@@ -21,6 +21,11 @@ define([
 
                 v.render().then(function() {
                     self.$('.js-events').html(v.$el);
+                    if (Iznik.Session.get('groups').length > 0) {
+                        self.$('.js-somegroups').show();
+                    } else {
+                        self.$('.js-nogroups').show();
+                    }
                 });
             });
 
