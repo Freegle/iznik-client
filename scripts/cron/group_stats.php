@@ -23,7 +23,7 @@ $totalact = $dbhr->preQuery("SELECT SUM(count) AS total FROM stats INNER JOIN gr
     $date
 ]);
 
-$target = 15000;
+$target = DONATION_TARGET;
 $fundingcalc = 0;
 
 foreach ($totalact as $total) {

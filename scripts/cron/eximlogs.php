@@ -42,7 +42,7 @@ function logIt($msg) {
             foreach (['userid', 'from', 'to', 'messageid', 'subject'] as $key) {
                 if (!pres($key, $log) && pres($key, $msg)) {
                     error_log("...add $key = {$msg[$key]} to {$log['id']} for {$msg['eximid']}");
-                    $dbhm->preExec("UPDATE logs_emails SET $key = ? WHERE id = ?;", [
+                    $dbhm->preExec("UPDATE logs_emails SET `$key` = ? WHERE id = ?;", [
                         $msg[$key],
                         $log['id']
                     ], FALSE);

@@ -67,13 +67,13 @@
                         <div class="strike">
                             <span>Or</span>
                         </div>
-                        <textarea rows="2" maxlength="1024" class="topspace form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether.  If you're looking to give or find stuff, please use the Give/Find buttons.  Everything on here is public." />
+                        <textarea rows="2" maxlength="1024" class="formfocus topspace form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether.  If you're looking to give or find stuff, please use the Give/Find buttons.  Everything on here is public." />
                     </div>
                 </div>
             </div>
             <div class="panel-footer backwhite">
                 <div class="row">
-                    <div class="col-xs-4">
+                    <div class="col-sm-4 col-md-5">
                         <div class="pull-left vcenter">
                             <% if (me.settings.mylocation) { %>
                             <a class="text-muted" href="/settings">
@@ -82,7 +82,7 @@
                             <% } %>
                         </div>
                     </div>
-                    <div class="col-xs-7 text-muted">
+                    <div class="col-sm-6 col-md-6 text-muted">
                         <div class="pull-left">
                             <select id='newsfeeddist' class="form-control input-sm js-distance">
                                 <option value="nearby">Show news from nearby</option>
@@ -96,7 +96,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-xs-1">
+                    <div class="col-sm-2 col-md-1">
                         <div class="btn btn-success pull-right js-post">Post&nbsp;it!</div>
                     </div>
                 </div>
@@ -107,4 +107,9 @@
 <ul class="list-unstyled js-feed" />
 <div class="js-none" style="display: none">
     We couldn't find any news near you.  Try changing the distance to show news from further away.
+</div>
+<div class="row js-loading hidden">
+    <div class="col-xs-12 text-center">
+        <img alt="Loader" src="/images/userloader.gif">
+    </div>
 </div>

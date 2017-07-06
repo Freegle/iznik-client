@@ -1186,6 +1186,19 @@ class User extends Entity
         return($canmod);
     }
 
+    public function getSetting($setting, $default)
+    {
+        $ret = $default;
+        $s = $this->getPrivate('settings');
+
+        if ($s) {
+            $settings = json_decode($s, TRUE);
+            $ret = presdef($setting, $settings, $default);
+        }
+
+        return($ret);
+    }
+
     public function setGroupSettings($groupid, $settings) {
         $this->clearMembershipCache();
         $sql = "UPDATE memberships SET settings = ? WHERE userid = ? AND groupid = ?;";
@@ -1314,22 +1327,15 @@ class User extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
 
         if ($me) {
-            $mylid = $me->getPrivate('lastlocation');
-            $ulid = $this->getPrivate('lastlocation');
-
-            if ($mylid && $ulid) {
-                $myl = new Location($this->dbhr, $this->dbhm, $mylid);
-                $ul = new Location($this->dbhr, $this->dbhm, $ulid);
-                $p1 = new POI($myl->getPrivate('lat'), $myl->getPrivate('lng'));
-                $p2 = new POI($ul->getPrivate('lat'), $ul->getPrivate('lng'));
-                $metres = $p1->getDistanceInMetersTo($p2);
-                $miles = $metres / 1609.344;
-                $miles = $miles > 10 ? round($miles) : round($miles, 1);
-                $ret['milesaway'] = $miles;
-
-                $al = new Location($this->dbhr, $this->dbhm, $ul->getPrivate('areaid'));
-                $ret['area'] = $al->getPublic();
-            }
+            list ($mylat, $mylng) = $me->getLatLng();
+            list ($tlat, $tlng) = $this->getLatLng();
+            $p1 = new POI($mylat, $mylng);
+            $p2 = new POI($tlat, $tlng);
+            $metres = $p1->getDistanceInMetersTo($p2);
+            $miles = $metres / 1609.344;
+            $miles = $miles > 10 ? round($miles) : round($miles, 1);
+            $ret['milesaway'] = $miles;
+            $ret['publiclocation'] = $this->getPublicLocation();
         }
 
         return($ret);
@@ -1381,11 +1387,22 @@ class User extends Entity
         $atts = parent::getPublic();
 
         $atts['settings'] = presdef('settings', $atts, NULL) ? json_decode($atts['settings'], TRUE) : [ 'dummy' => TRUE ];
+        $atts['settings']['notificationmails'] = array_key_exists('notificationmails', $atts['settings']) ? $atts['settings']['notificationmails'] : TRUE;
+
         $me = whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
         $myid = $me ? $me->getId() : NULL;
 
+        if (strlen($atts['fullname']) == 32 && $atts['fullname'] == $atts['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $atts['fullname'])) {
+            # We have some names derived from Yahoo IDs which are hex strings.  They look silly.  Replace them with
+            # something better.
+            $email = $this->inventEmail();
+            $atts['fullname'] = substr($email, 0, strpos($email, '-'));
+            $this->setPrivate('fullname', $atts['fullname']);
+        }
+
         $atts['displayname'] = $this->getName();
+
         $atts['added'] = ISODate($atts['added']);
 
         foreach(['fullname', 'firstname', 'lastname'] as $att) {
@@ -3020,48 +3037,50 @@ class User extends Entity
         return($url);
     }
 
-    public function sendOurMails($g, $checkholiday = TRUE, $checkbouncing = TRUE) {
-        # We always want to send our mails for groups which we host.
+    public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE) {
         $sendit = TRUE;
-        $groupid = $g->getId();
 
-        #error_log("On Yahoo? " . $g->getPrivate('onyahoo'));
+        if ($g) {
+            $groupid = $g->getId();
 
-        if ($g->getPrivate('onyahoo')) {
-            # We don't want to send out mails to users who are members directly on Yahoo, only
-            # for ones which have joined through this platform or its predecessor.
-            #
-            # We can check this in the Yahoo group membership table to check the email they use
-            # for membership.  However it might not be up to date because that relies on mods
-            # using ModTools.
-            #
-            # So if we don't find anything in there, then we check whether this user has any
-            # emails which we host.  That tells us whether they've joined any groups via our
-            # platform, which tells us whether it's reasonable to send them emails.
-            $sendit = FALSE;
-            $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE, TRUE)[1];
-            #error_log("Membership mail $membershipmail");
+            #error_log("On Yahoo? " . $g->getPrivate('onyahoo'));
 
-            if ($membershipmail) {
-                # They have a membership on Yahoo with one of our addresses.
-                $sendit = TRUE;
-            } else {
-                # They don't have a membership on Yahoo with one of our addresses.  If we have sync'd our
-                # membership fairly recently, then we can rely on that and it means that we shouldn't send
-                # it.
-                $lastsync = $g->getPrivate('lastyahoomembersync');
-                $lastsync = $lastsync ? strtotime($lastsync) : NULL;
-                $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
-                #error_log("Last sync $age");
+            if ($g->getPrivate('onyahoo')) {
+                # We don't want to send out mails to users who are members directly on Yahoo, only
+                # for ones which have joined through this platform or its predecessor.
+                #
+                # We can check this in the Yahoo group membership table to check the email they use
+                # for membership.  However it might not be up to date because that relies on mods
+                # using ModTools.
+                #
+                # So if we don't find anything in there, then we check whether this user has any
+                # emails which we host.  That tells us whether they've joined any groups via our
+                # platform, which tells us whether it's reasonable to send them emails.
+                $sendit = FALSE;
+                $membershipmail = $this->getEmailForYahooGroup($groupid, TRUE, TRUE)[1];
+                #error_log("Membership mail $membershipmail");
 
-                if (!$age || $age > 7 * 24) {
-                    # We don't have a recent sync, because the mods aren't using ModTools regularly.
-                    #
-                    # Use email for them having any of ours as an approximation.
-                    $emails = $this->getEmails();
-                    foreach ($emails as $anemail) {
-                        if (ourDomain($anemail['email'])) {
-                            $sendit = TRUE;
+                if ($membershipmail) {
+                    # They have a membership on Yahoo with one of our addresses.
+                    $sendit = TRUE;
+                } else {
+                    # They don't have a membership on Yahoo with one of our addresses.  If we have sync'd our
+                    # membership fairly recently, then we can rely on that and it means that we shouldn't send
+                    # it.
+                    $lastsync = $g->getPrivate('lastyahoomembersync');
+                    $lastsync = $lastsync ? strtotime($lastsync) : NULL;
+                    $age = $lastsync ? ((time() - $lastsync) / 3600) : NULL;
+                    #error_log("Last sync $age");
+
+                    if (!$age || $age > 7 * 24) {
+                        # We don't have a recent sync, because the mods aren't using ModTools regularly.
+                        #
+                        # Use email for them having any of ours as an approximation.
+                        $emails = $this->getEmails();
+                        foreach ($emails as $anemail) {
+                            if (ourDomain($anemail['email'])) {
+                                $sendit = TRUE;
+                            }
                         }
                     }
                 }
@@ -3191,6 +3210,14 @@ class User extends Entity
                     $thisone['chatrooms'][] = $r->getPublic();
                 }
             }
+
+            # Add the public location and best guess lat/lng
+            $thisone['publiclocation'] = $u->getPublicLocation();
+            $latlng = $u->getLatLng();
+            $thisone['privateposition'] = [
+                'lat' => $latlng[0],
+                'lng' => $latlng[1]
+            ];
 
             $ret[] = $thisone;
         }
@@ -3423,7 +3450,7 @@ class User extends Entity
         return($ret);
     }
 
-    public function getLatLng() {
+    public function getLatLng($usedef = TRUE) {
         $s = $this->getPrivate('settings');
         $lat = NULL;
         $lng = NULL;
@@ -3457,9 +3484,11 @@ class User extends Entity
             }
         }
 
-        # ...or failing that, a default.
-        $lat = $lat ? $lat : 53.9450;
-        $lng = $lng ? $lng : -2.5209;
+        if ($usedef) {
+            # ...or failing that, a default.
+            $lat = $lat ? $lat : 53.9450;
+            $lng = $lng ? $lng : -2.5209;
+        }
 
         return([$lat, $lng]);
     }

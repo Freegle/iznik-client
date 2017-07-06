@@ -35,6 +35,7 @@ define([
             'switchChange.bootstrapSwitch .js-relevant': 'relevantSwitch',
             'switchChange.bootstrapSwitch .js-newsletter': 'newsletterSwitch',
             'switchChange.bootstrapSwitch #useprofile': 'useProfileSwitch',
+            'switchChange.bootstrapSwitch .js-notificationmails': 'notificationSwitch',
             'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
             'click .js-savename': 'nameChange',
@@ -113,6 +114,23 @@ define([
                 relevantallowed: relevant
             }, {
                 patch: true
+            });
+        },
+
+        notificationSwitch: function() {
+            var me = Iznik.Session.get('me');
+            var notif = this.$('.js-notificationmails').bootstrapSwitch('state');
+
+            var me = Iznik.Session.get('me');
+            me.settings.notificationmails = notif;
+
+            Iznik.Session.save({
+                id: me.id,
+                settings: me.settings
+            }, {
+                patch: true
+            }).then(function() {
+                Iznik.Session.fetch();
             });
         },
 
@@ -367,6 +385,12 @@ define([
                     onText: 'Send them',
                     offText: 'No thanks',
                     state: me.relevantallowed ? true : false
+                });
+
+                self.$(".js-notificationmails").bootstrapSwitch({
+                    onText: 'Send them',
+                    offText: 'No thanks',
+                    state: me.settings.notificationmails ? true : false
                 });
 
                 self.$(".js-newsletter").bootstrapSwitch({

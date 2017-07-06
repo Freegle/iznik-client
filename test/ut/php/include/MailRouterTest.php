@@ -1338,6 +1338,36 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testNotificationOff() {
+        error_log(__METHOD__);
+
+        # Create the sending user
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        error_log("Created user $uid");
+
+        $atts = $u->getPublic();
+        assertTrue($atts['settings']['notificationmails']);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        $u->addMembership($gid);
+
+        # Turn off by email
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', "notificationmailsoff-$uid@" . USER_DOMAIN, $msg);
+        assertNotNull($id);
+        $rc = $r->route();
+        assertEquals($rc, MailRouter::TO_SYSTEM);
+
+        $u = User::get($this->dbhm, $this->dbhm, $uid);
+        $atts = $u->getPublic();
+        assertFalse($atts['settings']['notificationmails']);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testRelevantOff() {
         error_log(__METHOD__);
 

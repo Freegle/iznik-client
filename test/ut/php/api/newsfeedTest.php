@@ -17,6 +17,7 @@ require_once IZNIK_BASE . '/include/group/Facebook.php';
  */
 class newsfeedAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
+    private $msgsSent = [];
 
     private $count = 0;
 
@@ -48,6 +49,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->uid2 = $this->user2->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->user2->setPrivate('lastlocation', $this->fullpcid);
+        $this->user2->addEmail('test@test.com');
     }
 
     protected function tearDown() {
@@ -58,6 +60,10 @@ class newsfeedAPITest extends IznikAPITestCase {
     }
 
     public function __construct() {
+    }
+
+    public function sendMock($mailer, $message) {
+        $this->msgsSent[] = $message->toString();
     }
 
     public function testBasic() {
@@ -77,7 +83,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, count($ret['ret']['users']));
 
         # Post something.
-        error_log("Post something");
+        error_log("Post something as {$this->uid}");
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test with url https://google.co.uk'
         ]);
@@ -93,6 +99,19 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals($nid, $ret['newsfeed']['id']);
         self::assertEquals('Google', $ret['newsfeed']['preview']['title']);
+
+        # Should mail out to the other user.
+        $n = $this->getMockBuilder('Newsfeed')
+            ->setConstructorArgs(array($this->dbhm, $this->dbhm))
+            ->setMethods(array('sendIt'))
+            ->getMock();
+
+        $n->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        assertEquals(1, $n->digest($this->uid2));
+        assertEquals(0, $n->digest($this->uid2));
 
         # Hack it to have a message for coverage
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -210,6 +229,20 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
         assertEquals(1, count($ret['newsfeed'][0]['replies']));
+
+        # Refer it to WANTED - generates another reply.
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'ReferToWanted'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(2, count($ret['newsfeed']['replies']));
 
         # Report it
         $ret = $this->call('newsfeed', 'POST', [

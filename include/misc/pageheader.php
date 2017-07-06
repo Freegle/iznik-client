@@ -42,7 +42,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
             $atts = $m->getPublic();
 
             if ($m->canSee($atts)) {
-                $icon = (count($atts['attachments']) > 0) ? $atts['attachments'][0]['path'] : USERLOGO;
+                $icon = (count($atts['attachments']) > 0 && pres('path', $atts['attachments'][0])) ? $atts['attachments'][0]['path'] : USERLOGO;
 
                 $rsptext = '';
                 if ($m->getType() == Message::TYPE_OFFER) {
@@ -162,7 +162,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         <meta itemprop="title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
-        <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>largetile.png"/>
+        <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>/largetile.png"/>
         <?php
         echo "<!-- requested " . $_SERVER["REQUEST_URI"] . " -->\r\n";
     }
@@ -335,7 +335,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=190">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=192">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -357,7 +357,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=24"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=141"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=147"><?php
     }
     ?>
 

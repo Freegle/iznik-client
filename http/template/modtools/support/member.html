@@ -70,6 +70,23 @@
                 </div>
             </a>
             <% } %>
+            <h3>Location</h3>
+            <div class="row botspace">
+                <div class="col-md-3 botspace">
+                    Public location on newsfeed
+                </div>
+                <div class="col-md-9">
+                    {{publiclocation}}
+                </div>
+            </div>
+            <div class="row botspace">
+                <div class="col-md-3 botspace">
+                    Private best guess lat/lng
+                </div>
+                <div class="col-md-9">
+                    {{privateposition.lat}},{{privateposition.lng}} <a href="https://www.google.com/maps?q={{privateposition.lat}},{{privateposition.lng}}" data-realurl="true" target="_blank">Show on map</a>
+                </div>
+            </div>
             <h3>Settings</h3>
             <div class="row botspace">
                 <div class="col-md-3 botspace">
@@ -85,6 +102,14 @@
                 </div>
                 <div class="col-md-9">
                     <% if (obj.relevantallowed) { %>Yes<% } else { %>No<% } %>
+                </div>
+            </div>
+            <div class="row botspace">
+                <div class="col-md-3 botspace">
+                    Notification mails allowed?
+                </div>
+                <div class="col-md-9">
+                    <% if (obj.notificationmails) { %>Yes<% } else { %>No<% } %>
                 </div>
             </div>
             <div class="row">
