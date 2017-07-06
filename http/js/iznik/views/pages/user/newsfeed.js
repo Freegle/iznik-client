@@ -11,6 +11,7 @@ define([
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
+    'iznik/views/pages/user/post',
     'iznik/views/infinite',
     'jquery.scrollTo'
 ], function($, _, Backbone, Iznik, autosize) {
@@ -25,8 +26,20 @@ define([
             'click .js-post': 'post',
             'click .js-getloc': 'getLocation',
             'change .js-distance': 'changeDist',
+            'click .js-tabpost': 'updateArea',
             'click .js-tabevent': 'addEventInline',
-            'click .js-tabvolunteer': 'addVolunteerInline'
+            'click .js-tabvolunteer': 'addVolunteerInline',
+            'click .js-taboffer': 'inlineOffer',
+            'click .js-tabwanted': 'inlineWanted'
+        },
+
+        updateArea: function() {
+            // The area might have changed through posting on another tab.
+            var me = Iznik.Session.get('me');
+
+            if (me.settings.mylocation && me.settings.mylocation.area) {
+                this.$('.js-areaname').html(me.settings.mylocation.area.name);
+            }
         },
 
         getLocation: function() {
@@ -230,6 +243,22 @@ define([
 
             v.render();
             self.$('#js-addvolunteer').html(v.$el);
+        },
+
+        inlineOffer: function() {
+            var self = this;
+            console.log("Inlne offer");
+            var v = new Iznik.Views.User.Feed.InlineOffer();
+            v.render();
+            self.$('#js-offersomething').html(v.$el);
+        },
+
+        inlineWanted: function() {
+            var self = this;
+
+            var v = new Iznik.Views.User.Feed.InlineWanted();
+            v.render();
+            self.$('#js-wantedsomething').html(v.$el);
         },
 
         render: function () {
@@ -925,4 +954,403 @@ define([
             self.listenToOnce(self, 'saved', _.bind(self.afterSave, self));
         }
     });
+
+    Iznik.Views.User.Feed.InlinePost = Iznik.View.extend({
+        events: {
+            'click .js-getloc': 'getLocation',
+            'typeahead:change .js-postcode': 'locChange',
+            'click .js-post': 'postIt'
+        },
+
+        getLocation: function() {
+            var self = this;
+            self.wait = new Iznik.Views.PleaseWait();
+            self.wait.render();
+
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
+        },
+
+        gotLocation: function(position) {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                }, success: function(ret) {
+                    if (ret.ret == 0 && ret.location) {
+                        self.recordLocation(ret.location, true);
+
+                        // Add some eye candy to make them spot the location.
+                        self.$('.js-postcode').tooltip('destroy');
+                        self.$('.js-postcode').tooltip({
+                            'placement': 'top',
+                            'title': "Your device thinks you're here.  If it's wrong, please change it."});
+                        self.$('.js-postcode').tooltip('show');
+                        _.delay(function() {
+                            self.$('.js-postcode').tooltip('destroy');
+                        }, 20000);
+                    }
+                }, complete: function() {
+                    if (self.wait) {
+                        self.wait.close();
+                    }
+                }
+            });
+        },
+
+        locChange: function() {
+            var self = this;
+
+            var loc = this.$('.js-postcode').typeahead('val');
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: loc
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        self.recordLocation(ret.locations[0]);
+                    }
+                }
+            });
+        },
+
+        recordLocation: function(location) {
+            var self = this;
+
+            if (!_.isUndefined(location)) {
+                try {
+                    self.$('.js-postcode').typeahead('val', location.name);
+                    var l = location;
+
+                    // Show the select for groups we could use on this site.
+                    self.$('.js-groups').empty();
+                    _.each(l.groupsnear, function(group) {
+                        if (group.onhere && group.type == 'Freegle') {
+                            self.$('.js-groups').append('<option value="' + group.id + '">' + group.namedisplay + '</option>');
+                        }
+                    });
+
+                    // Don't store the groups, too long.
+                    delete l.groupsnear;
+                    Iznik.Session.setSetting('mylocation', l);
+                    Storage.set('mylocation', JSON.stringify(l))
+                } catch (e) {
+                    console.log("Exception", e.message);
+                };
+            }
+        },
+
+        postcodeSource: function(query, syncResults, asyncResults) {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: query
+                }, success: function(ret) {
+                    var matches = [];
+                    _.each(ret.locations, function(location) {
+                        matches.push(location.name);
+                    });
+
+                    asyncResults(matches);
+
+                    _.delay(function() {
+                        self.$('.js-postcode').tooltip('destroy');
+                    }, 10000);
+
+                    if (matches.length == 0) {
+                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode (including the space)'});
+                        self.$('.js-postcode').tooltip('show');
+                    } else {
+                        self.firstMatch = matches[0];
+                    }
+                }
+            })
+        },
+
+        itemSource: function (query, syncResults, asyncResults) {
+            var self = this;
+
+            if (query.length >= 2) {
+                $.ajax({
+                    type: 'GET',
+                    url: API + 'item',
+                    data: {
+                        typeahead: query
+                    }, success: function (ret) {
+                        var matches = [];
+                        _.each(ret.items, function (item) {
+                            if (item.hasOwnProperty('item')) {
+                                matches.push(item.item.name);
+                            }
+                        });
+
+                        asyncResults(matches);
+                    }
+                })
+            }
+        },
+
+        getItem: function () {
+            var val = this.$('.js-item').typeahead('val');
+            if (!val) {
+                val = this.$('.js-item').val();
+            }
+            return(val);
+        },
+
+        postIt: function () {
+            var self = this;
+
+            self.pleaseWait = new Iznik.Views.PleaseWait();
+            self.pleaseWait.render();
+
+            var email = Iznik.Session.get('me').email;
+
+            // First check we have an item
+            var item = self.getItem();
+            if (item.length == 0) {
+                self.$('.js-item').focus();
+                self.$('.js-item').addClass('error-border');
+            } else {
+                // Get the location - we should have got it in local storage from updating the postcode box.
+                var locationid = null;
+
+                var loc = Storage.get('mylocation');
+                locationid = loc ? JSON.parse(loc).id : null;
+
+                if (!locationid) {
+                    self.$('.js-postcode').focus();
+                    self.$('.js-postcode').addClass('error-border');
+                } else {
+                    // Now check we have a group
+                    var groupid = self.$('.js-groups').val();
+
+                    if (!groupid) {
+                        self.$('.js-groups').addClass('error-border');
+                    } else {
+                        // Get any photos.
+                        var attids = [];
+                        self.photos.each(function (photo) {
+                            attids.push(photo.get('id'))
+                        });
+
+                        if (attids.length == 0 && self.$('.js-description').val().trim().length == 0) {
+                            // Want a description or a photo.
+                            self.$('.js-description').focus();
+                            self.$('.js-description').addClass('error-border');
+                        } else {
+                            // Now create a draft.
+                            var data = {
+                                collection: 'Draft',
+                                locationid: locationid,
+                                messagetype: self.msgType,
+                                item: item,
+                                textbody: self.$('.js-description').val(),
+                                attachments: attids,
+                                groupid: groupid
+                            };
+
+                            $.ajax({
+                                type: 'PUT',
+                                url: API + 'message',
+                                data: data,
+                                success: function (ret) {
+                                    if (ret.ret == 0) {
+                                        // Created the draft - submit it.
+                                        var id = ret.id;
+
+                                        $.ajax({
+                                            type: 'POST',
+                                            url: API + 'message',
+                                            data: {
+                                                action: 'JoinAndPost',
+                                                email: email,
+                                                id: id
+                                            }, success: function (ret) {
+                                                self.pleaseWait.close();
+                                                self.$('.js-prepost').hide();
+                                                self.$('.js-posted').fadeIn('slow');
+
+                                                (new Iznik.Views.User.Feed.InlineConfirm()).render();
+
+                                                // No FOP for this method at the moment.
+                                                var m = new Iznik.Models.Message({
+                                                    id: id
+                                                });
+
+                                                m.fetch().then(function() {
+                                                    m.setFOP(0);
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        },
+
+        render: function() {
+            var self = this;
+
+            self.photos = new Iznik.Collection();
+            self.draftPhotos = new Iznik.Views.User.Message.Photos({
+                collection: self.photos,
+                message: null,
+                showAll: true
+            });
+
+            var p = Iznik.View.prototype.render.call(self);
+
+            p.then(function() {
+                self.$('.js-postcode').typeahead({
+                    minLength: 3,
+                    hint: false,
+                    highlight: true
+                }, {
+                    name: 'postcodes',
+                    source: _.bind(self.postcodeSource, self)
+                });
+
+                var mylocation = Storage.get('mylocation');
+
+                if (!mylocation) {
+                    mylocation = Iznik.Session.getSetting('mylocation', null);
+                } else {
+                    mylocation = JSON.parse(mylocation);
+                }
+
+                if (mylocation) {
+                    var postcode = mylocation.name;
+
+                    if (postcode) {
+                        self.$('.js-postcode').typeahead('val', postcode);
+
+                        // Fetch it so that we can get the list of groups.
+                        $.ajax({
+                            type: 'GET',
+                            url: API + 'locations',
+                            data: {
+                                typeahead: postcode
+                            }, success: function(ret) {
+                                if (ret.ret == 0 && ret.locations.length > 0) {
+                                    self.recordLocation(ret.locations[0]);
+                                }
+                            }
+                        });
+                    }
+                }
+
+                self.typeahead = self.$('.js-item').typeahead({
+                    minLength: 2,
+                    hint: false,
+                    highlight: true,
+                    autoselect: false
+                }, {
+                    name: 'items',
+                    source: self.itemSource,
+                    limit: 3
+                });
+
+                // Close the suggestions after 30 seconds in case people are confused.
+                self.$('.js-item').bind('typeahead:open', function() {
+                    _.delay(function() {
+                        self.$('.js-item').typeahead('close');
+                    }, 30000);
+                });
+
+                // File upload
+                self.$(self.photoId).fileinput({
+                    uploadExtraData: {
+                        imgtype: 'Message',
+                        identify: false
+                    },
+                    showUpload: false,
+                    allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                    uploadUrl: API + 'image',
+                    resizeImage: true,
+                    maxImageWidth: 800,
+                    browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
+                    browseLabel: 'Add photos',
+                    browseClass: 'btn btn-primary nowrap',
+                    showCaption: false,
+                    showRemove: false,
+                    showUploadedThumbs: false,
+                    dropZoneEnabled: false,
+                    buttonLabelClass: '',
+                    fileActionSettings: {
+                        showZoom: false,
+                        showRemove: false,
+                        showUpload: false
+                    },
+                    layoutTemplates: {
+                        footer: '<div class="file-thumbnail-footer">\n' +
+                        '    {actions}\n' +
+                        '</div>'
+                    }
+                });
+
+                // Upload as soon as photos have been resized.
+                self.$(self.photoId).on('fileimageresized', function (event) {
+                    self.$(self.photoId).fileinput('upload');
+
+                    // We don't seem to be able to hide this control using the options.
+                    self.$('.fileinput-remove').hide();
+                });
+
+                // Watch for all uploaded
+                self.$(self.photoId).on('fileuploaded', function (event, data) {
+                    // Add the photo to our list
+                    var mod = new Iznik.Models.Message.Attachment({
+                        id: data.response.id,
+                        path: data.response.path,
+                        paththumb: data.response.paththumb,
+                        mine: true
+                    });
+
+                    self.photos.add(mod);
+
+                    // Show the uploaded thumbnail and hackily remove the one provided for us.
+                    self.draftPhotos.render().then(function() {
+                        self.$('.js-draftphotos').html(self.draftPhotos.el);
+                    });
+
+                    _.delay(function() {
+                        self.$('.file-preview').remove();
+                        self.$('.file-preview-frame').remove();
+                        self.$('.js-draftphotos').show();
+                    }, 500);
+                });
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Feed.InlineOffer = Iznik.Views.User.Feed.InlinePost.extend({
+        template: 'user_newsfeed_inlineoffer',
+        msgType: 'Offer',
+        photoId: '#offerphoto'
+    });
+
+    Iznik.Views.User.Feed.InlineWanted = Iznik.Views.User.Feed.InlinePost.extend({
+        template: 'user_newsfeed_inlinewanted',
+        msgType: 'Wanted',
+        photoId: '#wantedphoto'
+    });
+
+    Iznik.Views.User.Feed.InlineConfirm = Iznik.Views.Modal.extend({
+        template: "user_newsfeed_inlineconfirm"
+    });
+
 });
