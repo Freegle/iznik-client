@@ -24,7 +24,8 @@ define([
         events: {
             'click .js-post': 'post',
             'click .js-getloc': 'getLocation',
-            'change .js-distance': 'changeDist'
+            'change .js-distance': 'changeDist',
+            'click .js-tabevent': 'addEventInline'
         },
 
         getLocation: function() {
@@ -206,6 +207,17 @@ define([
         visible: function(model) {
             var vis = model.get('visible');
             return(vis);
+        },
+
+        addEventInline: function() {
+            var self = this;
+
+            var v = new Iznik.Views.User.Feed.CommunityEvent({
+                model: new Iznik.Models.CommunityEvent({})
+            });
+
+            v.render();
+            self.$('#js-addevent').html(v.$el);
         },
 
         render: function () {
@@ -852,6 +864,27 @@ define([
                 self.model.report(reason);
                 self.trigger('reported');
             }
+        }
+    });
+
+    Iznik.Views.User.Feed.CommunityEvent = Iznik.Views.User.CommunityEvent.Editable.extend({
+        template: 'user_newsfeed_event',
+        parentClass: Iznik.View,
+        closeAfterSave: false,
+
+        afterSave: function() {
+            var self = this;
+            (new Iznik.Views.User.CommunityEvent.Confirm()).render();
+            self.$('.js-addblock').hide();
+            self.$('.js-postadd').show();
+            $("body").animate({ scrollTop: 0 }, "fast");
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.User.CommunityEvent.Editable.prototype.render.call(this);
+            self.listenToOnce(self, 'saved', _.bind(self.afterSave, self));
         }
     });
 });

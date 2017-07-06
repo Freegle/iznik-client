@@ -489,6 +489,10 @@ body {
     margin-bottom: 5px !important;
 }
 
+.margintopsm {
+    margin-top: 5px !important;
+}
+
 .noborder {
     border: none;
 }

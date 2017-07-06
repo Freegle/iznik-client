@@ -1393,7 +1393,9 @@ class User extends Entity
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
         $myid = $me ? $me->getId() : NULL;
 
-        if (($this->getName() == 'A freegler') || (strlen($atts['fullname']) == 32 && $atts['fullname'] == $atts['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $atts['fullname']))) {
+        if ($this->id &&
+            (($this->getName() == 'A freegler') ||
+                (strlen($atts['fullname']) == 32 && $atts['fullname'] == $atts['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $atts['fullname'])))) {
             # We have some names derived from Yahoo IDs which are hex strings.  They look silly.  Replace them with
             # something better.  Ditto "A freegler", which is a legacy way in which names were anonymised.
             $email = $this->inventEmail();
