@@ -25,7 +25,8 @@ define([
             'click .js-post': 'post',
             'click .js-getloc': 'getLocation',
             'change .js-distance': 'changeDist',
-            'click .js-tabevent': 'addEventInline'
+            'click .js-tabevent': 'addEventInline',
+            'click .js-tabvolunteer': 'addVolunteerInline'
         },
 
         getLocation: function() {
@@ -218,6 +219,17 @@ define([
 
             v.render();
             self.$('#js-addevent').html(v.$el);
+        },
+
+        addVolunteerInline: function() {
+            var self = this;
+
+            var v = new Iznik.Views.User.Feed.Volunteering({
+                model: new Iznik.Models.Volunteering({})
+            });
+
+            v.render();
+            self.$('#js-addvolunteer').html(v.$el);
         },
 
         render: function () {
@@ -868,7 +880,7 @@ define([
     });
 
     Iznik.Views.User.Feed.CommunityEvent = Iznik.Views.User.CommunityEvent.Editable.extend({
-        template: 'user_newsfeed_event',
+        template: 'user_newsfeed_addevent',
         parentClass: Iznik.View,
         closeAfterSave: false,
 
@@ -884,6 +896,27 @@ define([
             var self = this;
 
             var p = Iznik.Views.User.CommunityEvent.Editable.prototype.render.call(this);
+            self.listenToOnce(self, 'saved', _.bind(self.afterSave, self));
+        }
+    });
+
+    Iznik.Views.User.Feed.Volunteering = Iznik.Views.User.Volunteering.Editable.extend({
+        template: 'user_newsfeed_addvolunteer',
+        parentClass: Iznik.View,
+        closeAfterSave: false,
+
+        afterSave: function() {
+            var self = this;
+            (new Iznik.Views.User.Volunteering.Confirm()).render();
+            self.$('.js-addblock').hide();
+            self.$('.js-postadd').show();
+            $("body").animate({ scrollTop: 0 }, "fast");
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.User.Volunteering.Editable.prototype.render.call(this);
             self.listenToOnce(self, 'saved', _.bind(self.afterSave, self));
         }
     });
