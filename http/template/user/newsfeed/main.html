@@ -66,14 +66,14 @@
                     <div class="col-xs-12">
                         <ul class="nav nav-tabs">
                             <li role="presentation" class="js-tabpost active"><a href="#js-writepost" data-toggle="tab"><span class="glyphicons glyphicons-pen vcenter" /><span class="hidden-xs hidden-md">&nbsp;Discuss</span></a></li>
-                            <li role="presentation" class="js-taboffer"><a href="#js-offersomething" data-toggle="tab"><span class="glyphicons glyphicons-gift vcenter" /><span class="hidden-xs hidden-md">&nbsp;OFFER</span></a></li>
-                            <li role="presentation" class="js-tabwanted"><a href="#js-wantedsomething" data-toggle="tab"><span class="glyphicons glyphicons-search vcenter" /><span class="hidden-xs hidden-md">&nbsp;WANTED</span></a></li>
+                            <li role="presentation" class="js-taboffer" data-placement="bottom" data-toggle="tooltip" title="If you're giving away a physical item, please use this tab."><a href="#js-offersomething" data-toggle="tab"><span class="glyphicons glyphicons-gift vcenter" /><span class="hidden-xs hidden-md">&nbsp;OFFER</span></a></li>
+                            <li role="presentation" class="js-tabwanted" data-placement="bottom" data-toggle="tooltip" title="If you're looking for a physical item, please use this tab."><a href="#js-wantedsomething" data-toggle="tab"><span class="glyphicons glyphicons-search vcenter" /><span class="hidden-xs hidden-md">&nbsp;WANTED</span></a></li>
                             <li role="presentation" class="js-somegroups js-tabevent" style="display: none"><a href="#js-addevent" data-toggle="tab"><span class="glyphicons glyphicons-calendar vcenter" /><span class="hidden-xs hidden-md">&nbsp;Event</span></a></li>
                             <li role="presentation" class="js-somegroups js-tabvolunteer" style="display: none"><a href="#js-addvolunteer" data-toggle="tab"><span class="glyphicons glyphicons-flower vcenter" /><span class="hidden-xs hidden-md">&nbsp;Volunteer</span></a></li>
                         </ul>
                         <div class="tab-content clearfix">
                             <div class="tab-pane active" id="js-writepost">
-                                <textarea rows="2" maxlength="1024" class="formfocus topspace form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether.  If you're looking to give or find stuff, please use the Give/Find buttons.  Everything on here is public." />
+                                <textarea id="js-discussmessage" rows="2" maxlength="1024" class="formfocus topspace form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether.  If you're looking to give or find stuff, please use the Give/Find buttons.  Everything on here is public." />
                                 <hr class="margintopsm marginbotsm" />
                                 <div class="row">
                                     <div class="col-sm-4 col-md-5">

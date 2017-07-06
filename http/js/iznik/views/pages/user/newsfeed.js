@@ -127,10 +127,13 @@ define([
                         });
 
                         if (showfind) {
-                            self.$('.js-find').tooltip('show');
                             self.shownFind = true;
+                            self.$('.nav-tabs a[href="#js-wantedsomething"]').tab('show');
+                            self.$('.js-tabwanted').click();
+
+                            self.$('.js-tabwanted').tooltip('show');
                             _.delay(_.bind(function() {
-                                this.$('.js-find').tooltip('hide');
+                                this.$('.js-tabwanted').tooltip('hide');
                             }, self), 10000);
                         }
                     }
@@ -145,10 +148,13 @@ define([
                         });
 
                         if (showgive) {
-                            self.$('.js-give').tooltip('show');
                             self.shownGive = true;
+                            self.$('.nav-tabs a[href="#js-offersomething"]').tab('show');
+                            self.$('.js-taboffer').click();
+
+                            self.$('.js-taboffer').tooltip('show');
                             _.delay(_.bind(function() {
-                                this.$('.js-give').tooltip('hide');
+                                this.$('.js-taboffer').tooltip('hide');
                             }, self), 10000);
                         }
                     }
@@ -1213,6 +1219,10 @@ define([
             var p = Iznik.View.prototype.render.call(self);
 
             p.then(function() {
+                // We might have switched from composing a discussion post to here.
+                var msg = $('#js-discussmessage').val();
+                self.$('.js-description').val(msg);
+
                 self.$('.js-postcode').typeahead({
                     minLength: 3,
                     hint: false,
