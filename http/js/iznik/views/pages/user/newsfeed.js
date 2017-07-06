@@ -238,6 +238,11 @@ define([
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
+                // Some options are only available once we've joined a group.
+                if (Iznik.Session.get('groups').length > 0) {
+                    self.$('.js-somegroups').show();
+                }
+
                 if (!self.autosized) {
                     self.autosized = true;
                     autosize(self.$('.js-message'));
