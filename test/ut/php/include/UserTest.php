@@ -926,6 +926,7 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic();
         error_log("Profile " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['google']);
+        assertTrue($atts['profile']['gravatardefault']);
         error_log("URL {$atts['profile']['url']}");
 
         $uid = $u->create("Test", "User", "Test User");

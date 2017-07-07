@@ -1530,6 +1530,23 @@ class User extends Entity
             }
         }
 
+        error_log("Before grav default" . var_export($atts['profile'], TRUE));
+        if ($atts['profile']['default']) {
+            # We don't have one.  Use gravatar to create a colourful default - better than a zillion silo
+            $gurl = $this->gravatar($this->getEmailPreferred(), 200, 'wavatar');
+            $atts['profile']['url'] = $gurl;
+            $atts['profile']['default'] = FALSE;
+            $atts['profile']['gravatardefault'] = TRUE;
+
+            # Save for next time.
+            $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`, hash) VALUES (?, ?, ?, ?);", [
+                $this->id,
+                $atts['profile']['default'] ? NULL : $atts['profile']['url'],
+                $atts['profile']['default'],
+                $hash
+            ]);
+        }
+
         if ($me && $this->id == $me->getId()) {
             # Add in private attributes for our own entry.
             $emails = $emails ? $emails : $me->getEmails();
