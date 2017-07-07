@@ -298,6 +298,19 @@ class Spam {
         return($ret);
     }
 
+    public function getSpammerByUserid($userid) {
+        $sql = "SELECT * FROM spam_users WHERE userid = ?;";
+        $ret = NULL;
+
+        $spams = $this->dbhr->preQuery($sql, [ $userid ]);
+
+        foreach ($spams as $spam) {
+            $ret = $spam;
+        }
+
+        return($ret);
+    }
+
     public function removeSpamMembers($groupid = NULL) {
         $count = 0;
         $groupq = $groupid ? " AND groupid = $groupid " : "";

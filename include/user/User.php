@@ -1530,7 +1530,6 @@ class User extends Entity
             }
         }
 
-        error_log("Before grav default" . var_export($atts['profile'], TRUE));
         if ($atts['profile']['default']) {
             # We don't have one.  Use gravatar to create a colourful default - better than a zillion silo
             $gurl = $this->gravatar($this->getEmailPreferred(), 200, 'wavatar');

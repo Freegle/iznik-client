@@ -103,7 +103,10 @@ function newsfeed() {
                         'status' => 'Success'
                     ];
                 } else {
-                    $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
+                    $s = new Spam($dbhr, $dbhm);
+                    if (!$s->getSpammerByUserid($me->getId())) {
+                        $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
+                    }
 
                     $ret = [
                         'ret' => 0,
