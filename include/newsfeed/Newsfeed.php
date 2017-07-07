@@ -117,7 +117,7 @@ class Newsfeed extends Entity
         $this->fillIn($atts, $users);
 
         foreach ($users as $user) {
-            if ($user['id'] == $atts['userid']) {
+            if ($user['id'] == presdef('userid', $atts, NULL)) {
                 $atts['user'] = $user;
                 unset($atts['userid']);
             }
