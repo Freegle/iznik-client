@@ -338,8 +338,12 @@ class Spam {
             }
         }
 
-        # Find any chat messages from spammers.u
+        # Find any chat messages from spammers.
         $sql = "UPDATE chat_messages SET reviewrejected = 1 WHERE EXISTS(SELECT 1 FROM spam_users WHERE chat_messages.userid = spam_users.userid AND collection = 'Spammer');";
+        $this->dbhm->preExec($sql);
+
+        # Delete any newsfeed items from spammers.
+        $sql = "DELETE FROM newsfeed WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');";
         $this->dbhm->preExec($sql);
 
         return($count);
