@@ -104,7 +104,8 @@ function newsfeed() {
                     ];
                 } else {
                     $s = new Spam($dbhr, $dbhm);
-                    if (!$s->getSpammerByUserid($me->getId())) {
+                    $spammers = $s->getSpammerByUserid($me->getId());
+                    if (!$spammers) {
                         $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
                     }
 

@@ -1538,11 +1538,10 @@ class User extends Entity
             $atts['profile']['gravatardefault'] = TRUE;
 
             # Save for next time.
-            $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`, hash) VALUES (?, ?, ?, ?);", [
+            $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`) VALUES (?, ?, ?);", [
                 $this->id,
                 $atts['profile']['default'] ? NULL : $atts['profile']['url'],
-                $atts['profile']['default'],
-                $hash
+                $atts['profile']['default']
             ]);
         }
 

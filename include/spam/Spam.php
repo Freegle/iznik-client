@@ -298,11 +298,11 @@ class Spam {
         return($ret);
     }
 
-    public function getSpammerByUserid($userid) {
-        $sql = "SELECT * FROM spam_users WHERE userid = ?;";
+    public function getSpammerByUserid($userid, $collection = Spam::TYPE_SPAMMER) {
+        $sql = "SELECT * FROM spam_users WHERE userid = ? AND collection = ?;";
         $ret = NULL;
 
-        $spams = $this->dbhr->preQuery($sql, [ $userid ]);
+        $spams = $this->dbhr->preQuery($sql, [ $userid, $collection ]);
 
         foreach ($spams as $spam) {
             $ret = $spam;
