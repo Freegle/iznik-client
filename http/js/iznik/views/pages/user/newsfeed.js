@@ -744,7 +744,7 @@ define([
             var vis = model.get('visible');
 
             // Show last few.
-            vis = vis && (self.showAll || model.collection.length < 10 || model.collection.indexOf(model) > 10);
+            vis = vis && (self.showAll || model.collection.length < 10 || model.collection.indexOf(model) > (model.collection.length - 10));
 
             return(vis);
         },
