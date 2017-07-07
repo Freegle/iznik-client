@@ -111,6 +111,8 @@ require_once(IZNIK_BASE . '/http/api/status.php');
 require_once(IZNIK_BASE . '/http/api/volunteering.php');
 require_once(IZNIK_BASE . '/http/api/notification.php');
 
+use GeoIp2\Database\Reader;
+
 $includetime = microtime(true) - $scriptstart;
 
 # All API calls come through here.
@@ -153,6 +155,24 @@ if ($_REQUEST['type'] == 'OPTIONS') {
     }
 
     do {
+        if ($_REQUEST['type'] != 'GET') {
+            # Check that we're not posting from a blocked country.
+            try {
+                $reader = new Reader('/usr/local/share/GeoIP/GeoLite2-Country.mmdb');
+                $ip = $_SERVER['REMOTE_ADDR'];
+                $record = $reader->country($ip);
+                $country = $record->country->name;
+                # Failed to look it up.
+                $countries = $dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
+                foreach ($countries as $country) {
+                    error_log("Block post from {$country['country']} " . var_export($_REQUEST, TRUE));
+                    echo json_encode(array('ret' => 0, 'status' => 'Success'));
+                    break 2;
+                }
+            } catch (Exception $e) {
+            }
+        }
+
         # Duplicate POST protection
         if ((DUPLICATE_POST_PROTECTION > 0) && array_key_exists('REQUEST_METHOD', $_SERVER) && ($_REQUEST['type'] == 'POST')) {
             # We want to make sure that we don't get duplicate POST requests within the same session.  We can't do this
