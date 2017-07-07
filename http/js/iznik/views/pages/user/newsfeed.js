@@ -200,7 +200,9 @@ define([
 
                 mod.save().then(function() {
                     mod.fetch().then(function() {
-                        self.collection.add(mod);
+                        self.collection.add(mod, {
+                            at: 0
+                        });
                         self.$('.js-message').val('');
                         self.$('.js-message').prop('disabled', false);
                     });
