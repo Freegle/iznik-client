@@ -1,3 +1,4 @@
+<% if (obj.user) { %>
 <div class="padleft fadein">
     <div class="row">
         <div class="col-xs-12 clickme">
@@ -16,6 +17,9 @@
                                 <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
                                 &bull;
                                 <span class="js-replyloves" />
+                                <span class="js-ownpost js-modonly js-delete" style="display: none">
+                                &bull; Delete
+                                </span>
                             </small>
                             <% if (obj.preview && !preview.invalid && !preview.spam) { %>
                             <div class="panel panel-default clickme preview small js-preview">
@@ -44,3 +48,4 @@
         </div>
     </div>
 </div>
+<% } %>
