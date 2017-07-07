@@ -1,3 +1,4 @@
+<% if (!obj.deleted && obj.message) { %>
 <div class="panel fadein">
     <div class="panel-body">
         <div class="row">
@@ -16,7 +17,7 @@
                         <li>
                             <a href="#" class="js-refertowanted">Refer to WANTED</a>
                         </li>
-                        <li class="js-modonly" style="display: none">
+                        <li class="js-modonly js-ownpost" style="display: none">
                             <a href="#" class="js-delete">Delete this post</a>
                         </li>
                     </ul>
@@ -77,3 +78,4 @@
         </div>
     </div>
 </div>
+<% } %>

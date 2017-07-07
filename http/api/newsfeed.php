@@ -118,7 +118,8 @@ function newsfeed() {
             case 'DELETE': {
                 $id = intval(presdef('id', $_REQUEST, NULL));
 
-                if ($me->isModerator()) {
+                # Can delete own posts or if mod.
+                if ($me->isModerator() || ($me->getId() == $n->getPrivate('userid'))) {
                     $n->delete($me->getId(), $id);
                 }
 

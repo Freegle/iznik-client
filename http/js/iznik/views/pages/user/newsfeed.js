@@ -499,6 +499,12 @@ define([
 
                         if (Iznik.Session.isFreegleMod()) {
                             self.$('.js-modonly').show();
+
+                            var user = self.model.get('user');
+
+                            if (user && user.id == Iznik.Session.get('id')) {
+                                self.$('.js-ownpost').show();
+                            }
                         }
                     });
                 });
