@@ -679,6 +679,8 @@ define([
                         mod.save().then(function() {
                             self.$('.js-comment').val('');
                             self.$('.js-comment').prop('disabled', false);
+                            autosize.update(self.$('.js-comment'));
+
                             mod.fetch().then(function() {
                                 self.replies.add(mod);
                             });
