@@ -30,7 +30,17 @@ define([
             'click .js-tabevent': 'addEventInline',
             'click .js-tabvolunteer': 'addVolunteerInline',
             'click .js-taboffer': 'inlineOffer',
-            'click .js-tabwanted': 'inlineWanted'
+            'click .js-tabwanted': 'inlineWanted',
+            'focus #js-discussmessage': 'newsfeedHelp'
+        },
+
+        newsfeedHelp: function() {
+            console.log("help");
+            if (!Storage.get('newsfeedhelp')) {
+                Storage.set('newsfeedhelp', true);
+                var v = new Iznik.Views.User.Feed.Help();
+                v.render();
+            }
         },
 
         updateArea: function() {
@@ -113,7 +123,9 @@ define([
                         'give': [
                             'offer',
                             'giving away',
-                            'does anyone want'
+                            'does anyone want',
+                            'collection from',
+                            'collection only'
                         ]
                     };
 
@@ -1373,4 +1385,7 @@ define([
         template: "user_newsfeed_inlineconfirm"
     });
 
+    Iznik.Views.User.Feed.Help = Iznik.Views.Modal.extend({
+        template: "user_newsfeed_help"
+    });
 });
