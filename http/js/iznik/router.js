@@ -195,7 +195,8 @@ define([
             "volunteering/:id": "userVolunteering",
             "volunteering(:id)": "userVolunteering", // TODO Remove after 2017-07-01
             "why": "userWhy",
-            "*path": "userHome"
+            "myposts": "userHome",
+            "*path": "userNewsfeed"
         },
 
         loadRoute: function (routeOptions) {
