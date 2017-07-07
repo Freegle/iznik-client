@@ -78,6 +78,7 @@ define([
             "explore/:id/message/:id": "legacyUserMessage",
             "groups": "legacyUserGroups",
             "location/:id": "legacyUserGroups",
+            "index.php?action=home": "modtools",
             "main.php?action=look&groupid=:id": "userExploreGroup",
             "main.php?action=showevents*t": "userCommunityEvents",
             "main.php?&action=join&then=displaygroup&groupid=:id": "userExploreGroup",
