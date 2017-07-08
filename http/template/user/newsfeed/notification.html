@@ -1,6 +1,6 @@
 <div class="js-top">
     <div class="<% if (!obj.seen) { %>backinfo<% } %>">
-        <% if (type == 'CommentOnCommented') { %>
+        <% if (type == 'CommentOnCommented' && obj.fromuser) { %>
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
@@ -17,7 +17,7 @@
                 </div>
             </div>
         </div>
-        <% } else if (type == 'CommentOnYourPost') { %>
+        <% } else if (type == 'CommentOnYourPost' && obj.fromuser) { %>
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
@@ -34,7 +34,7 @@
                 </div>
             </div>
         </div>
-        <% } else if (type == 'LovedPost') { %>
+        <% } else if (type == 'LovedPost' && obj.fromuser) { %>
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
@@ -50,7 +50,7 @@
                 </div>
             </div>
         </div>
-        <% } else if (type == 'LovedComment') { %>
+        <% } else if (type == 'LovedComment' && obj.fromuser) { %>
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
