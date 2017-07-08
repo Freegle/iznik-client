@@ -52,7 +52,7 @@ if (count($opts) != 1) {
                     $txid,
                     $amount,
                     $eid,
-                    $amount
+                    $date
                 ]);
 
                 if ($dbhm->rowsAffected() > 0 && $amount >= 20) {
