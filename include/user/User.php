@@ -1386,7 +1386,17 @@ class User extends Entity
     public function ensureAvatar(&$atts) {
         # This involves querying external sites, so we need to use it with care, otherwise we can hang our
         # system.  It can also cause updates, so if we call it lots of times, it can result in cluster issues.
-        if ($atts['profile']['default']) {
+        $forcedefault = FALSE;
+        $s = $this->getPrivate('settings');
+
+        if ($s) {
+            $settings = json_decode($s, TRUE);
+            if (array_key_exists('useprofile', $settings) && !$settings['useprofile']) {
+                $forcedefault = TRUE;
+            }
+        }
+
+        if (!$forcedefault && $atts['profile']['default']) {
             # See if we can do better than a default.
             $emails = $this->getEmails();
 
