@@ -16,6 +16,26 @@
             <div class="col-xs-12">
                 <div class="alert alert-info">
                     <b class="prewrap">{{message}}</b>
+                    <% if (obj.preview && !preview.invalid && !preview.spam) { %>
+                    <div class="panel panel-default topspace clickme preview js-preview">
+                        <div class="row">
+                            <div class="col-xs-2">
+                                <% if (preview.image) { %>
+                                <img class="img-thumbnail" src="{{preview.image}}" />
+                                <% } %>
+                            </div>
+                            <div class="col-xs-9">
+                                <% if (preview.title) { %>
+                                <h3>{{preview.title}}</h3>
+                                <% } %>
+                                <% if (preview.description) { %>
+                                <div class="prewrap forcebreak">{{preview.description}}</div>
+                                <% } %>
+                                <span class="small text-muted">This is an automatic preview.  Click at your own risk.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
                 </div>
                 <hr class="text-muted nomargin botspace" />
                 <div class="js-itemloves" />
