@@ -1341,7 +1341,7 @@ class User extends Entity
         return($ret);
     }
 
-    private function gravatar( $email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array() ) {
+    public function gravatar( $email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array() ) {
         $url = 'https://www.gravatar.com/avatar/';
         $url .= md5( strtolower( trim( $email ) ) );
         $url .= "?s=$s&d=$d&r=$r";
@@ -1528,21 +1528,6 @@ class User extends Entity
                     $hash
                 ]);
             }
-        }
-
-        if ($atts['profile']['default']) {
-            # We don't have one.  Use gravatar to create a colourful default - better than a zillion silo
-            $gurl = $this->gravatar($this->getEmailPreferred(), 200, 'wavatar');
-            $atts['profile']['url'] = $gurl;
-            $atts['profile']['default'] = FALSE;
-            $atts['profile']['gravatardefault'] = TRUE;
-
-            # Save for next time.
-            $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`) VALUES (?, ?, ?);", [
-                $this->id,
-                $atts['profile']['default'] ? NULL : $atts['profile']['url'],
-                $atts['profile']['default']
-            ]);
         }
 
         if ($me && $this->id == $me->getId()) {
