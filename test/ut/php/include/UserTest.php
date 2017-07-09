@@ -924,19 +924,23 @@ class userTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users_images WHERE userid = ?;", [ $uid ]);
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
         error_log("Profile " . var_export($atts['profile'], TRUE));
-        assertTrue($atts['profile']['google']);
         assertTrue($atts['profile']['gravatardefault']);
-        error_log("URL {$atts['profile']['url']}");
+        error_log("norfolkmod@gmail.com URL {$atts['profile']['url']}");
 
         $uid = $u->create("Test", "User", "Test User");
         $u->addEmail('gravatar@ehibbert.org.uk');
         $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
+        error_log("gravatar@ehibbert.org.uk " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['gravatar']);
 
         $uid = $u->create("Test", "User", "Test User");
         $u->addEmail('atrusty-gxxxx@user.trashnothing.com');
         $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
+        error_log("atrusty " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['TN']);
 
         error_log(__METHOD__ . " end");

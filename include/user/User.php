@@ -1383,6 +1383,117 @@ class User extends Entity
         return($ret);
     }
 
+    public function ensureAvatar(&$atts) {
+        # This involves querying external sites, so we need to use it with care, otherwise we can hang our
+        # system.  It can also cause updates, so if we call it lots of times, it can result in cluster issues.
+        if ($atts['profile']['default']) {
+            # See if we can do better than a default.
+            $emails = $this->getEmails();
+
+            foreach ($emails as $email) {
+                if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
+                    # We can try to find profiles for gmail users.
+                    $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
+                    $j = json_decode($json, TRUE);
+
+                    if ($j && pres('entry', $j) && pres('gphoto$thumbnail', $j['entry']) && pres('$t', $j['entry']['gphoto$thumbnail'])) {
+                        $atts['profile'] = [
+                            'url' => $j['entry']['gphoto$thumbnail']['$t'],
+                            'default' => FALSE,
+                            'google' => TRUE
+                        ];
+
+                        break;
+                    }
+                } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
+                    # TrashNothing has an API we can use.
+                    $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . USER_SITE . '/images/defaultprofile.png');
+                    $atts['profile'] = [
+                        'url' => $url,
+                        'default' => FALSE,
+                        'TN' => TRUE
+                    ];
+                } else if (!ourDomain($email['email'])){
+                    # Try for gravatar
+                    $gurl = $this->gravatar($email['email'], 200, 404);
+                    $g = @file_get_contents($gurl);
+
+                    if ($g) {
+                        $atts['profile'] = [
+                            'url' => $gurl,
+                            'default' => FALSE,
+                            'gravatar' => TRUE
+                        ];
+
+                        break;
+                    }
+                }
+            }
+
+            if ($atts['profile']['default']) {
+                # Try for Facebook.
+                $logins = $this->getLogins(TRUE);
+                foreach ($logins as $login) {
+                    if ($login['type'] == User::LOGIN_FACEBOOK) {
+                        if (presdef('useprofile', $atts['settings'], TRUE)) {
+                            $atts['profile'] = [
+                                'url' => "https://graph.facebook.com/{$login['uid']}/picture",
+                                'default' => FALSE,
+                                'facebook' => TRUE
+                            ];
+                        }
+                    }
+                }
+            }
+
+            $hash = NULL;
+
+            if (!$atts['profile']['default']) {
+                # We think we have a profile.  Make sure we can fetch it and filter out other people's
+                # default images.
+                $atts['profile']['default'] = TRUE;
+                $hasher = new ImageHash;
+                $data = file_get_contents($atts['profile']['url']);
+                $hash = NULL;
+
+                if ($data) {
+                    $img = @imagecreatefromstring($data);
+
+                    if ($img) {
+                        $hash = $hasher->hash($img);
+                        error_log("Ghashed to $hash");
+                        $atts['profile']['default'] = FALSE;
+                    }
+                }
+
+                if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash == 'c0c0e070e0603100') {
+                    # This is a default profile - replace it with ours.
+                    $atts['profile']['url'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+                    $atts['profile']['default'] = TRUE;
+                    $hash = NULL;
+                }
+            }
+
+            if ($atts['profile']['default']) {
+                # Nothing - so get gravatar to generate a default for us.
+                $gurl = $this->gravatar($this->getEmailPreferred(), 200, 'identicon');
+                $atts['profile'] = [
+                    'url' => $gurl,
+                    'default' => FALSE,
+                    'gravatardefault' => TRUE
+                ];
+            }
+
+            # Save for next time.
+            $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`, hash) VALUES (?, ?, ?, ?);", [
+                $this->id,
+                $atts['profile']['default'] ? NULL : $atts['profile']['url'],
+                $atts['profile']['default'],
+                $hash
+            ]);
+        }
+    }
+
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE) {
         $atts = parent::getPublic();
 
@@ -1412,6 +1523,8 @@ class User extends Entity
             $atts[$att] = strpos($atts[$att], '@') !== FALSE ? substr($atts[$att], 0, strpos($atts[$att], '@')) : $atts[$att];
         }
 
+        # Get a profile.  This function is called so frequently that we can't afford to query external sites
+        # within it, so if we don't find one, we default to none.
         $atts['profile'] = [
             'url' => 'https://' . USER_SITE . '/images/defaultprofile.png',
             'default' => TRUE
@@ -1435,98 +1548,6 @@ class User extends Entity
                         ];
                     }
                 }
-            } else {
-                $emails = $this->getEmails();
-
-                foreach ($emails as $email) {
-                    if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
-                        # We can try to find profiles for gmail users.
-                        $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
-                        $j = json_decode($json, TRUE);
-
-                        if ($j && pres('entry', $j) && pres('gphoto$thumbnail', $j['entry']) && pres('$t', $j['entry']['gphoto$thumbnail'])) {
-                            $atts['profile'] = [
-                                'url' => $j['entry']['gphoto$thumbnail']['$t'],
-                                'default' => FALSE,
-                                'google' => TRUE
-                            ];
-
-                            break;
-                        }
-                    } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
-                        # TrashNothing has an API we can use.
-                        $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . USER_SITE . '/images/defaultprofile.png');
-                        $atts['profile'] = [
-                            'url' => $url,
-                            'default' => FALSE,
-                            'TN' => TRUE
-                        ];
-                    } else if (!ourDomain($email['email'])){
-                        # Try for gravatar
-                        $gurl = $this->gravatar($email['email'], 200, 404);
-                        $g = @file_get_contents($gurl);
-
-                        if ($g) {
-                            $atts['profile'] = [
-                                'url' => $gurl,
-                                'default' => FALSE,
-                                'gravatar' => TRUE
-                            ];
-
-                            break;
-                        }
-                    }
-                }
-
-                if ($atts['profile']['default']) {
-                    # Try for Facebook.
-                    $logins = $this->getLogins(TRUE);
-                    foreach ($logins as $login) {
-                        if ($login['type'] == User::LOGIN_FACEBOOK) {
-                            if (presdef('useprofile', $atts['settings'], TRUE)) {
-                                $atts['profile'] = [
-                                    'url' => "https://graph.facebook.com/{$login['uid']}/picture",
-                                    'default' => FALSE,
-                                    'facebook' => TRUE
-                                ];
-                            }
-                        }
-                    }
-                }
-
-                $hash = NULL;
-
-                if (!$atts['profile']['default']) {
-                    # We think we have a profile.  Make sure we can fetch it and filter out other people's
-                    # default images.
-                    $atts['profile']['default'] = TRUE;
-                    $hasher = new ImageHash;
-                    $data = @file_get_contents($atts['profile']['url']);
-
-                    if ($data) {
-                        $img = @imagecreatefromstring($data);
-
-                        if ($img) {
-                            $hash = $hasher->hash($img);
-                            $atts['profile']['default'] = FALSE;
-                        }
-                    }
-
-                    if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash = 'c0c0e070e0603100') {
-                        # This is a default profile - replace it with ours.
-                        $atts['profile']['url'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
-                        $atts['profile']['default'] = TRUE;
-                        $hash = NULL;
-                    }
-                }
-
-                # Save for next time.
-                $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`, hash) VALUES (?, ?, ?, ?);", [
-                    $this->id,
-                    $atts['profile']['default'] ? NULL : $atts['profile']['url'],
-                    $atts['profile']['default'],
-                    $hash
-                ]);
             }
         }
 

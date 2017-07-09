@@ -175,20 +175,9 @@ class Newsfeed extends Entity
                 $users[$entry['userid']]['publiclocation'] = $u->getPublicLocation();
 
                 if ($users[$entry['userid']]['profile']['default']) {
-                    # We always want to show an avatar for the newsfeed, but we don't have one.
-                    #
-                    # Use gravatar to create a colourful default - better than a zillion grey ones.
-                    $gurl = $u->gravatar($u->getEmailPreferred(), 200, 'identicon');
-                    $users[$entry['userid']]['profile']['url'] = $gurl;
-                    $users[$entry['userid']]['profile']['default'] = FALSE;
-                    $users[$entry['userid']]['profile']['gravatardefault'] = TRUE;
-
-                    # Save for next time.
-                    $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`) VALUES (?, ?, ?);", [
-                        $entry['userid'],
-                        $users[$entry['userid']]['profile']['url'],
-                        FALSE
-                    ]);
+                    # We always want to show an avatar for the newsfeed, but we don't have one.  This won't cause
+                    # a flood of updates since the newsfeed is fetched gradually.
+                    $u->ensureAvatar($users[$entry['userid']]);
                 }
             }
 
