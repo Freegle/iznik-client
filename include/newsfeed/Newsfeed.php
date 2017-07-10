@@ -110,7 +110,7 @@ class Newsfeed extends Entity
         return($id);
     }
 
-    public function getPublic($lovelist) {
+    public function getPublic($lovelist = FALSE) {
         $atts = parent::getPublic();
         $users = [];
 
