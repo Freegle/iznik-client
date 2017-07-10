@@ -366,6 +366,7 @@ class userTest extends IznikTestCase {
         error_log("Created $mid2 $str");
 
         # We should get the group back and a default config.
+        error_log("Check settings for $id2 on $group2");
         assertEquals(1, $u2->getGroupSettings($group2)['test'] );
         assertNotNull($u2->getGroupSettings($group2)['configid']);
 
@@ -373,9 +374,10 @@ class userTest extends IznikTestCase {
         assertTrue($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
-        $u1 = User::get($this->dbhr, $this->dbhm, $id1, FALSE);
-        $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
+        $u1 = new User($this->dbhm, $this->dbhm, $id1, FALSE);
+        $u2 = new User($this->dbhm, $this->dbhm, $id2, FALSE);
 
+        error_log("Check post merge $id1 on $group2");
         assertEquals(1, $u1->getGroupSettings($group2)['test'] );
         assertNotNull($u1->getGroupSettings($group2)['configid']);
 

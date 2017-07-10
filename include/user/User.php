@@ -2067,6 +2067,7 @@ class User extends Entity
                                 $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
                                     $role
                                 ]);
+                                #error_log("Set role $rc2");
                             }
 
                             if ($rc2) {
@@ -2076,55 +2077,61 @@ class User extends Entity
                                 $rc2 = $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
                                     $mysqltime
                                 ]);
+                                #error_log("Added $rc2");
                             }
 
                             # There are several attributes we want to take the non-NULL version.
                             foreach (['configid', 'settings', 'heldby'] as $key) {
+                                #error_log("Check {$id2memb['groupid']} memb $id2 $key = " . presdef($key, $id2memb, NULL));
                                 if ($id2memb[$key]) {
                                     if ($rc2) {
                                         $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
                                             $id2memb[$key]
                                         ]);
+                                        #error_log("Set att $key = {$id2memb[$key]} $rc2");
                                     }
                                 }
                             }
+                        }
 
-                            # Now move any id2 Yahoo memberships over to refer to id1 before we delete it.
-                            # This might result in duplicates so we use IGNORE.
-                            $id2membs = $this->dbhm->preQuery("SELECT id, groupid FROM memberships WHERE userid = $id2;");
-                            #error_log("Memberships for $id2 " . var_export($id2membs, true));
-                            foreach ($id2membs as $id2memb) {
-                                $rc2 = $rc;
+                        $rc = $rc2 && $rc ? $rc2 : 0;
+                    }
 
-                                $id1membs = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [
-                                    $id1,
-                                    $id2memb['groupid']
-                                ]);
 
-                                #error_log("Memberships for $id1 on {$id2memb['groupid']} " . var_export($id1membs, true));
+                    # Now move any id2 Yahoo memberships over to refer to id1 before we delete it.
+                    # This might result in duplicates so we use IGNORE.
+                    $id2membs = $this->dbhm->preQuery("SELECT id, groupid FROM memberships WHERE userid = $id2;");
+                    #error_log("Memberships for $id2 " . var_export($id2membs, true));
+                    foreach ($id2membs as $id2memb) {
+                        $rc2 = $rc;
+                        #error_log("Yahoo membs $rc2");
 
-                                foreach ($id1membs as $id1memb) {
-                                    $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships_yahoo SET membershipid = ? WHERE membershipid = ?;", [
-                                        $id1memb['id'],
-                                        $id2memb['id']
-                                    ]) ;
-                                    #error_log("$rc2 from UPDATE IGNORE memberships_yahoo SET membershipid = {$id1memb['id']} WHERE membershipid = {$id2memb['id']};");
-                                }
+                        $id1membs = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [
+                            $id1,
+                            $id2memb['groupid']
+                        ]);
 
-                                if ($rc2) {
-                                    $rc2 = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE membershipid = ?;", [
-                                        $id2memb['id']
-                                    ]);
-                                    #error_log("$rc2 from delete {$id2memb['id']}");
-                                }
+                        #error_log("Memberships for $id1 on {$id2memb['groupid']} " . var_export($id1membs, true));
 
-                                $rc = $rc2 && $rc ? $rc2 : 0;
-                            }
+                        foreach ($id1membs as $id1memb) {
+                            $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships_yahoo SET membershipid = ? WHERE membershipid = ?;", [
+                                $id1memb['id'],
+                                $id2memb['id']
+                            ]) ;
+                            #error_log("$rc2 from UPDATE IGNORE memberships_yahoo SET membershipid = {$id1memb['id']} WHERE membershipid = {$id2memb['id']};");
+                        }
 
-                            if ($rc2) {
-                                # Now we just need to delete the id2 one.
-                                $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
-                            }
+                        if ($rc2) {
+                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE membershipid = ?;", [
+                                $id2memb['id']
+                            ]);
+                            #error_log("$rc2 from delete {$id2memb['id']}");
+                        }
+
+                        if ($rc2) {
+                            # Now we just need to delete the id2 one.
+                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
+                            #error_log("Deleted old $id2 of {$id2memb['groupid']} $rc2");
                         }
 
                         $rc = $rc2 && $rc ? $rc2 : 0;
@@ -2288,10 +2295,11 @@ class User extends Entity
                             'text' => "Merged $id1 into $id2 ($reason)"
                         ]);
 
-                        # Finally, delete id2.
+                        # Finally, delete id2.  Make sure we don't pick up an old cached version, as we've just
+                        # changed it quite a bit.
                         #error_log("Delete $id2");
                         error_log("Merged $id1 < $id2, $reason");
-                        $deleteme = User::get($this->dbhr, $this->dbhm, $id2);
+                        $deleteme = new User($this->dbhm, $this->dbhm, $id2);
                         $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
                     }
 
@@ -3013,6 +3021,7 @@ class User extends Entity
 
         # Delete memberships.  This will remove any Yahoo memberships.
         $membs = $this->getMemberships();
+        #error_log("Members in delete " . var_export($membs, TRUE));
         foreach ($membs as $memb) {
             $this->removeMembership($memb['id']);
         }
