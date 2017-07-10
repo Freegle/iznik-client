@@ -4,8 +4,8 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
-    'iznik/models/notification',
-    'iznik/events'
+    'iznik/events',
+    'iznik/models/notification'
 ], function($, _, Backbone, Iznik, ChatHolder, monitor) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
