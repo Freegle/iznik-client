@@ -7,7 +7,7 @@
                     <b><span class="success">{{user.displayname}}</span></b> created an event
                     <br />
                     <small class="text-muted">
-                        <abbr class="timeago nodecor" title="{{timestamp}}" />
+                        <abbr class="timeago nodecor" title="{{added}}" />
                         <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
                     </small>
                 </div>
@@ -18,7 +18,7 @@
                 <div class="js-eventsumm" />
                 <hr class="text-muted nomargin botspace" />
                 <div class="inline js-itemloves" />
-                <span class="inline btn btn-white btn-xs pull-right js-addevent"><span class="glyphicons glyphicons-plus vcenter" />&nbsp;Add your event</span>
+                <span class="inline btn btn-white btn-xs pull-right js-addevent"><span class="glyphicons glyphicons-plus vcenter" />&nbsp;Add <span class="hidden-xs">your </span>event</span>
             </div>
         </div>
     </div>

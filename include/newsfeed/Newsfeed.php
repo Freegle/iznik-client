@@ -77,6 +77,9 @@ class Newsfeed extends Entity
                 $this->fetch($this->dbhr, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
 
                 if ($replyto) {
+                    # Bump the thread.
+                    $this->dbhm->preExec("UPDATE newsfeed SET timestamp = NOW() WHERE id = ?;", [ $replyto ]);
+
                     $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [ $replyto ]);
                     foreach ($origs as $orig) {
                         # Comment on thread.  We want to notify the original poster and anyone else who
@@ -233,6 +236,10 @@ class Newsfeed extends Entity
 
 
             $entry['timestamp'] = ISODate($entry['timestamp']);
+
+            if (pres('added', $entry)) {
+                $entry['added'] = ISODate($entry['added']);
+            }
 
             $me = whoAmI($this->dbhr, $this->dbhm);
 

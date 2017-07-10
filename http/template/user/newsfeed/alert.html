@@ -7,7 +7,7 @@
                     <b><span class="success">{{sitename}}</span></b>
                     <br />
                     <small class="text-muted">
-                        <abbr class="timeago nodecor" title="{{timestamp}}" />
+                        <abbr class="timeago nodecor" title="{{added}}" />
                     </small>
                 </div>
             </div>
@@ -19,12 +19,12 @@
                     <% if (obj.preview && !preview.invalid && !preview.spam) { %>
                     <div class="panel panel-default topspace clickme preview js-preview">
                         <div class="row">
-                            <div class="col-xs-2">
+                            <div class="col-xs-3 col-sm-2">
                                 <% if (preview.image) { %>
                                 <img class="img-thumbnail" src="{{preview.image}}" />
                                 <% } %>
                             </div>
-                            <div class="col-xs-9">
+                            <div class="col-xs-9 col-sm-10">
                                 <% if (preview.title) { %>
                                 <h3>{{preview.title}}</h3>
                                 <% } %>
