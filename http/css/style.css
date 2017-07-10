@@ -183,7 +183,8 @@ body {
     display: -webkit-box;
     display: -moz-box;
 }
-.nav-tabs>li {
+
+nav .nav-tabs>li {
     float:none;
 }
 
