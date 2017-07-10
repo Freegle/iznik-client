@@ -116,7 +116,7 @@ class Alert extends Entity
 
             foreach ($groups as $group) {
                 #error_log("...{$alert['id']} -> {$group['nameshort']}");
-                $done += $a->mailMods($group['id'], $alert['tryhard']);
+                $done += $a->mailMods($group['id'], $alert['tryhard'], $groupid != NULL);
 
                 if ($groupid) {
                     # This is to a specific group.  We are now done.
@@ -223,15 +223,16 @@ class Alert extends Entity
         return($ret);
     }
 
-    public function mailMods($groupid, $tryhard = TRUE) {
+    public function mailMods($groupid, $tryhard = TRUE, $cc = FALSE) {
         list ($transport, $mailer) = getMailer();
         $done = 0;
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $from = $this->getFrom();
 
-        if ($tryhard) {
-            # Mail the mods individually
+        if ($tryhard || !$g->getPrivate('onyahoo')) {
+            # Mail the mods individually if we're asked to, or if it's for a native group where we don't go via
+            # the owner address.
             $sql = "SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');";
             $mods = $this->dbhr->preQuery($sql, [ $groupid ]);
             error_log("..." . count($mods) . " volunteers");
@@ -329,6 +330,23 @@ class Alert extends Entity
             } catch (Exception $e) {
                 error_log("Owner mail failed with " . $e->getMessage());
             }
+        }
+
+        if ($cc) {
+            $html = alert_tpl(
+                $g->getPrivate('nameshort'),
+                $u->getName(),
+                USER_SITE,
+                USERLOGO,
+                $this->alert['subject'],
+                $this->alert['html'] ? $this->alert['html'] : nl2br($this->alert['text']),
+                NULL,
+                FALSE,
+                'https://' . USER_SITE);
+
+            $text = $this->alert['text'];
+            $msg = $this->constructMessage($from, $g->getPrivate('nameshort'), $from, $this->alert['subject'], $text, $html);
+            $mailer->send($msg);
         }
 
         return($done);
