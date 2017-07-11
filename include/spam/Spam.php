@@ -28,6 +28,7 @@ class Spam {
     CONST REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS = 'SubjectUsedForDifferentGroups';
     CONST REASON_SPAMASSASSIN = 'SpamAssassin';
     CONST REASON_GREETING = 'Greetings spam';
+    CONST REASON_REFERRED_TO_SPAMMER = 'Referenced known spammer';
 
     # A common type of spam involves two lines with greetings.
     private $greetings = [
@@ -185,8 +186,31 @@ class Spam {
             }
         }
 
+        $spammail = $this->checkReferToSpammer($text);
+
+        if ($spammail) {
+            return (array(true, Spam::REASON_REFERRED_TO_SPAMMER, "Refers to known spammer $spammail"));
+        }
+
         # It's fine.  So far as we know.
         return(NULL);
+    }
+
+    public function checkReferToSpammer($text) {
+        # Check if it contains a reference to a known spammer.
+        $ret = NULL;
+        $spammers = $this->dbhr->preQuery("SELECT users_emails.email FROM spam_users INNER JOIN users_emails ON spam_users.userid = users_emails.userid WHERE collection = ?;", [
+            Spam::TYPE_SPAMMER
+        ]);
+
+        foreach ($spammers as $spammer) {
+            if (stripos($text, $spammer['email']) !== FALSE) {
+                $ret = $spammer['email'];
+                break;
+            }
+        }
+
+        return($ret);
     }
 
     public function notSpamSubject($subj) {
