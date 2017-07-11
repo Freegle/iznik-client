@@ -17,7 +17,9 @@
                                 <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
                                 &bull;
                                 <span class="js-replyloves" />
-                                <span class="js-ownpost js-modonly js-delete" style="display: none">
+                                <% if (obj.ismod && obj.ownpost) { %>
+                                <span class="js-ownpost js-modonly js-delete">
+                                <% } %>
                                 &bull; Delete
                                 </span>
                             </small>

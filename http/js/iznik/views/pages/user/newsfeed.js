@@ -505,21 +505,15 @@ define([
                     model: self.model
                 });
 
+                self.model.set('ismod', Iznik.Session.isFreegleMod());
+                var user = self.model.get('user');
+                self.model.set('ownpost', user && user.id == Iznik.Session.get('me').id);
+
                 v.template = self.lovetemplate;
                 v.render().then(function() {
                     Iznik.View.Timeago.prototype.render.call(self).then(function () {
                         self.$(self.lovesel).html(v.$el);
                         resolve();
-
-                        if (Iznik.Session.isFreegleMod()) {
-                            self.$('.js-modonly').show();
-                        }
-
-                        var user = self.model.get('user');
-
-                        if (user && user.id == Iznik.Session.get('me').id) {
-                            self.$('.js-ownpost').show();
-                        }
                     });
                 });
             });

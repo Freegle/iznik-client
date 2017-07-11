@@ -17,9 +17,11 @@
                         <li>
                             <a href="#" class="js-refertowanted">Refer to WANTED</a>
                         </li>
-                        <li class="js-modonly js-ownpost" style="display: none">
+                        <% if (obj.ismod && obj.ownpost) { %>
+                        <li class="js-modonly js-ownpost">
                             <a href="#" class="js-delete">Delete this post</a>
                         </li>
+                        <% } 5>
                     </ul>
                 </div>
                 <% if (obj.user) { %>
