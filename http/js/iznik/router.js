@@ -79,6 +79,7 @@ define([
             "groups": "legacyUserGroups",
             "location/:id": "legacyUserGroups",
             "index.php?action=home": "modtools",
+            "index.php?action=pending": "pendingMessages",
             "main.php?action=look&groupid=:id": "userExploreGroup",
             "main.php?action=showevents*t": "userCommunityEvents",
             "main.php?&action=join&then=displaygroup&groupid=:id": "userExploreGroup",
