@@ -50,12 +50,15 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->user2->setPrivate('lastlocation', $this->fullpcid);
         $this->user2->addEmail('test@test.com');
+
+        $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
     }
 
     protected function tearDown() {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
         parent::tearDown ();
     }
 

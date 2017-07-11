@@ -120,6 +120,11 @@ define([
 
                             if (ret.count) {
                                 $('.js-notifholder .js-notifcount').show();
+
+                                // Fetch the notifications to avoid lag when we click.
+                                self.notifications.fetch().then(function() {
+                                    console.log("Fetched new notifications");
+                                });
                             }
                             else {
                                 $('.js-notifholder .js-notifcount').hide();

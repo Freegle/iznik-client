@@ -986,8 +986,7 @@ define([
     Iznik.Views.User.Feed.InlinePost = Iznik.View.extend({
         events: {
             'click .js-getloc': 'getLocation',
-            'typeahead:change .js-postcode': 'locChange',
-            'click .js-post': 'postIt'
+            'typeahead:change .js-postcode': 'locChange'
         },
 
         getLocation: function() {
@@ -1372,13 +1371,19 @@ define([
     Iznik.Views.User.Feed.InlineOffer = Iznik.Views.User.Feed.InlinePost.extend({
         template: 'user_newsfeed_inlineoffer',
         msgType: 'Offer',
-        photoId: '#offerphoto'
+        photoId: '#offerphoto',
+        events: {
+            'click .js-postoffer': 'postIt'
+        }
     });
 
     Iznik.Views.User.Feed.InlineWanted = Iznik.Views.User.Feed.InlinePost.extend({
         template: 'user_newsfeed_inlinewanted',
         msgType: 'Wanted',
-        photoId: '#wantedphoto'
+        photoId: '#wantedphoto',
+        events: {
+            'click .js-postwanted': 'postIt'
+        }
     });
 
     Iznik.Views.User.Feed.InlineConfirm = Iznik.Views.Modal.extend({
