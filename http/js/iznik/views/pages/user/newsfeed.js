@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'autosize',
+    'iznik/facebook',
     'jquery-show-last',
     'iznik/models/message',
     'iznik/models/user/search',
@@ -14,7 +15,7 @@ define([
     'iznik/views/pages/user/post',
     'iznik/views/infinite',
     'jquery.scrollTo'
-], function($, _, Backbone, Iznik, autosize) {
+], function($, _, Backbone, Iznik, autosize, FBLoad) {
     Iznik.Views.User.Feed = {};
     
     Iznik.Views.User.Pages.Newsfeed = Iznik.Views.Infinite.extend({
@@ -617,10 +618,25 @@ define([
             'focus .js-comment': 'autoSize',
             'click .js-addvolunteer': 'addVolunteer',
             'click .js-addevent': 'addEvent',
-            'click .js-showearlier': 'showEarlier'
+            'click .js-showearlier': 'showEarlier',
+            'click .js-sharefb': 'sharefb'
         },
 
         showAll: false,
+
+        sharefb: function() {
+            var self = this;
+            var params = {
+                method: 'share',
+                href: window.location.protocol + '//' + window.location.host + '/newsfeed/' + self.model.get('id') + '?src=fbshare',
+                image: self.image
+            };
+
+            FB.ui(params, function (response) {
+                self.$('.js-fbshare').fadeOut('slow');
+                ABTestAction('newsfeedbutton', 'Facebook Share');
+            });
+        },
 
         showEarlier: function(e) {
             var self = this;
@@ -857,6 +873,14 @@ define([
                         // Each reply can ask us to focus on the reply box.
                         self.listenTo(self.replies, 'reply', _.bind(self.reply, self));
                         self.startCheck();
+
+                        self.listenToOnce(FBLoad(), 'fbloaded', function () {
+                            if (!FBLoad().isDisabled()) {
+                                self.$('.js-sharefb').show();
+                            }
+                        });
+
+                        FBLoad().render();
                     });
                 }
             }
