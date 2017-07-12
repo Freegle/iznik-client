@@ -17,7 +17,7 @@
                         <li>
                             <a href="#" class="js-refertowanted">Refer to WANTED</a>
                         </li>
-                        <% if (obj.ismod && obj.ownpost) { %>
+                        <% if (obj.ismod || obj.ownpost) { %>
                         <li class="js-modonly js-ownpost">
                             <a href="#" class="js-delete">Delete this post</a>
                         </li>
@@ -30,7 +30,7 @@
                     <b><span class="success">{{user.displayname}}</span></b>
                     <br />
                     <small class="text-muted">
-                        <abbr class="timeago nodecor" title="{{added}}" />
+                        <abbr class="timeago nodecor" title="{{obj.added}}" />
                         <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
                     </small>
                 </div>

@@ -137,6 +137,11 @@ class newsfeedAPITest extends IznikAPITestCase {
             $nid
         ]);
 
+        # Hide it - should only show to the poster.
+        $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW() WHERE id = ?;", [
+            $nid
+        ]);
+
         error_log("Logged in - one item");
         $ret = $this->call('newsfeed', 'GET', [
             'types' => [
@@ -201,6 +206,16 @@ class newsfeedAPITest extends IznikAPITestCase {
             'action' => 'Unlove'
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Shouldn't show as hidden
+        $ret = $this->call('newsfeed', 'GET', [
+            'types' => [
+                Newsfeed::TYPE_MESSAGE
+            ]
+        ]);
+        error_log("Returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(0, count($ret['newsfeed']));
 
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'GET', [

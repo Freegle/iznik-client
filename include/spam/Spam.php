@@ -383,6 +383,10 @@ class Spam {
         $sql = "DELETE FROM newsfeed WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');";
         $this->dbhm->preExec($sql);
 
+        # Delete any notifications from spammers
+        $sql = "DELETE FROM users_notifications WHERE fromuser IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');";
+        $this->dbhm->preExec($sql);
+
         return($count);
     }
 

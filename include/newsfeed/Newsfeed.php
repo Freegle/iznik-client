@@ -11,6 +11,7 @@ require_once(IZNIK_BASE . '/include/group/Volunteering.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/include/misc/Preview.php');
+require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 require_once(IZNIK_BASE . '/mailtemplates/newsfeed/digest.php');
@@ -49,6 +50,9 @@ class Newsfeed extends Entity
     public function create($type, $userid = NULL, $message = NULL, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL) {
         $id = NULL;
 
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $hidden = $s->checkReferToSpammer($message) ? 'NOW()' : 'NULL';
+
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
 #        error_log("Create at $lat, $lng");
@@ -57,7 +61,7 @@ class Newsfeed extends Entity
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
-            $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos);", [
+            $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position, hidden) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos, $hidden);", [
                 $type,
                 $userid,
                 $imageid,
@@ -117,7 +121,7 @@ class Newsfeed extends Entity
         $atts = parent::getPublic();
         $users = [];
 
-        $this->fillIn($atts, $users);
+        $this->fillIn($atts, $users, TRUE);
 
         foreach ($users as $user) {
             if ($user['id'] == presdef('userid', $atts, NULL)) {
@@ -126,10 +130,12 @@ class Newsfeed extends Entity
             }
         }
 
-        foreach ($atts['replies'] as &$reply) {
-            $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
-            $ctx = NULL;
-            $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        if (pres('replies', $atts)) {
+            foreach ($atts['replies'] as &$reply) {
+                $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
+                $ctx = NULL;
+                $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+            }
         }
 
         if ($lovelist) {
@@ -152,7 +158,9 @@ class Newsfeed extends Entity
 
     private function fillIn(&$entry, &$users, $checkreplies = TRUE) {
         unset($entry['position']);
+
         $use = !presdef('reviewrequired', $entry, FALSE) && !presdef('deleted', $entry, FALSE);
+
         #error_log("Use $use for type {$entry['type']} from " . presdef('reviewrequired', $entry, FALSE) . "," . presdef('deleted', $entry, FALSE));
 
         if ($use) {
@@ -337,26 +345,37 @@ class Newsfeed extends Entity
         $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert')) AND $tq" : $tq;
         $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
-        $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
+        $sql = "SELECT " . implode(',', $this->publicatts) . ", hidden FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
         #error_log($sql);
         $entries = $this->dbhr->preQuery($sql);
         $last = NULL;
 
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
         foreach ($entries as &$entry) {
-            # We return invisible entries - they are filtered on the client, and it makes the paging work.
-            if ($fillin) {
-                $this->fillIn($entry, $users);
+            $hidden = $entry['hidden'];
 
-                if ($entry['visible'] &&
-                    $last['userid'] == $entry['userid'] &&
-                    $last['type'] == $entry['type'] &&
-                    $last['message'] == $entry['message']) {
-                    # Suppress duplicates.
-                    $entry['visible'] = FALSE;
+            # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
+            # are there but nobody else sees them.
+            if (!$hidden || $myid == $entry['userid']) {
+                unset($entry['hidden']);
+
+                if ($fillin) {
+                    $this->fillIn($entry, $users);
+
+                    # We return invisible entries - they are filtered on the client, and it makes the paging work.
+                    if ($entry['visible'] &&
+                        $last['userid'] == $entry['userid'] &&
+                        $last['type'] == $entry['type'] &&
+                        $last['message'] == $entry['message']) {
+                        # Suppress duplicates.
+                        $entry['visible'] = FALSE;
+                    }
                 }
-            }
 
-            $items[] = $entry;
+                $items[] = $entry;
+            }
 
             $ctx = [
                 'timestamp' => ISODate($entry['timestamp']),
