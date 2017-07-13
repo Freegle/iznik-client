@@ -612,6 +612,7 @@ define([
     Iznik.Views.User.Feed.Item = Iznik.Views.User.Feed.Base.extend({
         lovetemplate: 'user_newsfeed_itemloves',
         lovesel: '.js-itemloves',
+        morelimit: 1024,
 
         events: {
             'keydown .js-comment': 'sendComment',
@@ -619,10 +620,21 @@ define([
             'click .js-addvolunteer': 'addVolunteer',
             'click .js-addevent': 'addEvent',
             'click .js-showearlier': 'showEarlier',
-            'click .js-sharefb': 'sharefb'
+            'click .js-sharefb': 'sharefb',
+            'click .js-moremessage': 'moreMessage'
         },
 
         showAll: false,
+
+        moreMessage: function(e) {
+            var self = this;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            self.$('.js-message').html(self.model.get('moremessage'));
+            self.$('.js-moremessage').hide();
+        },
 
         sharefb: function() {
             var self = this;
@@ -823,6 +835,19 @@ define([
                     });
 
                     p.then(function() {
+                        var message = self.model.get('message');
+
+                        if (message) {
+                            if (message.length > self.morelimit) {
+                                var ellip = ellipsical(message, self.morelimit);
+                                self.$('.js-moremessage').show();
+                                self.model.set('moremessage', message);
+                                self.model.set('message', ellip);
+                            }
+
+                            self.$('.js-message').html(self.model.get('message'));
+                        }
+
                         if (self.model.get('eventid')) {
                             var v = new Iznik.Views.User.CommunityEvent({
                                 model: new Iznik.Model(self.model.get('communityevent'))
@@ -898,10 +923,22 @@ define([
         template: 'user_newsfeed_reply',
         lovetemplate: 'user_newsfeed_replyloves',
         lovesel: '.js-replyloves',
+        morelimit: 1024,
 
         events: {
             'click .js-reply': 'reply',
-            'click .js-replyprofile': 'showProfile'
+            'click .js-replyprofile': 'showProfile',
+            'click .js-moremessage': 'moreMessage'
+        },
+
+        moreMessage: function(e) {
+            var self = this;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            self.$('.js-message').html(self.model.get('moremessage'));
+            self.$('.js-moremessage').hide();
         },
 
         reply: function() {
@@ -929,6 +966,19 @@ define([
             });
 
             p.then(function() {
+                var message = self.model.get('message');
+
+                if (message) {
+                    if (message.length > self.morelimit) {
+                        var ellip = ellipsical(message, self.morelimit);
+                        self.$('.js-moremessage').show();
+                        self.model.set('moremessage', message);
+                        self.model.set('message', ellip);
+                    }
+
+                    self.$('.js-message').html(self.model.get('message'));
+                }
+
                 if (self.model.get('id') == self.options.highlight) {
                     // Make sure it's visible.
                     $(window).scrollTo(self.$el);
