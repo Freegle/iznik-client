@@ -636,6 +636,8 @@ define([
                     _.delay(_.bind(self.update, self), 60000);
                 }
             });
+
+            $('#js-status').parent().prop('href', '/status.html?d=' + (new Date()).getTime());
         },
 
         render: function() {
