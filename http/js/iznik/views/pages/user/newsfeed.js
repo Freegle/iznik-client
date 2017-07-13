@@ -36,7 +36,6 @@ define([
         },
 
         newsfeedHelp: function() {
-            console.log("help");
             if (!Storage.get('newsfeedhelp')) {
                 Storage.set('newsfeedhelp', true);
                 var v = new Iznik.Views.User.Feed.Help();
@@ -616,7 +615,7 @@ define([
 
         events: {
             'keydown .js-comment': 'sendComment',
-            'focus .js-comment': 'autoSize',
+            'focus .js-comment': 'moreStuff',
             'click .js-addvolunteer': 'addVolunteer',
             'click .js-addevent': 'addEvent',
             'click .js-showearlier': 'showEarlier',
@@ -674,7 +673,7 @@ define([
             v.render();
         },
 
-        autoSize: function() {
+        moreStuff: function() {
             // Autosize is expensive, so only do it when we focus on the input field.  That means we only do it
             // when someone is actually going to make a comment.
             var self = this;
@@ -746,12 +745,14 @@ define([
                             self.loves.delegateEvents();
                         });
 
-                        // Update the replies collection.
-                        var replies = self.model.get('replies');
-                        // console.log("Replies", self.replies.length, replies.length);
+                        if (self.replies) {
+                            // Update the replies collection.
+                            var replies = self.model.get('replies');
+                            // console.log("Replies", self.replies.length, replies.length);
 
-                        if (self.replies.length != replies.length) {
-                            self.replies.add(replies);
+                            if (self.replies.length != replies.length) {
+                                self.replies.add(replies);
+                            }
                         }
 
                         if (self.model.collection && self.model.collection.indexOf(self.model) === 0) {
@@ -869,7 +870,6 @@ define([
                         }
 
                         self.replies = new Iznik.Collections.Replies(self.model.get('replies'));
-
                         var replyel = self.$('.js-replies');
 
                         if (replyel.length) {
