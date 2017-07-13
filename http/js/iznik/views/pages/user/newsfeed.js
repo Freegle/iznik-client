@@ -923,7 +923,7 @@ define([
         template: 'user_newsfeed_reply',
         lovetemplate: 'user_newsfeed_replyloves',
         lovesel: '.js-replyloves',
-        morelimit: 1024,
+        morelimit: 512,
 
         events: {
             'click .js-reply': 'reply',

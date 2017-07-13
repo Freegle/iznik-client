@@ -119,7 +119,7 @@ define([
                             el.html(ret.count);
 
                             if (ret.count) {
-                                $('.js-notifholder .js-notifcount').show();
+                                $('.js-notifholder .js-notifcount').css('visibility', 'visible');
 
                                 // Fetch the notifications to avoid lag when we click.
                                 self.notifications.fetch().then(function() {
@@ -127,7 +127,7 @@ define([
                                 });
                             }
                             else {
-                                $('.js-notifholder .js-notifcount').hide();
+                                $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                             }
 
                             setTitleCounts(null, ret.count);
@@ -351,7 +351,7 @@ define([
                                     }
                                 });
 
-                                $('.js-notifholder .js-notifcount').hide();
+                                $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                             });
                         }
 
