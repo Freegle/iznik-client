@@ -248,7 +248,8 @@ class groupTest extends IznikTestCase {
 
         $dbconfig = array (
             'host' => SQLHOST,
-            'port' => SQLPORT,
+            'port_read' => SQLPORT_READ,
+            'port_mod' => SQLPORT_MOD,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
