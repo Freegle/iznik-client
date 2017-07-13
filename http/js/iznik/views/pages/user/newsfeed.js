@@ -808,8 +808,13 @@ define([
                     var preview = self.model.get('preview');
                     if (preview) {
                         // Don't allow previews which are too long.
-                        preview.title = ellipsical(strip_tags(preview.title), 120);
-                        preview.description = ellipsical(strip_tags(preview.description), 255);
+                        if (preview.title) {
+                            preview.title = ellipsical(strip_tags(preview.title), 120);
+                        }
+
+                        if (preview.description) {
+                            preview.description = ellipsical(strip_tags(preview.description), 255);
+                        }
                         self.model.set('preview', preview);
                     }
 
