@@ -1341,7 +1341,7 @@ class User extends Entity
         return($ret);
     }
 
-    private function gravatar( $email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array() ) {
+    public function gravatar( $email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array() ) {
         $url = 'https://www.gravatar.com/avatar/';
         $url .= md5( strtolower( trim( $email ) ) );
         $url .= "?s=$s&d=$d&r=$r";
@@ -1383,6 +1383,127 @@ class User extends Entity
         return($ret);
     }
 
+    public function ensureAvatar(&$atts) {
+        # This involves querying external sites, so we need to use it with care, otherwise we can hang our
+        # system.  It can also cause updates, so if we call it lots of times, it can result in cluster issues.
+        $forcedefault = FALSE;
+        $s = $this->getPrivate('settings');
+
+        if ($s) {
+            $settings = json_decode($s, TRUE);
+            if (array_key_exists('useprofile', $settings) && !$settings['useprofile']) {
+                $forcedefault = TRUE;
+            }
+        }
+
+        if (!$forcedefault && $atts['profile']['default']) {
+            # See if we can do better than a default.
+            $emails = $this->getEmails();
+
+            foreach ($emails as $email) {
+                if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
+                    # We can try to find profiles for gmail users.
+                    $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
+                    $j = json_decode($json, TRUE);
+
+                    if ($j && pres('entry', $j) && pres('gphoto$thumbnail', $j['entry']) && pres('$t', $j['entry']['gphoto$thumbnail'])) {
+                        $atts['profile'] = [
+                            'url' => $j['entry']['gphoto$thumbnail']['$t'],
+                            'default' => FALSE,
+                            'google' => TRUE
+                        ];
+
+                        break;
+                    }
+                } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
+                    # TrashNothing has an API we can use.
+                    $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . USER_SITE . '/images/defaultprofile.png');
+                    $atts['profile'] = [
+                        'url' => $url,
+                        'default' => FALSE,
+                        'TN' => TRUE
+                    ];
+                } else if (!ourDomain($email['email'])){
+                    # Try for gravatar
+                    $gurl = $this->gravatar($email['email'], 200, 404);
+                    $g = @file_get_contents($gurl);
+
+                    if ($g) {
+                        $atts['profile'] = [
+                            'url' => $gurl,
+                            'default' => FALSE,
+                            'gravatar' => TRUE
+                        ];
+
+                        break;
+                    }
+                }
+            }
+
+            if ($atts['profile']['default']) {
+                # Try for Facebook.
+                $logins = $this->getLogins(TRUE);
+                foreach ($logins as $login) {
+                    if ($login['type'] == User::LOGIN_FACEBOOK) {
+                        if (presdef('useprofile', $atts['settings'], TRUE)) {
+                            $atts['profile'] = [
+                                'url' => "https://graph.facebook.com/{$login['uid']}/picture",
+                                'default' => FALSE,
+                                'facebook' => TRUE
+                            ];
+                        }
+                    }
+                }
+            }
+
+            $hash = NULL;
+
+            if (!$atts['profile']['default']) {
+                # We think we have a profile.  Make sure we can fetch it and filter out other people's
+                # default images.
+                $atts['profile']['default'] = TRUE;
+                $hasher = new ImageHash;
+                $data = file_get_contents($atts['profile']['url']);
+                $hash = NULL;
+
+                if ($data) {
+                    $img = @imagecreatefromstring($data);
+
+                    if ($img) {
+                        $hash = $hasher->hash($img);
+                        error_log("Ghashed to $hash");
+                        $atts['profile']['default'] = FALSE;
+                    }
+                }
+
+                if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash == 'c0c0e070e0603100') {
+                    # This is a default profile - replace it with ours.
+                    $atts['profile']['url'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+                    $atts['profile']['default'] = TRUE;
+                    $hash = NULL;
+                }
+            }
+
+            if ($atts['profile']['default']) {
+                # Nothing - so get gravatar to generate a default for us.
+                $gurl = $this->gravatar($this->getEmailPreferred(), 200, 'identicon');
+                $atts['profile'] = [
+                    'url' => $gurl,
+                    'default' => FALSE,
+                    'gravatardefault' => TRUE
+                ];
+            }
+
+            # Save for next time.
+            $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`, hash) VALUES (?, ?, ?, ?);", [
+                $this->id,
+                $atts['profile']['default'] ? NULL : $atts['profile']['url'],
+                $atts['profile']['default'],
+                $hash
+            ]);
+        }
+    }
+
     public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE) {
         $atts = parent::getPublic();
 
@@ -1393,9 +1514,11 @@ class User extends Entity
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
         $myid = $me ? $me->getId() : NULL;
 
-        if (strlen($atts['fullname']) == 32 && $atts['fullname'] == $atts['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $atts['fullname'])) {
+        if ($this->id &&
+            (($this->getName() == 'A freegler') ||
+                (strlen($atts['fullname']) == 32 && $atts['fullname'] == $atts['yahooid'] && preg_match('/[A-Za-z].*[0-9]|[0-9].*[A-Za-z]/', $atts['fullname'])))) {
             # We have some names derived from Yahoo IDs which are hex strings.  They look silly.  Replace them with
-            # something better.
+            # something better.  Ditto "A freegler", which is a legacy way in which names were anonymised.
             $email = $this->inventEmail();
             $atts['fullname'] = substr($email, 0, strpos($email, '-'));
             $this->setPrivate('fullname', $atts['fullname']);
@@ -1410,6 +1533,8 @@ class User extends Entity
             $atts[$att] = strpos($atts[$att], '@') !== FALSE ? substr($atts[$att], 0, strpos($atts[$att], '@')) : $atts[$att];
         }
 
+        # Get a profile.  This function is called so frequently that we can't afford to query external sites
+        # within it, so if we don't find one, we default to none.
         $atts['profile'] = [
             'url' => 'https://' . USER_SITE . '/images/defaultprofile.png',
             'default' => TRUE
@@ -1433,98 +1558,6 @@ class User extends Entity
                         ];
                     }
                 }
-            } else {
-                $emails = $this->getEmails();
-
-                foreach ($emails as $email) {
-                    if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
-                        # We can try to find profiles for gmail users.
-                        $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
-                        $j = json_decode($json, TRUE);
-
-                        if ($j && pres('entry', $j) && pres('gphoto$thumbnail', $j['entry']) && pres('$t', $j['entry']['gphoto$thumbnail'])) {
-                            $atts['profile'] = [
-                                'url' => $j['entry']['gphoto$thumbnail']['$t'],
-                                'default' => FALSE,
-                                'google' => TRUE
-                            ];
-
-                            break;
-                        }
-                    } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
-                        # TrashNothing has an API we can use.
-                        $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . USER_SITE . '/images/defaultprofile.png');
-                        $atts['profile'] = [
-                            'url' => $url,
-                            'default' => FALSE,
-                            'TN' => TRUE
-                        ];
-                    } else if (!ourDomain($email['email'])){
-                        # Try for gravatar
-                        $gurl = $this->gravatar($email['email'], 200, 404);
-                        $g = @file_get_contents($gurl);
-
-                        if ($g) {
-                            $atts['profile'] = [
-                                'url' => $gurl,
-                                'default' => FALSE,
-                                'gravatar' => TRUE
-                            ];
-
-                            break;
-                        }
-                    }
-                }
-
-                if ($atts['profile']['default']) {
-                    # Try for Facebook.
-                    $logins = $this->getLogins(TRUE);
-                    foreach ($logins as $login) {
-                        if ($login['type'] == User::LOGIN_FACEBOOK) {
-                            if (presdef('useprofile', $atts['settings'], TRUE)) {
-                                $atts['profile'] = [
-                                    'url' => "https://graph.facebook.com/{$login['uid']}/picture",
-                                    'default' => FALSE,
-                                    'facebook' => TRUE
-                                ];
-                            }
-                        }
-                    }
-                }
-
-                $hash = NULL;
-
-                if (!$atts['profile']['default']) {
-                    # We think we have a profile.  Make sure we can fetch it and filter out other people's
-                    # default images.
-                    $atts['profile']['default'] = TRUE;
-                    $hasher = new ImageHash;
-                    $data = @file_get_contents($atts['profile']['url']);
-
-                    if ($data) {
-                        $img = @imagecreatefromstring($data);
-
-                        if ($img) {
-                            $hash = $hasher->hash($img);
-                            $atts['profile']['default'] = FALSE;
-                        }
-                    }
-
-                    if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash = 'c0c0e070e0603100') {
-                        # This is a default profile - replace it with ours.
-                        $atts['profile']['url'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
-                        $atts['profile']['default'] = TRUE;
-                        $hash = NULL;
-                    }
-                }
-
-                # Save for next time.
-                $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`, hash) VALUES (?, ?, ?, ?);", [
-                    $this->id,
-                    $atts['profile']['default'] ? NULL : $atts['profile']['url'],
-                    $atts['profile']['default'],
-                    $hash
-                ]);
             }
         }
 
@@ -2034,6 +2067,7 @@ class User extends Entity
                                 $rc2 = $this->dbhm->preExec("UPDATE memberships SET role = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
                                     $role
                                 ]);
+                                #error_log("Set role $rc2");
                             }
 
                             if ($rc2) {
@@ -2043,55 +2077,61 @@ class User extends Entity
                                 $rc2 = $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
                                     $mysqltime
                                 ]);
+                                #error_log("Added $rc2");
                             }
 
                             # There are several attributes we want to take the non-NULL version.
                             foreach (['configid', 'settings', 'heldby'] as $key) {
+                                #error_log("Check {$id2memb['groupid']} memb $id2 $key = " . presdef($key, $id2memb, NULL));
                                 if ($id2memb[$key]) {
                                     if ($rc2) {
                                         $rc2 = $this->dbhm->preExec("UPDATE memberships SET $key = ? WHERE userid = $id1 AND groupid = {$id2memb['groupid']};", [
                                             $id2memb[$key]
                                         ]);
+                                        #error_log("Set att $key = {$id2memb[$key]} $rc2");
                                     }
                                 }
                             }
+                        }
 
-                            # Now move any id2 Yahoo memberships over to refer to id1 before we delete it.
-                            # This might result in duplicates so we use IGNORE.
-                            $id2membs = $this->dbhm->preQuery("SELECT id, groupid FROM memberships WHERE userid = $id2;");
-                            #error_log("Memberships for $id2 " . var_export($id2membs, true));
-                            foreach ($id2membs as $id2memb) {
-                                $rc2 = $rc;
+                        $rc = $rc2 && $rc ? $rc2 : 0;
+                    }
 
-                                $id1membs = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [
-                                    $id1,
-                                    $id2memb['groupid']
-                                ]);
 
-                                #error_log("Memberships for $id1 on {$id2memb['groupid']} " . var_export($id1membs, true));
+                    # Now move any id2 Yahoo memberships over to refer to id1 before we delete it.
+                    # This might result in duplicates so we use IGNORE.
+                    $id2membs = $this->dbhm->preQuery("SELECT id, groupid FROM memberships WHERE userid = $id2;");
+                    #error_log("Memberships for $id2 " . var_export($id2membs, true));
+                    foreach ($id2membs as $id2memb) {
+                        $rc2 = $rc;
+                        #error_log("Yahoo membs $rc2");
 
-                                foreach ($id1membs as $id1memb) {
-                                    $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships_yahoo SET membershipid = ? WHERE membershipid = ?;", [
-                                        $id1memb['id'],
-                                        $id2memb['id']
-                                    ]) ;
-                                    #error_log("$rc2 from UPDATE IGNORE memberships_yahoo SET membershipid = {$id1memb['id']} WHERE membershipid = {$id2memb['id']};");
-                                }
+                        $id1membs = $this->dbhm->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?;", [
+                            $id1,
+                            $id2memb['groupid']
+                        ]);
 
-                                if ($rc2) {
-                                    $rc2 = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE membershipid = ?;", [
-                                        $id2memb['id']
-                                    ]);
-                                    #error_log("$rc2 from delete {$id2memb['id']}");
-                                }
+                        #error_log("Memberships for $id1 on {$id2memb['groupid']} " . var_export($id1membs, true));
 
-                                $rc = $rc2 && $rc ? $rc2 : 0;
-                            }
+                        foreach ($id1membs as $id1memb) {
+                            $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships_yahoo SET membershipid = ? WHERE membershipid = ?;", [
+                                $id1memb['id'],
+                                $id2memb['id']
+                            ]) ;
+                            #error_log("$rc2 from UPDATE IGNORE memberships_yahoo SET membershipid = {$id1memb['id']} WHERE membershipid = {$id2memb['id']};");
+                        }
 
-                            if ($rc2) {
-                                # Now we just need to delete the id2 one.
-                                $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
-                            }
+                        if ($rc2) {
+                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships_yahoo WHERE membershipid = ?;", [
+                                $id2memb['id']
+                            ]);
+                            #error_log("$rc2 from delete {$id2memb['id']}");
+                        }
+
+                        if ($rc2) {
+                            # Now we just need to delete the id2 one.
+                            $rc2 = $this->dbhm->preExec("DELETE FROM memberships WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
+                            #error_log("Deleted old $id2 of {$id2memb['groupid']} $rc2");
                         }
 
                         $rc = $rc2 && $rc ? $rc2 : 0;
@@ -2255,10 +2295,11 @@ class User extends Entity
                             'text' => "Merged $id1 into $id2 ($reason)"
                         ]);
 
-                        # Finally, delete id2.
+                        # Finally, delete id2.  Make sure we don't pick up an old cached version, as we've just
+                        # changed it quite a bit.
                         #error_log("Delete $id2");
                         error_log("Merged $id1 < $id2, $reason");
-                        $deleteme = User::get($this->dbhr, $this->dbhm, $id2);
+                        $deleteme = new User($this->dbhm, $this->dbhm, $id2);
                         $rc = $deleteme->delete(NULL, NULL, NULL, FALSE);
                     }
 
@@ -2980,6 +3021,7 @@ class User extends Entity
 
         # Delete memberships.  This will remove any Yahoo memberships.
         $membs = $this->getMemberships();
+        #error_log("Members in delete " . var_export($membs, TRUE));
         foreach ($membs as $memb) {
             $this->removeMembership($memb['id']);
         }

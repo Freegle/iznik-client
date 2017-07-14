@@ -59,6 +59,7 @@ EOT;
                                                                 <p>Now you can chat to nearby freeglers! This is a new feature - if you don't want these emails, turn them off by mailing <a href="mailto:$off">$off</a>
                                                                 <p>Here are some recent topics from freeglers near you:</p>
                                                                 <p>$summ</p>
+                                                                <p>(If these aren't nearby, please check your postcode in <a href="$setting">Settings</a>)</p>
                                                                 <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
                                                                     <tr>
                                                                         <td width="50%" height="36" bgcolor="#377615" align="center" valign="middle"
@@ -68,7 +69,6 @@ EOT;
                                                                         </td>
                                                                     </tr>
                                                                 </table> 
-                                                                <p>If these aren't nearby, please check your postcode in <a href="$setting">Settings</a></p>
                                                             </td>
                                                         </tr>        
                                                         <tr>

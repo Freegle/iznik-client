@@ -338,6 +338,37 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
+    public function testReferToSpammer() {
+        error_log(__METHOD__);
+
+        # Suppress emails
+        $r = $this->getMockBuilder('MailRouter')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('mail'))
+            ->getMock();
+        $r->method('mail')->willReturn(false);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create("Test", "User", "Test User");
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $u->addEmail($email);
+
+        $this->dbhm->preExec("INSERT INTO spam_users (userid, collection, reason) VALUES (?, ?, ?);", [
+            $uid,
+            Spam::TYPE_SPAMMER,
+            'UT Test'
+        ]);
+
+        $msg = file_get_contents('msgs/basic');
+        $msg = str_replace('Hey', "Please reply to $email", $msg);
+
+        $id = $r->received(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
+
     public function testSpamOverride() {
         error_log(__METHOD__);
 

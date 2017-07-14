@@ -84,9 +84,11 @@ define([
                         });
 
                         // Right menu is volunteer vacancies
-                        var w = new Iznik.Views.User.VolunteeringSidebar();
-                        w.render().then(function () {
-                            $('#js-volunteeringcontainer').append(w.$el);
+                        var x = new Iznik.Views.User.VolunteeringSidebar({
+                            groupid: selected == -1 ? null : selected
+                        });
+                        x.render().then(function () {
+                            $('#js-volunteeringcontainer').append(x.$el);
                         });
                     });
 

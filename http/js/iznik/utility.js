@@ -478,6 +478,14 @@ function setTitleCounts(chat, newsfeed) {
     }
 }
 
+function ellipsical(str, len) {
+    if (str.length - 3 > len) {
+        str = str.substring(0, len - 3) + '...';
+    }
+
+    return(str);
+}
+
 var mobileGlobalRoot = false;   // CC
 var oneOffPathname = false; // CC
 

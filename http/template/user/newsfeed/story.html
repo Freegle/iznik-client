@@ -10,9 +10,11 @@
                         <li>
                             <a href="#" class="js-report">Report this post or one of its replies</a>
                         </li>
-                        <li class="js-modonly" style="display: none">
+                        <% if (obj.ismod) { %>
+                        <li class="js-modonly">
                             <a href="#" class="js-delete">Delete this post</a>
                         </li>
+                        <% } %>
                     </ul>
                 </div>
                 <% if (story.user) { %>
@@ -21,7 +23,7 @@
                     <b><span class="success">{{story.user.displayname}}</span> told their Freegle story</b>
                     <br />
                     <small class="text-muted">
-                        <abbr class="timeago nodecor" title="{{timestamp}}" />
+                        <abbr class="timeago nodecor" title="{{added}}" />
                         <% if (story.user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{storyuser.publiclocation}}<% } %>
                     </small>
                 </div>
@@ -57,7 +59,7 @@
                     <span class="input-group-addon nopad">
                         <img src="{{me.profile.url}}" class="img-circle img-tinythumbnail clickme" />
                     </span>
-                    <textarea rows="1" class="form-control js-comment"  spellcheck="true" placeholder="Write a comment..." />
+                    <textarea rows="1" class="form-control js-comment" maxlength="2048" spellcheck="true" placeholder="Write a comment..." />
                 </div>
             </div>
         </div>

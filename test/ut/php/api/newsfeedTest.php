@@ -50,12 +50,15 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->user2->setPrivate('lastlocation', $this->fullpcid);
         $this->user2->addEmail('test@test.com');
+
+        $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
     }
 
     protected function tearDown() {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
         $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
         parent::tearDown ();
     }
 
@@ -134,6 +137,11 @@ class newsfeedAPITest extends IznikAPITestCase {
             $nid
         ]);
 
+        # Hide it - should only show to the poster.
+        $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW() WHERE id = ?;", [
+            $nid
+        ]);
+
         error_log("Logged in - one item");
         $ret = $this->call('newsfeed', 'GET', [
             'types' => [
@@ -198,6 +206,16 @@ class newsfeedAPITest extends IznikAPITestCase {
             'action' => 'Unlove'
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Shouldn't show as hidden
+        $ret = $this->call('newsfeed', 'GET', [
+            'types' => [
+                Newsfeed::TYPE_MESSAGE
+            ]
+        ]);
+        error_log("Returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(0, count($ret['newsfeed']));
 
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'GET', [

@@ -103,7 +103,11 @@ function newsfeed() {
                         'status' => 'Success'
                     ];
                 } else {
-                    $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
+                    $s = new Spam($dbhr, $dbhm);
+                    $spammers = $s->getSpammerByUserid($me->getId());
+                    if (!$spammers) {
+                        $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
+                    }
 
                     $ret = [
                         'ret' => 0,
@@ -118,7 +122,8 @@ function newsfeed() {
             case 'DELETE': {
                 $id = intval(presdef('id', $_REQUEST, NULL));
 
-                if ($me->isModerator()) {
+                # Can delete own posts or if mod.
+                if ($me->isModerator() || ($me->getId() == $n->getPrivate('userid'))) {
                     $n->delete($me->getId(), $id);
                 }
 

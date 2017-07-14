@@ -70,7 +70,6 @@ requirejs.config({
         "tinymce": "https://cdn.tinymce.com/4/tinymce.min",
         "gmaps": "https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization",
         "maplabel": "maplabel-compiled",
-        'twemoji': 'https://twemoji.maxcdn.com/2/twemoji.min.js?2.3.0',
 
         "iznik": iznikroot + "js/iznik"	// CC
     },

@@ -1,0 +1,78 @@
+<div class="js-addblock">
+    <form class="topspace">
+        <h3 class="visible-xs visible-md">Add Community Event</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="js-grouplist">
+                    <div class="form-group">
+                        <label for="group">For which group?</label>
+
+                        <div class="input-group">
+                            <div id="group" class="groupselect js-groupselect">
+                                <select id="groupid"></select>
+                            </div>
+                        </div>
+                        <div class="topspace alert alert-danger js-eventsdisabled" style="display: none">
+                            This group has chosen not to allow community events.
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" class="form-control js-title" name="title" placeholder="Give the event a short title." required/>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="pull-right">
+                    <img class="img-thumbnail js-photopreview botspace" width="150" />
+                    <input class="js-photo" type="file" name="photo" multiple="">
+                    <div id="js-uploaderror" />
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>What is it?</label>
+            <textarea class="form-control js-description" name="description" placeholder="Let people know what the event is - why they should come, what to expect, and any admission charge or fee (we only approve free or cheap events)." rows="5" required></textarea>
+        </div>
+        <div class="form-group">
+            <label>Where is it?</label>
+            <input type="text" class="form-control js-location" name="location" placeholder="Where is it being held?  Make sure people can find you!" required />
+        </div>
+        <div>
+            <label>When is it?</label>
+            <p class="text-muted">You can add multiple dates if the event occurs several times.</p>
+            <ul class="list-unstyled js-dates"/>
+            <button class="botspace btn btn-white js-adddate"><span class="glyphicon glyphicon-plus" />&nbsp;Add more dates</button>
+        </div>
+        <div class="form-group">
+            <label>Contact name:</label>
+            <input type="text" length="60" class="form-control js-contactname" name="contactname" placeholder="Is there a contact person for anyone who wants to find out more? (Optional)" />
+        </div>
+        <div class="form-group">
+            <label>Contact email:</label>
+            <input type="email" class="form-control js-contactemail" name="contactemail" placeholder="Can people reach you by email? (Optional)" />
+        </div>
+        <div class="form-group">
+            <label>Contact phone:</label>
+            <input type="tel" class="form-control js-contactphone" name="contactphone" placeholder="Can people reach you by phone? (Optional)" />
+        </div>
+        <div class="form-group">
+            <label>Web link:</label>
+            <input type="url" class="form-control js-contacturl" name="contacturl" placeholder="Is there more information on the web? (Optional)" />
+        </div>
+    </form>
+    <hr class="margintopsm marginbotsm" />
+    <div class="row">
+        <div class="col-sm-4 col-md-5">
+        </div>
+        <div class="col-sm-6 col-md-6 text-muted">
+        </div>
+        <div class="col-sm-2 col-md-1">
+            <div class="btn btn-success pull-right js-save">Post&nbsp;it!</div>
+        </div>
+    </div>
+</div>
+<div class="topspace js-postadd" style="display:none;">
+    <p>We hope it goes well.</p>
+    <div class="btn btn-white js-tabevent"><span class="glyphicon glyphicon-plus vcenter" />&nbsp;Add another event</div>
+</div>

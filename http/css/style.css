@@ -185,7 +185,8 @@ body {
     display: -webkit-box;
     display: -moz-box;
 }
-.nav-tabs>li {
+
+nav .nav-tabs>li {
     float:none;
 }
 
@@ -496,6 +497,10 @@ body {
 
 .marginbotsm {
     margin-bottom: 5px !important;
+}
+
+.margintopsm {
+    margin-top: 5px !important;
 }
 
 .noborder {

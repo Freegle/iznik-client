@@ -247,6 +247,15 @@ class PAF
             # House number which appears in the first line and the second line.
             $addr = array_slice($addr, 1);
         }
+
+        if (count($addr) > 0) {
+            $addr[0] = str_replace('PO Box Flat', 'Flat', $addr[0]);
+        }
+
+        if (count($addr) >= 3 && strpos($addr[2], "{$addr[1]} ") === 0) {
+            # House number which appears in the third line and the fourth line.
+            unset($addr[1]);
+        }
     }
 
     public function getFormatted($id, $delimiter) {

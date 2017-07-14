@@ -22,7 +22,8 @@ require_once(IZNIK_BASE . '/include/utils.php');
 
 $dbconfig = array (
     'host' => SQLHOST,
-    'port' => SQLPORT,
+    'port_read' => SQLPORT_READ,
+    'port_mod' => SQLPORT_MOD,
     'user' => SQLUSER,
     'pass' => SQLPASSWORD,
     'database' => SQLDB
@@ -710,17 +711,20 @@ class LoggedPDO {
 }
 
 # We have two handles; one for reads, and one for writes, which we need because we might have a complex
-# DB architecture where the master is split out from a replicated copy.
+# DB architecture where the master is split out from a replicated copy, or we might have a cluster where
+# we direct mods to one server (to avoid cluster lockups) and reads to others.
 #
 # Don't use persistent connections as they don't play nice - PDO can use a connection which was already
 # closed.  It's possible that our retrying would handle this ok, but we should only rely on that if
 # we've tested it better and we need the perf gain.
-$dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['database']};charset=utf8";
+$dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
 
 $dbhr = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ), TRUE);
+
+$dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_mod']};dbname={$dbconfig['database']};charset=utf8";
 
 $dbhm = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

@@ -4,8 +4,8 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
-    'iznik/models/notification',
-    'iznik/events'
+    'iznik/events',
+    'iznik/models/notification'
 ], function($, _, Backbone, Iznik, ChatHolder, monitor) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
@@ -119,10 +119,15 @@ define([
                             el.html(ret.count);
 
                             if (ret.count) {
-                                $('.js-notifholder .js-notifcount').show();
+                                $('.js-notifholder .js-notifcount').css('visibility', 'visible');
+
+                                // Fetch the notifications to avoid lag when we click.
+                                self.notifications.fetch().then(function() {
+                                    console.log("Fetched new notifications");
+                                });
                             }
                             else {
-                                $('.js-notifholder .js-notifcount').hide();
+                                $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                             }
 
                             setTitleCounts(null, ret.count);
@@ -160,9 +165,10 @@ define([
         render: function (options) {
             var self = this;
 
-            // Start event tracking.
-            if (monitor) {
-                // CC monitor.start();
+            // Start event tracking.  Don't do this for ModTools because it seems to kill performance on some
+            // low-end hardware, and we don't really need it.
+            if (monitor && !self.modtools) {
+                // monitor.start();
             }
 
             if (currentPage) {
@@ -348,7 +354,7 @@ define([
                                     }
                                 });
 
-                                $('.js-notifholder .js-notifcount').hide();
+                                $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                             });
                         }
 
@@ -640,6 +646,8 @@ define([
                     _.delay(_.bind(self.update, self), 60000);
                 }
             });
+
+            $('#js-status').parent().prop('href', '/status.html?d=' + (new Date()).getTime());
         },
 
         render: function() {

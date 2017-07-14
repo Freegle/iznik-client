@@ -78,6 +78,8 @@ define([
             "explore/:id/message/:id": "legacyUserMessage",
             "groups": "legacyUserGroups",
             "location/:id": "legacyUserGroups",
+            "index.php?action=home": "modtools",
+            "index.php?action=pending": "pendingMessages",
             "main.php?action=look&groupid=:id": "userExploreGroup",
             "main.php?action=showevents*t": "userCommunityEvents",
             "main.php?&action=join&then=displaygroup&groupid=:id": "userExploreGroup",
@@ -194,9 +196,9 @@ define([
             "volunteering": "userVolunteerings",
             "volunteering/group/(/:id)": "userVolunteerings",
             "volunteering/:id": "userVolunteering",
-            "volunteering(:id)": "userVolunteering", // TODO Remove after 2017-07-01
             "why": "userWhy",
-            "*path": "userHome"
+            "myposts": "userHome",
+            "*path": "userNewsfeed"
         },
 
         loadRoute: function (routeOptions) {

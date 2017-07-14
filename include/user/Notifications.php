@@ -33,7 +33,10 @@ class Notifications
     private function snip(&$msg) {
         if ($msg) {
             if (strlen($msg) > 57) {
-                $msg = substr($msg, 0, strpos(wordwrap($msg, 60), "\n")) . '...';
+                $msg = wordwrap($msg, 60);
+                $p = strpos($msg, "\n");
+                $msg = $p !== FALSE ? substr($msg, 0, $p) : $msg;
+                $msg .= '...';
             }
         }
     }

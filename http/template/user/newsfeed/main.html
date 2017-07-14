@@ -1,3 +1,4 @@
+<h1 class="text-center js-pagetitle" style="display: none;">Newsfeed</h1>
 <div class="row">
     <div class="col-xs-12">
         <div class="panel panel-info">
@@ -9,31 +10,6 @@
                         </h4>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-<% if (!me.settings.mylocation) { %>
-<div class="alert alert-warning js-nolocation">
-    <h3>Please tell us where you are!</h3>
-    <p>We to know where you are so that we can show you news from nearby.</p>
-    <div class="form-group">
-        <span class="help-block"><div class="glyphicon glyphicon-lock" />&nbsp;Other freeglers won't see this.</span>
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="btn btn-primary js-geoloconly js-getloc botspace">
-                    <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
-                </div>
-                <p>Or enter it manually in <a href="/settings">Settings</a>.</p>
-            </div>
-        </div>
-    </div>
-</div>
-<% } %>
-<div class="row">
-    <div class="col-xs-12">
-        <div class="panel panel-default">
-            <div class="panel-body">
                 <div class="row">
                     <div class="col-sm-5 col-xs-6">
                         <a href="/give">
@@ -62,42 +38,82 @@
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+<% if (!me.settings.mylocation) { %>
+<div class="alert alert-warning js-nolocation">
+    <h3>Please tell us where you are!</h3>
+    <p>We to know where you are so that we can show you news from nearby.</p>
+    <div class="form-group">
+        <span class="help-block"><div class="glyphicon glyphicon-lock" />&nbsp;Other freeglers won't see this.</span>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="btn btn-primary js-geoloconly js-getloc botspace">
+                    <div class="glyphicon glyphicon-map-marker" />&nbsp;Find my location
+                </div>
+                <p>Or enter it manually in <a href="/settings">Settings</a>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<% } %>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
                 <div class="row">
                     <div class="col-xs-12">
-                        <div class="strike">
-                            <span>Or</span>
+                        <ul class="nav nav-tabs">
+                            <li role="presentation" class="js-tabpost active"><a href="#js-writepost" data-toggle="tab"><span class="glyphicons glyphicons-pen vcenter" /><span class="hidden-xs hidden-md">&nbsp;Discuss</span></a></li>
+                            <li role="presentation" class="js-taboffer" data-placement="bottom" data-toggle="tooltip" title="If you're giving away a physical item, please use this tab."><a href="#js-offersomething" data-toggle="tab"><span class="glyphicons glyphicons-gift vcenter" /><span class="hidden-xs hidden-md">&nbsp;OFFER</span></a></li>
+                            <li role="presentation" class="js-tabwanted" data-placement="bottom" data-toggle="tooltip" title="If you're looking for a physical item, please use this tab."><a href="#js-wantedsomething" data-toggle="tab"><span class="glyphicons glyphicons-search vcenter" /><span class="hidden-xs hidden-md">&nbsp;WANTED</span></a></li>
+                            <li role="presentation" class="js-somegroups js-tabevent" style="display: none"><a href="#js-addevent" data-toggle="tab"><span class="glyphicons glyphicons-calendar vcenter" /><span class="hidden-xs hidden-md">&nbsp;Event</span></a></li>
+                            <li role="presentation" class="js-somegroups js-tabvolunteer" style="display: none"><a href="#js-addvolunteer" data-toggle="tab"><span class="glyphicons glyphicons-flower vcenter" /><span class="hidden-xs hidden-md">&nbsp;Volunteer</span></a></li>
+                        </ul>
+                        <div class="tab-content clearfix">
+                            <div class="tab-pane active" id="js-writepost">
+                                <textarea id="js-discussmessage" rows="2" maxlength="2048" class="formfocus topspace form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether.  If you're looking to give or find stuff, please use the OFFER/WANTED tabs.  Everything on here is public." />
+                                <hr class="margintopsm marginbotsm" />
+                                <div class="row">
+                                    <div class="col-sm-4 col-md-5">
+                                        <div class="pull-left vcenter">
+                                            <% if (me.settings.mylocation && me.settings.mylocation.area) { %>
+                                            <a class="text-muted" href="/settings">
+                                                <span class="glyphicon glyphicon-map-marker" />&nbsp;<span class="js-areaname">{{me.settings.mylocation.area.name}}</span>
+                                            </a>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 text-muted">
+                                        <div class="pull-left">
+                                            <select id='newsfeeddist' class="form-control input-sm js-distance">
+                                                <option value="nearby">Show news from nearby</option>
+                                                <option value="1609">Show news within 1 mile</option>
+                                                <option value="3218">Show news within 2 miles</option>
+                                                <option value="8046">Show news within 5 miles</option>
+                                                <option value="16093">Show news within 10 miles</option>
+                                                <option value="32186">Show news within 20 miles</option>
+                                                <option value="80467">Show news within 50 miles</option>
+                                                <option value="0">Show news from anywhere</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2 col-md-1">
+                                        <div class="btn btn-success pull-right js-post">Post&nbsp;it!</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="js-offersomething">
+                            </div>
+                            <div class="tab-pane" id="js-wantedsomething">
+                            </div>
+                            <div class="tab-pane" id="js-addevent">
+                            </div>
+                            <div class="tab-pane" id="js-addvolunteer">
+                            </div>
                         </div>
-                        <textarea rows="2" maxlength="1024" class="formfocus topspace form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether.  If you're looking to give or find stuff, please use the Give/Find buttons.  Everything on here is public." />
-                    </div>
-                </div>
-            </div>
-            <div class="panel-footer backwhite">
-                <div class="row">
-                    <div class="col-sm-4 col-md-5">
-                        <div class="pull-left vcenter">
-                            <% if (me.settings.mylocation) { %>
-                            <a class="text-muted" href="/settings">
-                                <span class="glyphicon glyphicon-map-marker" />&nbsp;{{me.settings.mylocation.area.name}}
-                            </a>
-                            <% } %>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-md-6 text-muted">
-                        <div class="pull-left">
-                            <select id='newsfeeddist' class="form-control input-sm js-distance">
-                                <option value="nearby">Show news from nearby</option>
-                                <option value="1609">Show news within 1 mile</option>
-                                <option value="3218">Show news within 2 miles</option>
-                                <option value="8046">Show news within 5 miles</option>
-                                <option value="16093">Show news within 10 miles</option>
-                                <option value="32186">Show news within 20 miles</option>
-                                <option value="80467">Show news within 50 miles</option>
-                                <option value="0">Show news from anywhere</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-sm-2 col-md-1">
-                        <div class="btn btn-success pull-right js-post">Post&nbsp;it!</div>
                     </div>
                 </div>
             </div>
