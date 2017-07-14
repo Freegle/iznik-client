@@ -5,17 +5,17 @@
                 <div class="completefull">
                     <!-- This branch is used by the mobile app where showing IFRAMEs doesn't work well -->
                     <!-- You'll need to change the < % and % > to remove the space -->
-                    <!--< % if (publicity.full_picture) { % >-->
-                    <!--<div class="panel panel-default">-->
-                    <!--<div class="panel-body">-->
-                    <!--<p>{{publicity.message}}</p>-->
-                    <!--<img src="{{publicity.full_picture}}" class="img-thumbnail img-responsive img-maxthumb" />-->
-                    <!--<p class="text-muted small">This is a preview.  See the original Facebook post <a href="https://facebook.com/{{publicity.postid}}" target="_blank" data-realurl="true">here</a>.</p>-->
-                    <!--</div>-->
-                    <!--</div>-->
-                    <!--< % } else { % >-->
+                    <% if (publicity.full_picture) { %>
+                      <div class="panel panel-default">
+                        <div class="panel-body">
+                          <p>{{publicity.message}}</p>
+                          <img src="{{publicity.full_picture}}" class="img-thumbnail img-responsive img-maxthumb" />
+                          <p class="text-muted small">This is a preview.  See the original Facebook post <a href="https://facebook.com/{{publicity.postid}}" target="_blank" data-realurl="true">here</a>.</p>
+                        </div>
+                      </div>
+                    <% } else { %>
                     {{publicity.iframe}}
-                    <!--< % } % >-->
+                    <% } %>
                 </div>
                 <hr class="text-muted nomargin botspace" />
                 <div class="inline js-itemloves" />
