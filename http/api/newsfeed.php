@@ -118,6 +118,15 @@ function newsfeed() {
                 break;
             }
 
+            case 'PATCH': {
+                # Can delete own posts or if mod.
+                $message = presdef('message', $_REQUEST, NULL);
+
+                if ($me->isModerator() || ($me->getId() == $n->getPrivate('userid'))) {
+                    $n->setPrivate('message', $message);
+                }
+                break;
+            }
 
             case 'DELETE': {
                 $id = intval(presdef('id', $_REQUEST, NULL));
