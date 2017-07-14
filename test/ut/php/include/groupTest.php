@@ -258,6 +258,7 @@ class groupTest extends IznikTestCase {
         # Create duplicate group
         $g = Group::get($this->dbhr, $this->dbhm);
         $id = $g->create('testgroup', Group::GROUP_REUSE);
+        assertEquals($id, $g->findByShortName('TeStGrOuP'));
         assertNotNull($id);
         $id2 = $g->create('testgroup', Group::GROUP_REUSE);
         assertNull($id2);

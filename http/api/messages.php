@@ -186,8 +186,9 @@ function messages() {
 
                 $ret = ['ret' => 3, 'status' => 'Not new or pending'];
 
-                if (!$msgid || $collection == MessageCollection::PENDING) {
-                    # This message is new to us, or we are updating an existing pending message.
+                if (!$msgid || $collection == MessageCollection::PENDING || $collection == MessageCollection::INCOMING) {
+                    # This message is new to us, or we are updating an existing pending message, or one we've previously
+                    # not managed to route properly.
                     $r = new MailRouter($dbhr, $dbhm);
                     $id = $r->received($source, $from, $g->getPrivate('nameshort') . '@yahoogroups.com', $message, $groupid);
                     $ret = ['ret' => 3, 'status' => 'Failed to create message - possible duplicate'];
