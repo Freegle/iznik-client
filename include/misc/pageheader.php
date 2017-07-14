@@ -135,7 +135,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
         $title = 'A discussion on ' . SITE_NAME;
         $desc = '';
-        $image = "/images/favicon/" . FAVICON_HOME . "/largetile.png";
+        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png";
 
         if ($n->getId()) {
             $atts = $n->getPublic();
