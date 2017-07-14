@@ -338,6 +338,15 @@ define([
                                 console.log("Clicked on notifications");
                                 self.notifications.fetch().then(function() {
                                     console.log("Notifications", self.notifications);
+
+                                    // Clear the first notification after a while, because we'll have seen it.
+                                    _.delay(function() {
+                                        var notif = self.notifications.first();
+
+                                        if (!notif.get('seen')) {
+                                            notif.seen();
+                                        }
+                                    }, 5000);
                                 });
                             }, self));
 
