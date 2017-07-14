@@ -36,7 +36,6 @@ define([
         },
 
         newsfeedHelp: function() {
-            console.log("help");
             if (!Storage.get('newsfeedhelp')) {
                 Storage.set('newsfeedhelp', true);
                 var v = new Iznik.Views.User.Feed.Help();
@@ -417,7 +416,28 @@ define([
             'click .js-report': 'report',
             'click .js-refertowanted': 'referToWanted',
             'click .js-preview': 'clickPreview',
-            'click .js-reply': 'reply'
+            'click .js-reply': 'reply',
+            'click .js-edit': 'edit'
+        },
+
+        edit: function(e) {
+            var self = this;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var v = new Iznik.Views.User.Feed.Edit({
+                model: self.model
+            });
+
+            self.listenToOnce(v, 'modalClosed', function() {
+                console.log("Modal closed");
+                self.model.fetch().then(function() {
+                    self.$('.js-message').html(_.escape(self.model.get('message')));
+                });
+            });
+
+            v.render();
         },
 
         open: function (e) {
@@ -588,7 +608,6 @@ define([
                     model: self.model
                 }).then(function() {
                     self.collection = new Iznik.Collection(self.model.get('lovelist'));
-                    console.log("Loves", self.model.attributes, self.collection);
 
                     self.collectionView = new Backbone.CollectionView({
                         el: self.$('.js-list'),
@@ -599,6 +618,41 @@ define([
 
                     self.collectionView.render();
                 });
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Feed.Edit = Iznik.Views.Modal.extend({
+        template: 'user_newsfeed_edit',
+
+        events: {
+            'click .js-save': 'save'
+        },
+
+        save: function() {
+            var self = this;
+
+            self.model.save({
+                id: self.model.get('id'),
+                message: self.$('.js-message').val()
+            }, {
+                patch: true
+            }).then(function() {
+                self.close();
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.Modal.prototype.render.call(self);
+
+            p.then(function() {
+                autosize(self.$('.js-message'));
+                self.$('.js-message').val(self.model.get('message'));
+                autosize.update(self.$('.js-message'));
             });
 
             return(p);
@@ -616,7 +670,7 @@ define([
 
         events: {
             'keydown .js-comment': 'sendComment',
-            'focus .js-comment': 'autoSize',
+            'focus .js-comment': 'moreStuff',
             'click .js-addvolunteer': 'addVolunteer',
             'click .js-addevent': 'addEvent',
             'click .js-showearlier': 'showEarlier',
@@ -632,7 +686,7 @@ define([
             e.preventDefault();
             e.stopPropagation();
 
-            self.$('.js-message').html(self.model.get('moremessage'));
+            self.$('.js-message').html(_.escape(self.model.get('moremessage')));
             self.$('.js-moremessage').hide();
         },
 
@@ -674,7 +728,7 @@ define([
             v.render();
         },
 
-        autoSize: function() {
+        moreStuff: function() {
             // Autosize is expensive, so only do it when we focus on the input field.  That means we only do it
             // when someone is actually going to make a comment.
             var self = this;
@@ -746,12 +800,14 @@ define([
                             self.loves.delegateEvents();
                         });
 
-                        // Update the replies collection.
-                        var replies = self.model.get('replies');
-                        // console.log("Replies", self.replies.length, replies.length);
+                        if (self.replies) {
+                            // Update the replies collection.
+                            var replies = self.model.get('replies');
+                            // console.log("Replies", self.replies.length, replies.length);
 
-                        if (self.replies.length != replies.length) {
-                            self.replies.add(replies);
+                            if (self.replies.length != replies.length) {
+                                self.replies.add(replies);
+                            }
                         }
 
                         if (self.model.collection && self.model.collection.indexOf(self.model) === 0) {
@@ -845,7 +901,7 @@ define([
                                 self.model.set('message', ellip);
                             }
 
-                            self.$('.js-message').html(self.model.get('message'));
+                            self.$('.js-message').html(_.escape(self.model.get('message')));
                         }
 
                         if (self.model.get('eventid')) {
@@ -869,7 +925,6 @@ define([
                         }
 
                         self.replies = new Iznik.Collections.Replies(self.model.get('replies'));
-
                         var replyel = self.$('.js-replies');
 
                         if (replyel.length) {
@@ -976,7 +1031,7 @@ define([
                         self.model.set('message', ellip);
                     }
 
-                    self.$('.js-message').html(self.model.get('message'));
+                    self.$('.js-message').html(_.escape(self.model.get('message')));
                 }
 
                 if (self.model.get('id') == self.options.highlight) {

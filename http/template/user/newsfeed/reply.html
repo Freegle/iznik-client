@@ -19,9 +19,14 @@
                                 <span class="js-replyloves" />
                                 <% if (obj.ismod || obj.ownpost) { %>
                                 <span class="js-ownpost js-modonly js-delete">
-                                <% } %>
                                 &bull; Delete
                                 </span>
+                                <% } %>
+                                <% if (obj.ownpost) { %>
+                                <span class="js-ownpost js-modonly js-edit">
+                                &bull; Edit
+                                </span>
+                                <% } %>
                             </small>
                             <% if (obj.preview && !preview.invalid && !preview.spam) { %>
                             <div class="panel panel-default clickme preview small js-preview">

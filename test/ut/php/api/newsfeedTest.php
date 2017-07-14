@@ -102,6 +102,18 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals($nid, $ret['newsfeed']['id']);
         self::assertEquals('Google', $ret['newsfeed']['preview']['title']);
+        self::assertEquals('Test with url https://google.co.uk', $ret['newsfeed']['message']);
+
+        # Edit it.
+        $ret = $this->call('newsfeed', 'PATCH', [
+            'id' => $nid,
+            'message' => 'Test2 with url https://google.co.uk'
+        ]);
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals('Test2 with url https://google.co.uk', $ret['newsfeed']['message']);
 
         # Should mail out to the other user.
         $n = $this->getMockBuilder('Newsfeed')
@@ -151,7 +163,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         error_log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['newsfeed']));
-        self::assertEquals('Test with url https://google.co.uk', $ret['newsfeed'][0]['message']);
+        self::assertEquals('Test2 with url https://google.co.uk', $ret['newsfeed'][0]['message']);
         assertEquals(1, count($ret['users']));
         self::assertEquals($this->uid, array_pop($ret['users'])['id']);
         self::assertEquals($mid, $ret['newsfeed'][0]['refmsg']['id']);
