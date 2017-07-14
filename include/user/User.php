@@ -1323,6 +1323,21 @@ class User extends Entity
 
         $ret['wanteds'] = $replies[0]['count'];
 
+        $takens = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_outcomes WHERE userid = ? AND timestamp > ? AND outcome = ?;", [
+            $this->id,
+            $start,
+            Message::OUTCOME_TAKEN
+        ]);
+
+        $ret['taken'] = $takens[0]['count'];
+
+        $reneges = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?;", [
+            $this->id,
+            $start
+        ]);
+
+        $ret['reneged'] = $reneges[0]['count'];
+
         # Distance away.
         $me = whoAmI($this->dbhr, $this->dbhm);
 

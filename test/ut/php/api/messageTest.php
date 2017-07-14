@@ -1870,7 +1870,14 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['message']['promises']));
         assertEquals($uid3, $ret['message']['promises'][0]['userid']);
-        
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid2,
+            'info' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['user']['info']['reneged']);
+
         # Check we can't promise on someone else's message.
         $u = User::get($this->dbhr, $this->dbhm, $uid3);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -1954,6 +1961,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Now withdraw it
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'Outcome',
