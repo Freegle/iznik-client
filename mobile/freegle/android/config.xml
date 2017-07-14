@@ -4,7 +4,7 @@
     <description>Offer and request free items on your local Freegle reuse group</description>
     <author />
     <author email="geeks@ilovefreegle.org" href="https://ilovefreegle.org">
-        Chris Cant, Freegle Ltd
+					Chris Cant, Freegle Ltd
     </author>
     <content src="index.html" />
     <access origin="*" />
