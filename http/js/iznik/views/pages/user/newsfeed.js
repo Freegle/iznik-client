@@ -805,7 +805,7 @@ define([
                             var replies = self.model.get('replies');
                             // console.log("Replies", self.replies.length, replies.length);
 
-                            if (self.replies.length != replies.length) {
+                            if (replies && self.replies.length != replies.length) {
                                 self.replies.add(replies);
                             }
                         }
