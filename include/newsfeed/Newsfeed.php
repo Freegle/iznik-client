@@ -218,16 +218,22 @@ class Newsfeed extends Entity
             }
 
             if (pres('publicityid', $entry)) {
-                $pubs = $this->dbhr->preQuery("SELECT postid FROM groups_facebook_toshare WHERE id = ?;", [ $entry['publicityid'] ]);
+                $pubs = $this->dbhr->preQuery("SELECT postid, data FROM groups_facebook_toshare WHERE id = ?;", [ $entry['publicityid'] ]);
 
                 if (preg_match('/(.*)_(.*)/', $pubs[0]['postid'], $matches)) {
                     # Create the iframe version of the Facebook plugin.
                     $pageid = $matches[1];
                     $postid = $matches[2];
+
+                    $data = json_decode($pubs[0]['data'], TRUE);
+
                     $entry['publicity'] = [
                         'id' => $entry['publicityid'],
                         'postid' => $pubs[0]['postid'],
-                        'iframe' => '<iframe class="completefull" src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
+                        'iframe' => '<iframe class="completefull" src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>',
+                        'full_picture' => presdef('full_picture', $data, NULL),
+                        'message' => presdef('message', $data, NULL),
+                        'type' => presdef('type', $data, NULL)
                     ];
                 }
             }
@@ -236,7 +242,7 @@ class Newsfeed extends Entity
                 $s = new Story($this->dbhr, $this->dbhm, $entry['storyid']);
                 $use = FALSE;
                 #error_log("Consider story " . $s->getPrivate('reviewed') . ", " . $s->getPrivate('public'));
-                if ($s->getPrivate('reviewed') && $s->getPrivate('public')) {
+                if ($s->getPrivate('reviewed') && $s->getPrivate('public') && $s->getId()) {
                     $use = TRUE;
                     $entry['story'] = $s->getPublic();
                 }

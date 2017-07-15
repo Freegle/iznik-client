@@ -3219,7 +3219,14 @@ class Message
     }
 
     public function renege($userid) {
-        # Unromise this item to a user.
+        # Unpromise this item.
+        #
+        # Record it - we use this to determine member reliability.
+        $this->dbhm->preExec("INSERT INTO messages_reneged (userid, msgid) VALUES (?, ?);", [
+            $userid,
+            $this->id
+        ]);
+
         $sql = "DELETE FROM messages_promises WHERE msgid = ? AND userid = ?;";
         $this->dbhm->preExec($sql, [
             $this->id,
@@ -3315,6 +3322,11 @@ class Message
             'byuser' => $me ? $me->getId() : NULL,
             'text' => "$outcome $comment"
         ]);
+
+        # You might think that if we are passed a $userid then we could log a renege for any other users to whom
+        # this was promised - but we can promise to multiple users, whereas we can only mark a single user in the
+        # TAKEN (which is probably a bug).  And if we are withdrawing it, then we don't really know why - it could
+        # be that we changed our minds, which isn't the fault of the person we promised it to.
 
         # This message may be on one or more Yahoo groups; if so we need to send a TAKEN.
         $subj = $this->reverseSubject();

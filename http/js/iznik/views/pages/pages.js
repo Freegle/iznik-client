@@ -108,58 +108,64 @@ define([
         notificationCheck: function() {
             var self = this;
 
-            $.ajax({
-                url: API + 'notification?count=true',
-                type: 'GET',
-                context: self,
-                success: function(ret) {
-                    if (ret.ret == 0) {
-                        var el = $('.js-notifholder .js-notifcount');
-                        if (el.html() != ret.count) {
-                            el.html(ret.count);
+            console.log("Notification check", self.notificationChecking);
+            if (!self.notificationChecking && self.inDOM()) {
+                self.notificationChecking = true;
 
-                            if (ret.count) {
-                                $('.js-notifholder .js-notifcount').css('visibility', 'visible');
+                $.ajax({
+                    url: API + 'notification?count=true',
+                    type: 'GET',
+                    context: self,
+                    success: function(ret) {
+                        if (ret.ret == 0) {
+                            var el = $('.js-notifholder .js-notifcount');
+                            if (el.html() != ret.count) {
+                                el.html(ret.count);
 
-                                // Fetch the notifications to avoid lag when we click.
-                                self.notifications.fetch().then(function() {
-                                    console.log("Fetched new notifications");
-                                });
-                            }
-                            else {
-                                $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
+                                if (ret.count) {
+                                    $('.js-notifholder .js-notifcount').css('visibility', 'visible');
+
+                                    // Fetch the notifications to avoid lag when we click.
+                                    self.notifications.fetch().then(function() {
+                                        console.log("Fetched new notifications");
+                                    });
+                                }
+                                else {
+                                    $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
+                                }
+
+                                setTitleCounts(null, ret.count);
                             }
 
                             setTitleCounts(null, ret.count);
                         }
+                    }, complete: function() {
+                        $.ajax({
+                            url: API + 'newsfeed?count=true',
+                            type: 'GET',
+                            context: self,
+                            success: function(ret) {
+                                if (ret.ret == 0) {
+                                    var el = $('.js-unseennews');
+                                    if (el.html() != ret.unseencount) {
+                                        el.html(ret.unseencount);
 
-                        setTitleCounts(null, ret.count);
-                    }
-                }, complete: function() {
-                    $.ajax({
-                        url: API + 'newsfeed?count=true',
-                        type: 'GET',
-                        context: self,
-                        success: function(ret) {
-                            if (ret.ret == 0) {
-                                var el = $('.js-unseennews');
-                                if (el.html() != ret.unseencount) {
-                                    el.html(ret.unseencount);
-
-                                    if (ret.unseencount) {
-                                        $('.js-unseennews').show();
-                                    }
-                                    else {
-                                        $('.js-unseennews').hide();
+                                        if (ret.unseencount) {
+                                            $('.js-unseennews').show();
+                                        }
+                                        else {
+                                            $('.js-unseennews').hide();
+                                        }
                                     }
                                 }
+                            }, complete: function() {
+                                self.notificationChecking = false;
+                                _.delay(_.bind(this.notificationCheck, this), 30000);
                             }
-                        }, complete: function() {
-                            _.delay(_.bind(this.notificationCheck, this), 30000);
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
+            }
         },
 
         render: function (options) {
@@ -341,6 +347,15 @@ define([
                                 console.log("Clicked on notifications");
                                 self.notifications.fetch().then(function() {
                                     console.log("Notifications", self.notifications);
+
+                                    // Clear the first notification after a while, because we'll have seen it.
+                                    _.delay(function() {
+                                        var notif = self.notifications.first();
+
+                                        if (!notif.get('seen')) {
+                                            notif.seen();
+                                        }
+                                    }, 5000);
                                 });
                             }, self));
 

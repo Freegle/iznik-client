@@ -119,11 +119,21 @@ function newsfeed() {
             }
 
             case 'PATCH': {
-                # Can delete own posts or if mod.
+                # Can mod own posts or if mod.
                 $message = presdef('message', $_REQUEST, NULL);
+
+                $ret = [
+                    'ret' => 2,
+                    'status' => 'Permission denied'
+                ];
 
                 if ($me->isModerator() || ($me->getId() == $n->getPrivate('userid'))) {
                     $n->setPrivate('message', $message);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
                 }
                 break;
             }
@@ -131,15 +141,20 @@ function newsfeed() {
             case 'DELETE': {
                 $id = intval(presdef('id', $_REQUEST, NULL));
 
+                $ret = [
+                    'ret' => 2,
+                    'status' => 'Permission denied'
+                ];
+
                 # Can delete own posts or if mod.
                 if ($me->isModerator() || ($me->getId() == $n->getPrivate('userid'))) {
                     $n->delete($me->getId(), $id);
-                }
 
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success'
-                ];
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                }
                 break;
             }
         }
