@@ -242,7 +242,7 @@ class Newsfeed extends Entity
                 $s = new Story($this->dbhr, $this->dbhm, $entry['storyid']);
                 $use = FALSE;
                 #error_log("Consider story " . $s->getPrivate('reviewed') . ", " . $s->getPrivate('public'));
-                if ($s->getPrivate('reviewed') && $s->getPrivate('public')) {
+                if ($s->getPrivate('reviewed') && $s->getPrivate('public') && $s->getId()) {
                     $use = TRUE;
                     $entry['story'] = $s->getPublic();
                 }

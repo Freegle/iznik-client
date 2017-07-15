@@ -212,9 +212,11 @@ define([
 
                 mod.save().then(function() {
                     mod.fetch().then(function() {
+                        console.log("Fetched", mod)
                         self.collection.add(mod, {
                             at: 0
                         });
+                        console.log("Added", mod);
                         self.$('.js-message').val('');
                         self.$('.js-message').prop('disabled', false);
                     });
