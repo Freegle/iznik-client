@@ -37,7 +37,7 @@ class BulkOp extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'mod_bulkops', 'bulkop', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'mod_bulkops', 'bulkop', $this->publicatts);
             $me = whoAmI($this->dbhr, $this->dbhm);
             $createdby = $me ? $me->getId() : NULL;
             $this->log->log([

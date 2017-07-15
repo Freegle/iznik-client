@@ -32,7 +32,7 @@ class Newsletter extends Entity
 
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'newsletters', 'newsletter', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'newsletters', 'newsletter', $this->publicatts);
         }
 
         return($id);

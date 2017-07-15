@@ -267,7 +267,7 @@ class User extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'users', 'user', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'users', 'user', $this->publicatts);
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_CREATED,

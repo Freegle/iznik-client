@@ -109,7 +109,7 @@ class ModConfig extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'mod_configs', 'modconfig', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'mod_configs', 'modconfig', $this->publicatts);
             $this->log->log([
                 'type' => Log::TYPE_CONFIG,
                 'subtype' => Log::SUBTYPE_CREATED,

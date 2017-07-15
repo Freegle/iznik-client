@@ -28,7 +28,7 @@ class Volunteering extends Entity
 
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'volunteering', 'volunteering', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'volunteering', 'volunteering', $this->publicatts);
 
             $n = new Newsfeed($this->dbhr, $this->dbhm);
             $fid = $n->create(Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY, $userid, NULL, NULL, NULL, NULL, NULL, NULL, $id, NULL);

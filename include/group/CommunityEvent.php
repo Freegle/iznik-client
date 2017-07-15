@@ -27,7 +27,7 @@ class CommunityEvent extends Entity
 
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'communityevents', 'event', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'communityevents', 'event', $this->publicatts);
 
             if ($photo) {
                 $this->dbhm->preExec("UPDATE communityevents_images SET eventid = ? WHERE id = ?;", [ $id, $photo ]);

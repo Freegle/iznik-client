@@ -203,7 +203,7 @@ class GroupFacebook {
                 foreach ($actions as $action) {
                     try {
                         # Whether or not this worked, remember that we've tried, so that we don't try again.
-                        error_log("Record INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES ({$action['uid']},{$action['groupid']},{$action['postid']});");
+                        #error_log("Record INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES ({$action['uid']},{$action['groupid']},{$action['postid']});");
                         $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES (?,?,?);", [
                             $action['uid'],
                             $action['groupid'],

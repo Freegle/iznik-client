@@ -92,7 +92,7 @@ class ChatRoom extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
             return ($id);
         } else {
             return (NULL);
@@ -146,7 +146,7 @@ class ChatRoom extends Entity
         }
 
         if ($id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
 
             # Ensure the two members are in the roster.
             $this->updateRoster($user1, NULL);
@@ -215,7 +215,7 @@ class ChatRoom extends Entity
         }
 
         if ($id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
 
             # Ensure this users is in the roster.
             $this->updateRoster($user1, NULL);
