@@ -8,12 +8,13 @@ function newsfeed() {
 
     if ($me) {
         $id = intval(presdef('id', $_REQUEST, NULL));
-        $n = new Newsfeed($dbhr, $dbhm, $id);
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
         switch ($_REQUEST['type']) {
             case 'GET': {
                 if ($id) {
+                    # Use the master as we fetch after posting and could otherwise miss it due to replication delay.
+                    $n = new Newsfeed($dbhm, $dbhm, $id);
                     $lovelist = array_key_exists('lovelist', $_REQUEST) ? filter_var($_REQUEST['lovelist'], FILTER_VALIDATE_BOOLEAN) : FALSE;
                     $entry = $n->getPublic($lovelist);
 
@@ -23,6 +24,7 @@ function newsfeed() {
                         'newsfeed' => $entry
                     ];
                 } else {
+                    $n = new Newsfeed($dbhr, $dbhm);
                     $count = array_key_exists('count', $_REQUEST) ? filter_var($_REQUEST['count'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
                     if ($count) {
@@ -62,6 +64,7 @@ function newsfeed() {
             }
 
             case 'POST': {
+                $n = new Newsfeed($dbhr, $dbhm, $id);
                 $message = presdef('message', $_REQUEST, NULL);
                 $replyto = pres('replyto', $_REQUEST) ? intval($_REQUEST['replyto']) : NULL;
                 $action = presdef('action', $_REQUEST, NULL);
@@ -119,6 +122,7 @@ function newsfeed() {
             }
 
             case 'PATCH': {
+                $n = new Newsfeed($dbhr, $dbhm, $id);
                 # Can mod own posts or if mod.
                 $message = presdef('message', $_REQUEST, NULL);
 
@@ -139,6 +143,7 @@ function newsfeed() {
             }
 
             case 'DELETE': {
+                $n = new Newsfeed($dbhr, $dbhm, $id);
                 $id = intval(presdef('id', $_REQUEST, NULL));
 
                 $ret = [
