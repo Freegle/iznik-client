@@ -272,6 +272,8 @@ class Newsfeed extends Entity
                 $entry['loved'] = $likes[0]['count'] > 0;
             }
 
+            $myid = $me ? $me->getId() : NULL;
+
             $entry['replies'] = [];
 
             if ($checkreplies) {
@@ -283,18 +285,26 @@ class Newsfeed extends Entity
                 $last = NULL;
 
                 foreach ($replies as &$reply) {
-                    # Replies only one deep at present.
-                    $this->fillIn($reply, $users, FALSE);
+                    $hidden = $reply['hidden'];
 
-                    if ($reply['visible'] &&
-                        $last['userid'] == $reply['userid'] &&
-                        $last['type'] == $reply['type'] &&
-                        $last['message'] == $reply['message']) {
-                        # Suppress duplicates.
-                        $reply['visible'] = FALSE;
+                    # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
+                    # are there but nobody else sees them.
+                    if (!$hidden || $myid == $entry['userid']) {
+                        # Replies only one deep at present.
+                        $this->fillIn($reply, $users, FALSE);
+
+                        if ($reply['visible'] &&
+                            $last['userid'] == $reply['userid'] &&
+                            $last['type'] == $reply['type'] &&
+                            $last['message'] == $reply['message']
+                        ) {
+                            # Suppress duplicates.
+                            $reply['visible'] = FALSE;
+                        }
+
+                        $entry['replies'][] = $reply;
                     }
-                    
-                    $entry['replies'][] = $reply;
+
                     $last = $reply;
                 }
             }
