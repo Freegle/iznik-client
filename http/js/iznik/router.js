@@ -218,7 +218,9 @@ define([
             //console.log("loadRoute"); console.log(routeOptions);
             routeOptions = routeOptions || {};
 
-            self.modtools = routeOptions.modtools;
+            // CC self.modtools = routeOptions.modtools;
+            self.modtools = parseInt($('meta[name=iznikmodtools]').attr("content"));    // CC
+            routeOptions.modtools = self.modtools;  // CC
             Iznik.Session.set('modtools', self.modtools);
 
             function loadPage() {
