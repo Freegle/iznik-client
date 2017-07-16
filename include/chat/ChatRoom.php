@@ -1054,10 +1054,10 @@ class ChatRoom extends Entity
         # members - which is a much smaller set.
         $start = date('Y-m-d', strtotime("midnight 2 weeks ago"));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND chattype = ? $chatq;";
+        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0 AND reviewrequired = 0 AND chattype = ? $chatq;";
         #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
-        #error_log("Chats " . var_export($chats, TRUE));
+        error_log("Chats to scan " . count($chats));
         $notified = 0;
 
         foreach ($chats as $chat) {
@@ -1068,14 +1068,14 @@ class ChatRoom extends Entity
             $lastmaxseen = $r->lastSeenByAll();
             $lastmaxmailed = $r->lastMailedToAll();
             $maxmailednow = 0;
-            #error_log("Last seen by all $lastseen");
             $notmailed = $r->getMembersStatus($chatatts['lastmsg']);
-            #error_log("Members not seen " . var_export($notmailed, TRUE));
             $ccit = FALSE;
+
+            #error_log("Notmailed " . count($notmailed));
 
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed of the messages in this chat.
-                #error_log("Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
+                #error_log("{$chat['chatid']} Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
                 $thisu = User::get($this->dbhr, $this->dbhm, $member['userid']);
@@ -1085,28 +1085,30 @@ class ChatRoom extends Entity
                 # the case where someone replies from a different email which isn't a group membership, and we
                 # want to notify that email.
                 #error_log("Consider mail " . $thisu->notifsOn(User::NOTIFS_EMAIL) . "," . count($thisu->getMemberships()));
-                if ($thisu->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'))) {
-                    # Now collect a summary of what they've missed.
-                    $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
-                        [
-                            $chat['chatid'],
-                            $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0
-                        ]);
+                $mailson = $thisu->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
 
-                    #error_log("Unseen " . var_export($unmailedmsgs, TRUE));
+                # Now collect a summary of what they've missed.
+                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id > ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id ASC;",
+                    [
+                        $chat['chatid'],
+                        $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0
+                    ]);
 
-                    if (count($unmailedmsgs) > 0) {
-                        $textsummary = '';
-                        $htmlsummary = '';
-                        $lastmsgemailed = 0;
-                        $lastfrom = 0;
-                        $lastmsg = NULL;
-                        $justmine = TRUE;
+                #error_log("Unseen " . var_export($unmailedmsgs, TRUE));
 
-                        foreach ($unmailedmsgs as $unmailedmsg) {
-                            $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
-                            $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
+                if (count($unmailedmsgs) > 0) {
+                    $textsummary = '';
+                    $htmlsummary = '';
+                    $lastmsgemailed = 0;
+                    $lastfrom = 0;
+                    $lastmsg = NULL;
+                    $justmine = TRUE;
 
+                    foreach ($unmailedmsgs as $unmailedmsg) {
+                        $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
+                        $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
+
+                        if ($mailson) {
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
                             switch ($unmailedmsg['type']) {
                                 case ChatMessage::TYPE_COMPLETED: {
