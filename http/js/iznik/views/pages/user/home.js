@@ -40,13 +40,17 @@ define([
             return (model.get('outcomes').length == 0);
         },
 
-        showOldOffers: function() {
+        showOldOffers: function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             this.$('.js-oldoffers').hide();
             this.showingOldOffers = true;
             this.offersView.render();
         },
 
         showOldWanteds: function() {
+            e.preventDefault();
+            e.stopPropagation();
             this.$('.js-oldwanteds').hide();
             this.showingOldWanteds = true;
             this.wantedsView.render();

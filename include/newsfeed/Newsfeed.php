@@ -11,6 +11,7 @@ require_once(IZNIK_BASE . '/include/group/Volunteering.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/include/misc/Preview.php');
+require_once(IZNIK_BASE . '/include/spam/Spam.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 require_once(IZNIK_BASE . '/mailtemplates/newsfeed/digest.php');
@@ -18,7 +19,7 @@ require_once(IZNIK_BASE . '/mailtemplates/newsfeed/digest.php');
 class Newsfeed extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'timestamp', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position');
+    var $publicatts = array('id', 'timestamp', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted');
 
     /** @var  $log Log */
     private $log;
@@ -49,6 +50,9 @@ class Newsfeed extends Entity
     public function create($type, $userid = NULL, $message = NULL, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL) {
         $id = NULL;
 
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $hidden = $s->checkReferToSpammer($message) ? 'NOW()' : 'NULL';
+
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
 #        error_log("Create at $lat, $lng");
@@ -57,7 +61,7 @@ class Newsfeed extends Entity
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
-            $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos);", [
+            $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position, hidden) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos, $hidden);", [
                 $type,
                 $userid,
                 $imageid,
@@ -77,6 +81,9 @@ class Newsfeed extends Entity
                 $this->fetch($this->dbhr, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
 
                 if ($replyto) {
+                    # Bump the thread.
+                    $this->dbhm->preExec("UPDATE newsfeed SET timestamp = NOW() WHERE id = ?;", [ $replyto ]);
+
                     $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [ $replyto ]);
                     foreach ($origs as $orig) {
                         # Comment on thread.  We want to notify the original poster and anyone else who
@@ -110,23 +117,25 @@ class Newsfeed extends Entity
         return($id);
     }
 
-    public function getPublic($lovelist) {
+    public function getPublic($lovelist = FALSE) {
         $atts = parent::getPublic();
         $users = [];
 
-        $this->fillIn($atts, $users);
+        $this->fillIn($atts, $users, TRUE);
 
         foreach ($users as $user) {
-            if ($user['id'] == $atts['userid']) {
+            if ($user['id'] == presdef('userid', $atts, NULL)) {
                 $atts['user'] = $user;
                 unset($atts['userid']);
             }
         }
 
-        foreach ($atts['replies'] as &$reply) {
-            $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
-            $ctx = NULL;
-            $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        if (pres('replies', $atts)) {
+            foreach ($atts['replies'] as &$reply) {
+                $u = User::get($this->dbhr, $this->dbhm, $reply['userid']);
+                $ctx = NULL;
+                $reply['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+            }
         }
 
         if ($lovelist) {
@@ -149,7 +158,9 @@ class Newsfeed extends Entity
 
     private function fillIn(&$entry, &$users, $checkreplies = TRUE) {
         unset($entry['position']);
+
         $use = !presdef('reviewrequired', $entry, FALSE) && !presdef('deleted', $entry, FALSE);
+
         #error_log("Use $use for type {$entry['type']} from " . presdef('reviewrequired', $entry, FALSE) . "," . presdef('deleted', $entry, FALSE));
 
         if ($use) {
@@ -173,6 +184,12 @@ class Newsfeed extends Entity
                 $uctx = NULL;
                 $users[$entry['userid']] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
                 $users[$entry['userid']]['publiclocation'] = $u->getPublicLocation();
+
+                if ($users[$entry['userid']]['profile']['default']) {
+                    # We always want to show an avatar for the newsfeed, but we don't have one.  This won't cause
+                    # a flood of updates since the newsfeed is fetched gradually.
+                    $u->ensureAvatar($users[$entry['userid']]);
+                }
             }
 
             if (pres('msgid', $entry)) {
@@ -201,16 +218,22 @@ class Newsfeed extends Entity
             }
 
             if (pres('publicityid', $entry)) {
-                $pubs = $this->dbhr->preQuery("SELECT postid FROM groups_facebook_toshare WHERE id = ?;", [ $entry['publicityid'] ]);
+                $pubs = $this->dbhr->preQuery("SELECT postid, data FROM groups_facebook_toshare WHERE id = ?;", [ $entry['publicityid'] ]);
 
                 if (preg_match('/(.*)_(.*)/', $pubs[0]['postid'], $matches)) {
                     # Create the iframe version of the Facebook plugin.
                     $pageid = $matches[1];
                     $postid = $matches[2];
+
+                    $data = json_decode($pubs[0]['data'], TRUE);
+
                     $entry['publicity'] = [
                         'id' => $entry['publicityid'],
                         'postid' => $pubs[0]['postid'],
-                        'iframe' => '<iframe class="completefull" src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
+                        'iframe' => '<iframe class="completefull" src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>',
+                        'full_picture' => presdef('full_picture', $data, NULL),
+                        'message' => presdef('message', $data, NULL),
+                        'type' => presdef('type', $data, NULL)
                     ];
                 }
             }
@@ -219,7 +242,7 @@ class Newsfeed extends Entity
                 $s = new Story($this->dbhr, $this->dbhm, $entry['storyid']);
                 $use = FALSE;
                 #error_log("Consider story " . $s->getPrivate('reviewed') . ", " . $s->getPrivate('public'));
-                if ($s->getPrivate('reviewed') && $s->getPrivate('public')) {
+                if ($s->getPrivate('reviewed') && $s->getPrivate('public') && $s->getId()) {
                     $use = TRUE;
                     $entry['story'] = $s->getPublic();
                 }
@@ -227,6 +250,10 @@ class Newsfeed extends Entity
 
 
             $entry['timestamp'] = ISODate($entry['timestamp']);
+
+            if (pres('added', $entry)) {
+                $entry['added'] = ISODate($entry['added']);
+            }
 
             $me = whoAmI($this->dbhr, $this->dbhm);
 
@@ -324,26 +351,37 @@ class Newsfeed extends Entity
         $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert')) AND $tq" : $tq;
         $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
-        $sql = "SELECT * FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
+        $sql = "SELECT " . implode(',', $this->publicatts) . ", hidden FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
         #error_log($sql);
         $entries = $this->dbhr->preQuery($sql);
         $last = NULL;
 
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
         foreach ($entries as &$entry) {
-            # We return invisible entries - they are filtered on the client, and it makes the paging work.
-            if ($fillin) {
-                $this->fillIn($entry, $users);
+            $hidden = $entry['hidden'];
 
-                if ($entry['visible'] &&
-                    $last['userid'] == $entry['userid'] &&
-                    $last['type'] == $entry['type'] &&
-                    $last['message'] == $entry['message']) {
-                    # Suppress duplicates.
-                    $entry['visible'] = FALSE;
+            # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
+            # are there but nobody else sees them.
+            if (!$hidden || $myid == $entry['userid']) {
+                unset($entry['hidden']);
+
+                if ($fillin) {
+                    $this->fillIn($entry, $users);
+
+                    # We return invisible entries - they are filtered on the client, and it makes the paging work.
+                    if ($entry['visible'] &&
+                        $last['userid'] == $entry['userid'] &&
+                        $last['type'] == $entry['type'] &&
+                        $last['message'] == $entry['message']) {
+                        # Suppress duplicates.
+                        $entry['visible'] = FALSE;
+                    }
                 }
-            }
 
-            $items[] = $entry;
+                $items[] = $entry;
+            }
 
             $ctx = [
                 'timestamp' => ISODate($entry['timestamp']),

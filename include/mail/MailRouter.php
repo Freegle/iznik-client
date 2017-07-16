@@ -690,7 +690,6 @@ class MailRouter
                 # First check if this message is spam based on our own checks.
                 $rc = $this->spam->check($this->msg);
                 if ($rc) {
-
                     if (count($groups) > 0) {
                         foreach ($groups as $group) {
                             $this->log->log([

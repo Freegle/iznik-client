@@ -41,6 +41,9 @@ define([
                     interpolate: /\{\{(.+?)\}\}/g,
                     evaluate: /<%(.+?)%>/g,
                     escape: /<%-(.+?)%>/g
+                }, {
+                    // This supposedly improves performance - see https://jsperf.com/underscore-template-function-with-variable-setting
+                    variable: 'obj'
                 }));
             } else {
                 console.error("Template not loaded", id);

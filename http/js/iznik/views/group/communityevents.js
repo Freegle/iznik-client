@@ -287,9 +287,9 @@ define([
                         });
 
                         Promise.all(self.promises).then(function() {
-                            console.log("Close wait");
                             self.wait.close();
                             self.wait = null;
+                            self.trigger('saved');
 
                             if (self.closeAfterSave) {
                                 self.close();

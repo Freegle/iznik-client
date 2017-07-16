@@ -103,7 +103,11 @@ function newsfeed() {
                         'status' => 'Success'
                     ];
                 } else {
-                    $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
+                    $s = new Spam($dbhr, $dbhm);
+                    $spammers = $s->getSpammerByUserid($me->getId());
+                    if (!$spammers) {
+                        $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, NULL, NULL, $replyto, NULL);
+                    }
 
                     $ret = [
                         'ret' => 0,
@@ -114,18 +118,43 @@ function newsfeed() {
                 break;
             }
 
+            case 'PATCH': {
+                # Can mod own posts or if mod.
+                $message = presdef('message', $_REQUEST, NULL);
+
+                $ret = [
+                    'ret' => 2,
+                    'status' => 'Permission denied'
+                ];
+
+                if ($me->isModerator() || ($me->getId() == $n->getPrivate('userid'))) {
+                    $n->setPrivate('message', $message);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                }
+                break;
+            }
 
             case 'DELETE': {
                 $id = intval(presdef('id', $_REQUEST, NULL));
 
-                if ($me->isModerator()) {
-                    $n->delete($me->getId(), $id);
-                }
-
                 $ret = [
-                    'ret' => 0,
-                    'status' => 'Success'
+                    'ret' => 2,
+                    'status' => 'Permission denied'
                 ];
+
+                # Can delete own posts or if mod.
+                if ($me->isModerator() || ($me->getId() == $n->getPrivate('userid'))) {
+                    $n->delete($me->getId(), $id);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                }
                 break;
             }
         }

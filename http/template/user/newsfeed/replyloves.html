@@ -4,8 +4,7 @@
 <span class="js-replylove" <% if (obj.loved) { %>style="display: none"<% } %>>
 <span class="glyphicons glyphicons-heart-empty vcenter" />Love this
 </span>
-&bull;
-<span class="js-reply">Reply</span>
-<span class="clickme js-loves" <% if (obj.loves == 0) { %>style="display:none"<% } %>>
+<span class="nowrap">&bull; <span class="js-reply">Reply</span></span>
+<span class="nowrap"><span class="clickme js-loves" <% if (obj.loves == 0) { %>style="display:none"<% } %>>
 &bull;<span class="glyphicons glyphicons-heart vcenter error" /><span class="js-lovecount">{{obj.loves}}</span>
-</span>
+</span></span>

@@ -441,9 +441,11 @@
             if( _.isFunction( this.visibleModelsFilter ) )
                 hideThisModelView = ! this.visibleModelsFilter( modelView.model );
 
-            if( thisModelViewWrapped.children().length === 1 )
-                thisModelViewWrapped.toggle( ! hideThisModelView );
-            else modelView.$el.toggle( ! hideThisModelView );
+            if (hideThisModelView) {
+                if( thisModelViewWrapped.children().length === 1 )
+                    thisModelViewWrapped.toggle( ! hideThisModelView );
+                else modelView.$el.toggle( ! hideThisModelView );
+            }
 
             thisModelViewWrapped.toggleClass( "not-visible", hideThisModelView );
 

@@ -185,7 +185,8 @@ body {
     display: -webkit-box;
     display: -moz-box;
 }
-.nav-tabs>li {
+
+nav .nav-tabs>li {
     float:none;
 }
 
@@ -498,6 +499,10 @@ body {
     margin-bottom: 5px !important;
 }
 
+.margintopsm {
+    margin-top: 5px !important;
+}
+
 .noborder {
     border: none;
 }
@@ -651,17 +656,17 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 .fadein {
     -webkit-animation: fadein 2s linear;
     -moz-animation: fadein 2s linear;
-    -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+    /* CC breaks loing news threads -webkit-animation-fill-mode:forwards;   this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)
     -moz-animation-fill-mode:forwards;
-    animation-fill-mode:forwards;
+    animation-fill-mode:forwards;*/
 }
 
 .fadepartout {
     -webkit-animation: fadepartout 10s linear;
     -moz-animation: fadepartout 10s linear;
-    -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+    /* CC -webkit-animation-fill-mode:forwards;  this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)
     -moz-animation-fill-mode:forwards;
-    animation-fill-mode:forwards;
+    animation-fill-mode:forwards;*/
 }
 
 @-webkit-keyframes fadepartout {

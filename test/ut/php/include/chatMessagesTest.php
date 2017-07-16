@@ -246,7 +246,8 @@ class chatMessagesTest extends IznikTestCase {
 
         $dbconfig = array (
             'host' => SQLHOST,
-            'port' => SQLPORT,
+            'port_read' => SQLPORT_READ,
+            'port_mod' => SQLPORT_MOD,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
@@ -316,6 +317,28 @@ class chatMessagesTest extends IznikTestCase {
 
         # Domain
         assertTrue($m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testReferToSpammer() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create("Test", "User", "Test User");
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $u->addEmail($email);
+
+        $this->dbhm->preExec("INSERT INTO spam_users (userid, collection, reason) VALUES (?, ?, ?);", [
+            $uid,
+            Spam::TYPE_SPAMMER,
+            'UT Test'
+        ]);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # Keywords
+        assertTrue($m->checkReview("Please reply to $email"));
 
         error_log(__METHOD__ . " end");
     }

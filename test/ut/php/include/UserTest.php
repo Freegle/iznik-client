@@ -366,6 +366,7 @@ class userTest extends IznikTestCase {
         error_log("Created $mid2 $str");
 
         # We should get the group back and a default config.
+        error_log("Check settings for $id2 on $group2");
         assertEquals(1, $u2->getGroupSettings($group2)['test'] );
         assertNotNull($u2->getGroupSettings($group2)['configid']);
 
@@ -373,9 +374,10 @@ class userTest extends IznikTestCase {
         assertTrue($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
-        $u1 = User::get($this->dbhr, $this->dbhm, $id1, FALSE);
-        $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
+        $u1 = new User($this->dbhm, $this->dbhm, $id1, FALSE);
+        $u2 = new User($this->dbhm, $this->dbhm, $id2, FALSE);
 
+        error_log("Check post merge $id1 on $group2");
         assertEquals(1, $u1->getGroupSettings($group2)['test'] );
         assertNotNull($u1->getGroupSettings($group2)['configid']);
 
@@ -516,13 +518,14 @@ class userTest extends IznikTestCase {
 
         $dbconfig = array (
             'host' => SQLHOST,
-            'port' => SQLPORT,
+            'port_read' => SQLPORT_READ,
+            'port_mod' => SQLPORT_MOD,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
         );
 
-        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port']};dbname={$dbconfig['database']};charset=utf8";
+        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
 
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
@@ -924,18 +927,23 @@ class userTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users_images WHERE userid = ?;", [ $uid ]);
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
         error_log("Profile " . var_export($atts['profile'], TRUE));
-        assertTrue($atts['profile']['google']);
-        error_log("URL {$atts['profile']['url']}");
+        assertTrue($atts['profile']['gravatardefault']);
+        error_log("norfolkmod@gmail.com URL {$atts['profile']['url']}");
 
         $uid = $u->create("Test", "User", "Test User");
         $u->addEmail('gravatar@ehibbert.org.uk');
         $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
+        error_log("gravatar@ehibbert.org.uk " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['gravatar']);
 
         $uid = $u->create("Test", "User", "Test User");
         $u->addEmail('atrusty-gxxxx@user.trashnothing.com');
         $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
+        error_log("atrusty " . var_export($atts['profile'], TRUE));
         assertTrue($atts['profile']['TN']);
 
         error_log(__METHOD__ . " end");
@@ -949,6 +957,17 @@ class userTest extends IznikTestCase {
         $u->setPrivate('yahooid', '42decfdc9afca38d682324e2e5a02123');
         $atts = $u->getPublic();
         self::assertLessThan(32, $atts['fullname']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testAFreegler() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', 'A freegler');
+        $atts = $u->getPublic();
+        self::assertNotEquals('A freegler', $atts['fullname']);
 
         error_log(__METHOD__ . " end");
     }

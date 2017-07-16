@@ -6,6 +6,8 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 
+$lockh = lockScript(basename(__FILE__));
+
 $mysqltime = date("Y-m-d", strtotime("Midnight 3 days ago"));
 $chats = $dbhr->preQuery("SELECT id FROM chat_rooms;");
 
@@ -24,3 +26,5 @@ foreach ($chats as $chat) {
         }
     }
 }
+
+unlockScript($lockh);

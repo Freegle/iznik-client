@@ -439,7 +439,7 @@ class Location extends Entity
             $gridids[] = $grid['id'];
         }
 
-        $sql = "SELECT id, name, lat, lng, ST_distance(geometry, Point(?,?)) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Postcode' ORDER BY ST_distance(geometry, Point(?,?)) ASC LIMIT 1;";
+        $sql = "SELECT id, name, areaid, lat, lng, ST_distance(geometry, Point(?,?)) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND type = 'Postcode' ORDER BY ST_distance(geometry, Point(?,?)) ASC LIMIT 1;";
         #error_log("$sql, $lng, $lat");
         $locs = $this->dbhr->preQuery($sql, [ $lng, $lat, $lng, $lat ]);
 
@@ -447,6 +447,13 @@ class Location extends Entity
 
         if (count($locs) == 1) {
             $ret = $locs[0];
+
+            if ($ret['areaid']) {
+                $l = new Location($this->dbhr, $this->dbhm, $ret['areaid']);
+                $ret['area'] = $l->getPublic();
+                unset($ret['areaid']);
+            }
+
             $l = new Location($this->dbhr, $this->dbhm, $ret['id']);
             $ret['groupsnear'] = $l->groupsNear(Location::NEARBY, TRUE);
         }

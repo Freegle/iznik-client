@@ -4,8 +4,8 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
-    'iznik/models/notification',
-    'iznik/events'
+    'iznik/events',
+    'iznik/models/notification'
 ], function($, _, Backbone, Iznik, ChatHolder, monitor) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
@@ -130,61 +130,73 @@ define([
         notificationCheck: function() {
             var self = this;
 
-            $.ajax({
-                url: API + 'notification?count=true',
-                type: 'GET',
-                context: self,
-                success: function(ret) {
-                    if (ret.ret == 0) {
-                        var el = $('.js-notifholder .js-notifcount');
-                        if (el.html() != ret.count) {
-                            el.html(ret.count);
+            console.log("Notification check", self.notificationChecking);
+            if (!self.notificationChecking && self.inDOM()) {
+                self.notificationChecking = true;
 
-                            if (ret.count) {
-                                $('.js-notifholder .js-notifcount').show();
-                            }
-                            else {
-                                $('.js-notifholder .js-notifcount').hide();
+                $.ajax({
+                    url: API + 'notification?count=true',
+                    type: 'GET',
+                    context: self,
+                    success: function(ret) {
+                        if (ret.ret == 0) {
+                            var el = $('.js-notifholder .js-notifcount');
+                            if (el.html() != ret.count) {
+                                el.html(ret.count);
+
+                                if (ret.count) {
+                                    $('.js-notifholder .js-notifcount').css('visibility', 'visible');
+
+                                    // Fetch the notifications to avoid lag when we click.
+                                    self.notifications.fetch().then(function() {
+                                        console.log("Fetched new notifications");
+                                    });
+                                }
+                                else {
+                                    $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
+                                }
+
+                                setTitleCounts(null, ret.count);
                             }
 
                             setTitleCounts(null, ret.count);
                         }
+                    }, complete: function() {
+                        $.ajax({
+                            url: API + 'newsfeed?count=true',
+                            type: 'GET',
+                            context: self,
+                            success: function(ret) {
+                                if (ret.ret == 0) {
+                                    var el = $('.js-unseennews');
+                                    if (el.html() != ret.unseencount) {
+                                        el.html(ret.unseencount);
 
-                        setTitleCounts(null, ret.count);
-                    }
-                }, complete: function() {
-                    $.ajax({
-                        url: API + 'newsfeed?count=true',
-                        type: 'GET',
-                        context: self,
-                        success: function(ret) {
-                            if (ret.ret == 0) {
-                                var el = $('.js-unseennews');
-                                if (el.html() != ret.unseencount) {
-                                    el.html(ret.unseencount);
-
-                                    if (ret.unseencount) {
-                                        $('.js-unseennews').show();
-                                    }
-                                    else {
-                                        $('.js-unseennews').hide();
+                                        if (ret.unseencount) {
+                                            $('.js-unseennews').show();
+                                        }
+                                        else {
+                                            $('.js-unseennews').hide();
+                                        }
                                     }
                                 }
+                            }, complete: function() {
+                                self.notificationChecking = false;
+                                _.delay(_.bind(this.notificationCheck, this), 30000);
                             }
-                        }, complete: function() {
-                            _.delay(_.bind(this.notificationCheck, this), 30000);
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
+            }
         },
 
         render: function (options) {
             var self = this;
 
-            // Start event tracking.
-            if (monitor) {
-                // CC monitor.start();
+            // Start event tracking.  Don't do this for ModTools because it seems to kill performance on some
+            // low-end hardware, and we don't really need it.
+            if (monitor && !self.modtools) {
+                // monitor.start();
             }
 
             if (currentPage) {
@@ -352,6 +364,15 @@ define([
                                 console.log("Clicked on notifications");
                                 self.notifications.fetch().then(function() {
                                     console.log("Notifications", self.notifications);
+
+                                    // Clear the first notification after a while, because we'll have seen it.
+                                    _.delay(function() {
+                                        var notif = self.notifications.first();
+
+                                        if (!notif.get('seen')) {
+                                            notif.seen();
+                                        }
+                                    }, 5000);
                                 });
                             }, self));
 
@@ -365,7 +386,7 @@ define([
                                     }
                                 });
 
-                                $('.js-notifholder .js-notifcount').hide();
+                                $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                             });
                         }
 
@@ -657,6 +678,8 @@ define([
                     _.delay(_.bind(self.update, self), 60000);
                 }
             });
+
+            $('#js-status').parent().prop('href', '/status.html?d=' + (new Date()).getTime());
         },
 
         render: function() {

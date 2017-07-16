@@ -13,7 +13,6 @@ define([
 
         render: function () {
             var self = this;
-            console.log("Render, group", self.options);
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
                 var v = new Iznik.Views.User.VolunteeringFull({
@@ -22,6 +21,11 @@ define([
 
                 v.render().then(function() {
                     self.$('.js-volunteering').html(v.$el);
+                    if (Iznik.Session.get('groups').length > 0) {
+                        self.$('.js-somegroups').show();
+                    } else {
+                        self.$('.js-nogroups').show();
+                    }
                 });
             });
 
