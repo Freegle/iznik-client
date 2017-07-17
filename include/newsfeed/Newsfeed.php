@@ -54,7 +54,13 @@ class Newsfeed extends Entity
         $hidden = $s->checkReferToSpammer($message) ? 'NOW()' : 'NULL';
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
+        list($lat, $lng) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL ];
+
+        # If we don't know where the user is, use the group location.
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+        $lat = ($groupid && $lat === NULL) ? $g->getPrivate('lat') : $lat;
+        $lng = ($groupid && $lng === NULL) ? $g->getPrivate('lng') : $lng;
+
 #        error_log("Create at $lat, $lng");
 
         if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT || $type == Newsfeed::TYPE_REFER_TO_WANTED) {

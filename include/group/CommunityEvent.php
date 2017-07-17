@@ -32,9 +32,6 @@ class CommunityEvent extends Entity
             if ($photo) {
                 $this->dbhm->preExec("UPDATE communityevents_images SET eventid = ? WHERE id = ?;", [ $id, $photo ]);
             }
-
-            $n = new Newsfeed($this->dbhr, $this->dbhm);
-            $fid = $n->create(Newsfeed::TYPE_COMMUNITY_EVENT, $userid, NULL, NULL, NULL, NULL, NULL, $id, NULL, NULL);
         }
 
         return($id);
@@ -60,6 +57,10 @@ class CommunityEvent extends Entity
             $this->id,
             $groupid
         ]);
+
+        # Create now so that we can pass the groupid.
+        $n = new Newsfeed($this->dbhr, $this->dbhm);
+        $fid = $n->create(Newsfeed::TYPE_COMMUNITY_EVENT, $this->event['userid'], NULL, NULL, NULL, NULL, $groupid, $this->id, NULL, NULL);
     }
 
     public function removeGroup($id) {
