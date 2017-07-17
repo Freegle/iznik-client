@@ -86,7 +86,7 @@ class Newsfeed extends Entity
             if ($id) {
                 $this->fetch($this->dbhm, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
 
-                if ($replyto && !$hidden) {
+                if ($replyto && $hidden == 'NULL') {
                     # Bump the thread.
                     $this->dbhm->preExec("UPDATE newsfeed SET timestamp = NOW() WHERE id = ?;", [ $replyto ]);
 
