@@ -1193,7 +1193,7 @@ class User extends Entity
 
         if ($s) {
             $settings = json_decode($s, TRUE);
-            $ret = presdef($setting, $settings, $default);
+            $ret = array_key_exists($setting, $settings) ? $settings[$setting] : $default;
         }
 
         return($ret);
