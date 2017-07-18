@@ -111,7 +111,7 @@ class Location extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'locations', 'loc', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'locations', 'loc', $this->publicatts);
             $this->log->log([
                 'type' => Log::TYPE_LOCATION,
                 'subtype' => Log::SUBTYPE_CREATED,
@@ -574,7 +574,7 @@ class Location extends Entity
             if ($rc) {
                 $this->remapPostcodes($val, $this->loc['gridid']);
 
-                $this->fetch($this->dbhr, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
+                $this->fetch($this->dbhm, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
             }
         }
         return($rc);

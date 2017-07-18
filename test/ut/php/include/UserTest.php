@@ -971,6 +971,21 @@ class userTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testSetting() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhm, $this->dbhm);
+        $u->create('Test', 'User', 'A freegler');
+        assertTrue($u->getSetting('notificationmails', TRUE));
+
+        $settings = json_decode($u->getPrivate('settings'), TRUE);
+        $settings['notificationmails'] = FALSE;
+        $u->setPrivate('settings', json_encode($settings));
+        assertFalse($u->getSetting('notificationmails', TRUE));
+
+        error_log(__METHOD__ . " end");
+    }
 //
 //    public function testSpecial() {
 //        error_log(__METHOD__);

@@ -31,7 +31,7 @@ class Shortlink extends Entity
         $id = $this->dbhm->lastInsertId();
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'shortlinks', 'shortlink', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'shortlinks', 'shortlink', $this->publicatts);
             $ret = $id;
         }
 

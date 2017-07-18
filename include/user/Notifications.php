@@ -160,6 +160,7 @@ class Notifications
             $u = new User($this->dbhr, $this->dbhm, $user['touser']);
             error_log("Consider {$user['touser']} email " . $u->getEmailPreferred());
             if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
+                error_log("...send");
                 $ctx = NULL;
                 $notifs = $this->get($user['touser'], $ctx);
 
@@ -169,7 +170,7 @@ class Notifications
                     if (!$notif['seen'] && $notif['type'] != Notifications::TYPE_TRY_FEED) {
                         switch ($notif['type']) {
                             case Notifications::TYPE_COMMENT_ON_COMMENT:
-                                $str .= "{$notif['fromuser']['displayname']} replied to your comment on '{$notif['newsfeed']['replyto']['message']}'\n";
+                                $str .= "{$notif['fromuser']['displayname']} replied to your comment " . ($notif['newsfeed']['replyto']['message'] ? ("on {$notif['newsfeed']['replyto']['message']}") : "") . "\n";
                                 break;
                             case Notifications::TYPE_COMMENT_ON_YOUR_POST:
                                 $str .= "{$notif['fromuser']['displayname']} commented on '{$notif['newsfeed']['message']}'\n";
@@ -192,7 +193,7 @@ class Notifications
                 $html = notification_email($url, $noemail, $u->getName(), $u->getEmailPreferred(), nl2br($str));
 
                 $message = Swift_Message::newInstance()
-                    ->setSubject("You have " . count($notifs) . " new notifications")
+                    ->setSubject("You have " . ($count ? $count : '') . " new notifications")
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath($u->getBounce())
                     ->setTo([ $u->getEmailPreferred() => $u->getName() ])

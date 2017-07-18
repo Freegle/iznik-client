@@ -19,7 +19,7 @@ require_once(IZNIK_BASE . '/mailtemplates/newsfeed/digest.php');
 class Newsfeed extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'timestamp', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted');
+    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted');
 
     /** @var  $log Log */
     private $log;
@@ -54,7 +54,13 @@ class Newsfeed extends Entity
         $hidden = $s->checkReferToSpammer($message) ? 'NOW()' : 'NULL';
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
+        list($lat, $lng) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL ];
+
+        # If we don't know where the user is, use the group location.
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+        $lat = ($groupid && $lat === NULL) ? $g->getPrivate('lat') : $lat;
+        $lng = ($groupid && $lng === NULL) ? $g->getPrivate('lng') : $lng;
+
 #        error_log("Create at $lat, $lng");
 
         if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT || $type == Newsfeed::TYPE_REFER_TO_WANTED) {
@@ -78,9 +84,9 @@ class Newsfeed extends Entity
             $id = $this->dbhm->lastInsertId();
 
             if ($id) {
-                $this->fetch($this->dbhr, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
+                $this->fetch($this->dbhm, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
 
-                if ($replyto) {
+                if ($replyto && !$hidden) {
                     # Bump the thread.
                     $this->dbhm->preExec("UPDATE newsfeed SET timestamp = NOW() WHERE id = ?;", [ $replyto ]);
 
@@ -272,6 +278,8 @@ class Newsfeed extends Entity
                 $entry['loved'] = $likes[0]['count'] > 0;
             }
 
+            $myid = $me ? $me->getId() : NULL;
+
             $entry['replies'] = [];
 
             if ($checkreplies) {
@@ -283,18 +291,26 @@ class Newsfeed extends Entity
                 $last = NULL;
 
                 foreach ($replies as &$reply) {
-                    # Replies only one deep at present.
-                    $this->fillIn($reply, $users, FALSE);
+                    $hidden = $reply['hidden'];
 
-                    if ($reply['visible'] &&
-                        $last['userid'] == $reply['userid'] &&
-                        $last['type'] == $reply['type'] &&
-                        $last['message'] == $reply['message']) {
-                        # Suppress duplicates.
-                        $reply['visible'] = FALSE;
+                    # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
+                    # are there but nobody else sees them.
+                    if (!$hidden || $myid == $entry['userid']) {
+                        # Replies only one deep at present.
+                        $this->fillIn($reply, $users, FALSE);
+
+                        if ($reply['visible'] &&
+                            $last['userid'] == $reply['userid'] &&
+                            $last['type'] == $reply['type'] &&
+                            $last['message'] == $reply['message']
+                        ) {
+                            # Suppress duplicates.
+                            $reply['visible'] = FALSE;
+                        }
+
+                        $entry['replies'][] = $reply;
                     }
-                    
-                    $entry['replies'][] = $reply;
+
                     $last = $reply;
                 }
             }

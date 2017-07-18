@@ -202,7 +202,7 @@ class Group extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'groups', 'group', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'groups', 'group', $this->publicatts);
             $this->log->log([
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_CREATED,

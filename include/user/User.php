@@ -267,7 +267,7 @@ class User extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'users', 'user', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'users', 'user', $this->publicatts);
             $this->log->log([
                 'type' => Log::TYPE_USER,
                 'subtype' => Log::SUBTYPE_CREATED,
@@ -1193,7 +1193,7 @@ class User extends Entity
 
         if ($s) {
             $settings = json_decode($s, TRUE);
-            $ret = presdef($setting, $settings, $default);
+            $ret = array_key_exists($setting, $settings) ? $settings[$setting] : $default;
         }
 
         return($ret);

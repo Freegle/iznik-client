@@ -1034,7 +1034,7 @@ class MailRouter
 
         # Dropped messages will get tidied up by an event in the DB, but we leave them around in case we need to
         # look at them for PD.
-        error_log("Routed #" . $this->msg->getID(). " " . $this->msg->getMessageID() . " " . $this->msg->getSubject() . " " . $ret);
+        error_log("Routed #" . $this->msg->getID(). " " . $this->msg->getMessageID() . " " . $this->msg->getEnvelopefrom() . " -> " . $this->msg->getEnvelopeto() . " " . $this->msg->getSubject() . " " . $ret);
 
         return($ret);
     }

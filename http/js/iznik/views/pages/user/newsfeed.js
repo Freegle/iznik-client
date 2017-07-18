@@ -212,11 +212,9 @@ define([
 
                 mod.save().then(function() {
                     mod.fetch().then(function() {
-                        console.log("Fetched", mod)
                         self.collection.add(mod, {
                             at: 0
                         });
-                        console.log("Added", mod);
                         self.$('.js-message').val('');
                         self.$('.js-message').prop('disabled', false);
                     });
@@ -433,9 +431,11 @@ define([
             });
 
             self.listenToOnce(v, 'modalClosed', function() {
-                console.log("Modal closed");
                 self.model.fetch().then(function() {
                     self.$('.js-message').html(_.escape(self.model.get('message')));
+                    if (self.$('.js-message').length) {
+                        twemoji.parse(self.$('.js-message').get()[0]);
+                    }
                 });
             });
 
@@ -539,13 +539,6 @@ define([
                         resolve();
                     });
                 });
-            });
-
-            p.then(function() {
-                if (self.$('.js-emoji').length) {
-                    var el = self.$('.js-emoji').get()[0];
-                    twemoji.parse(el);
-                }
             });
 
             return(p);
@@ -654,6 +647,9 @@ define([
             p.then(function() {
                 autosize(self.$('.js-message'));
                 self.$('.js-message').val(self.model.get('message'));
+                if (self.$('.js-message').length) {
+                    twemoji.parse(self.$('.js-message').get()[0]);
+                }
                 autosize.update(self.$('.js-message'));
             });
 
@@ -689,6 +685,10 @@ define([
             e.stopPropagation();
 
             self.$('.js-message').html(_.escape(self.model.get('moremessage')));
+            if (self.$('.js-message').length) {
+                twemoji.parse(self.$('.js-message').get()[0]);
+            }
+
             self.$('.js-moremessage').hide();
         },
 
@@ -904,6 +904,9 @@ define([
                             }
 
                             self.$('.js-message').html(_.escape(self.model.get('message')));
+                            if (self.$('.js-message').length) {
+                                twemoji.parse(self.$('.js-message').get()[0]);
+                            }
                         }
 
                         if (self.model.get('eventid')) {
@@ -995,6 +998,9 @@ define([
             e.stopPropagation();
 
             self.$('.js-message').html(self.model.get('moremessage'));
+            if (self.$('.js-message').length) {
+                twemoji.parse(self.$('.js-message').get()[0]);
+            }
             self.$('.js-moremessage').hide();
         },
 
@@ -1013,8 +1019,13 @@ define([
             var preview = self.model.get('preview');
             if (preview) {
                 // Don't allow previews which are too long.
-                preview.title = ellipsical(strip_tags(preview.title), 120);
-                preview.description = ellipsical(strip_tags(preview.description), 255);
+                if (preview.title) {
+                    preview.title = ellipsical(strip_tags(preview.title), 120);
+                }
+
+                if (preview.description) {
+                    preview.description = ellipsical(strip_tags(preview.description), 255);
+                }
                 self.model.set('preview', preview);
             }
 
@@ -1034,6 +1045,9 @@ define([
                     }
 
                     self.$('.js-message').html(_.escape(self.model.get('message')));
+                    if (self.$('.js-message').length) {
+                        twemoji.parse(self.$('.js-message').get()[0]);
+                    }
                 }
 
                 if (self.model.get('id') == self.options.highlight) {

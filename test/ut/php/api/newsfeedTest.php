@@ -392,5 +392,31 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function checkSpammer() {
+        error_log(__METHOD__);
+
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test with (miraabeller44@gmail.com)'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        error_log("Created feed {$ret['id']}");
+        $nid = $ret['id'];
+
+        # Get this individual one
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals($nid, $ret['newsfeed']['id']);
+
+        $n = new Newsfeed($this->dbhr, $this->dbhm, $nid);
+        assertNotNull($n->getPrivate('hidden'));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

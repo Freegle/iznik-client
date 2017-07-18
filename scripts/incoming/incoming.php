@@ -24,7 +24,9 @@ $logh = fopen($log, 'a');
 
 fwrite($logh, "-----\nFrom $envfrom to $envto Message\n$msg\n-----\n");
 
-$r = new MailRouter($dbhr, $dbhm);
+# Use master to avoid replication delays where we create a message when receiving, but it's not replicated when
+# we route it.
+$r = new MailRouter($dbhm, $dbhm);
 
 error_log("\n----------------------\n$envfrom => $envto");
 
