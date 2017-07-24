@@ -893,6 +893,11 @@ define([
                     });
 
                     p.then(function() {
+                        if (self.model.get('moremessage')) {
+                            // Handle re-render.
+                            self.model.set('message', self.model.get('moremessage'));
+                        }
+
                         var message = self.model.get('message');
 
                         if (message) {
@@ -1034,6 +1039,11 @@ define([
             });
 
             p.then(function() {
+                if (self.model.get('moremessage')) {
+                    // Handle re-render.
+                    self.model.set('message', self.model.get('moremessage'));
+                }
+
                 var message = self.model.get('message');
 
                 if (message) {
