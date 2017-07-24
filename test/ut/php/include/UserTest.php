@@ -82,6 +82,7 @@ class userTest extends IznikTestCase {
 
         # Add an email - should work.
         assertGreaterThan(0, $u->addEmail('test@test.com'));
+        assertEquals(0, $u->getEmailAge('test@test.com'));
 
         # Check it's there
         $emails = $u->getEmails();

@@ -36,6 +36,20 @@ foreach ($messages as $message) {
             if ($uid) {
                 $u = User::get($dbhr, $dbhm, $uid);
                 list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE, TRUE);
+                $ouremail = $u->getOurEmail();
+
+                # If the message has been hanging around for a while, it might be that Yahoo has blocked our
+                # subscribe request for this specific email (testing shows that it can do that).  So see when
+                # this email was created - if it's old then create a new one.
+//                $age = $u->getEmailAge($ouremail);
+//                error_log("$ouremail is $age hours old");
+//                if ($ouremail && $age >= 24) {
+//                    $email = $u->inventEmail(TRUE);
+//                    error_log("$ouremail is old; try from new email address $email");
+//                    $u->addEmail($email, 0, FALSE);
+//                }
+
+                error_log("Email $email id $eid for {$message['groupid']}");
 
                 if ($eid) {
                     # Now approved - we can submit.

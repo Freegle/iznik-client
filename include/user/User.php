@@ -309,10 +309,12 @@ class User extends Entity
         return(NULL);
     }
 
-    public function getEmails() {
+    public function getEmails($recent = FALSE) {
         # Don't return canon - don't need it on the client.
+        $ordq = $recent ? 'id' : 'preferred';
+
         if (!$this->emails) {
-            $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY preferred DESC, email ASC;";
+            $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid = ? ORDER BY $ordq DESC, email ASC;";
             #error_log("$sql, {$this->id}");
             $this->emails = $this->dbhr->preQuery($sql, [$this->id]);
         }
@@ -345,6 +347,7 @@ class User extends Entity
         $ret = NULL;
 
         foreach ($emails as $email) {
+            error_log("Check {$email['email']}");
             if (ourDomain($email['email'])) {
                 $ret = $email['email'];
                 break;
@@ -363,6 +366,14 @@ class User extends Entity
     public function isApprovedMember($groupid) {
         $membs = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ? AND collection = 'Approved';", [ $this->id, $groupid ]);
         return(count($membs) > 0);
+    }
+
+    public function getEmailAge($email) {
+        $emails = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), added) AS ago FROM users_emails WHERE email LIKE ?;", [
+            $email
+        ]);
+
+        return(count($emails) > 0 ? $emails[0]['ago'] : NULL);
     }
 
     public function getEmailForYahooGroup($groupid, $oursonly = FALSE, $approvedonly = TRUE) {
@@ -390,7 +401,8 @@ class User extends Entity
             $emailq = " AND ($emailq)";
         }
 
-        $sql = "SELECT memberships_yahoo.emailid, users_emails.email FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id WHERE memberships.userid = ? AND groupid = ? $emailq $collq;";
+        # Return most recent first.  This helps in the message_waitingforyahoo case where we add extra emails.
+        $sql = "SELECT memberships_yahoo.emailid, users_emails.email FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid INNER JOIN users_emails ON memberships_yahoo.emailid = users_emails.id WHERE memberships.userid = ? AND groupid = ? $emailq $collq ORDER BY users_emails.id DESC;";
         #error_log($sql . ", {$this->id}, $groupid");
         $emails = $this->dbhr->preQuery($sql, [
             $this->id,
@@ -2909,14 +2921,19 @@ class User extends Entity
         return($rc);
     }
 
-    public function inventEmail() {
+    public function inventEmail($force = FALSE) {
         # An invented email is one on our domain that doesn't give away too much detail, but isn't just a string of
         # numbers (ideally).  We may already have one.
         $email = NULL;
-        $emails = $this->getEmails();
-        foreach ($emails as $thisemail) {
-            if (strpos($thisemail['email'], USER_DOMAIN ) !== FALSE) {
-                $email = $thisemail['email'];
+
+        if (!$force) {
+            # We want the most recent of our own emails.
+            $emails = $this->getEmails(TRUE);
+            foreach ($emails as $thisemail) {
+                if (strpos($thisemail['email'], USER_DOMAIN ) !== FALSE) {
+                    $email = $thisemail['email'];
+                    break;
+                }
             }
         }
 
@@ -2925,20 +2942,23 @@ class User extends Entity
             # email addresses (don't ask) and we don't want those.  And some are stupidly long.
             $yahooid = $this->getPrivate('yahooid');
 
-            if ($yahooid && strpos($yahooid, '@') === FALSE && strlen($yahooid) <= 16) {
+            if (!$force && $yahooid && strpos($yahooid, '@') === FALSE && strlen($yahooid) <= 16) {
                 $email = str_replace(' ', '', $yahooid) . '-' . $this->id . '@' . USER_DOMAIN;
             } else {
                 # Their own email might already be of that nature, which would be lovely.
                 $personal = [];
-                $email = $this->getEmailPreferred();
 
-                if ($email) {
-                    foreach (['firstname', 'lastname', 'fullname'] as $att) {
-                        $words = explode(' ', $this->user[$att]);
-                        foreach ($words as $word) {
-                            if (stripos($email, $word) !== FALSE) {
-                                # Unfortunately not - it has some personal info in it.
-                                $email = NULL;
+                if (!$force) {
+                    $email = $this->getEmailPreferred();
+
+                    if ($email) {
+                        foreach (['firstname', 'lastname', 'fullname'] as $att) {
+                            $words = explode(' ', $this->user[$att]);
+                            foreach ($words as $word) {
+                                if (stripos($email, $word) !== FALSE) {
+                                    # Unfortunately not - it has some personal info in it.
+                                    $email = NULL;
+                                }
                             }
                         }
                     }
@@ -2949,7 +2969,7 @@ class User extends Entity
                     $p = strpos($email, '@');
                     $email = substr($email, 0, $p) . '-' . $this->id . '@' . USER_DOMAIN;
                 } else {
-                    # We can't make up something similar to their existing email address.
+                    # We can't make up something similar to their existing email address so invent from scratch.
                     $lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
                     $bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
                     $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
@@ -2984,11 +3004,11 @@ class User extends Entity
         # the cron jobs to retry if this doesn't work.
         list ($transport, $mailer) = getMailer();
         $message = Swift_Message::newInstance()
-            ->setSubject('Please let me join')
+            ->setSubject("I'm $email, please let me join at " . date(DATE_RSS))
             ->setFrom([$email])
             ->setTo($g->getGroupSubscribe())
             ->setDate(time())
-            ->setBody('Pretty please');
+            ->setBody("It's " . date(DATE_RSS) . " and I'd like to join as $email");
         $this->sendIt($mailer, $message);
 
         if ($log) {
