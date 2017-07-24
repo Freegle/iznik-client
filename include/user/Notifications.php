@@ -168,22 +168,25 @@ class Notifications
 
                 foreach ($notifs as $notif) {
                     if (!$notif['seen'] && $notif['type'] != Notifications::TYPE_TRY_FEED) {
+                        #error_log("Message is {$notif['newsfeed']['message']} len " . strlen($notif['newsfeed']['message']));
                         switch ($notif['type']) {
                             case Notifications::TYPE_COMMENT_ON_COMMENT:
-                                $str .= "{$notif['fromuser']['displayname']} replied to your comment " . ($notif['newsfeed']['replyto']['message'] ? ("on {$notif['newsfeed']['replyto']['message']}") : "") . "\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " replied to your comment " . ($notif['newsfeed']['replyto']['message'] ? ("on {$notif['newsfeed']['replyto']['message']}") : "") . "\n";
+                                $count++;
                                 break;
                             case Notifications::TYPE_COMMENT_ON_YOUR_POST:
-                                $str .= "{$notif['fromuser']['displayname']} commented on '{$notif['newsfeed']['message']}'\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " commented on " . ($notif['newsfeed']['message'] ? "'{$notif['newsfeed']['message']}'" : "your post") . "\n";
+                                $count++;
                                 break;
                             case Notifications::TYPE_LOVED_POST:
-                                $str .= "{$notif['fromuser']['displayname']} loved your post '{$notif['newsfeed']['message']}'\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " loved your post '{$notif['newsfeed']['message']}'\n";
+                                $count++;
                                 break;
                             case Notifications::TYPE_LOVED_COMMENT:
-                                $str .= "{$notif['fromuser']['displayname']} loved your comment '{$notif['newsfeed']['message']}'\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " loved your comment '{$notif['newsfeed']['message']}'\n";
+                                $count++;
                                 break;
                         }
-
-                        $count++;
                     }
                 }
 
@@ -193,7 +196,7 @@ class Notifications
                 $html = notification_email($url, $noemail, $u->getName(), $u->getEmailPreferred(), nl2br($str));
 
                 $message = Swift_Message::newInstance()
-                    ->setSubject("You have " . ($count ? $count : '') . " new notifications")
+                    ->setSubject("You have " . ($count ? $count : '') . " new notification" . ($count != 1 ? 's' : ''))
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath($u->getBounce())
                     ->setTo([ $u->getEmailPreferred() => $u->getName() ])
