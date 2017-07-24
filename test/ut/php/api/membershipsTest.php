@@ -896,6 +896,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'collection' => 'Pending'
         ]);
         assertEquals($this->uid, $ret['member']['heldby']['id']);
+        assertEquals($this->uid, $u->isHeld($this->groupid));
 
         $ret = $this->call('memberships', 'POST', [
             'userid' => $uid,

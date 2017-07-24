@@ -369,7 +369,7 @@ class User extends Entity
     }
 
     public function getEmailAge($email) {
-        $emails = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), added) AS ago FROM users_emails WHERE email LIKE ?;", [
+        $emails = $this->dbhr->preQuery("SELECT TIMESTAMPDIFF(HOUR, added, NOW()) AS ago FROM users_emails WHERE email LIKE ?;", [
             $email
         ]);
 
@@ -1946,7 +1946,7 @@ class User extends Entity
         return($atts);
     }
 
-    private function getOurEmailId() {
+    public function getOurEmailId() {
         # For groups we host, we need to know our own email for this user so that we can return it as the
         # email used on the group.
         if (!$this->ouremailid) {
@@ -2610,6 +2610,20 @@ class User extends Entity
         }
 
         $this->notif->notifyGroupMods($groupid);
+    }
+
+    function isHeld($groupid) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $sql = "SELECT heldby FROM memberships WHERE userid = ? AND groupid = ?;";
+        $membs = $this->dbhm->preQuery($sql, [ $this->id, $groupid ]);
+        $ret = NULL;
+
+        foreach ($membs as $memb) {
+            $ret = $memb['heldby'];
+        }
+
+        return($ret);
     }
 
     function release($groupid) {
