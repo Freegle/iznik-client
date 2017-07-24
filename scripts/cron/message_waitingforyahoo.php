@@ -25,6 +25,8 @@ foreach ($messages as $message) {
     $l->log([
         'type' => Log::TYPE_MESSAGE,
         'subtype' => Log::SUBTYPE_AUTO_APPROVED,
+        'groupid' => $message['groupid'],
+        'msgid' => $message['msgid']
     ]);
 }
 
@@ -69,6 +71,8 @@ foreach ($messages as $message) {
                     $l->log([
                         'type' => Log::TYPE_GROUP,
                         'subtype' => Log::SUBTYPE_AUTO_APPROVED,
+                        'groupid' => $message['groupid'],
+                        'msgid' => $message['id']
                     ]);
                 }
 
