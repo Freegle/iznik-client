@@ -12,7 +12,7 @@ $l = new Log($dbhr, $dbhm);
 
 # Look for messages which have been pending for too long.  This fallback catches cases where the message doesn't
 # reach Yahoo properly, or the group is not being regularly moderated.
-$sql = "SELECT msgid, groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS ago FROM messages_groups WHERE collection = ? HAVING ago > 48;";
+$sql = "SELECT msgid, groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS ago FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE collection = ? AND heldby IS NULL HAVING ago > 48;";
 $messages = $dbhr->preQuery($sql, [
     MessageCollection::PENDING
 ]);
