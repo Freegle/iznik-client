@@ -62,7 +62,7 @@ class Volunteering extends Entity
 
         # Create now so that we can pass the groupid.
         $n = new Newsfeed($this->dbhr, $this->dbhm);
-        $fid = $n->create(Newsfeed::TYPE_COMMUNITY_EVENT, $this->volunteering['userid'], NULL, NULL, NULL, NULL, $groupid, NULL, $this->id, NULL);
+        $fid = $n->create(Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY, $this->volunteering['userid'], NULL, NULL, NULL, NULL, $groupid, NULL, $this->id, NULL);
     }
 
     public function removeGroup($id) {
