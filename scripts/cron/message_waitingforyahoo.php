@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 # Look for messages which were queued and can now be sent.  This fallback catches cases where Yahoo doesn't let us know
 # that someone is now a member, but we find out via other means (e.g. plugin).
 
-$sql = "SELECT messages.id, messages.date, messages.subject, messages.fromaddr, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE collection = ? AND messages_outcomes.msgid IS NULL and messages.id = 23115140;";
+$sql = "SELECT messages.id, messages.date, messages.subject, messages.fromaddr, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE collection = ? AND messages_outcomes.msgid IS NULL;";
 $messages = $dbhr->preQuery($sql, [
     MessageCollection::QUEUED_YAHOO_USER
 ]);
@@ -36,6 +36,20 @@ foreach ($messages as $message) {
             if ($uid) {
                 $u = User::get($dbhr, $dbhm, $uid);
                 list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE, TRUE);
+                $ouremail = $u->getOurEmail();
+
+                # If the message has been hanging around for a while, it might be that Yahoo has blocked our
+                # subscribe request for this specific email (testing shows that it can do that).  So see when
+                # this email was created - if it's old then create a new one.
+//                $age = $u->getEmailAge($ouremail);
+//                error_log("$ouremail is $age hours old");
+//                if ($ouremail && $age >= 24) {
+//                    $email = $u->inventEmail(TRUE);
+//                    error_log("$ouremail is old; try from new email address $email");
+//                    $u->addEmail($email, 0, FALSE);
+//                }
+
+                error_log("Email $email id $eid for {$message['groupid']}");
 
                 if ($eid) {
                     # Now approved - we can submit.
