@@ -37,6 +37,9 @@ class Newsfeed extends Entity
     const TYPE_ALERT = 'Alert';
     const TYPE_STORY = 'Story';
     const TYPE_REFER_TO_WANTED = 'ReferToWanted';
+    const TYPE_REFER_TO_OFFER = 'ReferToOffer';
+    const TYPE_REFER_TO_TAKEN = 'ReferToTaken';
+    const TYPE_REFER_TO_RECEIVED = 'ReferToReceived';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -63,7 +66,14 @@ class Newsfeed extends Entity
 
 #        error_log("Create at $lat, $lng");
 
-        if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT || $type == Newsfeed::TYPE_REFER_TO_WANTED) {
+        if ($lat || $lng ||
+            $type == Newsfeed::TYPE_CENTRAL_PUBLICITY ||
+            $type == Newsfeed::TYPE_ALERT ||
+            $type == Newsfeed::TYPE_REFER_TO_WANTED ||
+            $type == Newsfeed::TYPE_REFER_TO_OFFER ||
+            $type == Newsfeed::TYPE_REFER_TO_TAKEN ||
+            $type == Newsfeed::TYPE_REFER_TO_RECEIVED
+        ) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
@@ -410,11 +420,20 @@ class Newsfeed extends Entity
         return([$users, $items]);
     }
 
-    public function referToWanted() {
+    public function refer($type) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
         # Create a kind of comment and notify the poster.
-        $id = $this->create(Newsfeed::TYPE_REFER_TO_WANTED, NULL, NULL, NULL, NULL, $this->id);
+        $id = $this->create($type, NULL, NULL, NULL, NULL, $this->id);
         $n = new Notifications($this->dbhr, $this->dbhm);
-        $n->add(NULL, $this->feed['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
+        $n->add($myid, $this->feed['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
+
+        # Hide this post except to the author.
+        $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW(), hiddenby = ? WHERE id = ?;", [
+            $myid,
+            $this->id
+        ]);
     }
 
     public function like() {
