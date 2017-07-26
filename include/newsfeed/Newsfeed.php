@@ -424,16 +424,20 @@ class Newsfeed extends Entity
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
+        $referredid = $this->id;
+        $userid = $this->feed['userid'];
+
         # Create a kind of comment and notify the poster.
         $id = $this->create($type, NULL, NULL, NULL, NULL, $this->id);
         $n = new Notifications($this->dbhr, $this->dbhm);
-        $n->add($myid, $this->feed['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
+        $n->add($myid, $userid, Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
 
         # Hide this post except to the author.
-        $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW(), hiddenby = ? WHERE id = ?;", [
+        $rc = $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW(), hiddenby = ? WHERE id = ?;", [
             $myid,
-            $this->id
+            $referredid
         ]);
+        error_log("Refer $rc " . $this->dbhm->rowsAffected());
     }
 
     public function like() {

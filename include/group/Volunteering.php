@@ -190,17 +190,17 @@ class Volunteering extends Entity
         # We can modify volunteerings which we created, or where we are a mod on any of the groups on which this volunteering
         # appears, or if we're support/admin.
         $canmodify = $this->volunteering['userid'] == $userid;
-        error_log("Check user {$this->volunteering['userid']}, $userid");
+        #error_log("Check user {$this->volunteering['userid']}, $userid");
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-        error_log("Can mod? $canmodify");
+        #error_log("Can mod? $canmodify");
         if (!$canmodify) {
             $groups = $this->dbhr->preQuery("SELECT * FROM volunteering_groups WHERE volunteeringid = ?;", [ $this->id ]);
-            error_log("SELECT * FROM volunteering_groups WHERE volunteeringid = {$this->id};");
+            #error_log("SELECT * FROM volunteering_groups WHERE volunteeringid = {$this->id};");
             foreach ($groups as $group) {
-                error_log("Check for group {$group['groupid']} " . $u->isAdminOrSupport() . ", " . $u->isModOrOwner($group['groupid']));
+                #error_log("Check for group {$group['groupid']} " . $u->isAdminOrSupport() . ", " . $u->isModOrOwner($group['groupid']));
                 if ($u->isAdminOrSupport() || $u->isModOrOwner($group['groupid'])) {
-                    error_log("Can");
+                    #error_log("Can");
                     $canmodify = TRUE;
                 }
             }
