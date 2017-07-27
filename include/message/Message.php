@@ -3098,6 +3098,9 @@ class Message
             $this->setPrivate('lat', $atts['location']['lat']);
             $this->setPrivate('lng', $atts['location']['lng']);
 
+            # Save off this as the last known location for this user.
+            $fromuser->setPrivate('lastlocation', $atts['location']['id']);
+
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $this->setPrivate('envelopeto', $g->getGroupEmail());
 

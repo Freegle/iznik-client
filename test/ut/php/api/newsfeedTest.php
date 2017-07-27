@@ -381,6 +381,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $e = new Volunteering($this->dbhr, $this->dbhm);
         $eid = $e->create($this->uid, 'Test opp', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        error_log("Created $eid");
         $e->addGroup($gid);
         $e->setPrivate('pending', 0);
 
