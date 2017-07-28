@@ -146,7 +146,6 @@ class Notifications
     }
 
     public function sendEmails($userid = NULL, $before = '24 hours ago', $since = '7 days ago') {
-        $count = 0;
         $userq = $userid ? " AND `touser` = $userid " : '';
 
         $mysqltime = date("Y-m-d H:i:s", strtotime($before));
@@ -156,7 +155,10 @@ class Notifications
             Notifications::TYPE_TRY_FEED
         ]);
 
+        $total = 0;
+
         foreach ($users as $user) {
+            $count = 0;
             $u = new User($this->dbhr, $this->dbhm, $user['touser']);
             error_log("Consider {$user['touser']} email " . $u->getEmailPreferred());
             if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
@@ -205,9 +207,11 @@ class Notifications
 
                 list ($transport, $mailer) = getMailer();
                 $this->sendIt($mailer, $message);
+
+                $total += $count;
             }
         }
 
-        return($count);
+        return($total);
     }
 }
