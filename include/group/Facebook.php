@@ -94,7 +94,6 @@ class GroupFacebook {
 
             $posts = $ret->getDecodedBody();
             #error_log("Posts " . var_export($posts, TRUE));
-            $id = NULL;
 
             foreach ($posts['data'] as $wallpost) {
                 $rc = $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_toshare (sharefrom, postid, data) VALUES (?,?,?);", [
@@ -105,13 +104,14 @@ class GroupFacebook {
 
                 if ($rc) {
                     $id = $this->dbhm->lastInsertId();
-                }
-            }
 
-            if ($id) {
-                # We only want one copy of this in our newsfeed because it's shown to everyone.
-                $n = new Newsfeed($this->dbhr, $this->dbhm);
-                $fid = $n->create(Newsfeed::TYPE_CENTRAL_PUBLICITY, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $id);
+                    if ($id) {
+                        # We only want one copy of this in our newsfeed because it's shown to everyone.
+                        $n = new Newsfeed($this->dbhr, $this->dbhm);
+                        $fid = $n->create(Newsfeed::TYPE_CENTRAL_PUBLICITY, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $id);
+                        error_log("Created Newsfeed item $fid");
+                    }
+                }
             }
         } catch (Exception $e) {
             $code = $e->getCode();
