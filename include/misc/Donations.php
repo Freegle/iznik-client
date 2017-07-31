@@ -20,7 +20,7 @@ class Donations
         $mysqltime = $this->groupid ? date("Y-m-d", strtotime('1st January this year')) : date("Y-m-d", strtotime('first day of this month'));
         $groupq = $this->groupid ? " INNER JOIN memberships ON users_donations.userid = memberships.userid AND groupid = {$this->groupid} " : '';
 
-        $totals = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS raised FROM users_donations $groupq WHERE timestamp >= ?;", [
+        $totals = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS raised FROM users_donations $groupq WHERE timestamp >= ? AND payer != 'ppgfukpay@paypalgivingfund.org';", [
             $mysqltime
         ]);
         $ret['raised'] = $totals[0]['raised'];
