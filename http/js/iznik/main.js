@@ -351,7 +351,7 @@ mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, 15);
             msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
             badgeconsole += msg;
             $('#badgeconsole').html(badgeconsole);*/
-/*            if (data.count > 0) {
+  /*          if (data.count > 0) {
                 //alert(JSON.stringify(data));
                 var showChat = (isiOS && !foreground) || doubleEvent;
                 if (showChat) {
@@ -369,22 +369,6 @@ mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, 15);
                                 setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
                             }
                         })(10);
-
-                        /*require(['iznik/views/chat/chat'], function (ChatHolder) {
-                            //_.each(chatids, function (chatid) {
-                            //    ChatHolder().fetchAndRestore(chatid);
-                            //});
-                            // Just open first chat - when logged in
-                            var chatid = chatids[0];
-                            (function waitUntilLoggedIn(i) {
-                                if (Iznik.Session.loggedIn) {
-                                    //ChatHolder().fetchAndRestore(chatid);
-                                    setTimeout(function () { ChatHolder().fetchAndRestore(chatid); }, 500);
-                                } else {
-                                    setTimeout(function () { if (--i) { waitUntilLoggedIn(i); } }, 1000);
-                                }
-                            })(10);
-                        });*/
                     }
                 }
             }*/
