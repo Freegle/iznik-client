@@ -336,21 +336,22 @@ require([
             //alert("push notification");
             console.log("push notification");
             console.log(data);
+            console.log(data.additionalData);
             var foreground = data.additionalData.foreground.toString() == 'true';
             var msgid = data.additionalData['google.message_id'];
             var doubleEvent = (!isiOS) && (msgid == lastPushMsgid);
             lastPushMsgid = msgid;
             if (!('count' in data)) { data.count = 0; }
             if (data.count == 0 || foreground) {
-                mobilePush.clearAllNotifications();   // no success and error fns given
+//mobilePush.clearAllNotifications();   // no success and error fns given
             }
-            mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+//mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
 mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, 15);
             /*var msg = new Date();
             msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
             badgeconsole += msg;
             $('#badgeconsole').html(badgeconsole);*/
-            if (data.count > 0) {
+/*            if (data.count > 0) {
                 //alert(JSON.stringify(data));
                 var showChat = (isiOS && !foreground) || doubleEvent;
                 if (showChat) {
@@ -386,7 +387,7 @@ mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, 15);
                         });*/
                     }
                 }
-            }
+            }*/
             /*require(['iznik/views/chat/chat'], function (ChatHolder) {
                 ChatHolder().fallback();
             });*/
