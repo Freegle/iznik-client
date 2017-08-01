@@ -960,12 +960,14 @@ define([
     });
 
     Iznik.Views.ModTools.User.FreegleMembership = Iznik.Views.ModTools.Member.Freegle.extend({
-        // This view finds the appopriate group in a user, then renders that membership.
+        // This view finds the appropriate group in a user, then renders that membership.
         render: function() {
+            console.log("FreegleMembership", this.model.get('id'));
             var self = this;
             var memberof = this.model.get('memberof');
             var membership = null;
             var p = resolvedPromise(self);
+            var userid = self.model.get('id');
 
             _.each(memberof, function(member) {
                 if (self.options.groupid == member.id) {
@@ -975,7 +977,6 @@ define([
                     mod.set('joined', member.added);
                     // console.log("My role is", self.options.groupid, mod.get('myrole'));
 
-                    var userid = self.model.get('id');
                     self.model = mod;
                     var group = Iznik.Session.getGroup(self.options.groupid);
                     self.model.set('group', group.attributes);
