@@ -2,6 +2,9 @@
     <div class="hidden-xs hidden-sm col-sm-12">
         <div class="padright clickme">
             <div>
+                <% if (obj.icon) { %>
+                <img src="{{icon}}" class="img-circle img-tinythumbnail" />
+                <% } %>
                 <% if (obj.chattype == 'Mod2Mod') { %>
                 <span class="glyphicons glyphicons-crown" />
                 <% } %>

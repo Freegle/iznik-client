@@ -276,6 +276,22 @@ class ChatRoom extends Entity
             }
         }
 
+        # Icon for chat
+        switch ($this->chatroom['chattype']) {
+            case ChatRoom::TYPE_USER2USER:
+                $ret['icon'] = ($ret['user1']['id'] == $myid) ? $ret['user2']['profile']['url'] : $ret['user1']['profile']['url'];
+                break;
+            case ChatRoom::TYPE_USER2MOD:
+                $ret['icon'] = $ret['user1']['id'] == $myid ? $ret['group']['profile'] : $ret['user1']['profile']['url'];
+                break;
+            case ChatRoom::TYPE_MOD2MOD:
+                $ret['icon'] = $ret['group']['profile'];
+                break;
+            case ChatRoom::TYPE_GROUP:
+                $ret['icon'] = $ret['group']['profile'];
+                break;
+        }
+
         $ret['unseen'] = $this->unseenCountForUser($myid);
 
         # The name we return is not the one we created it with, which is internal.
