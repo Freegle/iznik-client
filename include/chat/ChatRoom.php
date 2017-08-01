@@ -1225,109 +1225,109 @@ class ChatRoom extends Entity
                                 $lastmsg = $thisone;
                             }
                         }
+                    }
 
-                        #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
-                        if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
-                            if ($htmlsummary != '') {
-                                # As a subject, we should use the last referenced message in this chat.
-                                $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
-                                #error_log($sql . $chat['chatid']);
-                                $subjs = $this->dbhr->preQuery($sql, [
-                                    $chat['chatid']
-                                ]);
-                                #error_log(var_export($subjs, TRUE));
+                    #error_log("Consider justmine $justmine vs " . $thisu->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $thisu->getId());
+                    if (!$justmine || $thisu->notifsOn(User::NOTIFS_EMAIL_MINE)) {
+                        if ($htmlsummary != '') {
+                            # As a subject, we should use the last referenced message in this chat.
+                            $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+                            #error_log($sql . $chat['chatid']);
+                            $subjs = $this->dbhr->preQuery($sql, [
+                                $chat['chatid']
+                            ]);
+                            #error_log(var_export($subjs, TRUE));
 
-                                switch ($chattype) {
-                                    case ChatRoom::TYPE_USER2USER:
-                                        $subject = count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject']));
+                            switch ($chattype) {
+                                case ChatRoom::TYPE_USER2USER:
+                                    $subject = count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject']));
+                                    $site = USER_SITE;
+                                    break;
+                                case ChatRoom::TYPE_USER2MOD:
+                                    # We might either be notifying a user, or the mods.
+                                    $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
+                                    if ($member['role'] == User::ROLE_MEMBER) {
+                                        $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
                                         $site = USER_SITE;
-                                        break;
-                                    case ChatRoom::TYPE_USER2MOD:
-                                        # We might either be notifying a user, or the mods.
-                                        $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
-                                        if ($member['role'] == User::ROLE_MEMBER) {
-                                            $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
-                                            $site = USER_SITE;
-                                        } else {
-                                            $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
-                                            $site = MOD_SITE;
-                                        }
-                                        break;
+                                    } else {
+                                        $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $otheru->getName() . " (" . $otheru->getEmailPreferred() . ")";
+                                        $site = MOD_SITE;
+                                    }
+                                    break;
 //                            case ChatRoom::TYPE_MOD2MOD:
 //                                $subject = "New messages in Mod Chat";
 //                                $site = MOD_SITE;
 //                                break;
-                                }
+                            }
 
-                                # Construct the SMTP message.
-                                # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
-                                #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
-                                #   clients will show something interesting.
-                                # - The HTML bodypart will show the user text, but in a way that is designed to encourage people to
-                                #   click and reply on the web rather than by email.  This reduces the problems we have with quoting,
-                                #   and encourages people to use the (better) web interface, while still allowing email replies for
-                                #   those users who prefer it.  Because we put the text they're replying to inside a visual wrapping,
-                                #   it's less likely that they will interleave their response inside it - they will probably reply at
-                                #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
-                                #   added.
-                                $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
+                            # Construct the SMTP message.
+                            # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
+                            #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
+                            #   clients will show something interesting.
+                            # - The HTML bodypart will show the user text, but in a way that is designed to encourage people to
+                            #   click and reply on the web rather than by email.  This reduces the problems we have with quoting,
+                            #   and encourages people to use the (better) web interface, while still allowing email replies for
+                            #   those users who prefer it.  Because we put the text they're replying to inside a visual wrapping,
+                            #   it's less likely that they will interleave their response inside it - they will probably reply at
+                            #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
+                            #   added.
+                            $url = $thisu->loginLink($site, $member['userid'], '/chat/' . $chat['chatid'], User::SRC_CHATNOTIF);
 
-                                switch ($chattype) {
-                                    case ChatRoom::TYPE_USER2USER:
+                            switch ($chattype) {
+                                case ChatRoom::TYPE_USER2USER:
+                                    $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
+                                        $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
+                                    $sendname = $fromname;
+                                    break;
+                                case ChatRoom::TYPE_USER2MOD:
+                                    if ($member['role'] == User::ROLE_MEMBER) {
                                         $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
                                             $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
                                         $sendname = $fromname;
-                                        break;
-                                    case ChatRoom::TYPE_USER2MOD:
-                                        if ($member['role'] == User::ROLE_MEMBER) {
-                                            $html = chat_notify($site, $chatatts['chattype'] == ChatRoom::TYPE_MOD2MOD ? MODLOGO : USERLOGO, $fromname, $otheru->getId(), $url,
-                                                $htmlsummary, $thisu->getUnsubLink($site, $member['userid']), User::SRC_CHATNOTIF);
-                                            $sendname = $fromname;
-                                        } else {
-                                            $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
-                                            $sendname = 'Reply All';
-                                        }
-                                        break;
-                                }
-
-                                # We ask them to reply to an email address which will direct us back to this chat.
-                                $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
-                                $to = $thisu->getEmailPreferred();
-
-                                # ModTools users should never get notified.
-                                if ($to && strpos($to, MOD_SITE) === FALSE) {
-                                    error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
-                                    try {
-                                        #$to = 'log@ehibbert.org.uk';
-                                        # We only include the HTML part if this is a user on our platform; otherwise
-                                        # we just send a text bodypart containing the replies.  This means that our
-                                        # messages to users who aren't on here look less confusing.
-                                        $message = $this->constructMessage($thisu,
-                                            $member['userid'],
-                                            $thisu->getName(),
-                                            $to,
-                                            $sendname,
-                                            $replyto,
-                                            $subject,
-                                            $textsummary,
-                                            $thisu->getOurEmail() ? $html : NULL);
-                                        $this->mailer($message);
-
-                                        if ($ccit) {
-                                            error_log("CC image message");
-                                            $message->setBcc('log@ehibbert.org.uk');
-                                        }
-
-                                        $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
-                                            $lastmsgemailed,
-                                            $member['userid'],
-                                            $chat['chatid']
-                                        ]);
-
-                                        $notified++;
-                                    } catch (Exception $e) {
-                                        error_log("Send to {$member['userid']} failed with " . $e->getMessage());
+                                    } else {
+                                        $html = chat_notify_mod($site, MODLOGO, $fromname, $url, $htmlsummary, SUPPORT_ADDR, $thisu->isModerator());
+                                        $sendname = 'Reply All';
                                     }
+                                    break;
+                            }
+
+                            # We ask them to reply to an email address which will direct us back to this chat.
+                            $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . USER_DOMAIN;
+                            $to = $thisu->getEmailPreferred();
+
+                            # ModTools users should never get notified.
+                            if ($to && strpos($to, MOD_SITE) === FALSE) {
+                                error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
+                                try {
+                                    #$to = 'log@ehibbert.org.uk';
+                                    # We only include the HTML part if this is a user on our platform; otherwise
+                                    # we just send a text bodypart containing the replies.  This means that our
+                                    # messages to users who aren't on here look less confusing.
+                                    $message = $this->constructMessage($thisu,
+                                        $member['userid'],
+                                        $thisu->getName(),
+                                        $to,
+                                        $sendname,
+                                        $replyto,
+                                        $subject,
+                                        $textsummary,
+                                        $thisu->getOurEmail() ? $html : NULL);
+                                    $this->mailer($message);
+
+                                    if ($ccit) {
+                                        error_log("CC image message");
+                                        $message->setBcc('log@ehibbert.org.uk');
+                                    }
+
+                                    $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
+                                        $lastmsgemailed,
+                                        $member['userid'],
+                                        $chat['chatid']
+                                    ]);
+
+                                    $notified++;
+                                } catch (Exception $e) {
+                                    error_log("Send to {$member['userid']} failed with " . $e->getMessage());
                                 }
                             }
                         }
