@@ -70,25 +70,37 @@ if (preg_match('/List-Unsubscribe: <mailto:(.*)-unsubscribe@yahoogroups.co/', $m
             # finding out about when a membership is approved because the group doesn't send files we recognise or
             # use ModTools to do a sync.
             #
-            # It is conceivable that someone joined, posted, and left, and that this will then bounce as not a member
-            # but that's ok.
+            # It is conceivable that someone joined, posted, and left, and that this will then add them again, or
+            # bounce as not a member, but that's not the end of the world, and we can't expect perfect integration
+            # by email with Yahoo.
             $u = new User($dbhr, $dbhm);
             $uid = $u->findByEmail($envto);
             $eid = $u->getIdForEmail($envto)['id'];
             error_log("$envto is #$uid");
 
             if ($uid) {
-                $msgs = $dbhr->preQuery("SELECT * FROM messages_groups WHERE userid = ? AND groupid = ? AND collection = ?;", [
-                    $uid,
-                    $gid,
-                    MessageCollection::QUEUED_YAHOO_USER
-                ]);
+                $u = User::get($dbhr, $dbhm, $uid);
 
-                foreach ($msgs as $msg) {
-                    error_log("Submit queued message {$msg['msgid']} from $envto for $uid");
-                    $u->markYahooApproved($gid, $eid);
-                    $m = new Message($dbhr, $dbhm, $uid);
-                    $m->submit($u, $envto, $gid);
+                $cont = TRUE;
+
+                if (!$u->isPendingMember($gid) && !$u->isApprovedMember($gid)) {
+                    # We've somehow lost the Yahoo membership.
+                    if ($log) { error_log("Readd membership for $envto on $gid using $eid"); }
+                    $cont = $u->addMembership($gid, User::ROLE_MEMBER, $eid, MembershipCollection::APPROVED);
+                }
+
+                if ($cont) {
+                    $msgs = $dbhr->preQuery("SELECT msgid FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE fromuser = ? AND groupid = ? AND collection = ?;", [
+                        $uid,
+                        $gid,
+                        MessageCollection::QUEUED_YAHOO_USER
+                    ]);
+
+                    foreach ($msgs as $msg) {
+                        error_log("Submit queued message {$msg['msgid']} from $envto for $uid found as " . $u->getId());
+                        $m = new Message($dbhr, $dbhm, $msg['msgid']);
+                        $m->submit($u, $envto, $gid);
+                    }
                 }
             }
         }

@@ -62,6 +62,7 @@ class Log
     const SUBTYPE_AUTO_REPOSTED = 'Autoreposted';
     const SUBTYPE_OUTCOME = 'Outcome';
     const SUBTYPE_NOTIFICATIONOFF = 'NotificationOff';
+    const SUBTYPE_AUTO_APPROVED = 'Autoapproved';
 
     function __construct($dbhr, $dbhm)
     {

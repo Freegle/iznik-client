@@ -29,9 +29,6 @@ class Volunteering extends Entity
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
             $this->fetch($this->dbhm, $this->dbhm, $id, 'volunteering', 'volunteering', $this->publicatts);
-
-            $n = new Newsfeed($this->dbhr, $this->dbhm);
-            $fid = $n->create(Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY, $userid, NULL, NULL, NULL, NULL, NULL, NULL, $id, NULL);
         }
 
         return($id);
@@ -62,7 +59,7 @@ class Volunteering extends Entity
 
         # Create now so that we can pass the groupid.
         $n = new Newsfeed($this->dbhr, $this->dbhm);
-        $fid = $n->create(Newsfeed::TYPE_COMMUNITY_EVENT, $this->volunteering['userid'], NULL, NULL, NULL, NULL, $groupid, NULL, $this->id, NULL);
+        $fid = $n->create(Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY, $this->volunteering['userid'], NULL, NULL, NULL, NULL, $groupid, NULL, $this->id, NULL);
     }
 
     public function removeGroup($id) {
@@ -196,10 +193,11 @@ class Volunteering extends Entity
         #error_log("Can mod? $canmodify");
         if (!$canmodify) {
             $groups = $this->dbhr->preQuery("SELECT * FROM volunteering_groups WHERE volunteeringid = ?;", [ $this->id ]);
-            #error_log("\"SELECT * FROM volunteering_groups WHERE volunteeringid = {$this->id};");
+            #error_log("SELECT * FROM volunteering_groups WHERE volunteeringid = {$this->id};");
             foreach ($groups as $group) {
                 #error_log("Check for group {$group['groupid']} " . $u->isAdminOrSupport() . ", " . $u->isModOrOwner($group['groupid']));
                 if ($u->isAdminOrSupport() || $u->isModOrOwner($group['groupid'])) {
+                    #error_log("Can");
                     $canmodify = TRUE;
                 }
             }

@@ -99,7 +99,29 @@ function newsfeed() {
                         'status' => 'Success'
                     ];
                 } else if ($action == 'ReferToWanted') {
-                    $n->referToWanted();
+                    $n->refer(Newsfeed::TYPE_REFER_TO_WANTED);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == 'ReferToOffer') {
+                    error_log("Refer to offer");
+                    $n->refer(Newsfeed::TYPE_REFER_TO_OFFER);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == 'ReferToTaken') {
+                    $n->refer(Newsfeed::TYPE_REFER_TO_TAKEN);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == 'ReferToReceived') {
+                    $n->refer(Newsfeed::TYPE_REFER_TO_RECEIVED);
 
                     $ret = [
                         'ret' => 0,

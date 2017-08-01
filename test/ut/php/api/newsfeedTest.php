@@ -261,6 +261,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['newsfeed'][0]['replies']));
 
         # Refer it to WANTED - generates another reply.
+        error_log("Refer to WANTED");
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'ReferToWanted'
@@ -270,9 +271,50 @@ class newsfeedAPITest extends IznikAPITestCase {
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
         ]);
-        error_log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(2, count($ret['newsfeed']['replies']));
+
+        # Refer it to OFFER - generates another reply.
+        error_log("Refer to OFFER");
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'ReferToOffer'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(3, count($ret['newsfeed']['replies']));
+
+        # Refer it to TAKEN - generates another reply.
+        error_log("Refer to TAKEN");
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'ReferToTaken'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(4, count($ret['newsfeed']['replies']));
+
+        # Refer it to RECEIVED - generates another reply.
+        error_log("Refer to RECEIVED");
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'ReferToReceived'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(5, count($ret['newsfeed']['replies']));
 
         # Report it
         $ret = $this->call('newsfeed', 'POST', [
@@ -339,6 +381,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $e = new Volunteering($this->dbhr, $this->dbhm);
         $eid = $e->create($this->uid, 'Test opp', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        error_log("Created $eid");
         $e->addGroup($gid);
         $e->setPrivate('pending', 0);
 

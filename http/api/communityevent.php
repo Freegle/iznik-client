@@ -3,6 +3,7 @@ function communityevent() {
     global $dbhr, $dbhm;
 
     $me = whoAmI($dbhr, $dbhm);
+    $myid = $me ? $me->getId() : NULL;
 
     $id = intval(presdef('id', $_REQUEST, NULL));
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
@@ -32,6 +33,8 @@ function communityevent() {
                             'status' => 'Success',
                             'communityevent' => $c->getPublic()
                         ];
+
+                        $ret['communityevent']['canmodify'] = $c->canModify($myid);
                     }
                 } else if ($groupid) {
                     # List for a specific group - which we can do even if not logged in.

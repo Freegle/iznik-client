@@ -6,11 +6,33 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/misc/Log.php');
+
+$l = new Log($dbhr, $dbhm);
+
+# Look for messages which have been pending for too long.  This fallback catches cases where the message doesn't
+# reach Yahoo properly, or the group is not being regularly moderated.
+$sql = "SELECT msgid, groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS ago FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE collection = ? AND heldby IS NULL HAVING ago > 48;";
+$messages = $dbhr->preQuery($sql, [
+    MessageCollection::PENDING
+]);
+
+foreach ($messages as $message) {
+    $m = new Message($dbhr, $dbhm, $message['msgid']);
+    error_log("{$message['msgid']} has been pending for {$message['ago']} - auto approve message");
+    $m->approve($message['groupid']);
+
+    $l->log([
+        'type' => Log::TYPE_MESSAGE,
+        'subtype' => Log::SUBTYPE_AUTO_APPROVED,
+        'groupid' => $message['groupid'],
+        'msgid' => $message['msgid']
+    ]);
+}
 
 # Look for messages which were queued and can now be sent.  This fallback catches cases where Yahoo doesn't let us know
-# that someone is now a member, but we find out via other means (e.g. plugin).
-
-$sql = "SELECT messages.id, messages.date, messages.subject, messages.fromaddr, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE collection = ? AND messages_outcomes.msgid IS NULL;";
+# that someone is now a member, but we find out via other means (e.g. plugin) or time out waiting.
+$sql = "SELECT messages.id, messages.date, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS ago, messages.subject, messages.fromaddr, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE collection = ? AND messages_outcomes.msgid IS NULL;";
 $messages = $dbhr->preQuery($sql, [
     MessageCollection::QUEUED_YAHOO_USER
 ]);
@@ -36,20 +58,25 @@ foreach ($messages as $message) {
             if ($uid) {
                 $u = User::get($dbhr, $dbhm, $uid);
                 list ($eid, $email) = $u->getEmailForYahooGroup($message['groupid'], TRUE, TRUE);
-                $ouremail = $u->getOurEmail();
 
                 # If the message has been hanging around for a while, it might be that Yahoo has blocked our
-                # subscribe request for this specific email (testing shows that it can do that).  So see when
-                # this email was created - if it's old then create a new one.
-//                $age = $u->getEmailAge($ouremail);
-//                error_log("$ouremail is $age hours old");
-//                if ($ouremail && $age >= 24) {
-//                    $email = $u->inventEmail(TRUE);
-//                    error_log("$ouremail is old; try from new email address $email");
-//                    $u->addEmail($email, 0, FALSE);
-//                }
+                # subscribe request - we've seen messages get delayed for many days with 451 temp errors.
+                # In that case assume the membership worked (which it might have done) and submit the message.
+                # The message will then be in Pending, and we have more processing below to auto-approve those mails
+                # if they are not moderated in time.
+                if ($message['ago'] >= 48 && $u->isPendingMember($message['groupid']) && !$u->isHeld($message['groupid'])) {
+                    error_log("{$message['id']} has been pending for {$message['ago']} - auto approve membership");
+                    $eid = $u->getOurEmailId();
+                    $u->markYahooApproved($message['groupid'], $eid);
+                    $l->log([
+                        'type' => Log::TYPE_GROUP,
+                        'subtype' => Log::SUBTYPE_AUTO_APPROVED,
+                        'groupid' => $message['groupid'],
+                        'msgid' => $message['id']
+                    ]);
+                }
 
-                error_log("Email $email id $eid for {$message['groupid']}");
+                #error_log("Email $email id $eid for {$message['groupid']}");
 
                 if ($eid) {
                     # Now approved - we can submit.

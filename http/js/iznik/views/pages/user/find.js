@@ -137,8 +137,8 @@ define([
                 } catch (e) {}
 
                 self.$(".js-searchoffers").bootstrapSwitch({
-                    onText: 'Only OFFERs',
-                    offText: 'Only WANTEDs',
+                    onText: 'Only&nbsp;OFFERs',
+                    offText: 'Only&nbsp;WANTEDs',
                     onColor: 'default',
                     offColor: 'default',
                     state: self.searchtype == 'Offer'

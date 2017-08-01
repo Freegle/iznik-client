@@ -250,6 +250,7 @@ class PAF
 
         if (count($addr) > 0) {
             $addr[0] = str_replace('PO Box Flat', 'Flat', $addr[0]);
+            $addr[0] = str_replace('PO Box ', '', $addr[0]);
         }
 
         if (count($addr) >= 3 && strpos($addr[2], "{$addr[1]} ") === 0) {

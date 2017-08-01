@@ -247,6 +247,11 @@ function session() {
                 $settings = presdef('settings', $_REQUEST, NULL);
                 if ($settings) {
                     $me->setPrivate('settings', json_encode($settings));
+
+                    if (pres('mylocation', $settings)) {
+                        # Save this off as the last known location.
+                        $me->setPrivate('lastlocation', $settings['mylocation']['id']);
+                    }
                 }
 
                 $notifs = presdef('notifications', $_REQUEST, NULL);

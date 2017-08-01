@@ -946,13 +946,13 @@ define([
                     selector: '.js-text',
                     height: 300,
                     plugins: [
-                        'advlist autolink lists link image charmap print preview anchor',
+                        'advlist autolink lists link charmap print preview anchor',
                         'searchreplace visualblocks code fullscreen',
                         'insertdatetime media table paste code'
                     ],
                     menubar: 'edit insert format tools',
                     statusbar: false,
-                    toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
+                    toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link'
                 });
             });
         },

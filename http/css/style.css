@@ -1725,6 +1725,11 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     padding-right: 2px;
 }
 
+.relright {
+    position: relative;
+    float: right;
+}
+
 /*==================================================
 =            Bootstrap 3 Media Queries             =
 ==================================================*/

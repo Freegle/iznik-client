@@ -58,6 +58,8 @@ if (count($opts) != 1) {
         }
 
         error_log("CSV covers $mindate");
+
+        # Save off the thanks
         $dbhm->preExec("DELETE FROM users_donations WHERE timestamp >= ? AND source = 'PayPalGivingFund';", [
             $mindate
         ]);

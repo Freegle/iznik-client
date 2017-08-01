@@ -490,6 +490,87 @@ define([
             Iznik.Session.testLoggedIn();
         },
 
+        areaMap: function() {
+            var self = this;
+
+            require(['wicket-gmap3', 'wicket'], function(gm, Wkt) {
+                // Need to get the polygon, which isn't there by default.
+                self.group = new Iznik.Models.Group({
+                    id: self.model.get('id')
+                });
+
+                self.group.fetch({
+                    data: {
+                        polygon: true
+                    }
+                }).then(function() {
+                    var wkt = new Wkt.Wkt();
+                    var wktstr = self.group.get('polygon');
+
+                    try { // Catch any malformed WKT strings
+                        wkt.read(wktstr);
+                    } catch (e1) {
+                        try {
+                            self.Wkt.read(wktstr.replace('\n', '').replace('\r', '').replace('\t', ''));
+                        } catch (e2) {
+                            if (e2.name === 'WKTError') {
+                                console.error("Ignore invalid WKT", wktstr);
+                                return;
+                            }
+                        }
+                    }
+
+                    // Try to make the map not increase beyond the height of the description.
+                    self.$('#js-areamap').css('height', self.$('.js-nameetc').height());
+
+                    var options = {
+                        center: new google.maps.LatLng(self.model.get('lat'), self.model.get('lng')),
+                        zoom: 14,
+                        disableDefaultUI: true,
+                        mapTypeControl: false,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP,
+                        panControl: false,
+                        streetViewControl: false,
+                        zoomControl: false
+                    };
+
+                    self.areamap = new google.maps.Map(self.$('#js-areamap').get(0), options);
+
+                    var obj = null;
+
+                    // No getBounds on polygon by default.
+                    google.maps.Polygon.prototype.getBounds = function() {
+                        var bounds = new google.maps.LatLngBounds();
+                        var paths = this.getPaths();
+                        var path;
+                        for (var i = 0; i < paths.getLength(); i++) {
+                            path = paths.getAt(i);
+                            for (var ii = 0; ii < path.getLength(); ii++) {
+                                bounds.extend(path.getAt(ii));
+                            }
+                        }
+                        return bounds;
+                    }
+
+                    try {
+                        obj = wkt.toObject(self.areamap.defaults); // Make an object
+                        obj.setMap(self.areamap);
+                        obj.setOptions({
+                            fillColor: 'blue',
+                            strokeWeight: 0,
+                            opacity: 0.5
+                        });
+
+                        // Zoom the map to show the whole area.
+                        var bounds = obj.getBounds();
+                        self.areamap.fitBounds(bounds);
+                    } catch (e) {
+                        console.log("WKT error", e.message, wktstr, obj);
+                    }
+                });
+            });
+        },
+
         render: function () {
             var self = this;
 
@@ -527,6 +608,9 @@ define([
 
                     // Any links in here are real.
                     self.$('.js-description a').attr('data-realurl', true);
+
+                    // Add the area map.
+                    self.areaMap();
 
                     self.collection = new Iznik.Collections.Message(null, {
                         modtools: false,

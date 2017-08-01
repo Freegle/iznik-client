@@ -415,6 +415,9 @@ define([
             'click .js-open': 'open',
             'click .js-report': 'report',
             'click .js-refertowanted': 'referToWanted',
+            'click .js-refertooffer': 'referToOffer',
+            'click .js-refertotaken': 'referToTaken',
+            'click .js-refertoreceived': 'referToReceived',
             'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply',
             'click .js-edit': 'edit'
@@ -460,7 +463,36 @@ define([
             e.stopPropagation()
 
             self.model.referToWanted().then(function() {
-                console.log("Referred", self);
+                self.checkUpdate();
+            });
+        },
+
+        referToOffer: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            self.model.referToOffer().then(function() {
+                self.checkUpdate();
+            });
+        },
+
+        referToTaken: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            self.model.referToTaken().then(function() {
+                self.checkUpdate();
+            });
+        },
+
+        referToReceived: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            self.model.referToReceived().then(function() {
                 self.checkUpdate();
             });
         },
@@ -893,6 +925,11 @@ define([
                     });
 
                     p.then(function() {
+                        if (self.model.get('moremessage')) {
+                            // Handle re-render.
+                            self.model.set('message', self.model.get('moremessage'));
+                        }
+
                         var message = self.model.get('message');
 
                         if (message) {
@@ -1011,9 +1048,32 @@ define([
         render: function() {
             var self = this;
 
-            if (self.model.get('type') == 'ReferToWanted') {
-                self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
-                self.template = 'user_newsfeed_refertowanted';
+            var type = self.model.get('type');
+
+            self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
+
+            switch (type) {
+                case 'ReferToWanted': {
+                    self.template = 'user_newsfeed_refertowanted';
+                    break;
+                }
+
+                case 'ReferToOffer': {
+                    self.template = 'user_newsfeed_refertooffer';
+                    break;
+                }
+
+                case 'ReferToTaken': {
+                    self.template = 'user_newsfeed_refertotaken';
+                    break;
+                }
+
+                case 'ReferToReceived': {
+                    self.template = 'user_newsfeed_refertoreceived';
+                    break;
+                }
+
+                default: {}
             }
 
             var preview = self.model.get('preview');
@@ -1034,6 +1094,11 @@ define([
             });
 
             p.then(function() {
+                if (self.model.get('moremessage')) {
+                    // Handle re-render.
+                    self.model.set('message', self.model.get('moremessage'));
+                }
+
                 var message = self.model.get('message');
 
                 if (message) {
