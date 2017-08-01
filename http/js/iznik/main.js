@@ -345,6 +345,7 @@ require([
                 mobilePush.clearAllNotifications();   // no success and error fns given
             }
             mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, 15);
             /*var msg = new Date();
             msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
             badgeconsole += msg;
@@ -391,9 +392,14 @@ require([
             });*/
 
             mobilePush.finish(function () {
-                console.log("push finished");
+                console.log("push finished OK");
                 //alert("finished");
-            });
+            }, function () {
+                console.log("push finished error");
+                //alert("finished");
+            },
+            data.additionalData.notId
+            );
         });
 
         mobilePush.on('error', function (e) {
