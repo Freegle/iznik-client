@@ -73,7 +73,9 @@ function group() {
                     }
                 }
 
-                $ret['group']['polygon'] = presdef('polygon', $_REQUEST, FALSE) ? $g->getPrivate('poly') : NULL;
+                if (presdef('polygon', $_REQUEST, FALSE)) {
+                    $ret['group']['polygon'] =  $g->getPrivate('poly') ? $g->getPrivate('poly') : $g->getPrivate('polyofficial');
+                }
 
                 break;
             }
