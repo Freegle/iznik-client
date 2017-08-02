@@ -76,6 +76,9 @@ class Preview extends Entity
             $id = $this->create($url);
         }
 
+        # Make any relative urls absolute to help app.
+        $this->link['url'] = substr($this->link['url'], 0, 1) == '/' ? ('https://' . HTTP_HOST . "/$this->link['url']") :  $this->link['url'];
+
         return($id);
     }
 }
