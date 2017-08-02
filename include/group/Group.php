@@ -1218,7 +1218,11 @@ class Group extends Entity
         return($this->group['onyahoo']);
     }
 
-   public function listByType($type) {
+    public function getName() {
+        return($this->group['namefull'] ? $this->group['namefull'] : $this->group['nameshort']);
+    }
+
+    public function listByType($type) {
        $me = whoAmI($this->dbhr, $this->dbhm);
        $typeq = $type ? "type = ?" : '1=1';
         $sql = "SELECT id, nameshort, region, namefull, lat, lng, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
