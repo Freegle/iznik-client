@@ -10,7 +10,8 @@ require_once(IZNIK_BASE . '/include/message/MessageCollection.php');
 require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
-require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
+require_once(IZNIK_BASE . '/include/misc/Location.php');
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/withpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
@@ -1382,32 +1383,54 @@ class User extends Entity
     }
 
     public function getPublicLocation() {
-        $ret = NULL;
+        $loc = NULL;
+        $grp = NULL;
         
         $aid = NULL;
-        
+        $lid = NULL;
+
         $s = $this->getPrivate('settings');
 
         if ($s) {
             $settings = json_decode($s, TRUE);
 
             if (pres('mylocation', $settings) && pres('area', $settings['mylocation'])) {
-                $ret = $settings['mylocation']['area']['name'];
+                $loc = $settings['mylocation']['area']['name'];
+                $lid = $settings['mylocation']['id'];
             }
         }
 
-        if (!$ret) {
+        if (!$loc) {
             # Get the name of the last area we used.
-            $areas = $this->dbhr->preQuery("SELECT name FROM locations WHERE id IN (SELECT areaid FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE users.id = ?);", [
+            $areas = $this->dbhr->preQuery("SELECT name, lat, lng FROM locations WHERE id IN (SELECT areaid FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE users.id = ?);", [
                 $this->id
             ]);
 
             foreach ($areas as $area) {
-                $ret = $area['name'];
+                $loc = $area['name'];
+                $lid = $area['id'];
             }
         }
 
-        return($ret);
+        if ($lid) {
+            $l = new Location($this->dbhr, $this->dbhm, $lid);
+            $groupids = $l->groupsNear(Location::NEARBY, FALSE, 1);
+            if (count($groupids)) {
+                $g = Group::get($this->dbhr, $this->dbhm, $groupids[0]);
+                $grp = $g->getName();
+                
+                # The location name might be in the group name, in which case just use the group.
+                $loc = strpos($grp, $loc) !== FALSE ? NULL : $loc;
+            }
+        }
+
+        $display = $loc ? ($loc . ($grp ? ", $grp" : "")): ($grp ? $grp : '');
+
+        return([
+            'display' => $display,
+            'location' => $loc,
+            'groupname' => $grp
+        ]);
     }
 
     public function ensureAvatar(&$atts) {

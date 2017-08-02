@@ -185,6 +185,8 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         <?php
         
     } else {
+        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png";
+
         ?>
         <title><?php echo SITE_NAME; ?></title>
         <meta name="description" content="<?php echo SITE_DESC; ?>"/>
@@ -192,7 +194,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         <meta itemprop="title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:title" content="<?php echo SITE_NAME; ?>"/>
         <meta property="og:description" content="<?php echo SITE_DESC; ?>"/>
-        <meta property="og:image" content="/images/favicon/<?php echo FAVICON_HOME; ?>/largetile.png"/>
+        <meta property="og:image" content="<?php echo $image; ?>"/>
         <?php
         echo "<!-- requested " . $_SERVER["REQUEST_URI"] . " -->\r\n";
     }

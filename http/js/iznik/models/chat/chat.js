@@ -276,9 +276,6 @@ define([
             // to a single host.  We use a single connection rather than a per chat one for the same reason.
             var self = this;
 
-            if (Iznik.Session) {
-
-            }
             var me = Iznik.Session.get('me');
             var myid = me ? me.id : null;
 

@@ -123,6 +123,8 @@ class PushNotifications
                                 'chatids' => $payload['chatids']
                             ];
 
+                            $body['notId'] = microtime();
+
                             $payload = json_encode($body);
                             $msg = chr(0) . pack('n', 32) . pack('H*', $deviceToken) . pack('n', strlen($payload)) . $payload;
                             stream_set_blocking($fp, 0);

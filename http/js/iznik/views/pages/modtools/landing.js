@@ -240,8 +240,6 @@ define([
                     x.render().then(function() {
                         self.$('.js-missingtwitter').html(x.el);
                     });
-
-                    Iznik.Session.askSubscription();
                 });
 
                 return(p);
