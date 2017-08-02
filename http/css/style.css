@@ -1852,14 +1852,6 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 
 /* // CC */
 
-/*#refreshbutton {
-    margin-top: 8px;
-    margin-bottom: 8px;
-    padding: 9px 10px;
-    border-color: #dddddd;
-    display: none;
-}*/
-
 .no-before{
     vertical-align:top;
 }
@@ -1895,3 +1887,13 @@ fieldset[disabled] .twitter-typeahead .tt-input {
   padding-right: 1px;
   padding-left: 1px;
 }
+
+@keyframes fadein {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1
+    }
+}
+

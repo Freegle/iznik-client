@@ -12,8 +12,8 @@ var mobilePushId = false;
 var mobilePush = false;
 var lastPushMsgid = false;
 var badgeconsole = '';
-var divertConsole = false;
-var showDebugConsole = false;
+var divertConsole = true;
+var showDebugConsole = true;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -71,10 +71,7 @@ function showHeaderWait() {
         var refreshicon = $('#refreshicon');
         refreshicon.show();
     } else {
-        var refreshbutton = $('#refreshbutton span');
-        refreshbutton.addClass("no-before");
-        var spinner = $("<img src='" + iznikroot + "images/userloader.gif' style='height:14px;' />");
-        $(refreshbutton).html(spinner);
+        $('#refreshbutton span').addClass("rotate");
     }
 }
 
@@ -86,12 +83,9 @@ function hideHeaderWait(event) {
         var refreshicon = $('#refreshicon');
         refreshicon.hide();
     } else {
-        var refreshbutton = $('#refreshbutton span');
-        refreshbutton.removeClass("no-before");
-        $(refreshbutton).html('');
+        $('#refreshbutton span').removeClass("rotate");
     }
 }
-
 function mobileRefresh() {
     showHeaderWait();
     Backbone.history.loadUrl();
