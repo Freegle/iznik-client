@@ -12,8 +12,8 @@ var mobilePushId = false;
 var mobilePush = false;
 var lastPushMsgid = false;
 var badgeconsole = '';
-var divertConsole = false;
-var showDebugConsole = false;
+var divertConsole = true;
+var showDebugConsole = true;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
