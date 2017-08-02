@@ -347,7 +347,6 @@ class User extends Entity
         $ret = NULL;
 
         foreach ($emails as $email) {
-            error_log("Check {$email['email']}");
             if (ourDomain($email['email'])) {
                 $ret = $email['email'];
                 break;

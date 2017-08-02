@@ -3478,7 +3478,7 @@ class Message
 
                         if ($message['hoursago'] < $maxage * 24) {
                             # Reposts might be turned off.
-                            if ($interval > 0) {
+                            if ($interval > 0 && $reposts['max'] > 0) {
                                 if ($message['hoursago'] <= $interval * 24 &&
                                     $message['hoursago'] > ($interval - 1) * 24 &&
                                     ($lastwarnago === NULL || $lastwarnago > 24)
