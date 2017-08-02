@@ -1852,13 +1852,13 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 
 /* // CC */
 
-#refreshbutton {
+/*#refreshbutton {
     margin-top: 8px;
     margin-bottom: 8px;
     padding: 9px 10px;
     border-color: #dddddd;
     display: none;
-}
+}*/
 
 .no-before{
     vertical-align:top;
@@ -1889,4 +1889,9 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 .js-loggedoutonly{
     height: 41px;
     margin-top: 7px;
+}
+
+.list-inline>li {
+  padding-right: 1px;
+  padding-left: 1px;
 }

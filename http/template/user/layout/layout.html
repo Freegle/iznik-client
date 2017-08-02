@@ -7,6 +7,11 @@
                     <div class="clickme ">
                         <ul class="list-unstyled list-inline">
                             <li>
+                              <a id="refreshbutton" href="#" class="js-loggedinonly reallyHide hidden-md hidden-lg" title="Refresh" onclick="return mobileRefresh();">
+                                <span class="white fullholder glyphicons glyphicon-larger glyphicon-repeat vcenter-left padbot" type="button" />
+                              </a>
+                            </li>
+                            <li>
                                 <a href="/help" class="js-loggedinonly reallyHide hidden-md hidden-lg" title="Help">
                                     <span class="white fullholder glyphicons glyphicon-larger glyphicons-question-sign vcenter-left padbot" type="button" />
                                 </a>
@@ -46,9 +51,6 @@
             <div id="nonetwork" class="margright pull-right">
               <span class="glyphicon glyphicon-cloud" aria-hidden="true" />
             </div>
-            <button id="refreshbutton" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();">
-              <span class="glyphicon glyphicon-repeat" aria-hidden="true" />
-            </button>
             <div id="refreshicon" class="margright pull-right">
               <img src="/images/userloader.gif" />
             </div>
