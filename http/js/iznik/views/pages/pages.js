@@ -313,6 +313,9 @@ define([
                             } else {
                                 $('.js-invitesleft').html('').show();
                             }
+
+                            // Get notifications
+                            Iznik.Session.askSubscription();
                         }
 
                         if ($('.js-notiflist').length) {
