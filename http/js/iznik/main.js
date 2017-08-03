@@ -253,10 +253,11 @@ require([
         var self = this;
         this.errors = this.errors === undefined ? 0 : this.errors + 1;
         var thedelay = delay(this.errors);
-        console.log("retryIt", thedelay, this, arguments);
-        // CC setTimeout(function () {
-        // CC    $.ajax(self);
-        // CC }, thedelay);
+        //console.log("retryIt", thedelay, this, arguments);
+        console.log("retryIt", thedelay, this.responseURL); // CC
+        setTimeout(function () {
+            $.ajax(self);
+        }, thedelay);
     }
 
     function extendIt(args, options) {
