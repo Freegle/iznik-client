@@ -12,8 +12,8 @@ var mobilePushId = false;
 var mobilePush = false;
 var lastPushMsgid = false;
 var badgeconsole = '';
-var divertConsole = true;
-var showDebugConsole = true;
+var divertConsole = false;
+var showDebugConsole = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -324,6 +324,9 @@ require([
         // Called to handle a push notification
         //
         // A push shows a notification immediately and sets desktop badge count (on iOS and some Android)
+        // Note: badge count also set elsewhere when unseen chats counted (and may disagree!)
+        //
+        // Some of the following description is probably not now right (yet again):
         //
         // On iOS this handler is called immediately if running in foreground;
         //  it is not called if app not started; the handler is called when app started.
