@@ -168,7 +168,7 @@ require([
         console.log = function () {
             if (showDebugConsole) {
                 var now = new Date();
-                var msg = now.toJSON().substring(11) + ': ';
+                var msg = '###' + now.toJSON().substring(11) + ': ';
                 for (var i = 0; i < arguments.length; i++) {
                     var arg = arguments[i];
                     if (typeof arg !== "string") {
@@ -176,8 +176,8 @@ require([
                     }
                     msg += arg + ' ';
                 }
-                if (msg.length > 200) {
-                    msg = msg.substring(0,200)+'...';
+                if (msg.length > 100) {
+                    msg = msg.substring(0,100)+'...';
                 }
                 msg += "\r\n";
                 logtog = !logtog;
@@ -347,7 +347,7 @@ require([
             console.log("foreground "+foreground+" double " + doubleEvent + " msgid: " + msgid);
             if (!('count' in data)) { data.count = 0; }
             if (data.count == 0 || foreground) {
-                mobilePush.clearAllNotifications();   // no success and error fns given
+                // mobilePush.clearAllNotifications();   // no success and error fns given
             }
             mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
             /*var msg = new Date();
