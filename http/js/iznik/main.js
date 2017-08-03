@@ -167,7 +167,8 @@ require([
         var oldconsolelog = console.log;
         console.log = function () {
             if (showDebugConsole) {
-                var msg = '';
+                var now = new Date();
+                var msg = now.toUTCString() + ': ';
                 for (var i = 0; i < arguments.length; i++) {
                     var arg = arguments[i];
                     if (typeof arg !== "string") {
