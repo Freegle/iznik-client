@@ -53,8 +53,13 @@ if (count($opts) != 1) {
             ];
             
             $epoch = strtotime($date);
-            $mindate = (!$minepoch || $epoch < $minepoch) ? $date : $mindate;
-            $minepoch = (!$minepoch || $epoch < $minepoch) ? $epoch : $minepoch;
+
+            if ($amount > 0) {
+                # Ignore debits, otherwise we'll delete old donations.  This will mean that cancelled donations
+                # still get counted, but that isn't a significant amount.
+                $mindate = (!$minepoch || $epoch < $minepoch) ? $date : $mindate;
+                $minepoch = (!$minepoch || $epoch < $minepoch) ? $epoch : $minepoch;
+            }
         }
 
         error_log("CSV covers $mindate");
