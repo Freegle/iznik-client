@@ -168,7 +168,7 @@ require([
         console.log = function () {
             if (showDebugConsole) {
                 var now = new Date();
-                var msg = now.toUTCString() + ': ';
+                var msg = now.toJSON().substring(11) + ': ';
                 for (var i = 0; i < arguments.length; i++) {
                     var arg = arguments[i];
                     if (typeof arg !== "string") {
