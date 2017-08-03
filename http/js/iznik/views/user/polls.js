@@ -8,12 +8,32 @@ define([
 ], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.Poll = Iznik.View.extend({
         events: {
-            'click .js-click': 'click'
+            'click .js-click': 'click',
+            'click .js-submit': 'submit'
+        },
+
+        submit: function() {
+            var self = this;
+            var form = self.$('form').serializeArray();
+            console.log("Form", form);
+
+            $.ajax({
+                url: API + 'poll',
+                type: 'POST',
+                data: {
+                    id: self.poll.id,
+                    response: form
+                },
+                success: function(ret) {
+                    self.$el.fadeOut('slow');
+                }
+            });
         },
 
         click: function(e) {
             var self = this;
             var val = $(e.target).closest('.js-click').data('value');
+
             $.ajax({
                 url: API + 'poll',
                 type: 'POST',
@@ -40,6 +60,7 @@ define([
                     if (ret.ret === 0 && ret.hasOwnProperty('poll')) {
                         self.poll = ret.poll;
                         self.$el.html( _.template(ret.poll.template));
+                        self.delegateEvents();
 
                         // We might have Facebook-specific stuff, e.g. Share.
                         self.$('.js-facebookonly').hide();

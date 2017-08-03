@@ -14,6 +14,7 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/pages/user/post',
     'iznik/views/infinite',
+    'iznik/views/user/polls',
     'jquery.scrollTo'
 ], function($, _, Backbone, Iznik, autosize, FBLoad) {
     Iznik.Views.User.Feed = {};
@@ -339,6 +340,12 @@ define([
 
                 // Delay load of sidebars to give the main feed chance to load first.
                 _.delay(_.bind(self.sidebars, self), 10000);
+
+                // Polls
+                var poll = new Iznik.Views.User.Poll();
+                poll.render().then(function() {
+                    self.$('.js-poll').html(poll.$el);
+                });
             });
 
             return(p);
