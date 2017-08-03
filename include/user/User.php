@@ -1402,7 +1402,7 @@ class User extends Entity
 
         if (!$loc) {
             # Get the name of the last area we used.
-            $areas = $this->dbhr->preQuery("SELECT name, lat, lng FROM locations WHERE id IN (SELECT areaid FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE users.id = ?);", [
+            $areas = $this->dbhr->preQuery("SELECT id, name, lat, lng FROM locations WHERE id IN (SELECT areaid FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE users.id = ?);", [
                 $this->id
             ]);
 
