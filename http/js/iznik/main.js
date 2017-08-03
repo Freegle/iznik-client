@@ -339,6 +339,7 @@ require([
             }
             var doubleEvent = (msgid == lastPushMsgid);
             lastPushMsgid = msgid;
+            console.log("foreground "+foreground+" double " + doubleEvent + " msgid: " + msgid);
             if (!('count' in data)) { data.count = 0; }
             if (data.count == 0 || foreground) {
                 mobilePush.clearAllNotifications();   // no success and error fns given
