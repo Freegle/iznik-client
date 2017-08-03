@@ -176,6 +176,9 @@ require([
                     }
                     msg += arg + ' ';
                 }
+                if (msg.length > 200) {
+                    msg = msg.substring(0,200)+'...';
+                }
                 msg += "\r\n";
                 logtog = !logtog;
                 alllog = msg + alllog;
