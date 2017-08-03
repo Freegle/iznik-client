@@ -1388,6 +1388,8 @@ class User extends Entity
         
         $aid = NULL;
         $lid = NULL;
+        $lat = NULL;
+        $lng = NULL;
 
         $s = $this->getPrivate('settings');
 
@@ -1397,6 +1399,8 @@ class User extends Entity
             if (pres('mylocation', $settings) && pres('area', $settings['mylocation'])) {
                 $loc = $settings['mylocation']['area']['name'];
                 $lid = $settings['mylocation']['id'];
+                $lat = $settings['mylocation']['lat'];
+                $lng = $settings['mylocation']['lng'];
             }
         }
 
@@ -1409,16 +1413,25 @@ class User extends Entity
             foreach ($areas as $area) {
                 $loc = $area['name'];
                 $lid = $area['id'];
+                $lat = $area['lat'];
+                $lng = $area['lng'];
             }
         }
 
         if ($lid) {
-            $l = new Location($this->dbhr, $this->dbhm, $lid);
-            $groupids = $l->groupsNear(Location::NEARBY, FALSE, 1);
-            if (count($groupids)) {
-                $g = Group::get($this->dbhr, $this->dbhm, $groupids[0]);
-                $grp = $g->getName();
-                
+            # Find the group of which we are a member which is closest to our location.  We do this because generally
+            # the number of groups we're in is small and therefore this will be quick, whereas the groupsNear call is
+            # fairly slow.
+            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? AND (poly IS NOT NULL OR polyofficial IS NOT NULL) ORDER BY ST_distance(POINT(?, ?), GeomFromText(CASE WHEN poly IS NULL THEN polyofficial ELSE poly END)) ASC LIMIT 1;";
+            $groups = $this->dbhr->preQuery($sql, [
+                $this->id,
+                $lng,
+                $lat
+            ]);
+
+            if (count($groups) > 0) {
+                $grp = $groups[0]['namefull'] ? $groups[0]['namefull'] : $groups[0]['nameshort'];
+
                 # The location name might be in the group name, in which case just use the group.
                 $loc = strpos($grp, $loc) !== FALSE ? NULL : $loc;
             }
@@ -1603,7 +1616,7 @@ class User extends Entity
                 foreach ($profiles as $profile) {
                     if (!$profile['default']) {
                         $atts['profile'] = [
-                            'url' => pres('url', $profile) ? $profile['url'] : ('https://' . USER_SITE . "/uimg_{$profile['id']}.jpg"),
+                            'url' => pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
                             'default' => FALSE
                         ];
                     }
