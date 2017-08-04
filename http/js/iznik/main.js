@@ -95,9 +95,11 @@ function mobileRefresh() {
 var isOnline = true;
 function showNetworkStatus() {
     if (isOnline) {
-        $('#nonetwork').hide();
+        $('#nonetwork').addClass('reallyHide');
+        $('#refreshbutton').removeClass('reallyHide');
     } else {
-        $('#nonetwork').show();
+        $('#nonetwork').removeClass('reallyHide');
+        $('#refreshbutton').addClass('reallyHide');
     }
 }
 

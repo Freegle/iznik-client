@@ -1871,12 +1871,9 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 }
 
 #nonetwork{
-    margin: 15px 10px 5px 0;
-    display: none;
 }
 #nonetwork span {
     color:red;
-    font-size:40px;
 }
 
 
@@ -1899,3 +1896,7 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     }
 }
 
+.mobile-version{
+    text-align:right;
+    font-style:italic;
+}
