@@ -5,6 +5,8 @@ define([
     'iznik/base',
     'autosize',
     'iznik/facebook',
+    'jquery.caret.min',
+    'jquery.atwho.min',
     'jquery-show-last',
     'iznik/models/message',
     'iznik/models/user/search',
@@ -14,6 +16,7 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/pages/user/post',
     'iznik/views/infinite',
+    'iznik/views/user/polls',
     'jquery.scrollTo'
 ], function($, _, Backbone, Iznik, autosize, FBLoad) {
     Iznik.Views.User.Feed = {};
@@ -339,6 +342,12 @@ define([
 
                 // Delay load of sidebars to give the main feed chance to load first.
                 _.delay(_.bind(self.sidebars, self), 10000);
+
+                // Polls
+                var poll = new Iznik.Views.User.Poll();
+                poll.render().then(function() {
+                    self.$('.js-poll').html(poll.$el);
+                });
             });
 
             return(p);
@@ -529,8 +538,12 @@ define([
             self.model.destroy();
         },
 
-        reply: function() {
+        reply: function(user) {
             this.$('.js-comment').focus();
+
+            if (user && user.hasOwnProperty('displayname')) {
+                this.$('.js-comment').html('@' + user.displayname + ' ');
+            }
         },
 
         showProfile: function() {
@@ -542,6 +555,33 @@ define([
                 });
 
                 v.render();
+            });
+        },
+
+        mention: function(sel) {
+            var self = this;
+
+            // Allow use of @ to mention people.
+            self.$(sel).atwho({
+                at: "@",
+                data: API + 'mentions?id=' + self.model.get('id'),
+                callbacks: {
+                    beforeSave: function(data) {
+                        var ret = [];
+                        _.each(data.mentions, function(d) {
+                            ret.push({
+                                id: d.id,
+                                name: d.displayname
+                            });
+                        });
+
+                        return(ret);
+                    }
+                }
+            });
+
+            self.$(sel).on('inserted.atwho', function(event, $li, e) {
+                console.log("Inserted", $li);
             });
         },
 
@@ -700,6 +740,7 @@ define([
 
         events: {
             'keydown .js-comment': 'sendComment',
+            'keypress .js-comment': 'addMention',
             'focus .js-comment': 'moreStuff',
             'click .js-addvolunteer': 'addVolunteer',
             'click .js-addevent': 'addEvent',
@@ -760,6 +801,17 @@ define([
                 model: new Iznik.Models.CommunityEvent({})
             });
             v.render();
+        },
+
+        addMention: function(e) {
+            var self = this;
+
+            if (String.fromCharCode(e.which) == '@') {
+                if (!self.mentioned) {
+                    self.mentioned = true;
+                    self.mention('.js-comment');
+                }
+            }
         },
 
         moreStuff: function() {
@@ -1042,7 +1094,7 @@ define([
         },
 
         reply: function() {
-            this.model.collection.trigger('reply');
+            this.model.collection.trigger('reply', this.model.get('user'));
         },
 
         render: function() {

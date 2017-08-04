@@ -461,5 +461,59 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testMention() {
+        error_log(__METHOD__);
+
+        error_log("Log in as {$this->uid}");
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test for mention'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        error_log("Created feed {$ret['id']}");
+        $nid = $ret['id'];
+
+        # Get mentions - should show first user
+        error_log("Log in as {$this->uid2}");
+        assertTrue($this->user2->login('testpw'));
+
+        $ret = $this->call('mentions', 'GET', [
+            'id' => $nid,
+            'query' => 'T'
+        ]);
+        error_log("Mentions " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['mentions']));
+        self::assertEquals($this->uid, $ret['mentions'][0]['id']);
+
+        # Filter out
+        $ret = $this->call('mentions', 'GET', [
+            'id' => $nid,
+            'query' => 'H'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['mentions']));
+
+        # Reply
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test',
+            'replyto' => $nid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Should show second user
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('mentions', 'GET', [
+            'id' => $nid,
+            'query' => 'T'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['mentions']));
+        self::assertEquals($this->uid2, $ret['mentions'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
