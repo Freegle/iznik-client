@@ -34,7 +34,7 @@ class Request extends Entity
             $id = $this->dbhm->lastInsertId();
 
             if ($id) {
-                $this->fetch($this->dbhr, $this->dbhm, $id, 'users_requests', 'request', $this->publicatts);
+                $this->fetch($this->dbhm, $this->dbhm, $id, 'users_requests', 'request', $this->publicatts);
             }
         }
 

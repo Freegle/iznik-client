@@ -284,7 +284,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals($spam->getSubject(), $spam->getHeader('subject'));
         assertEquals('freegleplayground@yahoogroups.com', $spam->getTo()[0]['address']);
         assertEquals('Sender', $spam->getFromname());
-        assertEquals('SpamAssassin flagged this as possible spam; score 1000 (high is bad)', $spam->getSpamReason());
+        assertEquals('SpamAssassin flagged this as possible spam; score 999 (high is bad)', $spam->getSpamReason());
         $spam->delete();
 
         error_log(__METHOD__ . " end");
@@ -1614,17 +1614,17 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-//    public function testSpecial() {
-//        error_log(__METHOD__);
-//
-//        $msg = $this->unique(file_get_contents('msgs/special'));
-//        $r = new MailRouter($this->dbhr, $this->dbhm);
-//        $id = $r->received(Message::EMAIL, 'undelivered-mail+20161118-moderator.forward8492-auto@trashnothing.com ', "EldrickTest-volunteers@groups.ilovefreegle.org", $msg);
-//        assertNotNull($id);
-//        $rc = $r->route();
-//        assertEquals(MailRouter::TO_USER, $rc);
-//
-//        error_log(__METHOD__ . " end");
-//    }
+    public function testSpecial() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/special'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::YAHOO_PENDING, 'notify-return-modtools=modtools.org@returns.groups.yahoo.com', "modtools@modtools.org", $msg);
+        assertNotNull($id);
+        $rc = $r->route();
+        assertNotEquals(MailRouter::TO_USER, $rc);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

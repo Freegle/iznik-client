@@ -32,7 +32,7 @@ class Address extends Entity
             $id = $this->dbhm->lastInsertId();
 
             if ($id) {
-                $this->fetch($this->dbhr, $this->dbhm, $id, 'users_addresses', 'address', $this->publicatts);
+                $this->fetch($this->dbhm, $this->dbhm, $id, 'users_addresses', 'address', $this->publicatts);
             }
         }
 

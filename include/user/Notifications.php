@@ -146,7 +146,6 @@ class Notifications
     }
 
     public function sendEmails($userid = NULL, $before = '24 hours ago', $since = '7 days ago') {
-        $count = 0;
         $userq = $userid ? " AND `touser` = $userid " : '';
 
         $mysqltime = date("Y-m-d H:i:s", strtotime($before));
@@ -156,10 +155,14 @@ class Notifications
             Notifications::TYPE_TRY_FEED
         ]);
 
+        $total = 0;
+
         foreach ($users as $user) {
+            $count = 0;
             $u = new User($this->dbhr, $this->dbhm, $user['touser']);
             error_log("Consider {$user['touser']} email " . $u->getEmailPreferred());
             if ($u->sendOurMails() && $u->getSetting('notificationmails', TRUE)) {
+                error_log("...send");
                 $ctx = NULL;
                 $notifs = $this->get($user['touser'], $ctx);
 
@@ -167,22 +170,25 @@ class Notifications
 
                 foreach ($notifs as $notif) {
                     if (!$notif['seen'] && $notif['type'] != Notifications::TYPE_TRY_FEED) {
+                        #error_log("Message is {$notif['newsfeed']['message']} len " . strlen($notif['newsfeed']['message']));
                         switch ($notif['type']) {
                             case Notifications::TYPE_COMMENT_ON_COMMENT:
-                                $str .= "{$notif['fromuser']['displayname']} replied to your comment on '{$notif['newsfeed']['replyto']['message']}'\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " replied to your comment " . ($notif['newsfeed']['replyto']['message'] ? ("on {$notif['newsfeed']['replyto']['message']}") : "") . "\n";
+                                $count++;
                                 break;
                             case Notifications::TYPE_COMMENT_ON_YOUR_POST:
-                                $str .= "{$notif['fromuser']['displayname']} commented on '{$notif['newsfeed']['message']}'\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " commented on " . ($notif['newsfeed']['message'] ? "'{$notif['newsfeed']['message']}'" : "your post") . "\n";
+                                $count++;
                                 break;
                             case Notifications::TYPE_LOVED_POST:
-                                $str .= "{$notif['fromuser']['displayname']} loved your post '{$notif['newsfeed']['message']}'\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " loved your post '{$notif['newsfeed']['message']}'\n";
+                                $count++;
                                 break;
                             case Notifications::TYPE_LOVED_COMMENT:
-                                $str .= "{$notif['fromuser']['displayname']} loved your comment '{$notif['newsfeed']['message']}'\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " loved your comment '{$notif['newsfeed']['message']}'\n";
+                                $count++;
                                 break;
                         }
-
-                        $count++;
                     }
                 }
 
@@ -192,7 +198,7 @@ class Notifications
                 $html = notification_email($url, $noemail, $u->getName(), $u->getEmailPreferred(), nl2br($str));
 
                 $message = Swift_Message::newInstance()
-                    ->setSubject("You have " . count($notifs) . " new notifications")
+                    ->setSubject("You have " . ($count ? $count : '') . " new notification" . ($count != 1 ? 's' : ''))
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath($u->getBounce())
                     ->setTo([ $u->getEmailPreferred() => $u->getName() ])
@@ -201,9 +207,11 @@ class Notifications
 
                 list ($transport, $mailer) = getMailer();
                 $this->sendIt($mailer, $message);
+
+                $total += $count;
             }
         }
 
-        return($count);
+        return($total);
     }
 }

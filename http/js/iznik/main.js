@@ -70,10 +70,7 @@ function showHeaderWait() {
         var refreshicon = $('#refreshicon');
         refreshicon.show();
     } else {
-        var refreshbutton = $('#refreshbutton span');
-        refreshbutton.addClass("no-before");
-        var spinner = $("<img src='" + iznikroot + "images/loadermodal.gif' style='height:14px;' />");
-        $(refreshbutton).html(spinner);
+        $('#refreshbutton span').addClass("rotate");
     }
 }
 
@@ -85,12 +82,9 @@ function hideHeaderWait(event) {
         var refreshicon = $('#refreshicon');
         refreshicon.hide();
     } else {
-        var refreshbutton = $('#refreshbutton span');
-        refreshbutton.removeClass("no-before");
-        $(refreshbutton).html('');
+        $('#refreshbutton span').removeClass("rotate");
     }
 }
-
 function mobileRefresh() {
     showHeaderWait();
     Backbone.history.loadUrl();
@@ -100,9 +94,11 @@ function mobileRefresh() {
 var isOnline = true;
 function showNetworkStatus() {
     if (isOnline) {
-        $('#nonetwork').hide();
+        $('#nonetwork').addClass('reallyHide');
+        $('#refreshbutton').removeClass('reallyHide');
     } else {
-        $('#nonetwork').show();
+        $('#nonetwork').removeClass('reallyHide');
+        $('#refreshbutton').addClass('reallyHide');
     }
 }
 
@@ -172,13 +168,17 @@ require([
         var oldconsolelog = console.log;
         console.log = function () {
             if (showDebugConsole) {
-                var msg = '';
+                var now = new Date();
+                var msg = '###' + now.toJSON().substring(11) + ': ';
                 for (var i = 0; i < arguments.length; i++) {
                     var arg = arguments[i];
                     if (typeof arg !== "string") {
                         arg = JSON.stringify(arg);
                     }
                     msg += arg + ' ';
+                }
+                if (msg.length > 300) {
+                    msg = msg.substring(0,300)+'...';
                 }
                 msg += "\r\n";
                 logtog = !logtog;
@@ -258,10 +258,11 @@ require([
         var self = this;
         this.errors = this.errors === undefined ? 0 : this.errors + 1;
         var thedelay = delay(this.errors);
-        console.log("retryIt", thedelay, this, arguments);
-        // CC setTimeout(function () {
-        // CC    $.ajax(self);
-        // CC }, thedelay);
+        //console.log("retryIt", thedelay, this, arguments);
+        console.log("retryIt", thedelay, this.responseURL); // CC
+        setTimeout(function () {
+            $.ajax(self);
+        }, thedelay);
     }
 
     function extendIt(args, options) {
@@ -324,23 +325,32 @@ require([
         // Called to handle a push notification
         //
         // A push shows a notification immediately and sets desktop badge count (on iOS and some Android)
+        // Note: badge count also set elsewhere when unseen chats counted (and may disagree!)
+        //
+        // Some of the following description is probably not now right (yet again):
         //
         // On iOS this handler is called immediately if running in foreground;
-        //  it is not called if app not started or in background; the handler is called when app started.
+        //  it is not called if app not started; the handler is called when app started.
+        //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
         //
         // On Android this handler is called immediately if running in foreground;
-        //  it is not called if not started;
+        //  it is not called if not started; the handler is called twice when app started (double event)
         //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
         mobilePush.on('notification', function (data) {
             //alert("push notification");
             console.log("push notification");
             console.log(data);
-            var foreground = data.additionalData.foreground.toString() == 'true';
+            var foreground = data.additionalData.foreground.toString() == 'true';   // Was first called in foreground or background
             var msgid = data.additionalData['google.message_id'];
-            var doubleEvent = (!isiOS) && (msgid == lastPushMsgid);
+            if (isiOS) {
+                if (!('notId' in data.additionalData)) { data.additionalData.notId = 0; }
+                msgid = data.additionalData.notId;
+            }
+            var doubleEvent = (msgid == lastPushMsgid);
             lastPushMsgid = msgid;
+            console.log("foreground "+foreground+" double " + doubleEvent + " msgid: " + msgid);
             if (!('count' in data)) { data.count = 0; }
-            if (data.count == 0 || foreground) {
+            if (data.count == 0) {
                 mobilePush.clearAllNotifications();   // no success and error fns given
             }
             mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
@@ -348,31 +358,37 @@ require([
             msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
             badgeconsole += msg;
             $('#badgeconsole').html(badgeconsole);*/
-            if (data.count > 0) {
-                //alert(JSON.stringify(data));
-                console.log("push notification");
-                console.log(data);
-                var showRoute = (isiOS && !foreground) || doubleEvent;
-                if (showRoute) {
-                    if (data.additionalData.route) {
-                        console.log("About to show route: " + data.additionalData.route);
-                        (function waitUntilLoggedIn(retry) {
-                            if (Iznik.Session.loggedIn) {
-                                setTimeout(function () {
-                                    Router.navigate(data.additionalData.route, true);
-                                }, 500);
-                            } else {
-                                setTimeout(function () { if (--retry) { waitUntilLoggedIn(i); } }, 1000);
-                            }
-                        })(10);
-                    }
+
+            if ((!foreground && doubleEvent) && (data.count > 0)) { // Only show chat if started/awakened ie not if in foreground
+                var chatids = data.additionalData.chatids;
+                chatids = _.uniq(chatids);
+
+                if (chatids.length > 0) {
+
+                    var chatid = chatids[0];
+                    (function waitUntilLoggedIn(retry) {
+                        if (Iznik.Session.loggedIn) {
+                            setTimeout(function () {
+                                Router.navigate(data.additionalData.route, true);
+                            }, 500);
+                        } else {
+                            setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
+                        }
+                    })(10);
                 }
             }
 
-            mobilePush.finish(function () {
-                console.log("push finished");
-                //alert("finished");
-            });
+            if (isiOS) {
+                mobilePush.finish(function () {
+                        console.log("push finished OK");
+                        //alert("finished");
+                    }, function () {
+                        console.log("push finished error");
+                        //alert("finished");
+                    },
+                    data.additionalData.notId
+                );
+            }
         });
 
         mobilePush.on('error', function (e) {

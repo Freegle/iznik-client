@@ -5,6 +5,8 @@ define([
     'iznik/base',
     'autosize',
     'iznik/facebook',
+    'jquery.caret.min',
+    'jquery.atwho.min',
     'jquery-show-last',
     'iznik/models/message',
     'iznik/models/user/search',
@@ -14,6 +16,7 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/pages/user/post',
     'iznik/views/infinite',
+    'iznik/views/user/polls',
     'jquery.scrollTo'
 ], function($, _, Backbone, Iznik, autosize, FBLoad) {
     Iznik.Views.User.Feed = {};
@@ -212,11 +215,9 @@ define([
 
                 mod.save().then(function() {
                     mod.fetch().then(function() {
-                        console.log("Fetched", mod)
                         self.collection.add(mod, {
                             at: 0
                         });
-                        console.log("Added", mod);
                         self.$('.js-message').val('');
                         self.$('.js-message').prop('disabled', false);
                     });
@@ -341,6 +342,12 @@ define([
 
                 // Delay load of sidebars to give the main feed chance to load first.
                 _.delay(_.bind(self.sidebars, self), 10000);
+
+                // Polls
+                var poll = new Iznik.Views.User.Poll();
+                poll.render().then(function() {
+                    self.$('.js-poll').html(poll.$el);
+                });
             });
 
             return(p);
@@ -417,6 +424,9 @@ define([
             'click .js-open': 'open',
             'click .js-report': 'report',
             'click .js-refertowanted': 'referToWanted',
+            'click .js-refertooffer': 'referToOffer',
+            'click .js-refertotaken': 'referToTaken',
+            'click .js-refertoreceived': 'referToReceived',
             'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply',
             'click .js-edit': 'edit'
@@ -433,9 +443,11 @@ define([
             });
 
             self.listenToOnce(v, 'modalClosed', function() {
-                console.log("Modal closed");
                 self.model.fetch().then(function() {
                     self.$('.js-message').html(_.escape(self.model.get('message')));
+                    if (self.$('.js-message').length) {
+                        twemoji.parse(self.$('.js-message').get()[0]);
+                    }
                 });
             });
 
@@ -460,7 +472,36 @@ define([
             e.stopPropagation()
 
             self.model.referToWanted().then(function() {
-                console.log("Referred", self);
+                self.checkUpdate();
+            });
+        },
+
+        referToOffer: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            self.model.referToOffer().then(function() {
+                self.checkUpdate();
+            });
+        },
+
+        referToTaken: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            self.model.referToTaken().then(function() {
+                self.checkUpdate();
+            });
+        },
+
+        referToReceived: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation()
+
+            self.model.referToReceived().then(function() {
                 self.checkUpdate();
             });
         },
@@ -497,8 +538,12 @@ define([
             self.model.destroy();
         },
 
-        reply: function() {
+        reply: function(user) {
             this.$('.js-comment').focus();
+
+            if (user && user.hasOwnProperty('displayname')) {
+                this.$('.js-comment').html('@' + user.displayname + ' ');
+            }
         },
 
         showProfile: function() {
@@ -511,6 +556,48 @@ define([
 
                 v.render();
             });
+        },
+
+        mention: function(sel) {
+            var self = this;
+
+            // Allow use of @ to mention people.
+            self.$(sel).atwho({
+                at: "@",
+                data: API + 'mentions?id=' + self.model.get('id'),
+                callbacks: {
+                    beforeSave: function(data) {
+                        var ret = [];
+                        _.each(data.mentions, function(d) {
+                            ret.push({
+                                id: d.id,
+                                name: d.displayname
+                            });
+                        });
+
+                        return(ret);
+                    }
+                }
+            });
+        },
+
+        highlightMentions: function(msg) {
+            var self = this;
+            console.log("Highlight", msg, self.contributors);
+
+            if (self.options.contributors) {
+                for (var id in self.options.contributors) {
+                    var name = self.options.contributors[id];
+                    
+                    var p = msg.indexOf('@' + name);
+
+                    if (p !== -1) {
+                        msg = msg.substring(0, p) + '<span style="color: blue">@' + name + '</span>' + msg.substring(p + name.length + 1);
+                    }
+                }
+            }
+
+            return(msg);
         },
 
         render: function() {
@@ -539,13 +626,6 @@ define([
                         resolve();
                     });
                 });
-            });
-
-            p.then(function() {
-                if (self.$('.js-emoji').length) {
-                    var el = self.$('.js-emoji').get()[0];
-                    twemoji.parse(el);
-                }
             });
 
             return(p);
@@ -654,6 +734,9 @@ define([
             p.then(function() {
                 autosize(self.$('.js-message'));
                 self.$('.js-message').val(self.model.get('message'));
+                if (self.$('.js-message').length) {
+                    twemoji.parse(self.$('.js-message').get()[0]);
+                }
                 autosize.update(self.$('.js-message'));
             });
 
@@ -672,6 +755,7 @@ define([
 
         events: {
             'keydown .js-comment': 'sendComment',
+            'keypress .js-comment': 'addMention',
             'focus .js-comment': 'moreStuff',
             'click .js-addvolunteer': 'addVolunteer',
             'click .js-addevent': 'addEvent',
@@ -689,6 +773,10 @@ define([
             e.stopPropagation();
 
             self.$('.js-message').html(_.escape(self.model.get('moremessage')));
+            if (self.$('.js-message').length) {
+                twemoji.parse(self.$('.js-message').get()[0]);
+            }
+
             self.$('.js-moremessage').hide();
         },
 
@@ -728,6 +816,17 @@ define([
                 model: new Iznik.Models.CommunityEvent({})
             });
             v.render();
+        },
+
+        addMention: function(e) {
+            var self = this;
+
+            if (String.fromCharCode(e.which) == '@') {
+                if (!self.mentioned) {
+                    self.mentioned = true;
+                    self.mention('.js-comment');
+                }
+            }
         },
 
         moreStuff: function() {
@@ -893,6 +992,11 @@ define([
                     });
 
                     p.then(function() {
+                        if (self.model.get('moremessage')) {
+                            // Handle re-render.
+                            self.model.set('message', self.model.get('moremessage'));
+                        }
+
                         var message = self.model.get('message');
 
                         if (message) {
@@ -904,6 +1008,9 @@ define([
                             }
 
                             self.$('.js-message').html(_.escape(self.model.get('message')));
+                            if (self.$('.js-message').length) {
+                                twemoji.parse(self.$('.js-message').get()[0]);
+                            }
                         }
 
                         if (self.model.get('eventid')) {
@@ -926,7 +1033,13 @@ define([
                             });
                         }
 
-                        self.replies = new Iznik.Collections.Replies(self.model.get('replies'));
+                        var replies = self.model.get('replies')
+                        self.replies = new Iznik.Collections.Replies(replies);
+                        self.contributors = [];
+                        _.each(replies, function(reply) {
+                            self.contributors[reply.user.id] = reply.user.displayname
+                        });
+
                         var replyel = self.$('.js-replies');
 
                         if (replyel.length) {
@@ -935,7 +1048,8 @@ define([
                                 modelView: Iznik.Views.User.Feed.Reply,
                                 visibleModelsFilter: _.bind(self.visible, self),
                                 modelViewOptions: {
-                                    highlight: self.options.highlight
+                                    highlight: self.options.highlight,
+                                    contributors: self.contributors
                                 },
                                 collection: self.replies,
                                 processKeyEvents: false
@@ -995,26 +1109,57 @@ define([
             e.stopPropagation();
 
             self.$('.js-message').html(self.model.get('moremessage'));
+            if (self.$('.js-message').length) {
+                twemoji.parse(self.$('.js-message').get()[0]);
+            }
             self.$('.js-moremessage').hide();
         },
 
         reply: function() {
-            this.model.collection.trigger('reply');
+            this.model.collection.trigger('reply', this.model.get('user'));
         },
 
         render: function() {
             var self = this;
 
-            if (self.model.get('type') == 'ReferToWanted') {
-                self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
-                self.template = 'user_newsfeed_refertowanted';
+            var type = self.model.get('type');
+
+            self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
+
+            switch (type) {
+                case 'ReferToWanted': {
+                    self.template = 'user_newsfeed_refertowanted';
+                    break;
+                }
+
+                case 'ReferToOffer': {
+                    self.template = 'user_newsfeed_refertooffer';
+                    break;
+                }
+
+                case 'ReferToTaken': {
+                    self.template = 'user_newsfeed_refertotaken';
+                    break;
+                }
+
+                case 'ReferToReceived': {
+                    self.template = 'user_newsfeed_refertoreceived';
+                    break;
+                }
+
+                default: {}
             }
 
             var preview = self.model.get('preview');
             if (preview) {
                 // Don't allow previews which are too long.
-                preview.title = ellipsical(strip_tags(preview.title), 120);
-                preview.description = ellipsical(strip_tags(preview.description), 255);
+                if (preview.title) {
+                    preview.title = ellipsical(strip_tags(preview.title), 120);
+                }
+
+                if (preview.description) {
+                    preview.description = ellipsical(strip_tags(preview.description), 255);
+                }
                 self.model.set('preview', preview);
             }
 
@@ -1023,6 +1168,11 @@ define([
             });
 
             p.then(function() {
+                if (self.model.get('moremessage')) {
+                    // Handle re-render.
+                    self.model.set('message', self.model.get('moremessage'));
+                }
+
                 var message = self.model.get('message');
 
                 if (message) {
@@ -1033,7 +1183,13 @@ define([
                         self.model.set('message', ellip);
                     }
 
-                    self.$('.js-message').html(_.escape(self.model.get('message')));
+                    var msg = _.escape(self.model.get('message'));
+                    msg = self.highlightMentions(msg);
+                    self.$('.js-message').html(msg);
+
+                    if (self.$('.js-message').length) {
+                        twemoji.parse(self.$('.js-message').get()[0]);
+                    }
                 }
 
                 if (self.model.get('id') == self.options.highlight) {

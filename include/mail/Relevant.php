@@ -84,13 +84,18 @@ class Relevant {
         $searches = $this->dbhr->preQuery($sql, [ $userid, $start ]);
 
         foreach ($searches as $search) {
+            $term  = $search['term'];
+
+            # If they've searched for a whole subject line, strip out just the term.
+            $term = preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches) ? trim($matches[2]) : $term;
+
             $interested[] = [
                 'type' => Message::TYPE_WANTED,
-                'item' => $search['term'],
+                'item' => $term,
                 'reason' => [
                     'type' => Relevant::MATCH_SEARCH,
                     'searchid' => $search['id'],
-                    'term' => $search['term'],
+                    'term' => $term,
                     'date' => ISODate($search['date'])
                 ]
             ];

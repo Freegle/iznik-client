@@ -21,6 +21,8 @@
                 <% } %>
             <% } else if (subtype == 'Edit') { %>
                 {{byuser.displayname}} edited group settings
+            <% } else if (subtype == 'Autoapproved') { %>
+                Auto-approved on {{group.namedisplay}} - either Yahoo problems or not moderated
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
@@ -51,6 +53,8 @@
                 Edited #{{msgid}} {{text}} <% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %>
             <% } else if (subtype == 'Outcome') { %>
             Outcome for #{{msgid}}: {{text}}
+            <% } else if (subtype == 'Autoapproved') { %>
+            Auto-approved #{{msgid}} - either Yahoo problems or not moderated
             <% } else { %>
                     <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>

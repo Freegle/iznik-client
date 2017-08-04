@@ -26,7 +26,7 @@ class Polls extends Entity
 
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'polls', 'poll', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'polls', 'poll', $this->publicatts);
         }
 
         return($id);
@@ -40,8 +40,8 @@ class Polls extends Entity
             # Get first one we've not replied to.
             $lastq = $lastid ? " AND polls.id > $lastid " : '';
 
-            $sql = "SELECT id, logintype FROM polls LEFT JOIN polls_users ON polls.id = polls_users.pollid AND userid = ? WHERE (polls_users.pollid IS NULL OR response IS NULL) AND polls.active = 1 $lastq ORDER BY polls.date DESC LIMIT 1;";
-            $polls = $this->dbhr->preQuery($sql, [ $userid ]);
+            $sql = "SELECT id, logintype FROM polls LEFT JOIN polls_users ON polls.id = polls_users.pollid AND userid = ? WHERE (polls_users.pollid IS NULL OR response IS NULL) AND polls.active = 1 AND (polls.groupid IS NULL OR polls.groupid IN (SELECT groupid FROM memberships WHERE userid = ?)) $lastq ORDER BY polls.date DESC LIMIT 1;";
+            $polls = $this->dbhr->preQuery($sql, [ $userid, $userid ]);
 
             # Keep looking while we're still finding some.
             $cont = count($polls) > 0;

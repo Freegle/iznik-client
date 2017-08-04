@@ -130,7 +130,7 @@ define([
         notificationCheck: function() {
             var self = this;
 
-            console.log("Notification check", self.notificationChecking);
+            // CC console.log("Notification check", self.notificationChecking);
             if (!self.notificationChecking && self.inDOM()) {
                 self.notificationChecking = true;
 
@@ -333,6 +333,9 @@ define([
                             } else {
                                 $('.js-invitesleft').html('').show();
                             }
+
+                            // Get notifications
+                            Iznik.Session.askSubscription();
                         }
 
                         if ($('.js-notiflist').length) {

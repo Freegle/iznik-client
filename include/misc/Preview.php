@@ -57,7 +57,7 @@ class Preview extends Entity
 
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'link_previews', 'link', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'link_previews', 'link', $this->publicatts);
         }
 
         return($id);
@@ -70,11 +70,14 @@ class Preview extends Entity
         ]);
 
         if (count($links) > 0) {
-            $this->fetch($this->dbhr, $this->dbhm, $links[0]['id'], 'link_previews', 'link', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $links[0]['id'], 'link_previews', 'link', $this->publicatts);
             $id = $links[0]['id'];
         } else {
             $id = $this->create($url);
         }
+
+        # Make any relative urls absolute to help app.
+        $this->link['url'] = substr($this->link['url'], 0, 1) == '/' ? ('https://' . HTTP_HOST . "/$this->link['url']") :  $this->link['url'];
 
         return($id);
     }

@@ -37,7 +37,7 @@ class Item extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'items', 'item', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'items', 'item', $this->publicatts);
 
             # Add into the search index.
             $this->index();
@@ -53,8 +53,10 @@ class Item extends Entity
     }
 
     public function index() {
-        $this->s->delete($this->id);
-        $this->s->add($this->id, $this->item['name'], $this->item['popularity'], NULL);
+        if ($this->id) {
+            $this->s->delete($this->id);
+            $this->s->add($this->id, $this->item['name'], $this->item['popularity'], NULL);
+        }
     }
 
     public function typeahead($query) {
@@ -120,10 +122,13 @@ class Item extends Entity
     }
 
     public function delete() {
-        # Remove from the search index.
-        $this->s->delete($this->id);
+        $rc = FALSE;
+        if ($this->id) {
+            # Remove from the search index.
+            $this->s->delete($this->id);
 
-        $rc = $this->dbhm->preExec("DELETE FROM items WHERE id = ?;", [$this->id]);
+            $rc = $this->dbhm->preExec("DELETE FROM items WHERE id = ?;", [$this->id]);
+        }
 
         return($rc);
     }

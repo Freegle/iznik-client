@@ -470,6 +470,7 @@ define([
                                     $('.js-workcount').html('').hide();
                                 }
                                 if (mobilePush) {
+                                    console.log("Session set badge: " + total);
                                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
                                 } // CC
 

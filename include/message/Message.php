@@ -3098,6 +3098,9 @@ class Message
             $this->setPrivate('lat', $atts['location']['lat']);
             $this->setPrivate('lng', $atts['location']['lng']);
 
+            # Save off this as the last known location for this user.
+            $fromuser->setPrivate('lastlocation', $atts['location']['id']);
+
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
             $this->setPrivate('envelopeto', $g->getGroupEmail());
 
@@ -3468,14 +3471,18 @@ class Message
                         $lastwarnago = $message['lastautopostwarning'] ? ($now - strtotime($message['lastautopostwarning'])) : NULL;
                         $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
 
-                        error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago");
+                        # If we have messages which are older than we could have been trying for, ignore them.
+                        $maxage = $interval * ($reposts['max'] + 1);
 
-                        # Reposts might be turned off.
-                        if ($interval > 0) {
-                            if ($message['hoursago'] <= $interval * 24 &&
-                                $message['hoursago'] > ($interval - 1) * 24 &&
-                                ($lastwarnago === NULL || $lastwarnago > 24)
-                            ) {
+                        error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago maxage $maxage");
+
+                        if ($message['hoursago'] < $maxage * 24) {
+                            # Reposts might be turned off.
+                            if ($interval > 0 && $reposts['max'] > 0) {
+                                if ($message['hoursago'] <= $interval * 24 &&
+                                    $message['hoursago'] > ($interval - 1) * 24 &&
+                                    ($lastwarnago === NULL || $lastwarnago > 24)
+                                ) {
                                     # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
                                     # an old one (probably from the previous repost).
                                     if (!$message['lastautopostwarning'] || ($lastwarnago > 24 * 60 * 60)) {
@@ -3523,13 +3530,14 @@ class Message
                                             }
                                         }
                                     }
-                            } else if ($message['hoursago'] > $interval * 24) {
-                                # We can autorepost this one.
-                                $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                                error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
-                                $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
+                                } else if ($message['hoursago'] > $interval * 24) {
+                                    # We can autorepost this one.
+                                    $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                    error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
+                                    $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
 
-                                $count++;
+                                    $count++;
+                                }
                             }
                         }
                     }

@@ -9,8 +9,7 @@ define([
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
     'iznik/views/user/message',
-    'iznik/views/supportus',
-    'iznik/views/user/polls'
+    'iznik/views/supportus'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
@@ -225,18 +224,11 @@ define([
         render: function () {
             var self = this;
 
-            Iznik.Session.askSubscription();
-
             var p = Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
             });
 
             p.then(function(self) {
-                var poll = new Iznik.Views.User.Poll();
-                poll.render().then(function() {
-                    self.$('.js-poll').html(poll.$el);
-                });
-
                 // Left menu is community events
                 var v = new Iznik.Views.User.CommunityEventsSidebar();
                 v.render().then(function () {
@@ -383,8 +375,6 @@ define([
 
             self.wait = new Iznik.Views.PleaseWait();
             self.wait.render();
-
-            Iznik.Session.askSubscription();
 
             var p = Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true

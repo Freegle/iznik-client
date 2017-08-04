@@ -82,6 +82,7 @@ class userTest extends IznikTestCase {
 
         # Add an email - should work.
         assertGreaterThan(0, $u->addEmail('test@test.com'));
+        assertEquals(0, $u->getEmailAge('test@test.com'));
 
         # Check it's there
         $emails = $u->getEmails();
@@ -968,6 +969,21 @@ class userTest extends IznikTestCase {
         $u->create('Test', 'User', 'A freegler');
         $atts = $u->getPublic();
         self::assertNotEquals('A freegler', $atts['fullname']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSetting() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhm, $this->dbhm);
+        $u->create('Test', 'User', 'A freegler');
+        assertTrue($u->getSetting('notificationmails', TRUE));
+
+        $settings = json_decode($u->getPrivate('settings'), TRUE);
+        $settings['notificationmails'] = FALSE;
+        $u->setPrivate('settings', json_encode($settings));
+        assertFalse($u->getSetting('notificationmails', TRUE));
 
         error_log(__METHOD__ . " end");
     }

@@ -121,7 +121,9 @@ function message() {
                         if ($locationid) {
                             if (!$id) {
                                 $id = $m->createDraft();
-                                $m = new Message($dbhr, $dbhm, $id);
+
+                                # Use the master to avoid any replication windows.
+                                $m = new Message($dbhm, $dbhm, $id);
 
                                 # Record the last message we created in our session.  We use this to give access to
                                 # this message even if we're not logged in - for example when setting the FOP after
@@ -153,9 +155,9 @@ function message() {
 
                                 $type = presdef('messagetype', $_REQUEST, NULL);
 
-                                # Associated the item with the message.
+                                # Associated the item with the message.  Use the master to avoid replication windows.
                                 $item = presdef('item', $_REQUEST, NULL);
-                                $i = new Item($dbhr, $dbhm);
+                                $i = new Item($dbhm, $dbhm);
                                 $itemid = $i->create($item);
                                 $m->addItem($itemid);
 

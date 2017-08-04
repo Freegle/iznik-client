@@ -19,7 +19,7 @@ require_once(IZNIK_BASE . '/mailtemplates/newsfeed/digest.php');
 class Newsfeed extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'timestamp', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted');
+    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted');
 
     /** @var  $log Log */
     private $log;
@@ -37,6 +37,9 @@ class Newsfeed extends Entity
     const TYPE_ALERT = 'Alert';
     const TYPE_STORY = 'Story';
     const TYPE_REFER_TO_WANTED = 'ReferToWanted';
+    const TYPE_REFER_TO_OFFER = 'ReferToOffer';
+    const TYPE_REFER_TO_TAKEN = 'ReferToTaken';
+    const TYPE_REFER_TO_RECEIVED = 'ReferToReceived';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -54,10 +57,23 @@ class Newsfeed extends Entity
         $hidden = $s->checkReferToSpammer($message) ? 'NOW()' : 'NULL';
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
-        list($lat, $lng) = $userid ? $u->getLatLng() : [ NULL, NULL ];
+        list($lat, $lng) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL ];
+
+        # If we don't know where the user is, use the group location.
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+        $lat = ($groupid && $lat === NULL) ? $g->getPrivate('lat') : $lat;
+        $lng = ($groupid && $lng === NULL) ? $g->getPrivate('lng') : $lng;
+
 #        error_log("Create at $lat, $lng");
 
-        if ($lat || $lng || $type == Newsfeed::TYPE_CENTRAL_PUBLICITY || $type == Newsfeed::TYPE_ALERT || $type == Newsfeed::TYPE_REFER_TO_WANTED) {
+        if ($lat || $lng ||
+            $type == Newsfeed::TYPE_CENTRAL_PUBLICITY ||
+            $type == Newsfeed::TYPE_ALERT ||
+            $type == Newsfeed::TYPE_REFER_TO_WANTED ||
+            $type == Newsfeed::TYPE_REFER_TO_OFFER ||
+            $type == Newsfeed::TYPE_REFER_TO_TAKEN ||
+            $type == Newsfeed::TYPE_REFER_TO_RECEIVED
+        ) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
             $pos = ($lat || $lng) ? "GeomFromText('POINT($lng $lat)')" : "GeomFromText('POINT(-2.5209 53.9450)')";
 
@@ -78,9 +94,9 @@ class Newsfeed extends Entity
             $id = $this->dbhm->lastInsertId();
 
             if ($id) {
-                $this->fetch($this->dbhr, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
+                $this->fetch($this->dbhm, $this->dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
 
-                if ($replyto) {
+                if ($replyto && $hidden == 'NULL') {
                     # Bump the thread.
                     $this->dbhm->preExec("UPDATE newsfeed SET timestamp = NOW() WHERE id = ?;", [ $replyto ]);
 
@@ -158,6 +174,8 @@ class Newsfeed extends Entity
 
     private function fillIn(&$entry, &$users, $checkreplies = TRUE) {
         unset($entry['position']);
+
+        $entry['message'] = trim($entry['message']);
 
         $use = !presdef('reviewrequired', $entry, FALSE) && !presdef('deleted', $entry, FALSE);
 
@@ -272,6 +290,8 @@ class Newsfeed extends Entity
                 $entry['loved'] = $likes[0]['count'] > 0;
             }
 
+            $myid = $me ? $me->getId() : NULL;
+
             $entry['replies'] = [];
 
             if ($checkreplies) {
@@ -283,18 +303,26 @@ class Newsfeed extends Entity
                 $last = NULL;
 
                 foreach ($replies as &$reply) {
-                    # Replies only one deep at present.
-                    $this->fillIn($reply, $users, FALSE);
+                    $hidden = $reply['hidden'];
 
-                    if ($reply['visible'] &&
-                        $last['userid'] == $reply['userid'] &&
-                        $last['type'] == $reply['type'] &&
-                        $last['message'] == $reply['message']) {
-                        # Suppress duplicates.
-                        $reply['visible'] = FALSE;
+                    # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
+                    # are there but nobody else sees them.
+                    if (!$hidden || $myid == $entry['userid']) {
+                        # Replies only one deep at present.
+                        $this->fillIn($reply, $users, FALSE);
+
+                        if ($reply['visible'] &&
+                            $last['userid'] == $reply['userid'] &&
+                            $last['type'] == $reply['type'] &&
+                            $last['message'] == $reply['message']
+                        ) {
+                            # Suppress duplicates.
+                            $reply['visible'] = FALSE;
+                        }
+
+                        $entry['replies'][] = $reply;
                     }
-                    
-                    $entry['replies'][] = $reply;
+
                     $last = $reply;
                 }
             }
@@ -394,11 +422,24 @@ class Newsfeed extends Entity
         return([$users, $items]);
     }
 
-    public function referToWanted() {
+    public function refer($type) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        $referredid = $this->id;
+        $userid = $this->feed['userid'];
+
         # Create a kind of comment and notify the poster.
-        $id = $this->create(Newsfeed::TYPE_REFER_TO_WANTED, NULL, NULL, NULL, NULL, $this->id);
+        $id = $this->create($type, NULL, NULL, NULL, NULL, $this->id);
         $n = new Notifications($this->dbhr, $this->dbhm);
-        $n->add(NULL, $this->feed['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
+        $n->add($myid, $userid, Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
+
+        # Hide this post except to the author.
+        $rc = $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW(), hiddenby = ? WHERE id = ?;", [
+            $myid,
+            $referredid
+        ]);
+        error_log("Refer $rc " . $this->dbhm->rowsAffected());
     }
 
     public function like() {
@@ -567,5 +608,33 @@ class Newsfeed extends Entity
         }
 
         return($count);
+    }
+
+    public function mentions($myid, $query) {
+        # Find the root of the thread.
+        $threadid = $this->feed['replyto'] ? $this->feed['replyto'] : $this->id;
+
+        # First find the people who have contributed to the thread.
+        $userids = $this->dbhr->preQuery("SELECT DISTINCT userid FROM newsfeed WHERE (replyto = ? OR id = ?) AND userid != ?;", [
+            $threadid,
+            $threadid,
+            $myid
+        ]);
+
+        $ret = [];
+
+        foreach ($userids as $userid) {
+            $u = User::get($this->dbhr, $this->dbhm, $userid['userid']);
+            $name = $u->getName();
+
+            if (!$query || strpos($name, $query) === 0) {
+                $ret[] = [
+                    'id' => $userid['userid'],
+                    'displayname' => $u->getName()
+                ];
+            }
+        }
+
+        return($ret);
     }
 }

@@ -49,8 +49,15 @@ function messages() {
                     }
 
                     if (count($groups) == 0) {
-                        # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
-                        $groups[] = 0;
+                        if ($fromuser) {
+                            # We're searching for messages from a specific user, so skip the group filter.  This
+                            # handles the case where someone joins, posts, leaves, and then can't see their posts
+                            # in My Posts.
+                            $groups = NULL;
+                        } else {
+                            # Ensure that if we aren't in any groups, we don't treat this as a systemwide search.
+                            $groups[] = 0;
+                        }
                     }
                 }
             }

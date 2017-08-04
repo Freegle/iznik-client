@@ -202,7 +202,7 @@ class Group extends Entity
         }
 
         if ($rc && $id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'groups', 'group', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'groups', 'group', $this->publicatts);
             $this->log->log([
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_CREATED,
@@ -287,7 +287,10 @@ class Group extends Entity
 
     public function findByShortName($name) {
         $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE nameshort LIKE ?;",
-            [$name]);
+            [
+                trim($name)
+            ]);
+
         foreach ($groups as $group) {
             return($group['id']);
         }
@@ -1215,7 +1218,11 @@ class Group extends Entity
         return($this->group['onyahoo']);
     }
 
-   public function listByType($type) {
+    public function getName() {
+        return($this->group['namefull'] ? $this->group['namefull'] : $this->group['nameshort']);
+    }
+
+    public function listByType($type) {
        $me = whoAmI($this->dbhr, $this->dbhm);
        $typeq = $type ? "type = ?" : '1=1';
         $sql = "SELECT id, nameshort, region, namefull, lat, lng, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";

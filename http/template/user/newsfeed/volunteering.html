@@ -1,3 +1,4 @@
+<% if (obj.volunteeringid) { %>
 <div class="panel fadein">
     <div class="panel-body">
         <div class="row">
@@ -8,7 +9,7 @@
                     <br />
                     <small class="text-muted">
                         <abbr class="timeago nodecor" title="{{added}}" />
-                        <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation}}<% } %>
+                        <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation.display}}<% } %>
                     </small>
                 </div>
             </div>
@@ -37,3 +38,4 @@
         </div>
     </div>
 </div>
+<% } %>

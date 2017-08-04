@@ -7,11 +7,13 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 
 $lockh = lockScript(basename(__FILE__));
 
-$users = $dbhr->preQuery("SELECT DISTINCT userid FROM users_donations WHERE thanked = 0 AND userid IS NOT NULL;");
+# Only thank each user once.
+$users = $dbhr->preQuery("SELECT DISTINCT users_donations.userid FROM users_donations LEFT OUTER JOIN users_thanks ON users_thanks.userid = users_donations.userid WHERE users_donations.userid IS NOT NULL AND users_thanks.userid IS NULL AND payer != 'ppgfukpay@paypalgivingfund.org';");
 foreach ($users as $user) {
     $u = User::get($dbhr, $dbhm, $user['userid']);
+    error_log($u->getEmailPreferred());
     $u->thankDonation();
-    $dbhm->preExec("UPDATE users_donations SET thanked = 1 WHERE userid = ?;", [ $user['userid'] ]);
+    $dbhm->preExec("INSERT INTO users_thanks (userid) VALUES (?);", [ $user['userid'] ]);
 }
 
 unlockScript($lockh);

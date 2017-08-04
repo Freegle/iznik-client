@@ -19,6 +19,42 @@ define([
             }));
         },
 
+        referToOffer: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'ReferToOffer'
+                }
+            }));
+        },
+
+        referToTaken: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'ReferToTaken'
+                }
+            }));
+        },
+
+        referToReceived: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'ReferToReceived'
+                }
+            }));
+        },
+
         seen: function() {
             var self = this;
 

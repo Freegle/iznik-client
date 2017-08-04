@@ -10,6 +10,7 @@ require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
 require_once(IZNIK_BASE . '/include/chat/ChatMessage.php');
 require_once(IZNIK_BASE . '/include/mail/Digest.php');
 require_once(IZNIK_BASE . '/include/mail/EventDigest.php');
+require_once(IZNIK_BASE . '/include/mail/VolunteeringDigest.php');
 require_once(IZNIK_BASE . '/include/mail/Newsletter.php');
 require_once(IZNIK_BASE . '/include/mail/Relevant.php');
 
@@ -441,7 +442,7 @@ class MailRouter
                         $uid = $u->findByEmail($email);
 
                         if ($uid) {
-                            # We have the user and the group.  Mark the membership as no longer pending (if
+                            # We have the user and the group.
                             if ($log) { error_log("Found them $uid"); }
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
 
@@ -449,29 +450,45 @@ class MailRouter
                             $eid = $eid ? $eid['id'] : NULL;
 
                             if (ourDomain($email)) {
-                                $u->markYahooApproved($gid, $eid);
-                            }
+                                if ($log) { error_log("$email is ours"); }
 
-                            # Dispatch any messages which are queued awaiting this group membership.
-                            $u->submitYahooQueued($gid);
+                                $cont = TRUE;
+
+                                if (!$u->isPendingMember($gid) && !$u->isApprovedMember($gid)) {
+                                    # We've somehow lost the Yahoo membership.
+                                    if ($log) { error_log("Readd membership for $email on $gid using $eid"); }
+                                    $cont = $u->addMembership($gid, User::ROLE_MEMBER, $eid, MembershipCollection::APPROVED);
+                                }
+
+                                if ($cont) {
+                                    # Mark the membership as no longer pending.
+                                    if ($log) { error_log("Mark $eid on $gid as approved"); }
+                                    $u->markYahooApproved($gid, $eid);
+
+                                    # Dispatch any messages which are queued awaiting this group membership.
+                                    if ($log) { error_log("Submit"); }
+                                    $u->submitYahooQueued($gid);
+                                }
+                            }
                         }
 
                         $ret = MailRouter::TO_SYSTEM;
                     }
                 }
-            } else if (preg_match('/Request to join (.*)/', $this->msg->getSubject(), $matches)) {
+            } else if (preg_match('/Request to join (.*) approved/', $this->msg->getSubject(), $matches) ||
+                preg_match('/Request to join (.*)/', $this->msg->getSubject(), $matches)) {
                 # Mainline path for an approval.
                 #
                 # We also get this if we respond to the confirmation multiple times (which we do) and
                 # we haven't got the new member notification in the previous arm (which we might
                 # not).  It means that we are already a member, so we can treat it as a confirmation.
-                $nameshort = $matches[1];
-                if ($log) { error_log("Request to join $nameshort"); }
+                $nameshort = trim($matches[1]);
+                if ($log) { error_log("Request to join $nameshort from $to"); }
                 $all = $this->msg->getMessage();
 
                 if (preg_match('/Because you are already a member/m', $all, $matches) ||
                     preg_match('/has approved your request for membership/m', $all, $matches)) {
-                    if ($log) { error_log("Now or already a member"); }
+                    if ($log) { error_log("$to Now or already a member of $nameshort"); }
                     $g = Group::get($this->dbhr, $this->dbhm);
                     $gid = $g->findByShortName($nameshort);
 
@@ -480,19 +497,28 @@ class MailRouter
                         $uid = $u->findByEmail($to);
 
                         if ($uid) {
-                            # We have the user and the group.  Mark the membership as no longer pending.
-                            if ($log) {
-                                error_log("Found them $uid");
-                            }
+                            # We have the user and the group.
+                            if ($log) { error_log("Found them $uid"); }
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
 
-                            # Membership might have disappeared in the mean time.
-                            if ($u->isPendingMember($gid)) {
-                                $eid = $u->getIdForEmail($to);
-                                $eid = $eid ? $eid['id'] : NULL;
+                            $eid = $u->getIdForEmail($to);
+                            $eid = $eid ? $eid['id'] : NULL;
+
+                            $cont = TRUE;
+
+                            if (!$u->isPendingMember($gid) && !$u->isApprovedMember($gid)) {
+                                # We've somehow lost the Yahoo membership.
+                                if ($log) { error_log("Readd membership for $to on $gid using $eid"); }
+                                $cont = $u->addMembership($gid, User::ROLE_MEMBER, $eid, MembershipCollection::APPROVED);
+                            }
+
+                            if ($cont) {
+                                # Mark the membership as no longer pending.
+                                if ($log) { error_log("Mark $eid on $gid as approved"); }
                                 $u->markYahooApproved($gid, $eid);
 
                                 # Dispatch any messages which are queued awaiting this group membership.
+                                if ($log) { error_log("Submit"); }
                                 $u->submitYahooQueued($gid);
                             }
                         }
@@ -549,7 +575,7 @@ class MailRouter
             $groupid = intval($matches[2]);
 
             if ($uid && $groupid) {
-                $d = new VolunteerDigest($this->dbhr, $this->dbhm);
+                $d = new VolunteeringDigest($this->dbhr, $this->dbhm);
                 $d->off($uid, $groupid);
 
                 $ret = MailRouter::TO_SYSTEM;
@@ -970,7 +996,7 @@ class MailRouter
                         $uid = $u->findByEmail($to);
                         if ($log) { error_log("Find reply $to = $uid"); }
 
-                        if ($uid) {
+                        if ($uid && $this->msg->getFromuser()) {
                             # This is to one of our users.  We try to pair it as best we can with one of the posts.
                             $original = $this->msg->findFromReply($uid);
                             if ($log) { error_log("Paired with $original"); }
@@ -1034,7 +1060,7 @@ class MailRouter
 
         # Dropped messages will get tidied up by an event in the DB, but we leave them around in case we need to
         # look at them for PD.
-        error_log("Routed #" . $this->msg->getID(). " " . $this->msg->getMessageID() . " " . $this->msg->getSubject() . " " . $ret);
+        error_log("Routed #" . $this->msg->getID(). " " . $this->msg->getMessageID() . " " . $this->msg->getEnvelopefrom() . " -> " . $this->msg->getEnvelopeto() . " " . $this->msg->getSubject() . " " . $ret);
 
         return($ret);
     }

@@ -17,27 +17,32 @@ $users = $dbhr->preQuery("SELECT DISTINCT chat_messages.userid, COUNT(*) AS coun
 $count = 0;
 
 foreach ($users as $user) {
-    # Check whether we have ever marked something from them as not spam.  If we have, then they might be being
-    # spoofed and unlucky.  If not, these are almost certainly spammers, so we will auto mark any chat messages
-    # currently held for review as spam.  We don't add them to the spammer list because removing someone from that
-    # if it was a mistake is a pain.
-    $ok = $dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE userid = ? AND reviewrequired = 1 AND reviewedby IS NOT NULL AND reviewrejected = 0;", [
-        $user['userid']
-    ]);
-
-    #error_log("...{$user['userid']} ok count {$ok[0]['count']}");
-    if ($ok[0]['count'] == 0) {
-        $reviews = $dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE userid = ? AND reviewrequired = 1 AND reviewedby IS NULL;", [
+    $u = new User($dbhr, $dbhm, $user['userid']);
+    
+    # Don't want to mark subsequent messages from a mod as spam.
+    if (!$u->isModerator()) {
+        # Check whether we have ever marked something from them as not spam.  If we have, then they might be being
+        # spoofed and unlucky.  If not, these are almost certainly spammers, so we will auto mark any chat messages
+        # currently held for review as spam.  We don't add them to the spammer list because removing someone from that
+        # if it was a mistake is a pain.
+        $ok = $dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE userid = ? AND reviewrequired = 1 AND reviewedby IS NOT NULL AND reviewrejected = 0;", [
             $user['userid']
         ]);
 
-        if ($reviews[0]['count'] > 0) {
-            error_log("...{$user['userid']} spam count {$user['count']} marked as spam, auto-mark {$reviews[0]['count']} pending review");
-            $count += $reviews[0]['count'];
-            $dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0, reviewrejected = 1, reviewedby = ? WHERE userid = ? AND reviewrequired = 1 AND reviewedby IS NULL;", [
-                $uid,
+        #error_log("...{$user['userid']} ok count {$ok[0]['count']}");
+        if ($ok[0]['count'] == 0) {
+            $reviews = $dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE userid = ? AND reviewrequired = 1 AND reviewedby IS NULL;", [
                 $user['userid']
             ]);
+
+            if ($reviews[0]['count'] > 0) {
+                error_log("...{$user['userid']} spam count {$user['count']} marked as spam, auto-mark {$reviews[0]['count']} pending review");
+                $count += $reviews[0]['count'];
+                $dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0, reviewrejected = 1, reviewedby = ? WHERE userid = ? AND reviewrequired = 1 AND reviewedby IS NULL;", [
+                    $uid,
+                    $user['userid']
+                ]);
+            }
         }
     }
 }

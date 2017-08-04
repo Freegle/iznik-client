@@ -30,7 +30,7 @@ class Admin extends Entity
 
         if ($rc) {
             $id = $this->dbhm->lastInsertId();
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'admins', 'admin', $this->publicatts);
+            $this->fetch($this->dbhm, $this->dbhm, $id, 'admins', 'admin', $this->publicatts);
         }
 
         return($id);

@@ -3,9 +3,9 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 06, 2017 at 03:41 PM
--- Server version: 5.7.16-10-57
--- PHP Version: 5.5.9-1ubuntu4.20
+-- Generation Time: Jul 25, 2017 at 03:24 PM
+-- Server version: 5.7.17-13-57
+-- PHP Version: 5.5.9-1ubuntu4.21
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -284,6 +284,24 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `abtest`
+--
+
+CREATE TABLE IF NOT EXISTS `abtest` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `uid` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `variant` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `shown` bigint(20) unsigned NOT NULL,
+  `action` bigint(20) unsigned NOT NULL,
+  `rate` decimal(10,2) NOT NULL,
+  `suggest` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uid_2` (`uid`,`variant`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='For testing site changes to see which work' AUTO_INCREMENT=540181 ;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `admins`
 --
 
@@ -298,7 +316,7 @@ CREATE TABLE IF NOT EXISTS `admins` (
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   KEY `createdby` (`createdby`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Try all means to reach people with these' AUTO_INCREMENT=2130 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Try all means to reach people with these' AUTO_INCREMENT=2683 ;
 
 -- --------------------------------------------------------
 
@@ -323,7 +341,7 @@ CREATE TABLE IF NOT EXISTS `alerts` (
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   KEY `createdby` (`createdby`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Try all means to reach people with these' AUTO_INCREMENT=4866 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Try all means to reach people with these' AUTO_INCREMENT=6307 ;
 
 -- --------------------------------------------------------
 
@@ -346,7 +364,22 @@ CREATE TABLE IF NOT EXISTS `alerts_tracking` (
   KEY `alertid` (`alertid`),
   KEY `emailid` (`emailid`),
   KEY `groupid` (`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=83964 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=94702 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `authorities`
+--
+
+CREATE TABLE IF NOT EXISTS `authorities` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `polygon` geometry NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
+  SPATIAL KEY `polygon` (`polygon`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Counties and Unitary Authorities.  May be multigeometries' AUTO_INCREMENT=613 ;
 
 -- --------------------------------------------------------
 
@@ -360,7 +393,7 @@ CREATE TABLE IF NOT EXISTS `bounces` (
   `msg` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bounce messages received by email' AUTO_INCREMENT=429525 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bounce messages received by email' AUTO_INCREMENT=4435828 ;
 
 -- --------------------------------------------------------
 
@@ -377,7 +410,7 @@ CREATE TABLE IF NOT EXISTS `bounces_emails` (
   `reset` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'If we have reset bounces for this email',
   PRIMARY KEY (`id`),
   KEY `emailid` (`emailid`,`date`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=5106033 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=10772830 ;
 
 -- --------------------------------------------------------
 
@@ -396,7 +429,7 @@ CREATE TABLE IF NOT EXISTS `chat_images` (
   PRIMARY KEY (`id`),
   KEY `incomingid` (`chatmsgid`),
   KEY `hash` (`hash`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=2724 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=28408 ;
 
 -- --------------------------------------------------------
 
@@ -408,7 +441,7 @@ CREATE TABLE IF NOT EXISTS `chat_messages` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `chatid` bigint(20) unsigned NOT NULL,
   `userid` bigint(20) unsigned NOT NULL COMMENT 'From',
-  `type` enum('Default','System','ModMail','Interested','Promised','Reneged','ReportedUser','Completed','Image') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Default',
+  `type` enum('Default','System','ModMail','Interested','Promised','Reneged','ReportedUser','Completed','Image','Address') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Default',
   `reportreason` enum('Spam','Other') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `refmsgid` bigint(20) unsigned DEFAULT NULL,
   `refchatid` bigint(20) unsigned DEFAULT NULL,
@@ -422,6 +455,7 @@ CREATE TABLE IF NOT EXISTS `chat_messages` (
   `reviewedby` bigint(20) unsigned DEFAULT NULL COMMENT 'User id of volunteer who reviewed it',
   `reviewrejected` tinyint(1) NOT NULL DEFAULT '0',
   `spamscore` int(11) DEFAULT NULL COMMENT 'SpamAssassin score for mail replies',
+  `facebookid` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `chatid` (`chatid`),
   KEY `userid` (`userid`),
@@ -433,7 +467,7 @@ CREATE TABLE IF NOT EXISTS `chat_messages` (
   KEY `refchatid` (`refchatid`),
   KEY `refchatid_2` (`refchatid`),
   KEY `imageid` (`imageid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=3736338 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=6705196 ;
 
 -- --------------------------------------------------------
 
@@ -450,12 +484,16 @@ CREATE TABLE IF NOT EXISTS `chat_rooms` (
   `user2` bigint(20) unsigned DEFAULT NULL COMMENT 'For DMs',
   `description` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `synctofacebook` enum('Dont','RepliedOnFacebook','RepliedOnPlatform','PostedLink') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Dont',
+  `synctofacebookgroupid` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user1_2` (`user1`,`user2`,`chattype`),
   KEY `groupid` (`groupid`),
   KEY `user1` (`user1`),
-  KEY `user2` (`user2`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1492608 ;
+  KEY `user2` (`user2`),
+  KEY `synctofacebook` (`synctofacebook`),
+  KEY `synctofacebookgroupid` (`synctofacebookgroupid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=2364712 ;
 
 -- --------------------------------------------------------
 
@@ -481,7 +519,7 @@ CREATE TABLE IF NOT EXISTS `chat_roster` (
   KEY `lastmsg` (`lastmsgseen`),
   KEY `lastip` (`lastip`),
   KEY `status` (`status`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=130853925 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=288323890 ;
 
 -- --------------------------------------------------------
 
@@ -507,7 +545,7 @@ CREATE TABLE IF NOT EXISTS `communityevents` (
   KEY `userid` (`userid`),
   KEY `title` (`title`),
   KEY `legacyid` (`legacyid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=122655 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=127333 ;
 
 -- --------------------------------------------------------
 
@@ -523,7 +561,7 @@ CREATE TABLE IF NOT EXISTS `communityevents_dates` (
   PRIMARY KEY (`id`),
   KEY `start` (`start`),
   KEY `eventid` (`eventid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=111939 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=120055 ;
 
 -- --------------------------------------------------------
 
@@ -557,7 +595,7 @@ CREATE TABLE IF NOT EXISTS `communityevents_images` (
   PRIMARY KEY (`id`),
   KEY `incomingid` (`eventid`),
   KEY `hash` (`hash`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=420 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=2710 ;
 
 -- --------------------------------------------------------
 
@@ -600,9 +638,12 @@ CREATE TABLE IF NOT EXISTS `groups` (
   `description` text COLLATE utf8mb4_unicode_ci,
   `founded` date DEFAULT NULL,
   `lasteventsroundup` timestamp NULL DEFAULT NULL COMMENT '(Freegle) Last event roundup sent',
+  `lastvolunteeringroundup` timestamp NULL DEFAULT NULL,
   `external` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Link to some other system e.g. Norfolk',
   `contactmail` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'For external sites',
   `welcomemail` text COLLATE utf8mb4_unicode_ci COMMENT '(Freegle) Text for welcome mail',
+  `activitypercent` decimal(10,2) DEFAULT NULL COMMENT 'Within a group type, the proportion of overall activity that this group accounts for.',
+  `fundingtarget` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `nameshort` (`nameshort`),
@@ -613,7 +654,7 @@ CREATE TABLE IF NOT EXISTS `groups` (
   KEY `profile` (`profile`),
   KEY `cover` (`cover`),
   KEY `legacyid` (`legacyid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='The different groups that we host' AUTO_INCREMENT=387195 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='The different groups that we host' AUTO_INCREMENT=414589 ;
 
 -- --------------------------------------------------------
 
@@ -633,7 +674,7 @@ CREATE TABLE IF NOT EXISTS `groups_digests` (
   UNIQUE KEY `groupid_2` (`groupid`,`frequency`),
   KEY `groupid` (`groupid`),
   KEY `msggrpid` (`msgid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=138905109 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=225573484 ;
 
 -- --------------------------------------------------------
 
@@ -642,23 +683,27 @@ CREATE TABLE IF NOT EXISTS `groups_digests` (
 --
 
 CREATE TABLE IF NOT EXISTS `groups_facebook` (
+  `uid` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `groupid` bigint(20) unsigned NOT NULL,
   `name` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `type` enum('Page','Group') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Page',
   `id` varchar(60) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `token` text COLLATE utf8mb4_unicode_ci,
   `authdate` timestamp NULL DEFAULT NULL,
-  `msgid` bigint(20) unsigned DEFAULT NULL COMMENT 'Last message tweeted',
-  `msgarrival` timestamp NULL DEFAULT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL COMMENT 'Last message posted',
+  `msgarrival` timestamp NULL DEFAULT NULL COMMENT 'Time of last message posted',
   `eventid` bigint(20) unsigned DEFAULT NULL COMMENT 'Last event tweeted',
   `valid` tinyint(4) NOT NULL DEFAULT '1',
   `lasterror` text COLLATE utf8mb4_unicode_ci,
   `lasterrortime` timestamp NULL DEFAULT NULL,
   `sharefrom` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT '134117207097' COMMENT 'Facebook page to republish from',
-  UNIQUE KEY `groupid` (`groupid`),
+  `lastupdated` timestamp NULL DEFAULT NULL COMMENT 'From Graph API',
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `groupid_2` (`groupid`,`id`),
   KEY `msgid` (`msgid`),
-  KEY `eventid` (`eventid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `eventid` (`eventid`),
+  KEY `groupid` (`groupid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=799 ;
 
 -- --------------------------------------------------------
 
@@ -667,13 +712,16 @@ CREATE TABLE IF NOT EXISTS `groups_facebook` (
 --
 
 CREATE TABLE IF NOT EXISTS `groups_facebook_shares` (
+  `uid` bigint(20) unsigned NOT NULL,
   `groupid` bigint(20) unsigned NOT NULL,
   `postid` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `status` enum('Shared','Hidden','','') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Shared',
-  UNIQUE KEY `groupid` (`groupid`,`postid`),
+  UNIQUE KEY `groupid` (`uid`,`postid`),
   KEY `date` (`date`),
-  KEY `postid` (`postid`)
+  KEY `postid` (`postid`),
+  KEY `uid` (`uid`),
+  KEY `groupid_2` (`groupid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -690,7 +738,7 @@ CREATE TABLE IF NOT EXISTS `groups_facebook_toshare` (
   `data` text COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `postid` (`postid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stores central posts for sharing out to group pages' AUTO_INCREMENT=7406769 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stores central posts for sharing out to group pages' AUTO_INCREMENT=7592935 ;
 
 -- --------------------------------------------------------
 
@@ -709,7 +757,7 @@ CREATE TABLE IF NOT EXISTS `groups_images` (
   PRIMARY KEY (`id`),
   KEY `incomingid` (`groupid`),
   KEY `hash` (`hash`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=2799 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=3334 ;
 
 -- --------------------------------------------------------
 
@@ -727,6 +775,7 @@ CREATE TABLE IF NOT EXISTS `groups_twitter` (
   `msgarrival` timestamp NULL DEFAULT NULL,
   `eventid` bigint(20) unsigned DEFAULT NULL COMMENT 'Last event tweeted',
   `valid` tinyint(4) NOT NULL DEFAULT '1',
+  `locked` tinyint(1) NOT NULL DEFAULT '0',
   `lasterror` text COLLATE utf8mb4_unicode_ci,
   `lasterrortime` timestamp NULL DEFAULT NULL,
   UNIQUE KEY `groupid` (`groupid`),
@@ -750,7 +799,7 @@ CREATE TABLE IF NOT EXISTS `items` (
   `suggestfromtypeahead` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'We can exclude from typeahead',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=942285 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1491979 ;
 
 -- --------------------------------------------------------
 
@@ -782,7 +831,25 @@ CREATE TABLE IF NOT EXISTS `items_non` (
   `lastexample` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Not considered items by us, but by image recognition' AUTO_INCREMENT=886380 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Not considered items by us, but by image recognition' AUTO_INCREMENT=1718812 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `link_previews`
+--
+
+CREATE TABLE IF NOT EXISTS `link_previews` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `url` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `invalid` tinyint(1) NOT NULL DEFAULT '0',
+  `spam` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `url` (`url`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=364 ;
 
 -- --------------------------------------------------------
 
@@ -819,7 +886,7 @@ CREATE TABLE IF NOT EXISTS `locations` (
   KEY `lng` (`lng`),
   KEY `gridid` (`gridid`,`osm_place`),
   KEY `timestamp` (`timestamp`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Location data, the bulk derived from OSM' AUTO_INCREMENT=9389523 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Location data, the bulk derived from OSM' AUTO_INCREMENT=9422629 ;
 
 -- --------------------------------------------------------
 
@@ -853,7 +920,7 @@ CREATE TABLE IF NOT EXISTS `locations_grids` (
   `box` geometry NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `swlat` (`swlat`,`swlng`,`nelat`,`nelng`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Used to map lat/lng to gridid for location searches' AUTO_INCREMENT=609138 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Used to map lat/lng to gridid for location searches' AUTO_INCREMENT=667138 ;
 
 -- --------------------------------------------------------
 
@@ -892,7 +959,7 @@ CREATE TABLE IF NOT EXISTS `logs` (
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Machine assumed set to GMT',
   `byuser` bigint(20) unsigned DEFAULT NULL COMMENT 'User responsible for action, if any',
   `type` enum('Group','Message','User','Plugin','Config','StdMsg','Location','BulkOp') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `subtype` enum('Created','Deleted','Received','Sent','Failure','ClassifiedSpam','Joined','Left','Approved','Rejected','YahooDeliveryType','YahooPostingStatus','NotSpam','Login','Hold','Release','Edit','RoleChange','Merged','Split','Replied','Mailed','Applied','Suspect','Licensed','LicensePurchase','YahooApplied','YahooConfirmed','YahooJoined','MailOff','EventsOff','NewslettersOff','RelevantOff','Logout','Bounce','SuspendMail','Autoreposted','Outcome','OurPostingStatus','OurPostingStatus') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `subtype` enum('Created','Deleted','Received','Sent','Failure','ClassifiedSpam','Joined','Left','Approved','Rejected','YahooDeliveryType','YahooPostingStatus','NotSpam','Login','Hold','Release','Edit','RoleChange','Merged','Split','Replied','Mailed','Applied','Suspect','Licensed','LicensePurchase','YahooApplied','YahooConfirmed','YahooJoined','MailOff','EventsOff','NewslettersOff','RelevantOff','Logout','Bounce','SuspendMail','Autoreposted','Outcome','OurPostingStatus','OurPostingStatus','VolunteersOff','Autoapproved','') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `groupid` bigint(20) unsigned DEFAULT NULL COMMENT 'Any group this log is for',
   `user` bigint(20) unsigned DEFAULT NULL COMMENT 'Any user that this log is about',
   `msgid` bigint(20) unsigned DEFAULT NULL COMMENT 'id in the messages table',
@@ -907,7 +974,7 @@ CREATE TABLE IF NOT EXISTS `logs` (
   KEY `byuser` (`byuser`),
   KEY `user` (`user`),
   KEY `msgid` (`msgid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Logs.  Not guaranteed against loss' AUTO_INCREMENT=92158992 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Logs.  Not guaranteed against loss' AUTO_INCREMENT=115647847 ;
 
 -- --------------------------------------------------------
 
@@ -929,26 +996,29 @@ CREATE TABLE IF NOT EXISTS `logs_api` (
   KEY `date` (`date`),
   KEY `userid` (`userid`),
   KEY `ip` (`ip`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses' AUTO_INCREMENT=4743087 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses' AUTO_INCREMENT=25948000 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `logs_email`
+-- Table structure for table `logs_emails`
 --
 
-CREATE TABLE IF NOT EXISTS `logs_email` (
+CREATE TABLE IF NOT EXISTS `logs_emails` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `from` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `uniqueid` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `subject` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `status` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `userid` bigint(20) unsigned NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `eximid` varchar(12) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `userid` bigint(20) unsigned DEFAULT NULL,
+  `from` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `to` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `messageid` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `subject` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `timestamp_2` (`eximid`),
+  KEY `timestamp` (`timestamp`),
   KEY `userid` (`userid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=60627385 ;
 
 -- --------------------------------------------------------
 
@@ -964,7 +1034,7 @@ CREATE TABLE IF NOT EXISTS `logs_errors` (
   `text` text COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `userid` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Errors from client' AUTO_INCREMENT=9511431 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Errors from client' AUTO_INCREMENT=3797032 ;
 
 -- --------------------------------------------------------
 
@@ -1039,7 +1109,7 @@ CREATE TABLE IF NOT EXISTS `logs_sql` (
   KEY `session` (`session`),
   KEY `date` (`date`),
   KEY `userid` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8 COMMENT='Log of modification SQL operations' AUTO_INCREMENT=125178846 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8 COMMENT='Log of modification SQL operations' AUTO_INCREMENT=175716088 ;
 
 -- --------------------------------------------------------
 
@@ -1055,7 +1125,7 @@ CREATE TABLE IF NOT EXISTS `logs_src` (
   `session` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Record which mails we sent generated website traffic' AUTO_INCREMENT=4626597 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Record which mails we sent generated website traffic' AUTO_INCREMENT=15708415 ;
 
 -- --------------------------------------------------------
 
@@ -1076,6 +1146,7 @@ CREATE TABLE IF NOT EXISTS `memberships` (
   `heldby` bigint(20) unsigned DEFAULT NULL,
   `emailfrequency` int(11) NOT NULL DEFAULT '24' COMMENT 'In hours; -1 immediately, 0 never',
   `eventsallowed` tinyint(1) DEFAULT '1',
+  `volunteeringallowed` bigint(20) NOT NULL DEFAULT '1',
   `ourPostingStatus` enum('MODERATED','DEFAULT','PROHIBITED','UNMODERATED') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'For Yahoo groups, NULL; for ours, the posting status',
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid_groupid` (`userid`,`groupid`),
@@ -1085,7 +1156,7 @@ CREATE TABLE IF NOT EXISTS `memberships` (
   KEY `configid` (`configid`),
   KEY `groupid` (`groupid`,`collection`),
   KEY `heldby` (`heldby`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Which groups users are members of' AUTO_INCREMENT=37395189 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Which groups users are members of' AUTO_INCREMENT=40434109 ;
 
 -- --------------------------------------------------------
 
@@ -1103,7 +1174,7 @@ CREATE TABLE IF NOT EXISTS `memberships_history` (
   KEY `groupid` (`groupid`),
   KEY `date` (`added`),
   KEY `userid` (`userid`,`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Used to spot multijoiners' AUTO_INCREMENT=31281960 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Used to spot multijoiners' AUTO_INCREMENT=32495854 ;
 
 -- --------------------------------------------------------
 
@@ -1133,7 +1204,7 @@ CREATE TABLE IF NOT EXISTS `memberships_yahoo` (
   KEY `yahooPostingStatus` (`yahooPostingStatus`),
   KEY `yahooDeliveryType` (`yahooDeliveryType`),
   KEY `yahooAlias` (`yahooAlias`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Which groups users are members of' AUTO_INCREMENT=20384547 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Which groups users are members of' AUTO_INCREMENT=23372515 ;
 
 -- --------------------------------------------------------
 
@@ -1152,7 +1223,7 @@ CREATE TABLE IF NOT EXISTS `memberships_yahoo_dump` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `groupid` (`groupid`),
   KEY `lastprocessed` (`lastprocessed`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Copy of last member sync from Yahoo' AUTO_INCREMENT=457095 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Copy of last member sync from Yahoo' AUTO_INCREMENT=635548 ;
 
 -- --------------------------------------------------------
 
@@ -1214,7 +1285,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
   KEY `lat` (`lat`) KEY_BLOCK_SIZE=16,
   KEY `lng` (`lng`) KEY_BLOCK_SIZE=16,
   KEY `locationid` (`locationid`) KEY_BLOCK_SIZE=16
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8 COMMENT='All our messages' AUTO_INCREMENT=16549242 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8 COMMENT='All our messages' AUTO_INCREMENT=24177691 ;
 
 -- --------------------------------------------------------
 
@@ -1233,7 +1304,7 @@ CREATE TABLE IF NOT EXISTS `messages_attachments` (
   PRIMARY KEY (`id`),
   KEY `incomingid` (`msgid`),
   KEY `hash` (`hash`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=4172196 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=6128398 ;
 
 -- --------------------------------------------------------
 
@@ -1248,7 +1319,7 @@ CREATE TABLE IF NOT EXISTS `messages_attachments_items` (
   PRIMARY KEY (`id`),
   KEY `msgid` (`attid`),
   KEY `itemid` (`itemid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=487980 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1179667 ;
 
 -- --------------------------------------------------------
 
@@ -1281,7 +1352,7 @@ CREATE TABLE IF NOT EXISTS `messages_drafts` (
   KEY `userid` (`userid`),
   KEY `session` (`session`),
   KEY `groupid` (`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=427953 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1016161 ;
 
 -- --------------------------------------------------------
 
@@ -1355,7 +1426,7 @@ CREATE TABLE IF NOT EXISTS `messages_history` (
   KEY `prunedsubject` (`prunedsubject`(767)),
   KEY `fromname` (`fromname`),
   KEY `fromuser` (`fromuser`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Message arrivals, used for spam checking' AUTO_INCREMENT=13406055 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Message arrivals, used for spam checking' AUTO_INCREMENT=19309144 ;
 
 -- --------------------------------------------------------
 
@@ -1390,6 +1461,21 @@ CREATE TABLE IF NOT EXISTS `messages_items` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `messages_likes`
+--
+
+CREATE TABLE IF NOT EXISTS `messages_likes` (
+  `msgid` bigint(20) unsigned NOT NULL,
+  `userid` bigint(20) unsigned NOT NULL,
+  `type` enum('Love','Laugh') COLLATE utf8mb4_unicode_ci NOT NULL,
+  UNIQUE KEY `msgid_2` (`msgid`,`userid`,`type`),
+  KEY `userid` (`userid`),
+  KEY `msgid` (`msgid`,`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `messages_outcomes`
 --
 
@@ -1406,7 +1492,7 @@ CREATE TABLE IF NOT EXISTS `messages_outcomes` (
   KEY `msgid` (`msgid`),
   KEY `timestamp` (`timestamp`),
   KEY `timestamp_2` (`timestamp`,`outcome`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=323079 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=637240 ;
 
 -- --------------------------------------------------------
 
@@ -1425,7 +1511,7 @@ CREATE TABLE IF NOT EXISTS `messages_outcomes_intended` (
   KEY `timestamp` (`timestamp`),
   KEY `timestamp_2` (`timestamp`,`outcome`),
   KEY `msgid_3` (`msgid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='When someone starts telling us an outcome but doesn''t finish' AUTO_INCREMENT=52056 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='When someone starts telling us an outcome but doesn''t finish' AUTO_INCREMENT=174583 ;
 
 -- --------------------------------------------------------
 
@@ -1443,7 +1529,7 @@ CREATE TABLE IF NOT EXISTS `messages_postings` (
   PRIMARY KEY (`id`),
   KEY `msgid` (`msgid`),
   KEY `groupid` (`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=434334 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=987133 ;
 
 -- --------------------------------------------------------
 
@@ -1461,7 +1547,7 @@ CREATE TABLE IF NOT EXISTS `messages_promises` (
   KEY `msgid` (`msgid`),
   KEY `userid` (`userid`),
   KEY `promisedat` (`promisedat`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=45282 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=83362 ;
 
 -- --------------------------------------------------------
 
@@ -1480,6 +1566,23 @@ CREATE TABLE IF NOT EXISTS `messages_related` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `messages_reneged`
+--
+
+CREATE TABLE IF NOT EXISTS `messages_reneged` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `msgid` bigint(20) unsigned NOT NULL,
+  `userid` bigint(20) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `userid` (`userid`),
+  KEY `msgid` (`msgid`),
+  KEY `timestamp` (`timestamp`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=391 ;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `messages_spamham`
 --
 
@@ -1490,7 +1593,7 @@ CREATE TABLE IF NOT EXISTS `messages_spamham` (
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `msgid` (`msgid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='User feedback on messages ' AUTO_INCREMENT=40731 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='User feedback on messages ' AUTO_INCREMENT=52324 ;
 
 -- --------------------------------------------------------
 
@@ -1509,7 +1612,7 @@ CREATE TABLE IF NOT EXISTS `mod_bulkops` (
   `bouncingfor` int(11) NOT NULL DEFAULT '90',
   UNIQUE KEY `uniqueid` (`id`),
   KEY `configid` (`configid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=27753 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=28675 ;
 
 -- --------------------------------------------------------
 
@@ -1527,7 +1630,7 @@ CREATE TABLE IF NOT EXISTS `mod_bulkops_run` (
   UNIQUE KEY `bulkopid_2` (`bulkopid`,`groupid`),
   KEY `bulkopid` (`bulkopid`),
   KEY `groupid` (`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=5020896 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=5022835 ;
 
 -- --------------------------------------------------------
 
@@ -1560,7 +1663,7 @@ CREATE TABLE IF NOT EXISTS `mod_configs` (
   KEY `uniqueid` (`id`,`createdby`),
   KEY `createdby` (`createdby`),
   KEY `default` (`default`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Configurations for use by moderators' AUTO_INCREMENT=58359 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Configurations for use by moderators' AUTO_INCREMENT=61291 ;
 
 -- --------------------------------------------------------
 
@@ -1584,7 +1687,93 @@ CREATE TABLE IF NOT EXISTS `mod_stdmsgs` (
   `insert` enum('Top','Bottom') COLLATE utf8mb4_unicode_ci DEFAULT 'Top',
   UNIQUE KEY `id` (`id`),
   KEY `configid` (`configid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=174405 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=180511 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `newsfeed`
+--
+
+CREATE TABLE IF NOT EXISTS `newsfeed` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `type` enum('Message','CommunityEvent','VolunteerOpportunity','CentralPublicity','Alert','Story','ReferToWanted') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Message',
+  `userid` bigint(20) unsigned DEFAULT NULL,
+  `imageid` bigint(20) unsigned DEFAULT NULL,
+  `msgid` bigint(20) unsigned DEFAULT NULL,
+  `replyto` bigint(20) unsigned DEFAULT NULL,
+  `groupid` bigint(20) unsigned DEFAULT NULL,
+  `eventid` bigint(20) unsigned DEFAULT NULL,
+  `volunteeringid` bigint(20) unsigned DEFAULT NULL,
+  `publicityid` bigint(20) unsigned DEFAULT NULL,
+  `storyid` bigint(20) unsigned DEFAULT NULL,
+  `message` text COLLATE utf8mb4_unicode_ci,
+  `position` point NOT NULL,
+  `reviewrequired` tinyint(1) NOT NULL DEFAULT '0',
+  `deleted` timestamp NULL DEFAULT NULL,
+  `deletedby` bigint(20) unsigned DEFAULT NULL,
+  `hidden` timestamp NULL DEFAULT NULL,
+  `hiddenby` bigint(20) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `eventid` (`eventid`),
+  KEY `userid` (`userid`),
+  KEY `imageid` (`imageid`),
+  KEY `msgid` (`msgid`),
+  KEY `replyto` (`replyto`),
+  SPATIAL KEY `position` (`position`),
+  KEY `groupid` (`groupid`),
+  KEY `volunteeringid` (`volunteeringid`),
+  KEY `publicityid` (`publicityid`),
+  KEY `timestamp` (`timestamp`),
+  KEY `storyid` (`storyid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=8281 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `newsfeed_likes`
+--
+
+CREATE TABLE IF NOT EXISTS `newsfeed_likes` (
+  `newsfeedid` bigint(20) unsigned NOT NULL,
+  `userid` bigint(20) unsigned NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY `newsfeedid_2` (`newsfeedid`,`userid`),
+  KEY `newsfeedid` (`newsfeedid`),
+  KEY `userid` (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `newsfeed_reports`
+--
+
+CREATE TABLE IF NOT EXISTS `newsfeed_reports` (
+  `newsfeedid` bigint(20) unsigned NOT NULL,
+  `userid` bigint(20) unsigned NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `reason` text COLLATE utf8mb4_unicode_ci,
+  UNIQUE KEY `newsfeedid_2` (`newsfeedid`,`userid`),
+  KEY `newsfeedid` (`newsfeedid`),
+  KEY `userid` (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `newsfeed_users`
+--
+
+CREATE TABLE IF NOT EXISTS `newsfeed_users` (
+  `userid` bigint(20) unsigned NOT NULL,
+  `newsfeedid` bigint(20) unsigned NOT NULL,
+  UNIQUE KEY `userid_2` (`userid`,`newsfeedid`),
+  KEY `userid` (`userid`),
+  KEY `newsfeedid` (`newsfeedid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -1600,9 +1789,10 @@ CREATE TABLE IF NOT EXISTS `newsletters` (
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `completed` timestamp NULL DEFAULT NULL,
   `uptouser` bigint(20) unsigned DEFAULT NULL COMMENT 'User id we are upto, roughly',
+  `type` enum('General','Stories','','') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'General',
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=90 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=241 ;
 
 -- --------------------------------------------------------
 
@@ -1620,7 +1810,7 @@ CREATE TABLE IF NOT EXISTS `newsletters_articles` (
   PRIMARY KEY (`id`),
   KEY `mailid` (`newsletterid`),
   KEY `photo` (`photoid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=687 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1168 ;
 
 -- --------------------------------------------------------
 
@@ -1639,7 +1829,7 @@ CREATE TABLE IF NOT EXISTS `newsletters_images` (
   PRIMARY KEY (`id`),
   KEY `incomingid` (`articleid`),
   KEY `hash` (`hash`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=147 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=166 ;
 
 -- --------------------------------------------------------
 
@@ -1668,7 +1858,7 @@ CREATE TABLE IF NOT EXISTS `paf_addresses` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `udprn` (`udprn`),
   KEY `postcodeid` (`postcodeid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=117083369 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=117824583 ;
 
 -- --------------------------------------------------------
 
@@ -1681,7 +1871,7 @@ CREATE TABLE IF NOT EXISTS `paf_buildingname` (
   `buildingname` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `buildingname` (`buildingname`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=7900 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=7901 ;
 
 -- --------------------------------------------------------
 
@@ -1694,7 +1884,7 @@ CREATE TABLE IF NOT EXISTS `paf_departmentname` (
   `departmentname` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `departmentname` (`departmentname`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=58237 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=61247 ;
 
 -- --------------------------------------------------------
 
@@ -1707,7 +1897,7 @@ CREATE TABLE IF NOT EXISTS `paf_dependentlocality` (
   `dependentlocality` varchar(35) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `dependentlocality` (`dependentlocality`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=68653 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=68743 ;
 
 -- --------------------------------------------------------
 
@@ -1720,7 +1910,7 @@ CREATE TABLE IF NOT EXISTS `paf_dependentthoroughfaredescriptor` (
   `dependentthoroughfaredescriptor` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `dependentthoroughfaredescriptor` (`dependentthoroughfaredescriptor`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=73417 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=73695 ;
 
 -- --------------------------------------------------------
 
@@ -1733,7 +1923,7 @@ CREATE TABLE IF NOT EXISTS `paf_doubledependentlocality` (
   `doubledependentlocality` varchar(35) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `doubledependentlocality` (`doubledependentlocality`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=11452 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=11501 ;
 
 -- --------------------------------------------------------
 
@@ -1746,7 +1936,7 @@ CREATE TABLE IF NOT EXISTS `paf_organisationname` (
   `organisationname` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `organisationname` (`organisationname`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=45190 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=46081 ;
 
 -- --------------------------------------------------------
 
@@ -1759,7 +1949,7 @@ CREATE TABLE IF NOT EXISTS `paf_pobox` (
   `pobox` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `pobox` (`pobox`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=394024 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=403019 ;
 
 -- --------------------------------------------------------
 
@@ -1785,7 +1975,7 @@ CREATE TABLE IF NOT EXISTS `paf_subbuildingname` (
   `subbuildingname` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `subbuildingname` (`subbuildingname`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=4077868 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=4141223 ;
 
 -- --------------------------------------------------------
 
@@ -1798,7 +1988,7 @@ CREATE TABLE IF NOT EXISTS `paf_thoroughfaredescriptor` (
   `thoroughfaredescriptor` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `thoroughfaredescriptor` (`thoroughfaredescriptor`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1073305 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1079011 ;
 
 -- --------------------------------------------------------
 
@@ -1811,7 +2001,7 @@ CREATE TABLE IF NOT EXISTS `partners_keys` (
   `partner` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For site-to-site integration' AUTO_INCREMENT=6 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For site-to-site integration' AUTO_INCREMENT=37 ;
 
 -- --------------------------------------------------------
 
@@ -1826,7 +2016,7 @@ CREATE TABLE IF NOT EXISTS `plugin` (
   `data` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Outstanding work required to be performed by the plugin' AUTO_INCREMENT=2376219 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Outstanding work required to be performed by the plugin' AUTO_INCREMENT=3503395 ;
 
 -- --------------------------------------------------------
 
@@ -1842,7 +2032,7 @@ CREATE TABLE IF NOT EXISTS `polls` (
   `template` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `logintype` enum('Facebook','Google','Yahoo','Native') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=180 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=226 ;
 
 -- --------------------------------------------------------
 
@@ -1877,7 +2067,7 @@ CREATE TABLE IF NOT EXISTS `prerender` (
   `description` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `url` (`url`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saved copies of HTML for logged out view of pages' AUTO_INCREMENT=1872699 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saved copies of HTML for logged out view of pages' AUTO_INCREMENT=3212860 ;
 
 -- --------------------------------------------------------
 
@@ -1894,7 +2084,7 @@ CREATE TABLE IF NOT EXISTS `search_history` (
   `groups` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=4906371 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=15958342 ;
 
 -- --------------------------------------------------------
 
@@ -1913,7 +2103,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   UNIQUE KEY `id_3` (`id`,`series`,`token`),
   KEY `date` (`date`),
   KEY `userid` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=4258290 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=6921169 ;
 
 -- --------------------------------------------------------
 
@@ -1932,7 +2122,7 @@ CREATE TABLE IF NOT EXISTS `shortlinks` (
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   KEY `name` (`name`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=4686 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=5749 ;
 
 -- --------------------------------------------------------
 
@@ -1960,7 +2150,7 @@ CREATE TABLE IF NOT EXISTS `spam_keywords` (
   `exclude` text COLLATE utf8mb4_unicode_ci,
   `action` enum('Review','Spam') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Review',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Keywords often used by spammers' AUTO_INCREMENT=72 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Keywords often used by spammers' AUTO_INCREMENT=139 ;
 
 -- --------------------------------------------------------
 
@@ -1980,7 +2170,7 @@ CREATE TABLE IF NOT EXISTS `spam_users` (
   KEY `byuserid` (`byuserid`),
   KEY `added` (`added`),
   KEY `collection` (`collection`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Users who are spammers or trusted' AUTO_INCREMENT=20160 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Users who are spammers or trusted' AUTO_INCREMENT=21046 ;
 
 -- --------------------------------------------------------
 
@@ -1996,7 +2186,7 @@ CREATE TABLE IF NOT EXISTS `spam_whitelist_ips` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ip` (`ip`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Whitelisted IP addresses' AUTO_INCREMENT=3162 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Whitelisted IP addresses' AUTO_INCREMENT=4096 ;
 
 -- --------------------------------------------------------
 
@@ -2013,7 +2203,7 @@ CREATE TABLE IF NOT EXISTS `spam_whitelist_links` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `domain` (`domain`),
   KEY `userid` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Whitelisted domains for URLs' AUTO_INCREMENT=36183 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Whitelisted domains for URLs' AUTO_INCREMENT=75175 ;
 
 -- --------------------------------------------------------
 
@@ -2029,7 +2219,7 @@ CREATE TABLE IF NOT EXISTS `spam_whitelist_subjects` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `ip` (`subject`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Whitelisted subjects' AUTO_INCREMENT=10833 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Whitelisted subjects' AUTO_INCREMENT=14164 ;
 
 -- --------------------------------------------------------
 
@@ -2048,7 +2238,24 @@ CREATE TABLE IF NOT EXISTS `stats` (
   UNIQUE KEY `date` (`date`,`groupid`,`type`),
   KEY `groupid` (`groupid`),
   KEY `type` (`type`,`date`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Stats information used for dashboard' AUTO_INCREMENT=19014666 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Stats information used for dashboard' AUTO_INCREMENT=29108083 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `streetwhacks`
+--
+
+CREATE TABLE IF NOT EXISTS `streetwhacks` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `locationid` bigint(20) unsigned NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `count` int(11) NOT NULL DEFAULT '0',
+  `streetname` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `userid` bigint(20) unsigned DEFAULT NULL,
+  `sessionid` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=2227 ;
 
 -- --------------------------------------------------------
 
@@ -2103,7 +2310,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `lastrelevantcheck` timestamp NULL DEFAULT NULL,
   `lastidlechaseup` timestamp NULL DEFAULT NULL,
   `bouncing` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Whether preferred email has been determined to be bouncing',
-  `permissions` set('BusinessCardsAdmin','Newsletter') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `permissions` set('BusinessCardsAdmin','Newsletter','NationalVolunteers') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `invitesleft` int(10) unsigned DEFAULT '10',
+  `source` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `yahooUserId` (`yahooUserId`),
@@ -2119,7 +2328,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `suspectcount_2` (`suspectcount`),
   KEY `lastlocation` (`lastlocation`),
   KEY `lastrelevantcheck` (`lastrelevantcheck`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=33523632 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=34218871 ;
 
 -- --------------------------------------------------------
 
@@ -2134,10 +2343,10 @@ CREATE TABLE IF NOT EXISTS `users_addresses` (
   `to` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `instructions` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `userid_2` (`userid`),
+  UNIQUE KEY `userid_2` (`userid`,`pafid`),
   KEY `userid` (`userid`),
   KEY `pafid` (`pafid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=648 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=4792 ;
 
 -- --------------------------------------------------------
 
@@ -2184,7 +2393,7 @@ CREATE TABLE IF NOT EXISTS `users_comments` (
   KEY `groupid` (`groupid`),
   KEY `modid` (`byuserid`),
   KEY `userid` (`userid`,`groupid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Comments from mods on members' AUTO_INCREMENT=118875 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Comments from mods on members' AUTO_INCREMENT=131284 ;
 
 -- --------------------------------------------------------
 
@@ -2194,20 +2403,22 @@ CREATE TABLE IF NOT EXISTS `users_comments` (
 
 CREATE TABLE IF NOT EXISTS `users_donations` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `type` enum('PayPal') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('PayPal','External') COLLATE utf8mb4_unicode_ci NOT NULL,
   `userid` bigint(20) unsigned DEFAULT NULL,
   `Payer` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   `PayerDisplayName` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `TransactionID` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `TransactionID` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `GrossAmount` decimal(10,2) NOT NULL,
   `thanked` tinyint(1) NOT NULL DEFAULT '0',
+  `source` enum('DonateWithPayPal','PayPalGivingFund') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DonateWithPayPal',
   PRIMARY KEY (`id`),
   UNIQUE KEY `TransactionID` (`TransactionID`),
   KEY `userid` (`userid`),
   KEY `GrossAmount` (`GrossAmount`),
-  KEY `timestamp` (`timestamp`,`GrossAmount`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=125286 ;
+  KEY `timestamp` (`timestamp`,`GrossAmount`),
+  KEY `timestamp_2` (`timestamp`,`userid`,`GrossAmount`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1198177 ;
 
 -- --------------------------------------------------------
 
@@ -2227,6 +2438,7 @@ CREATE TABLE IF NOT EXISTS `users_emails` (
   `backwards` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Allows domain search',
   `bounced` timestamp NULL DEFAULT NULL,
   `viewed` timestamp NULL DEFAULT NULL,
+  `md5hash` varchar(32) COLLATE utf8mb4_unicode_ci GENERATED ALWAYS AS (md5(lower(`email`))) VIRTUAL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `validatekey` (`validatekey`),
@@ -2235,8 +2447,30 @@ CREATE TABLE IF NOT EXISTS `users_emails` (
   KEY `canon` (`canon`),
   KEY `backwards` (`backwards`),
   KEY `bounced` (`bounced`),
-  KEY `viewed` (`viewed`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=115912884 ;
+  KEY `viewed` (`viewed`),
+  KEY `md5hash` (`md5hash`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=117297556 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_images`
+--
+
+CREATE TABLE IF NOT EXISTS `users_images` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `userid` bigint(20) unsigned DEFAULT NULL COMMENT 'id in the users table',
+  `contenttype` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `default` tinyint(1) NOT NULL DEFAULT '0',
+  `url` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archived` tinyint(4) DEFAULT '0',
+  `data` longblob,
+  `identification` mediumtext COLLATE utf8mb4_unicode_ci,
+  `hash` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `incomingid` (`userid`),
+  KEY `hash` (`hash`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=16 COMMENT='Attachments parsed out from messages and resized' AUTO_INCREMENT=2920486 ;
 
 -- --------------------------------------------------------
 
@@ -2255,7 +2489,7 @@ CREATE TABLE IF NOT EXISTS `users_invitations` (
   UNIQUE KEY `userid_2` (`userid`,`email`),
   KEY `userid` (`userid`),
   KEY `email` (`email`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=93 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=4714 ;
 
 -- --------------------------------------------------------
 
@@ -2278,7 +2512,60 @@ CREATE TABLE IF NOT EXISTS `users_logins` (
   UNIQUE KEY `userid_3` (`userid`,`type`,`uid`),
   KEY `userid` (`userid`),
   KEY `validated` (`lastaccess`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=5700966 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=6334057 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_nearby`
+--
+
+CREATE TABLE IF NOT EXISTS `users_nearby` (
+  `userid` bigint(20) unsigned NOT NULL,
+  `msgid` bigint(20) unsigned NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY `userid_2` (`userid`,`msgid`),
+  KEY `userid` (`userid`),
+  KEY `msgid` (`msgid`),
+  KEY `timestamp` (`timestamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_notifications`
+--
+
+CREATE TABLE IF NOT EXISTS `users_notifications` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `fromuser` bigint(20) unsigned DEFAULT NULL,
+  `touser` bigint(20) unsigned NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `type` enum('CommentOnYourPost','CommentOnCommented','LovedPost','LovedComment','TryFeed') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `newsfeedid` bigint(20) unsigned DEFAULT NULL,
+  `url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `seen` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `newsfeedid` (`newsfeedid`),
+  KEY `touser` (`touser`),
+  KEY `fromuser` (`fromuser`),
+  KEY `userid` (`touser`,`id`,`seen`),
+  KEY `touser_2` (`timestamp`,`seen`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1529026 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_phones`
+--
+
+CREATE TABLE IF NOT EXISTS `users_phones` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `userid` bigint(20) unsigned NOT NULL,
+  `number` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `userid` (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -2298,7 +2585,7 @@ CREATE TABLE IF NOT EXISTS `users_push_notifications` (
   UNIQUE KEY `subscription` (`subscription`),
   KEY `userid` (`userid`,`type`),
   KEY `type` (`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For sending push notifications to users' AUTO_INCREMENT=650046 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For sending push notifications to users' AUTO_INCREMENT=1497622 ;
 
 -- --------------------------------------------------------
 
@@ -2314,11 +2601,13 @@ CREATE TABLE IF NOT EXISTS `users_requests` (
   `completed` timestamp NULL DEFAULT NULL,
   `completedby` bigint(20) unsigned DEFAULT NULL,
   `addressid` bigint(20) unsigned DEFAULT NULL,
+  `to` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `notifiedmods` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `addressid` (`addressid`),
   KEY `userid` (`userid`),
   KEY `completedby` (`completedby`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=180 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=2446 ;
 
 -- --------------------------------------------------------
 
@@ -2340,7 +2629,7 @@ CREATE TABLE IF NOT EXISTS `users_searches` (
   KEY `userid_2` (`userid`),
   KEY `maxmsg` (`maxmsg`),
   KEY `userid_3` (`userid`,`date`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=3090120 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=8462725 ;
 
 -- --------------------------------------------------------
 
@@ -2365,7 +2654,21 @@ CREATE TABLE IF NOT EXISTS `users_stories` (
   KEY `userid` (`userid`),
   KEY `date` (`date`),
   KEY `reviewed` (`reviewed`,`public`,`newsletterreviewed`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=729 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=2155 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_stories_likes`
+--
+
+CREATE TABLE IF NOT EXISTS `users_stories_likes` (
+  `storyid` bigint(20) unsigned NOT NULL,
+  `userid` bigint(20) unsigned NOT NULL,
+  UNIQUE KEY `storyid_2` (`storyid`,`userid`),
+  KEY `storyid` (`storyid`),
+  KEY `userid` (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -2380,7 +2683,68 @@ CREATE TABLE IF NOT EXISTS `users_stories_requested` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `userid` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=42333 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=71176 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `volunteering`
+--
+
+CREATE TABLE IF NOT EXISTS `volunteering` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `userid` bigint(20) unsigned DEFAULT NULL,
+  `pending` tinyint(1) NOT NULL DEFAULT '0',
+  `title` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `online` tinyint(1) NOT NULL DEFAULT '0',
+  `location` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `contactname` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contactphone` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contactemail` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contacturl` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted` tinyint(4) NOT NULL DEFAULT '0',
+  `askedtorenew` timestamp NULL DEFAULT NULL,
+  `renewed` timestamp NULL DEFAULT NULL,
+  `expired` tinyint(1) NOT NULL DEFAULT '0',
+  `timecommitment` text COLLATE utf8mb4_unicode_ci,
+  PRIMARY KEY (`id`),
+  KEY `userid` (`userid`),
+  KEY `title` (`title`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1993 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `volunteering_dates`
+--
+
+CREATE TABLE IF NOT EXISTS `volunteering_dates` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `volunteeringid` bigint(20) unsigned NOT NULL,
+  `start` timestamp NULL DEFAULT NULL,
+  `end` timestamp NULL DEFAULT NULL,
+  `applyby` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `start` (`start`),
+  KEY `eventid` (`volunteeringid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=808 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `volunteering_groups`
+--
+
+CREATE TABLE IF NOT EXISTS `volunteering_groups` (
+  `volunteeringid` bigint(20) unsigned NOT NULL,
+  `groupid` bigint(20) unsigned NOT NULL,
+  `arrival` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `eventid_2` (`volunteeringid`,`groupid`),
+  KEY `eventid` (`volunteeringid`),
+  KEY `groupid` (`groupid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -2399,7 +2763,7 @@ CREATE TABLE IF NOT EXISTS `vouchers` (
   UNIQUE KEY `voucher` (`voucher`),
   KEY `groupid` (`groupid`),
   KEY `userid` (`userid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For licensing groups' AUTO_INCREMENT=3084 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='For licensing groups' AUTO_INCREMENT=3358 ;
 
 -- --------------------------------------------------------
 
@@ -2502,7 +2866,7 @@ CREATE TABLE IF NOT EXISTS `VW_recentqueries` (
    `id` bigint(20) unsigned
   ,`chatid` bigint(20) unsigned
   ,`userid` bigint(20) unsigned
-  ,`type` enum('Default','System','ModMail','Interested','Promised','Reneged','ReportedUser','Completed','Image')
+  ,`type` enum('Default','System','ModMail','Interested','Promised','Reneged','ReportedUser','Completed','Image','Address')
   ,`reportreason` enum('Spam','Other')
   ,`refmsgid` bigint(20) unsigned
   ,`refchatid` bigint(20) unsigned
@@ -2565,7 +2929,7 @@ CREATE TABLE IF NOT EXISTS `words` (
   KEY `word` (`word`,`popularity`),
   KEY `soundex` (`soundex`,`popularity`),
   KEY `firstthree` (`firstthree`,`popularity`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Unique words for searches' AUTO_INCREMENT=6619254 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='Unique words for searches' AUTO_INCREMENT=7871155 ;
 
 -- --------------------------------------------------------
 
@@ -2574,7 +2938,7 @@ CREATE TABLE IF NOT EXISTS `words` (
 --
 DROP TABLE IF EXISTS `vw_donations`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_donations` AS select sum(`users_donations`.`GrossAmount`) AS `total`,cast(`users_donations`.`timestamp` as date) AS `date` from `users_donations` where ((to_days(now()) - to_days(`users_donations`.`timestamp`)) < 31) group by `date` order by `date`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_donations` AS select sum(`users_donations`.`GrossAmount`) AS `total`,cast(`users_donations`.`timestamp` as date) AS `date` from `users_donations` where ((to_days(now()) - to_days(`users_donations`.`timestamp`)) < 31) group by `date` order by `date` desc;
 
 -- --------------------------------------------------------
 
@@ -2773,10 +3137,17 @@ ALTER TABLE `groups_digests`
   ADD CONSTRAINT `groups_digests_ibfk_3` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE SET NULL;
 
 --
+-- Constraints for table `groups_facebook`
+--
+ALTER TABLE `groups_facebook`
+  ADD CONSTRAINT `groups_facebook_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `groups_facebook_shares`
 --
 ALTER TABLE `groups_facebook_shares`
-  ADD CONSTRAINT `groups_facebook_shares_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `groups_facebook_shares_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `groups_facebook_shares_ibfk_2` FOREIGN KEY (`uid`) REFERENCES `groups_facebook` (`uid`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `groups_images`
@@ -2825,6 +3196,12 @@ ALTER TABLE `locations_grids_touches`
 --
 ALTER TABLE `locations_spatial`
   ADD CONSTRAINT `locations_spatial_ibfk_1` FOREIGN KEY (`locationid`) REFERENCES `locations` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `logs_emails`
+--
+ALTER TABLE `logs_emails`
+  ADD CONSTRAINT `logs_emails_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `memberships`
@@ -2915,6 +3292,13 @@ ALTER TABLE `messages_items`
   ADD CONSTRAINT `messages_items_ibfk_2` FOREIGN KEY (`itemid`) REFERENCES `items` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `messages_likes`
+--
+ALTER TABLE `messages_likes`
+  ADD CONSTRAINT `messages_likes_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `messages_likes_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `messages_outcomes`
 --
 ALTER TABLE `messages_outcomes`
@@ -2949,6 +3333,13 @@ ALTER TABLE `messages_related`
   ADD CONSTRAINT `messages_related_ibfk_2` FOREIGN KEY (`id2`) REFERENCES `messages` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `messages_reneged`
+--
+ALTER TABLE `messages_reneged`
+  ADD CONSTRAINT `messages_reneged_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `messages_reneged_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `messages_spamham`
 --
 ALTER TABLE `messages_spamham`
@@ -2978,6 +3369,38 @@ ALTER TABLE `mod_configs`
 --
 ALTER TABLE `mod_stdmsgs`
   ADD CONSTRAINT `mod_stdmsgs_ibfk_1` FOREIGN KEY (`configid`) REFERENCES `mod_configs` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `newsfeed`
+--
+ALTER TABLE `newsfeed`
+  ADD CONSTRAINT `newsfeed_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `newsfeed_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `newsfeed_ibfk_3` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `newsfeed_ibfk_4` FOREIGN KEY (`eventid`) REFERENCES `communityevents` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `newsfeed_ibfk_5` FOREIGN KEY (`volunteeringid`) REFERENCES `volunteering` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `newsfeed_ibfk_6` FOREIGN KEY (`publicityid`) REFERENCES `groups_facebook_toshare` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `newsfeed_ibfk_7` FOREIGN KEY (`storyid`) REFERENCES `users_stories` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `newsfeed_likes`
+--
+ALTER TABLE `newsfeed_likes`
+  ADD CONSTRAINT `newsfeed_likes_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `newsfeed_likes_ibfk_3` FOREIGN KEY (`newsfeedid`) REFERENCES `newsfeed` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `newsfeed_reports`
+--
+ALTER TABLE `newsfeed_reports`
+  ADD CONSTRAINT `newsfeed_reports_ibfk_1` FOREIGN KEY (`newsfeedid`) REFERENCES `newsfeed` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `newsfeed_reports_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `newsfeed_users`
+--
+ALTER TABLE `newsfeed_users`
+  ADD CONSTRAINT `newsfeed_users_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `newsletters`
@@ -3090,6 +3513,12 @@ ALTER TABLE `users_emails`
   ADD CONSTRAINT `users_emails_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `users_images`
+--
+ALTER TABLE `users_images`
+  ADD CONSTRAINT `users_images_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `users_invitations`
 --
 ALTER TABLE `users_invitations`
@@ -3100,6 +3529,27 @@ ALTER TABLE `users_invitations`
 --
 ALTER TABLE `users_logins`
   ADD CONSTRAINT `users_logins_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `users_nearby`
+--
+ALTER TABLE `users_nearby`
+  ADD CONSTRAINT `users_nearby_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `users_nearby_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `users_notifications`
+--
+ALTER TABLE `users_notifications`
+  ADD CONSTRAINT `users_notifications_ibfk_1` FOREIGN KEY (`fromuser`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `users_notifications_ibfk_2` FOREIGN KEY (`newsfeedid`) REFERENCES `newsfeed` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `users_notifications_ibfk_3` FOREIGN KEY (`touser`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `users_phones`
+--
+ALTER TABLE `users_phones`
+  ADD CONSTRAINT `users_phones_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `users_push_notifications`
@@ -3122,10 +3572,30 @@ ALTER TABLE `users_stories`
   ADD CONSTRAINT `users_stories_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
+-- Constraints for table `users_stories_likes`
+--
+ALTER TABLE `users_stories_likes`
+  ADD CONSTRAINT `users_stories_likes_ibfk_1` FOREIGN KEY (`storyid`) REFERENCES `users_stories` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `users_stories_likes_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `users_stories_requested`
 --
 ALTER TABLE `users_stories_requested`
   ADD CONSTRAINT `users_stories_requested_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `volunteering_dates`
+--
+ALTER TABLE `volunteering_dates`
+  ADD CONSTRAINT `volunteering_dates_ibfk_1` FOREIGN KEY (`volunteeringid`) REFERENCES `volunteering` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `volunteering_groups`
+--
+ALTER TABLE `volunteering_groups`
+  ADD CONSTRAINT `volunteering_groups_ibfk_1` FOREIGN KEY (`volunteeringid`) REFERENCES `volunteering` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `volunteering_groups_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `vouchers`

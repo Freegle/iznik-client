@@ -1504,8 +1504,7 @@ define([
             var self = this;
 
             require(["iznik/views/pages/user/landing"], function () {
-            	var mobile_version = $('meta[name=iznik_mobile_version]').attr("content");	// CC
-            	var page = new Iznik.Views.User.Pages.Landing.About({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
+            	var page = new Iznik.Views.User.Pages.Landing.About();
             	self.loadRoute({ page: page });
             });
         },
@@ -1568,7 +1567,8 @@ define([
             var self = this;
 
             require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.Contact();
+                var mobile_version = $('meta[name=iznik_mobile_version]').attr("content");	// CC
+                var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
                 self.loadRoute({page: page});
             });
         },

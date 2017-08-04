@@ -15,19 +15,32 @@
     </div>
 </div>
 <div class="panel panel-white">
+    <% if (obj.profile) { %>
+    <div class="row visible-xs">
+        <div class="col-xs-12">
+            <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded" />
+        </div>
+    </div>
+    <% } %>
     <div class="row">
         <% if (obj.profile) { %>
-        <div class="col-xs-2">
+        <div class="hidden-xs col-sm-2">
             <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded" />
         </div>
         <% } %>
         <% if (obj.profile) { %>
-        <div class="col-xs-8">
+        <div class="col-xs-10 col-sm-6 js-nameetc">
         <% } else { %>
-        <div class="col-xs-10">
+        <div class="col-xs-12 col-sm-8 js-nameetc">
         <% } %>
             <h1>
                 {{namedisplay}}
+                <div class="btn btn-success js-join" style="display: none;">
+                    <div class="glyphicon glyphicon-plus" /><span class="topspace">&nbsp;Join</span>
+                </div>
+                <div class="btn btn-white js-leave" style="display: none;">
+                    <div class="glyphicon glyphicon-trash" /><span class="topspace">&nbsp;Leave</span>
+                </div>
             </h1>
             <p class="text-larger">{{obj.tagline}}</p>
             <div class="text-muted">
@@ -38,14 +51,8 @@
                 <a href="/stats/{{nameshort}}">More stats...</a>
             </div>
         </div>
-        <div class="col-xs-2">
-            <br />
-            <div class="btn btn-success pull-right margright js-join" style="display: none;">
-                <div class="glyphicon glyphicon-plus" /><span class="topspace">&nbsp;Join</span>
-            </div>
-            <div class="btn btn-white pull-right margright js-leave" style="display: none;">
-                <div class="glyphicon glyphicon-trash" /><span class="topspace">&nbsp;Leave</span>
-            </div>
+        <div class="hidden-xs col-sm-4">
+            <div id="js-areamap" />
         </div>
     </div>
     <div class="row">
