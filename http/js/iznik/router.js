@@ -199,7 +199,7 @@ define([
             "volunteering/:id": "userVolunteering",
             "why": "userWhy",
             "myposts": "userHome",
-            "*path": "userNewsfeed"
+            "*path": "modtools" // CC
         },
 
         loadRoute: function (routeOptions) {
@@ -220,7 +220,9 @@ define([
 
             // CC self.modtools = routeOptions.modtools;
             self.modtools = parseInt($('meta[name=iznikmodtools]').attr("content"));    // CC
+            console.log("loadRoute self.modtools:" + self.modtools);
             routeOptions.modtools = self.modtools;  // CC
+            routeOptions.page.modtools = self.modtools;  // CC
             Iznik.Session.set('modtools', self.modtools);
 
             function loadPage() {

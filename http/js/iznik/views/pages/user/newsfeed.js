@@ -583,7 +583,7 @@ define([
 
         highlightMentions: function(msg) {
             var self = this;
-            console.log("Highlight", msg, self.contributors);
+            // CC console.log("Highlight", msg, self.contributors);
 
             if (self.options.contributors) {
                 for (var id in self.options.contributors) {
