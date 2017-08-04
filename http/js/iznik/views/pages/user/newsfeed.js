@@ -538,8 +538,12 @@ define([
             self.model.destroy();
         },
 
-        reply: function() {
+        reply: function(user) {
             this.$('.js-comment').focus();
+
+            if (user && user.hasOwnProperty('displayname')) {
+                this.$('.js-comment').html('@' + user.displayname + ' ');
+            }
         },
 
         showProfile: function() {
@@ -1090,7 +1094,7 @@ define([
         },
 
         reply: function() {
-            this.model.collection.trigger('reply');
+            this.model.collection.trigger('reply', this.model.get('user'));
         },
 
         render: function() {
