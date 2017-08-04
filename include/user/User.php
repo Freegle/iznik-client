@@ -654,7 +654,7 @@ class User extends Entity
         # memberships_yahoo), and if the membership already exists, then this would cause us to delete and re-add it,
         # which would result in the row in the child table being deleted.
         #
-        error_log("Add membership role $role for {$this->id} to $groupid with $emailid collection $collection");
+        #error_log("Add membership role $role for {$this->id} to $groupid with $emailid collection $collection");
         $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?, collection = ?;", [
             $this->id,
             $groupid,

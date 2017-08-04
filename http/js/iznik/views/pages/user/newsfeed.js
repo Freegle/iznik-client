@@ -5,6 +5,8 @@ define([
     'iznik/base',
     'autosize',
     'iznik/facebook',
+    'jquery.caret.min',
+    'jquery.atwho.min',
     'jquery-show-last',
     'iznik/models/message',
     'iznik/models/user/search',
@@ -552,6 +554,33 @@ define([
             });
         },
 
+        mention: function(sel) {
+            var self = this;
+
+            // Allow use of @ to mention people.
+            self.$(sel).atwho({
+                at: "@",
+                data: API + 'mentions?id=' + self.model.get('id'),
+                callbacks: {
+                    beforeSave: function(data) {
+                        var ret = [];
+                        _.each(data.mentions, function(d) {
+                            ret.push({
+                                id: d.id,
+                                name: d.displayname
+                            });
+                        });
+
+                        return(ret);
+                    }
+                }
+            });
+
+            self.$(sel).on('inserted.atwho', function(event, $li, e) {
+                console.log("Inserted", $li);
+            });
+        },
+
         render: function() {
             var self = this;
 
@@ -707,6 +736,7 @@ define([
 
         events: {
             'keydown .js-comment': 'sendComment',
+            'keypress .js-comment': 'addMention',
             'focus .js-comment': 'moreStuff',
             'click .js-addvolunteer': 'addVolunteer',
             'click .js-addevent': 'addEvent',
@@ -767,6 +797,17 @@ define([
                 model: new Iznik.Models.CommunityEvent({})
             });
             v.render();
+        },
+
+        addMention: function(e) {
+            var self = this;
+
+            if (String.fromCharCode(e.which) == '@') {
+                if (!self.mentioned) {
+                    self.mentioned = true;
+                    self.mention('.js-comment');
+                }
+            }
         },
 
         moreStuff: function() {

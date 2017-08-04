@@ -609,4 +609,32 @@ class Newsfeed extends Entity
 
         return($count);
     }
+
+    public function mentions($myid, $query) {
+        # Find the root of the thread.
+        $threadid = $this->feed['replyto'] ? $this->feed['replyto'] : $this->id;
+
+        # First find the people who have contributed to the thread.
+        $userids = $this->dbhr->preQuery("SELECT DISTINCT userid FROM newsfeed WHERE (replyto = ? OR id = ?) AND userid != ?;", [
+            $threadid,
+            $threadid,
+            $myid
+        ]);
+
+        $ret = [];
+
+        foreach ($userids as $userid) {
+            $u = User::get($this->dbhr, $this->dbhm, $userid['userid']);
+            $name = $u->getName();
+
+            if (!$query || strpos($name, $query) === 0) {
+                $ret[] = [
+                    'id' => $userid['userid'],
+                    'displayname' => $u->getName()
+                ];
+            }
+        }
+
+        return($ret);
+    }
 }

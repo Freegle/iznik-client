@@ -110,6 +110,7 @@ require_once(IZNIK_BASE . '/http/api/stories.php');
 require_once(IZNIK_BASE . '/http/api/status.php');
 require_once(IZNIK_BASE . '/http/api/volunteering.php');
 require_once(IZNIK_BASE . '/http/api/notification.php');
+require_once(IZNIK_BASE . '/http/api/mentions.php');
 
 use GeoIp2\Database\Reader;
 
@@ -355,6 +356,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'notification':
                     $ret = notification();
+                    break;
+                case 'mentions':
+                    $ret = mentions();
                     break;
                 case 'echo':
                     $ret = array_merge($_REQUEST, $_SERVER);
