@@ -579,10 +579,25 @@ define([
                     }
                 }
             });
+        },
 
-            self.$(sel).on('inserted.atwho', function(event, $li, e) {
-                console.log("Inserted", $li);
-            });
+        highlightMentions: function(msg) {
+            var self = this;
+            console.log("Highlight", msg, self.contributors);
+
+            if (self.options.contributors) {
+                for (var id in self.options.contributors) {
+                    var name = self.options.contributors[id];
+                    
+                    var p = msg.indexOf('@' + name);
+
+                    if (p !== -1) {
+                        msg = msg.substring(0, p) + '<span style="color: blue">@' + name + '</span>' + msg.substring(p + name.length + 1);
+                    }
+                }
+            }
+
+            return(msg);
         },
 
         render: function() {
@@ -1018,7 +1033,13 @@ define([
                             });
                         }
 
-                        self.replies = new Iznik.Collections.Replies(self.model.get('replies'));
+                        var replies = self.model.get('replies')
+                        self.replies = new Iznik.Collections.Replies(replies);
+                        self.contributors = [];
+                        _.each(replies, function(reply) {
+                            self.contributors[reply.user.id] = reply.user.displayname
+                        });
+
                         var replyel = self.$('.js-replies');
 
                         if (replyel.length) {
@@ -1027,7 +1048,8 @@ define([
                                 modelView: Iznik.Views.User.Feed.Reply,
                                 visibleModelsFilter: _.bind(self.visible, self),
                                 modelViewOptions: {
-                                    highlight: self.options.highlight
+                                    highlight: self.options.highlight,
+                                    contributors: self.contributors
                                 },
                                 collection: self.replies,
                                 processKeyEvents: false
@@ -1161,7 +1183,10 @@ define([
                         self.model.set('message', ellip);
                     }
 
-                    self.$('.js-message').html(_.escape(self.model.get('message')));
+                    var msg = _.escape(self.model.get('message'));
+                    msg = self.highlightMentions(msg);
+                    self.$('.js-message').html(msg);
+
                     if (self.$('.js-message').length) {
                         twemoji.parse(self.$('.js-message').get()[0]);
                     }
