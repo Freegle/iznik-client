@@ -175,6 +175,8 @@ class Newsfeed extends Entity
     private function fillIn(&$entry, &$users, $checkreplies = TRUE) {
         unset($entry['position']);
 
+        $entry['message'] = trim($entry['message']);
+
         $use = !presdef('reviewrequired', $entry, FALSE) && !presdef('deleted', $entry, FALSE);
 
         #error_log("Use $use for type {$entry['type']} from " . presdef('reviewrequired', $entry, FALSE) . "," . presdef('deleted', $entry, FALSE));
