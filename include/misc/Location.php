@@ -49,7 +49,7 @@ class Location extends Entity
         return($str);
     }
 
-    public function create($osm_id, $name, $type, $geometry, $osmparentsonly = 1, $place = FALSE)
+    public function create($osm_id, $name, $type, $geometry, $osmparentsonly = 1, $place = 0)
     {
         try {
             # TODO osm_place is really just place.
