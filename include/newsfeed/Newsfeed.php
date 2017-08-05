@@ -111,7 +111,7 @@ class Newsfeed extends Entity
                             $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id);
                         }
 
-                        $sql = $orig['userid'] ? "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto AND userid != {$orig['userid']} AND subscribed = 1 UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto AND userid != {$orig['userid']};" : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto;";
+                        $sql = $orig['userid'] ? "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto AND userid != {$orig['userid']} UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto AND userid != {$orig['userid']};" : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto;";
                         $commenters = $this->dbhr->preQuery($sql);
 
                         foreach ($commenters as $commenter) {
@@ -133,7 +133,7 @@ class Newsfeed extends Entity
         return($id);
     }
 
-    public function getPublic($lovelist = FALSE) {
+    public function getPublic($lovelist = FALSE, $unfollowed = TRUE) {
         $atts = parent::getPublic();
         $users = [];
 
@@ -167,6 +167,12 @@ class Newsfeed extends Entity
                 $uatts['publiclocation'] = $u->getPublicLocation();
                 $atts['lovelist'][] = $uatts;
             }
+        }
+
+        if ($unfollowed) {
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
+            $atts['unfollowed'] = $this->unfollowed($myid, $this->id);
         }
 
         return($atts);
@@ -379,7 +385,7 @@ class Newsfeed extends Entity
         $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert')) AND $tq" : $tq;
         $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
-        $sql = "SELECT " . implode(',', $this->publicatts) . ", hidden FROM newsfeed WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
+        $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
         #error_log($sql);
         $entries = $this->dbhr->preQuery($sql);
         $last = NULL;
@@ -636,5 +642,28 @@ class Newsfeed extends Entity
         }
 
         return($ret);
+    }
+
+    public function unfollow($userid, $newsfeedid) {
+        $this->dbhm->preExec("REPLACE INTO newsfeed_unfollow (userid, newsfeedid) VALUES (?, ?);", [
+            $userid,
+            $newsfeedid
+        ]);
+    }
+
+    public function follow($userid, $newsfeedid) {
+        $this->dbhm->preExec("DELETE FROM newsfeed_unfollow WHERE userid = ? AND newsfeedid = ?;", [
+            $userid,
+            $newsfeedid
+        ]);
+    }
+
+    public function unfollowed($userid, $newsfeedid) {
+        $unfollows = $this->dbhr->preQuery("SELECT id FROM newsfeed_unfollow WHERE userid = ? AND newsfeedid = ?;", [
+            $userid,
+            $newsfeedid
+        ], FALSE, FALSE);
+
+        return(count($unfollows) > 0);
     }
 }

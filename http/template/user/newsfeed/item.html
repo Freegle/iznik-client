@@ -8,15 +8,27 @@
                 </a>
                 <div class="dropdown-container  dropdown-position-bottomright relright">
                     <ul class="dropdown-menu">
+                        <% if (obj.ismod || obj.ownpost) { %>
                         <li>
                             <a href="#" class="js-edit">Edit this post</a>
                         </li>
+                        <% } %>
+                        <% if (obj.unfollowed) { %>
+                        <li>
+                            <a href="#" class="js-follow">Follow this post</a>
+                        </li>
+                        <% } else { %>
+                        <li>
+                            <a href="#" class="js-unfollow">Unfollow this post</a>
+                        </li>
+                        <% } %>
                         <li>
                             <a href="#" class="js-report">Report this post or one of its replies</a>
                         </li>
                         <li>
                             <a href="#" class="js-open">Open in new tab</a>
                         </li>
+                        <% if (obj.ismod) { %>
                         <li>
                             <a href="#" class="js-refertowanted">Refer to WANTED</a>
                         </li>
@@ -29,6 +41,7 @@
                         <li>
                             <a href="#" class="js-refertotaken">Refer to TAKEN</a>
                         </li>
+                        <% } %>
                         <% if (obj.ismod || obj.ownpost) { %>
                         <li class="js-modonly js-ownpost">
                             <a href="#" class="js-delete">Delete this post</a>
