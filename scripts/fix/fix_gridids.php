@@ -5,12 +5,12 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Location.php');
 
-$locs = $dbhr->preQuery("SELECT * FROM locations_ni WHERE gridid IS NULL;");
+$locs = $dbhr->preQuery("SELECT * FROM locations WHERE gridid IS NULL;");
 $total = count($locs);
 $count = 0;
 
 foreach ($locs as $loc) {
-    $sql = "SELECT locations_grids.id AS gridid FROM `locations_ni` INNER JOIN locations_grids ON locations_ni.id = ? AND MBRIntersects(locations_ni.geometry, locations_grids.box) LIMIT 1;";
+    $sql = "SELECT locations_grids.id AS gridid FROM `locations` INNER JOIN locations_grids ON locations.id = ? AND MBRIntersects(locations_ni.geometry, locations_grids.box) LIMIT 1;";
     $grids = $dbhr->preQuery($sql, [ $loc['id'] ]);
     foreach ($grids as $grid) {
         $gridid = $grid['gridid'];
