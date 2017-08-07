@@ -393,6 +393,34 @@ class ChatRoom extends Entity
         return ($ret);
     }
 
+    public function updateMessageCounts() {
+        # We store some information about the messages in the room itself.  We try to avoid duplicating information
+        # like this, because it's asking for it to get out of step, but it means we can efficiently find the chat
+        # rooms for a user in listForUser.
+        $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
+            $this->id
+        ]);
+
+        $validcount = 0;
+        $invalidcount = 0;
+
+        foreach ($unheld as $un) {
+            $validcount = ($un['valid'] == 1) ? ++$validcount : $validcount;
+            $invalidcount = ($un['valid'] == 0) ? ++$invalidcount : $invalidcount;
+        }
+
+        $dates = $this->dbhr->preQuery("SELECT MAX(date) AS maxdate FROM chat_messages WHERE chatid = ?;", [
+            $this->id
+        ], FALSE);
+
+        $this->dbhm->preExec("UPDATE chat_rooms SET msgvalid = ?, msginvalid = ?, latestmessage = ? WHERE id = ?;", [
+            $validcount,
+            $invalidcount,
+            $dates[0]['maxdate'],
+            $this->id
+        ]);
+    }
+
     public function listForUser($userid, $chattypes, $search = NULL, $all = FALSE, $modtools = MODTOOLS)
     {
         $ret = [];
@@ -407,11 +435,15 @@ class ChatRoom extends Entity
         # A single query that handles this would be horrific, and having tried it, is also hard to make efficient.  So
         # break it down into smaller queries that have the dual advantage of working quickly and being comprehensible.
         $mysqltime = date("Y-m-d", strtotime("31 days ago"));
+
+        # We don't want to see non-empty chats where all the messages are held for review, because they are likely to
+        # be spam.
+        $countq = " AND (chat_rooms.msgvalid + chat_rooms.msginvalid = 0 OR chat_rooms.msgvalid > 0) ";
         $rooms = [];
 
         if (in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
             # We want chats marked by groupid for which we are a mod.
-            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE memberships.role IN ('Moderator', 'Owner') AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed');";
+            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE memberships.role IN ('Moderator', 'Owner') AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
             #error_log("Group chats $sql, $userid");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
             #error_log("Add " . count($rooms) . " mod chats using $sql");
@@ -421,7 +453,7 @@ class ChatRoom extends Entity
             # If we're on ModTools then we want User2Mod chats for our group.
             #
             # If we're on the user site then we only want User2Mod chats where we are a user.
-            $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE (memberships.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');";
+            $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE (memberships.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
             #error_log("List for user, modtools $modtools");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
             #error_log("Add " . count($rooms) . " user to mod chats using $sql");
@@ -429,14 +461,14 @@ class ChatRoom extends Entity
 
         if (in_array(ChatRoom::TYPE_USER2USER, $chattypes)) {
             # We want chats where we are one of the users.
-            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' AND (status IS NULL OR status != 'Closed');";
+            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' AND (status IS NULL OR status != 'Closed') $countq;";
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid, $userid]));
             #error_log("Add " . count($rooms) . " user to user chats using $sql");
         }
 
         if (in_array(ChatRoom::TYPE_GROUP, $chattypes)) {
             # We want chats marked by groupid for which we are a member.
-            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'Group' AND (status IS NULL OR status != 'Closed');";
+            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'Group' AND (status IS NULL OR status != 'Closed') $countq;";
             #error_log("Group chats $sql, $userid");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
             #error_log("Add " . count($rooms) . " group chats using $sql");
@@ -449,50 +481,31 @@ class ChatRoom extends Entity
             $mepub = $me ? $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE) : NULL;
 
             foreach ($rooms as $room) {
-                #error_log("Consider {$room['id']} group {$room['groupid']} modonly {$room['modonly']} " . $u->isModOrOwner($room['groupid']));
-                # We don't want to see non-empty chats where all the messages are held for review, because they are likely to
-                # be spam.
-                $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
-                    $room['id']
-                ]);
+                $show = TRUE;
 
-                $validcount = 0;
-                $invalidcount = 0;
-                foreach ($unheld as $un) {
-                    $validcount = ($un['valid'] == 1) ? ++$validcount : $validcount;
-                    $invalidcount = ($un['valid'] == 0) ? ++$invalidcount : $invalidcount;
+                if ($search) {
+                    # We want to apply a search filter.
+                    $r = new ChatRoom($this->dbhr, $this->dbhm, $room['id']);
+                    $name = $r->getPublic($me, $mepub)['name'];
+
+                    if (stripos($name, $search) === FALSE) {
+                        # We didn't get a match easily.  Now we have to search in the messages.
+                        $searchq = $this->dbhr->quote("%$search%");
+                        $sql = "SELECT chat_messages.id FROM chat_messages LEFT OUTER JOIN messages ON messages.id = chat_messages.refmsgid WHERE chatid = {$room['id']} AND (chat_messages.message LIKE $searchq OR messages.subject LIKE $searchq) LIMIT 1;";
+                        $msgs = $this->dbhr->preQuery($sql);
+
+                        $show = count($msgs) > 0;
+                    }
                 }
 
-                $cansee = count($unheld) == 0 || $validcount > 0;
-                #error_log("Cansee for {$room['id']} is $cansee from " . var_export($unheld, TRUE));
+                if ($show && $room['chattype'] == ChatRoom::TYPE_MOD2MOD && $room['groupid']) {
+                    # See if the group allows chat.
+                    $g = Group::get($this->dbhr, $this->dbhm, $room['groupid']);
+                    $show = $g->getSetting('showchat', TRUE);
+                }
 
-                if ($cansee) {
-                    $show = TRUE;
-
-                    if ($search) {
-                        # We want to apply a search filter.
-                        $r = new ChatRoom($this->dbhr, $this->dbhm, $room['id']);
-                        $name = $r->getPublic($me, $mepub)['name'];
-
-                        if (stripos($name, $search) === FALSE) {
-                            # We didn't get a match easily.  Now we have to search in the messages.
-                            $searchq = $this->dbhr->quote("%$search%");
-                            $sql = "SELECT chat_messages.id FROM chat_messages LEFT OUTER JOIN messages ON messages.id = chat_messages.refmsgid WHERE chatid = {$room['id']} AND (chat_messages.message LIKE $searchq OR messages.subject LIKE $searchq) LIMIT 1;";
-                            $msgs = $this->dbhr->preQuery($sql);
-
-                            $show = count($msgs) > 0;
-                        }
-                    }
-
-                    if ($show && $room['chattype'] == ChatRoom::TYPE_MOD2MOD && $room['groupid']) {
-                        # See if the group allows chat.
-                        $g = Group::get($this->dbhr, $this->dbhm, $room['groupid']);
-                        $show = $g->getSetting('showchat', TRUE);
-                    }
-
-                    if ($show) {
-                        $ret[] = $room['id'];
-                    }
+                if ($show) {
+                    $ret[] = $room['id'];
                 }
             }
         }

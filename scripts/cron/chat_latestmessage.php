@@ -3,6 +3,7 @@
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
+require_once(IZNIK_BASE . '/include/chat/ChatRoom.php');
 
 # This is a fallback, so it's only run occasionally through cron.
 
@@ -13,14 +14,8 @@ $total = count($chatids);
 $count = 0;
 
 foreach ($chatids as $chatid) {
-    $dates = $dbhr->preQuery("SELECT MAX(date) AS maxdate FROM chat_messages WHERE chatid = ?;", [
-        $chatid['chatid']
-    ], FALSE);
-
-    $dbhm->preExec("UPDATE chat_rooms SET latestmessage = ? WHERE id = ?;", [
-        $dates[0]['maxdate'],
-        $chatid['chatid']
-    ], FALSE);
+    $r = new ChatRoom($dbhr, $dbhm, $chatid['chatid']);
+    $r->updateMessageCounts();
 
     $count++;
 

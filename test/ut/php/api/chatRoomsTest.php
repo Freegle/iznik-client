@@ -39,7 +39,7 @@ class chatRoomsAPITest extends IznikAPITestCase
 
     protected function tearDown()
     {
-//        parent::tearDown();
+        parent::tearDown();
     }
 
     public function __construct()
