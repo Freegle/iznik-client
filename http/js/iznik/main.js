@@ -364,7 +364,7 @@ require([
                     (function waitUntilLoggedIn(retry) {
                         if (Iznik.Session.loggedIn) {
                             setTimeout(function () {
-                                console.log("Push go to: " + data.additionalData.route);
+                                //console.log("Push go to: " + data.additionalData.route);
                                 Router.navigate(data.additionalData.route, true);
                             }, 500);
                         } else {

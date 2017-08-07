@@ -30,10 +30,12 @@ define([
 
             $(document).on('hide', function () {
                 self.playBeep = true;
+                //console.log("PLAYBEEP HIDDEN");
             });
 
             $(document).on('show', function () {
                 self.playBeep = false;
+                //console.log("PLAYBEEP SHOWN");
 
                 // Check if we're still logged in - this tab might have been hidden for a while.  If we were logged
                 // in and we no longer are, this will trigger a reload, so we don't look as though we're logged in
@@ -446,15 +448,16 @@ define([
                                             if (ret.work[count.fi] > 0 && count.sound) {
                                                 var settings = Iznik.Session.get('me').settings;
 
-                                                console.log("playbeep: think");
+                                                //console.log("playbeep: think: " + presdef('playbeep', settings, 1));
+                                                //console.log("playbeep: think2: " + self.playBeep);
                                                 if (presdef('playbeep', settings, 1) && self.playBeep) {
                                                     var sound = new Audio(iznikroot + "sounds/alert.wav");
-                                                    console.log("playbeep:", sound);
+                                                    //console.log("playbeep:", sound);
                                                     try {
                                                         // Some browsers prevent us using play unless in response to a
                                                         // user gesture, so catch any exception.
                                                         sound.play();
-                                                        console.log("playbeep: played!");
+                                                        //console.log("playbeep: played!");
                                                     } catch (e) {
                                                     }
                                                 }
@@ -473,7 +476,7 @@ define([
                                     $('.js-workcount').html('').hide();
                                 }
                                 if (mobilePush) {
-                                    console.log("Session set badge: " + total);
+                                    //console.log("Session set badge: " + total);
                                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
                                 } // CC
 
