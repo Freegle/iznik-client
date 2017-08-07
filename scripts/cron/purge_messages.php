@@ -15,6 +15,24 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
+# Purge old messages_history - it's only used for spam checking so we don't need to keep it indefinitely.
+$start = date('Y-m-d', strtotime("midnight 31 days ago"));
+error_log("Purge messages_history before $start");
+
+$total = 0;
+$stmt = $dbhm->prepare("DELETE FROM messages_history WHERE arrival < '$start' LIMIT 5000;");
+do {
+    $stmt->execute();
+    $count = $stmt->rowCount();
+    $total += $count;
+
+    if ($total % 1000 == 0) {
+        error_log("...$total");
+    }
+} while ($count > 0);
+
+error_log("Deleted $total");
+
 # Purge messages which have been in Pending or Queued for ages.  Probably the group isn't being sync'd properly
 $start = date('Y-m-d', strtotime("midnight 31 days ago"));
 error_log("Purge pending / queued before $start");
