@@ -248,7 +248,7 @@ class ChatRoom extends Entity
             if ($ret['user1'] == $myid && $mepub) {
                 $ret['user1'] = $mepub;
             } else {
-                $u = User::get($this->dbhr, $this->dbhm, $ret['user1']);
+                $u = $ret['user1'] == $myid ? $me : User::get($this->dbhr, $this->dbhm, $ret['user1']);
                 unset($ret['user1']);
                 $ctx = NULL;
                 $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
@@ -264,7 +264,7 @@ class ChatRoom extends Entity
             if ($ret['user2'] == $myid && $mepub) {
                 $ret['user2'] = $mepub;
             } else {
-                $u = User::get($this->dbhr, $this->dbhm, $ret['user2']);
+                $u = $ret['user2'] == $myid ? $me : User::get($this->dbhr, $this->dbhm, $ret['user2']);
                 unset($ret['user2']);
                 $ctx = NULL;
                 $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
