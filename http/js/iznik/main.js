@@ -359,16 +359,12 @@ require([
             badgeconsole += msg;
             $('#badgeconsole').html(badgeconsole);*/
 
-            if ((!foreground && doubleEvent) && (data.count > 0)) { // Only show chat if started/awakened ie not if in foreground
-                var chatids = data.additionalData.chatids;
-                chatids = _.uniq(chatids);
-
-                if (chatids.length > 0) {
-
-                    var chatid = chatids[0];
+            if ((!foreground && doubleEvent) && (data.count > 0)) { // Only go to route if started/awakened ie not if in foreground
+                if (data.additionalData.route) {
                     (function waitUntilLoggedIn(retry) {
                         if (Iznik.Session.loggedIn) {
                             setTimeout(function () {
+                                console.log("Push go to: " + data.additionalData.route);
                                 Router.navigate(data.additionalData.route, true);
                             }, 500);
                         } else {

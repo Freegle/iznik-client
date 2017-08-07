@@ -314,7 +314,7 @@ define([
 
             var count = self.collection.length; // CC
             $("#js-work2").text("Background work: " + count);
-            console.log("plugin checkWork " + count + " work item(s)"); // REMOVE
+            //console.log("plugin checkWork " + count + " work item(s)"); // REMOVE
     
             if (self.connected) {
                 // Get any first item of work to do.
@@ -322,7 +322,7 @@ define([
     
                 if (first && !first.get('running')) {
                     first.set('running', true);
-console.log("First item", first);   // REMOVE
+//console.log("First item", first);   // REMOVE
     
                     var groupname;
                     var v = first.get('subview');
