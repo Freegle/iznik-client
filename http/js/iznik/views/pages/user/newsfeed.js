@@ -423,6 +423,8 @@ define([
             'click .js-delete': 'deleteMe',
             'click .js-open': 'open',
             'click .js-report': 'report',
+            'click .js-follow': 'follow',
+            'click .js-unfollow': 'unfollow',
             'click .js-refertowanted': 'referToWanted',
             'click .js-refertooffer': 'referToOffer',
             'click .js-refertotaken': 'referToTaken',
@@ -458,7 +460,7 @@ define([
             var self = this;
 
             e.preventDefault();
-            e.stopPropagation()
+            e.stopPropagation();
 
             var usersite = $('meta[name=iznikusersite]').attr("content");
             var url = 'https://' + usersite + '/newsfeed/' + self.model.get('id');
@@ -466,12 +468,31 @@ define([
             window.open(url);
         },
 
+        follow: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation();
+
+            self.model.follow();
+            self.$('a.dropdown-toggle').dropdown('toggle');
+        },
+
+        unfollow: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation();
+
+            self.model.unfollow();
+            self.$('a.dropdown-toggle').dropdown('toggle');
+        },
+
         referToWanted: function (e) {
             var self = this;
             e.preventDefault();
-            e.stopPropagation()
+            e.stopPropagation();
 
             self.model.referToWanted().then(function() {
+                self.$('a.dropdown-toggle').dropdown('toggle');
                 self.checkUpdate();
             });
         },
@@ -479,9 +500,10 @@ define([
         referToOffer: function (e) {
             var self = this;
             e.preventDefault();
-            e.stopPropagation()
+            e.stopPropagation();
 
             self.model.referToOffer().then(function() {
+                self.$('a.dropdown-toggle').dropdown('toggle');
                 self.checkUpdate();
             });
         },
@@ -489,9 +511,10 @@ define([
         referToTaken: function (e) {
             var self = this;
             e.preventDefault();
-            e.stopPropagation()
+            e.stopPropagation();
 
             self.model.referToTaken().then(function() {
+                self.$('a.dropdown-toggle').dropdown('toggle');
                 self.checkUpdate();
             });
         },
@@ -499,9 +522,10 @@ define([
         referToReceived: function (e) {
             var self = this;
             e.preventDefault();
-            e.stopPropagation()
+            e.stopPropagation();
 
             self.model.referToReceived().then(function() {
+                self.$('a.dropdown-toggle').dropdown('toggle');
                 self.checkUpdate();
             });
         },
@@ -519,6 +543,8 @@ define([
             e.preventDefault();
             e.stopPropagation()
 
+            self.$('a.dropdown-toggle').dropdown('toggle');
+
             var v = new Iznik.Views.User.Feed.Report({
                 model: self.model
             });
@@ -535,6 +561,7 @@ define([
             e.preventDefault();
             e.stopPropagation()
 
+            self.$('a.dropdown-toggle').dropdown('toggle');
             self.model.destroy();
         },
 
@@ -583,7 +610,6 @@ define([
 
         highlightMentions: function(msg) {
             var self = this;
-            console.log("Highlight", msg, self.contributors);
 
             if (self.options.contributors) {
                 for (var id in self.options.contributors) {

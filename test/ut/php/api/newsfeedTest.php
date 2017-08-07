@@ -515,5 +515,54 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testFollow() {
+        error_log(__METHOD__);
+
+        error_log("Log in as {$this->uid}");
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test for mention'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        error_log("Created feed {$ret['id']}");
+        $nid = $ret['id'];
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid,
+            'unfollowed' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertFalse(pres('unfollowed', $ret['newsfeed']));
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'Unfollow'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid,
+            'unfollowed' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertTrue(pres('unfollowed', $ret['newsfeed']));
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'Follow'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid,
+            'unfollowed' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertFalse(pres('unfollowed', $ret['newsfeed']));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

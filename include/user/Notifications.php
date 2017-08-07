@@ -4,6 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/misc/Entity.php');
 require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
+require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 require_once(IZNIK_BASE . '/mailtemplates/notifications/email.php');
 
 class Notifications
@@ -95,10 +96,16 @@ class Notifications
         $id = NULL;
 
         if ($from != $to) {
-            $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`, `url`) VALUES (?, ?, ?, ?, ?);";
-            $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid, $url ]);
-            $id = $this->dbhm->lastInsertId();
+            $n = new Newsfeed($this->dbhr, $this->dbhm);
+
+            # For newsfeed items, ensure we don't notify if we've unfollowed.
+            if (!$n->unfollowed($to, $newsfeedid)){
+                $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`, `url`) VALUES (?, ?, ?, ?, ?);";
+                $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid, $url ]);
+                $id = $this->dbhm->lastInsertId();
+            }
         }
+
         return($id);
     }
 

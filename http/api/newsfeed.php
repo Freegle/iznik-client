@@ -3,6 +3,7 @@ function newsfeed() {
     global $dbhr, $dbhm;
 
     $me = whoAmI($dbhr, $dbhm);
+    $myid = $me ? $me->getId() : NULL;
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
@@ -16,7 +17,8 @@ function newsfeed() {
                     # Use the master as we fetch after posting and could otherwise miss it due to replication delay.
                     $n = new Newsfeed($dbhm, $dbhm, $id);
                     $lovelist = array_key_exists('lovelist', $_REQUEST) ? filter_var($_REQUEST['lovelist'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-                    $entry = $n->getPublic($lovelist);
+                    $unfollowed = array_key_exists('unfollowed', $_REQUEST) ? filter_var($_REQUEST['unfollowed'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+                    $entry = $n->getPublic($lovelist, $unfollowed);
 
                     $ret = [
                         'ret' => 0,
@@ -122,6 +124,20 @@ function newsfeed() {
                     ];
                 } else if ($action == 'ReferToReceived') {
                     $n->refer(Newsfeed::TYPE_REFER_TO_RECEIVED);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == 'Follow') {
+                    $n->follow($myid, $id);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                } else if ($action == 'Unfollow') {
+                    $n->unfollow($myid, $id);
 
                     $ret = [
                         'ret' => 0,
