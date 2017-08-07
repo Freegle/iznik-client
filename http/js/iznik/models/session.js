@@ -595,14 +595,15 @@ define([
 
         // Using https://github.com/apache/cordova-plugin-inappbrowser executeScript
 
-        // Setting document.cookie doesn't work
-        // Using com.cordova.plugins.cookiemaster doesn't work
-        // Amending InAppBrowser to add getCookies() call does work - https://github.com/apache/cordova-plugin-inappbrowser/pull/122
-        // https://github.com/wymsee/cordova-HTTP not tried
-        // https://forums.meteor.com/t/meteor-1-3-beta-11-setting-cookies-from-cordova-on-android/18637 not tried
-        // http://stackoverflow.com/questions/28107313/set-cookies-programatically-in-crosswalk-webview-on-android not tried
-        // http://stackoverflow.com/questions/17228785/yahoo-authentication-by-oauth-without-any-redirectionclient-side-is-it-possib
-        //  - looked at: OpenID solution uses window.open https://gist.github.com/erikeldridge/619947
+        // ANDROID: NOT USING CROSSWALK SO NOT NOW NEEDED
+        // NO: Setting document.cookie doesn't work
+        // NO: Using com.cordova.plugins.cookiemaster doesn't work
+        // NO: Amending InAppBrowser to add getCookies() call does work - https://github.com/apache/cordova-plugin-inappbrowser/pull/122
+        // NO: https://github.com/wymsee/cordova-HTTP not tried
+        // NO: https://forums.meteor.com/t/meteor-1-3-beta-11-setting-cookies-from-cordova-on-android/18637 not tried
+        // NO: http://stackoverflow.com/questions/28107313/set-cookies-programatically-in-crosswalk-webview-on-android not tried
+        // NO: http://stackoverflow.com/questions/17228785/yahoo-authentication-by-oauth-without-any-redirectionclient-side-is-it-possib
+        // NO:  - looked at: OpenID solution uses window.open https://gist.github.com/erikeldridge/619947
 
         yahooMTLogin: function () {
             console.log("yahooMTLogin");
@@ -773,10 +774,11 @@ define([
                     wGetGroups.executeScript({ code: jsReturnCookies }, cbReturnCookies);
                 } else {
 
-                    wGetGroups.getCookies({ url: 'https://groups.yahoo.com' }, function (count) {
-                        console.log("Android getCookies returned: " + count);
-                        getBodyAndClose();
-                    });
+                    // CC wGetGroups.getCookies({ url: 'https://groups.yahoo.com' }, function (count) {
+                    // CC     console.log("Android getCookies returned: " + count);
+                    // CC     getBodyAndClose();
+                    // CC });
+                    wGetGroups.close();
                 }
                 gotYahooCookies = true;
             });

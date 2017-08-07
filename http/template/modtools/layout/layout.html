@@ -23,6 +23,14 @@
                     </button>
                     <div class="reallyHide menu js-menu js-loggedinonly pull-right">
                         <ul class="list-inline">
+                            <li class="padbot">
+                              <div id="nonetwork" class="reallyHide">
+                                <span class="fullholder glyphicons glyphicon-larger glyphicons-cloud vcenter-left" aria-hidden="true" />
+                              </div>
+                              <a id="refreshbutton" href="#" class="js-loggedinonly reallyHide hidden-md hidden-lg" title="Refresh" onclick="return mobileRefresh();">
+                                <span class="white fullholder glyphicons glyphicon-larger glyphicons-refresh vcenter-left" type="button" />
+                              </a>
+                            </li>
                             <li>
                                 <div class="clickme ">
                                     <a href="/modtools/chats" id="js-notifchat">
@@ -40,12 +48,6 @@
                             </li>
                         </ul>
                     </div>
-                  <div id="nonetwork" class="margright pull-right">
-                    <span class="glyphicon glyphicon-cloud" aria-hidden="true" />
-                  </div>
-                  <button id="refreshbutton" class="btn btn-default margright pull-right" type="button" onclick="return mobileRefresh();">
-                    <span class="glyphicon glyphicon-repeat" aria-hidden="true" />
-                  </button>
                 </li>
             </ul>
         </div>
