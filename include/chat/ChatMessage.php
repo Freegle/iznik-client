@@ -251,6 +251,8 @@ class ChatMessage extends Entity
 
             $id = $this->dbhm->lastInsertId();
 
+            $this->dbhm->background("UPDATE chat_rooms SET latestmessage = NOW() WHERE id = $chatid;");
+
             # We have ourselves seen this message.
             $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
                 [

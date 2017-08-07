@@ -39,7 +39,7 @@ class chatRoomsAPITest extends IznikAPITestCase
 
     protected function tearDown()
     {
-        parent::tearDown();
+//        parent::tearDown();
     }
 
     public function __construct()
@@ -166,12 +166,15 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertTrue($this->user->login('testpw'));
 
         # Create a support room from this user to the group mods
+        $this->user->addMembership($this->groupid);
+
         $ret = $this->call('chatrooms', 'PUT', [
             'groupid' => $this->groupid,
             'chattype' => ChatRoom::TYPE_USER2MOD
         ]);
         assertEquals(0, $ret['ret']);
         $rid = $ret['id'];
+        error_log("Created User2Mod $rid");
         assertNotNull($rid);
         assertFalse(pres('chatrooms', $ret));
 
