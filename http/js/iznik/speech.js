@@ -4,12 +4,8 @@
     $.fn.speech = function(action) {
         var self = this;
 
-        console.log("Speech");
-
         if (window.hasOwnProperty('webkitSpeechRecognition')) {
-            console.log("Enabled");
             if (!action) {
-                console.log("Start");
                 var recognition = new webkitSpeechRecognition();
 
                 recognition.continuous = false;

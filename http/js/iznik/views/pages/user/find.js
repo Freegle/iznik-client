@@ -136,7 +136,11 @@ define([
 
             p.then(function(self) {
                 self.collection = null;
-                
+
+                if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                    self.$('.js-speech').show();
+                }
+
                 var data;
 
                 self.searchtype = 'Offer';

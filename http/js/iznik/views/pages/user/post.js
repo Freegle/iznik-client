@@ -202,6 +202,10 @@ define([
             });
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
+                if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                    self.$('.js-speechItem').show();
+                }
+
                 _.delay(_.bind(self.checkNext, self), 300);
 
                 self.typeahead = self.$('.js-item').typeahead({
