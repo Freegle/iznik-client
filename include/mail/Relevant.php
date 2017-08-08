@@ -146,7 +146,7 @@ class Relevant {
                             # We have a message - see if it's the type we want.
                             $m = new Message($this->dbhr, $this->dbhm, $r['id']);
                             $type = $m->getType();
-                            if (($m->getFromuser() != $userid) &&
+                            if (($m->getFromuser() && $m->getFromuser() != $userid) &&
                                 ($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED) ||
                                 ($interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER)) {
                                 #error_log("Found {$r['id']} " . $m->getSubject() . " from " . var_export($r, TRUE));
