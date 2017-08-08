@@ -36,7 +36,12 @@
     <div class="col-md-12">
         <div class="js-sugghelp" />
         <p class="text-muted">In a single word or phrase, what are you looking for?</p>
-        <input type="text" size="60" maxlength="60" class="form-control js-item" spellcheck="true" />
+        <div class="input-group input-group-lg">
+            <div class="input-group-addon nopad js-speechItem" aria-label="Add item by voice">
+                <span class="glyphicons glyphicons-microphone" />
+            </div>
+            <input type="text" size="60" maxlength="60" class="form-control js-item" spellcheck="true" />
+        </div>
     </div>
 </div>
 <div class="row-fluid botspace" >
