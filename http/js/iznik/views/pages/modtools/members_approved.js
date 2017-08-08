@@ -26,6 +26,7 @@ define([
             'click .js-sync': 'sync',
             'click .js-export': 'export',
             'click .js-exportyahoo': 'exportYahoo',
+            'click .js-merge': 'merge',
             'click .js-add': 'add'
         },
 
@@ -126,6 +127,10 @@ define([
                     self.exportChunk();
                 });
             }
+        },
+
+        merge: function() {
+            (new Iznik.Views.ModTools.User.Merge()).render();
         },
 
         exportYahoo: function () {

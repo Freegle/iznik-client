@@ -264,6 +264,31 @@ function user() {
                 }
             }
 
+            if ($me && $action == 'Merge') {
+                $email1 = presdef('email1', $_REQUEST, NULL);
+                $email2 = presdef('email2', $_REQUEST, NULL);
+                $reason = presdef('reason', $_REQUEST, NULL);
+                $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
+
+                if (strlen($email1) && strlen($email2)) {
+                    $u = new User($dbhr, $dbhm);
+                    $uid1 = $u->findByEmail($email1);
+                    $uid2 = $u->findByEmail($email2);
+
+                    $ret = ['ret' => 3, 'status' => "Can't find those users."];
+
+                    if ($uid1 && $uid2) {
+                        $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
+
+                        if ($me->isAdminOrSupport() ||
+                            ($me->moderatorForUser($uid1) && $me->moderatorForUser($uid2))) {
+                            $u->merge($uid2, $uid1, $reason);
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                        }
+                    }
+                }
+            }
+
             break;
         }
 
