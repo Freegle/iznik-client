@@ -253,19 +253,15 @@ define([
 
         allseen: function () {
             var self = this;
-            self.each(function (chat) {
-                if (chat.get('unseen') > 0) {
-                    // We need to find the last message.
-                    chat.fetch().then(_.bind(function(id) {
-                        var chat = this.get(id);
-                        chat.set('unseen', 0);
-                        chat.set('lastmsgseen', chat.get('lastmsg'));
-                    }, self, chat.get('id')));
+            $.ajax({
+                type: 'POST',
+                url: API + 'chat/rooms',
+                data: {
+                    action: 'AllSeen'
+                }, success: function (ret) {
+                    self.fetch();
                 }
             });
-
-            // Fetch again to update our cached version.
-            self.fetch();
         },
 
         wait: function () {

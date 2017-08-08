@@ -22,7 +22,32 @@ define([
             'change .js-item': 'checkNext',
             'change .tt-hint': 'checkNext',
             'keyup .js-description': 'checkNext',
-            'change .bootstrap-tagsinput .tt-input': 'checkNext'
+            'change .bootstrap-tagsinput .tt-input': 'checkNext',
+            'click .js-speechItem': 'speechItem'
+        },
+
+        speechItem: function() {
+            var self = this;
+            require([ 'iznik/speech' ], function() {
+                self.$('.js-item').on('result', function(e, str) {
+                    self.$('.js-item').val(str);
+                    self.$('.js-description').focus();
+                    self.speechDescription();
+                });
+
+                self.$('.js-item').speech();
+            })
+        },
+
+        speechDescription: function() {
+            var self = this;
+            require([ 'iznik/speech' ], function() {
+                self.$('.js-description').on('result', function(e, str) {
+                    self.$('.js-description').val(str);
+                });
+
+                self.$('.js-description').speech();
+            })
         },
 
         getItem: function () {
@@ -342,6 +367,10 @@ define([
             });
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
+                if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                    self.$('.js-speechItem').show();
+                }
+
                 _.delay(_.bind(self.checkNext, self), 300);
 
                 self.typeahead = self.$('.js-item').typeahead({

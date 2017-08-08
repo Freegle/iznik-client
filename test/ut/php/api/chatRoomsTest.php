@@ -166,12 +166,15 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertTrue($this->user->login('testpw'));
 
         # Create a support room from this user to the group mods
+        $this->user->addMembership($this->groupid);
+
         $ret = $this->call('chatrooms', 'PUT', [
             'groupid' => $this->groupid,
             'chattype' => ChatRoom::TYPE_USER2MOD
         ]);
         assertEquals(0, $ret['ret']);
         $rid = $ret['id'];
+        error_log("Created User2Mod $rid");
         assertNotNull($rid);
         assertFalse(pres('chatrooms', $ret));
 
@@ -212,6 +215,46 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['chatrooms']));
         assertEquals($rid, $ret['chatrooms'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testAllSeen()
+    {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+
+        # Create an unseen message
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $c->createConversation($this->uid, $uid);
+        error_log("Created room $rid");
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $mid = $m->create($rid, $uid, 'Test');
+        error_log("Created message $mid");
+
+        assertTrue($this->user->login('testpw'));
+
+        # Check it's unseen
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2USER ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['chatrooms']));
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
+        assertEquals(1, $ret['chatrooms'][0]['unseen']);
+
+        # Mark all seen
+        $ret = $this->call('chatrooms', 'POST', [
+            'action' => 'AllSeen'
+        ]);
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2USER ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['chatrooms'][0]['unseen']);
 
         error_log(__METHOD__ . " end");
     }

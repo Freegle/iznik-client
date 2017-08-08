@@ -261,6 +261,7 @@ class ChatMessage extends Entity
                 ]);
 
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+            $r->updateMessageCounts();
             $chattype = $r->getPrivate('chattype');
 
             if ($chattype == ChatRoom::TYPE_USER2USER || $chattype == ChatRoom::TYPE_USER2MOD) {
@@ -366,6 +367,7 @@ class ChatMessage extends Entity
 
             # This is like a new message now, so alert them.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
+            $r->updateMessageCounts();
             $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
             $r->pokeMembers();
             $r->notifyMembers($u->getName(), $msg['message'], $msg['userid']);
@@ -385,6 +387,9 @@ class ChatMessage extends Entity
                 $myid,
                 $id
             ]);
+
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
+            $r->updateMessageCounts();
         }
     }
 

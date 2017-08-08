@@ -47,7 +47,7 @@ define([
             this.offersView.render();
         },
 
-        showOldWanteds: function() {
+        showOldWanteds: function(e) {
             e.preventDefault();
             e.stopPropagation();
             this.$('.js-oldwanteds').hide();

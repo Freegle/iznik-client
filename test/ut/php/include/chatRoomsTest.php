@@ -372,6 +372,24 @@ class chatRoomsTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testSpecial()
+    {
+        error_log(__METHOD__);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+
+        $start = microtime(TRUE);
+
+        $rooms = $r->listForUser('31344547', [ ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER ]);
+        
+        $end = microtime(TRUE);
+        $duration = ($end - $start) * 1000;
+        
+        error_log(count($rooms) . " took $duration ms");
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

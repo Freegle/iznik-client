@@ -204,9 +204,7 @@ define([
                     }
 
                     self.selectedFirst = false;
-                    self.chats.fetch({
-                        cached: _.bind(self.fetchedChats, self)
-                    }).then(_.bind(self.fetchedChats, self));
+                    self.chats.fetch().then(_.bind(self.fetchedChats, self));
 
                     $('.js-search').on('keyup', _.bind(self.searchKey, self));
                     $('.js-allseen').on('click', _.bind(self.allseen, self));
@@ -357,9 +355,7 @@ define([
 
                 self.model.close().then(function() {
                     // Reload.  Bit clunky but it'll do.
-                    Iznik.Session.chats.fetch({
-                        cached: nullFn
-                    }).then(function() {
+                    Iznik.Session.chats.fetch().then(function() {
                         // CC window.location.reload();
                         Router.navigate("/chats", true);
                     });

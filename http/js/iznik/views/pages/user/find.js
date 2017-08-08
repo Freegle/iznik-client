@@ -25,7 +25,20 @@ define([
         events: {
             'click #searchbutton': 'doSearch',
             'typeahead:select .js-search': 'doSearch',
-            'keyup .js-search': 'keyup'
+            'keyup .js-search': 'keyup',
+            'click .js-speech': 'speech'
+        },
+
+        speech: function() {
+            var self = this;
+            require([ 'iznik/speech' ], function() {
+                self.$('.js-search').on('result', function(e, str) {
+                    self.$('.js-search').val(str);
+                    self.doSearch();
+                });
+
+                self.$('.js-search').speech();
+            })
         },
 
         keyup: function (e) {
@@ -123,7 +136,11 @@ define([
 
             p.then(function(self) {
                 self.collection = null;
-                
+
+                if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                    self.$('.js-speech').show();
+                }
+
                 var data;
 
                 self.searchtype = 'Offer';
