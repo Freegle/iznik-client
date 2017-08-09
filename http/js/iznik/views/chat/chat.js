@@ -350,9 +350,7 @@ define([
 
                     var cb = _.bind(self.fetchedChats, self);
 
-                    Iznik.Session.chats.fetch({
-                        cached: cb
-                    }).then(cb);
+                    Iznik.Session.chats.fetch().then(cb);
                 });
 
                 $(document).on('hide', function () {

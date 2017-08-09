@@ -271,9 +271,7 @@ define([
 
                 // We need the chats, as they are used when displaying messages.
                 var cb = _.bind(self.fetchedChats, self);
-                Iznik.Session.chats.fetch({
-                    cached: cb
-                }).then(cb);
+                Iznik.Session.chats.fetch().then(cb);
 
                 if (Iznik.Session.get('me').bouncing) {
                     self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
