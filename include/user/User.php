@@ -2345,7 +2345,7 @@ class User extends Entity
                             'subtype' => Log::SUBTYPE_MERGED,
                             'user' => $id2,
                             'byuser' => $me ? $me->getId() : NULL,
-                            'text' => "Merged $id1 into $id2 ($reason)"
+                            'text' => "Merged $id2 into $id1 ($reason)"
                         ]);
 
                         # Log under both users to make sure we can trace it.
@@ -2354,7 +2354,7 @@ class User extends Entity
                             'subtype' => Log::SUBTYPE_MERGED,
                             'user' => $id1,
                             'byuser' => $me ? $me->getId() : NULL,
-                            'text' => "Merged $id1 into $id2 ($reason)"
+                            'text' => "Merged $id2 into $id1 ($reason)"
                         ]);
 
                         # Finally, delete id2.  Make sure we don't pick up an old cached version, as we've just
