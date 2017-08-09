@@ -64,7 +64,7 @@
             </div>
             <% } %>
             <% if (obj.loginlink) { %>
-            <a data-realurl="true" target="_blank" href="{{loginlink}}">
+            <a data-realurl="true" target="_blank" rel="noopener" href="{{loginlink}}">
                 <div class="btn btn-white">
                     <span class="glyphicons glyphicons-user" />&nbsp;Impersonate
                 </div>
@@ -84,7 +84,7 @@
                     Private best guess lat/lng
                 </div>
                 <div class="col-md-9">
-                    {{privateposition.lat}},{{privateposition.lng}} <a href="https://www.google.com/maps?q={{privateposition.lat}},{{privateposition.lng}}" data-realurl="true" target="_blank">Show on map</a>
+                    {{privateposition.lat}},{{privateposition.lng}} <a href="https://www.google.com/maps?q={{privateposition.lat}},{{privateposition.lng}}" data-realurl="true" target="_blank" rel="noopener">Show on map</a>
                 </div>
             </div>
             <h3>Settings</h3>
