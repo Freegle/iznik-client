@@ -29,11 +29,21 @@ define([
         speechItem: function() {
             var self = this;
             var recognition = new SpeechRecognition();
+            recognition.item = true;
             recognition.onresult = function (event) {
                 if (event.results.length > 0) {
-                    alert(transcript);
+                    if (recognition.item) {
+                        self.$('.js-item').val(event.results[0][0].transcript);
+                        self.$('.js-description').focus();
+                        recognition.item = false;
+                        recognition.start();
+                    } else {
+                        self.$('.js-description').val(event.results[0][0].transcript);
+                    }
                 }
             }
+            self.$('.js-item').focus();
+            recognition.start();
             /*require([ 'iznik/speech' ], function() {
                 self.$('.js-item').on('result', function(e, str) {
                     self.$('.js-item').val(str);
