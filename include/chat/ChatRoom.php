@@ -1419,4 +1419,34 @@ class ChatRoom extends Entity
         $rc = $this->dbhm->preExec("DELETE FROM chat_rooms WHERE id = ?;", [$this->id]);
         return ($rc);
     }
+
+    public function replyTime($userid) {
+        # Calculate typical reply time.
+        $count = 0;
+        $delay = 0;
+
+        $mysqltime = date("Y-m-d", strtotime("90 days ago"));
+        $msgs = $this->dbhr->preQuery("SELECT id, chatid, date FROM chat_messages WHERE userid = ?;", [ $userid ], FALSE);
+
+        foreach ($msgs as $msg) {
+            #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}");
+            # Find the previous message in this conversation.
+            $lasts = $this->dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE chatid = ? AND id < ?;", [
+                $msg['chatid'],
+                $msg['id']
+            ]);
+
+            if (count($lasts) > 0 && $lasts[0]['max']) {
+                $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
+                #error_log("Last {$lasts[0]['max']} delay $thisdelay");
+                $delay += $thisdelay;
+                $count++;
+            }
+        }
+
+        $ret = ($count > 0) ? round($delay / $count) : NULL;
+        #error_log("Return $ret for $userid");
+
+        return($ret);
+    }
 }

@@ -14,6 +14,9 @@
                     <p><% if (info.milesaway) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %><% if (info.publiclocation.location) { %>{{info.publiclocation.location}}<% } else { %>{{info.publiclocation.groupname}}<% } %>, <% } %>{{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.</span><% } %></p>
 
                     <p><span class="glyphicon glyphicon-calendar" />&nbsp;Freegler since <span class="js-since" />.</p>
+                    <% if (obj.replytime !== null) { %>
+                    <p><span class="glyphicon glyphicon-time" />&nbsp;Typically replies in <span class="js-replytime" />.</p>
+                    <% } %>
                     <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>
                         <p>No recent activity.</p>
                     <% } else { %>

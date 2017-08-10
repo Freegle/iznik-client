@@ -1047,6 +1047,8 @@ define([
                 Iznik.Views.Modal.prototype.render.call(self).then(function () {
                     var mom = new moment(self.model.get('added'));
                     self.$('.js-since').html(mom.format('Do MMMM YYYY'));
+
+                    self.$('.js-replytime').html(formatDuration(self.model.get('info').replytime));
                 });
             });
 

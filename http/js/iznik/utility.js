@@ -481,3 +481,25 @@ function ellipsical(str, len) {
 
     return(str);
 }
+
+function formatDuration(secs) {
+    var ret;
+
+    if (secs < 60) {
+        ret = Math.round(secs) + ' second';
+    } else if (secs < 60 * 60) {
+        ret = Math.round(secs / 60) + ' minute';
+    } else if (secs < 24 * 60 * 60) {
+        ret = Math.round(secs / 60 / 60) + ' hour';
+    } else {
+        ret = Math.round(secs / 60 / 60 / 24) + ' day';
+    }
+
+    if (ret.indexOf('1 ') === -1) {
+        ret += 's';
+    }
+
+    console.log("Return", ret, secs);
+
+    return(ret);
+}

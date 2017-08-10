@@ -1365,6 +1365,9 @@ class User extends Entity
             $ret['publiclocation'] = $this->getPublicLocation();
         }
 
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $ret['replytime'] = $r->replyTime($this->id);
+
         return($ret);
     }
 
