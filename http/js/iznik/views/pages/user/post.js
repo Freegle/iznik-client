@@ -28,7 +28,13 @@ define([
 
         speechItem: function() {
             var self = this;
-            require([ 'iznik/speech' ], function() {
+            var recognition = new SpeechRecognition();
+            recognition.onresult = function (event) {
+                if (event.results.length > 0) {
+                    alert(transcript);
+                }
+            }
+            /*require([ 'iznik/speech' ], function() {
                 self.$('.js-item').on('result', function(e, str) {
                     self.$('.js-item').val(str);
                     self.$('.js-description').focus();
@@ -36,7 +42,7 @@ define([
                 });
 
                 self.$('.js-item').speech();
-            })
+            })*/
         },
 
         speechDescription: function() {
@@ -366,8 +372,10 @@ define([
                 showAll: true
             });
 
+            // https://github.com/macdonst/SpeechRecognitionPlugin
+            // http://www.ispeech.org/api/#minimum-requirements
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
-                if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                if (typeof SpeechRecognition === 'function') {    // CC
                     self.$('.js-speechItem').show();
                 }
 
