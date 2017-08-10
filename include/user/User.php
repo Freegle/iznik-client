@@ -2292,8 +2292,8 @@ class User extends Entity
 
                             if ($att != 'fullname') {
                                 $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
-                            } else if (stripos($user[$att], 'fbuser') === FALSE) {
-                                # We don't want to overwrite a name with FBUser.
+                            } else if (stripos($user[$att], 'fbuser') === FALSE && stripos($user[$att], '-owner') === FALSE) {
+                                # We don't want to overwrite a name with FBUser or a -owner address.
                                 $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1;", [$user[$att]]);
                             }
                         }
