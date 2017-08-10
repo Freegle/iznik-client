@@ -495,7 +495,7 @@ function formatDuration(secs) {
         ret = Math.round(secs / 60 / 60 / 24) + ' day';
     }
 
-    if (ret.indexOf('1 ') === -1) {
+    if (ret.indexOf('1 ') != 0) {
         ret += 's';
     }
 
