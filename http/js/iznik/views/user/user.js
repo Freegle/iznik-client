@@ -364,6 +364,42 @@ define([
         }
     });
 
+    Iznik.Views.ModTools.User.Merge = Iznik.Views.Modal.extend({
+        template: 'modtools_user_merge',
+
+        events: {
+            'click .js-merge': 'merge'
+        },
+
+        merge: function() {
+            var self = this;
+            var email1 = self.$('.js-email1').val();
+            var email2 = self.$('.js-email2').val();
+            var reason = self.$('.js-reason').val();
+
+            if (email1.length && email2.length && reason.length) {
+                $.ajax({
+                    url: API + 'user',
+                    type: 'POST',
+                    data: {
+                        'action': 'Merge',
+                        'email1' : email1,
+                        'email2' : email2,
+                        'reason' : reason
+                    },
+                    success: function(ret) {
+                        if (ret.ret === 0) {
+                            self.close();
+                        } else {
+                            self.$('.js-error').html(ret.status);
+                            self.$('.js-errorholder').fadeIn('slow');
+                        }
+                    }
+                })
+            }
+        }
+    });
+
     Iznik.Views.ModTools.User.SummaryEntry = Iznik.View.extend({
         template: 'modtools_user_summaryentry',
 
@@ -1011,6 +1047,8 @@ define([
                 Iznik.Views.Modal.prototype.render.call(self).then(function () {
                     var mom = new moment(self.model.get('added'));
                     self.$('.js-since').html(mom.format('Do MMMM YYYY'));
+
+                    self.$('.js-replytime').html(formatDuration(self.model.get('info').replytime));
                 });
             });
 

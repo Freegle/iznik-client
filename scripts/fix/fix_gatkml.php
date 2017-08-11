@@ -90,6 +90,7 @@ $namemap = [
     [ 21316,'Chelmsford-Freegle','East: Chelmsford-Freegle' ],
     [ 144861,'Chelmsley-Wood-Freegle','W. Mids: Chelmsley-Wood-Freegle' ],
     [ 126764,'Cheltenham-Freegle','S. West: Cheltenham' ],
+    [ 415615, 'CheadleStaffsFreegle', 'W. Mids: Cheadle'],
     [ 21317,'Cherwell_Valley_Freegle','S. East: Cherwell Valley Freegle' ],
     [ 45856,'CheshuntandWalthamCross-Freegle','S. East: Cheshunt & Waltham Cross' ],
     [ 21319,'Cheslyn_Hay_Freeworld-Recycling','W. Mids: Cheslyn Hay' ],
@@ -116,6 +117,7 @@ $namemap = [
     [ 21340,'Derwentside-Freegle','N. East: Derwentside' ],
     [ 21341,'Devizes-Freegle','S. West: Devizes' ],
     [ 21342,'DewsburyFreegle','Yorkshire: Dewsbury Freegle' ],
+    [ 407624, 'DinefwrFreegle', 'Wales: Dinefwr'],
     [ 21345,'Doncaster-Freegle','Yorkshire: Doncaster' ],
     [ 126749,'Dumfries-Galloway_Freegle','Scotland: Dumfries and Galloway [Council]' ],
     [ 21347,'Dunstable-Freegle','East: Dunstable' ],
@@ -134,6 +136,7 @@ $namemap = [
     [ 21361,'enfieldfreegle','London: Enfield' ],
     [ 126641,'EppingForestFreegle','East: eppingforestfreegle' ],
     [ 126677,'Exeter_Freegle','S. West: Exeter' ],
+    [ 412357,'ExmouthFreegle','S.West: Exmouth' ],
     [ 253568,'Falkirk_Free2go','Scotland: Falkirk' ],
     [ 253571,'Falmouth-Freegle','S. West: Falmouth' ],
     [ 21364,'fareham_freegle','S. East: Fareham' ],
@@ -323,6 +326,7 @@ $namemap = [
     [ 126770,'Rutland-Freegle','E. Mids: Rutland' ],
     [ 253565,'Rye-Freegle','S. East: Rye' ],
     [ 21600,'ryedale_freegle','Yorkshire: Ryedale' ],
+    [ 411340, 'SalisburyFreegle', 'S West: Salisbury'],
     [ 21603,'Salford_Freegle','N. West: Salford' ],
     [ 126635,'Sandy-and-Biggleswade-Freegle','East: Sandy-and-Biggleswade-Freegle' ],
     [ 21604,'ScarboroughFreegle','Yorkshire: Scarborough' ],
@@ -450,8 +454,8 @@ if ($kml) {
                         #error_log("WKT from GAT $wkt");
                         $found = FALSE;
                         foreach ($namemap as $name) {
-                            #error_log("Compare {$name[2]} vs $kname");
-                            if ($kname == $name[2]) {
+                            error_log("Compare {$name[2]} vs $kname");
+                            if (stripos($kname, trim($name[2])) === 0) {
                                 error_log("Found $kname as {$name[0]} {$name[1]}");
                                 $found = TRUE;
                                 $gs = $dbhr->preQuery("SELECT * FROM groups WHERE id = ? AND (polyofficial != ? OR polyofficial IS NULL);", [

@@ -358,5 +358,60 @@ class userAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testMerge() {
+        error_log(__METHOD__);
+
+        $u1 = User::get($this->dbhm, $this->dbhm);
+        $id1 = $u1->create('Test', 'User', NULL);
+        $u1->addMembership($this->groupid);
+        $u2 = User::get($this->dbhm, $this->dbhm);
+        $id2 = $u2->create('Test', 'User', NULL);
+        $u2->addMembership($this->groupid);
+        $u2->addEmail('test2@test.com');
+        $u3 = User::get($this->dbhm, $this->dbhm);
+        $id3 = $u3->create('Test', 'User', NULL);
+        $u3->addEmail('test3@test.com');
+        $u3->addMembership($this->groupid);
+        $u4 = User::get($this->dbhm, $this->dbhm);
+        $id4 = $u4->create('Test', 'User', NULL);
+        $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        # Can't merge not a mod
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u1->login('testpw'));
+
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Merge',
+            'email1' => 'test2@test.com',
+            'email2' => 'test3@test.com',
+            'reason' => 'UT'
+        ]);
+        assertEquals(4, $ret['ret']);
+
+        # Invalid email.
+
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Merge',
+            'email1' => 'test22@test.com',
+            'email2' => 'test3@test.com',
+            'reason' => 'UT'
+        ]);
+        assertEquals(3, $ret['ret']);
+
+        # As mod should work
+        assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u4->login('testpw'));
+
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Merge',
+            'email1' => 'test2@test.com',
+            'email2' => 'test3@test.com',
+            'reason' => 'UT'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

@@ -665,7 +665,6 @@ class User extends Entity
         ]);
         $membershipid = $this->dbhm->lastInsertId();
         $added = $this->dbhm->rowsAffected();
-        error_log("Insert returned $rc membership $membershipid row count $added");
 
         if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
@@ -1193,7 +1192,7 @@ class User extends Entity
         $mymodships = $this->getModeratorships();
 
         # Is there any group which we mod and which they are a member of?
-        #error_log("Compare groups " . var_export($usermemberships, TRUE) . " vs " . var_export($mymodships, TRUE));
+        error_log("Compare groups " . var_export($usermemberships, TRUE) . " vs " . var_export($mymodships, TRUE));
         $canmod = count(array_intersect($usermemberships, $mymodships)) > 0;
 
         return($canmod);
@@ -1366,6 +1365,9 @@ class User extends Entity
             $ret['publiclocation'] = $this->getPublicLocation();
         }
 
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $ret['replytime'] = $r->replyTime($this->id);
+
         return($ret);
     }
 
@@ -1434,6 +1436,16 @@ class User extends Entity
 
                 # The location name might be in the group name, in which case just use the group.
                 $loc = strpos($grp, $loc) !== FALSE ? NULL : $loc;
+            }
+        } else {
+            # We don't have a location.  All we might have is a membership.
+            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? ORDER BY added DESC LIMIT 1;";
+            $groups = $this->dbhr->preQuery($sql, [
+                $this->id,
+            ]);
+
+            if (count($groups) > 0) {
+                $grp = $groups[0]['namefull'] ? $groups[0]['namefull'] : $groups[0]['nameshort'];
             }
         }
 
@@ -2293,8 +2305,8 @@ class User extends Entity
 
                             if ($att != 'fullname') {
                                 $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
-                            } else if (stripos($user[$att], 'fbuser') === FALSE) {
-                                # We don't want to overwrite a name with FBUser.
+                            } else if (stripos($user[$att], 'fbuser') === FALSE && stripos($user[$att], '-owner') === FALSE) {
+                                # We don't want to overwrite a name with FBUser or a -owner address.
                                 $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1;", [$user[$att]]);
                             }
                         }
@@ -2346,7 +2358,7 @@ class User extends Entity
                             'subtype' => Log::SUBTYPE_MERGED,
                             'user' => $id2,
                             'byuser' => $me ? $me->getId() : NULL,
-                            'text' => "Merged $id1 into $id2 ($reason)"
+                            'text' => "Merged $id2 into $id1 ($reason)"
                         ]);
 
                         # Log under both users to make sure we can trace it.
@@ -2355,7 +2367,7 @@ class User extends Entity
                             'subtype' => Log::SUBTYPE_MERGED,
                             'user' => $id1,
                             'byuser' => $me ? $me->getId() : NULL,
-                            'text' => "Merged $id1 into $id2 ($reason)"
+                            'text' => "Merged $id2 into $id1 ($reason)"
                         ]);
 
                         # Finally, delete id2.  Make sure we don't pick up an old cached version, as we've just
