@@ -28,22 +28,32 @@ define([
 
         speechItem: function() {
             var self = this;
-            var recognition = new SpeechRecognition();
-            recognition.item = true;
-            recognition.onresult = function (event) {
-                if (event.results.length > 0) {
-                    if (recognition.item) {
-                        self.$('.js-item').val(event.results[0][0].transcript);
-                        self.$('.js-description').focus();
-                        recognition.item = false;
-                        recognition.start();
-                    } else {
-                        self.$('.js-description').val(event.results[0][0].transcript);
+            var initem = true;
+            console.log("speechItem 1");
+            try{
+                var speechHandler = function (event) {
+                    console.log(event);
+                    if (event.results.length > 0) {
+                        if (initem) {
+                            self.$('.js-item').val(event.results[0][0].transcript);
+                            self.$('.js-description').focus();
+                            console.log("speechItem 2");
+                            var recognition = new SpeechRecognition();  // Need new instance for iOS9
+                            recognition.onresult = speechHandler;
+                            initem = false;
+                            recognition.start();
+                        } else {
+                            self.$('.js-description').val(event.results[0][0].transcript);
+                        }
                     }
-                }
+                };
+                var recognition = new SpeechRecognition();
+                recognition.onresult = speechHandler;
+                //self.$('.js-item').focus();
+                recognition.start();
+            } catch (e) {
+                console.log(e.message);
             }
-            self.$('.js-item').focus();
-            recognition.start();
             /*require([ 'iznik/speech' ], function() {
                 self.$('.js-item').on('result', function(e, str) {
                     self.$('.js-item').val(str);
