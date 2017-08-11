@@ -1437,6 +1437,16 @@ class User extends Entity
                 # The location name might be in the group name, in which case just use the group.
                 $loc = strpos($grp, $loc) !== FALSE ? NULL : $loc;
             }
+        } else {
+            # We don't have a location.  All we might have is a membership.
+            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? ORDER BY added DESC LIMIT 1;";
+            $groups = $this->dbhr->preQuery($sql, [
+                $this->id,
+            ]);
+
+            if (count($groups) > 0) {
+                $grp = $groups[0]['namefull'] ? $groups[0]['namefull'] : $groups[0]['nameshort'];
+            }
         }
 
         $display = $loc ? ($loc . ($grp ? ", $grp" : "")): ($grp ? $grp : '');
