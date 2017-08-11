@@ -126,6 +126,9 @@ class chatRoomsTest extends IznikTestCase {
         error_log("Chat room $id for $u1 <-> $u2");
         assertNotNull($id);
 
+        assertNull($r->replyTime($u1));
+        assertNull($r->replyTime($u2));
+
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
@@ -141,6 +144,9 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_IMAGE, $msgid, TRUE, NULL, NULL, NULL, $attid);
         error_log("Created chat message $cm");
+
+        assertNull($r->replyTime($u1));
+        assertNull($r->replyTime($u2));
 
         # Exception first for coverage.
         error_log("Fake exception");
@@ -207,6 +213,9 @@ class chatRoomsTest extends IznikTestCase {
         error_log("U2 emails " . var_export($u2emails, TRUE));
         assertEquals(3, count($u2emails));
         assertEquals('from2@test.com', $u2emails[1]['email']);
+
+        assertNull($r->replyTime($u1));
+        assertNotNull($r->replyTime($u2));
 
         error_log(__METHOD__ . " end");
     }

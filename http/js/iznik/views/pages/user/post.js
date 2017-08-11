@@ -26,10 +26,11 @@ define([
             'click .js-speechItem': 'speechItem'
         },
 
+        // Not enabled for iOS as iOS10 has speech recognition built in on any text field.
+        // It could be enabled for iOS9 using www.ispeech.org but not done
         speechItem: function() {
             var self = this;
             var initem = true;
-            console.log("speechItem 1");
             try{
                 var speechHandler = function (event) {
                     console.log(event);
@@ -37,7 +38,6 @@ define([
                         if (initem) {
                             self.$('.js-item').val(event.results[0][0].transcript);
                             self.$('.js-description').focus();
-                            console.log("speechItem 2");
                             var recognition = new SpeechRecognition();  // Need new instance for iOS9
                             recognition.onresult = speechHandler;
                             initem = false;

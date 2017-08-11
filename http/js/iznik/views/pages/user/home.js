@@ -271,9 +271,7 @@ define([
 
                 // We need the chats, as they are used when displaying messages.
                 var cb = _.bind(self.fetchedChats, self);
-                Iznik.Session.chats.fetch({
-                    cached: cb
-                }).then(cb);
+                Iznik.Session.chats.fetch().then(cb);
 
                 if (Iznik.Session.get('me').bouncing) {
                     self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
@@ -307,6 +305,17 @@ define([
 
                 self.model.fetch().then(function() {
                     var v = null;
+
+                    // We might not have the home group or location set in local storage, but we need it for the post.
+                    // Or them might be different.  Pluck them from the message.
+                    var groups = self.model.get('groups');
+
+                    _.each(groups, function(group) {
+                        Storage.set('myhomegroup', group.id);
+                    });
+
+                    var l = self.model.get('location');
+                    Storage.set('mylocation', JSON.stringify(l))
 
                     if (self.model.get('type') == 'Offer') {
                         v = new Iznik.Views.User.Home.Offer({

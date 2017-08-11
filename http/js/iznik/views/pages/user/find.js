@@ -31,14 +31,25 @@ define([
 
         speech: function() {
             var self = this;
-            require([ 'iznik/speech' ], function() {
+            var recognition = new SpeechRecognition();
+            recognition.onresult = function (event) {
+                console.log(event);
+                if (event.results.length > 0) {
+                    self.$('.js-search').val(event.results[0][0].transcript);
+                    self.doSearch();
+                }
+            };
+            self.$('.js-search').focus();
+            recognition.start();
+
+            /*require(['iznik/speech'], function () {
                 self.$('.js-search').on('result', function(e, str) {
                     self.$('.js-search').val(str);
                     self.doSearch();
                 });
 
                 self.$('.js-search').speech();
-            })
+            })*/
         },
 
         keyup: function (e) {
@@ -137,7 +148,7 @@ define([
             p.then(function(self) {
                 self.collection = null;
 
-                if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                if (typeof SpeechRecognition === 'function') {    // CC
                     self.$('.js-speech').show();
                 }
 
