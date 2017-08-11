@@ -85,6 +85,9 @@
             </array>
         </config-file>
     </platform>
+    <platform name="ios">
+        <preference name="apiKey" value="24a0c736cd04dfcc88269b1c279cc479" />
+    </platform>
     <engine name="ios" spec="^4.4.0" />
     <plugin name="cordova-custom-config" spec="^4.0.2" />
     <plugin name="cordova-plugin-camera" spec="^2.4.1">
@@ -107,5 +110,9 @@
     <plugin name="cordova-plugin-x-socialsharing" spec="^5.1.8" />
     <plugin name="phonegap-plugin-push" spec="^1.10.5">
         <variable name="SENDER_ID" value="85075801930" />
+    </plugin>
+    <plugin name="phonegap-plugin-speech-recognition" spec="git+https://github.com/macdonst/SpeechRecognitionPlugin.git">
+        <variable name="MICROPHONE_USAGE_DESCRIPTION" value="So you can say your offer" />
+        <variable name="SPEECH_RECOGNITION_USAGE_DESCRIPTION" value=" " />
     </plugin>
 </widget>
