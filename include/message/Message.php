@@ -3359,7 +3359,7 @@ class Message
                     $u->getName(),
                     $email,
                     $subj,
-                    ($happiness == User::HAPPY || $happiness == User::FINE) ? $comment : ''
+                    ($happiness === NULL || $happiness == User::HAPPY || $happiness == User::FINE) ? $comment : ''
                 );
             }
         }
