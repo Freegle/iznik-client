@@ -17,7 +17,7 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
 error_log("Purge email logs");
 
 try {
-    $start = date('Y-m-d', strtotime("midnight 7 days ago"));
+    $start = date('Y-m-d', strtotime("midnight 2 days ago"));
     $total = 0;
     do {
         $count = $dbhm->exec("DELETE FROM logs_emails WHERE `timestamp` < '$start' LIMIT 1000;");
