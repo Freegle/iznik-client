@@ -3094,10 +3094,11 @@ class User extends Entity
 
         if ($email) {
             # We want to send to Yahoo any messages we have not previously sent, as long as they have not had
-            # an outcome in the mean time.
+            # an outcome in the mean time.  Only send recent ones in case we flood the group with old stuff.
             #
             # If we are doing an autorepost we will already have a membership and therefore won't come through here.
-            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL;";
+            $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
+            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL AND arrival >= '$mysqltime';";
             $msgs = $this->dbhr->preQuery($sql, [
                 $groupid,
                 $this->id
