@@ -87,7 +87,7 @@ class Relevant {
             $term  = $search['term'];
 
             # If they've searched for a whole subject line, strip out just the term.
-            $term = preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches) ? trim($matches[2]) : $term;
+            $term = preg_match("/(.+)\:(.+)\((.+)\)/", $search['term'], $matches) ? trim($matches[2]) : $term;
 
             $interested[] = [
                 'type' => Message::TYPE_WANTED,
@@ -147,8 +147,8 @@ class Relevant {
                             $m = new Message($this->dbhr, $this->dbhm, $r['id']);
                             $type = $m->getType();
                             if (($m->getFromuser() && $m->getFromuser() != $userid) &&
-                                ($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED) ||
-                                ($interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER)) {
+                                ($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED ||
+                                 $interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER)) {
                                 #error_log("Found {$r['id']} " . $m->getSubject() . " from " . var_export($r, TRUE));
                                 $ret[] = [
                                     'id' => $r['id'],
