@@ -271,7 +271,7 @@ define([
         render: function () {
             var self = this;
             self.model.set('modtools', self.options.modtools);
-            console.log("Render chat", self.model.get('id'), self.model.get('icon'), self.model.attributes, self.chats);
+            // console.log("Render chat", self.model.get('id'), self.model.get('icon'), self.model.attributes, self.chats);
 
             var p = Iznik.View.Timeago.prototype.render.call(this);
             p.then(function (self) {
