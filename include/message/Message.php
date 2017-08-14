@@ -2122,7 +2122,9 @@ class Message
         }
 
         if (!$yahooonly) {
-            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ? WHERE msgid = ? AND groupid = ?;";
+            # Update the arrival time to NOW().  This is because otherwise we will fail to send out messages which
+            # were held for moderation to people who are on immediate emails.
+            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ?, arrival = NOW() WHERE msgid = ? AND groupid = ?;";
             $rc = $this->dbhm->preExec($sql, [
                 MessageCollection::APPROVED,
                 $myid,

@@ -3098,7 +3098,7 @@ class User extends Entity
             #
             # If we are doing an autorepost we will already have a membership and therefore won't come through here.
             $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
-            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL AND arrival >= '$mysqltime';";
+            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL AND messages_groups.arrival >= '$mysqltime';";
             $msgs = $this->dbhr->preQuery($sql, [
                 $groupid,
                 $this->id
