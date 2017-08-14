@@ -20,6 +20,8 @@ define([
         render: function () {
             var p = Iznik.Views.User.Pages.Group.prototype.render.call(this);
 
+            Storage.set('lasthomepage', 'mygroups');
+
             p.then(function(self) {
                 var mygroups = Iznik.Session.get('groups');
 

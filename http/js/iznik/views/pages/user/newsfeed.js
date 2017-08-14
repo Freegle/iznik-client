@@ -287,6 +287,8 @@ define([
         render: function () {
             var self = this;
 
+            Storage.set('lasthomepage', 'news');
+
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
@@ -294,7 +296,7 @@ define([
                     self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
                     self.$('.js-bouncing').fadeIn('slow');
                 }
-                
+
                 // Some options are only available once we've joined a group.
                 if (Iznik.Session.get('groups').length > 0) {
                     self.$('.js-somegroups').show();

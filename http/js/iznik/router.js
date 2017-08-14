@@ -197,7 +197,7 @@ define([
             "volunteering/:id": "userVolunteering",
             "why": "userWhy",
             "myposts": "userHome",
-            "*path": "userNewsfeed"
+            "*path": "userDefault"
         },
 
         loadRoute: function (routeOptions) {
@@ -307,6 +307,32 @@ define([
                 });
                 self.loadRoute({page: page});
             });
+        },
+
+        userDefault: function() {
+            var self = this;
+
+            // Load the last of the main pages that they had open.
+            var page = Storage.get('lasthomepage');
+
+            switch (page) {
+                case 'news': {
+                    self.userNewsfeed();
+                    break;
+                }
+                case 'myposts': {
+                    self.userHome();
+                    break;
+                }
+                case 'mygroups': {
+                    self.userMyGroups();
+                    break;
+                }
+                default: {
+                    self.userNewsfeed();
+                    break;
+                }
+            }
         },
 
         userStories: function() {

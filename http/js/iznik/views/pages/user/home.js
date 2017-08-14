@@ -224,6 +224,8 @@ define([
         render: function () {
             var self = this;
 
+            Storage.set('lasthomepage', 'myposts');
+
             var p = Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
             });
