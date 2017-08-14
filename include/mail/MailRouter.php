@@ -627,8 +627,9 @@ class MailRouter
                             $chatid = $r->createUser2Mod($uid, $gid);
                             if ($this->log) { error_log("Chatid is $chatid"); }
 
-                            # Now add this message into the chat
-                            $textbody = $this->msg->stripQuoted();
+                            # Now add this message into the chat.  Don't strip quoted as it might be useful -
+                            # one example is twitter email confirmations, where the URL is quoted (weirdly).
+                            $textbody = $this->msg->getTextbody();
 
                             $m = new ChatMessage($this->dbhr, $this->dbhm);
                             $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
