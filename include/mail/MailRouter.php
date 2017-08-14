@@ -398,6 +398,7 @@ class MailRouter
                         }
 
                         $notify = FALSE;
+                        $waspending = $u->isPendingMember($gid);
 
                         # Now add them as a pending member.
                         if ($u->addMembership($gid, User::ROLE_MEMBER, $emailid, MembershipCollection::PENDING, NULL, NULL, FALSE)) {
@@ -406,7 +407,7 @@ class MailRouter
                             $u->setYahooMembershipAtt($gid, $emailid, 'joincomment', $comment);
 
                             # Notify mods of new work
-                            $notify = TRUE;
+                            $notify = !$waspending;
 
                             # We handled it.
                             $ret = MailRouter::TO_SYSTEM;
