@@ -146,9 +146,11 @@ class Relevant {
                             # We have a message - see if it's the type we want.
                             $m = new Message($this->dbhr, $this->dbhm, $r['id']);
                             $type = $m->getType();
-                            if (($m->getFromuser() && $m->getFromuser() != $userid) &&
-                                ($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED ||
-                                 $interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER)) {
+                            #error_log("Check nessage {$r['id']} type $type from " . $m->getFromuser() . " vs $userid");
+
+                            if ($m->getFromuser() && $m->getFromuser() != $userid &&
+                                (($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED) ||
+                                    ($interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER))) {
                                 #error_log("Found {$r['id']} " . $m->getSubject() . " from " . var_export($r, TRUE));
                                 $ret[] = [
                                     'id' => $r['id'],
@@ -194,9 +196,11 @@ class Relevant {
             $u = User::get($this->dbhr, $this->dbhm, $user['id']);
 
             # Only want to send to people who have used FD.
+            #error_log("Check send our emails");
             if ($u->getOurEmail() && $u->sendOurMails()) {
                 $ints = $this->interestedIn($user['id']);
                 $msgs = $this->getMessages($user['id'], $ints);
+                #error_log("Number of messages " . count($msgs) . " from " . var_export($ints, TRUE) . " and " . var_export($msgs, TRUE));;
 
                 if (count($msgs) > 0) {
                     $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
@@ -230,6 +234,8 @@ class Relevant {
                     $htmlwanteds = count($wanteds) > 0 ? ("<p>Things people are looking for which you might have:</p>" . implode('', $hwanteds)) : '';
 
                     $email = $u->getEmailPreferred();
+                    #error_log("Preferred email $email");
+
                     if ($email) {
                         $subj = "Any of these take your fancy?";
                         $post = $u->loginLink(USER_SITE, $u->getId(), "/", User::SRC_RELEVANT);

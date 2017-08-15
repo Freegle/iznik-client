@@ -3239,6 +3239,7 @@ class User extends Entity
         if ($sendit && $checkbouncing) {
             # And don't send if we're bouncing.
             $sendit = !$this->getPrivate('bouncing');
+            #error_log("After bouncing $sendit");
         }
 
         #error_log("Sendit? $sendit");
