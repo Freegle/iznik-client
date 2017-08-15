@@ -18,7 +18,7 @@ define([
         renew: function() {
             var self = this;
 
-            $.ajax({
+            var p = $.ajax({
                 url: API + 'volunteering/' + self.get('id'),
                 method: 'POST',
                 headers: {
@@ -28,12 +28,14 @@ define([
                     action: 'Renew'
                 }
             });
+
+            return(p);
         },
 
         expire: function() {
             var self = this;
 
-            $.ajax({
+            var p = $.ajax({
                 url: API + 'volunteering/' + self.get('id'),
                 method: 'POST',
                 headers: {
@@ -43,6 +45,8 @@ define([
                     action: 'Expire'
                 }
             });
+
+            return(p);
         }
     });
 
