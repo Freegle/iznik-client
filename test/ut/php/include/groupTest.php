@@ -222,7 +222,7 @@ class groupTest extends IznikTestCase {
         $atts = $u->getPublic(NULL, FALSE, TRUE, $ctx);
         error_log("Merge history " . var_export($atts, TRUE));
         assertEquals(1, count($atts['merges']));
-        assertEquals($membs[0]['userid'], $atts['merges'][0]['from']);
+        assertTrue($membs[0]['userid'] == $atts['merges'][0]['from'] || $membs[0]['userid'] == $atts['merges'][0]['to']);
 
         error_log(__METHOD__ . " end");
     }
