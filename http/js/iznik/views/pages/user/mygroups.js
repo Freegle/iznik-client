@@ -60,21 +60,27 @@ define([
                         self.selected = selected;
                         self.refetch();
 
+                        var group = null;
+
                         if (selected == -1) {
-                            // No specific group info.
-                            self.$('.js-groupinfo').empty();
+                            // No specific group.  But if we have a single group, we want to show that.
+                            if (mygroups.length === 1) {
+                                group = mygroups.first();
+                            }
                         } else {
                             // Show info, including leave button, for this group.
-                            var group = Iznik.Session.getGroup(selected);
+                            group = Iznik.Session.getGroup(selected);
+                        }
 
-                            if (group) {
-                                var w = new Iznik.Views.User.Pages.MyGroups.GroupInfo({
-                                    model: group
-                                });
-                                w.render().then(function() {
-                                    self.$('.js-groupinfo').html(w.$el);
-                                });
-                            }
+                        self.$('.js-groupinfo').empty();
+
+                        if (group) {
+                            var w = new Iznik.Views.User.Pages.MyGroups.GroupInfo({
+                                model: group
+                            });
+                            w.render().then(function() {
+                                self.$('.js-groupinfo').html(w.$el);
+                            });
                         }
 
                         // Left menu is community events
@@ -132,12 +138,7 @@ define([
                 success: function(ret) {
                     if (ret.ret === 0) {
                         // Now force a refresh of the session.
-                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                            self.model.set('role', 'Non-member');
-                            Router.navigate('/mygroups', true);
-                        });
-
-                        Iznik.Session.testLoggedIn(true);
+                        window.location.reload();
                     }
                 }
             })
