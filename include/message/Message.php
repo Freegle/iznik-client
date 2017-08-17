@@ -2124,7 +2124,7 @@ class Message
         if (!$yahooonly) {
             # Update the arrival time to NOW().  This is because otherwise we will fail to send out messages which
             # were held for moderation to people who are on immediate emails.
-            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ?, arrival = NOW() WHERE msgid = ? AND groupid = ?;";
+            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ?, approvedat = NOW(), arrival = NOW() WHERE msgid = ? AND groupid = ?;";
             $rc = $this->dbhm->preExec($sql, [
                 MessageCollection::APPROVED,
                 $myid,
@@ -2435,7 +2435,7 @@ class Message
                 # of the message.  This means that we don't support editing of the attachments on Yahoo.
 
                 # We might have new approvedby info.
-                $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ? WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
+                $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ?, approvedat = NOW() WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
                     [
                         $approvedby,
                         $msg['id'],
