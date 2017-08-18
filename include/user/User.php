@@ -861,7 +861,7 @@ class User extends Entity
         // @codeCoverageIgnoreEnd
 
         # Trigger removal of any Yahoo memberships.
-        $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ?;";
+        $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ? AND memberships_yahoo.role = 'Member';";
         $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
         #error_log("$sql, $groupid, {$this->id}");
 
