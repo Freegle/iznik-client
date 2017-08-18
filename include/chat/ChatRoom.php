@@ -324,7 +324,7 @@ class ChatRoom extends Entity
             $ret['refmsgids'][] = $refmsg['refmsgid'];
         }
 
-        $lasts = $this->dbhr->preQuery("SELECT id, date, message, type FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
+        $lasts = $this->dbhr->preQuery("SELECT id, date, message, type FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY id DESC LIMIT 1;", [$this->id]);
         $ret['lastmsg'] = 0;
         $ret['lastdate'] = NULL;
         $ret['snippet'] = '';
