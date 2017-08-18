@@ -1470,6 +1470,17 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route($m);
         assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 
+        # And with spam
+        $msg = $this->unique(file_get_contents('msgs/spamreply')  . "\r\nhttp://dbltest.com\r\n");
+        $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
+        error_log("Reply with spam $msg");
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-auto@' . GROUP_DOMAIN, $msg);
+        error_log("Created $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
         error_log(__METHOD__ . " end");
     }
 
