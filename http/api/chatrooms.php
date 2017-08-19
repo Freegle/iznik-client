@@ -93,6 +93,9 @@ function chatrooms() {
                             $r->upToDate($myid);
                         }
                     }
+                } else if ($action == 'Nudge') {
+                    $id = $r->nudge();
+                    $ret = ['ret' => 0, 'status' => 'Success', 'id' => $id];
                 } else if ($id) {
                     # Single roster update.
                     $ret = ['ret' => 2, 'status' => "$id Not visible to you"];

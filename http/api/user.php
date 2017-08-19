@@ -9,7 +9,6 @@ function user() {
     $yahooUserId = presdef('yahooUserId', $_REQUEST, NULL);
     $subject = presdef('subject', $_REQUEST, NULL);
     $body = presdef('body', $_REQUEST, NULL);
-    $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
     $action = presdef('action', $_REQUEST, NULL);
     $suspectcount = array_key_exists('suspectcount', $_REQUEST) ? intval($_REQUEST['suspectcount']) : NULL;
     $suspectreason = presdef('suspectreason', $_REQUEST, NULL);

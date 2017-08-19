@@ -332,7 +332,12 @@ class ChatRoom extends Entity
         foreach ($lasts as $last) {
             $ret['lastmsg'] = $last['id'];
             $ret['lastdate'] = ISODate($last['date']);
-            $ret['snippet'] = $last['type'] == ChatMessage::TYPE_ADDRESS ? 'Address sent...' : substr($last['message'], 0, 30);
+
+            switch ($last['type']) {
+                case ChatMessage::TYPE_ADDRESS: $ret['snippet'] = 'Address sent...'; break;
+                case ChatMessage::TYPE_NUDGE: $ret['snippet'] = 'Nudged'; break;
+                default: $ret['snippet'] = substr($last['message'], 0, 30); break;
+            }
         }
 
         return ($ret);
@@ -1136,6 +1141,11 @@ class ChatRoom extends Entity
                                     break;
                                 }
 
+                                case ChatMessage::TYPE_NUDGE: {
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You nudged " . $otheru->getName()) : ("Nudge - please can you reply?");
+                                    break;
+                                }
+
                                 default: {
                                     # Use the text in the message.
                                     $thisone = $unmailedmsg['message'];
@@ -1447,5 +1457,42 @@ class ChatRoom extends Entity
         error_log("Return $ret for $userid");
 
         return($ret);
+    }
+
+    public function nudge() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+        $other = $myid == $this->chatroom['user1'] ? $this->chatroom['user2'] : $this->chatroom['user1'];
+
+        # Create a message in the chat.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $m->create($this->id, $myid, NULL, ChatMessage::TYPE_NUDGE);
+
+        # Also record the nudge so that we can see when it has been acted on
+        $this->dbhm->preExec("INSERT INTO users_nudges (fromuser, touser) VALUES (?, ?);", [ $myid, $other ]);
+        $id = $this->dbhm->lastInsertId();
+        return($id);
+    }
+
+    public function nudges($userid) {
+        return($this->dbhr->preQuery("SELECT * FROM users_nudges WHERE touser = ?;", [
+            $userid
+        ], FALSE));
+    }
+
+    public function nudgeCount($userid) {
+        $nudges = $this->nudges($userid);
+        $sent = 0;
+        $responded = 0;
+
+        foreach ($nudges as $nudge) {
+            $sent++;
+            $responded = $nudge['responded'] ? ($responded + 1) : $responded;
+        }
+
+        return([
+            'sent' => $sent,
+            'responded' => $responded
+        ]);
     }
 }

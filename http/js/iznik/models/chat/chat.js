@@ -49,6 +49,27 @@ define([
             self.sendQueue();
         },
 
+        nudge: function(userid) {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: API + 'chat/rooms',
+                    type: 'POST',
+                    data: {
+                        id: self.get('id'),
+                        action: 'Nudge'
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            resolve();
+                        }
+                    }
+                });
+            });
+
+            return(p);
+        },
+
         modnote: function(message) {
             var self = this;
 
@@ -66,7 +87,6 @@ define([
                         }
                     }
                 });
-
             });
 
             return(p);

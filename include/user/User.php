@@ -1367,6 +1367,7 @@ class User extends Entity
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $ret['replytime'] = $r->replyTime($this->id);
+        $ret['nudges'] =  $r->nudgeCount($this->id);
 
         # Number of items collected.
         $mysqltime = date("Y-m-d", strtotime("90 days ago"));

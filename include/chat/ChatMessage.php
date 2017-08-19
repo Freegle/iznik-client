@@ -24,6 +24,7 @@ class ChatMessage extends Entity
     const TYPE_COMPLETED = 'Completed';
     const TYPE_IMAGE = 'Image';
     const TYPE_ADDRESS = 'Address';
+    const TYPE_NUDGE = 'Nudge';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_REJECT = 'Reject';
@@ -153,6 +154,12 @@ class ChatMessage extends Entity
                         $closed['id']
                     ]);
                 }
+            }
+
+            if ($chattype == ChatRoom::TYPE_USER2USER) {
+                # If we have created a message, then any outstanding nudge to us has now been dealt with.
+                $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') : $r->getPrivate('user1');
+                $this->dbhm->background("UPDATE users_nudges SET responded = NOW() WHERE fromuser = $other AND touser = $userid AND responded IS NULL;");
             }
 
             if (!$spam && !$review) {
