@@ -19,6 +19,11 @@
                     <% } else { %>
                     <p><span class="glyphicon glyphicon-time" />&nbsp;We don't know how long they typically take to reply.</p>
                     <% } %>
+                    <% if (info.collected) { %>
+                    <p><span class="glyphicon glyphicon-ok" />&nbsp;Picked up about {{info.collected}} item<% if (info.collected != 1) { %>s<% } %> in the last 90 days.</p>
+                    <% } else { %>
+                    <p><span class="glyphicon glyphicon-ok faded" />&nbsp;Not picked up any items yet so far as we know.</p>
+                    <% } %>
                     <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>
                         <p>No recent activity.</p>
                     <% } else { %>

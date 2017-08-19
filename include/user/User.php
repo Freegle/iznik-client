@@ -1368,6 +1368,17 @@ class User extends Entity
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $ret['replytime'] = $r->replyTime($this->id);
 
+        # Number of items collected.
+        $mysqltime = date("Y-m-d", strtotime("90 days ago"));
+        $collected = $this->dbhr->preQuery("SELECT COUNT(DISTINCT msgid) AS count FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.userid = ? AND messages_outcomes.userid = ? AND messages_outcomes.userid != messages.fromuser AND messages.arrival >= '$mysqltime';", [
+            ChatMessage::TYPE_INTERESTED,
+            Message::OUTCOME_TAKEN,
+            $this->id,
+            $this->id
+        ]);
+
+        $ret['collected'] = $collected[0]['count'];
+
         return($ret);
     }
 

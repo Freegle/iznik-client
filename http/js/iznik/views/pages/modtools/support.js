@@ -536,10 +536,23 @@ define([
         events: {
             'click .js-logs': 'logs',
             'click .js-spammer': 'spammer',
-            'click .js-purge': 'purge'
+            'click .js-purge': 'purge',
+            'click .js-profile': 'showProfile'
         },
 
         groups: [],
+
+        showProfile: function() {
+            var self = this;
+
+            require([ 'iznik/views/user/user' ], function() {
+                var v = new Iznik.Views.UserInfo({
+                    model: self.model
+                });
+
+                v.render();
+            });
+        },
 
         logs: function() {
             var self = this;
