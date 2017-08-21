@@ -841,6 +841,16 @@ define([
                 self.messages.fetch({
                     remove: true
                 }).then(function () {
+                    // Encourage people to use the info button.
+                    if (!self.shownInfo) {
+                        self.$('.js-tooltip.js-info').tooltip('show');
+                        self.shownInfo = true;
+
+                        _.delay(_.bind(function() {
+                            this.$('.js-tooltip.js-info').tooltip('hide');
+                        }, self), 10000);
+                    }
+
                     // We've just opened this chat - so we have had a decent chance to see any unread messages.
                     v.close();
                     self.messageFocus();
