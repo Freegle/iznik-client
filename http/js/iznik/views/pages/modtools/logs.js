@@ -48,6 +48,12 @@ define([
 
             var p = Iznik.Views.Infinite.prototype.render.call(this);
             p.then(function(self) {
+                if (self.logtype == 'messages') {
+                    self.$('.js-navmess').addClass('active');
+                } else if (self.logtype == 'memberships') {
+                    self.$('.js-navmemb').addClass('active');
+                }
+
                 self.collection = new Iznik.Collections.Logs(null, {
                     modtools: true,
                     groupid: self.selected,

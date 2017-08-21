@@ -3,8 +3,10 @@
         <div class="fixedfont js-timestamp" />
     </div>
     <div class="fixedfont col-sm-4">
-        <% if (obj.user) { %>
+        <% if (obj.user && obj.user.id) { %>
         {{user.displayname}}<% if (user.email) { %> &lt;{{user.email}}&gt;<% } %> <span class="faded">#{{user.id}}</span>
+        <% } else { %>
+        Deleted user #{{obj.user}}
         <% } %>
     </div>
     <div class="fixedfont col-sm-6">
@@ -23,7 +25,37 @@
                 Auto-reposted message: <% if (obj.message && message.subject) { %>"{{message.subject}}" <span class="faded">#{{message.id}}</span><% } else { %>#{{msgid}}<% } %>
                 <% } else if (subtype == 'Outcome') { %>
                 Marked message: <% if (obj.message && message.subject) { %>"{{message.subject}}" <span class="faded">#{{message.id}}</span><% } else { %>#{{msgid}}<% } %> as {{text}}
+            <% } else { %>
+            Unexpected type {{type}} subtype {{subtype}}
             <% } %>
+        <% } else if (type == 'Group') {%>
+            <% if (subtype == 'Applied') { %>
+                Applied to group
+            <% } else if (subtype == 'Joined') { %>
+                Joined group
+            <% } else if (subtype == 'Left') { %>
+                <% if (obj.user && obj.byuser && obj.byuser.id != obj.user.id) { %>
+                Removed by moderator {{byuser.displayname}} <span class="faded">#{{byuser.id}}</span>
+                <% } else { %>
+                Left group
+                <% } %>
+            <% } else { %>
+            Unexpected type {{type}} subtype {{subtype}}
+            <% } %>
+        <% } else if (type == 'User') { %>
+            <% if (subtype == 'YahooApplied') { %>
+            Triggered application to Yahoo Group
+            <% } else if (subtype == 'YahooConfirmed') { %>
+            Confirmed application to Yahoo Group
+            <% } else if (subtype == 'YahooJoined') { %>
+            Successfully joined Yahoo Group
+            <% } else if (subtype == 'Approved') { %>
+            Approved on Yahoo Group
+            <% } else { %>
+            Unexpected subtype {{subtype}}
+            <% } %>
+        <% } else { %>
+            Unexpected type {{type}} subtype {{subtype}}
         <% } %>
     </div>
 </div>
