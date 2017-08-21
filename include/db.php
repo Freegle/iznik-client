@@ -394,7 +394,7 @@ class LoggedPDO {
                         # It's a Percona deadlock - retry.
                         $try++;
                         $msg = $e->getMessage();
-                    } else if (stripos($e->getMessage(), 'has gone away') !== FALSE) {
+                    } else if (stripos($e->getMessage(), 'has gone away') !== FALSE || stripos($e->getMessage(), 'Lost connection to MySQL server') !== FALSE) {
                         # Try re-opening the connection.
                         $try++;
                         $this->_db = NULL;

@@ -29,6 +29,8 @@ class Spam {
     CONST REASON_SPAMASSASSIN = 'SpamAssassin';
     CONST REASON_GREETING = 'Greetings spam';
     CONST REASON_REFERRED_TO_SPAMMER = 'Referenced known spammer';
+    CONST REASON_KNOWN_KEYWORD = 'Known spam keyword';
+    CONST REASON_DBL = 'URL on DBL';
 
     # A common type of spam involves two lines with greetings.
     private $greetings = [
@@ -42,6 +44,8 @@ class Spam {
     private $dbhm;
     private $reader;
 
+    private $spamwords = NULL;
+
     function __construct($dbhr, $dbhm, $id = NULL)
     {
         $this->dbhr = $dbhr;
@@ -50,7 +54,7 @@ class Spam {
         $this->log = new Log($this->dbhr, $this->dbhm);
     }
 
-    public function check(Message $msg) {
+    public function checkMessage(Message $msg) {
         $ip = $msg->getFromIP();
         $host = NULL;
 
@@ -192,8 +196,145 @@ class Spam {
             return (array(true, Spam::REASON_REFERRED_TO_SPAMMER, "Refers to known spammer $spammail"));
         }
 
+        $r = $this->checkSpam($text);
+        if ($r) {
+            return ($r);
+        }
+
         # It's fine.  So far as we know.
         return(NULL);
+    }
+
+    private function getSpamWords() {
+        if (!$this->spamwords) {
+            $this->spamwords = $this->dbhr->preQuery("SELECT * FROM spam_keywords;");
+        }
+    }
+
+    public function checkReview($message) {
+        # Spammer trick is to encode the dot in URLs.
+        $message = str_replace('&#12290;', '.', $message);
+
+        $check = FALSE;
+
+        if (stripos($message, '<script') !== FALSE) {
+            # Looks dodgy.
+            $check = TRUE;
+        }
+
+        # Check for URLs.
+        global $urlPattern, $urlBad;
+
+        if (preg_match_all($urlPattern, $message, $matches)) {
+            # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
+            $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5 AND domain NOT LIKE '%linkedin%';");
+
+            $valid = 0;
+            $count = 0;
+            $badurl = NULL;
+
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    $bad = FALSE;
+                    $url2 = str_replace('http:', '', $url);
+                    $url2 = str_replace('https:', '', $url2);
+                    foreach ($urlBad as $badone) {
+                        if (strpos($url2, $badone) !== FALSE) {
+                            $bad = TRUE;
+                        }
+                    }
+
+                    if (!$bad && strlen($url) > 0) {
+                        $url = substr($url, strpos($url, '://') + 3);
+                        $count++;
+                        $trusted = FALSE;
+
+                        foreach ($ourdomains as $domain) {
+                            if (stripos($url, $domain['domain']) === 0) {
+                                # One of our domains.
+                                $valid++;
+                                $trusted = TRUE;
+                            }
+                        }
+
+                        $badurl = $trusted ? $badurl : $url;
+//                        if (!$trusted) {
+//                            error_log("Bad url $url");
+//                        }
+                    }
+                }
+            }
+
+            if ($valid < $count) {
+                # At least one URL which we don't trust.
+                $check = TRUE;
+            }
+        }
+
+        # Check keywords
+        $this->getSpamWords();
+        foreach ($this->spamwords as $word) {
+            if ($word['action'] == 'Review' &&
+                preg_match('/\b' . preg_quote($word['word']) . '\b/', $message) &&
+                (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
+                #error_log("Spam keyword {$word['word']}");
+                $check = TRUE;
+            }
+        }
+
+        if (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE) {
+            $check = TRUE;
+        }
+
+        if ($this->checkReferToSpammer($message)) {
+            $check = TRUE;
+        }
+
+        return($check);
+    }
+
+    public function checkSpam($message) {
+        $ret = NULL;
+
+        # Check keywords which are known as spam.
+        $this->getSpamWords();
+        foreach ($this->spamwords as $word) {
+            if (strlen(trim($word['word'])) > 0) {
+                $exp = '/\b' . preg_quote($word['word']) . '\b/';
+                if ($word['action'] == 'Spam' &&
+                    preg_match($exp, $message) &&
+                    (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
+                    $ret = array(true, Spam::REASON_KNOWN_KEYWORD, "Refers to keyword {$word['word']}");
+                }
+            }
+        }
+
+        # Check whether any URLs are in Spamhaus DBL black list.
+        global $urlPattern, $urlBad;
+
+        if (preg_match_all($urlPattern, $message, $matches)) {
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    $bad = FALSE;
+                    $url2 = str_replace('http:', '', $url);
+                    $url2 = str_replace('https:', '', $url2);
+                    foreach ($urlBad as $badone) {
+                        if (strpos($url2, $badone) !== FALSE) {
+                            $bad = TRUE;
+                        }
+                    }
+
+                    if (!$bad && strlen($url) > 0) {
+                        $url = substr($url, strpos($url, '://') + 3);
+                        if (checkSpamhaus("http://$url")) {
+                            $ret = array(true, Spam::REASON_DBL, "Blacklisted url $url");
+                        }
+                    }
+                }
+            }
+        }
+
+        return($ret);
     }
 
     public function checkReferToSpammer($text) {

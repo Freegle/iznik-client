@@ -271,7 +271,7 @@ define([
         render: function () {
             var self = this;
             self.model.set('modtools', self.options.modtools);
-            console.log("Render chat", self.model.get('id'), self.model.get('icon'), self.model.attributes, self.chats);
+            // console.log("Render chat", self.model.get('id'), self.model.get('icon'), self.model.attributes, self.chats);
 
             var p = Iznik.View.Timeago.prototype.render.call(this);
             p.then(function (self) {
@@ -308,6 +308,7 @@ define([
             'focus .js-message': 'messageFocused',
             'click .js-promise': 'promise',
             'click .js-address': 'address',
+            'click .js-nudge': 'nudge',
             'click .js-info': 'info',
             'click .js-photo': 'photo',
             'click .js-send': 'send',
@@ -586,6 +587,14 @@ define([
             v.render();
         },
 
+        nudge: function() {
+            var self = this;
+
+            self.model.nudge().then(function() {
+                self.messages.fetch();
+            });
+        },
+
         info: function () {
             var self = this;
 
@@ -837,6 +846,19 @@ define([
                     v.close();
                     self.messageFocus();
                     self.scrollBottom();
+
+                    // If the last message was a while ago, remind them about nudging.
+                    var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
+                    console.log("Age", age, self.model.get('lastdate'));
+
+                    if (age > 24 && !self.shownNudge) {
+                        self.$('.js-nudge').tooltip('show');
+                        self.shownNudge = true;
+
+                        _.delay(_.bind(function() {
+                            this.$('.js-nudge').tooltip('hide');
+                        }, self), 10000);
+                    }
                 });
 
                 // Show any warning for a while.

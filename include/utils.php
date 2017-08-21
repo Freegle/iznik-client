@@ -620,3 +620,12 @@ function calculate_median($arr) {
     }
     return $median;
 }
+
+# Use matching based on https://gist.github.com/gruber/249502, but changed:
+# - to only look for http/https, otherwise here:http isn't caught
+$urlPattern = '#(?i)\b(((?:(?:http|https):(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))|(\.com\/))#m';
+
+# ...but this matches some bad character patterns.
+$urlBad = [ '%', '{', ';', '#', ':' ];
+
+

@@ -10,8 +10,10 @@ $users = $dbhr->preQuery("select userid, count(*) as count from messages_outcome
 foreach ($users as $user) {
     $u = new User($dbhr, $dbhm, $user['userid']);
     error_log("{$user['userid']} " . $u->getName() . " " . $u->getEmailPreferred());
-    $messages = $dbhr->preQuery("select distinct msgid, date, subject from messages_outcomes inner join messages on messages.id = messages_outcomes.msgid WHERE outcome = ? AND userid = ?;", [
+    $messages = $dbhr->preQuery("SELECT DISTINCT msgid, messages.date, subject FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.userid = ? AND messages_outcomes.userid = ? AND messages_outcomes.userid != messages.fromuser;", [
+        ChatMessage::TYPE_INTERESTED,
         Message::OUTCOME_TAKEN,
+        $user['userid'],
         $user['userid']
     ]);
 

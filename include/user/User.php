@@ -861,7 +861,7 @@ class User extends Entity
         // @codeCoverageIgnoreEnd
 
         # Trigger removal of any Yahoo memberships.
-        $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ?;";
+        $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ? AND memberships_yahoo.role = 'Member';";
         $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
         #error_log("$sql, $groupid, {$this->id}");
 
@@ -1367,6 +1367,18 @@ class User extends Entity
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $ret['replytime'] = $r->replyTime($this->id);
+        $ret['nudges'] =  $r->nudgeCount($this->id);
+
+        # Number of items collected.
+        $mysqltime = date("Y-m-d", strtotime("90 days ago"));
+        $collected = $this->dbhr->preQuery("SELECT COUNT(DISTINCT msgid) AS count FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.userid = ? AND messages_outcomes.userid = ? AND messages_outcomes.userid != messages.fromuser AND messages.arrival >= '$mysqltime';", [
+            ChatMessage::TYPE_INTERESTED,
+            Message::OUTCOME_TAKEN,
+            $this->id,
+            $this->id
+        ]);
+
+        $ret['collected'] = $collected[0]['count'];
 
         return($ret);
     }
@@ -3094,10 +3106,11 @@ class User extends Entity
 
         if ($email) {
             # We want to send to Yahoo any messages we have not previously sent, as long as they have not had
-            # an outcome in the mean time.
+            # an outcome in the mean time.  Only send recent ones in case we flood the group with old stuff.
             #
             # If we are doing an autorepost we will already have a membership and therefore won't come through here.
-            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL;";
+            $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
+            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL AND messages_groups.arrival >= '$mysqltime';";
             $msgs = $this->dbhr->preQuery($sql, [
                 $groupid,
                 $this->id
@@ -3238,6 +3251,7 @@ class User extends Entity
         if ($sendit && $checkbouncing) {
             # And don't send if we're bouncing.
             $sendit = !$this->getPrivate('bouncing');
+            #error_log("After bouncing $sendit");
         }
 
         #error_log("Sendit? $sendit");

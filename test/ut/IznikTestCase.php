@@ -42,6 +42,7 @@ abstract class IznikTestCase extends PHPUnit_Framework_TestCase {
         $this->dbhm->preExec("DELETE FROM users_emails WHERE users_emails.backwards LIKE 'moctset%';");
         $this->dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL;");
         $this->dbhm->preExec("DELETE FROM messages WHERE fromip = '4.3.2.1';");
+        $this->dbhm->preExec("delete from messages where subject LIKE 'OFFER: a double moderation test%';");
 
         if (defined('_SESSION')) {
             unset($_SESSION['id']);

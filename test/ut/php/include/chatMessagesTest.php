@@ -190,7 +190,7 @@ class chatMessagesTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         # Check not flagged.
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'shrubhi.doogar@newsnation.in') ORDER BY id DESC LIMIT 1;");

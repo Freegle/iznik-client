@@ -87,7 +87,7 @@ class Relevant {
             $term  = $search['term'];
 
             # If they've searched for a whole subject line, strip out just the term.
-            $term = preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches) ? trim($matches[2]) : $term;
+            $term = preg_match("/(.+)\:(.+)\((.+)\)/", $search['term'], $matches) ? trim($matches[2]) : $term;
 
             $interested[] = [
                 'type' => Message::TYPE_WANTED,
@@ -146,9 +146,11 @@ class Relevant {
                             # We have a message - see if it's the type we want.
                             $m = new Message($this->dbhr, $this->dbhm, $r['id']);
                             $type = $m->getType();
-                            if (($m->getFromuser() && $m->getFromuser() != $userid) &&
-                                ($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED) ||
-                                ($interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER)) {
+                            #error_log("Check nessage {$r['id']} type $type from " . $m->getFromuser() . " vs $userid");
+
+                            if ($m->getFromuser() && $m->getFromuser() != $userid &&
+                                (($interested['type'] == Message::TYPE_OFFER && $type == Message::TYPE_WANTED) ||
+                                    ($interested['type'] == Message::TYPE_WANTED && $type == Message::TYPE_OFFER))) {
                                 #error_log("Found {$r['id']} " . $m->getSubject() . " from " . var_export($r, TRUE));
                                 $ret[] = [
                                     'id' => $r['id'],
@@ -194,70 +196,68 @@ class Relevant {
             $u = User::get($this->dbhr, $this->dbhm, $user['id']);
 
             # Only want to send to people who have used FD.
-            if ($u->getOurEmail()) {
-                $hol = $u->getPrivate('onholidaytill');
-                $till = $hol ? strtotime($hol) : 0;
+            #error_log("Check send our emails");
+            if ($u->getOurEmail() && $u->sendOurMails()) {
+                $ints = $this->interestedIn($user['id']);
+                $msgs = $this->getMessages($user['id'], $ints);
+                #error_log("Number of messages " . count($msgs) . " from " . var_export($ints, TRUE) . " and " . var_export($msgs, TRUE));;
 
-                if (time() > $till) {
-                    # Not on holiday
-                    $ints = $this->interestedIn($user['id']);
-                    $msgs = $this->getMessages($user['id'], $ints);
+                if (count($msgs) > 0) {
+                    $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
+                    $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\nIf you don't want to get these suggestions, mail $noemail.";
+                    $offers = [];
+                    $wanteds = [];
+                    $hoffers = [];
+                    $hwanteds = [];
 
-                    if (count($msgs) > 0) {
-                        $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
-                        $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\nIf you don't want to get these suggestions, mail $noemail.";
-                        $offers = [];
-                        $wanteds = [];
-                        $hoffers = [];
-                        $hwanteds = [];
+                    foreach ($msgs as $msg) {
+                        $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
 
-                        foreach ($msgs as $msg) {
-                            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+                        # We need the approved ID on Yahoo for migration links.
+                        $href = $u->loginLink(USER_SITE, $u->getId(), "/message/{$msg['id']}", User::SRC_RELEVANT);
+                        $subject = $m->getSubject();
+                        $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
 
-                            # We need the approved ID on Yahoo for migration links.
-                            $href = $u->loginLink(USER_SITE, $u->getId(), "/message/{$msg['id']}", User::SRC_RELEVANT);
-                            $subject = $m->getSubject();
-                            $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
-
-                            if ($m->getType() == Message::TYPE_OFFER) {
-                                $offers[] = "$subject - see $href\r\n";
-                                $hoffers[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
-                            } else {
-                                $wanteds[] = "$subject - see $href\r\n";
-                                $hwanteds[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
-                            }
+                        if ($m->getType() == Message::TYPE_OFFER) {
+                            $offers[] = "$subject - see $href\r\n";
+                            $hoffers[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
+                        } else {
+                            $wanteds[] = "$subject - see $href\r\n";
+                            $hwanteds[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
                         }
+                    }
 
-                        $textbody .= count($offers) > 0 ? ("\r\nThings people are giving away which you might want:\r\n\r\n" . implode('', $offers)) : '';
-                        $textbody .= count($wanteds) > 0 ? ("\r\nThings people are looking for which you might have:\r\n\r\n" . implode('', $wanteds)) : '';
+                    $textbody .= count($offers) > 0 ? ("\r\nThings people are giving away which you might want:\r\n\r\n" . implode('', $offers)) : '';
+                    $textbody .= count($wanteds) > 0 ? ("\r\nThings people are looking for which you might have:\r\n\r\n" . implode('', $wanteds)) : '';
 
-                        $htmloffers = count($offers) > 0 ? ("<p>Things people are giving away which you might want:</p>" . implode('', $hoffers)) : '';
-                        $htmlwanteds = count($wanteds) > 0 ? ("<p>Things people are looking for which you might have:</p>" . implode('', $hwanteds)) : '';
+                    $htmloffers = count($offers) > 0 ? ("<p>Things people are giving away which you might want:</p>" . implode('', $hoffers)) : '';
+                    $htmlwanteds = count($wanteds) > 0 ? ("<p>Things people are looking for which you might have:</p>" . implode('', $hwanteds)) : '';
 
-                        $email = $u->getEmailPreferred();
-                        if ($email) {
-                            $subj = "Any of these take your fancy?";
-                            $post = $u->loginLink(USER_SITE, $u->getId(), "/", User::SRC_RELEVANT);
-                            $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", User::SRC_RELEVANT);
-                            $visit = $u->loginLink(USER_SITE, $u->getId(), "/mygroups", User::SRC_RELEVANT);
+                    $email = $u->getEmailPreferred();
+                    #error_log("Preferred email $email");
 
-                            $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $visit, $unsubscribe);
+                    if ($email) {
+                        $subj = "Any of these take your fancy?";
+                        $post = $u->loginLink(USER_SITE, $u->getId(), "/", User::SRC_RELEVANT);
+                        $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", User::SRC_RELEVANT);
+                        $visit = $u->loginLink(USER_SITE, $u->getId(), "/mygroups", User::SRC_RELEVANT);
 
-                            try {
-                                $message = Swift_Message::newInstance()
-                                    ->setSubject($subj)
-                                    ->setFrom([NOREPLY_ADDR => SITE_NAME ])
-                                    ->setReturnPath($u->getBounce())
-                                    ->setTo([ $email => $u->getName() ])
-                                    ->setBody($textbody)
-                                    ->addPart($html, 'text/html');
+                        $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $visit, $unsubscribe);
 
-                                $this->sendOne($mailer, $message);
-                                #error_log("Sent to $email");
-                                $count++;
-                            } catch (Exception $e) {
-                                error_log("Send to $email failed with " . $e->getMessage());
-                            }
+                        try {
+                            $message = Swift_Message::newInstance()
+                                ->setSubject($subj)
+                                ->setFrom([NOREPLY_ADDR => SITE_NAME ])
+                                ->setReturnPath($u->getBounce())
+                                ->setTo([ $email => $u->getName() ])
+                                ->setBody($textbody)
+                                ->addPart($html, 'text/html');
+
+                            $this->sendOne($mailer, $message);
+                            #error_log("Sent to $email");
+                            $count++;
+                        } catch (Exception $e) {
+                            error_log("Send to $email failed with " . $e->getMessage());
                         }
                     }
                 }

@@ -258,4 +258,53 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testNudge() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        # Create an unseen message
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $c->createConversation($this->uid, $uid);
+        error_log("Created room $rid");
+
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $rid,
+            'action' => 'Nudge'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['user']['info']['nudges']['sent']);
+        assertEquals(0, $ret['user']['info']['nudges']['responded']);
+
+        # Now reply - should mark the nudge as handled
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $rid, 'message' => 'Test' ]);
+        assertEquals(0, $ret['ret']);
+
+        $this->waitBackground();
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['user']['info']['nudges']['sent']);
+        assertEquals(1, $ret['user']['info']['nudges']['responded']);
+
+        error_log(__METHOD__ . " end");
+    }
 }

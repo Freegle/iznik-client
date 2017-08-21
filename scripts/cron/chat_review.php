@@ -31,7 +31,7 @@ $mentors = '';
 
 $count = 0;
 foreach ($groups as $group) {
-    $msgs = $dbhr->preQuery("SELECT chat_messages.id FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_rooms.user1 = chat_messages.userid THEN chat_rooms.user2 ELSE chat_rooms.user1 END) WHERE chat_messages.date < '$mysqltime' AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 AND groupid = ?;", [
+    $msgs = $dbhr->preQuery("SELECT chat_messages.id FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_rooms.user1 = chat_messages.userid THEN chat_rooms.user2 ELSE chat_rooms.user1 END) WHERE chat_messages.date < '$mysqltime' AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 AND memberships.groupid = ?;", [
         $group['groupid']
     ]);
 
@@ -40,9 +40,9 @@ foreach ($groups as $group) {
         $str .= "{$msg['id']} ";
     }
 
+    $g = new Group($dbhr, $dbhm, $group['groupid']);
     error_log($g->getPrivate('nameshort') . " messages $str");
 
-    $g = new Group($dbhr, $dbhm, $group['groupid']);
     if ($g->getPrivate('type') == Group::GROUP_FREEGLE &&
         $g->getPrivate('publish') == 1) {
         $count += $group['count'];

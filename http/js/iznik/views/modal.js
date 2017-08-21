@@ -84,8 +84,9 @@ define([
 
             //console.log(this.$el.html());
 
-            // We cancel after a link is clicked so that the view can tidy itself up.
-            this.$el.on('click', 'a', function(){
+            // We cancel after a link is clicked so that the view can tidy itself up, unless
+            // it will have opened a new tab.
+            this.$el.on('click', 'a:not([data-realurl])', function(){
                 self.cancel();
             });
 

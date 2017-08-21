@@ -412,6 +412,7 @@ define([
             'click .js-promise': 'promise',
             'click .js-address': 'address',
             'click .js-info': 'info',
+            'click .js-nudge': 'nudge',
             'click .js-photo': 'photo',
             'click .js-send': 'send',
             'click .js-fullscreen': 'fullscreen',
@@ -664,6 +665,14 @@ define([
             });
 
             v.render();
+        },
+
+        nudge: function() {
+            var self = this;
+
+            self.model.nudge().then(function() {
+                self.messages.fetch();
+            });
         },
 
         info: function () {
@@ -1204,6 +1213,24 @@ define([
                             self.messages.fetch();
                         });
                     });
+
+                    self.$('.js-tooltip').tooltip();
+
+                    // If the last message was a while ago, remind them about nudging.  Wait until we'll have
+                    // expanded.
+                    _.delay(_.bind(function() {
+                        var self = this;
+                        var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
+
+                        if (age > 24 && !self.shownNudge) {
+                            self.$('.js-nudge').tooltip('show');
+                            self.shownNudge = true;
+
+                            _.delay(_.bind(function() {
+                                this.$('.js-nudge').tooltip('hide');
+                            }, self), 10000);
+                        }
+                    }, self), 10000);
                 });
             } else {
                 return(resolvedPromise(self));
@@ -1307,7 +1334,7 @@ define([
                 var userid = this.model.get('user').id;
                 var u1 = this.options.chatModel.get('user1');
                 var user1 = u1 ? u1.id : null;
-                var u2 = this.options.chatModel.get('user1');
+                var u2 = this.options.chatModel.get('user2');
                 var user2 = u2 ? u2.id : null;
 
                 if (group) {
@@ -1352,6 +1379,9 @@ define([
                         break;
                     case 'Address':
                         tpl = 'chat_address';
+                        break;
+                    case 'Nudge':
+                        tpl = 'chat_nudge';
                         break;
                     default:
                         tpl = 'chat_message';

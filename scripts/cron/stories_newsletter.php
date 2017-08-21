@@ -19,7 +19,7 @@ $s = new Story($dbhr, $dbhm);
 $nid = $s->generateNewsletter();
 $n = new Newsletter($dbhr, $dbhm, $nid);
 
-if ($n->getId() == $nid) {
+if ($nid && $n->getId() == $nid) {
     error_log("Generated newsletter $nid");
     $n->send(NULL, NULL);
 }

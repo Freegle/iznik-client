@@ -2122,7 +2122,9 @@ class Message
         }
 
         if (!$yahooonly) {
-            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ? WHERE msgid = ? AND groupid = ?;";
+            # Update the arrival time to NOW().  This is because otherwise we will fail to send out messages which
+            # were held for moderation to people who are on immediate emails.
+            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ?, approvedat = NOW(), arrival = NOW() WHERE msgid = ? AND groupid = ?;";
             $rc = $this->dbhm->preExec($sql, [
                 MessageCollection::APPROVED,
                 $myid,
@@ -2433,7 +2435,7 @@ class Message
                 # of the message.  This means that we don't support editing of the attachments on Yahoo.
 
                 # We might have new approvedby info.
-                $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ? WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
+                $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ?, approvedat = NOW() WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
                     [
                         $approvedby,
                         $msg['id'],
@@ -2643,6 +2645,7 @@ class Message
         $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from Mail.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my BlackBerry.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from myMail for iOS.*/ms', '', $textbody);
 
         // Duff text added by Yahoo Mail app.
         $textbody = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $textbody);
@@ -3359,7 +3362,7 @@ class Message
                     $u->getName(),
                     $email,
                     $subj,
-                    ($happiness == User::HAPPY || $happiness == User::FINE) ? $comment : ''
+                    ($happiness === NULL || $happiness == User::HAPPY || $happiness == User::FINE) ? $comment : ''
                 );
             }
         }
