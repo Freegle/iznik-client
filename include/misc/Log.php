@@ -140,7 +140,7 @@ class Log
                     $log['user'] = $u->getPublic(FALSE, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE, FALSE, FALSE);
 
                     if ($onyahoo) {
-                        $log['user']['email'] = $u->getEmailForYahooGroup($groupid)[1];
+                        $log['user']['email'] = $u->getEmailForYahooGroup($groupid, FALSE, FALSE)[1];
                     } else {
                         $log['user']['email'] = $u->getEmailPreferred();
                     }
@@ -157,7 +157,9 @@ class Log
                     $log['byuser'] = $u->getPublic(FALSE, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE, FALSE, FALSE);
 
                     if ($onyahoo) {
-                        $log['byuser']['email'] = $u->getEmailForYahooGroup($groupid)[1];
+                        $log['byuser']['email'] = $u->getEmailForYahooGroup($groupid, FALSE, FALSE)[1];
+                    } else {
+                        $log['byuser']['email'] = $u->getEmailPreferred();
                     }
                 }
             }

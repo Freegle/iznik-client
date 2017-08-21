@@ -1343,7 +1343,7 @@ class User extends Entity
 
         $ret['taken'] = $takens[0]['count'];
 
-        $reneges = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?;", [
+        $reneges = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?;", [
             $this->id,
             $start
         ]);
