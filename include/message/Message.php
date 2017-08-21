@@ -3321,14 +3321,6 @@ class Message
             $comment
         ]);
 
-        $this->log->log([
-            'type' => Log::TYPE_MESSAGE,
-            'subtype' => Log::SUBTYPE_OUTCOME,
-            'msgid' => $this->id,
-            'byuser' => $me ? $me->getId() : NULL,
-            'text' => "$outcome $comment"
-        ]);
-
         # You might think that if we are passed a $userid then we could log a renege for any other users to whom
         # this was promised - but we can promise to multiple users, whereas we can only mark a single user in the
         # TAKEN (which is probably a bug).  And if we are withdrawing it, then we don't really know why - it could
@@ -3342,6 +3334,15 @@ class Message
 
         foreach ($groups as $groupid) {
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_OUTCOME,
+                'msgid' => $this->id,
+                'user' => $me ? $me->getId() : NULL,
+                'groupid' => $groupid,
+                'text' => "$outcome $comment"
+            ]);
 
             # Update the arrival time.  This is so that if anyone (TN, I'm looking at you) is using the API to retrieve
             # messages, it can tell that the message has had an outcome.

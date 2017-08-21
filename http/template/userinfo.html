@@ -24,6 +24,11 @@
                     <% } else { %>
                     <p><span class="glyphicon glyphicon-ok faded" />&nbsp;Not picked up any items yet so far as we know.</p>
                     <% } %>
+                    <% if (info.reneged > 1) { %>
+                    <div class="alert alert-warning">
+                        <p><span class="glyphicon glyphicon-warning-sign" />&nbsp;About {{info.reneged}} failed collections.  Freeglers with multiple failed collections may be less reliable.</p>
+                    </div>
+                    <% } %>
                     <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>
                         <p>No recent activity.</p>
                     <% } else { %>
