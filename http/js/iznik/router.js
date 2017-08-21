@@ -103,6 +103,7 @@ define([
             "yahoologin": "yahoologin",
             "modtools/chat/:id": "modChat",
             "modtools/chats": "modChats",
+            "modtools/logs(/:type)": "modLogs",
             "modtools/supporters": "supporters",
             "modtools/messages/pending": "pendingMessages",
             "modtools/messages/approved/messagesearch/:search": "approvedMessagesSearchMessages",
@@ -1434,6 +1435,21 @@ define([
                 Iznik.Session.forceLogin({
                     modtools: true
                 });
+            });
+        },
+
+        modLogs: function(logtype) {
+            var self = this;
+            require(["iznik/views/pages/modtools/logs"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.Logs({
+                        logtype: logtype
+                    });
+                    page.modtools = true;
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
             });
         },
 

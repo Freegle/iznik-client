@@ -1,0 +1,62 @@
+<div class="panel">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-12">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="/modtools/logs/messages">Messages</a></li>
+                    <li><a href="/modtools/logs/memberships">Memberships</a></li>
+                    <li><a href="/modtools/logs/moderators">Moderators</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="row topspace">
+            <div class="col-sm-3">
+                <div class="js-groupselect" />
+            </div>
+            <div class="col-sm-3">
+                <div class="input-group">
+                    <input class="form-control js-search" placeholder="Search name/email/subject" />
+                    <span class="input-group-addon js-searchbtn">
+                        <span class="clickme glyphicon glyphicon-search" />
+                    </span>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <select class="form-control js-logsubtype">
+                    <option value="">All logs</option>
+                    <option value="Received">Received</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Deleted">Deleted</option>
+                    <option value="Autoreposted">Auto-reposted</option>
+                    <option value="Autoapproved">Auto-approved</option>
+                </select>
+            </div>
+            <div class="col-sm-3">
+                <select class="form-control js-date">
+                    <option value="">Any date</option>
+                    <option value="1">Last 24 hours</option>
+                    <option value="7">Last 7 days</option>
+                    <option value="30">Last 30 days</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="panel">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-12">
+                <ul class="list-unstyled js-list" />
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row hidden js-loading">
+    <div class="col-md-2 col-md-offset-">
+        <div class="alert alert-info">
+            Searching...
+        </div>
+    </div>
+</div>
+

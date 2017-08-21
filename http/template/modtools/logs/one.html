@@ -1,0 +1,29 @@
+<div class="row forcebreak">
+    <div class="col-sm-2">
+        <div class="fixedfont js-timestamp" />
+    </div>
+    <div class="fixedfont col-sm-4">
+        <% if (obj.user) { %>
+        {{user.displayname}}<% if (user.email) { %> &lt;{{user.email}}&gt;<% } %> <span class="faded">#{{user.id}}</span>
+        <% } %>
+    </div>
+    <div class="fixedfont col-sm-6">
+        <% if (type == 'Message') { %>
+            <% if (subtype == 'Received') { %>
+                Received message: <% if (obj.message && message.subject) { %>"{{message.subject}}" <span class="faded">#{{message.id}}</span><% } else { %>#{{msgid}}<% } %>
+            <% } else if (subtype == 'Approved') { %>
+                Approved message: <% if (obj.message && message.subject) { %>"{{message.subject}}" <span class="faded">#{{message.id}}</span><% } else { %>#{{msgid}}<% } %><% if (obj.byuser) { %> by {{byuser.displayname}}<% } %>
+            <% } else if (subtype == 'Rejected') { %>
+                Rejected message: <% if (obj.message && message.subject) { %>"{{message.subject}}" <span class="faded">#{{message.id}}</span><% } else { %>#{{msgid}}<% } %><% if (obj.byuser) { %> by {{byuser.displayname}}<% } %>
+            <% } else if (subtype == 'Deleted') { %>
+                Deleted message: <% if (obj.message && message.subject) { %>"{{message.subject}}" <span class="faded">#{{message.id}}</span><% } else { %>#{{msgid}}<% } %><% if (obj.byuser) { %> by {{byuser.displayname}}<% } %>
+            <% } else if (subtype == 'Autoapproved') { %>
+                Auto-approved message: <% if (obj.message && message.subject) { %>"{{message.subject}}" <span class="faded">#{{message.id}}</span><% } else { %>#{{msgid}}<% } %>
+            <% } else if (subtype == 'Autoreposted') { %>
+                Auto-reposted message: <% if (obj.message && message.subject) { %>"{{message.subject}}" <span class="faded">#{{message.id}}</span><% } else { %>#{{msgid}}<% } %>
+                <% } else if (subtype == 'Outcome') { %>
+                Marked message: <% if (obj.message && message.subject) { %>"{{message.subject}}" <span class="faded">#{{message.id}}</span><% } else { %>#{{msgid}}<% } %> as {{text}}
+            <% } %>
+        <% } %>
+    </div>
+</div>

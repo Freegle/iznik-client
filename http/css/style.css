@@ -6,6 +6,10 @@ body {
     margin-top: 60px;
 }
 
+.fixedfont {
+    font-family: Menlo,Monaco,Consolas,Courier New,monospace
+}
+
 .introanimation {
     /* TODO make pretty before we show it */
     display: none;

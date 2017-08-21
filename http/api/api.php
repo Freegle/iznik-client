@@ -111,6 +111,7 @@ require_once(IZNIK_BASE . '/http/api/status.php');
 require_once(IZNIK_BASE . '/http/api/volunteering.php');
 require_once(IZNIK_BASE . '/http/api/notification.php');
 require_once(IZNIK_BASE . '/http/api/mentions.php');
+require_once(IZNIK_BASE . '/http/api/logs.php');
 
 use GeoIp2\Database\Reader;
 
@@ -350,6 +351,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'volunteering':
                     $ret = volunteering();
+                    break;
+                case 'logs':
+                    $ret = logs();
                     break;
                 case 'newsfeed':
                     $ret = newsfeed();
