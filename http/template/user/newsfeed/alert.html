@@ -2,6 +2,25 @@
     <div class="panel-body">
         <div class="row">
             <div class="col-xs-12 clickme">
+                <a href="#" class="dropdown-toggle js-notifholder pull-right" data-toggle="dropdown" title="Options">
+                    <span class="caret"></span>
+                </a>
+                <div class="dropdown-container  dropdown-position-bottomright relright">
+                    <ul class="dropdown-menu">
+                        <% if (obj.unfollowed) { %>
+                        <li>
+                            <a href="#" class="js-follow">Follow this post</a>
+                        </li>
+                        <% } else { %>
+                        <li>
+                            <a href="#" class="js-unfollow">Unfollow this post</a>
+                        </li>
+                        <% } %>
+                        <li>
+                            <a href="#" class="js-open">Open in new tab</a>
+                        </li>
+                    </ul>
+                </div>
                 <img src="/images/user_logo.png" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
                 <div class="">
                     <b><span class="success">{{sitename}}</span></b>
