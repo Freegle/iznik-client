@@ -1624,18 +1624,18 @@ class MailRouterTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-
-    public function testSpecial() {
-        error_log(__METHOD__);
-
-        $msg = $this->unique(file_get_contents('msgs/special'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'notify-return-modtools=modtools.org@returns.groups.yahoo.com', "modtools@modtools.org", $msg);
-        assertNotNull($id);
-        $rc = $r->route();
-        assertNotEquals(MailRouter::TO_USER, $rc);
-
-        error_log(__METHOD__ . " end");
-    }
+//
+//    public function testSpecial() {
+//        error_log(__METHOD__);
+//
+//        $msg = $this->unique(file_get_contents('msgs/special'));
+//        $r = new MailRouter($this->dbhr, $this->dbhm);
+//        $id = $r->received(Message::EMAIL, 'j.mason11@ntlworld.com', "hertfordfreegle-volunteers@groups.ilovefreegle.org", $msg);
+//        assertNotNull($id);
+//        $rc = $r->route();
+//        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 

@@ -615,8 +615,13 @@ class MailRouter
 
                         # It's not.  Find the group
                         $g = new Group($this->dbhr, $this->dbhm);
-                        $gid = $g->findByShortName($matches[1]);
-                        if ($this->log) { error_log("Found $gid from {$matches[1]}"); }
+                        $sn = $matches[1];
+
+                        # TODO Remove after 1/1/18
+                        $sn = str_ireplace('hertfordfreegle', 'hertford_freegle', $sn);
+
+                        $gid = $g->findByShortName($sn);
+                        if ($this->log) { error_log("Found $gid from $sn"); }
 
                         if ($gid) {
                             # It's one of our groups.  Find the user this is from.
