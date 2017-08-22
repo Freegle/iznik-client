@@ -82,13 +82,22 @@ define([
         seen: function() {
             var self = this;
 
-            return($.ajax({
-                url: API + '/newsfeed/' + self.get('id'),
-                type: 'POST',
-                data: {
-                    action: 'Seen'
-                }
-            }));
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: API + '/newsfeed/' + self.get('id'),
+                    type: 'POST',
+                    data: {
+                        action: 'Seen'
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            self.set('seen', true);
+                            resolve();
+                        }
+                    }
+                })
+            });
+
+            return(p);
         },
 
         love: function() {

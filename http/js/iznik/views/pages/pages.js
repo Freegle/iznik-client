@@ -327,6 +327,9 @@ define([
                                 el: $('.js-notiflist1'),
                                 modelView: Iznik.Views.Notification,
                                 collection: self.notifications,
+                                modelViewOptions: {
+                                    page: self
+                                },
                                 processKeyEvents: false
                             });
 
@@ -334,6 +337,9 @@ define([
                                 el: $('.js-notiflist2'),
                                 modelView: Iznik.Views.Notification,
                                 collection: self.notifications,
+                                modelViewOptions: {
+                                    page: self
+                                },
                                 processKeyEvents: false
                             });
 
@@ -703,7 +709,12 @@ define([
 
             if (!self.model.get('seen')) {
                 self.model.seen().then(function() {
-                    self.render();
+                    self.$('.backinfo').removeClass('backinfo');
+
+                    if (self.options.notificationCheck) {
+                        console.log("Update notifications after seen");
+                        self.options.notificationCheck();
+                    }
                 });
             }
         },
