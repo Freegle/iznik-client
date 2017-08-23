@@ -490,7 +490,7 @@ define([
                     url: API + 'memberships',
                     type: 'DELETE',
                     data: {
-                        userid: Iznik.Session.get('id'),
+                        userid: Iznik.Session.get('me').id,
                         groupid: self.model.get('id')
                     }, success: function(ret) {
                         if (ret.ret == 0) {

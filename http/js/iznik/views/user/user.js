@@ -1032,10 +1032,11 @@ define([
         render: function () {
             var self = this;
             var userid = self.model.get('id');
-            var myid = Iznik.Session.get('id');
+            var myid = Iznik.Session.get('me').id;
 
             var p = resolvedPromise();
 
+            console.log("User ", myid, userid);
             if (myid && myid != userid) {
                 self.model = new Iznik.Models.ModTools.User({
                     id: userid
