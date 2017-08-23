@@ -9,19 +9,28 @@ require_once(IZNIK_BASE . '/include/spam/Spam.php');
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $at = 0;
 
-$users = $dbhr->preQuery("SELECT id FROM users");;
-foreach ($users as $user) {
-    $oldest = $dbhr->preQuery("SELECT MIN(added) AS minadded FROM memberships WHERE userid = ?;", [ $user['id'] ]);
-    if (count($oldest) > 0 && $oldest[0]['minadded']) {
-        $dbhr->preExec("UPDATE users SET added = ? WHERE id = ?;", [
-            $oldest[0]['minadded'],
-            $user['id']
+$yms = $dbhr->preQuery("SELECT DISTINCT membershipid, COUNT(*) AS count FROM memberships_yahoo GROUP BY membershipid HAVING count > 1;");
+$count = count($yms);
+
+foreach ($yms as $ym) {
+    $mins = $dbhr->preQuery("SELECT MIN(added) AS min FROM memberships_yahoo WHERE membershipid = ?;", [ $ym['membershipid'] ], FALSE);
+    foreach ($mins as $min) {
+        $dbhm->preExec("UPDATE memberships SET added = ? WHERE id = ? AND added > ?;", [
+            $min['min'],
+            $ym['membershipid'],
+            $min['min']
+        ], FALSE);
+
+        $dbhm->preExec("UPDATE users SET added = ? WHERE id = (SELECT userid FROM memberships WHERE id = ?) AND added > ?;", [
+            $min['min'],
+            $ym['membershipid'],
+            $min['min']
         ], FALSE);
     }
 
-    $at++;
+   $at++;
 
     if ($at % 1000 == 0) {
-        error_log("...$at");
+        error_log("...$at / $count");
     }
 }
