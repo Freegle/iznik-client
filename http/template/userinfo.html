@@ -24,9 +24,9 @@
                     <% } else { %>
                     <p><span class="glyphicon glyphicon-ok faded" />&nbsp;Not picked up any items yet so far as we know.</p>
                     <% } %>
-                    <% if (info.reneged > 1) { %>
+                    <% if (info.reneged && (info.reneged * 100 / (info.reneged + info.collected) > 25)) { %>
                     <div class="alert alert-warning">
-                        <p><span class="glyphicon glyphicon-warning-sign" />&nbsp;About {{info.reneged}} failed collections.  Freeglers with multiple failed collections may be less reliable.</p>
+                        <p><span class="glyphicon glyphicon-warning-sign" />&nbsp;Things haven't always worked out for this freegler.  That might not be their fault, but please make very clear arrangements.</p>
                     </div>
                     <% } %>
                     <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>
