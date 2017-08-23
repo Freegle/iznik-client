@@ -235,7 +235,6 @@ class Newsletter extends Entity
             }
         }
 
-        error_log("Returning $sent");
         return($sent);
     }
 }

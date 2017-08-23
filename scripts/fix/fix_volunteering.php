@@ -30,9 +30,9 @@ foreach ($vols as $vol) {
 
         if (count($membs) == 0) {
             error_log("No groups");
-            $dbhm->preExec("DELETE FROM volunteering WHERE id = ?;", [
-                $vol['id']
-            ]);
+//            $dbhm->preExec("DELETE FROM volunteering WHERE id = ?;", [
+//                $vol['id']
+//            ]);
         } else if (count($membs) > 1) {
             error_log("Too many groups");
             foreach ($membs as $memb) {
