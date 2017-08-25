@@ -1037,7 +1037,9 @@ define([
             var p = resolvedPromise();
 
             console.log("User ", myid, userid);
-            if (myid && myid != userid) {
+            // For now show this, though revisit if we get complaints or abuse.
+            // if (myid && myid != userid)
+            {
                 self.model = new Iznik.Models.ModTools.User({
                     id: userid
                 });
