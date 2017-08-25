@@ -1438,7 +1438,7 @@ class ChatRoom extends Entity
         $msgs = $this->dbhr->preQuery("SELECT id, chatid, date FROM chat_messages WHERE userid = ? AND date > ?;", [ $userid, $mysqltime ], FALSE);
 
         foreach ($msgs as $msg) {
-            error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}");
+            #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}");
             # Find the previous message in this conversation.
             $lasts = $this->dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE chatid = ? AND id < ? AND userid != ?;", [
                 $msg['chatid'],
@@ -1448,13 +1448,13 @@ class ChatRoom extends Entity
 
             if (count($lasts) > 0 && $lasts[0]['max']) {
                 $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
-                error_log("Last {$lasts[0]['max']} delay $thisdelay");
+                #error_log("Last {$lasts[0]['max']} delay $thisdelay");
                 $delays[] = $thisdelay;
             }
         }
 
         $ret = (count($delays) > 0) ? calculate_median($delays) : NULL;
-        error_log("Return $ret for $userid");
+        #error_log("Return $ret for $userid");
 
         return($ret);
     }
