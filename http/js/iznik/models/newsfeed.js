@@ -67,6 +67,19 @@ define([
             }));
         },
 
+        attachToThread: function(attachto) {
+            var self = this;
+
+            return($.ajax({
+                url: API + '/newsfeed/' + self.get('id'),
+                type: 'POST',
+                data: {
+                    action: 'AttachToThread',
+                    attachto: attachto
+                }
+            }));
+        },
+
         referToReceived: function() {
             var self = this;
 

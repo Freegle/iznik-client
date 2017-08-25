@@ -564,5 +564,46 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testAttach()
+    {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $this->user->addMembership($gid, User::ROLE_MODERATOR);
+        
+        error_log("Log in as {$this->uid}");
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test for attach'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        
+        $attachto = $ret['id'];
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test to be attached'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        
+        $attachee = $ret['id'];
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $attachee,
+            'action' => 'AttachToThread',
+            'attachto' =>$attachto
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $attachee
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals($attachto, $ret['newsfeed']['replyto']);
+    }
 }
 

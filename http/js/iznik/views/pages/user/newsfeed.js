@@ -839,12 +839,15 @@ define([
             var p = Iznik.Views.Modal.prototype.render.call(self);
 
             p.then(function() {
-                autosize(self.$('.js-message'));
-                self.$('.js-message').val(self.model.get('message'));
-                if (self.$('.js-message').length) {
-                    twemoji.parse(self.$('.js-message').get()[0]);
-                }
-                autosize.update(self.$('.js-message'));
+                self.model.fetch().then(function() {
+                    self.$('.js-message').val(self.model.get('message'));
+                    if (self.$('.js-message').length) {
+                        twemoji.parse(self.$('.js-message').get()[0]);
+                    }
+                    _.delay(_.bind(function() {
+                        autosize(this.$('.js-message'));
+                    }, self), 1000);
+                });
             });
 
             return(p);
