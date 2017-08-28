@@ -369,7 +369,7 @@ require([
                     (function waitUntilLoggedIn(retry) {
                         if (Iznik.Session.loggedIn) {
                             //ChatHolder().fetchAndRestore(chatid);
-                            setTimeout(function () { Router.navigate('/chat/' + chatid, true); }, 500);
+                            setTimeout(function () { Router.navigate('/chat/' + chatid + '?' + $.now(), true); }, 500); // Add timestamp so chat refreshes
                         } else {
                             setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
                         }
