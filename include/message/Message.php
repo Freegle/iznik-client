@@ -1877,25 +1877,29 @@ class Message
                 }
 
                 # Also save into the history table, for spam checking.
-                $sql = "INSERT INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
-                $this->dbhm->preExec($sql, [
-                    $this->groupid,
-                    $this->source,
-                    $this->fromuser,
-                    $this->envelopefrom,
-                    $this->envelopeto,
-                    $this->fromname,
-                    $this->fromaddr,
-                    $this->fromip,
-                    $this->subject,
-                    $this->getPrunedSubject(),
-                    $this->messageid,
-                    $this->id
-                ]);
+                $this->addToMessageHistory();
             }
         }
 
         return([ $this->id, $already ]);
+    }
+
+    public function addToMessageHistory() {
+        $sql = "INSERT IGNORE INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
+        $this->dbhm->preExec($sql, [
+            $this->groupid,
+            $this->source,
+            $this->fromuser,
+            $this->envelopefrom,
+            $this->envelopeto,
+            $this->fromname,
+            $this->fromaddr,
+            $this->fromip,
+            $this->subject,
+            $this->getPrunedSubject(),
+            $this->messageid,
+            $this->id
+        ]);
     }
 
     function recordFailure($reason) {
@@ -3194,6 +3198,9 @@ class Message
                     # This message is now pending.  That means it will show up in ModTools; if it is approved before
                     # it reaches Yahoo and we get notified then we will handle that in submitYahooQueued.
                     $this->dbhm->preExec("UPDATE messages_groups SET senttoyahoo = 1, collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
+
+                    # Add to message history for spam checking.
+                    $this->addToMessageHistory();
 
                     $rc = TRUE;
                 } catch (Exception $e) {

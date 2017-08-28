@@ -37,6 +37,7 @@ class Newsfeed extends Entity
     const TYPE_REFER_TO_OFFER = 'ReferToOffer';
     const TYPE_REFER_TO_TAKEN = 'ReferToTaken';
     const TYPE_REFER_TO_RECEIVED = 'ReferToReceived';
+    const TYPE_ATTACH_TO_THREAD = 'AttachToThread';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {

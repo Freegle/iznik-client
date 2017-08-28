@@ -1314,9 +1314,10 @@ class User extends Entity
         $ret = [];
         $start = date('Y-m-d', strtotime("90 days ago"));
 
-        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL;", [
+        $replies = $this->dbhr->preQuery("SELECT COUNT(DISTINCT refmsgid) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND chattype = ?;", [
             $this->id,
-            $start
+            $start,
+            ChatRoom::TYPE_USER2USER
         ]);
 
         $ret['replies'] = $replies[0]['count'];
@@ -1858,7 +1859,7 @@ class User extends Entity
 
                 # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
                 # the case where you have two emails and one is approved and the other pending.
-                $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, memberships_yahoo.added AS yadded, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
@@ -1869,7 +1870,7 @@ class User extends Entity
                         'membershipid' => $group['id'],
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
-                        'added' => ISODate($group['added']),
+                        'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
                         'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
@@ -1905,7 +1906,7 @@ class User extends Entity
                 # allows us to spot abuse) and any which are on our groups.
                 $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
                 $modids = array_merge([0], $me->getModeratorships());
-                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, memberships_yahoo.added AS yadded, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 $memberof = [];
 
@@ -1917,7 +1918,7 @@ class User extends Entity
                         'membershipid' => $group['id'],
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
-                        'added' => ISODate($group['added']),
+                        'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
                         'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),

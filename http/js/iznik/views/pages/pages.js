@@ -331,7 +331,8 @@ define([
                                 modelView: Iznik.Views.Notification,
                                 collection: self.notifications,
                                 modelViewOptions: {
-                                    page: self
+                                    page: self,
+                                    notificationCheck: self.notificationCheck
                                 },
                                 processKeyEvents: false
                             });
@@ -341,7 +342,8 @@ define([
                                 modelView: Iznik.Views.Notification,
                                 collection: self.notifications,
                                 modelViewOptions: {
-                                    page: self
+                                    page: self,
+                                    notificationCheck: self.notificationCheck
                                 },
                                 processKeyEvents: false
                             });
