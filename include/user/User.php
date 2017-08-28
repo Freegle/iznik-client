@@ -1192,7 +1192,7 @@ class User extends Entity
         $mymodships = $this->getModeratorships();
 
         # Is there any group which we mod and which they are a member of?
-        error_log("Compare groups " . var_export($usermemberships, TRUE) . " vs " . var_export($mymodships, TRUE));
+        #error_log("Compare groups " . var_export($usermemberships, TRUE) . " vs " . var_export($mymodships, TRUE));
         $canmod = count(array_intersect($usermemberships, $mymodships)) > 0;
 
         return($canmod);
