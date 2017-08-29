@@ -715,7 +715,7 @@ define([
 
                     if (self.options.notificationCheck) {
                         console.log("Update notifications after seen");
-                        self.options.notificationCheck();
+                        self.options.notificationCheck.call(self.options.page);
                     }
                 });
             }

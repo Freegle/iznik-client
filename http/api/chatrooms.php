@@ -41,7 +41,6 @@ function chatrooms() {
                         foreach ($rooms as $room) {
                             $r = new ChatRoom($dbhr, $dbhm, $room);
                             $atts = $r->getPublic($me, $mepub);
-                            $atts['unseen'] = $r->unseenCountForUser($myid);
                             $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
                             $ret['chatrooms'][] = $atts;
                         }
