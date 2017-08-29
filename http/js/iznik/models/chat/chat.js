@@ -258,12 +258,6 @@ define([
             options.data.chattypes = (Iznik.Session && Iznik.Session.get('modtools')) ? [ 'Mod2Mod', 'User2Mod', 'Group' ] : [ 'User2User', 'User2Mod', 'Group' ];
             options.processData = true;
 
-            if (!options.hasOwnProperty('cached')) {
-                // We always want to cache the return value, even if no cached callback is passed, so that we cache it
-                // for later.  Setting a callback (albeit null) achieves that.
-                options.cached = nullFn;
-            }
-
             return Iznik.Collection.prototype.fetch.call(this, options);
         },
 

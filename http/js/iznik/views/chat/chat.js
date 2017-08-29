@@ -563,9 +563,7 @@ define([
 
                     self.model.close().then(function() {
                         // Also refetch the chats, so that our cached copy gets updated.
-                        Iznik.Session.chats.fetch({
-                            cached: nullFn
-                        });
+                        Iznik.Session.chats.fetch();
                     })
                 } catch (e) {
                     console.error(e.message)
