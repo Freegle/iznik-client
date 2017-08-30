@@ -41,7 +41,6 @@ requirejs.config({
             exports: 'moment'
         },
         "jquery.dd": [ "jquery" ],
-        "jquery.dotdotdot": [ "jquery" ],
         "jquery.geocomplete": [ "jquery" ],
         "jquery-show-first": [ "iznik/utility", "jquery" ],
         'jquery.validate.additional-methods': [ 'jquery.validate.min' ],
