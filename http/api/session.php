@@ -71,6 +71,9 @@ function session() {
                     foreach ($ret['groups'] as &$group) {
                         # Remove large attributes we don't need in session.
                         unset($group['welcomemail']);
+                        unset($group['description']);
+                        unset($group['settings']['chaseups']['idle']);
+                        unset($group['settings']['branding']);
 
                         if (pres('work', $group)) {
                             foreach ($group['work'] as $key => $work) {
