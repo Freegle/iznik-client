@@ -634,7 +634,6 @@ define([
 
         update: function() {
             var self = this;
-            console.log("Status update", self);
 
             $.ajax({
                 url: API + 'status',

@@ -9,7 +9,6 @@ define([
     'moment',
     'backbone.collectionView',
     'waypoints',
-    'timeago',
     'dateshim',
     'bootstrap',
     'persist-min',
@@ -21,6 +20,7 @@ define([
     'iznik/diff',
     'iznik/events',
     'iznik/utility',
+    'iznik/timeago',
     'iznik/majax'
 ], function ($, Backbone, _, moment) {
 
@@ -411,22 +411,26 @@ define([
             // Expand the template via the parent then set the times.
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                self.$('.timeago').each(function() {
-                    // We put it in the title, but we can have a more human-readable title if we move it into
-                    // datetime
-                    var $el = $(this);
-                    var d = $el.prop('title');
+                if (!self.timeagoRunning) {
+                    self.timeagoRunning = true;
 
-                    if (d) {
-                        $el.prop('datetime', d);
-                        $el.timeago();
+                    self.$('.timeago').each(function() {
+                        // We put it in the title, but we can have a more human-readable title if we move it into
+                        // datetime
+                        var $el = $(this);
+                        var d = $el.prop('title');
 
-                        // Prettify the title.  Need to do this afterwards, as otherwise we see (at least on some
-                        // old FF versions) that some timeagos fail.
-                        var s = (new moment(d)).format('LLLL');
-                        $el.prop('title', s);
-                    }
-                });
+                        if (d) {
+                            $el.prop('datetime', d);
+                            $el.timeago();
+
+                            // Prettify the title.  Need to do this afterwards, as otherwise we see (at least on some
+                            // old FF versions) that some timeagos fail.
+                            var s = (new moment(d)).format('LLLL');
+                            $el.prop('title', s);
+                        }
+                    });
+                }
             });
 
             return(p);

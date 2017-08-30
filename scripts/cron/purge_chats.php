@@ -14,6 +14,24 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
 
+# Purge any spam chat messages which are more than a week old.  This gives time for us to debug any issues.
+error_log("Purge spam");
+$start = date('Y-m-d', strtotime("midnight 7 days ago"));
+
+$total = 0;
+do {
+    $sql = "SELECT id FROM chat_messages WHERE date < '$start' AND reviewrejected = 1 LIMIT 1000;";
+    $msgs = $dbhm->query($sql)->fetchAll();
+    foreach ($msgs as $msg) {
+        $dbhm->exec("DELETE FROM chat_messages WHERE id = {$msg['id']};");
+        $total++;
+
+        if ($total % 1000 == 0) {
+            error_log("...$total");
+        }
+    }
+} while (count($msgs) > 0);
+
 # Purge chats which have no messages.  This can happen for spam replies, which create a chat and then the message
 # later gets deleted.
 error_log("Purge empty");
