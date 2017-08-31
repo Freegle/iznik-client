@@ -284,7 +284,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals($spam->getSubject(), $spam->getHeader('subject'));
         assertEquals('freegleplayground@yahoogroups.com', $spam->getTo()[0]['address']);
         assertEquals('Sender', $spam->getFromname());
-        assertEquals('SpamAssassin flagged this as possible spam; score 999 (high is bad)', $spam->getSpamReason());
+        assertEquals('SpamAssassin flagged this as possible spam; score 998 (high is bad)', $spam->getSpamReason());
         $spam->delete();
 
         error_log(__METHOD__ . " end");
