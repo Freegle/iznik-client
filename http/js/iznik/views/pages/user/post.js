@@ -53,6 +53,10 @@ define([
             if (!val) {
                 val = this.$('.js-item').val();
             }
+
+            // Remove brackets - they'll only confuse us.
+            val = val.replace(/\(|\)|\[|\]/g, '');
+
             return(val);
         },
 
