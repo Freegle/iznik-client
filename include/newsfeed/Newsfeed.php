@@ -575,7 +575,7 @@ class Newsfeed extends Entity
             $oldest = ISODate(date("Y-m-d H:i:s", strtotime("midnight 7 days ago")));
 
             foreach ($feeds as $feed) {
-                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest) {
+                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest && pres('message', $feed)) {
                     $count++;
 
                     $str = $feed['message'];
