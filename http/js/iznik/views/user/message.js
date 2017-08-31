@@ -28,7 +28,7 @@ define([
             var subject = self.model.get('subject');
             // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
             var options = {
-                message: "I've posted this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
+                message: "I've saw this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
                 subject: 'Freegle post: ' + subject, // for email
                 //files: ['', ''], // an array of filenames either locally or remotely
                 url: href,
