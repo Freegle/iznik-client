@@ -38,12 +38,14 @@ class scheduleAPITest extends IznikAPITestCase {
         error_log(__METHOD__);
 
         $u = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create logged out - should fail
-        $ret = $this->call('schedule', 'PUT', [
+        $ret = $this->call('schedule', 'POST', [
+            'userid' => $uid2,
             'schedule' => [
                 'test' => 1
             ]
@@ -52,7 +54,8 @@ class scheduleAPITest extends IznikAPITestCase {
 
         # Create logged in - should work
         assertTrue($this->user->login('testpw'));
-        $ret = $this->call('schedule', 'PUT', [
+        $ret = $this->call('schedule', 'POST', [
+            'userid' => $uid2,
             'schedule' => [
                 'test' => 1
             ]
@@ -70,6 +73,14 @@ class scheduleAPITest extends IznikAPITestCase {
         self::assertEquals([
             'test' => 1
         ], $ret['schedule']['schedule']);
+        assertTrue(in_array($this->uid, $ret['schedule']['users']));
+        assertTrue(in_array($uid2, $ret['schedule']['users']));
+
+        # Get without id
+        $ret = $this->call('schedule', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['schedules']));
+        assertEquals($id, $ret['schedules'][0]['id']);
 
         # Edit
         $ret = $this->call('schedule', 'PATCH', [

@@ -24,16 +24,25 @@ function schedule() {
                         'schedule' => $atts
                     ];
                 }
+            } else {
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'schedules' => $s->listForUser($myid)
+                ];
             }
 
             break;
         }
 
-        case 'PUT':
+        case 'POST':
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
             if ($me) {
                 $id = $s->create(presdef('schedule', $_REQUEST, NULL));
                 $s->addUser($myid);
+                $userid = intval(presdef('userid', $_REQUEST, NULL));
+                $s->addUser($userid);
+
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',

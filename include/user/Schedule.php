@@ -62,4 +62,19 @@ class Schedule extends Entity
     public function setSchedule($schedule) {
         $this->setPrivate('schedule', json_encode($schedule));
     }
+
+    public function listForUser($userid) {
+        $ret = [];
+
+        $schedules = $this->dbhr->preQuery("SELECT scheduleid FROM schedules_users WHERE userid = ?;", [
+            $userid
+        ]);
+
+        foreach ($schedules as $schedule) {
+            $a = new Schedule($this->dbhr, $this->dbhm, $schedule['scheduleid']);
+            $ret[] = $a->getPublic();
+        }
+
+        return($ret);
+    }
 }

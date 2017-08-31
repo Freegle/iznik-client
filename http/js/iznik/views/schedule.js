@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'iznik/models/schedule',
     'jquery.scrollTo'
 ], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.Schedule = {};
@@ -12,6 +13,38 @@ define([
         template: 'schedule_modal',
 
         slots: [],
+
+        events: {
+            'click .js-confirm': 'save'
+        },
+
+        save: function() {
+            var self = this;
+
+            var slots = [];
+
+            _.each(self.slots, function(slot) {
+                slots.push({
+                    hour: slot.get('hour'),
+                    date: slot.get('date'),
+                    available: [
+                        {
+                            user: Iznik.Session.get('me').id,
+                            available: slot.get('availableme')
+                        }
+                    ]
+                });
+            })
+
+            var m = new Iznik.Models.Schedule({
+                userid: self.model.get('id'),
+                schedule: slots
+            });
+
+            m.save().then(function() {
+                self.close();
+            })
+        },
 
         render: function() {
             var self = this;
