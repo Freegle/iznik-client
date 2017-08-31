@@ -49,6 +49,7 @@ require_once(IZNIK_BASE . '/include/misc/Donations.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
+require_once(IZNIK_BASE . '/include/user/Schedule.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
 require_once(IZNIK_BASE . '/include/group/Admin.php');
 require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
@@ -106,6 +107,7 @@ require_once(IZNIK_BASE . '/http/api/event.php');
 require_once(IZNIK_BASE . '/http/api/socialactions.php');
 require_once(IZNIK_BASE . '/http/api/poll.php');
 require_once(IZNIK_BASE . '/http/api/request.php');
+require_once(IZNIK_BASE . '/http/api/schedule.php');
 require_once(IZNIK_BASE . '/http/api/stories.php');
 require_once(IZNIK_BASE . '/http/api/status.php');
 require_once(IZNIK_BASE . '/http/api/volunteering.php');
@@ -339,6 +341,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'request':
                     $ret = request();
+                    break;
+                case 'schedule':
+                    $ret = schedule();
                     break;
                 case 'stories':
                     $ret = stories();
