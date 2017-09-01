@@ -217,8 +217,19 @@ class ChatRoom extends Entity
         if ($id) {
             $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
 
-            # Ensure this users is in the roster.
+            # Ensure this user is in the roster.
             $this->updateRoster($user1, NULL);
+
+            # Ensure the group mods are in the roster.  We need to do this otherwise for new chats we would not
+            # mail them about this message.
+            $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');", [
+                $groupid
+            ]);
+
+            foreach ($mods as $mod) {
+                $sql = "INSERT IGNORE INTO chat_roster (chatid, userid) VALUES (?, ?);";
+                $this->dbhm->preExec($sql, [$id, $mod['userid']]);
+            }
 
             # Poke the group mods to let them know to pick up the new chat
             $n = new PushNotifications($this->dbhr, $this->dbhm);
@@ -522,6 +533,7 @@ class ChatRoom extends Entity
             }
         }
 
+
         return (count($ret) == 0 ? NULL : $ret);
     }
 
@@ -572,6 +584,7 @@ class ChatRoom extends Entity
     public function upToDate($userid) {
         $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
         foreach ($msgs as $msg) {
+            #error_log("Set max to {$msg['max']} for $userid in room {$this->id} ");
             $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;",
                 [
                     $msg['max'],
@@ -619,7 +632,7 @@ class ChatRoom extends Entity
                 $lastmsgseen
             ], FALSE);
 
-            #error_log("Update roster $userid {$this->id} $rc last seen $lastmsgseen affected " . $this->dbhm->rowsAffected());
+            #error_log("Update roster $userid chat {$this->id} $rc last seen $lastmsgseen affected " . $this->dbhm->rowsAffected());
             #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen))");
             if ($rc && $this->dbhm->rowsAffected()) {
                 # We have updated our last seen.  Notify ourselves because we might have multiple devices which
@@ -973,7 +986,7 @@ class ChatRoom extends Entity
                 #error_log("User in User2Mod max $maxmailed vs $lastmessage");
 
                 if ($maxmailed < $lastmessage) {
-                    # We've not seen any messages, or seen some but not this one.
+                    # We've not been mailed any messages, or some but not this one.
                     $ret[] = [
                         'userid' => $user['userid'],
                         'lastmsgseen' => $user['lastmsgseen'],
@@ -1015,6 +1028,7 @@ class ChatRoom extends Entity
                     $maxseen = presdef('lastmsgseen', $roster, 0);
                     $maxmailed = presdef('lastemailed', $roster, 0);
                     $max = max($maxseen, $maxmailed);
+                    #error_log("Return {$roster['userid']} maxmailed {$roster['lastmsgemailed']} from " . var_export($roster, TRUE));
 
                     $ret[] = [
                         'userid' => $roster['userid'],
@@ -1061,7 +1075,7 @@ class ChatRoom extends Entity
             #error_log("Notmailed " . count($notmailed));
 
             foreach ($notmailed as $member) {
-                # Now we have a member who has not been mailed of the messages in this chat.
+                # Now we have a member who has not been mailed the messages in this chat.
                 #error_log("{$chat['chatid']} Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
@@ -1273,7 +1287,7 @@ class ChatRoom extends Entity
 
                             # ModTools users should never get notified.
                             if ($to && strpos($to, MOD_SITE) === FALSE) {
-                                error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
+                                error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
                                 try {
                                     #$to = 'log@ehibbert.org.uk';
                                     # We only include the HTML part if this is a user on our platform; otherwise
