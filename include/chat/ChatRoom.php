@@ -347,6 +347,8 @@ class ChatRoom extends Entity
             switch ($last['type']) {
                 case ChatMessage::TYPE_ADDRESS: $ret['snippet'] = 'Address sent...'; break;
                 case ChatMessage::TYPE_NUDGE: $ret['snippet'] = 'Nudged'; break;
+                case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Scheduling collection...'; break;
+                case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Schedule updated...'; break;
                 default: $ret['snippet'] = substr($last['message'], 0, 30); break;
             }
         }
@@ -1108,6 +1110,7 @@ class ChatRoom extends Entity
                     foreach ($unmailedmsgs as $unmailedmsg) {
                         $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
                         $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
+                        $collurl = NULL;
 
                         if ($mailson) {
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
@@ -1167,6 +1170,18 @@ class ChatRoom extends Entity
                                     break;
                                 }
 
+                                case ChatMessage::TYPE_SCHEDULE: {
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You asked  " . $otheru->getName() . " to arrange a collection time") : ($thisu->getName() . " would like to arrange a collection time.  Please click here to say when you're available:");
+                                    $collurl = "https://" . USER_SITE . "/schedule/{$unmailedmsg['scheduleid']}";
+                                    break;
+                                }
+
+                                case ChatMessage::TYPE_SCHEDULE_UPDATED: {
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your collection schedule") : ($thisu->getName() . " has updated their collection schedule.  Please click here to see their times and say when you're available:");
+                                    $collurl = "https://" . USER_SITE . "/schedule/{$unmailedmsg['scheduleid']}";
+                                    break;
+                                }
+
                                 default: {
                                     # Use the text in the message.
                                     $thisone = $unmailedmsg['message'];
@@ -1204,6 +1219,9 @@ class ChatRoom extends Entity
                                     $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
                                     $textsummary .= "Here's a picture: $path\r\n";
                                     $ccit = TRUE;
+                                } else if ($collurl) {
+                                    $textsummary .= $thisone . "\r\n$collurl\r\n";
+                                    $htmlsummary .= nl2br($thisone) . '<br><br><a href="' . $collurl . '">' . $collurl . "</a><br>";
                                 } else {
                                     $textsummary .= $thisone . "\r\n";
                                     $htmlsummary .= nl2br($thisone) . "<br>";

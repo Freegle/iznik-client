@@ -24,6 +24,9 @@ define([
         save: function() {
             var self = this;
 
+            var myid = Iznik.Session.get('me').id;
+            var other = self.options.otherid;
+
             var slots = [];
 
             _.each(self.slots, function(slot) {
@@ -32,11 +35,24 @@ define([
                     date: slot.get('date'),
                     available: [
                         {
-                            user: Iznik.Session.get('me').id,
+                            user: myid,
                             available: slot.get('availableme')
                         }
                     ]
                 });
+
+                if (other) {
+                    slots.push({
+                        hour: slot.get('hour'),
+                        date: slot.get('date'),
+                        available: [
+                            {
+                                user: other,
+                                available: slot.get('availableother')
+                            }
+                        ]
+                    });
+                }
             });
 
             var m = new Iznik.Models.Schedule({
@@ -168,6 +184,7 @@ define([
                     model: self.model,
                     id: self.options.id,
                     other: self.options.other,
+                    otherid: self.options.otherid,
                     slots: self.options.slots,
                     cancel: true
                 });

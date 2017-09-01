@@ -329,27 +329,42 @@ define([
         userDefault: function() {
             var self = this;
 
-            // Load the last of the main pages that they had open.
-            var page = Storage.get('lasthomepage');
+            function f(loggedIn) {
+                // console.log("Logged in", loggedIn);
+                if (loggedIn || _.isUndefined(loggedIn)) {
+                    // Load the last of the main pages that they had open.
+                    var page = Storage.get('lasthomepage');
 
-            switch (page) {
-                case 'news': {
-                    self.userNewsfeed();
-                    break;
-                }
-                case 'myposts': {
-                    self.userHome();
-                    break;
-                }
-                case 'mygroups': {
-                    self.userMyGroups();
-                    break;
-                }
-                default: {
-                    self.userNewsfeed();
-                    break;
+                    switch (page) {
+                        case 'news': {
+                            self.userNewsfeed();
+                            break;
+                        }
+                        case 'myposts': {
+                            self.userHome();
+                            break;
+                        }
+                        case 'mygroups': {
+                            self.userMyGroups();
+                            break;
+                        }
+                        default: {
+                            self.userNewsfeed();
+                            break;
+                        }
+                    }
+                } else {
+                    require(["iznik/views/pages/user/landing"], function() {
+                        console.log("Load landing");
+                        var page = new Iznik.Views.User.Pages.Landing();
+                        self.loadRoute({page: page});
+                    });
                 }
             }
+
+            self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+            Iznik.Session.testLoggedIn();
+
         },
 
         userStories: function() {

@@ -9,8 +9,7 @@ define([
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
     'iznik/views/user/message',
-    // 'iznik/views/supportus',
-    'iznik/views/user/schedule'
+    // 'iznik/views/supportus''
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
@@ -282,18 +281,6 @@ define([
                 }
 
                 // (new Iznik.Views.SupportUs()).render();
-                var m = new Iznik.Models.ModTools.User({
-                    id: 13249495
-                });
-
-                m.fetch().then(function() {
-                    (new Iznik.Views.User.Schedule.Modal({
-                        model: m,
-                        id: null,
-                        other: false,
-                        slots: null
-                    })).render();
-                })
                 var today = new Date().toISOString().slice(0, 10);
                 if (today == '2017-04-01') {
                     self.$('.js-april').fadeIn('slow');

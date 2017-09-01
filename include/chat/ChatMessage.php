@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/include/spam/Spam.php');
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid', 'scheduleid');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
@@ -25,6 +25,8 @@ class ChatMessage extends Entity
     const TYPE_IMAGE = 'Image';
     const TYPE_ADDRESS = 'Address';
     const TYPE_NUDGE = 'Nudge';
+    const TYPE_SCHEDULE = 'Schedule';
+    const TYPE_SCHEDULE_UPDATED = 'ScheduleUpdated';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_REJECT = 'Reject';
@@ -89,7 +91,7 @@ class ChatMessage extends Entity
         return($s->checkSpam($message) !== NULL);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $scheduleid = NULL) {
         try {
             $review = 0;
             $spam = 0;
@@ -106,7 +108,7 @@ class ChatMessage extends Entity
 
             # Even if it's spam, we still create the message, so that if we later decide that it wasn't spam after all
             # it's still around to unblock.
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid, scheduleid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, ?);", [
                 $chatid,
                 $userid,
                 $message,
@@ -119,7 +121,8 @@ class ChatMessage extends Entity
                 $reportreason,
                 $refchatid,
                 $imageid,
-                $facebookid
+                $facebookid,
+                $scheduleid
             ]);
 
             $id = $this->dbhm->lastInsertId();

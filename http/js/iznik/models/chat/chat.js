@@ -49,6 +49,17 @@ define([
             self.sendQueue();
         },
 
+        otherUser: function() {
+            var u1 = this.get('user1');
+            var user1 = u1 ? u1.id : null;
+            var u2 = this.get('user2');
+            var user2 = u2 ? u2.id : null;
+
+            var myid = Iznik.Session.get('me').id;
+            var other = user1 == myid ? user2 : user1;
+            return(other);
+        },
+
         nudge: function(userid) {
             var self = this;
 

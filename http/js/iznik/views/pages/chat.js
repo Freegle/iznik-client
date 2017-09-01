@@ -9,6 +9,7 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/group/select',
     'iznik/views/postaladdress',
+    'iznik/views/user/schedule',
     'iznik/views/user/message',
     'jquery-resizable',
     'jquery-visibility',
@@ -309,6 +310,7 @@ define([
             'click .js-promise': 'promise',
             'click .js-address': 'address',
             'click .js-nudge': 'nudge',
+            'click .js-schedule': 'schedule',
             'click .js-info': 'info',
             'click .js-photo': 'photo',
             'click .js-send': 'send',
@@ -591,6 +593,35 @@ define([
 
             self.model.nudge().then(function() {
                 self.messages.fetch();
+            });
+        },
+
+        schedule: function() {
+            var self = this;
+
+            var other = this.model.otherUser();
+
+            // See if we have an outstanding schedule.
+
+            var m = new Iznik.Models.ModTools.User({
+                id: other
+            });
+
+            m.fetch().then(function() {
+                var v = new Iznik.Views.User.Schedule.Modal({
+                    model: m,
+                    id: null,
+                    schedule: null,
+                    other: false,
+                    otherid: null,
+                    slots: null
+                });
+
+                self.listenToOnce(v, 'modalClosed', function () {
+                    self.messages.fetch();
+                });
+
+                v.render();
             });
         },
 

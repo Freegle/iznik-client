@@ -9,6 +9,7 @@ define([
     'iznik/models/message',
     'iznik/models/user/user',
     'iznik/views/postaladdress',
+    'iznik/views/user/schedule',
     'jquery-resizable',
     'jquery-visibility',
     'fileinput'
@@ -397,6 +398,7 @@ define([
             'focus .js-message': 'messageFocus',
             'click .js-promise': 'promise',
             'click .js-address': 'address',
+            'click .js-schedule': 'schedule',
             'click .js-info': 'info',
             'click .js-nudge': 'nudge',
             'click .js-photo': 'photo',
@@ -656,6 +658,33 @@ define([
 
             self.model.nudge().then(function() {
                 self.messages.fetch();
+            });
+        },
+
+        schedule: function() {
+            var self = this;
+
+            var other = this.model.otherUser();
+
+            var m = new Iznik.Models.ModTools.User({
+                id: other
+            });
+
+            m.fetch().then(function() {
+                var v = new Iznik.Views.User.Schedule.Modal({
+                    model: m,
+                    id: null,
+                    schedule: null,
+                    other: false,
+                    otherid: null,
+                    slots: null
+                });
+
+                self.listenToOnce(v, 'modalClosed', function () {
+                    self.messages.fetch();
+                });
+
+                v.render();
             });
         },
 
@@ -1234,6 +1263,38 @@ define([
             'click .js-profile': 'showProfile'
         },
 
+        scheduleModal: function() {
+            var self = this;
+
+            var other = self.options.chatModel.otherUser();
+
+            var m = new Iznik.Models.ModTools.User({
+                id: other
+            });
+
+            m.fetch().then(function() {
+                var s = new Iznik.Models.Schedule({
+                    id: self.model.get('scheduleid')
+                });
+
+                s.fetch().then(function() {
+                    var v = new Iznik.Views.User.Schedule.Modal({
+                        model: m,
+                        id: s.get('id'),
+                        other: true,
+                        otherid: self.options.chatModel.otherUser(),
+                        slots: s.get('schedule')
+                    });
+
+                    self.listenToOnce(v, 'modalClosed', function () {
+                        self.model.collection.fetch();
+                    });
+
+                    v.render();
+                });
+            });
+        },
+
         showProfile: function() {
             var self = this;
 
@@ -1369,6 +1430,12 @@ define([
                     case 'Nudge':
                         tpl = 'chat_nudge';
                         break;
+                    case 'Schedule':
+                        tpl = 'chat_schedule';
+                        break;
+                    case 'ScheduleUpdated':
+                        tpl = 'chat_scheduleupdated';
+                        break;
                     default:
                         tpl = 'chat_message';
                         break;
@@ -1401,6 +1468,10 @@ define([
 
                     self.listenTo(self.model, 'change:seenbyall', self.render);
                     self.listenTo(self.model, 'change:mailedtoall', self.render);
+
+                    self.$('.js-schedulemodal').click(function() {
+                        self.scheduleModal();
+                    });
                 });
             } else {
                 p = resolvedPromise(this);

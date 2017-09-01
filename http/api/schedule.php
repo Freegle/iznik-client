@@ -43,6 +43,12 @@ function schedule() {
                 $userid = intval(presdef('userid', $_REQUEST, NULL));
                 $s->addUser($userid);
 
+                # Create a message in a chat between the users to show that we have created this schedule.
+                $r = new ChatRoom($dbhr, $dbhm);
+                $rid = $r->createConversation($myid, $userid);
+                $m = new ChatMessage($dbhr, $dbhm);
+                $mid = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, $id);
+
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
@@ -58,6 +64,17 @@ function schedule() {
 
             if (in_array($myid, $atts['users'])) {
                 $s->setSchedule(presdef('schedule', $_REQUEST, NULL));
+
+                foreach ($atts['users'] as $user) {
+                    if ($user != $myid) {
+                        # Create a message in a chat between the users to show that we have updated this schedule.
+                        $r = new ChatRoom($dbhr, $dbhm);
+                        $rid = $r->createConversation($myid, $user);
+                        $m = new ChatMessage($dbhr, $dbhm);
+                        $mid = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, $id);
+                    }
+                }
+
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success'
