@@ -51,7 +51,8 @@ function schedule() {
             }
             break;
 
-        case 'PATCH': {
+        case 'PATCH':
+        case 'PUT': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $atts = $s->getPublic();
 
