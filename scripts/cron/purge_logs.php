@@ -117,6 +117,8 @@ try {
     error_log("Failed to delete API logs " . $e->getMessage());
 }
 
+$start = date('Y-m-d', strtotime("4 hours ago"));
+
 try {
     error_log("SQL logs:");
     $total = 0;
