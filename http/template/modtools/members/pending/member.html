@@ -4,12 +4,12 @@
             <div class="panel-title">
                 <div class="row-fluid">
                     <div class="col-md-5">
-                        <div class="ellipsis forcebreak">
+                        <div class="ellipsis">
                             <div class="glyphicon glyphicon-envelope" />&nbsp;<% if (obj.email) { %>{{email}}<% } else { %><em>Email on group not known</em><% } %>
                         </div>
                     </div>
                     <div class="col-md-7">
-                        <div class="ellipsis forcebreak">
+                        <div class="ellipsis">
                             <img src="{{profile.url}}" class="img-tinythumbnail img-circle" />&nbsp;<% if (obj.displayname && (displayname + '').trim().length > 0) { %>{{displayname}}<% } else { %><em>Blank name</em><% } %> <% if (obj.yahooid) { %>({{yahooid}}<% if (obj.yahooAlias && obj.yahooAlias != obj.yahooid) { %> aka {{yahooAlias}}<% } %>)<% } %>
                         </div>
                     </div>
