@@ -9,7 +9,7 @@ define([
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
     'iznik/views/user/message',
-    'iznik/views/supportus'
+    // 'iznik/views/supportus''
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",

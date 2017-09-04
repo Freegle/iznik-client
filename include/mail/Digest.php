@@ -128,7 +128,9 @@ class Digest
 
             foreach ($messages as $message) {
                 $maxmsg = max($message['msgid'], $maxmsg);
-                $maxdate = $maxdate ? $maxdate : $message['arrival'];
+
+                # Because we order by arrival, this will end up being the most recent message, i.e. max(arrival).
+                $maxdate = $message['arrival'];
 
                 $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                 $subjects[$message['msgid']] = $m->getSubject();

@@ -46,7 +46,7 @@ define([
         subj = subj.toLocaleLowerCase();
 
         // Remove any group tag
-        subj = subj.replace(/^\[.*\](.*)/, "$1");
+        subj = subj.replace(/^\[.*?\](.*)/, "$1");
 
         // Remove duplicate spaces
         subj = subj.replace(/\s+/g, ' ');

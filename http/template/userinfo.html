@@ -22,7 +22,7 @@
                     <% if (info.collected) { %>
                     <p><span class="glyphicon glyphicon-ok" />&nbsp;Picked up about {{info.collected}} item<% if (info.collected != 1) { %>s<% } %> in the last 90 days.</p>
                     <% } else { %>
-                    <p><span class="glyphicon glyphicon-ok faded" />&nbsp;Not picked up any items yet so far as we know.</p>
+                    <p><span class="glyphicon glyphicon-ok faded" />&nbsp;Not received any items yet so far as we know.</p>
                     <% } %>
                     <% if (info.reneged && (info.reneged * 100 / (info.reneged + info.collected) > 25)) { %>
                     <div class="alert alert-warning">

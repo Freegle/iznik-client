@@ -644,7 +644,6 @@ define([
 
         update: function() {
             var self = this;
-            console.log("Status update", self);
 
             $.ajax({
                 url: API + 'status',
@@ -725,7 +724,7 @@ define([
 
                     if (self.options.notificationCheck) {
                         console.log("Update notifications after seen");
-                        self.options.notificationCheck();
+                        self.options.notificationCheck.call(self.options.page);
                     }
                 });
             }

@@ -96,5 +96,12 @@ if (count($opts) != 1) {
 //                $mailer->send($message);
 //            }
         }
+
+        $mysqltime = date ("Y-m-d", strtotime("Midnight yesterday"));
+        $dons = $dbhr->preQuery("SELECT SUM(GrossAmount) AS total FROM users_donations WHERE DATE(timestamp) = ?;", [
+            $mysqltime
+        ]);
+
+        error_log("\n\nYesterday $mysqltime: £{$dons[0]['total']}");
     }
 }

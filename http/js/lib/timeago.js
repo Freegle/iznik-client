@@ -46,7 +46,7 @@ var timeAgoId = 1;
 			allowPast    : true,
 			allowFuture  : false,
 			localeTitle  : false,
-			cutoff       : 0,
+			cutoff       : 1000*60*60*24,
 			strings      : {
 				prefixAgo    : null,
 				prefixFromNow: null,
@@ -186,8 +186,17 @@ var timeAgoId = 1;
 			if(!isNaN(data.datetime)){
 				var dist = distance(data.datetime);
 				
-				if($s.cutoff == 0 || dist < $s.cutoff){
-					$(this).text(inWords(data.datetime));
+				// Update the first time, or when we are on screen.  This saves expensive DOM manipulations when
+				// we're not visible.
+				if (first || $(this).isOnScreen()) {
+					var text = inWords(data.datetime);
+
+                    // Don't do the DOM manipulation if the text hasn't changed - DOM changes are expensive.
+					if ($(this).text() != text) {
+						$(this).text(text);
+					}
+				} else {
+					console.log("Skip as not on screen", $(this));
 				}
 
 				var seconds = Math.abs(dist) / 1000;
@@ -208,10 +217,13 @@ var timeAgoId = 1;
 				} 
 			}
 
-			var refresh_el = $.proxy(refresh, this);
-			var $s = $t.settings;
-			if($s.refreshMillis > 0){
-				this._timeagoInterval = setTimeout(refresh_el, nextTime);
+			if($s.cutoff == 0 || dist < $s.cutoff) {
+				// No need for a timer if we are beyond the cutoff as what we display won't change.
+				var refresh_el = $.proxy(refresh, this);
+				var $s = $t.settings;
+				if($s.refreshMillis > 0){
+					this._timeagoInterval = setTimeout(refresh_el, nextTime);
+				}
 			}
 		}
 		

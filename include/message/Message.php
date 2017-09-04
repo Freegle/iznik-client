@@ -2128,12 +2128,16 @@ class Message
         if (!$yahooonly) {
             # Update the arrival time to NOW().  This is because otherwise we will fail to send out messages which
             # were held for moderation to people who are on immediate emails.
-            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ?, approvedat = NOW(), arrival = NOW() WHERE msgid = ? AND groupid = ?;";
+            #
+            # Make sure we don't approve multiple times, as this will lead to the same message being sent
+            # out multiple times.
+            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ?, approvedat = NOW(), arrival = NOW() WHERE msgid = ? AND groupid = ? AND collection != ?;";
             $rc = $this->dbhm->preExec($sql, [
                 MessageCollection::APPROVED,
                 $myid,
                 $this->id,
-                $groupid
+                $groupid,
+                MessageCollection::APPROVED
             ]);
 
             #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");

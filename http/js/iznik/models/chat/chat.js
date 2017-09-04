@@ -49,6 +49,17 @@ define([
             self.sendQueue();
         },
 
+        otherUser: function() {
+            var u1 = this.get('user1');
+            var user1 = u1 ? u1.id : null;
+            var u2 = this.get('user2');
+            var user2 = u2 ? u2.id : null;
+
+            var myid = Iznik.Session.get('me').id;
+            var other = user1 == myid ? user2 : user1;
+            return(other);
+        },
+
         nudge: function(userid) {
             var self = this;
 
@@ -257,12 +268,6 @@ define([
             // Which chat types we fetch depends on whether we're in ModTools or the User i/f.
             options.data.chattypes = (Iznik.Session && Iznik.Session.get('modtools')) ? [ 'Mod2Mod', 'User2Mod', 'Group' ] : [ 'User2User', 'User2Mod', 'Group' ];
             options.processData = true;
-
-            if (!options.hasOwnProperty('cached')) {
-                // We always want to cache the return value, even if no cached callback is passed, so that we cache it
-                // for later.  Setting a callback (albeit null) achieves that.
-                options.cached = nullFn;
-            }
 
             return Iznik.Collection.prototype.fetch.call(this, options);
         },

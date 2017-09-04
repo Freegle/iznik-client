@@ -40,7 +40,7 @@ class chatMessagesTest extends IznikTestCase {
     }
 
     protected function tearDown() {
-        parent::tearDown ();
+//        parent::tearDown ();
     }
 
     public function __construct() {
@@ -191,12 +191,6 @@ class chatMessagesTest extends IznikTestCase {
         $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
-
-        # Check not flagged.
-        $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'shrubhi.doogar@newsnation.in') ORDER BY id DESC LIMIT 1;");
-        error_log("Chat message " . var_export($msgs, TRUE));
-        assertEquals(0, $msgs[0]['reviewrequired']);
-        assertEquals(1, $msgs[0]['reviewrejected']);
 
         error_log(__METHOD__ . " end");
     }

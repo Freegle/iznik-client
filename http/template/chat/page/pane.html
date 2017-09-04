@@ -70,26 +70,38 @@
     <div class="row completefull nomargin">
         <div class="col-xs-9 col-sm-10 col-md-11">
             <div class="row botspace">
-                <% if (chattype == 'User2User') { %>
-                <div class="col-xs-2 js-tooltip js-promise" id="chat-promise-{{id}}" data-placement="top" data-toggle="tooltip" title="Promise an item to this freegler.">
-                    <span class="clickme success glyphicons glyphicons-handshake gi-2x visible-xs" alt="Promise"/>
-                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-handshake vcenter" alt="Promise" />Promise</div>
-                </div>
-                <div class="col-xs-2 js-tooltip js-address" id="chat-address-{{id}}" data-placement="top" data-toggle="tooltip" title="Use your address book to easily send directions.">
-                    <span class="clickme success glyphicons glyphicons-address-book gi-2x visible-xs" alt="Address" />
-                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-address-book vcenter" alt="Address" title="Send your address" />Address&nbsp;</div>
-                </div>
-                <div class="col-xs-2 js-tooltip js-info" data-placement="top" data-toggle="tooltip" title="Find out more about this freegler." >
-                    <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x visible-xs"  alt="Info"  />
-                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-info-sign text-muted vcenter" alt="Info" />Info&nbsp;</div>
-                </div>
-                <div class="col-xs-2 js-tooltip js-nudge" data-placement="top" data-toggle="tooltip" title="Waiting for a reply?  Nudge this freegler." >
-                    <span class="clickme glyphicons glyphicons-bell text-muted gi-2x visible-xs"  alt="Nudge"  />
-                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-bell text-muted vcenter" alt="Nudge" />Nudge&nbsp;</div>
-                </div>
-                <% } %>
-                <div class="col-xs-2 js-photo js-tooltip" data-placement="top" data-toggle="tooltip" title="Send a photo.">
-                    <input type="file" class="js-photopicker" name="photo" multiple="" />
+                <div class="completefull col-xs-12">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <% if (chattype == 'User2User') { %>
+                                <td class="js-tooltip js-promise" id="chat-promise-{{id}}" data-placement="top" data-toggle="tooltip" title="Promise an item to this freegler.">
+                                    <span class="clickme success glyphicons glyphicons-handshake gi-2x visible-xs" alt="Promise"/>
+                                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-handshake vcenter" alt="Promise" />Promise</div>
+                                </td>
+                                <td class="js-tooltip js-address" id="chat-address-{{id}}" data-placement="top" data-toggle="tooltip" title="Use your address book to easily send directions.">
+                                    <span class="clickme success glyphicons glyphicons-address-book gi-2x visible-xs" alt="Address" />
+                                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-address-book vcenter" alt="Address" title="Send your address" />Address&nbsp;</div>
+                                </td>
+                                <!--<td class="js-tooltip js-schedule" data-placement="top" data-toggle="tooltip" title="Schedule a collection time" >-->
+                                    <!--<span class="clickme success glyphicons glyphicons-calendar text-muted gi-2x visible-xs"  alt="Schedule"  />-->
+                                    <!--<div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-calendar text-muted vcenter" alt="Schedule" />Schedule&nbsp;</div>-->
+                                <!--</td>-->
+                                <td class="js-tooltip js-info" data-placement="top" data-toggle="tooltip" title="Find out more about this freegler." >
+                                    <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x visible-xs"  alt="Info"  />
+                                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-info-sign text-muted vcenter" alt="Info" />Info&nbsp;</div>
+                                </td>
+                                <td class="js-tooltip js-nudge" data-placement="top" data-toggle="tooltip" title="Waiting for a reply?  Nudge this freegler." >
+                                    <span class="clickme glyphicons glyphicons-bell text-muted gi-2x visible-xs"  alt="Nudge"  />
+                                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-bell text-muted vcenter" alt="Nudge" />Nudge&nbsp;</div>
+                                </td>
+                                <% } %>
+                                <td class="js-photo js-tooltip" data-placement="top" data-toggle="tooltip" title="Send a photo.">
+                                    <input type="file" class="js-photopicker" name="photo" multiple="" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -333,9 +333,10 @@ class Alert extends Entity
         }
 
         if ($cc) {
+            $toname = $g->getPrivate('nameshort') . " volunteers";
             $html = alert_tpl(
                 $g->getPrivate('nameshort'),
-                $u->getName(),
+                $toname,
                 USER_SITE,
                 USERLOGO,
                 $this->alert['subject'],

@@ -337,13 +337,18 @@ class chatRoomsTest extends IznikTestCase {
         $u2 = $u->create(NULL, NULL, "Test User 2");
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
+        $u3 = $u->create(NULL, NULL, "Test User 3");
+        $u->addEmail('test3@test.com');
+        $u->addEmail('test3@' . USER_DOMAIN);
 
         $u1u = User::get($this->dbhr, $this->dbhm, $u1);
         $u2u = User::get($this->dbhr, $this->dbhm, $u2);
+        $u3u = User::get($this->dbhr, $this->dbhm, $u3);
         $u1u->addMembership($this->groupid, User::ROLE_MEMBER);
         $u2u->addMembership($this->groupid, User::ROLE_OWNER);
+        $u3u->addMembership($this->groupid, User::ROLE_MODERATOR);
 
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $r = new ChatRoom($this->dbhm, $this->dbhm);
         $id = $r->createUser2Mod($u1, $this->groupid);
         error_log("Chat room $id for $u1 <-> group {$this->groupid}");
         assertNotNull($id);
@@ -352,6 +357,9 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $cm = $m->create($id, $u1, "Help me", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
         error_log("Created chat message $cm");
+
+        # Mark the query as seen by one mod.
+        $r->updateRoster($u3, $cm, ChatRoom::STATUS_ONLINE);
 
         $r = $this->getMockBuilder('ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
@@ -362,9 +370,9 @@ class chatRoomsTest extends IznikTestCase {
             return($this->mailer($message));
         }));
 
-        # Notify mods; we don't notify user of our own by default.
+        # Notify mods; we don't notify user of our own by default, but we do mail the mod who has already seen it.
         $this->msgsSent = [];
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
 
         # Chase up mods after unreasonably short interval
@@ -373,10 +381,10 @@ class chatRoomsTest extends IznikTestCase {
         # Fake mod reply
         $cm2 = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
 
-        # Notify user; this won't copy the mod by default..
+        # Notify user; this won't copy the mod who replied by default..
         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NULL WHERE userid = ?;", [ $u1 ]);
         $this->msgsSent = [];
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("Your conversation with the testgroup volunteers", $this->msgsSent[0]['subject']);
 
         error_log(__METHOD__ . " end");

@@ -92,14 +92,14 @@ class Notifications
         return($ret);
     }
 
-    public function add($from, $to, $type, $newsfeedid, $url = NULL) {
+    public function add($from, $to, $type, $newsfeedid, $newsfeedthreadid = NULL, $url = NULL) {
         $id = NULL;
 
         if ($from != $to) {
             $n = new Newsfeed($this->dbhr, $this->dbhm);
 
             # For newsfeed items, ensure we don't notify if we've unfollowed.
-            if (!$n->unfollowed($to, $newsfeedid)){
+            if (!$newsfeedthreadid || !$n->unfollowed($to, $newsfeedthreadid)){
                 $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`, `url`) VALUES (?, ?, ?, ?, ?);";
                 $this->dbhm->preExec($sql, [ $from, $to, $type, $newsfeedid, $url ]);
                 $id = $this->dbhm->lastInsertId();
@@ -180,7 +180,7 @@ class Notifications
                         #error_log("Message is {$notif['newsfeed']['message']} len " . strlen($notif['newsfeed']['message']));
                         switch ($notif['type']) {
                             case Notifications::TYPE_COMMENT_ON_COMMENT:
-                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " replied to your comment " . ($notif['newsfeed']['replyto']['message'] ? ("on {$notif['newsfeed']['replyto']['message']}") : "") . "\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " replied to your comment '" . ($notif['newsfeed']['replyto']['message'] ? ("on {$notif['newsfeed']['replyto']['message']}") : "") . "'\n";
                                 $count++;
                                 break;
                             case Notifications::TYPE_COMMENT_ON_YOUR_POST:

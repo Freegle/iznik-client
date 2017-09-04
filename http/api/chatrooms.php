@@ -33,7 +33,7 @@ function chatrooms() {
 
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                    
+
                     $rooms = $r->listForUser($myid, $chattypes, $search);
                     $ret['chatrooms'] = [];
 
@@ -41,7 +41,6 @@ function chatrooms() {
                         foreach ($rooms as $room) {
                             $r = new ChatRoom($dbhr, $dbhm, $room);
                             $atts = $r->getPublic($me, $mepub);
-                            $atts['unseen'] = $r->unseenCountForUser($myid);
                             $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
                             $ret['chatrooms'][] = $atts;
                         }
@@ -56,8 +55,6 @@ function chatrooms() {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
             if ($me) {
-                $ret = ['ret' => 2, 'status' => 'Bad parameters'];
-
                 switch ($chattype) {
                     case ChatRoom::TYPE_USER2USER:
                         if ($userid) {

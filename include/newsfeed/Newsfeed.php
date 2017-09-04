@@ -106,14 +106,14 @@ class Newsfeed extends Entity
 
                         if ($orig['userid']) {
                             # Some posts don't have a userid, e.g. central publicity.
-                            $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id);
+                            $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id, $replyto);
                         }
 
                         $sql = $orig['userid'] ? "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto AND userid != {$orig['userid']} UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto AND userid != {$orig['userid']};" : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto;";
                         $commenters = $this->dbhr->preQuery($sql);
 
                         foreach ($commenters as $commenter) {
-                            $rc = $n->add($userid, $commenter['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id);
+                            $rc = $n->add($userid, $commenter['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id, $replyto);
                         }
                     }
 
@@ -428,6 +428,10 @@ class Newsfeed extends Entity
         return([$users, $items]);
     }
 
+    public function threadId() {
+        return($this->feed['replyto'] ? $this->feed['replyto'] : $this->id);
+    }
+
     public function refer($type) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
@@ -438,7 +442,7 @@ class Newsfeed extends Entity
         # Create a kind of comment and notify the poster.
         $id = $this->create($type, NULL, NULL, NULL, NULL, $this->id);
         $n = new Notifications($this->dbhr, $this->dbhm);
-        $n->add($myid, $userid, Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
+        $n->add($myid, $userid, Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id, $this->threadId());
 
         # Hide this post except to the author.
         $rc = $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW(), hiddenby = ? WHERE id = ?;", [
@@ -459,7 +463,7 @@ class Newsfeed extends Entity
             # We want to notify the original poster.  The type depends on whether this was the start of a thread or
             # a comment on it.
             $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add($me->getId(), $this->feed['userid'], $this->feed['replyto'] ? Notifications::TYPE_LOVED_COMMENT : Notifications::TYPE_LOVED_POST, $this->id);
+            $n->add($me->getId(), $this->feed['userid'], $this->feed['replyto'] ? Notifications::TYPE_LOVED_COMMENT : Notifications::TYPE_LOVED_POST, $this->id, $this->threadId());
         }
     }
 
@@ -571,7 +575,7 @@ class Newsfeed extends Entity
             $oldest = ISODate(date("Y-m-d H:i:s", strtotime("midnight 7 days ago")));
 
             foreach ($feeds as $feed) {
-                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest) {
+                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest && pres('message', $feed)) {
                     $count++;
 
                     $str = $feed['message'];

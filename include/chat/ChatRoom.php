@@ -217,8 +217,19 @@ class ChatRoom extends Entity
         if ($id) {
             $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_rooms', 'chatroom', $this->publicatts);
 
-            # Ensure this users is in the roster.
+            # Ensure this user is in the roster.
             $this->updateRoster($user1, NULL);
+
+            # Ensure the group mods are in the roster.  We need to do this otherwise for new chats we would not
+            # mail them about this message.
+            $mods = $this->dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');", [
+                $groupid
+            ]);
+
+            foreach ($mods as $mod) {
+                $sql = "INSERT IGNORE INTO chat_roster (chatid, userid) VALUES (?, ?);";
+                $this->dbhm->preExec($sql, [$id, $mod['userid']]);
+            }
 
             # Poke the group mods to let them know to pick up the new chat
             $n = new PushNotifications($this->dbhr, $this->dbhm);
@@ -336,6 +347,8 @@ class ChatRoom extends Entity
             switch ($last['type']) {
                 case ChatMessage::TYPE_ADDRESS: $ret['snippet'] = 'Address sent...'; break;
                 case ChatMessage::TYPE_NUDGE: $ret['snippet'] = 'Nudged'; break;
+                case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Scheduling collection...'; break;
+                case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Schedule updated...'; break;
                 default: $ret['snippet'] = substr($last['message'], 0, 30); break;
             }
         }
@@ -439,6 +452,12 @@ class ChatRoom extends Entity
         #
         # A single query that handles this would be horrific, and having tried it, is also hard to make efficient.  So
         # break it down into smaller queries that have the dual advantage of working quickly and being comprehensible.
+        #
+        # Use a temp table for memberships to improve performance.
+        $this->dbhr->preQuery("DROP TEMPORARY TABLE IF EXISTS t1; CREATE TEMPORARY TABLE t1 (SELECT groupid, role FROM memberships WHERE userid = ?);", [
+            $userid
+        ]);
+
         $mysqltime = date("Y-m-d", strtotime("31 days ago"));
 
         # We don't want to see non-empty chats where all the messages are held for review, because they are likely to
@@ -448,9 +467,9 @@ class ChatRoom extends Entity
 
         if (!$chattypes || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
             # We want chats marked by groupid for which we are a mod.
-            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE memberships.role IN ('Moderator', 'Owner') AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
-            #error_log("Group chats $sql, $userid");
-            $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
+            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE t1.role IN ('Moderator', 'Owner') AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
+            #error_log("Mod2Mod chats $sql, $userid");
+            $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
             #error_log("Add " . count($rooms) . " mod chats using $sql");
         }
 
@@ -458,7 +477,7 @@ class ChatRoom extends Entity
             # If we're on ModTools then we want User2Mod chats for our group.
             #
             # If we're on the user site then we only want User2Mod chats where we are a user.
-            $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE (memberships.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
+            $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
             #error_log("List for user, modtools $modtools");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
             #error_log("Add " . count($rooms) . " user to mod chats using $sql");
@@ -467,15 +486,16 @@ class ChatRoom extends Entity
         if (!$chattypes || in_array(ChatRoom::TYPE_USER2USER, $chattypes)) {
             # We want chats where we are one of the users.
             $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' AND (status IS NULL OR status != 'Closed') $countq;";
+            #error_log("User chats $sql, $userid");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid, $userid]));
             #error_log("Add " . count($rooms) . " user to user chats using $sql");
         }
 
         if (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes)) {
             # We want chats marked by groupid for which we are a member.
-            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN memberships ON memberships.userid = ? AND chat_rooms.groupid = memberships.groupid WHERE chattype = 'Group' AND (status IS NULL OR status != 'Closed') $countq;";
+            $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid AND (status IS NULL OR status != 'Closed') $countq;";
             #error_log("Group chats $sql, $userid");
-            $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
+            $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
             #error_log("Add " . count($rooms) . " group chats using $sql");
         }
 
@@ -514,6 +534,7 @@ class ChatRoom extends Entity
                 }
             }
         }
+
 
         return (count($ret) == 0 ? NULL : $ret);
     }
@@ -565,6 +586,7 @@ class ChatRoom extends Entity
     public function upToDate($userid) {
         $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
         foreach ($msgs as $msg) {
+            #error_log("Set max to {$msg['max']} for $userid in room {$this->id} ");
             $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;",
                 [
                     $msg['max'],
@@ -612,7 +634,7 @@ class ChatRoom extends Entity
                 $lastmsgseen
             ], FALSE);
 
-            #error_log("Update roster $userid {$this->id} $rc last seen $lastmsgseen affected " . $this->dbhm->rowsAffected());
+            #error_log("Update roster $userid chat {$this->id} $rc last seen $lastmsgseen affected " . $this->dbhm->rowsAffected());
             #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen))");
             if ($rc && $this->dbhm->rowsAffected()) {
                 # We have updated our last seen.  Notify ourselves because we might have multiple devices which
@@ -966,7 +988,7 @@ class ChatRoom extends Entity
                 #error_log("User in User2Mod max $maxmailed vs $lastmessage");
 
                 if ($maxmailed < $lastmessage) {
-                    # We've not seen any messages, or seen some but not this one.
+                    # We've not been mailed any messages, or some but not this one.
                     $ret[] = [
                         'userid' => $user['userid'],
                         'lastmsgseen' => $user['lastmsgseen'],
@@ -1008,6 +1030,7 @@ class ChatRoom extends Entity
                     $maxseen = presdef('lastmsgseen', $roster, 0);
                     $maxmailed = presdef('lastemailed', $roster, 0);
                     $max = max($maxseen, $maxmailed);
+                    #error_log("Return {$roster['userid']} maxmailed {$roster['lastmsgemailed']} from " . var_export($roster, TRUE));
 
                     $ret[] = [
                         'userid' => $roster['userid'],
@@ -1054,7 +1077,7 @@ class ChatRoom extends Entity
             #error_log("Notmailed " . count($notmailed));
 
             foreach ($notmailed as $member) {
-                # Now we have a member who has not been mailed of the messages in this chat.
+                # Now we have a member who has not been mailed the messages in this chat.
                 #error_log("{$chat['chatid']} Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
                 $otheru = User::get($this->dbhr, $this->dbhm, $other);
@@ -1087,6 +1110,7 @@ class ChatRoom extends Entity
                     foreach ($unmailedmsgs as $unmailedmsg) {
                         $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? '(Empty message)' : $unmailedmsg['message'];
                         $maxmailednow = max($maxmailednow, $unmailedmsg['id']);
+                        $collurl = NULL;
 
                         if ($mailson) {
                             # We can get duplicate messages for a variety of reasons.  Suppress them.
@@ -1146,6 +1170,18 @@ class ChatRoom extends Entity
                                     break;
                                 }
 
+                                case ChatMessage::TYPE_SCHEDULE: {
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You asked  " . $otheru->getName() . " to arrange a collection time") : ($thisu->getName() . " would like to arrange a collection time.  Please click here to say when you're available:");
+                                    $collurl = "https://" . USER_SITE . "/schedule/{$unmailedmsg['scheduleid']}";
+                                    break;
+                                }
+
+                                case ChatMessage::TYPE_SCHEDULE_UPDATED: {
+                                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your collection schedule") : ($thisu->getName() . " has updated their collection schedule.  Please click here to see their times and say when you're available:");
+                                    $collurl = "https://" . USER_SITE . "/schedule/{$unmailedmsg['scheduleid']}";
+                                    break;
+                                }
+
                                 default: {
                                     # Use the text in the message.
                                     $thisone = $unmailedmsg['message'];
@@ -1183,6 +1219,9 @@ class ChatRoom extends Entity
                                     $htmlsummary .= '<img alt="User-sent image" width="100%" src="' . $path . '" />';
                                     $textsummary .= "Here's a picture: $path\r\n";
                                     $ccit = TRUE;
+                                } else if ($collurl) {
+                                    $textsummary .= $thisone . "\r\n$collurl\r\n";
+                                    $htmlsummary .= nl2br($thisone) . '<br><br><a href="' . $collurl . '">' . $collurl . "</a><br>";
                                 } else {
                                     $textsummary .= $thisone . "\r\n";
                                     $htmlsummary .= nl2br($thisone) . "<br>";
@@ -1266,7 +1305,7 @@ class ChatRoom extends Entity
 
                             # ModTools users should never get notified.
                             if ($to && strpos($to, MOD_SITE) === FALSE) {
-                                error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed $lastmsgemailed lastmax $lastmaxmailed");
+                                error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
                                 try {
                                     #$to = 'log@ehibbert.org.uk';
                                     # We only include the HTML part if this is a user on our platform; otherwise

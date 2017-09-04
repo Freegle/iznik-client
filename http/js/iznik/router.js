@@ -190,6 +190,7 @@ define([
             "plugins/group/:id": "groupPlugin",
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
+            "schedule(/:id)": "userSchedule",
             "stories/fornewsletter": "userNewsletterReview",
             "stories": "userStories",
             "story/:id": "userStory",
@@ -306,6 +307,21 @@ define([
             Iznik.Session.forceLogin();
         },
 
+        userSchedule: function(id) {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                require(["iznik/views/pages/user/schedule"], function() {
+                    var page = new Iznik.Views.User.Pages.Schedule({
+                        id: id
+                    });
+                    self.loadRoute({page: page});
+                });
+            });
+
+            Iznik.Session.forceLogin();
+        },
+
         userNewsletterReview: function() {
             var self = this;
 
@@ -320,27 +336,42 @@ define([
         userDefault: function() {
             var self = this;
 
-            // Load the last of the main pages that they had open.
-            var page = Storage.get('lasthomepage');
+            function f(loggedIn) {
+                // console.log("Logged in", loggedIn);
+                if (loggedIn || _.isUndefined(loggedIn)) {
+                    // Load the last of the main pages that they had open.
+                    var page = Storage.get('lasthomepage');
 
-            switch (page) {
-                case 'news': {
-                    self.userNewsfeed();
-                    break;
-                }
-                case 'myposts': {
-                    self.userHome();
-                    break;
-                }
-                case 'mygroups': {
-                    self.userMyGroups();
-                    break;
-                }
-                default: {
-                    self.userNewsfeed();
-                    break;
+                    switch (page) {
+                        case 'news': {
+                            self.userNewsfeed();
+                            break;
+                        }
+                        case 'myposts': {
+                            self.userHome();
+                            break;
+                        }
+                        case 'mygroups': {
+                            self.userMyGroups();
+                            break;
+                        }
+                        default: {
+                            self.userNewsfeed();
+                            break;
+                        }
+                    }
+                } else {
+                    require(["iznik/views/pages/user/landing"], function() {
+                        console.log("Load landing");
+                        var page = new Iznik.Views.User.Pages.Landing();
+                        self.loadRoute({page: page});
+                    });
                 }
             }
+
+            self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+            Iznik.Session.testLoggedIn();
+
         },
 
         userStories: function() {
