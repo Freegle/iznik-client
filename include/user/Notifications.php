@@ -180,7 +180,7 @@ class Notifications
                         #error_log("Message is {$notif['newsfeed']['message']} len " . strlen($notif['newsfeed']['message']));
                         switch ($notif['type']) {
                             case Notifications::TYPE_COMMENT_ON_COMMENT:
-                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " replied to your comment " . ($notif['newsfeed']['replyto']['message'] ? ("on {$notif['newsfeed']['replyto']['message']}") : "") . "\n";
+                                $str .= ($notif['fromuser'] ? "{$notif['fromuser']['displayname']}" : "Someone") . " replied to your comment '" . ($notif['newsfeed']['replyto']['message'] ? ("on {$notif['newsfeed']['replyto']['message']}") : "") . "'\n";
                                 $count++;
                                 break;
                             case Notifications::TYPE_COMMENT_ON_YOUR_POST:
