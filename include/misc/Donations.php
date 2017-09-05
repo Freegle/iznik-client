@@ -4,7 +4,7 @@ require_once(IZNIK_BASE . '/include/utils.php');
 
 class Donations
 {
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -24,6 +24,24 @@ class Donations
             $mysqltime
         ]);
         $ret['raised'] = $totals[0]['raised'];
+        return($ret);
+    }
+
+    public function recordAsk($userid) {
+        $this->dbhm->preExec("INSERT INTO users_donations_asks (userid) VALUES (?);", [ $userid ]);
+    }
+
+    public function lastAsk($userid) {
+        $ret = NULL;
+
+        $asks = $this->dbhr->preQuery("SELECT MAX(timestamp) AS max FROM users_donations_asks WHERE userid = ?;", [
+            $userid
+        ]);
+
+        foreach ($asks as $ask) {
+            $ret = $ask['max'];
+        }
+
         return($ret);
     }
 }

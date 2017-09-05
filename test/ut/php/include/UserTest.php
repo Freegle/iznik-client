@@ -32,7 +32,7 @@ class userTest extends IznikTestCase {
     }
 
     protected function tearDown() {
-//        parent::tearDown ();
+        parent::tearDown ();
     }
 
     public function __construct() {
