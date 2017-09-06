@@ -1223,14 +1223,21 @@ class Group extends Entity
     }
 
     public function listByType($type) {
-       $me = whoAmI($this->dbhr, $this->dbhm);
-       $typeq = $type ? "type = ?" : '1=1';
-        $sql = "SELECT id, nameshort, region, namefull, lat, lng, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $typeq = $type ? "type = ?" : '1=1';
+        $sql = "SELECT id, nameshort, region, namefull, lat, lng, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
             $a = new Attachment($this->dbhr, $this->dbhm, $group['profile'], Attachment::TYPE_GROUP);
             $group['profile'] = $group['profile'] ? $a->getPath(FALSE) : NULL;
+
+            if ($group['contactmail']) {
+                $group['modsmail'] = $group['contactmail'];
+            } else if ($group['onyahoo']) {
+                $group['modsmail'] = $group['nameshort'] . "-owner@yahoogroups.com";
+            } else {
+                $group['modsmail'] = $group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
+            }
         }
 
         return($groups);

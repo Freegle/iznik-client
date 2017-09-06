@@ -32,7 +32,7 @@ define([
                 var sitedesc = $('meta[name=izniksitedesc]').attr("content");
 
                 self.model = new Iznik.Model({
-                    'namedisplay': self.options.area ? self.options.area : sitename,
+                    'namedisplay': self.options.region ? self.options.region : (self.options.area ? self.options.area : sitename),
                     'tagline': sitedesc
                 });
 
@@ -77,8 +77,9 @@ define([
                             group: self.model.get('id'),
                             start: '13 months ago',
                             grouptype: 'Freegle',
-                            systemwide: (self.options.id || self.options.area) ? false : true,
-                            area: self.options.area
+                            systemwide: (self.options.id || self.options.area || self.options.region) ? false : true,
+                            area: self.options.area,
+                            region: self.options.region
                         },
                         success: function (ret) {
                             v.close();
