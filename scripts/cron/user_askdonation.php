@@ -12,8 +12,9 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/misc/Donations.php');
 require_once(IZNIK_BASE . '/mailtemplates/donations/collected.php');
 
-$start = date('Y-m-d', strtotime("midnight 7 days ago"));
-$today = date('Y-m-d', strtotime('today'));
+$start = date('Y-m-d H:i', strtotime("yesterday 5pm"));
+$end = date('Y-m-d H:i', strtotime('today 5pm'));
+error_log("Look between $start and $end");
 
 $d = new Donations($dbhr, $dbhm);
 
@@ -21,7 +22,7 @@ $d = new Donations($dbhr, $dbhm);
 $users = $dbhr->preQuery("SELECT DISTINCT userid, COUNT(*) AS count FROM messages_outcomes INNER JOIN users ON users.id = userid AND outcome = ? WHERE messages_outcomes.timestamp >= ? AND messages_outcomes.timestamp < ? GROUP BY userid ORDER BY count DESC;", [
     Message::OUTCOME_TAKEN,
     $start,
-    $today
+    $end
 ]);
 
 $count = 0;
@@ -43,21 +44,23 @@ foreach ($users as $user) {
             $count++;
             error_log("{$user['userid']} " . $u->getName() . " " . $u->getEmailPreferred() . " {$message['msgid']} {$message['date']} {$message['subject']}");
 
-            list ($transport, $mailer) = getMailer();
-            $m = Swift_Message::newInstance()
-                ->setSubject("Re: {$message['subject']}")
-                ->setFrom([ NOREPLY_ADDR => SITE_NAME ])
-                ->setReplyTo(NOREPLY_ADDR)
-                ->setTo($u->getEmailPreferred())
-                ->setBody("We think that you've received this item on Freegle:\r\n\r\n{$message['subject']}\r\n\r\n(If we're wrong, just delete this message.)\r\n\r\nFreegle is free to use, but it's not free to run.  This month we're trying to raise " . DONATION_TARGET . " to keep us going.\r\n\r\nIf you can, please donate &pound;1 through PayPal:\r\n\r\nhttp://freegle.in/paypal\r\n\r\nWe realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!\r\n"
-                );
-            $headers = $m->getHeaders();
-            $headers->addTextHeader('X-Freegle-Mail-Type', 'AskDonation');
+            try {
+                list ($transport, $mailer) = getMailer();
+                $m = Swift_Message::newInstance()
+                    ->setSubject("Re: {$message['subject']}")
+                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                    ->setReplyTo(NOREPLY_ADDR)
+                    ->setTo($u->getEmailPreferred())
+                    ->setBody("We think that you've received this item on Freegle:\r\n\r\n{$message['subject']}\r\n\r\n(If we're wrong, just delete this message.)\r\n\r\nFreegle is free to use, but it's not free to run.  This month we're trying to raise " . DONATION_TARGET . " to keep us going.\r\n\r\nIf you can, please donate &pound;1 through PayPal:\r\n\r\nhttp://freegle.in/paypal\r\n\r\nWe realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!\r\n"
+                    );
+                $headers = $m->getHeaders();
+                $headers->addTextHeader('X-Freegle-Mail-Type', 'AskDonation');
 
-            $html = donation_collected($u->getName(), $u->getEmailPreferred(), $message['subject'], DONATION_TARGET);
+                $html = donation_collected($u->getName(), $u->getEmailPreferred(), $message['subject'], DONATION_TARGET);
 
-            $m->addPart($html, 'text/html');
-            $mailer->send($m);
+                $m->addPart($html, 'text/html');
+                $mailer->send($m);
+            } catch (Exception $e) {};
         }
     }
 }
