@@ -242,7 +242,7 @@ define([
         },
 
         visible: function(model) {
-            var vis = model.get('visible');
+            var vis = model.get('visible') && !model.get('unfollowed');
             return(vis);
         },
 
