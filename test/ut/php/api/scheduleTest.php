@@ -56,6 +56,7 @@ class scheduleAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('schedule', 'POST', [
             'userid' => $uid2,
+            'dup' => 1,
             'schedule' => [
                 'test' => 1
             ]
