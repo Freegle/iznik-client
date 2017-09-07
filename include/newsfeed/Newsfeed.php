@@ -100,20 +100,18 @@ class Newsfeed extends Entity
 
                     $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [ $replyto ]);
                     foreach ($origs as $orig) {
-                        # Comment on thread.  We want to notify the original poster and anyone else who
-                        # has commented on this thread.
                         $n = new Notifications($this->dbhr, $this->dbhm);
 
                         if ($orig['userid']) {
-                            # Some posts don't have a userid, e.g. central publicity.
+                            # Some posts don't have a userid, e.g. central publicity.  Otherwise assume the person
+                            # who started the thread always wants to know.
                             $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id, $replyto);
                         }
 
-                        $sql = $orig['userid'] ? "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto AND userid != {$orig['userid']} UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto AND userid != {$orig['userid']};" : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto;";
-                        $commenters = $this->dbhr->preQuery($sql);
+                        $engageds = $this->engaged($replyto, $userid);
 
-                        foreach ($commenters as $commenter) {
-                            $rc = $n->add($userid, $commenter['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id, $replyto);
+                        foreach ($engageds as $engaged) {
+                            $rc = $n->add($userid, $engaged['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id, $replyto);
                         }
                     }
 
@@ -129,6 +127,16 @@ class Newsfeed extends Entity
         }
 
         return($id);
+    }
+
+    private function engaged($threadid, $userid) {
+        # We don't necessarily want to notify all users who have commented on a thread - that would mean that you
+        # got pestered for a thread you'd long since lost interest in, and many people won't work out how to unfollow.
+        # So as a quick hack, notify anyone who has commented in the last week.
+        $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
+        $sql = $userid ? "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND userid != $userid AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND userid != $userid AND timestamp >= '$mysqltime' ;" : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND timestamp >= '$mysqltime';";
+        $engageds = $this->dbhr->preQuery($sql);
+        return($engageds);
     }
 
     public function getPublic($lovelist = FALSE, $unfollowed = TRUE) {
