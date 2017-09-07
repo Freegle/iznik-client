@@ -453,8 +453,10 @@ class ChatRoom extends Entity
         # A single query that handles this would be horrific, and having tried it, is also hard to make efficient.  So
         # break it down into smaller queries that have the dual advantage of working quickly and being comprehensible.
         #
-        # Use a temp table for memberships to improve performance.
-        $this->dbhr->preQuery("DROP TEMPORARY TABLE IF EXISTS t1; CREATE TEMPORARY TABLE t1 (SELECT groupid, role FROM memberships WHERE userid = ?);", [
+        # Use a temp table for memberships to improve performance.  We want to know if this is an active chat for us -
+        # always the case for groups where we have a member role, but for mods we might have marked ourselves as a
+        # backup on the group.
+        $this->dbhr->preQuery("DROP TEMPORARY TABLE IF EXISTS t1; CREATE TEMPORARY TABLE t1 (SELECT groupid, role, role = 'Member' OR ((role IN ('Owner', 'Moderator') AND (settings IS NULL OR LOCATE('\"active\"', settings) = 0 OR LOCATE('\"active\":1', settings) > 0))) AS active FROM memberships WHERE userid = ?);", [
             $userid
         ]);
 
@@ -466,8 +468,8 @@ class ChatRoom extends Entity
         $rooms = [];
 
         if (!$chattypes || in_array(ChatRoom::TYPE_MOD2MOD, $chattypes)) {
-            # We want chats marked by groupid for which we are a mod.
-            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE t1.role IN ('Moderator', 'Owner') AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
+            # We want chats marked by groupid for which we are an active mod.
+            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE t1.role IN ('Moderator', 'Owner') AND active AND chattype = 'Mod2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
             #error_log("Mod2Mod chats $sql, $userid");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
             #error_log("Add " . count($rooms) . " mod chats using $sql");
@@ -477,8 +479,8 @@ class ChatRoom extends Entity
             # If we're on ModTools then we want User2Mod chats for our group.
             #
             # If we're on the user site then we only want User2Mod chats where we are a user.
-            $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
-            #error_log("List for user, modtools $modtools");
+            $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) AND active AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
+            error_log("List for user, $sql modtools $modtools");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
             #error_log("Add " . count($rooms) . " user to mod chats using $sql");
         }
