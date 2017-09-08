@@ -119,7 +119,10 @@ define([
                         }
                     } catch (e) {}
 
-                    self.activeChat.messageFocus();
+                    if (!isXS()) {
+                        // Don't focus on small, probably mobile devices as the onscreen keyboard will obscure the chat.
+                        self.activeChat.messageFocus();
+                    }
                 })
             }
         },
@@ -640,7 +643,6 @@ define([
 
         messageFocused: function () {
             var self = this;
-            console.log("Message focus");
 
             // We've seen all the messages.
             self.model.allseen();
