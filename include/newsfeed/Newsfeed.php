@@ -108,7 +108,7 @@ class Newsfeed extends Entity
                             $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id, $replyto);
                         }
 
-                        $engageds = $this->engaged($replyto, $userid);
+                        $engageds = $this->engaged($replyto, [ $orig['userid'], $userid ]);
 
                         foreach ($engageds as $engaged) {
                             $rc = $n->add($userid, $engaged['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id, $replyto);
@@ -129,12 +129,13 @@ class Newsfeed extends Entity
         return($id);
     }
 
-    private function engaged($threadid, $userid) {
+    private function engaged($threadid, $excludes) {
         # We don't necessarily want to notify all users who have commented on a thread - that would mean that you
         # got pestered for a thread you'd long since lost interest in, and many people won't work out how to unfollow.
         # So as a quick hack, notify anyone who has commented in the last week.
+        $excludes = array_filter($excludes, function($var){return !is_null($var);} );
         $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
-        $sql = $userid ? "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND userid != $userid AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND userid != $userid AND timestamp >= '$mysqltime' ;" : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND timestamp >= '$mysqltime';";
+        $sql = $excludes ? ("SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND userid NOT IN (" . implode(',', $excludes) . ") AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND userid NOT IN (" . implode(',', $excludes) . ") AND timestamp >= '$mysqltime';") : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND timestamp >= '$mysqltime';";
         $engageds = $this->dbhr->preQuery($sql);
         return($engageds);
     }
