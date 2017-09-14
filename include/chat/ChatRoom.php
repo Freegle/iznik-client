@@ -480,7 +480,7 @@ class ChatRoom extends Entity
             #
             # If we're on the user site then we only want User2Mod chats where we are a user.
             $sql = $modtools ? "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid INNER JOIN t1 ON chat_rooms.groupid = t1.groupid WHERE (t1.role IN ('Owner', 'Moderator') OR chat_rooms.user1 = $userid) AND active AND (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed');" : "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE user1 = ? AND chattype = 'User2Mod' AND (status IS NULL OR status != 'Closed') $countq;";
-            error_log("List for user, $sql modtools $modtools");
+            #error_log("List for user, $sql modtools $modtools");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid]));
             #error_log("Add " . count($rooms) . " user to mod chats using $sql");
         }
