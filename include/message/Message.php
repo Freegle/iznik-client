@@ -657,6 +657,8 @@ class Message
         # URL people can follow to get to the message on our site.
         $ret['url'] = 'https://' . USER_SITE . '/message/' . $this->id;
 
+        $ret['mine'] = $myid && $this->fromuser == $myid;
+
         # Add any groups that this message is on.
         $ret['groups'] = [];
         $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
@@ -686,7 +688,7 @@ class Message
             $showarea = !$includearea ? FALSE : $showarea;
             $showpc = !$includepc ? FALSE : $showpc;
 
-            if ($ret['mine']) {
+            if (pres('mine', $ret)) {
                 # Can we repost?
                 $ret['canrepost'] = FALSE;
 
@@ -730,8 +732,6 @@ class Message
                 $ret['location'] = $l->getPublic();
             }
         }
-
-        $ret['mine'] = $myid && $this->fromuser == $myid;
 
         # Remove any group subject tag.
         $ret['subject'] = preg_replace('/^\[.*?\]\s*/', '', $ret['subject']);

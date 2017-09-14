@@ -155,6 +155,20 @@ define([
             }));
         },
 
+        block: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + 'chatrooms',
+                type: 'POST',
+                data: {
+                    id: self.get('id'),
+                    status: 'Blocked'
+                }, success: function(ret) {
+                }
+            }));
+        },
+
         allseen: function() {
             var self = this;
             console.log("Allseen", self.get('unseen'), self.get('id'));

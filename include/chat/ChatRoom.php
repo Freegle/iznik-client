@@ -24,6 +24,7 @@ class ChatRoom extends Entity
     const STATUS_OFFLINE = 'Offline';
     const STATUS_AWAY = 'Away';
     const STATUS_CLOSED = 'Closed';
+    const STATUS_BLOCKED = 'Blocked';
 
     # States for syncing chats to Facebook.
     const FACEBOOK_SYNC_DONT = 'Dont';                                      # Default - don't sync
@@ -486,8 +487,8 @@ class ChatRoom extends Entity
         }
 
         if (!$chattypes || in_array(ChatRoom::TYPE_USER2USER, $chattypes)) {
-            # We want chats where we are one of the users.
-            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' AND (status IS NULL OR status != 'Closed') $countq;";
+            # We want chats where we are one of the users.  If the chat is closed or blocked we don't want to see it.
+            $sql = "SELECT chat_rooms.* FROM chat_rooms LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (latestmessage >= '$mysqltime' OR latestmessage IS NULL) AND (user1 = ? OR user2 = ?) AND chattype = 'User2User' AND (status IS NULL OR status NOT IN ('Closed', 'Blocked')) $countq;";
             #error_log("User chats $sql, $userid");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, [$userid, $userid]));
             #error_log("Add " . count($rooms) . " user to user chats using $sql");
@@ -617,8 +618,8 @@ class ChatRoom extends Entity
             error_log("Bad request " . var_export($_REQUEST, TRUE));
         }
 
-        if ($status == ChatRoom::STATUS_CLOSED) {
-            # The Closed status is special - it's per-room.  So we need to set it.
+        if ($status == ChatRoom::STATUS_CLOSED || $status == ChatRoom::STATUS_BLOCKED) {
+            # The Closed and Blocked statuses are special - they're per-room.  So we need to set it.
             $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;", [
                 $status,
                 $this->id,
@@ -812,7 +813,7 @@ class ChatRoom extends Entity
         # a member, where the group wants us to do this.
         $userid = $user->getId();
         $msgid = $ctx ? $ctx['msgid'] : 0;
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, memberships.groupid FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'))  INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) ORDER BY chat_messages.id ASC;";
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, memberships.groupid FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE chat_messages.id > ? AND memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator'))  INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":true') != 0 OR INSTR(groups.settings, '\"chatreview\":1') != 0) ORDER BY chat_messages.id ASC;";
         $msgs = $this->dbhr->preQuery($sql, [$msgid, $userid]);
         $ret = [];
 
@@ -947,10 +948,10 @@ class ChatRoom extends Entity
 
         if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER) {
             # This is a conversation between two users.  They're both in the roster so we can see what their last
-            # seen message was and decide who to chase.
+            # seen message was and decide who to chase.  If they've blocked this chat we don't want to see it.
             #
             # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
-            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
+            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != 'Blocked') HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(MINUTE, lastemailed, NOW()) > 10);";
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, [$this->id, $lastmessage]);
             foreach ($users as $user) {
@@ -1062,7 +1063,7 @@ class ChatRoom extends Entity
         $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0 AND reviewrequired = 0 AND chattype = ? $chatq;";
         #error_log("$sql, $start, $chattype");
         $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
-        error_log("Chats to scan " . count($chats));
+        #error_log("Chats to scan " . count($chats));
         $notified = 0;
 
         foreach ($chats as $chat) {

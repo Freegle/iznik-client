@@ -392,6 +392,7 @@ define([
 
         events: {
             'click .js-remove, touchstart .js-remove': 'removeIt',
+            'click .js-block, touchstart .js-block': 'blockIt',
             'click .js-minimise, touchstart .js-minimise': 'minimise',
             'click .js-report, touchstart .js-report': 'report',
             'click .js-enter': 'enter',
@@ -564,6 +565,38 @@ define([
                     Storage.remove(this.lsID() + '-width');
 
                     self.model.close().then(function() {
+                        // Also refetch the chats, so that our cached copy gets updated.
+                        Iznik.Session.chats.fetch();
+                    })
+                } catch (e) {
+                    console.error(e.message)
+                }
+            });
+
+            v.render();
+        },
+
+        blockIt: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation();
+
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'chat_block';
+
+            self.listenToOnce(v, 'confirmed', function () {
+                // This will block the chat, which means it won't show in our list again.
+                self.removed = true;
+                self.$el.hide();
+                try {
+                    // Remove the local storage, otherwise it will clog up with info for chats we don't look at.
+                    Storage.remove(this.lsID() + '-open');
+                    Storage.remove(this.lsID() + '-height');
+                    Storage.remove(this.lsID() + '-width');
+
+                    self.model.block().then(function() {
                         // Also refetch the chats, so that our cached copy gets updated.
                         Iznik.Session.chats.fetch();
                     })
