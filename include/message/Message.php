@@ -657,24 +657,73 @@ class Message
         # URL people can follow to get to the message on our site.
         $ret['url'] = 'https://' . USER_SITE . '/message/' . $this->id;
 
+        # Add any groups that this message is on.
+        $ret['groups'] = [];
+        $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
+        $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
+        $showarea = TRUE;
+        $showpc = TRUE;
+
+        foreach ($ret['groups'] as &$group) {
+            $group['arrival'] = ISODate($group['arrival']);
+            #error_log("{$this->id} approved by {$group['approvedby']}");
+
+            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
+                if (pres('approvedby', $group)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
+                    $ctx = NULL;
+                    $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                }
+            }
+
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
+            $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
+
+            # Some groups disable the area or postcode.  If so, hide that.
+            $includearea = $g->getSetting('includearea', TRUE);
+            $includepc = $g->getSetting('includepc', TRUE);
+            $showarea = !$includearea ? FALSE : $showarea;
+            $showpc = !$includepc ? FALSE : $showpc;
+
+            if ($ret['mine']) {
+                # Can we repost?
+                $ret['canrepost'] = FALSE;
+
+                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+                $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                $arrival = strtotime($group['arrival']);
+                $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
+
+                if ($group['hoursago'] > $interval * 24) {
+                    $ret['canrepost'] = TRUE;
+                }
+            }
+        }
+
         # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
         # we can see the precise location.
         if ($this->locationid) {
             $l = new Location($this->dbhr, $this->dbhm, $this->locationid);
-            $areaid = $l->getPrivate('areaid');
-            if ($areaid) {
-                # This location is quite specific.  Return the area it's in.
-                $a = new Location($this->dbhr, $this->dbhm, $areaid);
-                $ret['area'] = $a->getPublic();
-            } else {
-                # This location isn't in an area; it is one.  Return it.
-                $ret['area'] = $l->getPublic();
+
+            if ($showarea) {
+                $areaid = $l->getPrivate('areaid');
+                if ($areaid) {
+                    # This location is quite specific.  Return the area it's in.
+                    $a = new Location($this->dbhr, $this->dbhm, $areaid);
+                    $ret['area'] = $a->getPublic();
+                } else {
+                    # This location isn't in an area; it is one.  Return it.
+                    $ret['area'] = $l->getPublic();
+                }
             }
 
-            $pcid = $l->getPrivate('postcodeid');
-            if ($pcid) {
-                $p = new Location($this->dbhr, $this->dbhm, $pcid);
-                $ret['postcode'] = $p->getPublic();
+            if ($showpc) {
+                $pcid = $l->getPrivate('postcodeid');
+                if ($pcid) {
+                    $p = new Location($this->dbhr, $this->dbhm, $pcid);
+                    $ret['postcode'] = $p->getPublic();
+                }
             }
 
             if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
@@ -707,42 +756,6 @@ class Message
                 'id' => $itemid,
                 'name' => $item
             ];
-        }
-
-        # Add any groups that this message is on.
-        $ret['groups'] = [];
-        $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
-        $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
-
-        foreach ($ret['groups'] as &$group) {
-            $group['arrival'] = ISODate($group['arrival']);
-            #error_log("{$this->id} approved by {$group['approvedby']}");
-
-            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
-                if (pres('approvedby', $group)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
-                    $ctx = NULL;
-                    $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
-                }
-            }
-
-            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
-            $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
-
-            if ($ret['mine']) {
-                # Can we repost?
-                $ret['canrepost'] = FALSE;
-
-                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
-                $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-                $arrival = strtotime($group['arrival']);
-                $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
-
-                if ($group['hoursago'] > $interval * 24) {
-                    $ret['canrepost'] = TRUE;
-                }
-            }
         }
 
         # Can see replies if:
