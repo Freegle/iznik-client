@@ -438,6 +438,14 @@ define([
             })
 
             v.render();
+        },
+
+        render: function() {
+            var self = this;
+
+            Iznik.Views.User.Message.prototype.render.call(this).then(function() {
+                self.$('.js-outcometime').timeago();
+            });
         }
     });
 
@@ -472,6 +480,14 @@ define([
             })
 
             v.render();
+        },
+
+        render: function() {
+            var self = this;
+
+            Iznik.Views.User.Message.prototype.render.call(this).then(function() {
+                self.$('.js-outcometime').timeago();
+            });
         }
     });
 

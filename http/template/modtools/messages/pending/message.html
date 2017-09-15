@@ -58,6 +58,13 @@
                     <div class="small js-duplist" />
                     <div class="small js-crosspostlist" />
                     <div class="small js-relatedlist" />
+                    <% if (obj.outcomes.length > 0) { %>
+                    <div class="row">
+                        <div class="col-xs-12 topspace">
+                            {{outcomes[0].outcome}} <abbr class="js-outcometime" title="{{outcomes[0].timestamp}}" />
+                        </div>
+                    </div>
+                    <% } %>
                 </div>
                 <div class="col-sm-3">
                     <div class="pull-right dropdown">

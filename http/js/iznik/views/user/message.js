@@ -192,7 +192,6 @@ define([
                 self.rendering = new Promise(function(resolve, reject) {
                     Iznik.View.prototype.render.call(self).then(function() {
                         if (Iznik.Session.hasFacebook()) {
-
                             require(['iznik/facebook'], function(FBLoad) {
                                 self.listenToOnce(FBLoad(), 'fbloaded', function () {
                                     if (!FBLoad().isDisabled()) {
