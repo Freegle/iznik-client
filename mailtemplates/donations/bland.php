@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function donation_collected($name, $email, $subject, $target) {
+function donation_bland($name, $email, $target) {
     $logo = USERLOGO;
 
     $html = <<<EOT
@@ -51,10 +51,7 @@ EOT;
                                                             </td>    
                                                             <td>
                                                                 <h1>We think Freegle has helped you - can you help us?</h1>
-                                                                <p>Dear $name,</p>
-                                                                <p>We think that you've just got this from Freegle:</p>
-                                                                <p><em>$subject</em></p>
-                                                                <p>(If we're wrong, just delete this message.)</p>
+                                                                <p>We are pleased that you're using your local Freegle group.</p>
                                                                 <p>Freegle is <b>free to use, but it's not free to run</b>.  This month we're trying to raise &pound;$target to keep us going.<p>
                                                                 <p>If you can, please donate &pound;1 through PayPal.</p> 
                                                                 <p>We realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!</p>
