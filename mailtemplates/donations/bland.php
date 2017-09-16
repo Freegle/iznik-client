@@ -51,7 +51,7 @@ EOT;
                                                             </td>    
                                                             <td>
                                                                 <h1>We think Freegle has helped you - can you help us?</h1>
-                                                                <p>We are pleased that you're using your local Freegle group.</p>
+                                                                <p>Thank you for using your local Freegle group.</p>
                                                                 <p>Freegle is <b>free to use, but it's not free to run</b>.  This month we're trying to raise &pound;$target to keep us going.<p>
                                                                 <p>If you can, please donate &pound;1 through PayPal.</p> 
                                                                 <p>We realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!</p>
