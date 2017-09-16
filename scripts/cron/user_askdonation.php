@@ -11,6 +11,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/misc/Donations.php');
 require_once(IZNIK_BASE . '/mailtemplates/donations/collected.php');
+require_once(IZNIK_BASE . '/mailtemplates/donations/bland.php');
 
 $start = date('Y-m-d H:i', strtotime("yesterday 5pm"));
 $end = date('Y-m-d H:i', strtotime('today 5pm'));
@@ -43,12 +44,13 @@ foreach ($users as $user) {
         
         foreach ($messages as $message) {
             $count++;
-            error_log("{$user['userid']} " . $u->getName() . " " . $u->getEmailPreferred() . " {$message['msgid']} {$message['date']} {$message['subject']}");
+            $subj = $ours ? "Re: {$message['subject']}" : "Thanks for freegling!";
+            error_log("{$user['userid']} " . $u->getName() . " " . $u->getEmailPreferred() . " {$message['msgid']} {$message['date']} {$message['subject']} => $subj");
 
             try {
                 list ($transport, $mailer) = getMailer();
                 $m = Swift_Message::newInstance()
-                    ->setSubject("Re: {$message['subject']}")
+                    ->setSubject($subj)
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReplyTo(NOREPLY_ADDR)
                     ->setTo($u->getEmailPreferred())
