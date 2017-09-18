@@ -135,7 +135,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
         $title = 'A discussion on ' . SITE_NAME;
         $desc = '';
-        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png";
+        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png?a=1";
 
         if ($n->getId()) {
             $atts = $n->getPublic();
@@ -185,7 +185,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         <?php
         
     } else {
-        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png";
+        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png?a=1";
 
         ?>
         <title><?php echo SITE_NAME; ?></title>
@@ -352,7 +352,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <meta name="msapplication-square70x70logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/smalltile.png" />
     <meta name="msapplication-square150x150logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/mediumtile.png" />
     <meta name="msapplication-wide310x150logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/widetile.png" />
-    <meta name="msapplication-square310x310logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/largetile.png" />
+    <meta name="msapplication-square310x310logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/largetile.png?a=1" />
 
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/bootstrap-theme.min.css">

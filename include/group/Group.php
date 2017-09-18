@@ -1222,9 +1222,12 @@ class Group extends Entity
         return($this->group['namefull'] ? $this->group['namefull'] : $this->group['nameshort']);
     }
 
-    public function listByType($type) {
+    public function listByType($type, $support) {
         $typeq = $type ? "type = ?" : '1=1';
-        $sql = "SELECT id, nameshort, region, namefull, lat, lng, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $showq = $support ? '' : 'AND publish = 1 AND listable = 1';
+        $suppfields = $support ? ", lastmoderated, lastmodactive, activemodcount, onmap": '';
+
+        $sql = "SELECT id, nameshort, region, authorityid, namefull, lat, lng, publish $suppfields, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
@@ -1237,6 +1240,16 @@ class Group extends Entity
                 $group['modsmail'] = $group['nameshort'] . "-owner@yahoogroups.com";
             } else {
                 $group['modsmail'] = $group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
+            }
+
+            if ($support && $group['authorityid']) {
+                $auths = $this->dbhr->preQuery("SELECT * FROM authorities WHERE id = ?;", [
+                    $group['authorityid']
+                ]);
+
+                foreach ($auths as $auth) {
+                    $group['authority'] = $auth['name'];
+                }
             }
         }
 
