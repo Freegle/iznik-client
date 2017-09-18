@@ -493,6 +493,11 @@ class Newsfeed extends Entity
                 $me->getId(),
                 $this->id
             ]);
+
+            # Don't want to show notifications to deleted items.
+            $this->dbhm->preExec("DELETE FROM users_notifications WHERE newsfeedid = ?;", [
+                $this->id
+            ]);
         }
     }
 
