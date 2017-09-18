@@ -45,7 +45,20 @@ define([
             'keyup .js-password': 'passwordChange',
             'click .js-savepassword': 'passwordChange',
             'click .js-showpassword': 'showPassword',
-            'click .js-hidepassword': 'hidePassword'
+            'click .js-hidepassword': 'hidePassword',
+            'click .js-profile': 'showProfile'
+        },
+
+        showProfile: function() {
+            var self = this;
+
+            require([ 'iznik/views/user/user' ], function() {
+                var v = new Iznik.Views.UserInfo({
+                    model: new Iznik.Model(Iznik.Session.get('me'))
+                });
+
+                v.render();
+            });
         },
 
         showPassword: function() {

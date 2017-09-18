@@ -425,7 +425,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         User::clearCache();
         Group::clearCache();
-        $g->processSetMembers();
+        $g->processSetMembers($this->groupid);
         User::clearCache();
         Group::clearCache();
         $this->dbhr->clearCache();

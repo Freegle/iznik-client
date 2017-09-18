@@ -269,6 +269,8 @@ class chatMessagesTest extends IznikTestCase {
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
+        assertTrue($m->checkReview(''));
+
         # Fine
         assertFalse($m->checkReview('Nothing to see here'));
 

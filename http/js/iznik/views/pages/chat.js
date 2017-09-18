@@ -119,7 +119,10 @@ define([
                         }
                     } catch (e) {}
 
-                    self.activeChat.messageFocus();
+                    if (!isXS()) {
+                        // Don't focus on small, probably mobile devices as the onscreen keyboard will obscure the chat.
+                        self.activeChat.messageFocus();
+                    }
                 })
             }
         },
@@ -319,6 +322,7 @@ define([
             'keyup .js-message': 'keyUp',
             'change .js-status': 'status',
             'click .js-remove': 'removeIt',
+            'click .js-block': 'blockIt',
             'click .js-popup': 'popup'
         },
 
@@ -361,6 +365,34 @@ define([
                     Iznik.Session.chats.fetch().then(function() {
                         // CC window.location.reload();
                         Router.navigate("/chats", true);
+                    });
+                });
+            });
+
+            v.render();
+        },
+
+        blockIt: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation();
+
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'chat_block';
+
+            self.listenToOnce(v, 'confirmed', function () {
+                // This will block the chat, which means it won't show in our list again.
+                var v = new Iznik.Views.PleaseWait({
+                    label: 'chat openChat'
+                });
+                v.render();
+
+                self.model.block().then(function() {
+                    // Reload.  Bit clunky but it'll do.
+                    Iznik.Session.chats.fetch().then(function() {
+                        window.location.reload();
                     });
                 });
             });
@@ -641,7 +673,6 @@ define([
 
         messageFocused: function () {
             var self = this;
-            console.log("Message focus");
 
             // We've seen all the messages.
             self.model.allseen();
@@ -873,8 +904,20 @@ define([
                 self.messages.fetch({
                     remove: true
                 }).then(function () {
+                    // If the last message was a while ago, remind them about nudging.
+                    var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
+                    console.log("Age", age, self.model.get('lastdate'));
+
+                    if (age > 24 && !self.shownNudge) {
+                        self.$('.js-nudge').tooltip('show');
+                        self.shownNudge = true;
+
+                        _.delay(_.bind(function() {
+                            this.$('.js-nudge').tooltip('hide');
+                        }, self), 10000);
+                    }
                     // Encourage people to use the info button.
-                    if (!self.shownInfo) {
+                    if (!self.shownInfo && !self.shownNudge) {
                         self.$('.js-tooltip.js-info').tooltip('show');
                         self.shownInfo = true;
 
@@ -888,18 +931,6 @@ define([
                     self.messageFocus();
                     self.scrollBottom();
 
-                    // If the last message was a while ago, remind them about nudging.
-                    var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
-                    console.log("Age", age, self.model.get('lastdate'));
-
-                    if (age > 24 && !self.shownNudge) {
-                        self.$('.js-nudge').tooltip('show');
-                        self.shownNudge = true;
-
-                        _.delay(_.bind(function() {
-                            this.$('.js-nudge').tooltip('hide');
-                        }, self), 10000);
-                    }
                 });
 
                 // Show any warning for a while.

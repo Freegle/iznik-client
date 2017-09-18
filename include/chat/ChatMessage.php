@@ -95,6 +95,8 @@ class ChatMessage extends Entity
         try {
             $review = 0;
             $spam = 0;
+            $blocked = FALSE;
+
             $u = new User($this->dbhr, $this->dbhm, $userid);
 
             # Mods may need to refer to spam keywords in replies.
@@ -143,19 +145,25 @@ class ChatMessage extends Entity
 
             if ($chattype == ChatRoom::TYPE_USER2USER || $chattype == ChatRoom::TYPE_USER2MOD) {
                 # If anyone has closed this chat so that it no longer appears in their list, we want to open it again.
+                # If they have blocked it, we don't want to notify them.
                 #
                 # This is rare, so rather than do an UPDATE which would always be a bit expensive even if we have
                 # nothing to do, we do a SELECT to see if there are any.
-                $closeds = $this->dbhr->preQuery("SELECT id FROM chat_roster WHERE chatid = ? AND status = ?;", [
+                $closeds = $this->dbhr->preQuery("SELECT id, status FROM chat_roster WHERE chatid = ? AND status IN (?, ?);", [
                     $chatid,
-                    ChatRoom::STATUS_CLOSED
+                    ChatRoom::STATUS_CLOSED,
+                    ChatRoom::STATUS_BLOCKED
                 ], FALSE, FALSE);
 
                 foreach ($closeds as $closed) {
-                    $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE id = ?;", [
-                        ChatRoom::STATUS_OFFLINE,
-                        $closed['id']
-                    ]);
+                    if ($closed['status'] == ChatRoom::STATUS_CLOSED) {
+                        $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE id = ?;", [
+                            ChatRoom::STATUS_OFFLINE,
+                            $closed['id']
+                        ]);
+                    } else if ($closed['status'] == ChatRoom::STATUS_BLOCKED) {
+                        $blocked = TRUE;
+                    }
                 }
             }
 
@@ -165,7 +173,7 @@ class ChatMessage extends Entity
                 $this->dbhm->background("UPDATE users_nudges SET responded = NOW() WHERE fromuser = $other AND touser = $userid AND responded IS NULL;");
             }
 
-            if (!$spam && !$review) {
+            if (!$spam && !$review && !$blocked) {
                 $r->pokeMembers();
                 $r->notifyMembers($u->getName(), $message, $userid);
 
@@ -301,8 +309,8 @@ class ChatMessage extends Entity
         # an inefficient query.
         # TODO This uses INSTR to check a json-encoded field.  In MySQL 5.7 we can do better.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
-        $showcount = count($show) > 0 ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'] : 0;
-        $dontshowcount = count($dontshow) > 0 ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($dontshowq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'] : 0;
+        $showcount = count($show) > 0 ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":true') != 0 OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'] : 0;
+        $dontshowcount = count($dontshow) > 0 ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($dontshowq) INNER JOIN groups ON memberships.groupid = groups.id AND ((groups.type = 'Freegle' AND groups.settings IS NULL) OR INSTR(groups.settings, '\"chatreview\":true') != 0 OR INSTR(groups.settings, '\"chatreview\":1') != 0) WHERE chat_messages.date > '$mysqltime';")[0]['count'] : 0;
 
         return([
             'showgroups' => $showq,

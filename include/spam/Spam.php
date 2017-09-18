@@ -215,7 +215,7 @@ class Spam {
         # Spammer trick is to encode the dot in URLs.
         $message = str_replace('&#12290;', '.', $message);
 
-        $check = FALSE;
+        $check = strlen($message) == 0;
 
         if (stripos($message, '<script') !== FALSE) {
             # Looks dodgy.

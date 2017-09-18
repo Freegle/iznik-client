@@ -161,6 +161,7 @@ define([
             "explore": "userExplore",
             "livemap": "liveMap",
             "stats/heatmap": "userStatsHeatMap",
+            "stats/region/:id": "userStatsRegion",
             "stats/area/:id": "userStatsArea",
             "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
@@ -734,6 +735,17 @@ define([
 
             require(["iznik/views/pages/user/stats"], function() {
                 var page = new Iznik.Views.User.Pages.Heatmap();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStatsRegion: function(region) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stats"], function() {
+                var page = new Iznik.Views.User.Pages.StatsGroup({
+                    region: region
+                });
                 self.loadRoute({page: page});
             });
         },

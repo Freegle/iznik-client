@@ -407,6 +407,58 @@ class chatRoomsTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testBlock() {
+        error_log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+        error_log("Chat room $id for $u1 <-> $u2");
+        assertNotNull($id);
+
+        assertNull($r->replyTime($u1));
+        assertNull($r->replyTime($u2));
+
+        # Make the first user block the second.
+        $r->updateRoster($u1, NULL, ChatRoom::STATUS_BLOCKED);
+
+        # Chat shouldn't show in the list for this user now.
+        self::assertEquals(0, count($r->listForUser($u1)));
+        self::assertEquals(1, count($r->listForUser($u2)));
+
+        # Mow send a message from the second to the first.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $mid = $m->create($id, $u2, "Test");
+
+        # Check that this message doesn't get notifed.
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        # Notify - will email none
+        error_log("Will email none");
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
 

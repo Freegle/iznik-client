@@ -242,7 +242,7 @@ define([
         },
 
         visible: function(model) {
-            var vis = model.get('visible');
+            var vis = model.get('visible') && !model.get('unfollowed');
             return(vis);
         },
 
@@ -706,9 +706,13 @@ define([
         love: function() {
             var self = this;
 
-            self.model.love().then(function() {
-                self.model.fetch().then(function() {
-                    self.render();
+            // Render the change first to avoid delay due to server.
+            self.model.set('loved', true);
+            self.render().then(function() {
+                self.model.love().then(function() {
+                    self.model.fetch().then(function() {
+                        self.render();
+                    });
                 });
             });
         },
@@ -716,9 +720,13 @@ define([
         unlove: function() {
             var self = this;
 
-            self.model.unlove().then(function() {
-                self.model.fetch().then(function() {
-                    self.render();
+            // Render the change first to avoid delay due to server.
+            self.model.set('loved', true);
+            self.render().then(function() {
+                self.model.unlove().then(function () {
+                    self.model.fetch().then(function () {
+                        self.render();
+                    });
                 });
             });
         }

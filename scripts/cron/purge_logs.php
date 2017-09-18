@@ -6,6 +6,7 @@
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/misc/Log.php');
 
 # Bypass our usual DB class as we don't want the overhead nor to log.
 $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
@@ -13,6 +14,23 @@ $dbhm = new PDO($dsn, $dbconfig['user'], $dbconfig['pass'], array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_EMULATE_PREPARES => FALSE
 ));
+
+# Don't keep user creation logs indefinitely - the reason we created a user is only really relevant for diagnosis,
+error_log("Purge user creation logs");
+
+try {
+    $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+    $total = 0;
+    do {
+        $sql = "DELETE FROM logs WHERE `type` = '" . Log::TYPE_USER . "' AND `subtype` = '" . Log::SUBTYPE_CREATED . "' AND `timestamp` < '$start' LIMIT 1000;";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$total");
+        set_time_limit(60);
+    } while ($count > 0);
+} catch (Exception $e) {
+    error_log("Failed to delete non-Freegle logs " . $e->getMessage());
+}
 
 error_log("Purge email logs");
 
@@ -32,7 +50,7 @@ try {
 error_log("Purge main logs");
 
 try {
-# Non-Freegle groups only keep data for 31 days.
+    # Non-Freegle groups only keep data for 31 days.
     $start = date('Y-m-d', strtotime("midnight 31 days ago"));
     error_log("Non-Freegle logs");
     $groups = $dbhr->preQuery("SELECT id FROM groups WHERE type != 'Freegle';");
@@ -116,6 +134,8 @@ try {
 } catch (Exception $e) {
     error_log("Failed to delete API logs " . $e->getMessage());
 }
+
+$start = date('Y-m-d', strtotime("4 hours ago"));
 
 try {
     error_log("SQL logs:");

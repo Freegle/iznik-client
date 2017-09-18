@@ -11,6 +11,7 @@ function dashboard() {
     $type = presdef('grouptype', $_REQUEST, NULL);
     $start = presdef('start', $_REQUEST, '30 days ago');
     $area = presdef('area', $_REQUEST, NULL);
+    $region = presdef('region', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -19,7 +20,7 @@ function dashboard() {
             # Check if we're logged in
             $ret = array('ret' => 0, 'status' => 'Success');
             $d = new Dashboard($dbhr, $dbhm, $me);
-            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $area, $type, $start);
+            $ret['dashboard'] = $d->get($systemwide, $allgroups, $groupid, $area, $region, $type, $start);
             $s = new Stats($dbhr, $dbhm);
             $ret['heatmap'] = $heatmap ? $s->getHeatmap() : NULL;
 

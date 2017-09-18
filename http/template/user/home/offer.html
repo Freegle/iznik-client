@@ -77,6 +77,13 @@
             </div>
         </div>
         <hr class="nopad nomargin" />
+        <% if (obj.outcomes.length > 0) { %>
+        <div class="row">
+            <div class="col-xs-12 topspace">
+                {{outcomes[0].outcome}} <abbr class="js-outcometime" title="{{outcomes[0].timestamp}}" />
+            </div>
+        </div>
+        <% } %>
         <div class="row">
             <div class="col-xs-12 topspace">
                 <% if (obj.outcomes.length == 0) { %>
