@@ -2159,19 +2159,20 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'OutcomeIntended',
-            'outcome' => 'Repost'
+            'outcome' => Message::OUTCOME_REPOST
         ]);
 
         $groups = $m->getGroups(FALSE, FALSE);
         $arrival = strtotime($groups[0]['arrival']);
 
         # Too soon.
-        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m = new Message($this->dbhm, $this->dbhm, $id);
         assertEquals(0, $m->processIntendedOutcomes($id));
         sleep(5);
 
         # Now make it look older.
         $this->dbhm->preExec("UPDATE messages_outcomes_intended SET timestamp = DATE_SUB(timestamp, INTERVAL 3 HOUR) WHERE msgid = ?;", [ $id ]);
+        assertEquals(1, $this->dbhm->rowsAffected());
         assertEquals(1, $m->processIntendedOutcomes($id));
         $atts = $m->getPublic();
         assertEquals(0, count($atts['outcomes']));

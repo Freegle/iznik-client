@@ -31,6 +31,7 @@ class Message
     const OUTCOME_TAKEN = 'Taken';
     const OUTCOME_RECEIVED = 'Received';
     const OUTCOME_WITHDRAWN = 'Withdrawn';
+    const OUTCOME_REPOST = 'Repost';
 
     const LIKE_LOVE = 'Love';
     const LIKE_LAUGH = 'Laugh';
@@ -365,7 +366,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr', 'isdraft'
     ];
 
     public $memberAtts = [
@@ -383,7 +384,7 @@ class Message
     ];
 
     public $internalAtts = [
-        'publishconsent', 'isdraft', 'itemid', 'itemname'
+        'publishconsent', 'itemid', 'itemname'
     ];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
@@ -3326,7 +3327,7 @@ class Message
     }
 
     public function intendedOutcome($outcome) {
-        $sql = "INSERT IGNORE INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
+        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
         $this->dbhm->preExec($sql, [
             $this->id,
             $outcome
