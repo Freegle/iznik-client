@@ -455,13 +455,16 @@ function message() {
                             $m = new Message($dbhr, $dbhm, $id);
                             $ret = ['ret' => 4, 'status' => 'Failed to edit message'];
 
-                            $role = $m->getRoleForMessage();
+                            # Don't want to edit an approved message back to draft.
+                            if (!$m->isApproved()) {
+                                $role = $m->getRoleForMessage();
 
-                            if ($role == User::ROLE_MODERATOR || $role = User::ROLE_OWNER) {
-                                $rc = $m->backToDraft();
+                                if ($role == User::ROLE_MODERATOR || $role = User::ROLE_OWNER) {
+                                    $rc = $m->backToDraft();
 
-                                if ($rc) {
-                                    $ret = ['ret' => 0, 'status' => 'Success', 'messagetype' => $m->getType() ];
+                                    if ($rc) {
+                                        $ret = ['ret' => 0, 'status' => 'Success', 'messagetype' => $m->getType() ];
+                                    }
                                 }
                             }
                         }
