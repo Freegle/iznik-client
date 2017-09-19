@@ -1120,6 +1120,7 @@ define([
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));
 
                 self.$('.js-eventsenabled').val(self.model.get('eventsallowed'));
+                self.$('.js-volunteerenabled').val(self.model.get('volunteeringallowed'));
                 self.$('.js-yahoodelivery').val(self.model.get('yahooDeliveryType'));
 
                 self.$('.js-ourpostingstatus').val(self.model.get('ourpostingstatus'));
