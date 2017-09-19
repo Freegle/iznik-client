@@ -122,7 +122,6 @@ class VolunteeringDigest
 
                 # Now find the users we want to send to on this group for this frequency.  We build up an array of
                 # the substitutions we need.
-                # TODO This isn't that well indexed in the table.
                 $replacements = [];
 
                 $sql = "SELECT userid FROM memberships WHERE groupid = ? AND volunteeringallowed = 1 ORDER BY userid ASC;";
