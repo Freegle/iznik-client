@@ -1218,7 +1218,7 @@ class MailRouterTest extends IznikTestCase {
         # Now get the chat room that this should have been placed into.
         assertNotNull($uid2);
         assertNotEquals($uid, $uid2);
-        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $c = new ChatRoom($this->dbhm, $this->dbhm);
         $rid = $c->createConversation($uid, $uid2);
         assertNotNull($rid);
         list($msgs, $users) = $c->getMessages();
@@ -1240,7 +1240,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Now mark the message as complete - should put a message in the chatroom.
         error_log("Mark $origid as TAKEN");
-        $m = new Message($this->dbhr, $this->dbhm, $origid);
+        $m = new Message($this->dbhm, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, NULL);
         list($msgs, $users) = $c->getMessages();
         error_log("Chat messages " . var_export($msgs, TRUE));
