@@ -101,7 +101,7 @@ class ChatMessage extends Entity
 
             # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
             # include user text.
-            if (!$u->isModerator() && ($type === ChatMessage::TYPE_DEFAULT || $type == ChatMessage::TYPE_INTERESTED)) {
+            if (!$u->isModerator() && ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER)) {
                 $review = $this->checkReview($message);
                 $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
