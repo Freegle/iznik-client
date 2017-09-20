@@ -302,7 +302,10 @@ define([
                     if (!val) {
                         // We don't know.  That's not good.
                         this.$el.html('-');
-                        this.$el.addClass('bg-warning');
+                        
+                        if (this.column.get('name') != 'lastautoapprove') {
+                            this.$el.addClass('bg-warning');
+                        }
                     } else {
                         var m = new moment(val);
                         var now = new moment();
@@ -383,6 +386,11 @@ define([
             }, {
                 name: 'lastmoderated',
                 label: 'Last moderated',
+                editable: false,
+                cell: OurDate
+            }, {
+                name: 'lastautoapprove',
+                label: 'Last auto-approve',
                 editable: false,
                 cell: OurDate
             }, {

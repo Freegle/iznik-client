@@ -11,7 +11,7 @@ $groups = $dbhr->preQuery("SELECT * FROM groups;");
 foreach ($groups as $group) {
     error_log($group['nameshort']);
     $s = new Stats($dbhr, $dbhm, $group['id']);
-//    $s->generate($date);
+    $s->generate($date);
 }
 
 # Find what proportion of overall activity an individual group is responsible for.  We will use this when calculating
@@ -37,7 +37,7 @@ foreach ($totalact as $total) {
         try {
             $auths = $dbhr->preQuery("SELECT id, name, AsText(polygon) AS polygon FROM authorities;");
             foreach ($auths as $auth) {
-                error_log("Check {$auth['name']} {$group['poly']} vs {$auth['polygon']}");
+                #error_log("Check {$auth['name']} {$group['poly']} vs {$auth['polygon']}");
                 $dbhr->preQuery("SELECT ST_Area(ST_Intersection(GeomFromText(?), GeomFromText(?)));", [
                     $group['poly'],
                     $auth['polygon']
@@ -104,6 +104,15 @@ foreach ($totalact as $total) {
         $maxs = $dbhr->preQuery($sql, [ $group['id'] ]);
         $dbhm->preExec("UPDATE groups SET lastmoderated = ? WHERE id = ?;", [
             strtotime($lastmodactive) > strtotime($maxs[0]['max']) ? $lastmodactive : $maxs[0]['max'],
+            $group['id']
+        ]);
+
+        # Find the last auto-approved message
+        $logs = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM logs INNER JOIN messages_groups ON logs.msgid = messages_groups.msgid WHERE messages_groups.groupid = ? AND logs.type = 'Message' AND logs.subtype = 'Autoapproved';", [
+            $group['id']
+        ]);
+        $dbhm->preExec("UPDATE groups SET lastautoapprove = ? WHERE id = ?;", [
+            $logs[0]['max'],
             $group['id']
         ]);
 
