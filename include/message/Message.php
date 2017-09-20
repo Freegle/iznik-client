@@ -2749,7 +2749,9 @@ class Message
         $thissubj = preg_replace('/\-|\,|\.| /', '', $thissubj);
 
         if ($type) {
-            $sql = "SELECT id, subject, date FROM messages WHERE fromuser = ? AND type = ? AND DATEDIFF(NOW(), arrival) <= 31;";
+            # Don't want to look for any messages which already have an outcome, otherwise we would fail to handle
+            # crosspost messages correctly - we'd link all TAKENs to the same OFFER.
+            $sql = "SELECT messages.id, subject, date FROM messages LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE fromuser = ? AND type = ? AND DATEDIFF(NOW(), arrival) <= 31 AND messages_outcomes.id IS NULL;";
             $messages = $this->dbhr->preQuery($sql, [ $this->fromuser, $type ]);
             #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
             $thistime = strtotime($this->date);
