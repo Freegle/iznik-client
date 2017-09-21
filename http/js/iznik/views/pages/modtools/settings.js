@@ -2560,7 +2560,6 @@ define([
 
             var re = /https:\/\/www.facebook.com\/groups\/(\d*)/;
             var match = re.exec(url);
-            console.log("Matches", match);
 
             if (match) {
                 // Fetch the page to get the name, and make sure it's valid.
@@ -2569,6 +2568,7 @@ define([
                         if (!FBLoad().isDisabled()) {
                             FB.login(function() {
                                 FB.api('/' + match[1], function (response) {
+                                    console.log("Got response", response);
                                     if (response && !response.error && response.hasOwnProperty('name')) {
                                         $.ajax({
                                             type: 'POST',
@@ -2577,6 +2577,7 @@ define([
                                                 action: 'AddFacebookGroup',
                                                 name: response.name,
                                                 facebookid: response.id,
+                                                access_token: FB.getAuthResponse()['accessToken'],
                                                 id: self.options.group.get('id')
                                             }, success: function(ret) {
                                                 self.close();
@@ -2586,11 +2587,11 @@ define([
                                         self.$('.js-groupurl').addClass('error-border');
                                     }
                                 });
-                            });
+                            }, {scope: 'publish_actions'});
                         }
                     });
 
-                    FBLoad().render();
+                    FBLoad().render($('meta[name=facebook-graffiti-app-id]').attr("content"));
                 });
             } else {
                 self.$('.js-groupurl').addClass('error-border');

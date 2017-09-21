@@ -1,5 +1,8 @@
 <?php
 
+# Fake user site.
+define('USER_SITE', 'www.ilovefreegle.org');
+
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');

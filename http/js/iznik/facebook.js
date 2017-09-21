@@ -5,6 +5,7 @@ define([
     'iznik/base'
 ], function($, _, Backbone, Iznik) {
     var facebookAppId = $('meta[name=facebook-app-id]').attr("content");
+    var facebookGraffitiAppId = $('meta[name=facebook-graffiti-app-id]').attr("content");
 
     Iznik.Views.FBLoad = Iznik.View.extend({
         FBLoaded: false,
@@ -15,7 +16,8 @@ define([
             return this.FBDisabled;
         },
 
-        render: function () {
+        render: function (appid) {
+            appid = appid ? appid : facebookAppId;
             var self = this;
             // console.log("Render FBLoad");
 
@@ -54,7 +56,7 @@ define([
 
                     try {
                         FB.init({
-                            appId: facebookAppId,
+                            appId: appid,
                             cookie: true,  // enable cookies to allow the server to access the session
                             version: 'v2.5'
                         });

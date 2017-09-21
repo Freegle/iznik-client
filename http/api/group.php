@@ -1,4 +1,5 @@
 <?php
+
 function group() {
     global $dbhr, $dbhm;
 
@@ -278,8 +279,21 @@ function group() {
                         $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
 
                         if ($id && $name && $facebookid) {
+                            # We need to get a long-lived token
+                            $fb = new Facebook\Facebook([
+                                'app_id' => FBGRAFFITIAPP_ID,
+                                'app_secret' => FBGRAFFITIAPP_SECRET
+                            ]);
+                            $accessToken = new \Facebook\Authentication\AccessToken(presdef('access_token', $_REQUEST, NULL));
+
+                            $oAuth2Client = $fb->getOAuth2Client();
+                            $tokenMetadata = $oAuth2Client->debugToken($accessToken);
+                            $tokenMetadata->validateAppId(FBGRAFFITIAPP_ID);
+                            $tokenMetadata->validateExpiration();
+                            $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
+
                             $f = new GroupFacebook($dbhr, $dbhm);
-                            $f->add($id, NULL, $name, $facebookid, GroupFacebook::TYPE_GROUP);
+                            $f->add($id, (string)$accessToken, $name, $facebookid, GroupFacebook::TYPE_GROUP);
                             $ret = ['ret' => 0, 'status' => 'Success'];
                         }
 

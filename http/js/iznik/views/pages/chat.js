@@ -1018,7 +1018,6 @@ define([
 
         render: function() {
             var self = this;
-            console.log("Render external");
 
             var msg = new Iznik.Models.Message({
                 id: self.options.msgid
