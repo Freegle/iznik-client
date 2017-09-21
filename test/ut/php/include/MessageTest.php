@@ -105,6 +105,9 @@ class messageTest extends IznikTestCase {
         $atts = $m->getPublic();
         assertEquals($id1, $atts['related'][0]['id']);
 
+        # We don't match on messages with outcomes so hack this out out again.
+        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = $id1;");
+
         # TAKEN before OFFER - shouldn't match
         $msg = str_replace('22 Aug 2016', '22 Aug 2014', $msg);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -146,6 +149,9 @@ class messageTest extends IznikTestCase {
         assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
         assertEquals($id1, $atts['related'][0]['id']);
+
+        # We don't match on messages with outcomes so hack this out out again.
+        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = $id1;");
 
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);

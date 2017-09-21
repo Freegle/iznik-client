@@ -1624,6 +1624,30 @@ class MailRouterTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testYahooApproved() {
+        error_log(__METHOD__);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create("Test", "User", "Test User");
+        $u->setPrivate('yahooid', 'testid');
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+
+        $msg = $this->unique(file_get_contents('msgs/yahooapproved'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $mid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $groups = $m->getPublic()['groups'];
+        error_log("Groups " . var_export($groups, TRUE));
+        self::assertEquals($uid, $groups[0]['approvedby']);
+
+        error_log(__METHOD__ . " end");
+    }
 //
 //    public function testSpecial() {
 //        error_log(__METHOD__);

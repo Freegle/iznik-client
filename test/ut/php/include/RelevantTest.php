@@ -179,10 +179,14 @@ class RelevantTest extends IznikTestCase
         self::assertEquals(1, $mock->sendMessages($uid));
 
         $msgs = $this->msgsSent;
-        error_log("Should return $id1 and $id2 " . var_export($msgs, TRUE));
+        error_log("Should return $id1 and $id2 ");
         assertEquals(1, count($msgs));
-        self::assertNotFalse(strpos($msgs[0], $id1));
-        self::assertNotFalse(strpos($msgs[0], $id2));
+
+        # Long line might split id - hack out QP encoding.
+        $msgs = preg_replace("/\=\r\n/", "", $msgs[0]);
+        error_log($msgs);
+        self::assertNotFalse(strpos($msgs, $id1));
+        self::assertNotFalse(strpos($msgs, $id2));
 
         # Record the check.  Sleep to ensure that the messages we already have are longer ago than when we
         # say the check happened, otherwise we might get them back again - which is ok in real messages

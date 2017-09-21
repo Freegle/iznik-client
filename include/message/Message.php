@@ -1810,6 +1810,14 @@ class Message
         $approvedby = NULL;
         $approval = $this->getHeader('x-egroups-approved-by');
 
+        if ($approval) {
+            if (preg_match('/(.*?) /', $approval, $matches)) {
+                $yid = $matches[1];
+                $u = new User($this->dbhr, $this->dbhm);
+                $approvedby = $u->findByYahooId($yid);
+            }
+        }
+
         # Reduce the size of the message source
         $this->message = $this->pruneMessage();
 
@@ -2402,6 +2410,7 @@ class Message
                     $msg['id'],
                     $this->groupid
                 ]);
+
                 foreach ($gatts as $gatt) {
                     foreach (['yahooapprovedid', 'yahoopendingid'] as $newatt) {
                         #error_log("Compare old {$gatt[$newatt]} vs new {$this->$newatt}");
@@ -2456,7 +2465,9 @@ class Message
                 # We keep the old set of attachments, because they might be mentioned in (for example) the text
                 # of the message.  This means that we don't support editing of the attachments on Yahoo.
 
-                # We might have new approvedby info.
+                # Pick up any new approvedby, unless we already have one.  If we have one it's because it was
+                # approved on here, which is an authoritative record, whereas the Yahoo approval might have been
+                # done via plugin work and another mod.
                 $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ?, approvedat = NOW() WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
                     [
                         $approvedby,
