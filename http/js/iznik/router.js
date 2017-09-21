@@ -1654,12 +1654,10 @@ define([
     try {
         try {
             // Set up storage.
-            console.log("Set up storage");
             Storage = new Persist.Store("Iznik");
 
             // Make sure it works
             Storage.set('enabled', true);
-            console.log("Storage active");
 
             try {
                 // The version may have been put in localStorage.
