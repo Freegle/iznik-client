@@ -39,7 +39,7 @@ EOT;
                                                 <table width="95%" cellpadding="0" cellspacing="0" border="0" class="container">
                                                     <tbody>
                                                         <tr>
-                                                            <td width="150" class="mobileOff">
+                                                            <td width="150" class="mobileOff" style="vertical-align: top">
                                                                 <table class="button" width="90%" cellpadding="0" cellspacing="0" align="left" border="0">
                                                                     <tr>
                                                                         <td>                                                           
@@ -61,7 +61,35 @@ EOT;
     }
 
     $html .= <<<EOT
-                                                                <p>Happy freegling!</p>
+                                                                <p>Happy freegling!  Here are some quick instructions.</p>
+                                                                
+                                                                <h2>How to post an OFFER</h2>
+                                                                
+                                                                <ol>
+                                                                <li>Go to https://www.ilovefreegle.org and click on 'Give stuff'.</li>
+                                                                <li>Either click on 'Find your location' or put your postcode into the box on the right.</li>
+                                                                <li>You will see, lower down the screen, a suggestion of which group to post on. If this is incorrect, click on the down arrow and it will bring up a list of groups you are a member of.</li>
+                                                                <li>Click on 'Next'.</li>
+                                                                <li>Click the 'Add photos' button to add a photo if you have one.</li>
+                                                                <li>Fill in the appropriate info in the various boxes.</li>
+                                                                <li>Click 'Next'.</li>
+                                                                <li>Fill in your email address.</li>
+                                                                <li>That's it.</li>
+                                                                </ol>
+                                                                
+                                                                <h2>How to post a WANTED</h2>
+                                                                
+                                                                <ol>
+                                                                <li>Go to https://www.ilovefreegle.org and click on 'Find stuff'.</li>
+                                                                <li>Either click on 'Find your location' or put your postcode into the box on the right.</li>
+                                                                <li>You will see, lower down the screen, a suggestion of which group to post on. If this is incorrect, click on the down arrow and it will bring up a list of groups you are a member of.</li>
+                                                                <li>Click on 'Next'.</li>
+                                                                <li>Either stick what you are looking for in the 'Search' bar or click 'Post a WANTED.</li>
+                                                                <li>Fill in the appropriate info in the various boxes.</li>
+                                                                <li>Click 'Next'.</li>
+                                                                <li>Fill in your email address.</li>
+                                                                <li>That's it.
+                                                                </ol>
                                                                 <table width="100%">
                                                                     <tr>
                                                                         <td>
