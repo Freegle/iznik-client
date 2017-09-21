@@ -3180,7 +3180,7 @@ class User extends Entity
 
     public function loginLink($domain, $id, $url = '/', $type = NULL, $auto = FALSE) {
         $p = strpos($url, '?');
-        $url = $p === FALSE ? "https://$domain$url?u=$id&src=$type" : "https://$domain$url&u=$id&src=$type";
+        $ret = $p === FALSE ? "https://$domain$url?u=$id&src=$type" : "https://$domain$url&u=$id&src=$type";
 
         if ($auto) {
             # Get a per-user link we can use to log in without a password.
@@ -3205,10 +3205,10 @@ class User extends Entity
 
             $p = strpos($url, '?');
             $src = $type ? "&src=$type" : "";
-            $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key$src") : ("https://$domain$url&u=$id&k=$key$src");
+            $ret = $p === FALSE ? ("https://$domain$url?u=$id&k=$key$src") : ("https://$domain$url&u=$id&k=$key$src");
         }
 
-        return($url);
+        return($ret);
     }
 
     public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE) {
@@ -3370,7 +3370,7 @@ class User extends Entity
 
             # Make sure there's a link login as admin/support can use that to impersonate.
             if (($me->isAdmin() && !$u->isAdmin()) || ($me->isAdminOrSupport() && !$u->isModerator())) {
-                $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/');
+                $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/', NULL, TRUE);
             }
             $thisone['logins'] = $u->getLogins($me->isAdmin());
 
