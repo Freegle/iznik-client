@@ -1648,12 +1648,14 @@ class MailRouterTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
-//
+
 //    public function testSpecial() {
 //        error_log(__METHOD__);
 //
 //        $msg = $this->unique(file_get_contents('msgs/special'));
 //        $r = new MailRouter($this->dbhr, $this->dbhm);
+//        $m = new Message($this->dbhr, $this->dbhm, 25206247);
+//        $r->route($m);
 //        $id = $r->received(Message::EMAIL, 'j.mason11@ntlworld.com', "hertfordfreegle-volunteers@groups.ilovefreegle.org", $msg);
 //        assertNotNull($id);
 //        $rc = $r->route();
