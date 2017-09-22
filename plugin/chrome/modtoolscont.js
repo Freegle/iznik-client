@@ -334,7 +334,7 @@ function postMessages() {
 }
 
 $(document).ready(function() {
-    console.log("MT Document ready", document.URL);
+    // console.log("MT Document ready", document.URL);
 
     if (document.URL.indexOf('modtools.org') != -1) {
         // We are loading on a ModTools page.  Find out who we are; when we load on Facebook we use this info.

@@ -108,7 +108,6 @@ function session() {
                                     $f = new GroupFacebook($dbhr, $dbhm, $uid);
                                     $atts = $f->getPublic();
                                     unset($atts['token']);
-                                    $atts['authdate'] = ISODate($atts['authdate']);
                                     $group['facebook'][] = $atts;
                                 }
                             }

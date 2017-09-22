@@ -55,6 +55,7 @@ class messagesTest extends IznikAPITestCase {
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::APPROVED);
         $a = new Message($this->dbhr, $this->dbhm, $id);
+        $a->setPrivate('source', Message::PLATFORM);
 
         # Should be able to see this message even logged out, as this is a Freegle group...once we have consent.
         $ret = $this->call('messages', 'GET', [
@@ -112,6 +113,16 @@ class messagesTest extends IznikAPITestCase {
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
         assertEquals($a->getID(), $msgs[0]['id']);
+
+        error_log("Record share");
+
+        $ret = $this->call('group', 'POST', [
+            'action' => 'RecordFacebookShare',
+            'uid' => $uid,
+            'msgid' => $msgs[0]['id'],
+            'msgarrival' => ISODate('@' . strtotime('now'))
+        ]);
+        assertEquals(0, $ret['ret']);
 
         error_log("Remove group");
         $ret = $this->call('group', 'POST', [

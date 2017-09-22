@@ -16,12 +16,15 @@ $lockh = lockScript(basename(__FILE__));
 error_log("Start at " . date("Y-m-d H:i:s"));
 
 # We only do this for Facebook groups.  For pages, this gets us marked as spam.
-$groups = $dbhr->preQuery("SELECT groups_facebook.uid, groups.nameshort FROM groups INNER JOIN groups_facebook ON groups.id = groups_facebook.groupid WHERE groups.type = 'Freegle' AND groups_facebook.type = 'Group' AND publish = 1 AND valid = 1 ORDER BY LOWER(nameshort) ASC;");
-foreach ($groups as $group) {
-    $f = new GroupFacebook($dbhr, $dbhm, $group['uid']);
-    $count = $f->postMessages();
-    error_log("{$group['nameshort']} $count");
-}
+#
+# Superceded by client posting code.
+# TODO Delete after 2017-10-20
+//$groups = $dbhr->preQuery("SELECT groups_facebook.uid, groups.nameshort FROM groups INNER JOIN groups_facebook ON groups.id = groups_facebook.groupid WHERE groups.type = 'Freegle' AND groups_facebook.type = 'Group' AND publish = 1 AND valid = 1 ORDER BY LOWER(nameshort) ASC;");
+//foreach ($groups as $group) {
+//    $f = new GroupFacebook($dbhr, $dbhm, $group['uid']);
+//    $count = $f->postMessages();
+//    error_log("{$group['nameshort']} $count");
+//}
 
 error_log("Finish at " . date("Y-m-d H:i:s"));
 

@@ -50,57 +50,59 @@ class groupFacebookTest extends IznikTestCase {
         return(TRUE);
     }
 
-    public function testMessages() {
-        error_log(__METHOD__);
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
-
-        $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
-
-        foreach ($ids as $uid) {
-            $msg = $this->unique(file_get_contents('msgs/basic'));
-            $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-
-            $m = new Message($this->dbhr, $this->dbhm);
-            $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
-            list($id, $already) = $m->save();
-
-            $r = new MailRouter($this->dbhr, $this->dbhm, $id);
-            $rc = $r->route();
-            assertEquals(MailRouter::APPROVED, $rc);
-            error_log("Approved message id $id");
-
-            # Ensure we have consent to see this message
-            $a = new Message($this->dbhr, $this->dbhm, $id);
-            error_log("From user " . $a->getFromuser());
-            $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
-            $sender->setPrivate('publishconsent', 1);
-
-            $mock = $this->getMockBuilder('GroupFacebook')
-                ->setConstructorArgs([$this->dbhr, $this->dbhm, $uid])
-                ->setMethods(array('getFB'))
-                ->getMock();
-
-            $mock->method('getFB')->willReturn($this);
-
-            # Fake message onto group.
-            $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
-                $id,
-                $id,
-                $gid
-            ]);
-
-            $count = $mock->postMessages();
-            assertGreaterThanOrEqual(1, $count);
-
-            # Should be none to post now.
-            $count = $mock->postMessages();
-            assertGreaterThanOrEqual(0, $count);
-        }
-
-        error_log(__METHOD__ . " end");
-    }
+    # Superceded by client-side posting.
+    # TODO Remove after 2017-10-22.
+//    public function testMessages() {
+//        error_log(__METHOD__);
+//
+//        $g = Group::get($this->dbhr, $this->dbhm);
+//        $gid = $g->findByShortName('FreeglePlayground');
+//
+//        $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
+//
+//        foreach ($ids as $uid) {
+//            $msg = $this->unique(file_get_contents('msgs/basic'));
+//            $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+//
+//            $m = new Message($this->dbhr, $this->dbhm);
+//            $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+//            list($id, $already) = $m->save();
+//
+//            $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+//            $rc = $r->route();
+//            assertEquals(MailRouter::APPROVED, $rc);
+//            error_log("Approved message id $id");
+//
+//            # Ensure we have consent to see this message
+//            $a = new Message($this->dbhr, $this->dbhm, $id);
+//            error_log("From user " . $a->getFromuser());
+//            $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
+//            $sender->setPrivate('publishconsent', 1);
+//
+//            $mock = $this->getMockBuilder('GroupFacebook')
+//                ->setConstructorArgs([$this->dbhr, $this->dbhm, $uid])
+//                ->setMethods(array('getFB'))
+//                ->getMock();
+//
+//            $mock->method('getFB')->willReturn($this);
+//
+//            # Fake message onto group.
+//            $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
+//                $id,
+//                $id,
+//                $gid
+//            ]);
+//
+//            $count = $mock->postMessages();
+//            assertGreaterThanOrEqual(1, $count);
+//
+//            # Should be none to post now.
+//            $count = $mock->postMessages();
+//            assertGreaterThanOrEqual(0, $count);
+//        }
+//
+//        error_log(__METHOD__ . " end");
+//    }
 
     public function testErrors() {
         error_log(__METHOD__);

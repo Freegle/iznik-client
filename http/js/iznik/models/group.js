@@ -13,6 +13,19 @@ define([
             } else {
                 return(ret);
             }
+        },
+
+        recordFacebookShare: function(uid, msgid, msgarrival) {
+            $.ajax({
+                url: API + 'group',
+                type: 'POST',
+                data: {
+                    action: 'RecordFacebookShare',
+                    uid: uid,
+                    msgid: msgid,
+                    msgarrival: msgarrival
+                }
+            });
         }
     });
 
