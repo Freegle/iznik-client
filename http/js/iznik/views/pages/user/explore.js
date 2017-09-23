@@ -240,7 +240,7 @@ define([
 
                 self.collection.each(function(group) {
                     if (bounds.contains(new google.maps.LatLng(group.get('lat'), group.get('lng'))) &&
-                        group.get('onmap')) {
+                        group.get('onmap') && group.get('publish')) {
                         var latLng = new google.maps.LatLng(group.get('lat'), group.get('lng'));
 
                         if (within > 20) {
