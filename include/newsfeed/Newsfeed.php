@@ -510,13 +510,13 @@ class Newsfeed extends Entity
 
     public function getUnseen($userid) {
         # Find the last one we saw.
-        $seens = $this->dbhr->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
+        $seens = $this->dbhr->preQuery("SELECT timestamp FROM newsfeed INNER JOIN newsfeed_users ON newsfeed_users.newsfeedid = newsfeed.id WHERE newsfeed_users.userid = ?;", [
             $userid
         ]);
 
-        $lastseen = 0;
+        $lastseen = NULL;
         foreach ($seens as $seen) {
-            $lastseen = $seen['newsfeedid'];
+            $lastseen = $seen['timestamp'];
         }
 
         # Get the first few user-posted messages.  This keeps the unseen count low - if it gets too high
@@ -525,7 +525,7 @@ class Newsfeed extends Entity
         list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
         $count = 0;
         foreach ($feeds as $feed) {
-            if ($feed['id'] > $lastseen && $feed['userid'] != $userid) {
+            if (($lastseen == NULL || strtotime($feed['timestamp']) > strtotime($lastseen)) && $feed['userid'] != $userid) {
                 $count++;
             }
         }
