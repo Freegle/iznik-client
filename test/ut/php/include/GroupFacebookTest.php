@@ -135,15 +135,16 @@ class groupFacebookTest extends IznikTestCase {
 
         $mock->method('getFB')->willThrowException(new Exception('Test', 100));
 
-        # Fake message onto group.
-        $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
-            $id,
-            $id,
-            $gid
-        ]);
-
-        $count = $mock->postMessages();
-        assertGreaterThanOrEqual(0, $count);
+        # TODO Remove aftrer 2017-10-22
+//        # Fake message onto group.
+//        $this->dbhm->preExec("UPDATE messages_groups SET yahooapprovedid = ? WHERE msgid = ? AND groupid = ?;", [
+//            $id,
+//            $id,
+//            $gid
+//        ]);
+//
+//        $count = $mock->postMessages();
+//        assertGreaterThanOrEqual(0, $count);
 
         error_log(__METHOD__ . " end");
     }

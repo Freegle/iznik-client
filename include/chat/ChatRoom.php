@@ -387,8 +387,16 @@ class ChatRoom extends Entity
     public function unseenCountForUser($userid)
     {
         # Find if we have any unseen messages.  Exclude any pending review.
-        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
-        $counts = $this->dbhr->preQuery($sql, [$this->id, $userid, $this->id, $userid]);
+        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ? AND status != ? AND status != ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
+        $counts = $this->dbhm->preQuery($sql, [
+            $this->id,
+            $userid,
+            ChatRoom::STATUS_CLOSED,
+            ChatRoom::STATUS_BLOCKED,
+            $this->id,
+            $userid
+        ]);
+
         return ($counts[0]['count']);
     }
 
@@ -496,7 +504,7 @@ class ChatRoom extends Entity
 
         if (!$chattypes || in_array(ChatRoom::TYPE_GROUP, $chattypes)) {
             # We want chats marked by groupid for which we are a member.
-            $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid AND (status IS NULL OR status != 'Closed') $countq;";
+            $sql = "SELECT chat_rooms.* FROM chat_rooms INNER JOIN t1 ON chattype = 'Group' AND chat_rooms.groupid = t1.groupid LEFT JOIN chat_roster ON chat_roster.userid = $userid AND chat_rooms.id = chat_roster.chatid WHERE (status IS NULL OR status != 'Closed') $countq;";
             #error_log("Group chats $sql, $userid");
             $rooms = array_merge($rooms, $this->dbhr->preQuery($sql, []));
             #error_log("Add " . count($rooms) . " group chats using $sql");
@@ -589,7 +597,7 @@ class ChatRoom extends Entity
     public function upToDate($userid) {
         $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
         foreach ($msgs as $msg) {
-            #error_log("Set max to {$msg['max']} for $userid in room {$this->id} ");
+            error_log("Set max to {$msg['max']} for $userid in room {$this->id} ");
             $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;",
                 [
                     $msg['max'],
@@ -613,10 +621,6 @@ class ChatRoom extends Entity
                 presdef('REMOTE_ADDR', $_SERVER, NULL)
             ],
             FALSE);
-
-        if ($lastmsgseen && is_nan($lastmsgseen)) {
-            error_log("Bad request " . var_export($_REQUEST, TRUE));
-        }
 
         if ($status == ChatRoom::STATUS_CLOSED || $status == ChatRoom::STATUS_BLOCKED) {
             # The Closed and Blocked statuses are special - they're per-room.  So we need to set it.
