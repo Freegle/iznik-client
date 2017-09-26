@@ -1293,7 +1293,40 @@ define([
             'click .js-viewchat': 'viewChat',
             'click .chat-when': 'msgZoom',
             'click .js-imgzoom': 'imageZoom',
-            'click .js-profile': 'showProfile'
+            'click .js-profile': 'showProfile',
+            'click .js-renege': 'renege'
+        },
+
+        renege: function() {
+            var self = this;
+            console.log("Renege");
+
+            var m = new Iznik.Models.Message(self.model.get('refmsg'));
+            var other = self.options.chatModel.otherUser();
+
+            var v = new Iznik.Views.Confirm({
+                model: new Iznik.Model({
+                    message: self.model.get('refmsg'),
+                    user: self.options.chatModel.otherUserMod()
+                })
+            });
+
+            v.template = 'user_message_renege';
+
+            self.listenToOnce(v, 'confirmed', function() {
+                $.ajax({
+                    url: API + 'message/' + m.get('id'),
+                    type: 'POST',
+                    data: {
+                        action: 'Renege',
+                        userid: other
+                    }, success: function() {
+                        self.model.collection.fetch();
+                    }
+                });
+            });
+
+            v.render();
         },
 
         scheduleModal: function() {

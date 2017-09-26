@@ -60,6 +60,17 @@ define([
             return(other);
         },
 
+        otherUserMod: function() {
+            var u1 = this.get('user1');
+            var user1 = u1 ? u1.id : null;
+            var u2 = this.get('user2');
+            var user2 = u2 ? u2.id : null;
+
+            var myid = Iznik.Session.get('me').id;
+            var other = user1 == myid ? u2 : u1;
+            return(other);
+        },
+
         nudge: function(userid) {
             var self = this;
 
@@ -213,12 +224,10 @@ define([
 
             // We want to know when the tab is active, as this affects how often we hit the server.
             $(document).on('hide', function () {
-                log("Tab hidden");
                 self.tabActive = false;
             });
 
             $(document).on('show', function () {
-                log("Tab shown");
                 self.tabActive = true;
             });
 

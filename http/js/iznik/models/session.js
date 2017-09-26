@@ -52,13 +52,11 @@ define([
 
         askSubscription: function() {
             var self = this;
-            console.log("askSubscription");
 
             if (window.serviceWorker) {
                 window.serviceWorker.pushManager.permissionState({
                     userVisibleOnly: true
                 }).then(function(PushMessagingState) {
-                    console.log("Push state", PushMessagingState);
                     var ask = false;
 
                     switch (PushMessagingState) {
