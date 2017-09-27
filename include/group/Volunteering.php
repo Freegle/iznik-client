@@ -266,11 +266,17 @@ class Volunteering extends Entity
         foreach ($ids as $id) {
             $v = new Volunteering($this->dbhr, $this->dbhm, $id['id']);
             $u = new User($this->dbhr, $this->dbhm, $v->getPrivate('userid'));
+            $atts = $v->getPublic();
+            $groupname = SITE_NAME;
+
+            foreach ($atts['groups'] as $group) {
+                $groupname = $group['namedisplay'];
+            }
 
             if ($u->getId()) {
                 # The user is still around.
                 $url = $u->loginLink(USER_SITE, $u->getId(), '/volunteering/' . $id['id'], User::SRC_VOLUNTEERING_DIGEST);
-                $html = volunteering_renew(USER_SITE, USERLOGO, $v->getPrivate('title'), $url);
+                $html = volunteering_renew(USER_SITE, USERLOGO, $v->getPrivate('title'), $url, $groupname);
 
                 $message = Swift_Message::newInstance()
                     ->setSubject("Re: " . $v->getPrivate('title'))
