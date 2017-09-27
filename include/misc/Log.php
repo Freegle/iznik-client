@@ -67,6 +67,7 @@ class Log
     const SUBTYPE_OUTCOME = 'Outcome';
     const SUBTYPE_NOTIFICATIONOFF = 'NotificationOff';
     const SUBTYPE_AUTO_APPROVED = 'Autoapproved';
+    const SUBTYPE_UNBOUNCE = 'Unbounce';
 
     function __construct($dbhr, $dbhm)
     {

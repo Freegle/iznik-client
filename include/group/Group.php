@@ -418,6 +418,7 @@ class Group extends Entity
         $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
         $modq = '';
         $bounceq = '';
+        $filterq = '';
 
         switch ($filter) {
             case Group::FILTER_WITHCOMMENTS:

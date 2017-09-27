@@ -25,7 +25,16 @@ define([
             'click .js-purge': 'purge',
             'click .js-addcomment': 'addComment',
             'click .js-spammer': 'spammer',
-            'click .js-whitelist': 'whitelist'
+            'click .js-whitelist': 'whitelist',
+            'click .js-unbounce': 'unbounce'
+        },
+
+        unbounce: function() {
+            var self = this;
+
+            self.model.unbounce().then(function() {
+                self.$('.js-bouncing').fadeOut('slow');
+            });
         },
 
         showPosts: function(offers, wanteds, takens, receiveds, others) {

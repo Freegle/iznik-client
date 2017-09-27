@@ -576,13 +576,31 @@ class User extends Entity
                     ]);
 
                     # If we've set an email we might no longer be bouncing.
-                    $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $rc ]);
-                    $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
+                    $this->unbounce($rc, FALSE);
                 }
             }
         }
 
         return($rc);
+    }
+
+    public function unbounce($emailid, $log) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        if ($log) {
+            $l = new Log($this->dbhr, $this->dbhm);
+
+            $l->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_UNBOUNCE,
+                'user' => $this->id,
+                'byuser' => $myid
+            ]);
+        }
+
+        $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $emailid ]);
+        $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
     }
 
     public function removeEmail($email)

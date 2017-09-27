@@ -251,14 +251,25 @@ function user() {
         case 'POST': {
             $u = User::get($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
 
+            if ($action == 'Mail') {
+                $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
+            } else {
+                $role = $me->moderatorForUser($id) ? User::ROLE_MODERATOR : User::ROLE_NONMEMBER;
+            }
+
+            error_log("Role $role for $id");
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                 switch ($action) {
                     case 'Mail':
                         $u->mail($groupid, $subject, $body, NULL);
+                        break;
+                    case 'Unbounce':
+                        $email = $u->getEmailPreferred();
+                        $eid = $u->getIdForEmail($email)['id'];
+                        $u->unbounce($eid, TRUE);
                         break;
                 }
             }
