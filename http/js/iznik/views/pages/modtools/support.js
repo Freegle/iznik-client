@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'gmaps',
     'backgrid',
     "iznik/modtools",
     'iznik/views/pages/pages',
@@ -430,6 +431,93 @@ define([
                     support: true
                 }
             }).then(function() {
+                function apiLoaded() {
+                    // Pie Chart of platforms.
+                    var FDNative = 0;
+                    var FDNativePlusTN = 0;
+                    var FDPlusYahoo = 0;
+                    var FDPlusYahooPlusTN = 0;
+                    var YahooOnly = 0;
+                    var YahooPlusTN = 0;
+                    var External = 0;
+                    var Norfolk = 0;
+
+                    self.allGroups.each(function (group) {
+                        var external = group.get('external');
+
+                        if (external) {
+                            if (external.indexOf('norfolk') !== -1) {
+                                Norfolk++;
+                            } else {
+                                External++;
+                            }
+                        } else {
+                            if (group.get('onhere')) {
+                                if (group.get('onyahoo')) {
+                                    if (group.get('trashnothing')) {
+                                        FDPlusYahooPlusTN++;
+                                    } else {
+                                        FDPlusYahoo++;
+                                    }
+                                } else {
+                                    if (group.get('trashnothing')) {
+                                        FDNativePlusTN++;
+                                    } else {
+                                        FDNative++;
+                                    }
+                                }
+                            } else {
+                                if (group.get('trashnothing')) {
+                                    YahooPlusTN++;
+                                } else {
+                                    YahooOnly++;
+                                }
+                            }
+                        }
+                    });
+
+                    data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Platform');
+                    data.addColumn('number', 'Count');
+                    data.addRows([
+                        ['FD + TN + Yahoo', FDPlusYahooPlusTN ],
+                        ['FD + TN', FDNativePlusTN],
+                        ['FD', FDNative],
+                        ['FD + Yahoo', FDPlusYahoo],
+                        ['Yahoo + TN', YahooPlusTN],
+                        ['Yahoo Only', YahooOnly],
+                        ['External', External],
+                        ['Norfolk', Norfolk]
+                    ]);
+
+                    self.groupchart = new google.visualization.PieChart(self.$('.js-groupplatforms').get()[0]);
+                    chartOptions = {
+                        title: "Group Platforms",
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        colors: [
+                            'darkgreen',
+                            'lightgreen',
+                            'cyan',
+                            'lightblue',
+                            'orange',
+                            'purple',
+                            'grey',
+                            'darkblue'
+                        ],
+                        slices2: {
+                            1: {offset: 0.2},
+                            2: {offset: 0.2}
+                        }
+                    };
+
+                    self.groupchart.draw(data, chartOptions);
+                }
+
+                google.load('visualization', '1.0', {
+                    'packages':['corechart', 'annotationchart'],
+                    'callback': apiLoaded
+                });
+
                 self.wait.close()
             });
         },
@@ -594,7 +682,6 @@ define([
 
                     var stats = self.model.get('stats');
                     var data;
-                    console.log("Stats", stats);
 
                     // First the group chart - this shows what happened on a per-group basis.
                     var reached = 0;

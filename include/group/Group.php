@@ -34,6 +34,7 @@ class Group extends Entity
     const FILTER_NONE = 0;
     const FILTER_WITHCOMMENTS = 1;
     const FILTER_MODERATORS = 2;
+    const FILTER_BOUNCING = 3;
 
     /** @var  $log Log */
     private $log;
@@ -416,6 +417,7 @@ class Group extends Entity
         $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
         $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
         $modq = '';
+        $bounceq = '';
 
         switch ($filter) {
             case Group::FILTER_WITHCOMMENTS:
@@ -425,6 +427,10 @@ class Group extends Entity
             case Group::FILTER_MODERATORS:
                 $filterq = '';
                 $modq = " AND memberships.role IN ('Owner', 'Moderator') ";
+                break;
+            case Group::FILTER_BOUNCING:
+                $bounceq = ' AND users.bouncing = 1 ';
+                break;
             default:
                 $filterq = '';
                 break;
@@ -470,7 +476,7 @@ class Group extends Entity
               $groupq $collectionq $addq $ypsq $ydtq $opsq";
         } else {
             $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : '';
-            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq $opsq $modq";
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq $opsq $modq $bounceq";
         }
 
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
@@ -1251,6 +1257,11 @@ class Group extends Entity
                     $group['authority'] = $auth['name'];
                 }
             }
+
+            // See if we have any TN members on that group
+            $sql = "SELECT * FROM `memberships` INNER JOIN users_emails ON users_emails.userid = memberships.userid WHERE groupid = ? AND backwards LIKE 'moc.gnihtonhsart%' LIMIT 1";
+            $tns = $this->dbhr->preQuery($sql, [ $group['id'] ]);
+            $group['trashnothing'] = count($tns) > 0;
         }
 
         return($groups);
