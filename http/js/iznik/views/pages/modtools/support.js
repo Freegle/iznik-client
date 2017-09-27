@@ -9,6 +9,7 @@ define([
     "iznik/modtools",
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages_approved',
+    'iznik/views/pages/modtools/members_approved',
     'iznik/views/pages/modtools/replay',
     'iznik/models/user/alert',
     'iznik/views/user/user',
@@ -611,7 +612,45 @@ define([
     });
 
     Iznik.Views.ModTools.Pages.Support.Group = Iznik.View.extend({
-       template: 'modtools_support_group'
+        template: 'modtools_support_group',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+
+            p.then(function() {
+                // Get the mods.
+                var coll = new Iznik.Collections.Members(null, {
+                    groupid: self.model.get('id'),
+                    group: self.model,
+                    collection: 'Approved'
+                });
+
+                coll.fetch({
+                    data: {
+                        filter: 2
+                    }
+                }).then(function() {
+                    console.log("Mods", coll);
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-mods'),
+                        modelView: Iznik.Views.ModTools.Member.Approved,
+                        modelViewOptions: {
+                            collection: coll,
+                            page: self
+                        },
+                        collection: coll,
+                        processKeyEvents: false
+                    });
+
+                    self.collectionView.render();
+                    console.log("Rendered", coll, self.$('.js-mods'));
+                })
+            });
+
+            return(p);
+        }
     });
 
     Iznik.Views.ModTools.Alert = Iznik.View.extend({
