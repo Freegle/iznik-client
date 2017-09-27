@@ -17,7 +17,7 @@ class Group extends Entity
     
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo',
-        'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
+        'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget');
 
@@ -1234,7 +1234,7 @@ class Group extends Entity
         $showq = $support ? '' : 'AND publish = 1 AND listable = 1';
         $suppfields = $support ? ", lastmoderated, lastmodactive, activemodcount, onmap": '';
 
-        $sql = "SELECT id, nameshort, region, authorityid, namefull, lat, lng, publish $suppfields, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $sql = "SELECT id, nameshort, region, authorityid, namefull, lat, lng, publish $suppfields, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
@@ -1258,11 +1258,6 @@ class Group extends Entity
                     $group['authority'] = $auth['name'];
                 }
             }
-
-            // See if we have any TN members on that group
-            $sql = "SELECT * FROM `memberships` INNER JOIN users_emails ON users_emails.userid = memberships.userid WHERE groupid = ? AND backwards LIKE 'moc.gnihtonhsart%' LIMIT 1";
-            $tns = $this->dbhr->preQuery($sql, [ $group['id'] ]);
-            $group['trashnothing'] = count($tns) > 0;
         }
 
         return($groups);

@@ -6,6 +6,23 @@ require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
+# Update record of which groups are on TN.
+$dbhm->preExec("UPDATE groups SET ontn = 0;");
+
+$tngroups = file_get_contents("https://trashnothing.com/modtools/api/freegle-groups?key=" . TNKEY);
+$tngroups = str_replace("{u'", "{'", $tngroups);
+$tngroups = str_replace(", u'", ", '", $tngroups);
+$tngroups = str_replace("'", '"', $tngroups);
+$tngroups = json_decode($tngroups, TRUE);
+
+$g = new Group($dbhr, $dbhm);
+foreach ($tngroups as $gname => $tngroup) {
+    if ($tngroup['listed']) {
+        $gid = $g->findByShortName($gname);
+        $dbhm->preExec("UPDATE groups SET ontn = 1 WHERE id = ?;", [ $gid ]);
+    }
+}
+
 $date = date('Y-m-d', strtotime("yesterday"));
 $groups = $dbhr->preQuery("SELECT * FROM groups;");
 foreach ($groups as $group) {

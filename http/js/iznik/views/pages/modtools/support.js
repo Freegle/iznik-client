@@ -454,20 +454,20 @@ define([
                         } else {
                             if (group.get('onhere')) {
                                 if (group.get('onyahoo')) {
-                                    if (group.get('trashnothing')) {
+                                    if (group.get('ontn')) {
                                         FDPlusYahooPlusTN++;
                                     } else {
                                         FDPlusYahoo++;
                                     }
                                 } else {
-                                    if (group.get('trashnothing')) {
+                                    if (group.get('ontn')) {
                                         FDNativePlusTN++;
                                     } else {
                                         FDNative++;
                                     }
                                 }
                             } else {
-                                if (group.get('trashnothing')) {
+                                if (group.get('ontn')) {
                                     YahooPlusTN++;
                                 } else {
                                     YahooOnly++;
@@ -482,7 +482,7 @@ define([
                     data.addRows([
                         ['FD + TN + Yahoo', FDPlusYahooPlusTN ],
                         ['FD + TN', FDNativePlusTN],
-                        ['FD', FDNative],
+                        ['FD Only', FDNative],
                         ['FD + Yahoo', FDPlusYahoo],
                         ['Yahoo + TN', YahooPlusTN],
                         ['Yahoo Only', YahooOnly],
