@@ -370,6 +370,11 @@ define([
                 editable: false,
                 cell: OurCheck
              }, {
+                name: 'ontn',
+                label: 'TN?',
+                editable: false,
+                cell: OurCheck
+             }, {
                 name: 'onyahoo',
                 label: 'Yahoo?',
                 editable: false,
