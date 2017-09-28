@@ -94,7 +94,7 @@ class GroupFacebook {
     }
 
     public function getPostsToShare($sharefrom, $since = "yesterday") {
-        $fb = $this->getFB(FALSE);
+        $fb = $this->getFB(TRUE);
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
