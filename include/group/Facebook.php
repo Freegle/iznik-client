@@ -368,7 +368,7 @@ class GroupFacebook {
 
     public function updatePostableMessages($msgid, $msgarrival) {
         if ($msgarrival) {
-            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE uid = ?;", [$msgid, $msgarrival, $this->uid]);
+            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE uid = ? AND (msgarrival IS NULL OR msgarrival < ?);", [$msgid, $msgarrival, $this->uid, $msgarrival]);
         }
     }
 
