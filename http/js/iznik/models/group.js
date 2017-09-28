@@ -16,7 +16,7 @@ define([
         },
 
         recordFacebookShare: function(uid, msgid, msgarrival) {
-            $.ajax({
+            return($.ajax({
                 url: API + 'group',
                 type: 'POST',
                 data: {
@@ -25,7 +25,19 @@ define([
                     msgid: msgid,
                     msgarrival: msgarrival
                 }
-            });
+            }));
+        },
+
+        removeFacebookGroup: function(uid) {
+            return($.ajax({
+                url: API + 'group',
+                type: 'POST',
+                data: {
+                    action: 'RemoveFacebookGroup',
+                    id: this.get('id'),
+                    uid: uid
+                }
+            }));
         }
     });
 

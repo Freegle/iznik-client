@@ -10,10 +10,11 @@ require_once(IZNIK_BASE . '/include/group/Facebook.php');
 
 $groupid = presdef('graffitigroup', $_SESSION, 0);
 $type = presdef('graffititype', $_SESSION, 'Page');
+$url = presdef('url', $_REQUEST, NULL);;
 
 $fb = new Facebook\Facebook([
-    'app_id' => $type == 'Page' ? FBGRAFFITIAPP_ID : FBAPP_ID,
-    'app_secret' => $type == 'Page' ? FBGRAFFITIAPP_SECRET : FBAPP_SECRET
+    'app_id' => FBGRAFFITIAPP_ID,
+    'app_secret' => FBGRAFFITIAPP_SECRET
 ]);
 
 $helper = $fb->getRedirectLoginHelper();
@@ -53,6 +54,43 @@ try {
         foreach ($totalPages as $page) {
             echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($page['id']) . '&token=' . urlencode($page['access_token']) . '">' . $page['name'] . '</a><br />';
         }
+    } else {
+        # Find Facebook groups near the group
+//        ?><!--<p>These are suggested groups you could link to.  Click on the ones you want to link to your group.  You can link multiple groups.</p>--><?php
+//        $keywords = [ 'free', 'buy', 'sell', 'freebies'];
+//
+//        $totalGroups = [];
+//
+//        foreach ($keywords as $keyword) {
+//            $ret = $fb->get("/search?q=$keyword&type=group&limit=20", $accessToken);
+//            $groups = $ret->getGraphEdge();
+//
+//            if ($fb->next($groups)) {
+//                $groupsArray = $groups->asArray();
+//
+//                $totalGroups = array_merge($totalGroups, $groupsArray);
+//                while ($groups = $fb->next($groups)) {
+//                    $groupsArray = $groups->asArray();
+//                    $totalGroups = array_merge($totalGroups, $groupsArray);
+//                }
+//            } else {
+//                $groupsArray = $groups->asArray();
+//                $totalGroups = array_merge($totalGroups, $groupsArray);
+//            }
+//        }
+//
+//        foreach ($totalGroups as $group) {
+//            if ($group['privacy'] == 'OPEN') {
+//                print($group['name'] . '<br />');
+//            }
+//        }
+        ?><p>Paste in the URL of a buy and sell group, e.g. https://www.facebook.com/groups/282100418467107/</p>
+        <p>If your URL doesn't have a number in it, do View Source and search for group_id to find it.</p>
+        <form action="https://<?php echo SITE_HOST; ?>/facebook/facebook_group.php?type=Group">
+            <input type="text" name="url" placeholder="Enter the URL"/>
+            <input type="submit"/>
+        </form>
+        <?php
     }
 } catch(Facebook\Exceptions\FacebookResponseException $e) {
     // When Graph returns an error

@@ -51,11 +51,11 @@ define([
         facebookAuthGroup: function() {
             var group = Iznik.Session.getGroup(this.selected);
             var v = new Iznik.Views.ModTools.Settings.FacebookAuthGroup({
-                group: group
+                model: group
             });
             v.render();
         },
-    
+
         addLicense: function() {
             var self = this;
             var group = Iznik.Session.getGroup(self.selected);
@@ -2518,6 +2518,18 @@ define([
     Iznik.Views.ModTools.Settings.GroupFacebook = Iznik.View.extend({
         template: 'modtools_settings_groupfacebook',
 
+        events: {
+            'click .js-delete': 'deleteIt'
+        },
+
+        deleteIt: function() {
+            var self = this;
+
+            self.options.group.removeFacebookGroup(self.model.get('uid')).then(function() {
+                self.$el.fadeOut('slow');
+            });
+        },
+
         render: function() {
             var self = this;
 
@@ -2554,49 +2566,8 @@ define([
 
         add: function() {
             var self = this;
-            console.log("Add", self);
-            var url = self.$('.js-groupurl').val();
-            self.$('.js-groupurl').removeClass('error');
-
-            var re = /https:\/\/www.facebook.com\/groups\/(\d*)/;
-            var match = re.exec(url);
-
-            if (match) {
-                // Fetch the page to get the name, and make sure it's valid.
-                require(['iznik/facebook'], function(FBLoad) {
-                    self.listenToOnce(FBLoad(), 'fbloaded', function () {
-                        if (!FBLoad().isDisabled()) {
-                            FB.login(function() {
-                                FB.api('/' + match[1], function (response) {
-                                    console.log("Got response", response);
-                                    if (response && !response.error && response.hasOwnProperty('name')) {
-                                        $.ajax({
-                                            type: 'POST',
-                                            url: API + 'group',
-                                            data: {
-                                                action: 'AddFacebookGroup',
-                                                name: response.name,
-                                                facebookid: response.id,
-                                                access_token: FB.getAuthResponse()['accessToken'],
-                                                id: self.options.group.get('id')
-                                            }, success: function(ret) {
-                                                self.close();
-                                            }
-                                        });
-                                    } else {
-                                        self.$('.js-groupurl').addClass('error-border');
-                                    }
-                                });
-                            }, {scope: 'publish_actions'});
-                        }
-                    });
-
-                    FBLoad().render($('meta[name=facebook-graffiti-app-id]').attr("content"));
-                });
-            } else {
-                self.$('.js-groupurl').addClass('error-border');
-            }
+            window.open('/facebook/facebook_request.php?groupid=' + self.model.get('id') + '&type=Group');
+            self.close();
         }
     });
-
 });
