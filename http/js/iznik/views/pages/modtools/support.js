@@ -629,7 +629,8 @@ define([
 
                 coll.fetch({
                     data: {
-                        filter: 2
+                        filter: 2,
+                        limit: 100
                     }
                 }).then(function() {
                     console.log("Mods", coll);
