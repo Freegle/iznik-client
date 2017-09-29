@@ -410,8 +410,17 @@ define([
                 label: 'Active mods',
                 editable: false,
                 cell: OurMods
-            }
-            ];
+            }, {
+                name: 'backupownersactive',
+                    label: 'Backup owners active',
+                    editable: false,
+                    cell: OurMods
+            }, {
+                name: 'backupmodsactive',
+                    label: 'Backup mods active',
+                    editable: false,
+                    cell: OurMods
+            }];
 
             var OurRow = Backgrid.Row.extend({
                 render: function () {
