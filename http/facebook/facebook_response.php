@@ -85,7 +85,7 @@ try {
 //            }
 //        }
         ?><p>Paste in the URL of a buy and sell group, e.g. https://www.facebook.com/groups/282100418467107/</p>
-        <p>If your URL doesn't have a number in it, do View Source and search for group_id to find it.</p>
+        <p>If your URL doesn't have a number in it, do View Source (Ctrl+U) and search for group_id (Ctrl+F) to find it.</p>
         <form action="https://<?php echo SITE_HOST; ?>/facebook/facebook_group.php?type=Group">
             <input type="text" name="url" placeholder="Enter the URL"/>
             <input type="submit"/>
