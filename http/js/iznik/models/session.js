@@ -344,6 +344,13 @@ define([
                                         sound: false
                                     },
                                     {
+                                        fi: 'fbgroups',
+                                        el: '.js-fbgroupscount',
+                                        ev: 'fbgroupscountschanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
                                         fi: 'spammerpendingadd',
                                         el: '.js-spammerpendingaddcount',
                                         ev: 'spammerpendingaddcountschanged',

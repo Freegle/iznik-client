@@ -350,7 +350,7 @@ class Group extends Entity
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
-            ])[0]['count'],
+            ])[0]['count']
         ];
 
         return($ret);
