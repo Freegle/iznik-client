@@ -118,13 +118,13 @@ class Volunteering extends Entity
 
         # We can only see pending volunteerings if we're an owner/mod.
         # We might be called for a specific groupid; if not then use logged in user's groups.
-        $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
+        $pendingq = $pending ? " pending = 1 " : " pending = 0 ";
         $roleq = $pending ? (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . " AND role IN ('Owner', 'Moderator')) ") : '';
         $groupq = $groupid ? (" AND groupid = " . intval($groupid)) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
         $ctxq = $ctx ? " AND volunteering.id < {$ctx['id']} " : '';
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT volunteering.id, volunteering_dates.applyby, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
+        $sql = "SELECT volunteering.id, volunteering_dates.applyby, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
         $volunteerings = $this->dbhr->preQuery($sql, [
             $mysqltime,
             $mysqltime
