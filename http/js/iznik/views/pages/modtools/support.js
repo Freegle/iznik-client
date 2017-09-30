@@ -341,6 +341,35 @@ define([
                     return this;
                 }
             });
+            var OurMods2 = Backgrid.Cell.extend({
+                render: function () {
+                    var val = this.model.get(this.column.get('name'));
+                    if (val === null) {
+                        this.$el.html('-');
+                        this.$el.addClass('bg-warning');
+                    } else {
+                        this.$el.html(val);
+                        if (val < 1) {
+                            this.$el.addClass('bg-warning');
+                        }
+                    }
+
+                    return this;
+                }
+            });
+
+            // Active mods - colour code
+            var AtRisk = Backgrid.Cell.extend({
+                render: function () {
+                    var val = this.model.get(this.column.get('name'));
+                    this.$el.html(val < 2 ? 'Yes' : 'No');
+                    if (val < 2) {
+                        this.$el.addClass('bg-warning');
+                    }
+
+                    return this;
+                }
+            });
 
             // Create a backgrid for the groups.
             var columns = [{
@@ -409,17 +438,22 @@ define([
                 name: 'activemodcount',
                 label: 'Active mods',
                 editable: false,
-                cell: OurMods
+                cell: OurMods2
             }, {
                 name: 'backupownersactive',
-                    label: 'Backup owners active',
-                    editable: false,
-                    cell: OurMods
+                label: 'Backup owners active',
+                editable: false,
+                cell: 'integer'
             }, {
                 name: 'backupmodsactive',
-                    label: 'Backup mods active',
-                    editable: false,
-                    cell: OurMods
+                label: 'Backup mods active',
+                editable: false,
+                cell: 'integer'
+            }, {
+                name: 'atrisk',
+                label: 'At risk?',
+                editable: false,
+                cell: AtRisk
             }];
 
             var OurRow = Backgrid.Row.extend({
@@ -446,6 +480,13 @@ define([
                     support: true
                 }
             }).then(function() {
+                self.allGroups.each(function(group) {
+                    var m = group.get('activemodcount') ? parseInt(group.get('activemodcount')) : 0;
+                    var n = group.get('backupownersactive') ? parseInt(group.get('backupownersactive')) : 0;
+                    var o = group.get('backupmodsactive') ? parseInt(group.get('backupmodsactive')) : 0;
+                    group.set('atrisk', m + n + o);
+                });
+
                 function apiLoaded() {
                     // Pie Chart of platforms.
                     var FDNative = 0;

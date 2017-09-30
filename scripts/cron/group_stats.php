@@ -146,6 +146,32 @@ foreach ($totalact as $total) {
             $actives[0]['count'] == 0 && $lastmodactive ? 1 : $actives[0]['count'],
             $group['id']
         ]);
+
+        # Count owners and mods not active on this group but active on other groups in the last 30 days.
+        $start = date('Y-m-d', strtotime("30 days ago"));
+        $mods = $dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count FROM memberships WHERE groupid = ? AND role IN ('Owner') AND userid NOT IN (SELECT DISTINCT(approvedby) FROM messages_groups WHERE groupid = ? AND arrival > ? AND approvedby IS NOT NULL) AND userid IN (SELECT DISTINCT(approvedby) FROM messages_groups WHERE groupid != ? AND arrival > ? AND approvedby IS NOT NULL);", [
+            $group['id'],
+            $group['id'],
+            $start,
+            $group['id'],
+            $start
+        ]);
+        $dbhm->preExec("UPDATE groups SET backupownersactive = ? WHERE id = ?;", [
+            $mods[0]['count'],
+            $group['id']
+        ]);
+
+        $mods = $dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count FROM memberships WHERE groupid = ? AND role IN ('Moderator') AND userid NOT IN (SELECT DISTINCT(approvedby) FROM messages_groups WHERE groupid = ? AND arrival > ? AND approvedby IS NOT NULL) AND userid IN (SELECT DISTINCT(approvedby) FROM messages_groups WHERE groupid != ? AND arrival > ? AND approvedby IS NOT NULL);", [
+            $group['id'],
+            $group['id'],
+            $start,
+            $group['id'],
+            $start
+        ]);
+        $dbhm->preExec("UPDATE groups SET backupmodsactive = ? WHERE id = ?;", [
+            $mods[0]['count'],
+            $group['id']
+        ]);
     }
 }
 
