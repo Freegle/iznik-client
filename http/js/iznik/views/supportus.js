@@ -86,7 +86,6 @@ define([
 
                                 var p = Iznik.Views.Modal.prototype.render.call(self);
                                 p.then(function () {
-                                    console.log("Show for ", homegroup);
                                     var w = new Iznik.Views.DonationThermometer({
                                         groupid: homegroup
                                     });

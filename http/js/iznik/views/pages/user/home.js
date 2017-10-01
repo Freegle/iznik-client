@@ -9,7 +9,7 @@ define([
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
     'iznik/views/user/message',
-    // 'iznik/views/supportus''
+    'iznik/views/supportus'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
@@ -281,6 +281,8 @@ define([
                 }
 
                 // (new Iznik.Views.SupportUs()).render();
+                (new Iznik.Views.User.eBay()).render();
+
                 var today = new Date().toISOString().slice(0, 10);
                 if (today == '2017-04-01') {
                     self.$('.js-april').fadeIn('slow');
@@ -491,6 +493,41 @@ define([
         }
     });
 
+    Iznik.Views.User.eBay = Iznik.Views.Modal.extend({
+        template: 'user_home_ebay',
+
+        events: {
+            'click .js-notagain': 'notagain',
+            'click .js-cancel': 'cancel',
+            'click .js-vote': 'vote'
+        },
+
+        vote: function() {
+            ABTestAction('ebay', 'Vote');
+        },
+
+        cancel: function() {
+            ABTestAction('ebay', 'Cancel');
+            this.close();
+        },
+
+        notagain: function() {
+            ABTestAction('ebay', 'Not again');
+            Storage.set('ebaynotagain', true);
+            this.close();
+        },
+
+        render: function() {
+            var self = this;
+
+            ABTestShown('ebay', 'Vote');
+
+            if (!Storage.get('ebaynotagain')) {
+                Iznik.Views.Modal.prototype.render.call(this);
+            }
+        }
+    });
+
     Iznik.Views.User.Outcome = Iznik.Views.Modal.extend({
         template: 'user_home_outcome',
 
@@ -572,6 +609,12 @@ define([
                         self.trigger('outcame');
 
                         var v = new Iznik.Views.SupportUs();
+
+                        // eBay voting campaign
+                        self.listenToOnce(v, 'modalClosed', function() {
+                            (new Iznik.Views.User.eBay()).render();
+                        });
+
                         v.render();
                     }
                 }
