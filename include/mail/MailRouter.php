@@ -889,7 +889,11 @@ class MailRouter
                                 $appmemb = $u->isApprovedMember($group['groupid']);
                                 if ($log) { error_log("Approved member? $appmemb"); }
                                 if ($appmemb) {
-                                    $ps = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
+                                    # Whether we post to pending or approved depends on the group setting,
+                                    # and if that is set not to moderate, the user setting.  Similar code for
+                                    # this setting in message API call.
+                                    $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                                    $ps = $g->getSetting('moderated', 0) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
                                     $ps = $ps ? $ps : Group::POSTING_MODERATED;
                                     if ($log) { error_log("Member, Our PS is $ps"); }
 

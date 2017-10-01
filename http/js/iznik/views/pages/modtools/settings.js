@@ -372,6 +372,13 @@ define([
                                 helpMessage: 'This lets groups mods chat to each other on here.'
                             },
                             {
+                                name: 'moderated',
+                                label: '(Freegle native groups only) Group is fully-moderated?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "When this setting is No (for most groups), all new members are Moderated and members can be changed to Group Settings (meaning unmoderated) once they have made a valid post.  When this setting is Yes, all posts must be moderated no matter what setting the user has."
+                            },
+                            {
                                 name: 'autoapprove.members',
                                 label: 'Auto-approve pending members?',
                                 control: 'radio',

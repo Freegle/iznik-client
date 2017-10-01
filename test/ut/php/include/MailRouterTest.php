@@ -1535,6 +1535,17 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(MailRouter::APPROVED, $rc);
         assertTrue($m->isApproved($gid));
 
+        # Test moderated
+        $g->setSettings([ 'moderated' => TRUE ]);
+        $msg = $this->unique(file_get_contents('msgs/nativebymail'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        error_log("Mail message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::PENDING, $rc);
+        assertTrue($m->isPending($gid));
+
         # Unsubscribe
 
         $msg = $this->unique(file_get_contents('msgs/tovols'));

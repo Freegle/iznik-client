@@ -62,6 +62,7 @@ class Group extends Entity
             'stories' => 1,
             'includearea' => 1,
             'includepc' => 1,
+            'moderated' => 0,
             'autoapprove' => [
                 'members' => 0,
                 'messages' => 0
