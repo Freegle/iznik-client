@@ -58,6 +58,7 @@ EOT;
                                                                 </tr>
                                                                 <tr>
                                                                     <td width="100%" align="left" class="mobile" style="font-family: Century Gothic, Arial, sans-serif; font-size:14px; line-height:20px;">
+                                                                        <p style="color: red">Please vote for Freegle to win upto £7000 of much-needed funding.  Set us as your favourite eBay charity - click <a href="http://freegle.it/eBay">here</a>.</p>                                                                    
                                                                         $htmlsummary                                                                     
                                                                     </td>
                                                                 </tr>

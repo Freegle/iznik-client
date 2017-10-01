@@ -52,7 +52,7 @@ EOT;
                                                                 </table>               
                                                             </td>    
                                                             <td>
-                                                                <p style="color: red">Now you can chat to local freeglers - ask for advice, recommendations, or just natter.  Try it <a href="$newsfeed">here</a>.</p>  
+                                                                <p style="color: red">Please vote for Freegle to win upto £7000 of much-needed funding.  Set us as your favourite eBay charity - click <a href="http://freegle.it/eBay">here</a>.</p>  
                                                                 <p>You've received this automated mail because you're a member of <a href="{{visit}}">$groupname</a>.</p>
                                                                 <table width="100%">
                                                                     <tr>
