@@ -290,6 +290,8 @@ class GroupFacebook {
     public function getPostableMessagesCount() {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
+        $groups = [];
+
         $mygroups = $me->getMemberships(TRUE);
         foreach ($mygroups as $group) {
             $settings = $me->getGroupSettings($group['id']);
@@ -301,15 +303,16 @@ class GroupFacebook {
         $groupq = " messages_groups.groupid IN (" . implode(',', $groups) . ") AND ";
 
         # We want to post any messages since the last one, with a max to avoid flooding things.
-        $mysqltime1 = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "24 hours ago"));
         $mysqltime = date ("Y-m-d H:i:s.u", strtotime("72 hours ago"));
-        $sql = "SELECT COUNT(DISTINCT messages_groups.msgid) AS count  FROM messages_groups INNER JOIN groups ON $groupq groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.type = 'Group' WHERE messages.arrival > ? AND (groups_facebook.msgarrival IS NULL OR groups_facebook.msgarrival < messages.arrival) AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC;";
-        $msgs = $this->dbhr->preQuery($sql, [ $mysqltime, Message::PLATFORM ]);
-        error_log("SELECT COUNT(DISTINCT messages_groups.msgid) AS count  FROM messages_groups INNER JOIN groups ON $groupq groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.type = 'Group' WHERE messages.arrival > '$mysqltime' AND (groups_facebook.msgarrival IS NULL OR groups_facebook.msgarrival < messages.arrival) AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages.source = 'Platform' AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC;");
+        $count = 0;
 
-        $ctx['id'] = count($msgs) ? $msgs[count($msgs) - 1]['id'] : NULL;
+        if (count($groups) > 0) {
+            $sql = "SELECT COUNT(DISTINCT messages_groups.msgid) AS count  FROM messages_groups INNER JOIN groups ON $groupq groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.type = 'Group' WHERE messages.arrival > ? AND (groups_facebook.msgarrival IS NULL OR groups_facebook.msgarrival < messages.arrival) AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC;";
+            $msgs = $this->dbhr->preQuery($sql, [ $mysqltime, Message::PLATFORM ]);
+            $count = $msgs[0]['count'];
+        }
 
-        return($msgs[0]['count']);
+        return($count);
     }
 
     public function getPostableMessages($groupid, &$ctx) {
