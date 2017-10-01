@@ -448,4 +448,39 @@ define([
             }
         }
     });
+
+    Iznik.Views.User.eBay = Iznik.Views.Modal.extend({
+        template: 'user_home_ebay',
+
+        events: {
+            'click .js-notagain': 'notagain',
+            'click .js-cancel': 'cancel',
+            'click .js-vote': 'vote'
+        },
+
+        vote: function() {
+            ABTestAction('ebay', 'Vote');
+        },
+
+        cancel: function() {
+            ABTestAction('ebay', 'Cancel');
+            this.close();
+        },
+
+        notagain: function() {
+            ABTestAction('ebay', 'Not again');
+            Storage.set('ebaynotagain', true);
+            this.close();
+        },
+
+        render: function() {
+            var self = this;
+
+            ABTestShown('ebay', 'Vote');
+
+            if (!Storage.get('ebaynotagain')) {
+                Iznik.Views.Modal.prototype.render.call(this);
+            }
+        }
+    });
 });
