@@ -287,20 +287,24 @@ class GroupFacebook {
         return($ids);
     }
 
-    public function getPostableMessagesCount() {
+    public function getPostableMessagesCount($groupid = NULL) {
         $me = whoAmI($this->dbhr, $this->dbhm);
 
-        $groups = [];
+        $groups = $groupid ? [ $groupid ] : [];
 
-        $mygroups = $me->getMemberships(TRUE);
-        foreach ($mygroups as $group) {
-            $settings = $me->getGroupSettings($group['id']);
-            if (!MODTOOLS || !array_key_exists('active', $settings) || $settings['active']) {
-                $groups[] = $group['id'];
+        $groupq = " messages_groups.groupid = $groupid AND ";
+
+        if (!$groupid) {
+            $mygroups = $me->getMemberships(TRUE);
+            foreach ($mygroups as $group) {
+                $settings = $me->getGroupSettings($group['id']);
+                if (!MODTOOLS || !array_key_exists('active', $settings) || $settings['active']) {
+                    $groups[] = $group['id'];
+                }
             }
-        }
 
-        $groupq = " messages_groups.groupid IN (" . implode(',', $groups) . ") AND ";
+            $groupq = " messages_groups.groupid IN (" . implode(',', $groups) . ") AND ";
+        }
 
         # We want to post any messages since the last one, with a max to avoid flooding things.
         $mysqltime = date ("Y-m-d H:i:s.u", strtotime("72 hours ago"));

@@ -460,6 +460,7 @@ define([
 
         vote: function() {
             ABTestAction('ebay', 'Vote');
+            this.close();
         },
 
         cancel: function() {

@@ -315,6 +315,7 @@ class Group extends Entity
         # See also MessageCollection.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
         $eventsqltime = date("Y-m-d H:i:s", time());
+        $f = new GroupFacebook($this->dbhr, $this->dbhm);
 
         $ret = [
             'pending' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL;", [
@@ -351,7 +352,8 @@ class Group extends Entity
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
-            ])[0]['count']
+            ])[0]['count'],
+            'fbgroups' => $f->getPostableMessagesCount($this->id)
         ];
 
         return($ret);
