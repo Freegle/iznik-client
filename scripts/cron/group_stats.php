@@ -51,27 +51,6 @@ foreach ($totalact as $total) {
     ]);
 
     foreach ($groups as $group) {
-        try {
-            $auths = $dbhr->preQuery("SELECT id, name, AsText(polygon) AS polygon FROM authorities;");
-            foreach ($auths as $auth) {
-                #error_log("Check {$auth['name']} {$group['poly']} vs {$auth['polygon']}");
-                $dbhr->preQuery("SELECT ST_Area(ST_Intersection(GeomFromText(?), GeomFromText(?)));", [
-                    $group['poly'],
-                    $auth['polygon']
-                ]);
-            }
-            # Make sure the authority is up to date.
-            $auths = $dbhr->preQuery("SELECT * FROM authorities WHERE ST_Intersects(GeomFromText(?), polygon) ORDER BY ST_Area(ST_Intersection(GeomFromText(?), polygon)) DESC LIMIT 1;", [ $group['poly'], $group['poly'] ]);
-            foreach ($auths as $auth) {
-                $dbhm->preExec("UPDATE groups SET authorityid = ? WHERE id = ?;", [
-                    $auth['id'],
-                    $group['id']
-                ]);
-            }
-        } catch (Exception $e) {
-            error_log("Failed on {$group['id']} with " . $e->getMessage());
-        }
-
         $acts = $dbhr->preQuery("SELECT SUM(count) AS count FROM stats WHERE stats.type = ? AND groupid = ? AND date >= ?;", [
             Stats::APPROVED_MESSAGE_COUNT,
             $group['id'],
