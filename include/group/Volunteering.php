@@ -85,19 +85,20 @@ class Volunteering extends Entity
             $mysqltime
         ]);
 
-        # Get the national ones, for display or approval.
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        if (!$pending || ($me && $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS))) {
-            $sql = "SELECT NULL AS groupid, volunteering.id, volunteering.pending, volunteering_dates.end, volunteering_dates.applyby FROM volunteering LEFT JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE groupid IS NULL AND deleted = 0 AND expired = 0 $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
-            error_log("Get national $sql");
-            $volunteerings = array_merge($volunteerings, $this->dbhr->preQuery($sql));
+        if ($systemwide) {
+            # Get the national ones, for display or approval.
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            if (!$pending || ($me && $me->hasPermission(User::PERM_NATIONAL_VOLUNTEERS))) {
+                $sql = "SELECT NULL AS groupid, volunteering.id, volunteering.pending, volunteering_dates.end, volunteering_dates.applyby FROM volunteering LEFT JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE groupid IS NULL AND deleted = 0 AND expired = 0 $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
+                error_log("Get national $sql");
+                $volunteerings = array_merge($volunteerings, $this->dbhr->preQuery($sql));
 
-            # Sort, as we have added national ones at the end.
-            usort($volunteerings, function($a, $b) {
-                return($b['id'] - $a['id']);
-            });
+                # Sort, as we have added national ones at the end.
+                usort($volunteerings, function($a, $b) {
+                    return($b['id'] - $a['id']);
+                });
+            }
         }
-
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
