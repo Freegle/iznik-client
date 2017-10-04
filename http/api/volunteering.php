@@ -75,6 +75,10 @@ function volunteering() {
 
                     if ($title && $location && $description) {
                         $id = $c->create($me->getId(), $title, $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment);
+
+                        if (pres('groupid', $_REQUEST)) {
+                            $c->addGroup(intval($_REQUEST['groupid']));
+                        }
                     }
 
                     $ret = $id ? ['ret' => 0, 'status' => 'Success', 'id' => $id] : ['ret' => 2, 'status' => 'Create failed'];

@@ -219,6 +219,14 @@ define([
                         }
                     });
 
+                    var s = self.groupSelect.get();
+
+                    if (s > 0) {
+                        // Add it in the create to avoid opps getting stranded if we fail to make the
+                        // subsequent call.
+                        self.model.set('groupid', s);
+                    }
+
                     var p = self.model.save({}, {
                         success: function(model, response, options) {
                             if (response.id) {

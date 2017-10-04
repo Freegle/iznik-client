@@ -294,5 +294,16 @@ class Volunteering extends Entity
 
         return($count);
     }
+    
+    public function systemWideCount() {
+        $sqltime = date("Y-m-d H:i:s", time());
+
+        $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id LEFT JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid IS NULL AND volunteering.pending = 1 AND volunteering.deleted = 0 AND volunteering.expired = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?);", [
+            $sqltime,
+            $sqltime
+        ])[0]['count'];
+
+        return($count);
+    }
 }
 
