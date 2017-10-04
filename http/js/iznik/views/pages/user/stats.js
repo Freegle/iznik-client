@@ -401,7 +401,7 @@ define([
                     data: {
                         start: '2 months ago',
                         grouptype: 'Freegle',
-                        systemwide: true
+                        group: 1
                     },
                     success: function (ret) {
                         var coll = new Iznik.Collections.DateCounts(ret.dashboard.eBay);
