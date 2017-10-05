@@ -415,8 +415,10 @@ function message() {
                                     $m->constructSubject($groupid);
 
                                     if ($fromemail) {
-                                        # Make sure it's attached to this group.
-                                        $postcoll = $u->postToCollection($groupid);
+                                        # Whether we post to pending or approved depends on the group setting,
+                                        # and if that is set not to moderate, the user setting.  Similar code for
+                                        # this setting in MailRouter.
+                                        $postcoll = $g->getSetting('moderated', 0) ? MessageCollection::PENDING : $u->postToCollection($groupid);
                                         $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
                                             $draft['msgid'],
                                             $groupid,

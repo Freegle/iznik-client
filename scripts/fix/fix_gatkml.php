@@ -31,6 +31,7 @@ $namemap = [
     [ 21245,'Battle-Freegle','S. East: Battle' ],
     [ 21247,'BCandSFreegle','W. Mids: BCandSFreegle' ],
     [ 21250,'BedfordFreegle','East: BedfordFreegle' ],
+    [418675 ,'Benfleet-Freegle', 'East: Benfleet'],
     [ 21251,'BelfastUKFreegle','Northern Ireland: Belfast' ],
     [ 126557,'BerkoTringReuse','East: BerkoTringReuse' ],
     [ 144767,'Berwick-Upon-Tweed-Freegle','N. East: Berwick upon Tweed' ],
@@ -90,6 +91,7 @@ $namemap = [
     [ 21316,'Chelmsford-Freegle','East: Chelmsford-Freegle' ],
     [ 144861,'Chelmsley-Wood-Freegle','W. Mids: Chelmsley-Wood-Freegle' ],
     [ 126764,'Cheltenham-Freegle','S. West: Cheltenham' ],
+    [ 415615, 'CheadleStaffsFreegle', 'W. Mids: Cheadle'],
     [ 21317,'Cherwell_Valley_Freegle','S. East: Cherwell Valley Freegle' ],
     [ 45856,'CheshuntandWalthamCross-Freegle','S. East: Cheshunt & Waltham Cross' ],
     [ 21319,'Cheslyn_Hay_Freeworld-Recycling','W. Mids: Cheslyn Hay' ],
@@ -108,6 +110,7 @@ $namemap = [
     [ 126605,'Crewe-Nantwich-Freegle','N. West: Crewe & Nantwich' ],
     [ 21332,'crowboroughfreegle','S. East: Crowborough' ],
     [ 21333,'Croydon-Freegle','London: Croydon' ],
+    [ 416543, 'CumbernauldFreegle', 'Scotland: Cumbernauld' ],
     [ 126701,'Darlington-Freegle','N. East: Darlington' ],
     [ 21335,'dartfordfreegle','S. East: Dartford' ],
     [ 253514,'Dartmouth-and-Kingsbridge-Freegle','S. West: Dartmouth and Kingsbridge' ],
@@ -116,6 +119,7 @@ $namemap = [
     [ 21340,'Derwentside-Freegle','N. East: Derwentside' ],
     [ 21341,'Devizes-Freegle','S. West: Devizes' ],
     [ 21342,'DewsburyFreegle','Yorkshire: Dewsbury Freegle' ],
+    [ 407624, 'DinefwrFreegle', 'Wales: Dinefwr'],
     [ 21345,'Doncaster-Freegle','Yorkshire: Doncaster' ],
     [ 126749,'Dumfries-Galloway_Freegle','Scotland: Dumfries and Galloway [Council]' ],
     [ 21347,'Dunstable-Freegle','East: Dunstable' ],
@@ -134,6 +138,7 @@ $namemap = [
     [ 21361,'enfieldfreegle','London: Enfield' ],
     [ 126641,'EppingForestFreegle','East: eppingforestfreegle' ],
     [ 126677,'Exeter_Freegle','S. West: Exeter' ],
+    [ 412357,'ExmouthFreegle','S.West: Exmouth' ],
     [ 253568,'Falkirk_Free2go','Scotland: Falkirk' ],
     [ 253571,'Falmouth-Freegle','S. West: Falmouth' ],
     [ 21364,'fareham_freegle','S. East: Fareham' ],
@@ -206,6 +211,7 @@ $namemap = [
     [ 21467,'hertford_freegle','East: hertford_freegle' ],
     [ 21469,'high_wycombe_freegle','S. East: High Wycombe' ],
     [ 49861,'HillingdonFreegle','London: Hillingdon' ],
+    [ 418672, 'HonitonFreegle', 'S. West: Honiton' ],
     [ 21470,'Hounslow-Recycle','London: Hounslow' ],
     [ 21471,'HuddersfieldRecycle','Yorkshire: Huddersfield' ],
     [ 21473,'HullFreegle','Yorkshire: Hull' ],
@@ -323,6 +329,7 @@ $namemap = [
     [ 126770,'Rutland-Freegle','E. Mids: Rutland' ],
     [ 253565,'Rye-Freegle','S. East: Rye' ],
     [ 21600,'ryedale_freegle','Yorkshire: Ryedale' ],
+    [ 411340, 'SalisburyFreegle', 'S West: Salisbury'],
     [ 21603,'Salford_Freegle','N. West: Salford' ],
     [ 126635,'Sandy-and-Biggleswade-Freegle','East: Sandy-and-Biggleswade-Freegle' ],
     [ 21604,'ScarboroughFreegle','Yorkshire: Scarborough' ],
@@ -450,8 +457,8 @@ if ($kml) {
                         #error_log("WKT from GAT $wkt");
                         $found = FALSE;
                         foreach ($namemap as $name) {
-                            #error_log("Compare {$name[2]} vs $kname");
-                            if ($kname == $name[2]) {
+                            error_log("Compare {$name[2]} vs $kname");
+                            if (stripos($kname, trim($name[2])) === 0) {
                                 error_log("Found $kname as {$name[0]} {$name[1]}");
                                 $found = TRUE;
                                 $gs = $dbhr->preQuery("SELECT * FROM groups WHERE id = ? AND (polyofficial != ? OR polyofficial IS NULL);", [

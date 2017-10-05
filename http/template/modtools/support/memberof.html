@@ -1,8 +1,8 @@
 <div class="row">
     <div class="col-md-2 forcebreak">
         <% if (role == 'Moderator' || role == 'Owner') { %><div class="glyphicons glyphicons-crown <% if (role == 'Owner') { %>primary<%} else { %>success<% } %>" title="{{role}}" alt="{{role}}"/><% } else { %><div class="glyphicons glyphicons-user success"  title="{{role}}" alt="{{role}}" /><% } %>&nbsp;
-        <a data-realurl="true" target="_blank" class="inline js-group">{{nameshort}}</a>
-        <a data-realurl="true" target="_blank" class="js-mailowner" href="mailto:{{nameshort}}<% if (obj.onyahoo) { %>-owner@yahoogroups.com<% } else { %>groups.ilovefreegle.org<% } %>">
+        <a data-realurl="true" target="_blank" rel="noopener" class="inline js-group">{{nameshort}}</a>
+        <a data-realurl="true" target="_blank" rel="noopener" class="js-mailowner" href="mailto:{{nameshort}}<% if (obj.onyahoo) { %>-owner@yahoogroups.com<% } else { %>-volunteers@groups.ilovefreegle.org<% } %>">
             <span class="glyphicon glyphicon-envelope" />
         </a>
         <br />
@@ -30,6 +30,11 @@
         <select class="form-control js-eventsenabled" data-style="btn-white" disabled="true">
             <option data-content="<span class='glyphicon glyphicon-calendar'></span>&nbsp;Event Mails On" value="1">Event Mails On</option>
             <option data-content="<span class='glyphicon glyphicon-calendar'></span>&nbsp;Event Mails Off" value="0">Event Mails Off</option>
+        </select>
+        <br />
+        <select class="form-control js-volunteerenabled" data-style="btn-white" disabled="true">
+            <option data-content="<span class='glyphicons glyphicon-user'></span>&nbsp;Volunteer Mails On" value="1">Volunteer Mails On</option>
+            <option data-content="<span class='glyphicons glyphicon-user'></span>&nbsp;Volunteer Mails Off" value="0">Volunteer Mails Off</option>
         </select>
         <br />
         <% if (obj.onyahoo) { %>

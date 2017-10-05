@@ -123,5 +123,23 @@ class dashboardTest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testRegion() {
+        error_log(__METHOD__);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_OTHER);
+        $g->setPrivate('region', 'Scotland');
+
+        $ret = $this->call('dashboard', 'GET', [
+            'region' => 'Scotland'
+        ]);
+        error_log("Returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        $dash = $ret['dashboard'];
+        assertTrue(in_array($group1, $ret['dashboard']['groupids']));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

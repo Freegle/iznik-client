@@ -33,7 +33,7 @@ function chatrooms() {
 
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                    
+
                     $rooms = $r->listForUser($myid, $chattypes, $search);
                     $ret['chatrooms'] = [];
 
@@ -41,7 +41,6 @@ function chatrooms() {
                         foreach ($rooms as $room) {
                             $r = new ChatRoom($dbhr, $dbhm, $room);
                             $atts = $r->getPublic($me, $mepub);
-                            $atts['unseen'] = $r->unseenCountForUser($myid);
                             $atts['lastmsgseen'] = $r->lastSeenForUser($myid);
                             $ret['chatrooms'][] = $atts;
                         }
@@ -56,8 +55,6 @@ function chatrooms() {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
             if ($me) {
-                $ret = ['ret' => 2, 'status' => 'Bad parameters'];
-
                 switch ($chattype) {
                     case ChatRoom::TYPE_USER2USER:
                         if ($userid) {
@@ -80,20 +77,36 @@ function chatrooms() {
         case 'POST': {
             # Update our presence and get the current roster.
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
+            $action = presdef('action', $_REQUEST, NULL);
 
-            if ($me && $id) {
-                # Single roster update.
-                $ret = ['ret' => 2, 'status' => "$id Not visible to you"];
+            if ($me) {
+                if ($action == 'AllSeen') {
+                    $chatids = $r->listForUser($myid);
 
-                if ($r->canSee($myid)) {
-                    $ret = ['ret' => 0, 'status' => 'Success'];
-                    $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
-                    $status = presdef('status', $_REQUEST, ChatRoom::STATUS_ONLINE);
-                    $r->updateRoster($myid, $lastmsgseen, $status);
+                    foreach ($chatids as $chatid) {
+                        $r = new ChatRoom($dbhr, $dbhm, $chatid);
 
-                    $ret['roster'] = $r->getRoster();
-                    $ret['unseen'] = $r->unseenCountForUser($myid);
-                    $ret['nolog'] = TRUE;
+                        if ($r->unseenCountForUser($myid) > 0) {
+                            $r->upToDate($myid);
+                        }
+                    }
+                } else if ($action == 'Nudge') {
+                    $id = $r->nudge();
+                    $ret = ['ret' => 0, 'status' => 'Success', 'id' => $id];
+                } else if ($id) {
+                    # Single roster update.
+                    $ret = ['ret' => 2, 'status' => "$id Not visible to you"];
+
+                    if ($r->canSee($myid)) {
+                        $ret = ['ret' => 0, 'status' => 'Success'];
+                        $lastmsgseen = presdef('lastmsgseen', $_REQUEST, NULL);
+                        $status = presdef('status', $_REQUEST, ChatRoom::STATUS_ONLINE);
+                        $r->updateRoster($myid, $lastmsgseen, $status);
+
+                        $ret['roster'] = $r->getRoster();
+                        $ret['unseen'] = $r->unseenCountForUser($myid);
+                        $ret['nolog'] = TRUE;
+                    }
                 }
             }
         }

@@ -5,8 +5,7 @@ define([
     'moment',
     'iznik/base',
     'iznik/views/modal',
-    'bootstrap-switch',
-    'bootstrap-datepicker'
+    'bootstrap-switch'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
@@ -25,7 +24,16 @@ define([
             'click .js-purge': 'purge',
             'click .js-addcomment': 'addComment',
             'click .js-spammer': 'spammer',
-            'click .js-whitelist': 'whitelist'
+            'click .js-whitelist': 'whitelist',
+            'click .js-unbounce': 'unbounce'
+        },
+
+        unbounce: function() {
+            var self = this;
+
+            self.model.unbounce().then(function() {
+                self.$('.js-bouncing').fadeOut('slow');
+            });
         },
 
         showPosts: function(offers, wanteds, takens, receiveds, others) {
@@ -361,6 +369,42 @@ define([
             })
 
             return(p);
+        }
+    });
+
+    Iznik.Views.ModTools.User.Merge = Iznik.Views.Modal.extend({
+        template: 'modtools_user_merge',
+
+        events: {
+            'click .js-merge': 'merge'
+        },
+
+        merge: function() {
+            var self = this;
+            var email1 = self.$('.js-email1').val();
+            var email2 = self.$('.js-email2').val();
+            var reason = self.$('.js-reason').val();
+
+            if (email1.length && email2.length && reason.length) {
+                $.ajax({
+                    url: API + 'user',
+                    type: 'POST',
+                    data: {
+                        'action': 'Merge',
+                        'email1' : email1,
+                        'email2' : email2,
+                        'reason' : reason
+                    },
+                    success: function(ret) {
+                        if (ret.ret === 0) {
+                            self.close();
+                        } else {
+                            self.$('.js-error').html(ret.status);
+                            self.$('.js-errorholder').fadeIn('slow');
+                        }
+                    }
+                })
+            }
         }
     });
 
@@ -926,12 +970,6 @@ define([
                     self.$('.js-joined').addClass('error');
                 }
 
-                self.$('.datepicker').datepicker({
-                    format: 'D, dd MM yyyy',
-                    startDate: '0d',
-                    endDate: '+30d'
-                });
-
                 var onholiday = self.model.get('onholidaytill');
 
                 self.$(".js-switch").bootstrapSwitch({
@@ -944,11 +982,10 @@ define([
                     self.$('select').selectpicker();
                 });
 
-                // console.log("On holiday", onholiday);
                 if (onholiday && onholiday != undefined && onholiday != "1970-01-01T00:00:00Z") {
+                    self.$('.js-onholidaytill').val((new moment(onholiday).format("MMM Do YYYY")));
                     self.$('.js-onholidaytill').show();
                     self.$('.js-emailfrequency').hide();
-                    self.$('.datepicker').datepicker('setUTCDate', new Date(onholiday));
                 } else {
                     self.$('.js-onholidaytill').hide();
                     self.$('.js-emailfrequency').show();
@@ -996,23 +1033,33 @@ define([
         render: function () {
             var self = this;
             var userid = self.model.get('id');
+            var myid = Iznik.Session.get('me').id;
 
-            self.model = new Iznik.Models.ModTools.User({
-                id: userid
-            });
+            var p = resolvedPromise();
 
-            var p = self.model.fetch({
-                data: {
-                    info: true
-                }
-            });
-
-            p.then(function() {
-                Iznik.Views.Modal.prototype.render.call(self).then(function () {
-                    var mom = new moment(self.model.get('added'));
-                    self.$('.js-since').html(mom.format('Do MMMM YYYY'));
+            console.log("User ", myid, userid);
+            // For now show this, though revisit if we get complaints or abuse.
+            // if (myid && myid != userid)
+            {
+                self.model = new Iznik.Models.ModTools.User({
+                    id: userid
                 });
-            });
+
+                p = self.model.fetch({
+                    data: {
+                        info: true
+                    }
+                });
+
+                p.then(function() {
+                    Iznik.Views.Modal.prototype.render.call(self).then(function () {
+                        var mom = new moment(self.model.get('added'));
+                        self.$('.js-since').html(mom.format('Do MMMM YYYY'));
+
+                        self.$('.js-replytime').html(formatDuration(self.model.get('info').replytime));
+                    });
+                });
+            }
 
             return (p);
         }

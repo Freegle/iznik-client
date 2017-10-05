@@ -21,6 +21,29 @@ define([
             return(ret.hasOwnProperty('member') ? ret.member : ret);
         },
 
+        unbounce: function() {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    type: 'POST',
+                    url: API + 'user',
+                    data: {
+                        id: self.get('userid'),
+                        action: 'Unbounce'
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            resolve();
+                        } else {
+                            reject();
+                        }
+                    }, error: reject
+                });
+            });
+
+            return(p);
+        },
+
         hold: function() {
             var self = this;
 

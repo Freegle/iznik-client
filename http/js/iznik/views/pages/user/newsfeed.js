@@ -242,7 +242,7 @@ define([
         },
 
         visible: function(model) {
-            var vis = model.get('visible');
+            var vis = model.get('visible') && !model.get('unfollowed');
             return(vis);
         },
 
@@ -287,9 +287,16 @@ define([
         render: function () {
             var self = this;
 
+            Storage.set('lasthomepage', 'news');
+
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
             p.then(function(self) {
+                if (Iznik.Session.get('me').bouncing) {
+                    self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
+                    self.$('.js-bouncing').fadeIn('slow');
+                }
+
                 // Some options are only available once we've joined a group.
                 if (Iznik.Session.get('groups').length > 0) {
                     self.$('.js-somegroups').show();
@@ -429,6 +436,7 @@ define([
             'click .js-refertooffer': 'referToOffer',
             'click .js-refertotaken': 'referToTaken',
             'click .js-refertoreceived': 'referToReceived',
+            'click .js-attachtothread': 'attachToThread',
             'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply',
             'click .js-edit': 'edit'
@@ -528,6 +536,23 @@ define([
                 self.$('a.dropdown-toggle').dropdown('toggle');
                 self.checkUpdate();
             });
+        },
+
+        attachToThread: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation();
+
+            var v = new Iznik.Views.User.Feed.Attach({
+                model: self.model
+            });
+
+            self.listenToOnce(v, 'modalClosed', function() {
+                self.$('a.dropdown-toggle').dropdown('toggle');
+                self.$el.fadeOut('slow');
+            });
+
+            v.render();
         },
 
         clickPreview: function() {
@@ -682,9 +707,13 @@ define([
         love: function() {
             var self = this;
 
-            self.model.love().then(function() {
-                self.model.fetch().then(function() {
-                    self.render();
+            // Render the change first to avoid delay due to server.
+            self.model.set('loved', true);
+            self.render().then(function() {
+                self.model.love().then(function() {
+                    self.model.fetch().then(function() {
+                        self.render();
+                    });
                 });
             });
         },
@@ -692,9 +721,13 @@ define([
         unlove: function() {
             var self = this;
 
-            self.model.unlove().then(function() {
-                self.model.fetch().then(function() {
-                    self.render();
+            // Render the change first to avoid delay due to server.
+            self.model.set('loved', true);
+            self.render().then(function() {
+                self.model.unlove().then(function () {
+                    self.model.fetch().then(function () {
+                        self.render();
+                    });
                 });
             });
         }
@@ -733,6 +766,62 @@ define([
         }
     });
 
+    Iznik.Views.User.Feed.Attach = Iznik.Views.Modal.extend({
+        template: 'user_newsfeed_attach',
+
+        visible: function(model) {
+            var self = this;
+            var vis = model.get('visible') && !model.get('replyto');
+            return(vis);
+        },
+
+        render: function() {
+            var self = this;
+
+            self.collection = new Iznik.Collections.Newsfeed();
+
+            var p = new Promise(function(resolve, reject) {
+                self.collection.fetch().then(function() {
+                    Iznik.Views.Modal.prototype.render.call(self, {
+                        model: self.model
+                    }).then(function() {
+                        self.collectionView = new Backbone.CollectionView({
+                            el: self.$('.js-list'),
+                            modelView: Iznik.Views.User.Feed.Attach.One,
+                            collection: self.collection,
+                            modelViewOptions: {
+                                attachee: self.model,
+                                modal: self
+                            },
+                            processKeyEvents: false
+                        });
+
+                        self.collectionView.render();
+                    });
+                });
+            });
+
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Feed.Attach.One = Iznik.View.extend({
+        template: 'user_newsfeed_attachone',
+
+        events: {
+            'click .js-attach': 'attach'
+        },
+
+        attach: function() {
+            var self = this;
+
+            self.options.attachee.attachToThread(self.model.get('id')).then(function() {
+                self.options.modal.close();
+            })
+        }
+    });
+
     Iznik.Views.User.Feed.Edit = Iznik.Views.Modal.extend({
         template: 'user_newsfeed_edit',
 
@@ -759,12 +848,15 @@ define([
             var p = Iznik.Views.Modal.prototype.render.call(self);
 
             p.then(function() {
-                autosize(self.$('.js-message'));
-                self.$('.js-message').val(self.model.get('message'));
-                if (self.$('.js-message').length) {
-                    twemoji.parse(self.$('.js-message').get()[0]);
-                }
-                autosize.update(self.$('.js-message'));
+                self.model.fetch().then(function() {
+                    self.$('.js-message').val(self.model.get('message'));
+                    if (self.$('.js-message').length) {
+                        twemoji.parse(self.$('.js-message').get()[0]);
+                    }
+                    _.delay(_.bind(function() {
+                        autosize(this.$('.js-message'));
+                    }, self), 1000);
+                });
             });
 
             return(p);
@@ -877,7 +969,11 @@ define([
 
                 if (e.altKey || e.shiftKey) {
                     // They've used the alt/shift trick.
-                    self.$('.js-comment').val(self.$('.js-comment').val() + "\n");
+                    var el = self.$('.js-comment').get(0);
+                    var pos = getInputSelection(el);
+                    var val = self.$('.js-comment').val();
+                    self.$('.js-comment').val(val.substring(0, pos.start) + "\n" + val.substring(pos.start));
+                    autosize.update(self.$('.js-comment'));
                 } else  {
                     self.$('.js-comment').prop('disabled', true);
                     var msg = self.$('.js-comment').val();
@@ -1064,7 +1160,9 @@ define([
                         self.replies = new Iznik.Collections.Replies(replies);
                         self.contributors = [];
                         _.each(replies, function(reply) {
-                            self.contributors[reply.user.id] = reply.user.displayname
+                            if (reply.user) {
+                                self.contributors[reply.user.id] = reply.user.displayname
+                            }
                         });
 
                         var replyel = self.$('.js-replies');

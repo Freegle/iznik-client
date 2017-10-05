@@ -22,5 +22,20 @@
                     {{refmsg.subject}}
                 </div>
         </div>
+        <div class="row topspace">`
+            <div class="col-xs-12 nopad">
+            <% if (refmsg.fromuser.id == obj.myid) { %>
+                <% if (refmsg.promisecount) { %>
+                        <div class="btn btn-warning js-renege" title="Remove promise">
+                            <div class="glyphicons glyphicons-remove-circle vcenter" />&nbsp;Unpromise
+                        </div>
+                <% } else { %>
+                    This promise has been cancelled.
+                <% } %>
+            <% } else if (!refmsg.promisecount) { %>
+                This promise has been cancelled.
+            <% } %>
+            </div>
+        </div>
     </div>
 </div>

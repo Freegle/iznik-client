@@ -26,6 +26,7 @@ define([
             'click .js-sync': 'msync',
             'click .js-export': 'export',
             'click .js-exportyahoo': 'exportYahoo',
+            'click .js-merge': 'merge',
             'click .js-add': 'add'
         },
 
@@ -127,6 +128,10 @@ define([
                     self.exportChunk();
                 });
             }
+        },
+
+        merge: function() {
+            (new Iznik.Views.ModTools.User.Merge()).render();
         },
 
         exportYahoo: function () {
@@ -248,6 +253,10 @@ define([
                         self.$('.js-exportyahoo, .js-sync').show();
                     } else {
                         self.$('.js-exportyahoo, .js-sync').hide();
+                    }
+
+                    if (!group.get('onhere')) {
+                        self.$('.js-nativeonly').hide();
                     }
 
                     // The type of collection we're using depends on whether we're searching.  It controls how we fetch.

@@ -28,7 +28,7 @@ define([
             var subject = self.model.get('subject');
             // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
             var options = {
-                message: "I've posted this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
+                message: "I saw this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
                 subject: 'Freegle post: ' + subject, // for email
                 //files: ['', ''], // an array of filenames either locally or remotely
                 url: href,
@@ -218,7 +218,6 @@ define([
                 self.rendering = new Promise(function(resolve, reject) {
                     Iznik.View.prototype.render.call(self).then(function() {
                         if (Iznik.Session.hasFacebook()) {
-
                             self.$('.js-sharefb').show();
                             /*require(['iznik/facebook'], function(FBLoad) {
                                 self.listenToOnce(FBLoad(), 'fbloaded', function () {

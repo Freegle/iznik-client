@@ -135,7 +135,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 
         $title = 'A discussion on ' . SITE_NAME;
         $desc = '';
-        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png";
+        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png?a=1";
 
         if ($n->getId()) {
             $atts = $n->getPublic();
@@ -185,7 +185,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
         <?php
         
     } else {
-        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png";
+        $image = "https://" . USER_SITE . "/images/favicon/" . FAVICON_HOME . "/largetile.png?a=1";
 
         ?>
         <title><?php echo SITE_NAME; ?></title>
@@ -352,7 +352,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <meta name="msapplication-square70x70logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/smalltile.png" />
     <meta name="msapplication-square150x150logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/mediumtile.png" />
     <meta name="msapplication-wide310x150logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/widetile.png" />
-    <meta name="msapplication-square310x310logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/largetile.png" />
+    <meta name="msapplication-square310x310logo" content="images/favicon/<?php echo FAVICON_HOME; ?>/largetile.png?a=1" />
 
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
@@ -367,7 +367,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <link rel="stylesheet" href="/css/dd.css">
     <link rel="stylesheet" href="/css/fileinput.css" />
 
-    <link rel="stylesheet" type="text/css" href="/css/style.css?a=196">
+    <link rel="stylesheet" type="text/css" href="/css/style.css?a=199">
     <!--[if lt IE 9]>
     <link rel="stylesheet" type="text/css" href="/css/ie-only.css">
     <![endif]-->
@@ -389,7 +389,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     if (strpos($_SERVER['REQUEST_URI'], 'modtools') !== FALSE || strpos($_SERVER['HTTP_HOST'], 'modtools') !== FALSE) {
         ?><link rel="stylesheet" type="text/css" href="/css/modtools.css?a=24"><?php
     } else {
-        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=147"><?php
+        ?><link rel="stylesheet" type="text/css" href="/css/user.css?a=154"><?php
     }
     ?>
 
@@ -410,6 +410,7 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <meta name="google-signin-client_id" content="<?php echo GOOGLE_CLIENT_ID; ?>">
     <meta name="facebook-app-id" content="<?php echo FBAPP_ID; ?>">
+    <meta name="facebook-graffiti-app-id" content="<?php echo FBGRAFFITIAPP_ID; ?>">
     <script>
         (function() {
             var po = document.createElement('script');

@@ -69,6 +69,12 @@ function session() {
                     }
                     
                     foreach ($ret['groups'] as &$group) {
+                        # Remove large attributes we don't need in session.
+                        unset($group['welcomemail']);
+                        unset($group['description']);
+                        unset($group['settings']['chaseups']['idle']);
+                        unset($group['settings']['branding']);
+
                         if (pres('work', $group)) {
                             foreach ($group['work'] as $key => $work) {
                                 if (pres($key, $ret['work'])) {
@@ -102,7 +108,6 @@ function session() {
                                     $f = new GroupFacebook($dbhr, $dbhm, $uid);
                                     $atts = $f->getPublic();
                                     unset($atts['token']);
-                                    $atts['authdate'] = ISODate($atts['authdate']);
                                     $group['facebook'][] = $atts;
                                 }
                             }
@@ -126,6 +131,10 @@ function session() {
                     $ret['work']['stories'] = $s->getReviewCount(FALSE);
 
                     $ret['work']['newsletterstories'] = $me->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
+
+                    $f = new GroupFacebook($dbhr, $dbhm);
+
+                    $ret['work']['fbgroups'] = $f->getPostableMessagesCount();
                 }
 
                 $ret['logins'] = $me->getLogins(FALSE);

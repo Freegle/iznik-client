@@ -284,7 +284,7 @@ class MailRouterTest extends IznikTestCase {
         assertEquals($spam->getSubject(), $spam->getHeader('subject'));
         assertEquals('freegleplayground@yahoogroups.com', $spam->getTo()[0]['address']);
         assertEquals('Sender', $spam->getFromname());
-        assertEquals('SpamAssassin flagged this as possible spam; score 999 (high is bad)', $spam->getSpamReason());
+        assertEquals('SpamAssassin flagged this as possible spam; score 998 (high is bad)', $spam->getSpamReason());
         $spam->delete();
 
         error_log(__METHOD__ . " end");
@@ -1218,7 +1218,7 @@ class MailRouterTest extends IznikTestCase {
         # Now get the chat room that this should have been placed into.
         assertNotNull($uid2);
         assertNotEquals($uid, $uid2);
-        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $c = new ChatRoom($this->dbhm, $this->dbhm);
         $rid = $c->createConversation($uid, $uid2);
         assertNotNull($rid);
         list($msgs, $users) = $c->getMessages();
@@ -1240,7 +1240,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Now mark the message as complete - should put a message in the chatroom.
         error_log("Mark $origid as TAKEN");
-        $m = new Message($this->dbhr, $this->dbhm, $origid);
+        $m = new Message($this->dbhm, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, NULL);
         list($msgs, $users) = $c->getMessages();
         error_log("Chat messages " . var_export($msgs, TRUE));
@@ -1470,6 +1470,17 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route($m);
         assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 
+        # And with spam
+        $msg = $this->unique(file_get_contents('msgs/spamreply')  . "\r\nhttp://dbltest.com\r\n");
+        $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
+        error_log("Reply with spam $msg");
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-auto@' . GROUP_DOMAIN, $msg);
+        error_log("Created $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+
         error_log(__METHOD__ . " end");
     }
 
@@ -1523,6 +1534,17 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route($m);
         assertEquals(MailRouter::APPROVED, $rc);
         assertTrue($m->isApproved($gid));
+
+        # Test moderated
+        $g->setSettings([ 'moderated' => TRUE ]);
+        $msg = $this->unique(file_get_contents('msgs/nativebymail'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        error_log("Mail message $id");
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::PENDING, $rc);
+        assertTrue($m->isPending($gid));
 
         # Unsubscribe
 
@@ -1614,17 +1636,43 @@ class MailRouterTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testSpecial() {
+    public function testYahooApproved() {
         error_log(__METHOD__);
 
-        $msg = $this->unique(file_get_contents('msgs/special'));
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create("Test", "User", "Test User");
+        $u->setPrivate('yahooid', 'testid');
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+
+        $msg = $this->unique(file_get_contents('msgs/yahooapproved'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::YAHOO_PENDING, 'notify-return-modtools=modtools.org@returns.groups.yahoo.com', "modtools@modtools.org", $msg);
-        assertNotNull($id);
+        $mid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertNotEquals(MailRouter::TO_USER, $rc);
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $groups = $m->getPublic()['groups'];
+        error_log("Groups " . var_export($groups, TRUE));
+        self::assertEquals($uid, $groups[0]['approvedby']);
 
         error_log(__METHOD__ . " end");
     }
+
+//    public function testSpecial() {
+//        error_log(__METHOD__);
+//
+//        $msg = $this->unique(file_get_contents('msgs/special'));
+//        $r = new MailRouter($this->dbhr, $this->dbhm);
+//        $m = new Message($this->dbhr, $this->dbhm, 25206247);
+//        $r->route($m);
+//        $id = $r->received(Message::EMAIL, 'j.mason11@ntlworld.com', "hertfordfreegle-volunteers@groups.ilovefreegle.org", $msg);
+//        assertNotNull($id);
+//        $rc = $r->route();
+//        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+//
+//        error_log(__METHOD__ . " end");
+//    }
 }
 

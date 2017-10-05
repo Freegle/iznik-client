@@ -14,10 +14,25 @@
                     <p><% if (info.milesaway) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %><% if (info.publiclocation.location) { %>{{info.publiclocation.location}}<% } else { %>{{info.publiclocation.groupname}}<% } %>, <% } %>{{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.</span><% } %></p>
 
                     <p><span class="glyphicon glyphicon-calendar" />&nbsp;Freegler since <span class="js-since" />.</p>
+                    <% if (info.replytime) { %>
+                    <p><span class="glyphicon glyphicon-time" />&nbsp;Typically replies in <span class="js-replytime" />.</p>
+                    <% } else { %>
+                    <p><span class="glyphicon glyphicon-time" />&nbsp;We don't know how long they typically take to reply.</p>
+                    <% } %>
+                    <% if (info.collected) { %>
+                    <p><span class="glyphicon glyphicon-ok" />&nbsp;Picked up about {{info.collected}} item<% if (info.collected != 1) { %>s<% } %> in the last 90 days.</p>
+                    <% } else { %>
+                    <p><span class="glyphicon glyphicon-ok faded" />&nbsp;Not received any items yet so far as we know.</p>
+                    <% } %>
+                    <% if (info.reneged && (info.reneged * 100 / (info.reneged + info.collected) > 25)) { %>
+                    <div class="alert alert-warning">
+                        <p><span class="glyphicon glyphicon-warning-sign" />&nbsp;Things haven't always worked out for this freegler.  That might not be their fault, but please make very clear arrangements.</p>
+                    </div>
+                    <% } %>
                     <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>
                         <p>No recent activity.</p>
                     <% } else { %>
-                        <p>Recent activity:</p>
+                        <p>Activity in the last 90 days:</p>
                         <ul class="list-unstyled">
                             <% if (obj.info.replies) { %>
                             <li>

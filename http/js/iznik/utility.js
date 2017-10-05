@@ -46,7 +46,7 @@ define([
         subj = subj.toLocaleLowerCase();
 
         // Remove any group tag
-        subj = subj.replace(/^\[.*\](.*)/, "$1");
+        subj = subj.replace(/^\[.*?\](.*)/, "$1");
 
         // Remove duplicate spaces
         subj = subj.replace(/\s+/g, ' ');
@@ -487,25 +487,98 @@ function ellipsical(str, len) {
     return(str);
 }
 
+function formatDuration(secs) {
+    var ret;
+
+    if (secs < 60) {
+        ret = Math.round(secs) + ' second';
+    } else if (secs < 60 * 60) {
+        ret = Math.round(secs / 60) + ' minute';
+    } else if (secs < 24 * 60 * 60) {
+        ret = Math.round(secs / 60 / 60) + ' hour';
+    } else {
+        ret = Math.round(secs / 60 / 60 / 24) + ' day';
+    }
+
+    if (ret.indexOf('1 ') != 0) {
+        ret += 's';
+    }
+
+    console.log("Return", ret, secs);
+
+    return(ret);
+}
+
+/**
+ * Return an object with the selection range or cursor position (if both have the same value)
+ * @param {DOMElement} el A dom element of a textarea or input text.
+ * @return {Object} reference Object with 2 properties (start and end) with the identifier of the location of the cursor and selected text.
+ **/
+function getInputSelection(el) {
+    var start = 0, end = 0, normalizedValue, range, textInputRange, len, endRange;
+
+    if (typeof el.selectionStart == "number" && typeof el.selectionEnd == "number") {
+        start = el.selectionStart;
+        end = el.selectionEnd;
+    } else {
+        range = document.selection.createRange();
+
+        if (range && range.parentElement() == el) {
+            len = el.value.length;
+            normalizedValue = el.value.replace(/\r\n/g, "\n");
+
+            // Create a working TextRange that lives only in the input
+            textInputRange = el.createTextRange();
+            textInputRange.moveToBookmark(range.getBookmark());
+
+            // Check if the start and end of the selection are at the very end
+            // of the input, since moveStart/moveEnd doesn't return what we want
+            // in those cases
+            endRange = el.createTextRange();
+            endRange.collapse(false);
+
+            if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
+                start = end = len;
+            } else {
+                start = -textInputRange.moveStart("character", -len);
+                start += normalizedValue.slice(0, start).split("\n").length - 1;
+
+                if (textInputRange.compareEndPoints("EndToEnd", endRange) > -1) {
+                    end = len;
+                } else {
+                    end = -textInputRange.moveEnd("character", -len);
+                    end += normalizedValue.slice(0, end).split("\n").length - 1;
+                }
+            }
+        }
+    }
+
+    return {
+        start: start,
+        end: end
+    };
+}
+
 var mobileGlobalRoot = false;   // CC
 var oneOffPathname = false; // CC
 
-function mobile_pathname(){ // CC
+function mobile_pathname() { // CC
     var pathname = window.location.pathname;
     if (oneOffPathname) {
         pathname = oneOffPathname;
         oneOffPathname = false;
     }
     var initialHome = "index.html"; // to remove
-    if( pathname.substr(-initialHome.length)==initialHome){
-        pathname = pathname.substr(0,pathname.length-initialHome.length);
+    if (pathname.substr(-initialHome.length) == initialHome) {
+        pathname = pathname.substr(0, pathname.length - initialHome.length);
     }
     if( !mobileGlobalRoot){
         mobileGlobalRoot = pathname.substr(0,pathname.length-9);    // Remove /modtools
     }
     pathname = pathname.substr(mobileGlobalRoot.length);
-    if( pathname==""){
+    if (pathname == "") {
         pathname += "/";
     }
     return pathname;
 }
+

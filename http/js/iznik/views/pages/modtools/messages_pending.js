@@ -230,6 +230,8 @@ define([
 
                             self.addOtherInfo();
 
+                            self.$('.js-outcometime').timeago();
+
                             // Add any attachments.
                             self.$('.js-attlist').empty();
                             _.each(self.model.get('attachments'), function (att) {

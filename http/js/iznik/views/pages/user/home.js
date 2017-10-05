@@ -47,7 +47,7 @@ define([
             this.offersView.render();
         },
 
-        showOldWanteds: function() {
+        showOldWanteds: function(e) {
             e.preventDefault();
             e.stopPropagation();
             this.$('.js-oldwanteds').hide();
@@ -224,6 +224,8 @@ define([
         render: function () {
             var self = this;
 
+            Storage.set('lasthomepage', 'myposts');
+
             var p = Iznik.Views.Page.prototype.render.call(this, {
                 noSupporters: true
             });
@@ -271,9 +273,7 @@ define([
 
                 // We need the chats, as they are used when displaying messages.
                 var cb = _.bind(self.fetchedChats, self);
-                Iznik.Session.chats.fetch({
-                    cached: cb
-                }).then(cb);
+                Iznik.Session.chats.fetch().then(cb);
 
                 if (Iznik.Session.get('me').bouncing) {
                     self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
@@ -281,6 +281,8 @@ define([
                 }
 
                 // (new Iznik.Views.SupportUs()).render();
+                (new Iznik.Views.User.eBay()).render();
+
                 var today = new Date().toISOString().slice(0, 10);
                 if (today == '2017-04-01') {
                     self.$('.js-april').fadeIn('slow');
@@ -307,6 +309,17 @@ define([
 
                 self.model.fetch().then(function() {
                     var v = null;
+
+                    // We might not have the home group or location set in local storage, but we need it for the post.
+                    // Or them might be different.  Pluck them from the message.
+                    var groups = self.model.get('groups');
+
+                    _.each(groups, function(group) {
+                        Storage.set('myhomegroup', group.id);
+                    });
+
+                    var l = self.model.get('location');
+                    Storage.set('mylocation', JSON.stringify(l))
 
                     if (self.model.get('type') == 'Offer') {
                         v = new Iznik.Views.User.Home.Offer({
@@ -427,6 +440,14 @@ define([
             })
 
             v.render();
+        },
+
+        render: function() {
+            var self = this;
+
+            Iznik.Views.User.Message.prototype.render.call(this).then(function() {
+                self.$('.js-outcometime').timeago();
+            });
         }
     });
 
@@ -461,6 +482,14 @@ define([
             })
 
             v.render();
+        },
+
+        render: function() {
+            var self = this;
+
+            Iznik.Views.User.Message.prototype.render.call(this).then(function() {
+                self.$('.js-outcometime').timeago();
+            });
         }
     });
 
@@ -545,6 +574,12 @@ define([
                         self.trigger('outcame');
 
                         var v = new Iznik.Views.SupportUs();
+
+                        // eBay voting campaign
+                        self.listenToOnce(v, 'modalClosed', function() {
+                            (new Iznik.Views.User.eBay()).render();
+                        });
+
                         v.render();
                     }
                 }

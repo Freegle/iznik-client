@@ -85,16 +85,16 @@ define([
     Iznik.Views.Plugin.Main = Iznik.View.extend({
         className: "padbotbig panel panel-default js-plugin",
         template: "layout_plugin",
-    
+
         connected: false,
         everConnected: false,
         confirmedMod: false,
 
-    
+
         yahooGroups: [],
         yahooGroupsWithPendingMessages: [],
         yahooGroupsWithPendingMembers: [],
-    
+
         render: function() {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
@@ -130,17 +130,17 @@ define([
 
             return(p);
         },
-    
+
         resume: function() {
             this.connected = true;
             this.checkWork();
         },
-    
+
         pause: function() {
             var self = this;
             self.connected = false;
         },
-    
+
         startSyncs: function() {
             var now = moment();
             var self = this;
@@ -149,20 +149,20 @@ define([
                 // Whether we start a sync depends on whether we are an active mod.  This allows people
                 // who are on many groups as a backup not to have absurdly large numbers of syncs going on.
                 var sync = false;
-    
+
                 if (group.get('onyahoo') && (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
                     var settings = group.get('mysettings');
                     //console.log("doSync", key, group, settings);
                     sync = !settings.hasOwnProperty('active') || settings['active'];
                 }
-    
+
                 // We rely on groupid being present when we get the crumb.
                 group.set('groupid', group.get('id'));
-    
+
                 //console.log("doSync", group.get('nameshort'), key, sync, group);
                 return(sync);
             }
-    
+
             function worthIt(yahoocounts, group, countname) {
                 // It's worth doing a sync if we know there is work on Yahoo, or if we know that there is work on ModTools.
                 //
@@ -171,10 +171,10 @@ define([
                 // console.log("Worthit", group.get('nameshort'));
                 // console.log("Work on Yahoo", yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1);
                 // console.log("Work on MT", group.get('work'));
-    
+
                 var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
                         presdef(countname, group.get('work'), 0);
-    
+
                 return(worthit);
             }
 
@@ -201,7 +201,7 @@ define([
                             bulk: false
                         }));
                     }
-    
+
                     if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMembers, group, 'pendingmembers') &&
                         doSync(group)) {
                         self.collection.add(new Iznik.Models.Plugin.Work({
@@ -213,13 +213,13 @@ define([
                         }));
                     }
                 });
-    
+
                 Iznik.Session.get('groups').each(function (group) {
                     if (doSync(group)) {
                         var lastsync = group.get('lastyahoomessagesync');
                         var last = moment(lastsync);
                         var hoursago = moment.duration(now.diff(last)).asHours();
-    
+
                         if ((_.isUndefined(lastsync) || hoursago >= 1) && doSync(group)) {
                             self.collection.add(new Iznik.Models.Plugin.Work({
                                 id: group.get('nameshort') + '.SyncMessages.Approved',
@@ -231,14 +231,14 @@ define([
                         }
                     }
                 });
-    
+
                 Iznik.Session.get('groups').each(function (group) {
                     //console.log("Consider membersync", group.get('nameshort'), group.get('lastyahoomembersync'), doSync(group));
                     if (doSync(group)) {
                         var lastsync = group.get('lastyahoomembersync');
                         var last = moment(lastsync);
                         var hoursago = moment.duration(now.diff(last)).asHours();
-    
+
                         if ((_.isUndefined(lastsync) || hoursago >= 24) && !group.get('membersyncpending') && doSync(group, 'showmembers')) {
                             self.collection.add(new Iznik.Models.Plugin.Work({
                                 id: group.get('nameshort') + '.SyncMembers.Approved',
@@ -251,7 +251,7 @@ define([
                     }
                 });
             }
-    
+
             // Sync regularly.  Most changes will be picked up by the session poll, but it's possible
             // that someone will delete messages directly on Yahoo which we need to notice have gone, or
             // if Yahoo is not sending out email notifications then we won't find out anything until we
@@ -265,12 +265,12 @@ define([
         getCrumb: function(groupname, crumblocation, success, fail, drop) {
             // There's a bit of faffing to get a crumb from Yahoo to perform our actions.
             var self = this;
-    
+
             return(function() {
-    
+
                 function parseCrumb(ret) {
                     var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
-    
+
                     if (ret.indexOf("not allowed to perform this operation") !== -1) {
                         // Can't do this - no point keeping the work.
                         drop.call(self);
@@ -278,7 +278,7 @@ define([
                         success.call(self, match[1]);
                     } else {
                         var match = /window.location.href = "(.*)"/.exec(ret);
-    
+
                         if (match) {
                             var url = match[1];
                             $.ajax({
@@ -293,10 +293,10 @@ define([
                         }
                     }
                 }
-    
+
                 var url = "https://groups.yahoo.com/neo/groups/" + groupname + crumblocation + "?" + Math.random();
                 // console.log("Get crumb", url);
-    
+
                 $.ajax({
                     type: "GET",
                     url: url,
@@ -308,7 +308,7 @@ define([
                 });
             });
         },
-    
+
         checkWork: function() {
             var self = this;
 
@@ -319,15 +319,15 @@ define([
             if (self.connected) {
                 // Get any first item of work to do.
                 var first = this.collection.at(0);
-    
+
                 if (first && !first.get('running')) {
                     first.set('running', true);
-//console.log("First item", first);   // REMOVE
-    
+                    //console.log("First item", first);
+
                     var groupname;
                     var v = first.get('subview');
                     var mod = v.model;
-    
+
                     if (mod.get('groupid')) {
                         // Get a crumb from the relevant group
                         var group = Iznik.Session.getGroup(mod.get('groupid'));
@@ -339,7 +339,7 @@ define([
                         groupname = groups && groups.length > 0 ? groups.at(0).get('nameshort') : null;
                         //console.log("Get first crumb", groupname, first);
                     }
-    
+
                     // We need a crumb to do the work.
                     self.getCrumb(groupname, v.crumbLocation, function(crumb) {
                         v.crumb = crumb;
@@ -353,10 +353,10 @@ define([
                 }
             }
         },
-    
+
         updatePluginCount: function() {
             var count = this.collection.length;
-    
+
             if (count > 0) {
                 $('.js-plugincount').html(count).show();
                 $('#js-nowork').hide();
@@ -364,14 +364,13 @@ define([
                 $('.js-plugincount').empty().hide();
                 $('#js-nowork').fadeIn('slow');
             }
-    
+
             this.count = count;
         },
-    
-        checkPluginStatus: function () {
-            //console.log("checkPluginStatus "+(new Date()).toTimeString());
+
+        checkPluginStatus: function() {
             var self = this;
-    
+
             function checkResponse(self) {
                 return (function (ret) {
                     //console.log("plugin typeof ret=" + typeof ret);
@@ -382,20 +381,20 @@ define([
                         //console.log("checkResponse OK");
                         $('.js-pluginonly').show();
                         $('#js-loginbuildup').fadeOut('slow');
-    
+
                         if (!self.connected) {
                             self.resume();
-    
+
                             if (!self.everConnected) {
                                 // The plugin state might flipflop between connected and disconnected.  We don't want
                                 // to trigger invitations each time.
                                 _.delay(_.bind(self.listYahooGroups, self), 5000);
                             }
-    
+
                             self.everConnected = true;
                         }
-    
-                        $('#js-plugindisconnected').fadeOut('slow', function () {
+
+                        $('#js-plugindisconnected').fadeOut('slow', function() {
                             $('#js-pluginconnected').fadeIn('slow');
                             $('#js-pluginbuildup').hide();
                         });
@@ -406,11 +405,11 @@ define([
                         console.log("checkResponse not OK");
                         //console.log(ret.substring(0,100));
                         $('.js-pluginonly').hide();
-    
+
                         if (self.connected) {
                             self.pause();
                         }
-    
+
                         $('#js-pluginconnected').fadeOut('slow', function() {
                             $('#js-plugindisconnected').fadeIn('slow');
                         });
@@ -639,10 +638,20 @@ define([
                             }
                         });
 
-                        if (hoursago >= 4 && !self.connected) {
-                            $('#js-pluginbuildup').fadeIn('slow');
-                        } else {
-                            $('#js-pluginbuildup').hide();
+                        if (!Storage.get('dontshowpluginbuildup')) {
+                            if (hoursago >= 4 && !self.connected) {
+                                $('#js-pluginbuildup').fadeIn('slow');
+
+                                $('.js-hidepluginbuildup').one('click', function(e) {
+                                    Storage.set('dontshowpluginbuildup', true);
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log("Hide buildi");
+                                    $('#js-pluginbuildup').hide();
+                            });
+                            } else {
+                                $('#js-pluginbuildup').hide();
+                            }
                         }
 
                         // Now look for work which has been removed from the server because it isn't necessary any more.
@@ -696,7 +705,7 @@ define([
                 }
             })
         },
-    
+
         listYahooGroups: function() {
             // We get a list of all the groups on Yahoo so that we can see whether there are groups on the server
             // for which we need to update our mod status.
@@ -704,7 +713,7 @@ define([
             this.yahooGroupStart = 1;
             this.getYahooGroupChunk();
         },
-    
+
         getYahooGroupChunk: function() {
             // If this fails, we just won't finish checking, and therefore won't make any changes, which is probably
             // the best option.
@@ -715,7 +724,7 @@ define([
                 success: this.processYahooGroupChunk
             });
         },
-    
+
         processYahooGroupChunk: function(ret) {
             var self = this;
 
@@ -724,20 +733,20 @@ define([
                     _.each(ret.ygData.allMyGroups, function(group) {
                         if (group.membership == "MOD" || group.membership == "OWN") {
                             self.yahooGroups.push(group.groupName.toLocaleLowerCase());
-    
+
                             if (group.hasOwnProperty('pendingCountMap') &&
                                 (group.pendingCountMap.hasOwnProperty('MESSAGE_COUNT') && group.pendingCountMap.MESSAGE_COUNT != 0)) {
                                 self.yahooGroupsWithPendingMessages.push(group.groupName.toLocaleLowerCase());
                                 //console.log("Pending messages on ", group.groupName);
                             }
-    
+
                             if (group.hasOwnProperty('pendingCountMap') &&
                                 (group.pendingCountMap.hasOwnProperty('MEM_COUNT') && group.pendingCountMap.MEM_COUNT != 0)) {
                                 self.yahooGroupsWithPendingMembers.push(group.groupName.toLocaleLowerCase());
                             }
                         }
                     });
-    
+
                     if (ret.ygData.allMyGroups.length > 0) {
                         this.yahooGroupStart += 20;
                         this.getYahooGroupChunk();
@@ -748,9 +757,9 @@ define([
                     // We can start our group syncs now, and also pick up any plugin work to do.
                     self.startSyncs();
                     self.checkWork();
-    
+
                     console.log("My id vs Yahoo id", Iznik.Session.get('me').yahooid, Iznik.Session.get('loggedintoyahooas'));
-    
+
                     if (Iznik.Session.get('me').yahooid == Iznik.Session.get('loggedintoyahooas')) {
                         // Although we'll do syncs and work with any Yahoo ID we happen to be logged into Yahoo with, we
                         // only want to auto-add if they're the same as the ID they're using on ModTools.
@@ -769,7 +778,7 @@ define([
                                 nameToId[lname] = group.get('id');
                             }
                         });
-    
+
                         var serverMissing = _.difference(self.yahooGroups, serverGroups);
                         var yahooMissing = _.difference(serverGroups, self.yahooGroups);
                         console.log("Yahoo groups", self.yahooGroups);
@@ -828,7 +837,7 @@ define([
                                                 console.log("Confirm mod to server on on", group);
                                                 var email = 'modconfirm-' + g.get('id') + '-' +
                                                     Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
-    
+
                                                 self.collection.add(new Iznik.Models.Plugin.Work({
                                                     subview: new Iznik.Views.Plugin.Yahoo.ConfirmMod({
                                                         model: new Iznik.Model({
@@ -848,7 +857,7 @@ define([
             }
         }
     });
-    
+
     Iznik.Views.Plugin.Work = Iznik.View.extend({
         render: function() {
             // This view is just a wrapper - the meat of the view is in the subview, so get that back and render it.

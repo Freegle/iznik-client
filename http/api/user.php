@@ -9,7 +9,6 @@ function user() {
     $yahooUserId = presdef('yahooUserId', $_REQUEST, NULL);
     $subject = presdef('subject', $_REQUEST, NULL);
     $body = presdef('body', $_REQUEST, NULL);
-    $stdmsgid = presdef('stdmsgid', $_REQUEST, NULL);
     $action = presdef('action', $_REQUEST, NULL);
     $suspectcount = array_key_exists('suspectcount', $_REQUEST) ? intval($_REQUEST['suspectcount']) : NULL;
     $suspectreason = presdef('suspectreason', $_REQUEST, NULL);
@@ -252,8 +251,14 @@ function user() {
         case 'POST': {
             $u = User::get($dbhr, $dbhm, $id);
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
-            $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
 
+            if ($action == 'Mail') {
+                $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
+            } else {
+                $role = $me->moderatorForUser($id) ? User::ROLE_MODERATOR : User::ROLE_NONMEMBER;
+            }
+
+            error_log("Role $role for $id");
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
@@ -261,6 +266,37 @@ function user() {
                     case 'Mail':
                         $u->mail($groupid, $subject, $body, NULL);
                         break;
+                    case 'Unbounce':
+                        $email = $u->getEmailPreferred();
+                        $eid = $u->getIdForEmail($email)['id'];
+                        $u->unbounce($eid, TRUE);
+                        break;
+                }
+            }
+
+            if ($me && $action == 'Merge') {
+                $email1 = presdef('email1', $_REQUEST, NULL);
+                $email2 = presdef('email2', $_REQUEST, NULL);
+                $reason = presdef('reason', $_REQUEST, NULL);
+                $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
+
+                if (strlen($email1) && strlen($email2)) {
+                    $u = new User($dbhr, $dbhm);
+                    $uid1 = $u->findByEmail($email1);
+                    $uid2 = $u->findByEmail($email2);
+
+                    $ret = ['ret' => 3, 'status' => "Can't find those users."];
+
+                    if ($uid1 && $uid2) {
+                        $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
+
+                        if ($me->isAdminOrSupport() ||
+                            ($me->moderatorForUser($uid1) && $me->moderatorForUser($uid2))) {
+                            $u->merge($uid2, $uid1, $reason);
+                            $u->addEmail($email2, 1, TRUE);
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                        }
+                    }
                 }
             }
 

@@ -143,6 +143,20 @@ function newsfeed() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+                } else if ($action == 'AttachToThread') {
+                    $ret = [
+                        'ret' => 2,
+                        'status' => 'Permission denied'
+                    ];
+
+                    if ($me->isModerator()) {
+                        $n->setPrivate('replyto', intval(presdef('attachto', $_REQUEST, 0)));
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
                 } else {
                     $s = new Spam($dbhr, $dbhm);
                     $spammers = $s->getSpammerByUserid($me->getId());

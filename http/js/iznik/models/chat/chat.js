@@ -49,6 +49,49 @@ define([
             self.sendQueue();
         },
 
+        otherUser: function() {
+            var u1 = this.get('user1');
+            var user1 = u1 ? u1.id : null;
+            var u2 = this.get('user2');
+            var user2 = u2 ? u2.id : null;
+
+            var myid = Iznik.Session.get('me').id;
+            var other = user1 == myid ? user2 : user1;
+            return(other);
+        },
+
+        otherUserMod: function() {
+            var u1 = this.get('user1');
+            var user1 = u1 ? u1.id : null;
+            var u2 = this.get('user2');
+            var user2 = u2 ? u2.id : null;
+
+            var myid = Iznik.Session.get('me').id;
+            var other = user1 == myid ? u2 : u1;
+            return(other);
+        },
+
+        nudge: function(userid) {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: API + 'chat/rooms',
+                    type: 'POST',
+                    data: {
+                        id: self.get('id'),
+                        action: 'Nudge'
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            resolve();
+                        }
+                    }
+                });
+            });
+
+            return(p);
+        },
+
         modnote: function(message) {
             var self = this;
 
@@ -66,7 +109,6 @@ define([
                         }
                     }
                 });
-
             });
 
             return(p);
@@ -124,6 +166,20 @@ define([
             }));
         },
 
+        block: function() {
+            var self = this;
+
+            return($.ajax({
+                url: API + 'chatrooms',
+                type: 'POST',
+                data: {
+                    id: self.get('id'),
+                    status: 'Blocked'
+                }, success: function(ret) {
+                }
+            }));
+        },
+
         allseen: function() {
             var self = this;
             console.log("Allseen", self.get('unseen'), self.get('id'));
@@ -168,12 +224,10 @@ define([
 
             // We want to know when the tab is active, as this affects how often we hit the server.
             $(document).on('hide', function () {
-                log("Tab hidden");
                 self.tabActive = false;
             });
 
             $(document).on('show', function () {
-                log("Tab shown");
                 self.tabActive = true;
             });
 
@@ -238,12 +292,6 @@ define([
             options.data.chattypes = (Iznik.Session && Iznik.Session.get('modtools')) ? [ 'Mod2Mod', 'User2Mod', 'Group' ] : [ 'User2User', 'User2Mod', 'Group' ];
             options.processData = true;
 
-            if (!options.hasOwnProperty('cached')) {
-                // We always want to cache the return value, even if no cached callback is passed, so that we cache it
-                // for later.  Setting a callback (albeit null) achieves that.
-                options.cached = nullFn;
-            }
-
             return Iznik.Collection.prototype.fetch.call(this, options);
         },
 
@@ -253,19 +301,15 @@ define([
 
         allseen: function () {
             var self = this;
-            self.each(function (chat) {
-                if (chat.get('unseen') > 0) {
-                    // We need to find the last message.
-                    chat.fetch().then(_.bind(function(id) {
-                        var chat = this.get(id);
-                        chat.set('unseen', 0);
-                        chat.set('lastmsgseen', chat.get('lastmsg'));
-                    }, self, chat.get('id')));
+            $.ajax({
+                type: 'POST',
+                url: API + 'chat/rooms',
+                data: {
+                    action: 'AllSeen'
+                }, success: function (ret) {
+                    self.fetch();
                 }
             });
-
-            // Fetch again to update our cached version.
-            self.fetch();
         },
 
         wait: function () {

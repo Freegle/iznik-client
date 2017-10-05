@@ -18,6 +18,13 @@
                     <div class="small js-duplist" />
                     <div class="small js-crosspostlist" />
                     <div class="small js-relatedlist" />
+                    <% if (obj.outcomes.length > 0) { %>
+                    <div class="row">
+                        <div class="col-xs-12 text-muted small">
+                            {{outcomes[0].outcome}} <abbr class="js-outcometime" title="{{outcomes[0].timestamp}}" />
+                        </div>
+                    </div>
+                    <% } %>
                 </div>
                 <div class="col-sm-3">
                     <div class="pull-right dropdown">
@@ -30,7 +37,7 @@
                     </div>
                     <% if (obj.location) { %>
                     <div class="mapimage margleft pull-right">
-                        <a data-realurl="true" href="http://maps.google.com/?q={{location.lat}},{{location.lng}}" target="_blank">
+                        <a data-realurl="true" href="http://maps.google.com/?q={{location.lat}},{{location.lng}}" target="_blank" rel="noopener">
                             <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&center={{location.lat}},{{location.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom={{mapzoom}}" style="cursor:pointer" />
                         </a>
                     </div>

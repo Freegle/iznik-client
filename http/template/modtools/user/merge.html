@@ -1,0 +1,52 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger" class="close" data-dismiss="modal" />
+                <h4 class="modal-title js-modal-title">Merge Users</h4>
+            </div>
+            <div class="modal-body js-modal-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="alert alert-danger">
+                            <b><p><span class="glyphicon glyphicon-warning-sign" />&nbsp;Please be careful!</p></b>
+                            <p>
+                                You can't undo this without geek help (and even then it is imperfect).  So please be
+                                completely sure that these are the same users.
+                            </p>
+                        </div>
+                        <p>
+                            This will merge from the first email into the second email.  The second user's
+                            preferred email will be the preferred email of the merged user, so make sure you get
+                            this the right way round.
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <input class="form-control js-email1" placeholder="First email" />
+                    </div>
+                    <div class="col-sm-6">
+                        <input class="form-control js-email2" placeholder="Second email" />
+                    </div>
+                </div>
+                <div class="row topspace">
+                    <div class="col-sm-12">
+                        <input class="form-control js-reason" placeholder="Enter a reason for the logs" />
+                    </div>
+                </div>
+                <div class="row js-errorholder" style="display: none">
+                    <div class="col-xs-12">
+                        <div class="alert alert-warning">
+                            <div class="js-error" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default js-close" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success js-merge">Merge</button>
+            </div>
+        </div>
+    </div>
+</div>

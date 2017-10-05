@@ -183,6 +183,14 @@
     margin-top:50px;
 }
 
+.availableme {
+    background-color: #61AE24 !important;
+}
+
+.availableother {
+    background-color: #3f51b5 !important;
+}
+
 a.btn, .btn a, a:hover {
     text-decoration: none !important;
 }
@@ -437,6 +445,48 @@ h1,h2,h3,h4 {
         left: 430px;
     }
 }
+
+table.table-fixedheader {
+    width: 100%;
+}
+
+table.table-fixedheader,
+table.table-fixedheader>thead,
+table.table-fixedheader>tbody,
+table.table-fixedheader>thead>tr,
+table.table-fixedheader>tbody>tr,
+table.table-fixedheader>thead>tr>th,
+table.table-fixedheader>tbody>td {
+    /*display: block;*/
+}
+
+table.table-fixedheader>thead>tr:after,
+table.table-fixedheader>tbody>tr:after {
+    content: ' ';
+    display: block;
+    visibility: hidden;
+    clear: both;
+}
+
+table.table-fixedheader>tbody {
+    overflow-y: scroll;
+    height: 100px;
+}
+
+table.table-fixedheader>thead {
+    overflow-y: scroll;
+}
+
+table.table-fixedheader>thead::-webkit-scrollbar{
+    background-color: inherit;
+}
+
+table.table-fixedheader>thead>tr>th,
+table.table-fixedheader>tbody>tr>td {
+    /*width: 20%;*/
+    float: left;
+}
+
 /* Change navbar breakpoint as we have a lot of stuff on the menu */
 .navsmallmenu {
     display: none;

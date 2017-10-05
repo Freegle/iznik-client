@@ -80,8 +80,13 @@ define([
         },
 
         renew: function() {
-            this.model.renew();
-            Router.navigate('/volunteering/' + this.model.get('id'), true);
+            var self = this;
+
+            self.model.renew().then(function() {
+                self.model.fetch().then(function() {
+                    self.render();
+                })
+            });
         },
 
         expire: function() {

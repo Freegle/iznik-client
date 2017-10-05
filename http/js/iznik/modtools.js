@@ -1,7 +1,6 @@
 // This is a collection of requires which are used by most ModTools pages.  It's easier to keep them here than have
 // them individually in each one.
 define([
-    'jquery.dotdotdot',
     'iznik/models/membership',
     'iznik/accordionpersist',
     'iznik/selectpersist',

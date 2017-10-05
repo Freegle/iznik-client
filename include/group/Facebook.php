@@ -42,6 +42,11 @@ class GroupFacebook {
                     $this->$att = $group[$att];
                 }
             }
+
+            # Generating a new access token reduces chances of the app being flagged as spam.
+//            $longLivedAccessToken = new AccessToken($this->token);
+//            $code = AccessToken::getCodeFromAccessToken($longLivedAccessToken);
+//            $this->token = AccessToken::getAccessTokenFromCode($code);
         }
     }
 
@@ -50,6 +55,9 @@ class GroupFacebook {
         foreach ($this->publicatts as $att) {
             $ret[$att] = $this->$att;
         }
+
+        $ret['authdate'] = ISODate($ret['authdate']);
+        $ret['msgarrival'] = ISODate($ret['msgarrival']);
 
         return($ret);
     }
@@ -86,7 +94,7 @@ class GroupFacebook {
     }
 
     public function getPostsToShare($sharefrom, $since = "yesterday") {
-        $fb = $this->getFB(FALSE);
+        $fb = $this->getFB(TRUE);
 
         # Get posts we might want to share.  This returns only posts by the page itself.
         try {
@@ -146,10 +154,12 @@ class GroupFacebook {
             }
 
             if (count($modships) > 0) {
-                # We want to find all Facebook pages/groups where we haven't shared this post.  To make this scale better with
+                # We want to find all Facebook pages where we haven't shared this post.  To make this scale better with
                 # many groups we do a more complex query and then munge the data.
+                #
+                # We don't want groups = that's for posts, not social actions / publicity.
                 $groupids = implode(',', $modships);
-                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.uid, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 LEFT JOIN groups_facebook_shares ON groups_facebook_shares.postid = groups_facebook_toshare.postid AND groups_facebook_shares.uid = groups_facebook.uid WHERE groups_facebook.groupid IN ($groupids) AND groups_facebook_toshare.id > ? $dateq AND groups_facebook_shares.postid IS NULL ORDER BY groups_facebook_toshare.id DESC;";
+                $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.uid, 'Facebook' AS actiontype FROM groups_facebook_toshare INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 LEFT JOIN groups_facebook_shares ON groups_facebook_shares.postid = groups_facebook_toshare.postid AND groups_facebook_shares.uid = groups_facebook.uid WHERE groups_facebook.groupid IN ($groupids) AND groups_facebook_toshare.id > ? $dateq AND groups_facebook_shares.postid IS NULL  AND groups_facebook.type = 'Page' ORDER BY groups_facebook_toshare.id DESC;";
                 $posts = $this->dbhr->preQuery($sql, [ $minid ]);
 
                 $remaining = [];
@@ -277,67 +287,115 @@ class GroupFacebook {
         return($ids);
     }
 
-    public function getPostableMessages() {
-        # We want to post any messages since the last one, with a max of 1 hour ago to avoid flooding things.
-        $mysqltime1 = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "24 hours ago"));
-        $mysqltime2 = date ("Y-m-d H:i:s.u", strtotime("72 hours ago"));
-//        $sql = "SELECT messages_groups.msgid AS id, messages.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.uid = ? WHERE messages.arrival > ? AND messages.arrival > ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC;";
-//        $msgs = $this->dbhr->preQuery($sql, [ $this->uid, $mysqltime1, $mysqltime2 ]);
-        $sql = "SELECT messages_groups.msgid AS id, messages.arrival FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.uid = ? WHERE messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC LIMIT 10;";
-        $msgs = $this->dbhr->preQuery($sql, [ $this->uid ]);
-        error_log("Get postable $sql, {$this->uid}, $mysqltime1, $mysqltime2 returned " . var_export($msgs, TRUE));
-        return($msgs);
+    public function getPostableMessagesCount() {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+
+        $groups = [];
+
+        $mygroups = $me->getMemberships(TRUE);
+        foreach ($mygroups as $group) {
+            $settings = $me->getGroupSettings($group['id']);
+            if (!MODTOOLS || !array_key_exists('active', $settings) || $settings['active']) {
+                $groups[] = $group['id'];
+            }
+        }
+
+        $groupq = " messages_groups.groupid IN (" . implode(',', $groups) . ") AND ";
+
+        # We want to post any messages since the last one, with a max to avoid flooding things.
+        $mysqltime = date ("Y-m-d H:i:s.u", strtotime("72 hours ago"));
+        $count = 0;
+
+        if (count($groups) > 0) {
+            $sql = "SELECT COUNT(DISTINCT messages_groups.msgid) AS count  FROM messages_groups INNER JOIN groups ON $groupq groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.type = 'Group' WHERE messages.arrival > ? AND (groups_facebook.msgarrival IS NULL OR groups_facebook.msgarrival < messages.arrival) AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC;";
+            $msgs = $this->dbhr->preQuery($sql, [ $mysqltime, Message::PLATFORM ]);
+            $count = $msgs[0]['count'];
+        }
+
+        return($count);
     }
 
-    public function postMessages() {
-        $msgs = $this->getPostableMessages();
-        $id = NULL;
-        $msgarrival = NULL;
-        $worked = 0;
+    public function getPostableMessages($groupid, &$ctx) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
 
-        foreach ($msgs as $msg) {
-            $params = [
-                'link' => 'https://' . USER_SITE . '/message/' . $msg['id'] . '?src=fbgroup',
-                'description' => 'Everything on Freegle is completely free.  Comment below to reply and we\'ll pass it on to the original freegler.'
-            ];
-
-            # Whether the post works or not, we might as well assume it does.  If it fails it's most likely because
-            # we are rate-limited, and we'd never get out of that state.
-            $id = $id ? max($msg['id'], $id) : $msg['id'];
-            $msgarrival = $msg['arrival'];
-
-            try {
-                $fb = $this->getFB(FALSE);
-                $result = $fb->post($this->id . '/feed', $params, $this->token);
-                #error_log("Post returned " . var_export($result, true));
-
-                # Try to avoid rate-limiting.  This number covers the traffic we expect.
-                sleep(30);
-                $worked++;
-            } catch (Exception $e) {
-                error_log("Post failed with " . $e->getMessage());
-                $code = $e->getCode();
-                error_log("Failed on {$this->id} code $code message " . $e->getMessage() . " token " . $this->token);
-
-                # These numbers come from FacebookResponseException.
-                if ($code == 100 || $code == 102 || $code == 190) {
-                    $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE uid = ?;", [
-                        $e->getMessage(),
-                        $this->uid
-                    ]);
+        $groups = $groupid ? [$groupid] : [];
+        if (!$groupid) {
+            $mygroups = $me->getMemberships(TRUE);
+            foreach ($mygroups as $group) {
+                $settings = $me->getGroupSettings($group['id']);
+                if (!MODTOOLS || !array_key_exists('active', $settings) || $settings['active']) {
+                    $groups[] = $group['id'];
                 }
             }
         }
 
-        $this->updatePostableMessages($id, $msgarrival);
+        $groupq = " messages_groups.groupid IN (" . implode(',', $groups) . ") AND ";
 
-        return($worked);
+        $ctxq = presdef('id', $ctx, NULL) ? (" AND messages.id > " . intval($ctx['id'])) : '';
+
+        # We want to post any messages since the last one, with a max to avoid flooding things.
+        $mysqltime1 = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "24 hours ago"));
+        $mysqltime2 = date ("Y-m-d H:i:s.u", strtotime("72 hours ago"));
+        $sql = "SELECT DISTINCT messages_groups.msgid AS id, messages.arrival FROM messages_groups INNER JOIN groups ON $groupq groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.type = 'Group' WHERE messages.arrival > ? AND messages.arrival > ? AND (groups_facebook.msgarrival IS NULL OR groups_facebook.msgarrival < messages.arrival) $ctxq AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC;";
+        $msgs = $this->dbhr->preQuery($sql, [ $mysqltime1, $mysqltime2, Message::PLATFORM ]);
+
+        $ctx['id'] = count($msgs) ? $msgs[count($msgs) - 1]['id'] : NULL;
+
+        return($msgs);
     }
 
+    # Superceded by client-side posting code
+    # TODO Delete after 2017-10-20
+//    public function postMessages() {
+//        $msgs = $this->getPostableMessages();
+//        $id = NULL;
+//        $msgarrival = NULL;
+//        $worked = 0;
+//
+//        foreach ($msgs as $msg) {
+//            $params = [
+//                'link' => 'https://' . USER_SITE . '/message/' . $msg['id'] . '?src=fbgroup',
+//                'description' => 'Everything on Freegle is completely free.  Click on the link to go to the Freegle site to reply - don\'t comment on here otherwise they won\'t see it.'
+//            ];
+//
+//            # Whether the post works or not, we might as well assume it does.  If it fails it's most likely because
+//            # we are rate-limited, and we'd never get out of that state.
+//            $id = $id ? max($msg['id'], $id) : $msg['id'];
+//            $msgarrival = $msg['arrival'];
+//
+//            try {
+//                $fb = $this->getFB(TRUE);
+//                $result = $fb->post($this->id . '/feed', $params, $this->token);
+//                #error_log("Post returned " . var_export($result, true));
+//                $graphObject = $result->getGraphNode();
+//                $id = $graphObject->getField('id');
+//                error_log("Posted {$msg['id']} to {$this->name} as $id");
+//
+//                # Try to avoid rate-limiting.  This number covers the traffic we expect.
+//                sleep(30);
+//                $worked++;
+//            } catch (Exception $e) {
+//                $code = $e->getCode();
+//                error_log("Failed {$msg['id']} on {$this->name} code $code message " . $e->getMessage() . " token " . $this->token);
+//
+//                # These numbers come from FacebookResponseException.
+//                if ($code == 100 || $code == 102 || $code == 190) {
+//                    $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterrortime = NOW(), lasterror = ? WHERE uid = ?;", [
+//                        $e->getMessage(),
+//                        $this->uid
+//                    ]);
+//                }
+//            }
+//        }
+//
+//        $this->updatePostableMessages($id, $msgarrival);
+//
+//        return($worked);
+//    }
+
     public function updatePostableMessages($msgid, $msgarrival) {
-        error_log("Update postable $msgid, $msgarrival, {$this->uid}");
         if ($msgarrival) {
-            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE uid = ?;", [$msgid, $msgarrival, $this->uid]);
+            $this->dbhm->preExec("UPDATE groups_facebook SET msgid = ?, msgarrival = ? WHERE uid = ? AND (msgarrival IS NULL OR msgarrival < ?);", [$msgid, $msgarrival, $this->uid, $msgarrival]);
         }
     }
 
@@ -506,7 +564,6 @@ class GroupFacebook {
 
                     $count++;
                 } catch (Exception $e) {
-                    error_log("Post failed with " . $e->getMessage());
                     $code = $e->getCode();
                     error_log("Failed on {$this->uid} code $code message " . $e->getMessage() . " token " . $this->token);
                 }

@@ -25,6 +25,7 @@ define([
                         jqXHR.abort();
                     } catch (e) {}
                 });
+
                 self.xhrPool = [];
             };
 
@@ -103,6 +104,7 @@ define([
             "yahoologin": "yahoologin",
             "modtools/chat/:id": "modChat",
             "modtools/chats": "modChats",
+            "modtools/logs(/:type)": "modLogs",
             "modtools/supporters": "supporters",
             "modtools/messages/pending": "pendingMessages",
             "modtools/messages/approved/messagesearch/:search": "approvedMessagesSearchMessages",
@@ -161,6 +163,7 @@ define([
             "explore": "userExplore",
             "livemap": "liveMap",
             "stats/heatmap": "userStatsHeatMap",
+            "stats/region/:id": "userStatsRegion",
             "stats/area/:id": "userStatsArea",
             "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
@@ -190,6 +193,7 @@ define([
             "plugins/group/:id": "groupPlugin",
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
+            "schedule(/:id)": "userSchedule",
             "stories/fornewsletter": "userNewsletterReview",
             "stories": "userStories",
             "story/:id": "userStory",
@@ -310,6 +314,21 @@ define([
             Iznik.Session.forceLogin();
         },
 
+        userSchedule: function(id) {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                require(["iznik/views/pages/user/schedule"], function() {
+                    var page = new Iznik.Views.User.Pages.Schedule({
+                        id: id
+                    });
+                    self.loadRoute({page: page});
+                });
+            });
+
+            Iznik.Session.forceLogin();
+        },
+
         userNewsletterReview: function() {
             var self = this;
 
@@ -319,6 +338,47 @@ define([
                 });
                 self.loadRoute({page: page});
             });
+        },
+
+        userDefault: function() {
+            var self = this;
+
+            function f(loggedIn) {
+                // console.log("Logged in", loggedIn);
+                if (loggedIn || _.isUndefined(loggedIn)) {
+                    // Load the last of the main pages that they had open.
+                    var page = Storage.get('lasthomepage');
+
+                    switch (page) {
+                        case 'news': {
+                            self.userNewsfeed();
+                            break;
+                        }
+                        case 'myposts': {
+                            self.userHome();
+                            break;
+                        }
+                        case 'mygroups': {
+                            self.userMyGroups();
+                            break;
+                        }
+                        default: {
+                            self.userNewsfeed();
+                            break;
+                        }
+                    }
+                } else {
+                    require(["iznik/views/pages/user/landing"], function() {
+                        console.log("Load landing");
+                        var page = new Iznik.Views.User.Pages.Landing();
+                        self.loadRoute({page: page});
+                    });
+                }
+            }
+
+            self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+            Iznik.Session.testLoggedIn();
+
         },
 
         userStories: function() {
@@ -681,6 +741,17 @@ define([
 
             require(["iznik/views/pages/user/stats"], function() {
                 var page = new Iznik.Views.User.Pages.Heatmap();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStatsRegion: function(region) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stats"], function() {
+                var page = new Iznik.Views.User.Pages.StatsGroup({
+                    region: region
+                });
                 self.loadRoute({page: page});
             });
         },
@@ -1440,6 +1511,21 @@ define([
                 Iznik.Session.forceLogin({
                     modtools: true
                 });
+            });
+        },
+
+        modLogs: function(logtype) {
+            var self = this;
+            require(["iznik/views/pages/modtools/logs"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    var page = new Iznik.Views.ModTools.Pages.Logs({
+                        logtype: logtype
+                    });
+                    page.modtools = true;
+                    self.loadRoute({page: page});
+                });
+
+                Iznik.Session.forceLogin();
             });
         },
 

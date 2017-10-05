@@ -61,7 +61,12 @@
     <div class="col-md-12">
         <div class="js-sugghelp" />
         <p class="text-muted">In a single word or phrase, what are you looking for?</p>
-        <input type="text" size="60" maxlength="60" class="form-control js-item" spellcheck="true" />
+        <div class="input-group input-group-lg">
+            <div class="input-group-addon nopad clickme js-speechItem" aria-label="Add item by voice" style="display: none">
+                <span class="glyphicons glyphicons-microphone" />
+            </div>
+            <input type="text" size="60" maxlength="60" class="form-control js-item" spellcheck="true" />
+        </div>
     </div>
 </div>
 <div class="row-fluid botspace" >
@@ -83,8 +88,12 @@
     <div class="col-md-6 col-md-offset-3 text-center">
         <div class="btn btn-success topspace btn-lg btn-block js-next"  style="display: none">Next >></div>
     </div>
-    <div class="alert alert-danger js-saveerror" style="display: none">
-        We couldn't save your message.  Please try again later.
+</div>
+<div class="row-fluid js-saveerror" style="display: none">
+    <div class="col-xs-12">
+        <div class="alert alert-danger">
+            We couldn't save your message.  Please try again later.
+        </div>
     </div>
 </div>
 <br class="clearfix" />

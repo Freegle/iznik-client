@@ -31,6 +31,7 @@ class Message
     const OUTCOME_TAKEN = 'Taken';
     const OUTCOME_RECEIVED = 'Received';
     const OUTCOME_WITHDRAWN = 'Withdrawn';
+    const OUTCOME_REPOST = 'Repost';
 
     const LIKE_LOVE = 'Love';
     const LIKE_LAUGH = 'Laugh';
@@ -365,7 +366,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr', 'isdraft'
     ];
 
     public $memberAtts = [
@@ -383,7 +384,7 @@ class Message
     ];
 
     public $internalAtts = [
-        'publishconsent', 'isdraft', 'itemid', 'itemname'
+        'publishconsent', 'itemid', 'itemname'
     ];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
@@ -657,32 +658,81 @@ class Message
         # URL people can follow to get to the message on our site.
         $ret['url'] = 'https://' . USER_SITE . '/message/' . $this->id;
 
+        $ret['mine'] = $myid && $this->fromuser == $myid;
+
+        # Add any groups that this message is on.
+        $ret['groups'] = [];
+        $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
+        $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
+        $showarea = TRUE;
+        $showpc = TRUE;
+
+        foreach ($ret['groups'] as &$group) {
+            $group['arrival'] = ISODate($group['arrival']);
+            #error_log("{$this->id} approved by {$group['approvedby']}");
+
+            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
+                if (pres('approvedby', $group)) {
+                    $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
+                    $ctx = NULL;
+                    $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
+                }
+            }
+
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
+            $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
+
+            # Some groups disable the area or postcode.  If so, hide that.
+            $includearea = $g->getSetting('includearea', TRUE);
+            $includepc = $g->getSetting('includepc', TRUE);
+            $showarea = !$includearea ? FALSE : $showarea;
+            $showpc = !$includepc ? FALSE : $showpc;
+
+            if (pres('mine', $ret)) {
+                # Can we repost?
+                $ret['canrepost'] = FALSE;
+
+                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
+                $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                $arrival = strtotime($group['arrival']);
+                $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
+
+                if ($group['hoursago'] > $interval * 24) {
+                    $ret['canrepost'] = TRUE;
+                }
+            }
+        }
+
         # Location. We can always see any area and top-level postcode.  If we're a mod or this is our message
         # we can see the precise location.
         if ($this->locationid) {
             $l = new Location($this->dbhr, $this->dbhm, $this->locationid);
-            $areaid = $l->getPrivate('areaid');
-            if ($areaid) {
-                # This location is quite specific.  Return the area it's in.
-                $a = new Location($this->dbhr, $this->dbhm, $areaid);
-                $ret['area'] = $a->getPublic();
-            } else {
-                # This location isn't in an area; it is one.  Return it.
-                $ret['area'] = $l->getPublic();
+
+            if ($showarea) {
+                $areaid = $l->getPrivate('areaid');
+                if ($areaid) {
+                    # This location is quite specific.  Return the area it's in.
+                    $a = new Location($this->dbhr, $this->dbhm, $areaid);
+                    $ret['area'] = $a->getPublic();
+                } else {
+                    # This location isn't in an area; it is one.  Return it.
+                    $ret['area'] = $l->getPublic();
+                }
             }
 
-            $pcid = $l->getPrivate('postcodeid');
-            if ($pcid) {
-                $p = new Location($this->dbhr, $this->dbhm, $pcid);
-                $ret['postcode'] = $p->getPublic();
+            if ($showpc) {
+                $pcid = $l->getPrivate('postcodeid');
+                if ($pcid) {
+                    $p = new Location($this->dbhr, $this->dbhm, $pcid);
+                    $ret['postcode'] = $p->getPublic();
+                }
             }
 
             if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $this->fromuser == $myid)) {
                 $ret['location'] = $l->getPublic();
             }
         }
-
-        $ret['mine'] = $myid && $this->fromuser == $myid;
 
         # Remove any group subject tag.
         $ret['subject'] = preg_replace('/^\[.*?\]\s*/', '', $ret['subject']);
@@ -707,42 +757,6 @@ class Message
                 'id' => $itemid,
                 'name' => $item
             ];
-        }
-
-        # Add any groups that this message is on.
-        $ret['groups'] = [];
-        $sql = "SELECT *, TIMESTAMPDIFF(HOUR, arrival, NOW()) AS hoursago FROM messages_groups WHERE msgid = ? AND deleted = 0;";
-        $ret['groups'] = $this->dbhr->preQuery($sql, [ $this->id ] );
-
-        foreach ($ret['groups'] as &$group) {
-            $group['arrival'] = ISODate($group['arrival']);
-            #error_log("{$this->id} approved by {$group['approvedby']}");
-
-            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
-                if (pres('approvedby', $group)) {
-                    $u = User::get($this->dbhr, $this->dbhm, $group['approvedby']);
-                    $ctx = NULL;
-                    $group['approvedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE);
-                }
-            }
-
-            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
-            $ret['keyword'] = presdef(strtolower($this->type), $keywords, $this->type);
-
-            if ($ret['mine']) {
-                # Can we repost?
-                $ret['canrepost'] = FALSE;
-
-                $reposts = $g->getSetting('reposts', ['offer' => 2, 'wanted' => 14, 'max' => 10, 'chaseups' => 2]);
-                $interval = $this->type == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-                $arrival = strtotime($group['arrival']);
-                $ret['canrepostat'] = ISODate('@' . ($arrival + $interval * 3600 * 24));
-
-                if ($group['hoursago'] > $interval * 24) {
-                    $ret['canrepost'] = TRUE;
-                }
-            }
         }
 
         # Can see replies if:
@@ -1796,6 +1810,14 @@ class Message
         $approvedby = NULL;
         $approval = $this->getHeader('x-egroups-approved-by');
 
+        if ($approval) {
+            if (preg_match('/(.*?) /', $approval, $matches)) {
+                $yid = $matches[1];
+                $u = new User($this->dbhr, $this->dbhm);
+                $approvedby = $u->findByYahooId($yid);
+            }
+        }
+
         # Reduce the size of the message source
         $this->message = $this->pruneMessage();
 
@@ -1877,25 +1899,29 @@ class Message
                 }
 
                 # Also save into the history table, for spam checking.
-                $sql = "INSERT INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
-                $this->dbhm->preExec($sql, [
-                    $this->groupid,
-                    $this->source,
-                    $this->fromuser,
-                    $this->envelopefrom,
-                    $this->envelopeto,
-                    $this->fromname,
-                    $this->fromaddr,
-                    $this->fromip,
-                    $this->subject,
-                    $this->getPrunedSubject(),
-                    $this->messageid,
-                    $this->id
-                ]);
+                $this->addToMessageHistory();
             }
         }
 
         return([ $this->id, $already ]);
+    }
+
+    public function addToMessageHistory() {
+        $sql = "INSERT IGNORE INTO messages_history (groupid, source, fromuser, envelopefrom, envelopeto, fromname, fromaddr, fromip, subject, prunedsubject, messageid, msgid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?);";
+        $this->dbhm->preExec($sql, [
+            $this->groupid,
+            $this->source,
+            $this->fromuser,
+            $this->envelopefrom,
+            $this->envelopeto,
+            $this->fromname,
+            $this->fromaddr,
+            $this->fromip,
+            $this->subject,
+            $this->getPrunedSubject(),
+            $this->messageid,
+            $this->id
+        ]);
     }
 
     function recordFailure($reason) {
@@ -1957,11 +1983,11 @@ class Message
         return(count($groups) > 0);
     }
 
-    public function isApproved($groupid) {
-        $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? AND groupid = ? AND collection = ? AND deleted = 0;";
+    public function isApproved($groupid = NULL) {
+        $groupq = $groupid ? " AND groupid = $groupid ": "";
+        $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? $groupq AND collection = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [
             $this->id,
-            $groupid,
             MessageCollection::APPROVED
         ]);
 
@@ -2122,12 +2148,18 @@ class Message
         }
 
         if (!$yahooonly) {
-            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ? WHERE msgid = ? AND groupid = ?;";
+            # Update the arrival time to NOW().  This is because otherwise we will fail to send out messages which
+            # were held for moderation to people who are on immediate emails.
+            #
+            # Make sure we don't approve multiple times, as this will lead to the same message being sent
+            # out multiple times.
+            $sql = "UPDATE messages_groups SET collection = ?, approvedby = ?, approvedat = NOW(), arrival = NOW() WHERE msgid = ? AND groupid = ? AND collection != ?;";
             $rc = $this->dbhm->preExec($sql, [
                 MessageCollection::APPROVED,
                 $myid,
                 $this->id,
-                $groupid
+                $groupid,
+                MessageCollection::APPROVED
             ]);
 
             #error_log("Approve $rc from $sql, $myid, {$this->id}, $groupid");
@@ -2378,6 +2410,7 @@ class Message
                     $msg['id'],
                     $this->groupid
                 ]);
+
                 foreach ($gatts as $gatt) {
                     foreach (['yahooapprovedid', 'yahoopendingid'] as $newatt) {
                         #error_log("Compare old {$gatt[$newatt]} vs new {$this->$newatt}");
@@ -2432,8 +2465,10 @@ class Message
                 # We keep the old set of attachments, because they might be mentioned in (for example) the text
                 # of the message.  This means that we don't support editing of the attachments on Yahoo.
 
-                # We might have new approvedby info.
-                $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ? WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
+                # Pick up any new approvedby, unless we already have one.  If we have one it's because it was
+                # approved on here, which is an authoritative record, whereas the Yahoo approval might have been
+                # done via plugin work and another mod.
+                $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ?, approvedat = NOW() WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
                     [
                         $approvedby,
                         $msg['id'],
@@ -2643,6 +2678,7 @@ class Message
         $textbody = preg_replace('/^Sent from Yahoo Mail.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from Mail.*/ms', '', $textbody);
         $textbody = preg_replace('/^Sent from my BlackBerry.*/ms', '', $textbody);
+        $textbody = preg_replace('/^Sent from myMail for iOS.*/ms', '', $textbody);
 
         // Duff text added by Yahoo Mail app.
         $textbody = str_replace('blockquote, div.yahoo_quoted { margin-left: 0 !important; border-left:1px #715FFA solid !important; padding-left:1ex !important; background-color:white !important; }', '', $textbody);
@@ -2724,7 +2760,9 @@ class Message
         $thissubj = preg_replace('/\-|\,|\.| /', '', $thissubj);
 
         if ($type) {
-            $sql = "SELECT id, subject, date FROM messages WHERE fromuser = ? AND type = ? AND DATEDIFF(NOW(), arrival) <= 31;";
+            # Don't want to look for any messages which already have an outcome, otherwise we would fail to handle
+            # crosspost messages correctly - we'd link all TAKENs to the same OFFER.
+            $sql = "SELECT messages.id, subject, date FROM messages LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE fromuser = ? AND type = ? AND DATEDIFF(NOW(), arrival) <= 31 AND messages_outcomes.id IS NULL;";
             $messages = $this->dbhr->preQuery($sql, [ $this->fromuser, $type ]);
             #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
             $thistime = strtotime($this->date);
@@ -3192,6 +3230,9 @@ class Message
                     # it reaches Yahoo and we get notified then we will handle that in submitYahooQueued.
                     $this->dbhm->preExec("UPDATE messages_groups SET senttoyahoo = 1, collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id]);
 
+                    # Add to message history for spam checking.
+                    $this->addToMessageHistory();
+
                     $rc = TRUE;
                 } catch (Exception $e) {
                     error_log("Send failed with " . $e->getMessage());
@@ -3299,7 +3340,7 @@ class Message
     }
 
     public function intendedOutcome($outcome) {
-        $sql = "INSERT IGNORE INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
+        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
         $this->dbhm->preExec($sql, [
             $this->id,
             $outcome
@@ -3318,14 +3359,6 @@ class Message
             $comment
         ]);
 
-        $this->log->log([
-            'type' => Log::TYPE_MESSAGE,
-            'subtype' => Log::SUBTYPE_OUTCOME,
-            'msgid' => $this->id,
-            'byuser' => $me ? $me->getId() : NULL,
-            'text' => "$outcome $comment"
-        ]);
-
         # You might think that if we are passed a $userid then we could log a renege for any other users to whom
         # this was promised - but we can promise to multiple users, whereas we can only mark a single user in the
         # TAKEN (which is probably a bug).  And if we are withdrawing it, then we don't really know why - it could
@@ -3339,6 +3372,15 @@ class Message
 
         foreach ($groups as $groupid) {
             $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+
+            $this->log->log([
+                'type' => Log::TYPE_MESSAGE,
+                'subtype' => Log::SUBTYPE_OUTCOME,
+                'msgid' => $this->id,
+                'user' => $me ? $me->getId() : NULL,
+                'groupid' => $groupid,
+                'text' => "$outcome $comment"
+            ]);
 
             # Update the arrival time.  This is so that if anyone (TN, I'm looking at you) is using the API to retrieve
             # messages, it can tell that the message has had an outcome.
@@ -3359,7 +3401,7 @@ class Message
                     $u->getName(),
                     $email,
                     $subj,
-                    ($happiness == User::HAPPY || $happiness == User::FINE) ? $comment : ''
+                    ($happiness === NULL || $happiness == User::HAPPY || $happiness == User::FINE) ? $comment : ''
                 );
             }
         }
@@ -3371,7 +3413,7 @@ class Message
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
         foreach ($replies as $reply) {
-            $cm->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
+            $mid = $cm->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
 
             # Make sure this message is highlighted in chat/email.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);

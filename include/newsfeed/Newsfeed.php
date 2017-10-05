@@ -19,14 +19,11 @@ require_once(IZNIK_BASE . '/mailtemplates/newsfeed/digest.php');
 class Newsfeed extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted');
+    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted', 'closed');
 
     /** @var  $log Log */
     private $log;
     var $feed;
-
-    # See also in ChatMessage.
-    private $urlPattern = '#(?i)\b(((?:(?:http|https):(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))|(\.com\/))#m';
 
     const DISTANCE = 15000;
 
@@ -40,6 +37,7 @@ class Newsfeed extends Entity
     const TYPE_REFER_TO_OFFER = 'ReferToOffer';
     const TYPE_REFER_TO_TAKEN = 'ReferToTaken';
     const TYPE_REFER_TO_RECEIVED = 'ReferToReceived';
+    const TYPE_ATTACH_TO_THREAD = 'AttachToThread';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -102,20 +100,18 @@ class Newsfeed extends Entity
 
                     $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [ $replyto ]);
                     foreach ($origs as $orig) {
-                        # Comment on thread.  We want to notify the original poster and anyone else who
-                        # has commented on this thread.
                         $n = new Notifications($this->dbhr, $this->dbhm);
 
                         if ($orig['userid']) {
-                            # Some posts don't have a userid, e.g. central publicity.
-                            $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id);
+                            # Some posts don't have a userid, e.g. central publicity.  Otherwise assume the person
+                            # who started the thread always wants to know.
+                            $n->add($userid, $orig['userid'], Notifications::TYPE_COMMENT_ON_YOUR_POST, $id, $replyto);
                         }
 
-                        $sql = $orig['userid'] ? "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto AND userid != {$orig['userid']} UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto AND userid != {$orig['userid']};" : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $replyto UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $replyto;";
-                        $commenters = $this->dbhr->preQuery($sql);
+                        $engageds = $this->engaged($replyto, [ $orig['userid'], $userid ]);
 
-                        foreach ($commenters as $commenter) {
-                            $rc = $n->add($userid, $commenter['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id);
+                        foreach ($engageds as $engaged) {
+                            $rc = $n->add($userid, $engaged['userid'], Notifications::TYPE_COMMENT_ON_COMMENT, $id, $replyto);
                         }
                     }
 
@@ -131,6 +127,17 @@ class Newsfeed extends Entity
         }
 
         return($id);
+    }
+
+    private function engaged($threadid, $excludes) {
+        # We don't necessarily want to notify all users who have commented on a thread - that would mean that you
+        # got pestered for a thread you'd long since lost interest in, and many people won't work out how to unfollow.
+        # So as a quick hack, notify anyone who has commented in the last week.
+        $excludes = array_filter($excludes, function($var){return !is_null($var);} );
+        $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
+        $sql = $excludes ? ("SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND userid NOT IN (" . implode(',', $excludes) . ") AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND userid NOT IN (" . implode(',', $excludes) . ") AND timestamp >= '$mysqltime';") : "SELECT DISTINCT userid FROM newsfeed WHERE replyto = $threadid AND timestamp >= '$mysqltime' UNION SELECT DISTINCT userid FROM newsfeed_likes WHERE newsfeedid = $threadid AND timestamp >= '$mysqltime';";
+        $engageds = $this->dbhr->preQuery($sql);
+        return($engageds);
     }
 
     public function getPublic($lovelist = FALSE, $unfollowed = TRUE) {
@@ -188,7 +195,9 @@ class Newsfeed extends Entity
         #error_log("Use $use for type {$entry['type']} from " . presdef('reviewrequired', $entry, FALSE) . "," . presdef('deleted', $entry, FALSE));
 
         if ($use) {
-            if (preg_match_all($this->urlPattern, $entry['message'], $matches)) {
+            global $urlPattern;
+
+            if (preg_match_all($urlPattern, $entry['message'], $matches)) {
                 foreach ($matches as $val) {
                     foreach ($val as $url) {
                         $p = new Preview($this->dbhr, $this->dbhm);
@@ -428,6 +437,10 @@ class Newsfeed extends Entity
         return([$users, $items]);
     }
 
+    public function threadId() {
+        return($this->feed['replyto'] ? $this->feed['replyto'] : $this->id);
+    }
+
     public function refer($type) {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
@@ -438,7 +451,7 @@ class Newsfeed extends Entity
         # Create a kind of comment and notify the poster.
         $id = $this->create($type, NULL, NULL, NULL, NULL, $this->id);
         $n = new Notifications($this->dbhr, $this->dbhm);
-        $n->add($myid, $userid, Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id);
+        $n->add($myid, $userid, Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id, $this->threadId());
 
         # Hide this post except to the author.
         $rc = $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW(), hiddenby = ? WHERE id = ?;", [
@@ -459,7 +472,7 @@ class Newsfeed extends Entity
             # We want to notify the original poster.  The type depends on whether this was the start of a thread or
             # a comment on it.
             $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add($me->getId(), $this->feed['userid'], $this->feed['replyto'] ? Notifications::TYPE_LOVED_COMMENT : Notifications::TYPE_LOVED_POST, $this->id);
+            $n->add($me->getId(), $this->feed['userid'], $this->feed['replyto'] ? Notifications::TYPE_LOVED_COMMENT : Notifications::TYPE_LOVED_POST, $this->id, $this->threadId());
         }
     }
 
@@ -480,6 +493,11 @@ class Newsfeed extends Entity
                 $me->getId(),
                 $this->id
             ]);
+
+            # Don't want to show notifications to deleted items.
+            $this->dbhm->preExec("DELETE FROM users_notifications WHERE newsfeedid = ?;", [
+                $this->id
+            ]);
         }
     }
 
@@ -492,13 +510,13 @@ class Newsfeed extends Entity
 
     public function getUnseen($userid) {
         # Find the last one we saw.
-        $seens = $this->dbhr->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
+        $seens = $this->dbhr->preQuery("SELECT timestamp FROM newsfeed INNER JOIN newsfeed_users ON newsfeed_users.newsfeedid = newsfeed.id WHERE newsfeed_users.userid = ?;", [
             $userid
         ]);
 
-        $lastseen = 0;
+        $lastseen = NULL;
         foreach ($seens as $seen) {
-            $lastseen = $seen['newsfeedid'];
+            $lastseen = $seen['timestamp'];
         }
 
         # Get the first few user-posted messages.  This keeps the unseen count low - if it gets too high
@@ -507,7 +525,7 @@ class Newsfeed extends Entity
         list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
         $count = 0;
         foreach ($feeds as $feed) {
-            if ($feed['id'] > $lastseen && $feed['userid'] != $userid) {
+            if (($lastseen == NULL || strtotime($feed['timestamp']) > strtotime($lastseen)) && $feed['userid'] != $userid) {
                 $count++;
             }
         }
@@ -571,7 +589,7 @@ class Newsfeed extends Entity
             $oldest = ISODate(date("Y-m-d H:i:s", strtotime("midnight 7 days ago")));
 
             foreach ($feeds as $feed) {
-                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest) {
+                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest && pres('message', $feed)) {
                     $count++;
 
                     $str = $feed['message'];

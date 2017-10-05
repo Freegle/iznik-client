@@ -89,7 +89,6 @@ define([
                 window.serviceWorker.pushManager.permissionState({
                     userVisibleOnly: true
                 }).then(function(PushMessagingState) {
-                    console.log("Push state", PushMessagingState);
                     var ask = false;
 
                     switch (PushMessagingState) {
@@ -386,6 +385,13 @@ define([
                                         fi: 'socialactions',
                                         el: '.js-socialactionscount',
                                         ev: 'socialactionscountschanged',
+                                        window: false,
+                                        sound: false
+                                    },
+                                    {
+                                        fi: 'fbgroups',
+                                        el: '.js-fbgroupscount',
+                                        ev: 'fbgroupscountschanged',
                                         window: false,
                                         sound: false
                                     },

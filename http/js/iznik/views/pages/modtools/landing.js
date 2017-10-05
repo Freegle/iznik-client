@@ -174,9 +174,12 @@ define([
             render: function() {
                 var messagetitle, spamtitle, domaintitle;
                 var p = Iznik.Views.Page.prototype.render.call(this);
-                p.then(function (self) {
-                    console.log("landing.render");
-
+                p.then(function(self) {
+                    // var v = new Iznik.Views.ModTools.Pages.Landing.FreeStock();
+                    // v.render().then(function(v) {
+                    //     self.$('.js-freestock').html(v.el);
+                    // });
+                    //
                     // Get Yahoo login info
                     new majax({
                         type: "GET",

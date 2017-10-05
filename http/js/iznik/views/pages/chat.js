@@ -9,6 +9,7 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/group/select',
     'iznik/views/postaladdress',
+    'iznik/views/user/schedule',
     'iznik/views/user/message',
     'jquery-resizable',
     'jquery-visibility',
@@ -118,7 +119,10 @@ define([
                         }
                     } catch (e) {}
 
-                    self.activeChat.messageFocus();
+                    if (!isXS()) {
+                        // Don't focus on small, probably mobile devices as the onscreen keyboard will obscure the chat.
+                        self.activeChat.messageFocus();
+                    }
                 })
             }
         },
@@ -204,9 +208,7 @@ define([
                     }
 
                     self.selectedFirst = false;
-                    self.chats.fetch({
-                        cached: _.bind(self.fetchedChats, self)
-                    }).then(_.bind(self.fetchedChats, self));
+                    self.chats.fetch().then(_.bind(self.fetchedChats, self));
 
                     $('.js-search').on('keyup', _.bind(self.searchKey, self));
                     $('.js-allseen').on('click', _.bind(self.allseen, self));
@@ -273,7 +275,7 @@ define([
         render: function () {
             var self = this;
             self.model.set('modtools', self.options.modtools);
-            //console.log("Render chat", self.model.get('id'), self.model.get('icon'), self.model.attributes, self.chats);
+            // console.log("Render chat", self.model.get('id'), self.model.get('icon'), self.model.attributes, self.chats);
 
             var p = Iznik.View.Timeago.prototype.render.call(this);
             p.then(function (self) {
@@ -310,6 +312,8 @@ define([
             'focus .js-message': 'messageFocused',
             'click .js-promise': 'promise',
             'click .js-address': 'address',
+            'click .js-nudge': 'nudge',
+            'click .js-schedule': 'schedule',
             'click .js-info': 'info',
             'click .js-photo': 'photo',
             'click .js-send': 'send',
@@ -318,6 +322,7 @@ define([
             'keyup .js-message': 'keyUp',
             'change .js-status': 'status',
             'click .js-remove': 'removeIt',
+            'click .js-block': 'blockIt',
             'click .js-popup': 'popup'
         },
 
@@ -357,11 +362,37 @@ define([
 
                 self.model.close().then(function() {
                     // Reload.  Bit clunky but it'll do.
-                    Iznik.Session.chats.fetch({
-                        cached: nullFn
-                    }).then(function() {
+                    Iznik.Session.chats.fetch().then(function() {
                         // CC window.location.reload();
                         Router.navigate("/modtools/chats", true);
+                    });
+                });
+            });
+
+            v.render();
+        },
+
+        blockIt: function (e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation();
+
+            var v = new Iznik.Views.Confirm({
+                model: self.model
+            });
+            v.template = 'chat_block';
+
+            self.listenToOnce(v, 'confirmed', function () {
+                // This will block the chat, which means it won't show in our list again.
+                var v = new Iznik.Views.PleaseWait({
+                    label: 'chat openChat'
+                });
+                v.render();
+
+                self.model.block().then(function() {
+                    // Reload.  Bit clunky but it'll do.
+                    Iznik.Session.chats.fetch().then(function() {
+                        window.location.reload();
                     });
                 });
             });
@@ -590,6 +621,43 @@ define([
             v.render();
         },
 
+        nudge: function() {
+            var self = this;
+
+            self.model.nudge().then(function() {
+                self.messages.fetch();
+            });
+        },
+
+        schedule: function() {
+            var self = this;
+
+            var other = this.model.otherUser();
+
+            // See if we have an outstanding schedule.
+
+            var m = new Iznik.Models.ModTools.User({
+                id: other
+            });
+
+            m.fetch().then(function() {
+                var v = new Iznik.Views.User.Schedule.Modal({
+                    model: m,
+                    id: null,
+                    schedule: null,
+                    other: false,
+                    otherid: null,
+                    slots: null
+                });
+
+                self.listenToOnce(v, 'modalClosed', function () {
+                    self.messages.fetch();
+                });
+
+                v.render();
+            });
+        },
+
         info: function () {
             var self = this;
 
@@ -605,7 +673,6 @@ define([
 
         messageFocused: function () {
             var self = this;
-            console.log("Message focus");
 
             // We've seen all the messages.
             self.model.allseen();
@@ -839,10 +906,33 @@ define([
                 self.messages.fetch({
                     remove: true
                 }).then(function () {
+                    // If the last message was a while ago, remind them about nudging.
+                    var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
+                    console.log("Age", age, self.model.get('lastdate'));
+
+                    if (age > 24 && !self.shownNudge) {
+                        self.$('.js-nudge').tooltip('show');
+                        self.shownNudge = true;
+
+                        _.delay(_.bind(function() {
+                            this.$('.js-nudge').tooltip('hide');
+                        }, self), 10000);
+                    }
+                    // Encourage people to use the info button.
+                    if (!self.shownInfo && !self.shownNudge) {
+                        self.$('.js-tooltip.js-info').tooltip('show');
+                        self.shownInfo = true;
+
+                        _.delay(_.bind(function() {
+                            this.$('.js-tooltip.js-info').tooltip('hide');
+                        }, self), 10000);
+                    }
+
                     // We've just opened this chat - so we have had a decent chance to see any unread messages.
                     v.close();
                     self.messageFocus();
                     self.scrollBottom();
+
                 });
 
                 // Show any warning for a while.
@@ -931,7 +1021,6 @@ define([
 
         render: function() {
             var self = this;
-            console.log("Render external");
 
             var msg = new Iznik.Models.Message({
                 id: self.options.msgid

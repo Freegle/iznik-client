@@ -19,7 +19,7 @@ if (count($opts) < 2) {
     $n = new Notifications($dbhr, $dbhm);
 
     if ($id) {
-        $n->add(NULL, $id, $type, NULL, $url);
+        $n->add(NULL, $id, $type, NULL, NULL, $url);
     } else if ($gid) {
         if ($gid == -1) {
             $membs = $dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid IN (SELECT id FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1) AND collection = ?;", [
@@ -64,7 +64,7 @@ if (count($opts) < 2) {
 
             if ($send) {
                 error_log($u->getEmailPreferred() . "...send");
-                $n->add(NULL, $memb['userid'], $type, NULL, $url);
+                $n->add(NULL, $memb['userid'], $type, NULL, NULL, $url);
                 $sendcount++;
             } else {
                 error_log($u->getEmailPreferred() . "..skip");

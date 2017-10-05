@@ -1,7 +1,7 @@
 <div class="alert alert-success text-center js-click">
     <h3>Could Freegle be right up your street?</h3>
     <p>This is just a bit of fun from Freegle.  We help people give away stuff they don't need and find stuff they want - all for free.</p>
-    <p>Your nearest group is <a data-realurl="true" target="_blank" href="{{url}}">{{namedisplay}}</a>.  Why not have a look?</p>
+    <p>Your nearest group is <a data-realurl="true" target="_blank" rel="noopener" href="{{url}}">{{namedisplay}}</a>.  Why not have a look?</p>
     <div class="panel panel-white topspace text-left">
         <div class="row">
             <% if (obj.profile) { %>
@@ -27,7 +27,7 @@
                 </div>
                 <div class="col-xs-2">
                     <br />
-                    <a data-realurl="true" target="_blank" href="{{url}}">
+                    <a data-realurl="true" target="_blank" rel="noopener" href="{{url}}">
                         <span class="btn btn-success pull-right margright">Explore this Group</span>
                     </a>
                 </div>

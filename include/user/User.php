@@ -576,13 +576,31 @@ class User extends Entity
                     ]);
 
                     # If we've set an email we might no longer be bouncing.
-                    $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $rc ]);
-                    $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
+                    $this->unbounce($rc, FALSE);
                 }
             }
         }
 
         return($rc);
+    }
+
+    public function unbounce($emailid, $log) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        if ($log) {
+            $l = new Log($this->dbhr, $this->dbhm);
+
+            $l->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_UNBOUNCE,
+                'user' => $this->id,
+                'byuser' => $myid
+            ]);
+        }
+
+        $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $emailid ]);
+        $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
     }
 
     public function removeEmail($email)
@@ -665,7 +683,6 @@ class User extends Entity
         ]);
         $membershipid = $this->dbhm->lastInsertId();
         $added = $this->dbhm->rowsAffected();
-        error_log("Insert returned $rc membership $membershipid row count $added");
 
         if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
@@ -862,7 +879,7 @@ class User extends Entity
         // @codeCoverageIgnoreEnd
 
         # Trigger removal of any Yahoo memberships.
-        $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ?;";
+        $sql = "SELECT email FROM users_emails LEFT JOIN memberships_yahoo ON users_emails.id = memberships_yahoo.emailid INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND memberships.groupid = ? WHERE users_emails.userid = ? AND memberships_yahoo.role = 'Member';";
         $emails = $this->dbhr->preQuery($sql, [ $groupid, $this->id ]);
         #error_log("$sql, $groupid, {$this->id}");
 
@@ -1315,9 +1332,10 @@ class User extends Entity
         $ret = [];
         $start = date('Y-m-d', strtotime("90 days ago"));
 
-        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL;", [
+        $replies = $this->dbhr->preQuery("SELECT COUNT(DISTINCT refmsgid) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND chattype = ?;", [
             $this->id,
-            $start
+            $start,
+            ChatRoom::TYPE_USER2USER
         ]);
 
         $ret['replies'] = $replies[0]['count'];
@@ -1344,7 +1362,7 @@ class User extends Entity
 
         $ret['taken'] = $takens[0]['count'];
 
-        $reneges = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?;", [
+        $reneges = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?;", [
             $this->id,
             $start
         ]);
@@ -1365,6 +1383,21 @@ class User extends Entity
             $ret['milesaway'] = $miles;
             $ret['publiclocation'] = $this->getPublicLocation();
         }
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $ret['replytime'] = $r->replyTime($this->id);
+        $ret['nudges'] =  $r->nudgeCount($this->id);
+
+        # Number of items collected.
+        $mysqltime = date("Y-m-d", strtotime("90 days ago"));
+        $collected = $this->dbhr->preQuery("SELECT COUNT(DISTINCT msgid) AS count FROM messages_outcomes INNER JOIN messages ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND chat_messages.type = ? WHERE outcome = ? AND chat_messages.userid = ? AND messages_outcomes.userid = ? AND messages_outcomes.userid != messages.fromuser AND messages.arrival >= '$mysqltime';", [
+            ChatMessage::TYPE_INTERESTED,
+            Message::OUTCOME_TAKEN,
+            $this->id,
+            $this->id
+        ]);
+
+        $ret['collected'] = $collected[0]['count'];
 
         return($ret);
     }
@@ -1434,6 +1467,16 @@ class User extends Entity
 
                 # The location name might be in the group name, in which case just use the group.
                 $loc = strpos($grp, $loc) !== FALSE ? NULL : $loc;
+            }
+        } else {
+            # We don't have a location.  All we might have is a membership.
+            $sql = "SELECT groups.id, groups.nameshort, groups.namefull FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid = ? ORDER BY added DESC LIMIT 1;";
+            $groups = $this->dbhr->preQuery($sql, [
+                $this->id,
+            ]);
+
+            if (count($groups) > 0) {
+                $grp = $groups[0]['namefull'] ? $groups[0]['namefull'] : $groups[0]['nameshort'];
             }
         }
 
@@ -1834,7 +1877,7 @@ class User extends Entity
 
                 # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
                 # the case where you have two emails and one is approved and the other pending.
-                $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
+                $sql = "SELECT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, memberships_yahoo.added AS yadded, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 foreach ($groups as $group) {
                     $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
@@ -1845,7 +1888,7 @@ class User extends Entity
                         'membershipid' => $group['id'],
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
-                        'added' => ISODate($group['added']),
+                        'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
                         'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
@@ -1881,7 +1924,7 @@ class User extends Entity
                 # allows us to spot abuse) and any which are on our groups.
                 $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
                 $modids = array_merge([0], $me->getModeratorships());
-                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
+                $sql = "SELECT DISTINCT memberships.*, CASE WHEN memberships_yahoo.collection IS NOT NULL THEN memberships_yahoo.collection ELSE memberships.collection END AS coll, memberships_yahoo.emailid, memberships_yahoo.added AS yadded, groups.onyahoo, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships LEFT JOIN memberships_yahoo ON memberships.id = memberships_yahoo.membershipid INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ? AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . "));";
                 $groups = $this->dbhr->preQuery($sql, [$this->id]);
                 $memberof = [];
 
@@ -1893,7 +1936,7 @@ class User extends Entity
                         'membershipid' => $group['id'],
                         'namedisplay' => $name,
                         'nameshort' => $group['nameshort'],
-                        'added' => ISODate($group['added']),
+                        'added' => ISODate(pres('yadded', $group) ? $group['yadded'] : $group['added']),
                         'collection' => $group['coll'],
                         'role' => $group['role'],
                         'emailid' => $group['emailid'] ? $group['emailid'] : $this->getOurEmailId(),
@@ -2233,18 +2276,34 @@ class User extends Entity
                         # Merge other foreign keys where success is less important.  For some of these there might already
                         # be entries, so we do an IGNORE.
                         $this->dbhm->preExec("UPDATE locations_excluded SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE chat_roster SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE sessions SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE spam_users SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE spam_users SET byuserid = $id1 WHERE byuserid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_addresses SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = $id1 WHERE byuser = $id2;");
-                        $this->dbhm->preExec("UPDATE users_logins SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE users_comments SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE users_comments SET byuserid = $id1 WHERE byuserid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE sessions SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE chat_roster SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE users_searches SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_donations SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_images SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_invitations SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE users_logins SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_nearby SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_notifications SET fromuser = $id1 WHERE fromuser = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_notifications SET touser = $id1 WHERE touser = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_nudges SET fromuser = $id1 WHERE fromuser = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_nudges SET touser = $id1 WHERE touser = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_phones SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_requests SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_requests SET completedby = $id1 WHERE completedby = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_searches SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE messages_reneged SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_stories SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_stories_likes SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_stories_requested SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_thanks SET userid = $id1 WHERE userid = $id2;");
 
                         # Merge chat rooms.  There might have be two separate rooms already, which means that we need
                         # to make sure that messages from both end up in the same one.
@@ -2293,8 +2352,8 @@ class User extends Entity
 
                             if ($att != 'fullname') {
                                 $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1 AND $att IS NULL;", [$user[$att]]);
-                            } else if (stripos($user[$att], 'fbuser') === FALSE) {
-                                # We don't want to overwrite a name with FBUser.
+                            } else if (stripos($user[$att], 'fbuser') === FALSE && stripos($user[$att], '-owner') === FALSE) {
+                                # We don't want to overwrite a name with FBUser or a -owner address.
                                 $this->dbhm->preExec("UPDATE users SET $att = ? WHERE id = $id1;", [$user[$att]]);
                             }
                         }
@@ -2346,7 +2405,7 @@ class User extends Entity
                             'subtype' => Log::SUBTYPE_MERGED,
                             'user' => $id2,
                             'byuser' => $me ? $me->getId() : NULL,
-                            'text' => "Merged $id1 into $id2 ($reason)"
+                            'text' => "Merged $id2 into $id1 ($reason)"
                         ]);
 
                         # Log under both users to make sure we can trace it.
@@ -2355,7 +2414,7 @@ class User extends Entity
                             'subtype' => Log::SUBTYPE_MERGED,
                             'user' => $id1,
                             'byuser' => $me ? $me->getId() : NULL,
-                            'text' => "Merged $id1 into $id2 ($reason)"
+                            'text' => "Merged $id2 into $id1 ($reason)"
                         ]);
 
                         # Finally, delete id2.  Make sure we don't pick up an old cached version, as we've just
@@ -2894,7 +2953,7 @@ class User extends Entity
     }
 
     public function forgotPassword($email) {
-        $link = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FORGOT_PASSWORD);
+        $link = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FORGOT_PASSWORD, TRUE);
         $html = forgot_password(USER_SITE, USERLOGO, $email, $link);
 
         $message = Swift_Message::newInstance()
@@ -2931,7 +2990,7 @@ class User extends Entity
             $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
             $this->dbhm->preExec($sql,
                 [$email, $canon, $key, strrev($canon), $key]);
-            $confirm  = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail');
+            $confirm  = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
 
             list ($transport, $mailer) = getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
@@ -3082,10 +3141,11 @@ class User extends Entity
 
         if ($email) {
             # We want to send to Yahoo any messages we have not previously sent, as long as they have not had
-            # an outcome in the mean time.
+            # an outcome in the mean time.  Only send recent ones in case we flood the group with old stuff.
             #
             # If we are doing an autorepost we will already have a membership and therefore won't come through here.
-            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL;";
+            $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
+            $sql = "SELECT messages_groups.msgid FROM messages_groups INNER JOIN messages ON messages_groups.msgid = messages.id LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id WHERE groupid = ? AND senttoyahoo = 0 AND messages_groups.deleted = 0 AND messages_groups.deleted = 0 AND messages_groups.collection != 'Rejected' AND messages.fromuser = ? AND messages_outcomes.msgid IS NULL AND messages_groups.arrival >= '$mysqltime';";
             $msgs = $this->dbhr->preQuery($sql, [
                 $groupid,
                 $this->id
@@ -3136,32 +3196,37 @@ class User extends Entity
         return($ret);
     }
 
-    public function loginLink($domain, $id, $url = '/', $type = NULL) {
-        # Get a per-user link we can use to log in without a password.
-        $key = NULL;
-        $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
-        $logins = $this->dbhr->preQuery($sql, [ $id, User::LOGIN_LINK ]);
-        foreach ($logins as $login) {
-            $key = $login['credentials'];
-        }
-
-        if (!$key) {
-            $key = randstr(32);
-            $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
-                $id,
-                User::LOGIN_LINK,
-                $key
-            ]);
-
-            # If this didn't work, we still return an URL - worst case they'll have to sign in.
-            $key = $rc ? $key : NULL;
-        }
-
+    public function loginLink($domain, $id, $url = '/', $type = NULL, $auto = FALSE) {
         $p = strpos($url, '?');
-        $src = $type ? "&src=$type" : "";
-        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key$src") : ("https://$domain$url&u=$id&k=$key$src");
+        $ret = $p === FALSE ? "https://$domain$url?u=$id&src=$type" : "https://$domain$url&u=$id&src=$type";
 
-        return($url);
+        if ($auto) {
+            # Get a per-user link we can use to log in without a password.
+            $key = NULL;
+            $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
+            $logins = $this->dbhr->preQuery($sql, [ $id, User::LOGIN_LINK ]);
+            foreach ($logins as $login) {
+                $key = $login['credentials'];
+            }
+
+            if (!$key) {
+                $key = randstr(32);
+                $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
+                    $id,
+                    User::LOGIN_LINK,
+                    $key
+                ]);
+
+                # If this didn't work, we still return an URL - worst case they'll have to sign in.
+                $key = $rc ? $key : NULL;
+            }
+
+            $p = strpos($url, '?');
+            $src = $type ? "&src=$type" : "";
+            $ret = $p === FALSE ? ("https://$domain$url?u=$id&k=$key$src") : ("https://$domain$url&u=$id&k=$key$src");
+        }
+
+        return($ret);
     }
 
     public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE) {
@@ -3226,6 +3291,7 @@ class User extends Entity
         if ($sendit && $checkbouncing) {
             # And don't send if we're bouncing.
             $sendit = !$this->getPrivate('bouncing');
+            #error_log("After bouncing $sendit");
         }
 
         #error_log("Sendit? $sendit");
@@ -3322,7 +3388,7 @@ class User extends Entity
 
             # Make sure there's a link login as admin/support can use that to impersonate.
             if (($me->isAdmin() && !$u->isAdmin()) || ($me->isAdminOrSupport() && !$u->isModerator())) {
-                $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/');
+                $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/', NULL, TRUE);
             }
             $thisone['logins'] = $u->getLogins($me->isAdmin());
 

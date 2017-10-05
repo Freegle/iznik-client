@@ -3,21 +3,28 @@
         <div class="row">
             <% if (obj.user) { %>
                 <% if (obj.left) { %>
-                <span class="text-muted padmd">{{user.displayname}} sent an address</span>
+                <span class="text-muted padmd">{{user.displayname}} sent an address:</span>
                 <% } else { %>
-                <span class="text-muted padmd">You sent an address</span>
+                <span class="text-muted padmd">You sent an address:</span>
                 <% } %>
             <% } %>
         </div>
     </div>
     <div class="panel-body">
+        <% if (!address.id) { %>
+        <div class="row">
+            <div class="col-md-12">
+                This address has been deleted.
+            </div>
+        </div>
+        <% } else { %>
         <div class="row">
             <div class="col-md-8">
                 <pre><%-address.multiline%></pre>
             </div>
             <div class="col-md-4">
                 <% if (address.postcode) { %>
-                    <a class="pull-right" data-realurl="true" href="http://maps.google.com/?q={{address.postcode.lat}},{{address.postcode.lng}}" target="_blank">
+                    <a class="pull-right" data-realurl="true" href="http://maps.google.com/?q={{address.postcode.lat}},{{address.postcode.lng}}" target="_blank" rel="noopener">
                         <img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&center={{address.postcode.lat}},{{address.postcode.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{address.postcode.lat}},{{address.postcode.lng}}&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom=12" style="cursor:pointer" />
                     </a>
                 <% } %>
@@ -30,5 +37,6 @@
                 <% } %>
             </div>
         </div>
+        <% } %>
     </div>
 </div>

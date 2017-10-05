@@ -25,7 +25,31 @@ define([
         events: {
             'click #searchbutton': 'doSearch',
             'typeahead:select .js-search': 'doSearch',
-            'keyup .js-search': 'keyup'
+            'keyup .js-search': 'keyup',
+            'click .js-speech': 'speech'
+        },
+
+        speech: function() {
+            var self = this;
+            var recognition = new SpeechRecognition();
+            recognition.onresult = function (event) {
+                console.log(event);
+                if (event.results.length > 0) {
+                    self.$('.js-search').val(event.results[0][0].transcript);
+                    self.doSearch();
+                }
+            };
+            self.$('.js-search').focus();
+            recognition.start();
+
+            /*require(['iznik/speech'], function () {
+                self.$('.js-search').on('result', function(e, str) {
+                    self.$('.js-search').val(str);
+                    self.doSearch();
+                });
+
+                self.$('.js-search').speech();
+            })*/
         },
 
         keyup: function (e) {
@@ -123,7 +147,11 @@ define([
 
             p.then(function(self) {
                 self.collection = null;
-                
+
+                if (typeof SpeechRecognition === 'function') {    // CC
+                    self.$('.js-speech').show();
+                }
+
                 var data;
 
                 self.searchtype = 'Offer';

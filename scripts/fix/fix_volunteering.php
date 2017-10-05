@@ -5,8 +5,9 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/group/Volunteering.php');
 
-$vols = $dbhr->preQuery("SELECT * FROM volunteering WHERE id NOT IN (SELECT volunteeringid FROM volunteering_groups)");
+$vols = $dbhr->preQuery("SELECT * FROM volunteering WHERE id NOT IN (SELECT volunteeringid FROM volunteering_groups) AND deleted = 0;");
 $users = [];
 
 foreach ($vols as $vol) {
@@ -16,8 +17,11 @@ foreach ($vols as $vol) {
         $vol['title']
     ]);
 
+    $v = new Volunteering($dbhr, $dbhm, $vol['id']);
+
     if (count($already) > 0) {
         error_log("...already approved");
+        $v->delete();
     } else if (array_key_exists($vol['userid'], $users)) {
         error_log("...wait");
     } else {
@@ -26,14 +30,21 @@ foreach ($vols as $vol) {
 
         if (count($membs) == 0) {
             error_log("No groups");
-            $dbhm->preExec("DELETE FROM volunteering WHERE id = ?;", [
-                $vol['id']
-            ]);
-        } else if (count($membs) > 0) {
+//            $dbhm->preExec("DELETE FROM volunteering WHERE id = ?;", [
+//                $vol['id']
+//            ]);
+        } else if (count($membs) > 1) {
             error_log("Too many groups");
+            foreach ($membs as $memb) {
+                $groupid = $membs[0]['id'];
+                $g = new Group($dbhr, $dbhm, $memb['id']);
+                error_log("...for " . $g->getPrivate('nameshort'));
+            }
         } else {
-            $g = new Group($dbhr, $dbhm, $membs[0]['groupid']);
+            $groupid = $membs[0]['id'];
+            $g = new Group($dbhr, $dbhm, $groupid);
             error_log("...for " . $g->getPrivate('nameshort'));
+            $v->addGroup($groupid);
         }
     }
 }

@@ -14,6 +14,6 @@ if (count($opts) < 1) {
     $id = $opts['i'];
     $m = new Message($dbhr, $dbhm, $id);
     $s = new Spam($dbhr, $dbhm);
-    $ret = $s->check($m);
+    $ret = $s->checkMessage($m);
     var_dump($ret);
 }

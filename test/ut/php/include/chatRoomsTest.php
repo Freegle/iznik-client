@@ -126,6 +126,9 @@ class chatRoomsTest extends IznikTestCase {
         error_log("Chat room $id for $u1 <-> $u2");
         assertNotNull($id);
 
+        assertNull($r->replyTime($u1));
+        assertNull($r->replyTime($u2));
+
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
@@ -141,6 +144,9 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $cm = $m->create($id, $u1, "Testing", ChatMessage::TYPE_IMAGE, $msgid, TRUE, NULL, NULL, NULL, $attid);
         error_log("Created chat message $cm");
+
+        assertNull($r->replyTime($u1));
+        assertNull($r->replyTime($u2));
 
         # Exception first for coverage.
         error_log("Fake exception");
@@ -207,6 +213,9 @@ class chatRoomsTest extends IznikTestCase {
         error_log("U2 emails " . var_export($u2emails, TRUE));
         assertEquals(3, count($u2emails));
         assertEquals('from2@test.com', $u2emails[1]['email']);
+
+        assertNull($r->replyTime($u1));
+        assertNotNull($r->replyTime($u2));
 
         error_log(__METHOD__ . " end");
     }
@@ -328,13 +337,18 @@ class chatRoomsTest extends IznikTestCase {
         $u2 = $u->create(NULL, NULL, "Test User 2");
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
+        $u3 = $u->create(NULL, NULL, "Test User 3");
+        $u->addEmail('test3@test.com');
+        $u->addEmail('test3@' . USER_DOMAIN);
 
         $u1u = User::get($this->dbhr, $this->dbhm, $u1);
         $u2u = User::get($this->dbhr, $this->dbhm, $u2);
+        $u3u = User::get($this->dbhr, $this->dbhm, $u3);
         $u1u->addMembership($this->groupid, User::ROLE_MEMBER);
         $u2u->addMembership($this->groupid, User::ROLE_OWNER);
+        $u3u->addMembership($this->groupid, User::ROLE_MODERATOR);
 
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $r = new ChatRoom($this->dbhm, $this->dbhm);
         $id = $r->createUser2Mod($u1, $this->groupid);
         error_log("Chat room $id for $u1 <-> group {$this->groupid}");
         assertNotNull($id);
@@ -343,6 +357,9 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $cm = $m->create($id, $u1, "Help me", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
         error_log("Created chat message $cm");
+
+        # Mark the query as seen by one mod.
+        $r->updateRoster($u3, $cm, ChatRoom::STATUS_ONLINE);
 
         $r = $this->getMockBuilder('ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
@@ -353,9 +370,9 @@ class chatRoomsTest extends IznikTestCase {
             return($this->mailer($message));
         }));
 
-        # Notify mods; we don't notify user of our own by default.
+        # Notify mods; we don't notify user of our own by default, but we do mail the mod who has already seen it.
         $this->msgsSent = [];
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
 
         # Chase up mods after unreasonably short interval
@@ -364,11 +381,81 @@ class chatRoomsTest extends IznikTestCase {
         # Fake mod reply
         $cm2 = $m->create($id, $u2, "Here's some help", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
 
-        # Notify user; this won't copy the mod by default..
+        # Notify user; this won't copy the mod who replied by default..
         $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NULL WHERE userid = ?;", [ $u1 ]);
         $this->msgsSent = [];
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, 0));
         assertEquals("Your conversation with the testgroup volunteers", $this->msgsSent[0]['subject']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testSpecial()
+    {
+        error_log(__METHOD__);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+
+        $start = microtime(TRUE);
+
+        $rooms = $r->listForUser('31344547', [ ChatRoom::TYPE_MOD2MOD, ChatRoom::TYPE_USER2MOD, ChatRoom::TYPE_USER2USER ]);
+        
+        $end = microtime(TRUE);
+        $duration = ($end - $start) * 1000;
+        
+        error_log(count($rooms) . " took $duration ms");
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testBlock() {
+        error_log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createConversation($u1, $u2);
+        error_log("Chat room $id for $u1 <-> $u2");
+        assertNotNull($id);
+
+        assertNull($r->replyTime($u1));
+        assertNull($r->replyTime($u2));
+
+        # Make the first user block the second.
+        $r->updateRoster($u1, NULL, ChatRoom::STATUS_BLOCKED);
+
+        # Chat shouldn't show in the list for this user now.
+        self::assertEquals(0, count($r->listForUser($u1)));
+        self::assertEquals(1, count($r->listForUser($u2)));
+
+        # Mow send a message from the second to the first.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        $mid = $m->create($id, $u2, "Test");
+
+        # Check that this message doesn't get notifed.
+        $r = $this->getMockBuilder('ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        # Notify - will email none
+        error_log("Will email none");
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
 
         error_log(__METHOD__ . " end");
     }

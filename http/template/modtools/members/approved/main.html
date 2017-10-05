@@ -1,16 +1,17 @@
 <div class="js-help" />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="botspace js-groupselect" />
     </div>
     <div class="col-md-2">
         <select type="checkbox" class="form-control js-memberfilter">
             <option value="0">All members</option>
+            <option class="js-nativeonly" value="3">Bouncing</option>
             <option value="2">Moderation Team</option>
             <option value="1">With notes</option>
         </select>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="margleft btn btn-white js-sync">
             <div class="glyphicon glyphicon-refresh" />&nbsp;Force Sync
         </div>
@@ -22,6 +23,9 @@
         </div>
         <div class="btn btn-white js-add" title="Add a member to the group">
             <span class="glyphicon glyphicon-plus" />&nbsp;Add
+        </div>
+        <div class="btn btn-white js-merge" title="Merge users">
+            <span class="glyphicon glyphicon-link" />&nbsp;Merge
         </div>
     </div>
     <div class="col-md-2">

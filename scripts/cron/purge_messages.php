@@ -20,16 +20,18 @@ $start = date('Y-m-d', strtotime("midnight 31 days ago"));
 error_log("Purge messages_history before $start");
 
 $total = 0;
-$stmt = $dbhm->prepare("DELETE FROM messages_history WHERE arrival < '$start' LIMIT 5000;");
 do {
-    $stmt->execute();
-    $count = $stmt->rowCount();
-    $total += $count;
+    $sql = "SELECT id FROM messages_history WHERE arrival < '$start' LIMIT 1000;";
+    $msgs = $dbhm->query($sql)->fetchAll();
+    foreach ($msgs as $msg) {
+        $dbhm->exec("DELETE FROM messages_history WHERE id = {$msg['id']};");
+        $total++;
 
-    if ($total % 1000 == 0) {
-        error_log("...$total");
+        if ($total % 1000 == 0) {
+            error_log("...$total");
+        }
     }
-} while ($count > 0);
+} while (count($msgs) > 0);
 
 error_log("Deleted $total");
 

@@ -12,7 +12,7 @@
         <% } else if (obj.onhere) { %>
         <a href="/explore/{{nameshort}}">{{namedisplay}}</a><br>
         <% } else if (obj.onyahoo) { %>
-        <a data-realurl="true" target="_blank" href="https://groups.yahoo.com/group/{{nameshort}}">{{namedisplay}}</a><br>
+        <a data-realurl="true" target="_blank" rel="noopener" href="https://groups.yahoo.com/group/{{nameshort}}">{{namedisplay}}</a><br>
         <% } %>
         {{obj.tagline}}
     </div>
@@ -33,11 +33,12 @@
     </div>
     <div class="col-xs-3">
         <% if (obj.onyahoo && obj.showonyahoo) { %>
-        <a data-realurl="true" target="_blank" href="https://groups.yahoo.com/group/{{nameshort}}">
+        <a data-realurl="true" target="_blank" rel="noopener" href="https://groups.yahoo.com/group/{{nameshort}}">
             <span class="btn btn-white">
                 <img alt="" src='/images/yahoo.png' class='smallicon' />&nbsp;Explore on Yahoo
             </span>
         </a>
         <% } %>
+        <a class="pull-right" data-realurl="true" target="_blank" rel="noopener" href="mailto:{{modsmail}}" alt="Email volunteers" title="Email group volunteers"><span class="glyphicons glyphicons-envelope faded" /></a>
     </div>
 </div>

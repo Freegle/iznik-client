@@ -22,7 +22,58 @@ define([
             'change .js-item': 'checkNext',
             'change .tt-hint': 'checkNext',
             'keyup .js-description': 'checkNext',
-            'change .bootstrap-tagsinput .tt-input': 'checkNext'
+            'change .bootstrap-tagsinput .tt-input': 'checkNext',
+            'click .js-speechItem': 'speechItem'
+        },
+
+        // Not enabled for iOS as iOS10 has speech recognition built in on any text field.
+        // It could be enabled for iOS9 using www.ispeech.org but not done
+        speechItem: function() {
+            var self = this;
+            var initem = true;
+            try{
+                var speechHandler = function (event) {
+                    console.log(event);
+                    if (event.results.length > 0) {
+                        if (initem) {
+                            self.$('.js-item').val(event.results[0][0].transcript);
+                            self.$('.js-description').focus();
+                            var recognition = new SpeechRecognition();  // Need new instance for iOS9
+                            recognition.onresult = speechHandler;
+                            initem = false;
+                            recognition.start();
+                        } else {
+                            self.$('.js-description').val(event.results[0][0].transcript);
+                        }
+                    }
+                };
+                var recognition = new SpeechRecognition();
+                recognition.onresult = speechHandler;
+                //self.$('.js-item').focus();
+                recognition.start();
+            } catch (e) {
+                console.log(e.message);
+            }
+            /*require([ 'iznik/speech' ], function() {
+                self.$('.js-item').on('result', function(e, str) {
+                    self.$('.js-item').val(str);
+                    self.$('.js-description').focus();
+                    self.speechDescription();
+                });
+
+                self.$('.js-item').speech();
+            })*/
+        },
+
+        speechDescription: function() {
+            var self = this;
+            require([ 'iznik/speech' ], function() {
+                self.$('.js-description').on('result', function(e, str) {
+                    self.$('.js-description').val(str);
+                });
+
+                self.$('.js-description').speech();
+            })
         },
 
         getItem: function () {
@@ -30,6 +81,10 @@ define([
             if (!val) {
                 val = this.$('.js-item').val();
             }
+
+            // Remove brackets - they'll only confuse us.
+            val = val.replace(/\(|\)|\[|\]/g, '');
+
             return(val);
         },
 
@@ -341,7 +396,13 @@ define([
                 showAll: true
             });
 
+            // https://github.com/macdonst/SpeechRecognitionPlugin
+            // http://www.ispeech.org/api/#minimum-requirements
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
+                if (typeof SpeechRecognition === 'function') {    // CC
+                    self.$('.js-speechItem').show();
+                }
+
                 _.delay(_.bind(self.checkNext, self), 300);
 
                 self.typeahead = self.$('.js-item').typeahead({
@@ -381,7 +442,11 @@ define([
                         });
 
                         msg.fetch().then(function () {
-                            if (self.msgType == msg.get('type')) {
+                            // At least, we think it's a draft.  But there's a timing window where we could fail to
+                            // clear out our local storage but still have submitted the message.  In that case
+                            // we don't want to use it.
+                            console.log("Draft?", msg.get('isdraft'))
+                            if (self.msgType == msg.get('type') && msg.get('isdraft')) {
                                 // Parse out item from subject.
                                 var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(msg.get('subject'));
                                 if (matches && matches.length > 2 && matches[2].length > 0) {
