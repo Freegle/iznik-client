@@ -17,39 +17,8 @@ define([
         template: "modtools_fbgroups_main",
 
         events: {
-            'click .js-searchbtn': 'search',
             'click .js-all': 'selectAll',
             'click .js-share': 'share'
-        },
-
-        search: function() {
-            var self = this;
-            var search = self.$('.js-search').val();
-            if (search.length > 0) {
-                FB.login(function() {
-                    FB.api('/search', {q: search, type: 'group'}, function (response) {
-                        console.log("Search returned", response);
-                        var groups = response.data;
-
-                        if (groups && groups.length > 0) {
-                            _.each(groups, function(group) {
-                                var mod = new Iznik.Model({
-                                    id: group.id,
-                                    name: group.name
-                                });
-
-                                var v = new Iznik.Views.ModTools.Message.FacebookGroup({
-                                    model: mod
-                                });
-
-                                v.render().then(function() {
-                                    self.$('.js-groups').append(v.$el);
-                                });
-                            })
-                        }
-                    });
-                });
-            }
         },
 
         selectAll: function() {
@@ -60,64 +29,16 @@ define([
             }
         },
 
-        share: function() {
-            var self = this;
-
-            // Get the selected messages
-            var msgs = [];
-            self.$('.js-msgselect').each(function() {
-                if (!$(this).closest('li').hasClass('not-visible') && $(this).is(':checked')) {
-                    msgs.push($(this).data('msgid'));
-                }
-            });
-
-            // Get the Facebook groups.
-            var fbgroups = [];
-            self.$('.js-groupid').each(function() {
-                fbgroups.push($(this).data('groupid'));
-            });
-
-            FB.login(function(){
-                _.each(fbgroups, function(fbgroup) {
-                    _.each(msgs, function(id) {
-                        var msg = self.collection.get(id);
-                        FB.api('/' + fbgroup + '/feed', 'post', {
-                            link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup',
-                            description: 'Everything on Freegle is completely free.  Comment below to reply and we\'ll pass it on to the original freegler.'
-                        }, function(response) {
-                            console.log("Share returned", response);
-                            if (response.hasOwnProperty('error')) {
-                                console.log("Error", self.$('.js-error'));
-                                self.$('.js-error').html(response.error);
-                                self.$el.show();
-                            } else {
-                                console.log("Success");
-                                self.$el.fadeOut('slow');
-                            }
-                        });
-                    });
-                });
-            }, {
-                scope: 'user_managed_groups, publish_actions'
-            });
-        },
-
-        filter: function(model) {
-            var thetype = model.get('type');
-
-            if (thetype != 'Offer' && thetype != 'Wanted' || model.get('source') != 'Platform') {
-                // Not interested in this type of message.
-                return(false);
-            } else {
-                // Only show a search result for active posts.
-                return (model.get('outcomes').length == 0);
-            }
-        },
-
         render: function () {
             var self = this;
             var p = Iznik.Views.Infinite.prototype.render.call(this);
             p.then(function(self) {
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'modtools_fbgroups_help';
+                v.render().then(function(v) {
+                    self.$('.js-help').html(v.el);
+                })
+
                 self.collection = new Iznik.Collections.Message(null, {
                     modtools: true,
                     groupid: self.selected,
@@ -141,7 +62,6 @@ define([
                         page: self
                     },
                     collection: self.collection,
-                    visibleModelsFilter: _.bind(self.filter, self),
                     processKeyEvents: false
                 });
 
@@ -156,7 +76,8 @@ define([
                     self.context = null;
 
                     self.fetch({
-                        groupid: self.selected > 0 ? self.selected : null
+                        groupid: self.selected > 0 ? self.selected : null,
+                        facebook_postable: true
                     });
                 });
 
@@ -181,7 +102,38 @@ define([
     });
 
     Iznik.Views.ModTools.Message.FacebookSummary = Iznik.View.Timeago.extend({
-        template: 'modtools_fbgroups_summary'
+        template: 'modtools_fbgroups_summary',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.Timeago.prototype.render.call(this);
+            var arrival = (new Date(self.model.get('arrival'))).getTime();
+
+            p.then(function() {
+                self.$('.js-buttons').empty();
+
+                var groups = self.model.get('groups');
+                _.each(groups, function(group) {
+                    var g = Iznik.Session.getGroup(group.id);
+                    _.each(g.get('facebook'), function(fb) {
+                        // Show groups where we haven't shared something more recent than this one.
+                        if (fb.type == 'Group' && (!fb.msgarrival || (new Date(fb.msgarrival)).getTime() < arrival)) {
+                            var v = new Iznik.Views.ModTools.Message.FacebookGroup({
+                                model: new Iznik.Model(fb),
+                                message: self.model,
+                                group: g
+                            });
+
+                            v.render();
+                            self.$('.js-buttons').append(v.$el);
+                        }
+                    });
+                })
+            });
+
+            return(p);
+        }
     });
 
     Iznik.Views.ModTools.Message.FacebookGroup = Iznik.View.extend({
@@ -190,11 +142,30 @@ define([
         template: 'modtools_fbgroups_group',
 
         events: {
-            'click .js-delete': 'zap'
+            'click .js-share': 'share'
         },
 
-        zap: function() {
-            this.$el.remove();
+        share: function() {
+            var self = this;
+
+            FB.login(function(){
+                var id = self.options.message.get('id');
+                FB.api('/' + self.model.get('id') + '/feed', 'post', {
+                    link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup'
+                }, function(response) {
+                    console.log("Share returned", response);
+                    if (response.hasOwnProperty('error')) {
+                        self.$('.js-error').html(response.error);
+                        self.$el.show();
+                    } else {
+                        self.$el.fadeOut('slow');
+                        var g = new Iznik.Models.Group();
+                        g.recordFacebookShare(self.model.get('uid'), id, self.options.message.get('arrival'));
+                    }
+                });
+            }, {
+                scope: 'publish_actions'
+            });
         }
     });
 });

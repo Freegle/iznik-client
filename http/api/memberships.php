@@ -74,7 +74,7 @@ function memberships() {
                     $groupids = [];
                     $proceed = FALSE;
 
-                    if ($groupid && ($me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
+                    if ($groupid && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
                         # Get just one.  We can get this if we're a mod or it's our own.
                         $groupids[] = $groupid;
                         $limit = $userid ? 1 : $limit;

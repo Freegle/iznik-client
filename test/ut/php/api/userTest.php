@@ -413,5 +413,50 @@ class userAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testUnbounce() {
+        error_log(__METHOD__);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test3@test.com');
+        $u->addMembership($this->groupid);
+        $u->setPrivate('bouncing', 1);
+
+        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('memberships', 'GET', [
+            'groupid' => $this->groupid,
+            'filter' => Group::FILTER_BOUNCING
+        ]);
+
+        self::assertEquals(1, $ret['members'][0]['bouncing']);
+
+        $ret = $this->call('user', 'POST', [
+            'id' => $uid,
+            'groupid' => $this->groupid,
+            'action' => 'Unbounce'
+        ]);
+
+        $ret = $this->call('memberships', 'GET', [
+            'groupid' => $this->groupid,
+            'filter' => Group::FILTER_BOUNCING
+        ]);
+
+        self::assertEquals(0, count($ret['members']));
+
+        $this->waitBackground();
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $this->uid,
+            'logs' => TRUE
+        ]);
+
+        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_UNBOUNCE, $ret['user']['logs']);
+        assertNotNull($log);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

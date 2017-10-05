@@ -253,7 +253,9 @@ class chatRoomsAPITest extends IznikAPITestCase
         $ret = $this->call('chatrooms', 'GET', [
             'chattypes' => [ ChatRoom::TYPE_USER2USER ]
         ]);
+        error_log("Should be no unseen " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
         assertEquals(0, $ret['chatrooms'][0]['unseen']);
 
         error_log(__METHOD__ . " end");

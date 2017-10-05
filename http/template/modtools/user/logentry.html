@@ -113,6 +113,8 @@
             Stop mailing this member as they are bouncing.
             <% } else if (subtype == 'Bounce') { %>
             {{text}}
+            <% } else if (subtype == 'Unbounce') { %>
+            Reactivated to not bouncing
             <% } else { %>
                 <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>

@@ -11,6 +11,13 @@
         </div>
     </div>
     <div class="panel-body">
+        <% if (!address.id) { %>
+        <div class="row">
+            <div class="col-md-12">
+                This address has been deleted.
+            </div>
+        </div>
+        <% } else { %>
         <div class="row">
             <div class="col-md-8">
                 <pre><%-address.multiline%></pre>
@@ -30,5 +37,6 @@
                 <% } %>
             </div>
         </div>
+        <% } %>
     </div>
 </div>

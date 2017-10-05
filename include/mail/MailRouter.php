@@ -881,11 +881,19 @@ class MailRouter
 
                         if ($uid) {
                             $u = User::get($this->dbhr, $this->dbhm, $uid);
+
+                            # Drop unless the email comes from a group member.
+                            $ret = MailRouter::DROPPED;
+
                             foreach ($groups as $group) {
                                 $appmemb = $u->isApprovedMember($group['groupid']);
                                 if ($log) { error_log("Approved member? $appmemb"); }
                                 if ($appmemb) {
-                                    $ps = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
+                                    # Whether we post to pending or approved depends on the group setting,
+                                    # and if that is set not to moderate, the user setting.  Similar code for
+                                    # this setting in message API call.
+                                    $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+                                    $ps = $g->getSetting('moderated', 0) ? Group::POSTING_MODERATED : $u->getMembershipAtt($group['groupid'], 'ourPostingStatus') ;
                                     $ps = $ps ? $ps : Group::POSTING_MODERATED;
                                     if ($log) { error_log("Member, Our PS is $ps"); }
 
@@ -1080,7 +1088,15 @@ class MailRouter
             }
         }
 
-        # Dropped messages will get tidied up by an event in the DB, but we leave them around in case we need to
+        if ($ret != MailRouter::FAILURE) {
+            # Ensure no message is stuck in incoming.
+            $this->dbhm->preExec("DELETE FROM messages_groups WHERE msgid = ? AND collection = ?;", [
+                $this->msg->getID(),
+                MessageCollection::INCOMING
+            ]);
+        }
+
+        # Dropped messages will get tidied up by cron; we leave them around in case we need to
         # look at them for PD.
         error_log("Routed #" . $this->msg->getID(). " " . $this->msg->getMessageID() . " " . $this->msg->getEnvelopefrom() . " -> " . $this->msg->getEnvelopeto() . " " . $this->msg->getSubject() . " " . $ret);
 

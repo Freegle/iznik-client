@@ -12,13 +12,16 @@ define([
     'iznik/views/pages/user/post',
     'iznik/views/pages/user/group',
     'iznik/views/group/select',
-    'iznik/views/user/message'
+    'iznik/views/user/message',
+    'iznik/views/supportus'
 ], function($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.Pages.MyGroups = Iznik.Views.User.Pages.Group.extend({
         template: "user_mygroups_main",
 
         render: function () {
             var p = Iznik.Views.User.Pages.Group.prototype.render.call(this);
+
+            (new Iznik.Views.User.eBay()).render();
 
             Storage.set('lasthomepage', 'mygroups');
 

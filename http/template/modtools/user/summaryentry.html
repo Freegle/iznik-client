@@ -1,8 +1,9 @@
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="js-date"></div>
     </div>
-    <div class="col-md-7 forcebreak">{{subject}}</div>
+    <div class="col-md-6 forcebreak">{{subject}}</div>
+    <div class="col-md-2 forcebreak">#{{id.substring(0, id.indexOf('.'))}}</div>
     <div class="col-md-1">
         <% if (obj.repost) { %>
             <% if (obj.autorepost) { %>

@@ -108,7 +108,6 @@ define([
         notificationCheck: function() {
             var self = this;
 
-            // CC console.log("Notification check", self.notificationChecking);
             if (!self.notificationChecking && self.inDOM()) {
                 self.notificationChecking = true;
 

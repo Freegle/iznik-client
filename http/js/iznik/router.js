@@ -25,6 +25,7 @@ define([
                         jqXHR.abort();
                     } catch (e) {}
                 });
+
                 self.xhrPool = [];
             };
 

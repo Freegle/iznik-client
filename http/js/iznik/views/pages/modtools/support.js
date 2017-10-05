@@ -4,9 +4,12 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'gmaps',
+    'backgrid',
     "iznik/modtools",
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages_approved',
+    'iznik/views/pages/modtools/members_approved',
     'iznik/views/pages/modtools/replay',
     'iznik/models/user/alert',
     'iznik/views/user/user',
@@ -25,7 +28,8 @@ define([
             'keyup .js-searchuserinp': 'keyup',
             'click .js-sendalert': 'sendAlert',
             'click .js-getalerts': 'getAlerts',
-            'click .js-addgroup': 'addGroup'
+            'click .js-addgroup': 'addGroup',
+            'click .js-getlist': 'getList'
         },
 
         keyup: function (e) {
@@ -267,6 +271,313 @@ define([
             }
         },
 
+        getList: function() {
+            var self = this;
+
+            self.wait = new Iznik.Views.PleaseWait({
+                timeout: 1
+            });
+            self.wait.render();
+
+            self.allGroups = new Iznik.Collections.Group();
+
+            // Checkbox cell doesn't seem to work well.
+            var OurCheck = Backgrid.Cell.extend({
+                template: _.template('<input type="checkbox" />'),
+                render: function () {
+                    this.$el.html(this.template());
+
+                    if (this.model.get(this.column.get('name'))) {
+                        this.$('input').prop('checked', true);
+                    }
+
+                    this.delegateEvents();
+                    return this;
+                }
+            });
+
+            // Cell which renders an ISO date and colour codes based on age.
+            var OurDate = Backgrid.Cell.extend({
+                render: function () {
+                    var val = this.model.get(this.column.get('name'));
+
+                    if (!val) {
+                        // We don't know.  That's not good.
+                        this.$el.html('-');
+                        
+                        if (this.column.get('name') != 'lastautoapprove') {
+                            this.$el.addClass('bg-warning');
+                        }
+                    } else {
+                        var m = new moment(val);
+                        var now = new moment();
+                        var age = now.diff(m, 'days');
+                        this.$el.html(m.format('DD-MMM-YY'));
+                        if (age > 7) {
+                            this.$el.addClass('bg-danger');
+                        } else if (age > 2) {
+                            this.$el.addClass('bg-warning');
+                        }
+                    }
+
+                    return this;
+                }
+            });
+
+            // Active mods - colour code
+            var OurMods = Backgrid.Cell.extend({
+                render: function () {
+                    var val = this.model.get(this.column.get('name'));
+                    if (val === null) {
+                        this.$el.html('-');
+                        this.$el.addClass('bg-warning');
+                    } else {
+                        this.$el.html(val);
+                        if (val <= 1) {
+                            this.$el.addClass('bg-warning');
+                        }
+                    }
+
+                    return this;
+                }
+            });
+            var OurMods2 = Backgrid.Cell.extend({
+                render: function () {
+                    var val = this.model.get(this.column.get('name'));
+                    if (val === null) {
+                        this.$el.html('-');
+                        this.$el.addClass('bg-warning');
+                    } else {
+                        this.$el.html(val);
+                        if (val < 1) {
+                            this.$el.addClass('bg-warning');
+                        }
+                    }
+
+                    return this;
+                }
+            });
+
+            // Active mods - colour code
+            var AtRisk = Backgrid.Cell.extend({
+                render: function () {
+                    var val = this.model.get(this.column.get('name'));
+                    this.$el.html(val < 2 ? 'Yes' : 'No');
+                    if (val < 2) {
+                        this.$el.addClass('bg-warning');
+                    }
+
+                    return this;
+                }
+            });
+
+            // Create a backgrid for the groups.
+            var columns = [{
+                name: 'id',
+                label: 'ID',
+                editable: false,
+                cell: Backgrid.IntegerCell.extend({
+                    orderSeparator: ''
+                })
+            }, {
+                name: 'nameshort',
+                label: 'Short Name',
+                editable: false,
+                cell: 'string'
+            }, {
+                name: 'namedisplay',
+                label: 'Display Name',
+                editable: false,
+                cell: 'string'
+            }, {
+                name: 'publish',
+                label: 'Publish?',
+                editable: false,
+                cell: OurCheck
+            }, {
+                name: 'onhere',
+                label: 'FD?',
+                editable: false,
+                cell: OurCheck
+             }, {
+                name: 'ontn',
+                label: 'TN?',
+                editable: false,
+                cell: OurCheck
+             }, {
+                name: 'onyahoo',
+                label: 'Yahoo?',
+                editable: false,
+                cell: OurCheck
+            }, {
+                name: 'region',
+                label: 'Region',
+                editable: false,
+                cell: 'string'
+            }, {
+                name: 'authority',
+                label: 'Authority',
+                editable: false,
+                cell: 'string'
+            }, {
+                name: 'lastmoderated',
+                label: 'Last moderated',
+                editable: false,
+                cell: OurDate
+            }, {
+                name: 'lastautoapprove',
+                label: 'Last auto-approve',
+                editable: false,
+                cell: OurDate
+            }, {
+                name: 'lastmodactive',
+                label: 'Last on MT',
+                editable: false,
+                cell: OurDate
+            }, {
+                name: 'activemodcount',
+                label: 'Active mods',
+                editable: false,
+                cell: OurMods2
+            }, {
+                name: 'backupownersactive',
+                label: 'Backup owners active',
+                editable: false,
+                cell: 'integer'
+            }, {
+                name: 'backupmodsactive',
+                label: 'Backup mods active',
+                editable: false,
+                cell: 'integer'
+            }, {
+                name: 'atrisk',
+                label: 'At risk?',
+                editable: false,
+                cell: AtRisk
+            }];
+
+            var OurRow = Backgrid.Row.extend({
+                render: function () {
+                    OurRow.__super__.render.apply(this, arguments);
+                    if (this.model.get('onhere') && (!this.model.get("publish") || !this.model.get('onmap'))) {
+                        // This is not live.
+                        this.el.classList.add("faded");
+                    }
+                    return this;
+                }
+            });
+
+            self.grid = new Backgrid.Grid({
+                columns: columns,
+                collection: self.allGroups,
+                row: OurRow
+            });
+
+            self.$(".js-allgroupslist").html(self.grid.render().el);
+            self.allGroups.fetch({
+                data: {
+                    grouptype: 'Freegle',
+                    support: true
+                }
+            }).then(function() {
+                self.allGroups.each(function(group) {
+                    var m = group.get('activemodcount') ? parseInt(group.get('activemodcount')) : 0;
+                    var n = group.get('backupownersactive') ? parseInt(group.get('backupownersactive')) : 0;
+                    var o = group.get('backupmodsactive') ? parseInt(group.get('backupmodsactive')) : 0;
+                    group.set('atrisk', m + n + o);
+                });
+
+                function apiLoaded() {
+                    // Pie Chart of platforms.
+                    var FDNative = 0;
+                    var FDNativePlusTN = 0;
+                    var FDPlusYahoo = 0;
+                    var FDPlusYahooPlusTN = 0;
+                    var YahooOnly = 0;
+                    var YahooPlusTN = 0;
+                    var External = 0;
+                    var Norfolk = 0;
+
+                    self.allGroups.each(function (group) {
+                        var external = group.get('external');
+
+                        if (external) {
+                            if (external.indexOf('norfolk') !== -1) {
+                                Norfolk++;
+                            } else {
+                                External++;
+                            }
+                        } else {
+                            if (group.get('onhere')) {
+                                if (group.get('onyahoo')) {
+                                    if (group.get('ontn')) {
+                                        FDPlusYahooPlusTN++;
+                                    } else {
+                                        FDPlusYahoo++;
+                                    }
+                                } else {
+                                    if (group.get('ontn')) {
+                                        FDNativePlusTN++;
+                                    } else {
+                                        FDNative++;
+                                    }
+                                }
+                            } else {
+                                if (group.get('ontn')) {
+                                    YahooPlusTN++;
+                                } else {
+                                    YahooOnly++;
+                                }
+                            }
+                        }
+                    });
+
+                    data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Platform');
+                    data.addColumn('number', 'Count');
+                    data.addRows([
+                        ['FD + TN + Yahoo', FDPlusYahooPlusTN ],
+                        ['FD + TN', FDNativePlusTN],
+                        ['FD Only', FDNative],
+                        ['FD + Yahoo', FDPlusYahoo],
+                        ['Yahoo + TN', YahooPlusTN],
+                        ['Yahoo Only', YahooOnly],
+                        ['External', External],
+                        ['Norfolk', Norfolk]
+                    ]);
+
+                    self.groupchart = new google.visualization.PieChart(self.$('.js-groupplatforms').get()[0]);
+                    chartOptions = {
+                        title: "Group Platforms",
+                        chartArea: {'width': '80%', 'height': '80%'},
+                        colors: [
+                            'darkgreen',
+                            'lightgreen',
+                            'cyan',
+                            'lightblue',
+                            'orange',
+                            'purple',
+                            'grey',
+                            'darkblue'
+                        ],
+                        slices2: {
+                            1: {offset: 0.2},
+                            2: {offset: 0.2}
+                        }
+                    };
+
+                    self.groupchart.draw(data, chartOptions);
+                }
+
+                google.load('visualization', '1.0', {
+                    'packages':['corechart', 'annotationchart'],
+                    'callback': apiLoaded
+                });
+
+                self.wait.close()
+            });
+        },
+
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this);
 
@@ -351,7 +662,46 @@ define([
     });
 
     Iznik.Views.ModTools.Pages.Support.Group = Iznik.View.extend({
-       template: 'modtools_support_group'
+        template: 'modtools_support_group',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+
+            p.then(function() {
+                // Get the mods.
+                var coll = new Iznik.Collections.Members(null, {
+                    groupid: self.model.get('id'),
+                    group: self.model,
+                    collection: 'Approved'
+                });
+
+                coll.fetch({
+                    data: {
+                        filter: 2,
+                        limit: 100
+                    }
+                }).then(function() {
+                    console.log("Mods", coll);
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-mods'),
+                        modelView: Iznik.Views.ModTools.Member.Approved,
+                        modelViewOptions: {
+                            collection: coll,
+                            page: self
+                        },
+                        collection: coll,
+                        processKeyEvents: false
+                    });
+
+                    self.collectionView.render();
+                    console.log("Rendered", coll, self.$('.js-mods'));
+                })
+            });
+
+            return(p);
+        }
     });
 
     Iznik.Views.ModTools.Alert = Iznik.View.extend({
@@ -427,7 +777,6 @@ define([
 
                     var stats = self.model.get('stats');
                     var data;
-                    console.log("Stats", stats);
 
                     // First the group chart - this shows what happened on a per-group basis.
                     var reached = 0;
@@ -961,6 +1310,7 @@ define([
                 self.$('.js-date').html(m.format('DD-MMM-YYYY'));
 
                 self.$('.js-eventsenabled').val(self.model.get('eventsallowed'));
+                self.$('.js-volunteerenabled').val(self.model.get('volunteeringallowed'));
                 self.$('.js-yahoodelivery').val(self.model.get('yahooDeliveryType'));
 
                 self.$('.js-ourpostingstatus').val(self.model.get('ourpostingstatus'));

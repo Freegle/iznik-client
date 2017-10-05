@@ -5,7 +5,11 @@
                 <div class="glyphicons glyphicons-heart green" />
             </div>
             <div class="col-xs-10">
+                <% if (refmsg.promisecount) { %>
                 <span class="text-muted padmd">{{user.displayname}} has promised <em>{{refmsg.subject}}</em> to you:</span>
+                <% } else { %>
+                This promise has been cancelled.
+                <% } %>
             </div>
         </div>
     </div>

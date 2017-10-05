@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function volunteering_renew($domain, $logo, $title, $url) {
+function volunteering_renew($domain, $logo, $title, $url, $groupname) {
     $siteurl = "https://$domain";
 
     $html = <<<EOT
@@ -52,7 +52,7 @@ EOT;
                                                             </table>
                                                         </td>
                                                         <td class="mobile" align="left" valign="top">
-                                                            <h1>Your Volunteer Opportunity: $title</h1>
+                                                            <h1>Your Volunteer Opportunity on $groupname: $title</h1>
                                                             <p>Please can you let us know whether this volunteer opportunity is still active?  If we don't hear from you, we'll stop showing it soon.</p>
                                                             <table>
                                                                 <tbody>

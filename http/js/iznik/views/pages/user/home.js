@@ -9,7 +9,7 @@ define([
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
     'iznik/views/user/message',
-    // 'iznik/views/supportus''
+    'iznik/views/supportus'
 ], function($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
@@ -281,6 +281,8 @@ define([
                 }
 
                 // (new Iznik.Views.SupportUs()).render();
+                (new Iznik.Views.User.eBay()).render();
+
                 var today = new Date().toISOString().slice(0, 10);
                 if (today == '2017-04-01') {
                     self.$('.js-april').fadeIn('slow');
@@ -572,6 +574,12 @@ define([
                         self.trigger('outcame');
 
                         var v = new Iznik.Views.SupportUs();
+
+                        // eBay voting campaign
+                        self.listenToOnce(v, 'modalClosed', function() {
+                            (new Iznik.Views.User.eBay()).render();
+                        });
+
                         v.render();
                     }
                 }

@@ -7,7 +7,6 @@ define([
     'iznik/models/donations',
     'iznik/views/pages/pages',
     'iznik/views/group/select',
-    'iznik/views/supportus',
     'jquery.dd'
 ], function($, _, Backbone, Iznik, ChatHolder) {
     Iznik.Views.User.Pages.Landing = Iznik.Views.Page.extend({

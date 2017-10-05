@@ -576,13 +576,31 @@ class User extends Entity
                     ]);
 
                     # If we've set an email we might no longer be bouncing.
-                    $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $rc ]);
-                    $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
+                    $this->unbounce($rc, FALSE);
                 }
             }
         }
 
         return($rc);
+    }
+
+    public function unbounce($emailid, $log) {
+        $me = whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
+        if ($log) {
+            $l = new Log($this->dbhr, $this->dbhm);
+
+            $l->log([
+                'type' => Log::TYPE_USER,
+                'subtype' => Log::SUBTYPE_UNBOUNCE,
+                'user' => $this->id,
+                'byuser' => $myid
+            ]);
+        }
+
+        $this->dbhm->preExec("UPDATE bounces_emails SET reset = 1 WHERE emailid = ?;", [ $emailid ]);
+        $this->dbhm->preExec("UPDATE users SET bouncing = 0 WHERE id = ?;", [ $this->id ]);
     }
 
     public function removeEmail($email)
@@ -2935,7 +2953,7 @@ class User extends Entity
     }
 
     public function forgotPassword($email) {
-        $link = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FORGOT_PASSWORD);
+        $link = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FORGOT_PASSWORD, TRUE);
         $html = forgot_password(USER_SITE, USERLOGO, $email, $link);
 
         $message = Swift_Message::newInstance()
@@ -2972,7 +2990,7 @@ class User extends Entity
             $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
             $this->dbhm->preExec($sql,
                 [$email, $canon, $key, strrev($canon), $key]);
-            $confirm  = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail');
+            $confirm  = $this->loginLink($_SERVER['HTTP_HOST'], $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
 
             list ($transport, $mailer) = getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
@@ -3178,32 +3196,37 @@ class User extends Entity
         return($ret);
     }
 
-    public function loginLink($domain, $id, $url = '/', $type = NULL) {
-        # Get a per-user link we can use to log in without a password.
-        $key = NULL;
-        $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
-        $logins = $this->dbhr->preQuery($sql, [ $id, User::LOGIN_LINK ]);
-        foreach ($logins as $login) {
-            $key = $login['credentials'];
-        }
-
-        if (!$key) {
-            $key = randstr(32);
-            $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
-                $id,
-                User::LOGIN_LINK,
-                $key
-            ]);
-
-            # If this didn't work, we still return an URL - worst case they'll have to sign in.
-            $key = $rc ? $key : NULL;
-        }
-
+    public function loginLink($domain, $id, $url = '/', $type = NULL, $auto = FALSE) {
         $p = strpos($url, '?');
-        $src = $type ? "&src=$type" : "";
-        $url = $p === FALSE ? ("https://$domain$url?u=$id&k=$key$src") : ("https://$domain$url&u=$id&k=$key$src");
+        $ret = $p === FALSE ? "https://$domain$url?u=$id&src=$type" : "https://$domain$url&u=$id&src=$type";
 
-        return($url);
+        if ($auto) {
+            # Get a per-user link we can use to log in without a password.
+            $key = NULL;
+            $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
+            $logins = $this->dbhr->preQuery($sql, [ $id, User::LOGIN_LINK ]);
+            foreach ($logins as $login) {
+                $key = $login['credentials'];
+            }
+
+            if (!$key) {
+                $key = randstr(32);
+                $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
+                    $id,
+                    User::LOGIN_LINK,
+                    $key
+                ]);
+
+                # If this didn't work, we still return an URL - worst case they'll have to sign in.
+                $key = $rc ? $key : NULL;
+            }
+
+            $p = strpos($url, '?');
+            $src = $type ? "&src=$type" : "";
+            $ret = $p === FALSE ? ("https://$domain$url?u=$id&k=$key$src") : ("https://$domain$url&u=$id&k=$key$src");
+        }
+
+        return($ret);
     }
 
     public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE) {
@@ -3365,7 +3388,7 @@ class User extends Entity
 
             # Make sure there's a link login as admin/support can use that to impersonate.
             if (($me->isAdmin() && !$u->isAdmin()) || ($me->isAdminOrSupport() && !$u->isModerator())) {
-                $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/');
+                $thisone['loginlink'] = $u->loginLink(USER_SITE, $user['userid'], '/', NULL, TRUE);
             }
             $thisone['logins'] = $u->getLogins($me->isAdmin());
 

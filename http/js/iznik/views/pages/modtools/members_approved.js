@@ -254,6 +254,10 @@ define([
                         self.$('.js-exportyahoo, .js-sync').hide();
                     }
 
+                    if (!group.get('onhere')) {
+                        self.$('.js-nativeonly').hide();
+                    }
+
                     // The type of collection we're using depends on whether we're searching.  It controls how we fetch.
                     if (self.options.search) {
                         self.collection = new Iznik.Collections.Members.Search(null, {

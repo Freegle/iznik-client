@@ -272,9 +272,12 @@ define([
                     }
                 });
 
+                var groupsshown = 0;
+
                 self.collection.each(function(group) {
                     if (bounds.contains(new google.maps.LatLng(group.get('lat'), group.get('lng'))) &&
-                        group.get('onmap')) {
+                        group.get('onmap') && group.get('publish')) {
+                        groupsshown++;
                         var latLng = new google.maps.LatLng(group.get('lat'), group.get('lng'));
 
                         if (within > 20) {
@@ -339,6 +342,11 @@ define([
                         });
                     }
                 });
+
+                if (groupsshown == 0 && self.map.getZoom() > 0) {
+                    // We aren't showing any groups.  Zoom out until we are.
+                    self.map.setZoom(self.map.getZoom() - 1);
+                }
             }
         },
 

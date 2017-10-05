@@ -67,6 +67,7 @@ class Log
     const SUBTYPE_OUTCOME = 'Outcome';
     const SUBTYPE_NOTIFICATIONOFF = 'NotificationOff';
     const SUBTYPE_AUTO_APPROVED = 'Autoapproved';
+    const SUBTYPE_UNBOUNCE = 'Unbounce';
 
     function __construct($dbhr, $dbhm)
     {
@@ -113,14 +114,25 @@ class Log
             # This is simple.
             $sql = "SELECT * FROM logs WHERE $groupq $idq $typeq $subtypeq $dateq ORDER BY id DESC LIMIT $limit";
         } else {
-            # This is complex.  We want to search in the various user names, the email address, and the message
-            # subject.
+            # This is complex.  We want to search in the various user names, and the message
+            # subject.  And the email - and people might search using an email belonging to a member but which
+            # isn't the fromaddr of any messages.  So first expand the email.
+            $sql = "SELECT users_emails.userid FROM users_emails INNER JOIN memberships ON groupid = $groupid AND memberships.userid = users_emails.userid AND email LIKE $searchq;";
+            $emails = $this->dbhr->preQuery($sql);
+            $uids = [];
+
+            foreach ($emails as $email) {
+                $uids[] = $email['userid'];
+            }
+
+            $uidq = count($uids) > 0 ? (" OR logs.user IN (" . implode(',', $uids) . ") OR logs.byuser IN (" . implode(',', $uids) . ")") : '';
+
             $sql = "SELECT logs.* FROM logs 
                 LEFT JOIN users ON users.id = logs.user 
                 LEFT JOIN messages ON messages.id = logs.msgid
                 WHERE $groupq $idq $typeq $subtypeq $dateq AND 
                 ((users.firstname LIKE $searchq OR users.lastname LIKE $searchq OR users.fullname LIKE $searchq OR CONCAT(users.firstname, ' ', users.lastname) LIKE $searchq) OR
-                 (messages.fromaddr LIKE $searchq OR messages.subject LIKE $searchq))
+                 (messages.subject LIKE $searchq $uidq))
                 ORDER BY logs.id DESC LIMIT $limit";
         }
 

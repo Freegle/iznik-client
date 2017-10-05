@@ -151,6 +151,7 @@ class Alert extends Entity
             case 'newgroups': $from = NEWGROUPS_ADDR; break;
             case 'ro': $from = RO_ADDR; break;
             case 'volunteers': $from = VOLUNTEERS_ADDR; break;
+            case 'centralmods': $from = CENTRALMODS_ADDR; break;
         }
 
         return($from);

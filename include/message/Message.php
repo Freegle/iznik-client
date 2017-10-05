@@ -31,6 +31,7 @@ class Message
     const OUTCOME_TAKEN = 'Taken';
     const OUTCOME_RECEIVED = 'Received';
     const OUTCOME_WITHDRAWN = 'Withdrawn';
+    const OUTCOME_REPOST = 'Repost';
 
     const LIKE_LOVE = 'Love';
     const LIKE_LAUGH = 'Laugh';
@@ -365,7 +366,7 @@ class Message
     #
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
-        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr'
+        'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'htmlbody', 'senttoyahoo', 'FOP', 'fromaddr', 'isdraft'
     ];
 
     public $memberAtts = [
@@ -383,7 +384,7 @@ class Message
     ];
 
     public $internalAtts = [
-        'publishconsent', 'isdraft', 'itemid', 'itemname'
+        'publishconsent', 'itemid', 'itemname'
     ];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
@@ -1809,6 +1810,14 @@ class Message
         $approvedby = NULL;
         $approval = $this->getHeader('x-egroups-approved-by');
 
+        if ($approval) {
+            if (preg_match('/(.*?) /', $approval, $matches)) {
+                $yid = $matches[1];
+                $u = new User($this->dbhr, $this->dbhm);
+                $approvedby = $u->findByYahooId($yid);
+            }
+        }
+
         # Reduce the size of the message source
         $this->message = $this->pruneMessage();
 
@@ -1974,11 +1983,11 @@ class Message
         return(count($groups) > 0);
     }
 
-    public function isApproved($groupid) {
-        $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? AND groupid = ? AND collection = ? AND deleted = 0;";
+    public function isApproved($groupid = NULL) {
+        $groupq = $groupid ? " AND groupid = $groupid ": "";
+        $sql = "SELECT msgid FROM messages_groups WHERE msgid = ? $groupq AND collection = ? AND deleted = 0;";
         $groups = $this->dbhr->preQuery($sql, [
             $this->id,
-            $groupid,
             MessageCollection::APPROVED
         ]);
 
@@ -2401,6 +2410,7 @@ class Message
                     $msg['id'],
                     $this->groupid
                 ]);
+
                 foreach ($gatts as $gatt) {
                     foreach (['yahooapprovedid', 'yahoopendingid'] as $newatt) {
                         #error_log("Compare old {$gatt[$newatt]} vs new {$this->$newatt}");
@@ -2455,7 +2465,9 @@ class Message
                 # We keep the old set of attachments, because they might be mentioned in (for example) the text
                 # of the message.  This means that we don't support editing of the attachments on Yahoo.
 
-                # We might have new approvedby info.
+                # Pick up any new approvedby, unless we already have one.  If we have one it's because it was
+                # approved on here, which is an authoritative record, whereas the Yahoo approval might have been
+                # done via plugin work and another mod.
                 $rc = $this->dbhm->preExec("UPDATE messages_groups SET approvedby = ?, approvedat = NOW() WHERE msgid = ? AND groupid = ? AND approvedby IS NULL;",
                     [
                         $approvedby,
@@ -2748,7 +2760,9 @@ class Message
         $thissubj = preg_replace('/\-|\,|\.| /', '', $thissubj);
 
         if ($type) {
-            $sql = "SELECT id, subject, date FROM messages WHERE fromuser = ? AND type = ? AND DATEDIFF(NOW(), arrival) <= 31;";
+            # Don't want to look for any messages which already have an outcome, otherwise we would fail to handle
+            # crosspost messages correctly - we'd link all TAKENs to the same OFFER.
+            $sql = "SELECT messages.id, subject, date FROM messages LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE fromuser = ? AND type = ? AND DATEDIFF(NOW(), arrival) <= 31 AND messages_outcomes.id IS NULL;";
             $messages = $this->dbhr->preQuery($sql, [ $this->fromuser, $type ]);
             #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
             $thistime = strtotime($this->date);
@@ -3326,7 +3340,7 @@ class Message
     }
 
     public function intendedOutcome($outcome) {
-        $sql = "INSERT IGNORE INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
+        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
         $this->dbhm->preExec($sql, [
             $this->id,
             $outcome
@@ -3399,7 +3413,7 @@ class Message
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
         foreach ($replies as $reply) {
-            $cm->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
+            $mid = $cm->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
 
             # Make sure this message is highlighted in chat/email.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);

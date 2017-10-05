@@ -5,8 +5,7 @@ define([
     'moment',
     'iznik/base',
     'iznik/views/modal',
-    'bootstrap-switch',
-    'bootstrap-datepicker'
+    'bootstrap-switch'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
@@ -25,7 +24,16 @@ define([
             'click .js-purge': 'purge',
             'click .js-addcomment': 'addComment',
             'click .js-spammer': 'spammer',
-            'click .js-whitelist': 'whitelist'
+            'click .js-whitelist': 'whitelist',
+            'click .js-unbounce': 'unbounce'
+        },
+
+        unbounce: function() {
+            var self = this;
+
+            self.model.unbounce().then(function() {
+                self.$('.js-bouncing').fadeOut('slow');
+            });
         },
 
         showPosts: function(offers, wanteds, takens, receiveds, others) {
@@ -962,12 +970,6 @@ define([
                     self.$('.js-joined').addClass('error');
                 }
 
-                self.$('.datepicker').datepicker({
-                    format: 'D, dd MM yyyy',
-                    startDate: '0d',
-                    endDate: '+30d'
-                });
-
                 var onholiday = self.model.get('onholidaytill');
 
                 self.$(".js-switch").bootstrapSwitch({
@@ -980,11 +982,10 @@ define([
                     self.$('select').selectpicker();
                 });
 
-                // console.log("On holiday", onholiday);
                 if (onholiday && onholiday != undefined && onholiday != "1970-01-01T00:00:00Z") {
+                    self.$('.js-onholidaytill').val((new moment(onholiday).format("MMM Do YYYY")));
                     self.$('.js-onholidaytill').show();
                     self.$('.js-emailfrequency').hide();
-                    self.$('.datepicker').datepicker('setUTCDate', new Date(onholiday));
                 } else {
                     self.$('.js-onholidaytill').hide();
                     self.$('.js-emailfrequency').show();

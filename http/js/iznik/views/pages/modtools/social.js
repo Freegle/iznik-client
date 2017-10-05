@@ -339,7 +339,6 @@ define([
 
         sent: function() {
             var self = this;
-            console.log("Sent", this.model);
             this.model.completed().then(self.$el.fadeOut('slow'));
         },
 

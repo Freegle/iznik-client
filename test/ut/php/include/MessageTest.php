@@ -105,6 +105,9 @@ class messageTest extends IznikTestCase {
         $atts = $m->getPublic();
         assertEquals($id1, $atts['related'][0]['id']);
 
+        # We don't match on messages with outcomes so hack this out out again.
+        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = $id1;");
+
         # TAKEN before OFFER - shouldn't match
         $msg = str_replace('22 Aug 2016', '22 Aug 2014', $msg);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -147,6 +150,9 @@ class messageTest extends IznikTestCase {
         $atts = $m->getPublic();
         assertEquals($id1, $atts['related'][0]['id']);
 
+        # We don't match on messages with outcomes so hack this out out again.
+        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = $id1;");
+
         $msg = $this->unique(file_get_contents('msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
         $m->parse(Message::YAHOO_PENDING, 'from@test.com', 'to@test.com', $msg);
@@ -156,6 +162,56 @@ class messageTest extends IznikTestCase {
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $atts1 = $m1->getPublic();
         self::assertEquals('Taken', $atts1['outcomes'][0]['outcome']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testRelated3() {
+        error_log(__METHOD__);
+
+        # Post a message to two groups, mark it as taken on both, make sure that is handled correctly.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid2 = $g->create('testgroup2', Group::GROUP_REUSE);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        list($id1, $already) = $m->save();
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        list($id2, $already) = $m->save();
+
+        $m1 = new Message($this->dbhr, $this->dbhm, $id1);
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        assertEquals($gid1, $m1->getGroups(FALSE, TRUE)[0]);
+        assertEquals($gid2, $m2->getGroups(FALSE, TRUE)[0]);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        list($id3, $already) = $m->save();
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        list($id4, $already) = $m->save();
+
+        $m1 = new Message($this->dbhr, $this->dbhm, $id1);
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
+        assertEquals(Message::OUTCOME_TAKEN, $m2->hasOutcome());
 
         error_log(__METHOD__ . " end");
     }

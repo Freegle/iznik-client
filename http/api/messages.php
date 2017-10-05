@@ -160,7 +160,7 @@ function messages() {
 
                 $c = new MessageCollection($dbhr, $dbhm, MessageCollection::APPROVED);
                 $f = new GroupFacebook($dbhr, $dbhm, $uid);
-                $msgs = $f->getPostableMessages();
+                $msgs = $f->getPostableMessages($groupid, $ctx);
                 list($groups, $msgs) = $c->fillIn($msgs, PHP_INT_MAX, NULL);
             }
 

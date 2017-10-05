@@ -124,7 +124,7 @@ class Facebook
             }
 
             $id = $eid ? $eid : $fid;
-            error_log("Login id $id from $eid and $fid");
+            #error_log("Login id $id from $eid and $fid");
 
             if (!$id) {
                 # We don't know them.  Create a user.
@@ -220,7 +220,8 @@ class Facebook
 
         return([$s, [
             'ret' => $ret,
-            'status' => $status
+            'status' => $status,
+            'accesstoken' => $accessToken
         ]]);
     }
 

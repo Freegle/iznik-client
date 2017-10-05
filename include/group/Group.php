@@ -17,7 +17,7 @@ class Group extends Entity
     
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo',
-        'onyahoo', 'onhere', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
+        'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget');
 
@@ -34,6 +34,7 @@ class Group extends Entity
     const FILTER_NONE = 0;
     const FILTER_WITHCOMMENTS = 1;
     const FILTER_MODERATORS = 2;
+    const FILTER_BOUNCING = 3;
 
     /** @var  $log Log */
     private $log;
@@ -61,6 +62,7 @@ class Group extends Entity
             'stories' => 1,
             'includearea' => 1,
             'includepc' => 1,
+            'moderated' => 0,
             'autoapprove' => [
                 'members' => 0,
                 'messages' => 0
@@ -339,7 +341,7 @@ class Group extends Entity
                 $this->id,
                 $eventsqltime
             ])[0]['count'] : 0,
-            'pendingvolunteering' => $active ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid = ? AND volunteering.pending = 1 AND volunteering.deleted = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?);", [
+            'pendingvolunteering' => $active ? $this->dbhr->preQuery("SELECT COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid = ? AND volunteering.pending = 1 AND volunteering.deleted = 0 AND volunteering.expired = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?);", [
                 $this->id,
                 $eventsqltime,
                 $eventsqltime
@@ -349,7 +351,7 @@ class Group extends Entity
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
-            ])[0]['count'],
+            ])[0]['count']
         ];
 
         return($ret);
@@ -416,6 +418,8 @@ class Group extends Entity
         $ydtq = $ydt ? (" AND memberships_yahoo.yahooDeliveryType = " . $this->dbhr->quote($ydt)) : '';
         $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
         $modq = '';
+        $bounceq = '';
+        $filterq = '';
 
         switch ($filter) {
             case Group::FILTER_WITHCOMMENTS:
@@ -425,6 +429,10 @@ class Group extends Entity
             case Group::FILTER_MODERATORS:
                 $filterq = '';
                 $modq = " AND memberships.role IN ('Owner', 'Moderator') ";
+                break;
+            case Group::FILTER_BOUNCING:
+                $bounceq = ' AND users.bouncing = 1 ';
+                break;
             default:
                 $filterq = '';
                 break;
@@ -470,7 +478,7 @@ class Group extends Entity
               $groupq $collectionq $addq $ypsq $ydtq $opsq";
         } else {
             $searchq = $searchid ? (" AND users.id = " . $this->dbhr->quote($searchid) . " ") : '';
-            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq $opsq $modq";
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $ypsq $ydtq $opsq $modq $bounceq";
         }
 
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
@@ -1222,9 +1230,12 @@ class Group extends Entity
         return($this->group['namefull'] ? $this->group['namefull'] : $this->group['nameshort']);
     }
 
-    public function listByType($type) {
+    public function listByType($type, $support) {
         $typeq = $type ? "type = ?" : '1=1';
-        $sql = "SELECT id, nameshort, region, namefull, lat, lng, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq AND publish = 1 AND listable = 1 ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
+        $showq = $support ? '' : 'AND publish = 1 AND listable = 1';
+        $suppfields = $support ? ", lastmoderated, lastmodactive, activemodcount, backupmodsactive, backupownersactive, onmap": '';
+
+        $sql = "SELECT id, nameshort, region, authorityid, namefull, lat, lng, publish $suppfields, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         foreach ($groups as &$group) {
             $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
@@ -1237,6 +1248,16 @@ class Group extends Entity
                 $group['modsmail'] = $group['nameshort'] . "-owner@yahoogroups.com";
             } else {
                 $group['modsmail'] = $group['nameshort'] . "-volunteers@" . GROUP_DOMAIN;
+            }
+
+            if ($support && $group['authorityid']) {
+                $auths = $this->dbhr->preQuery("SELECT * FROM authorities WHERE id = ?;", [
+                    $group['authorityid']
+                ]);
+
+                foreach ($auths as $auth) {
+                    $group['authority'] = $auth['name'];
+                }
             }
         }
 

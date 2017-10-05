@@ -11,7 +11,7 @@ printf "This is an automated list of the changes to the code in the last 7 days.
 grep "^*" /tmp/git.log >> /tmp/git.mail
 printf "\n...and here are the ones which are minor, or only affect volunteers in ModTools, or are internal changes that you wouldn't notice:\n\n"  >> /tmp/git.mail
 grep -v "^*" /tmp/git.log >> /tmp/git.mail
-cat /tmp/git.mail | mail -s "Code changes in the last 7 days" "Freegle-Tech@yahoogroups.com"
+cat /tmp/git.mail | mail -s "Code changes in the last 7 days" "Freegle-Tech@yahoogroups.com" -aFrom:geeks@ilovefreegle.org
 rm /tmp/git.mail
 cd /tmp
 rm -r iznik.recent
