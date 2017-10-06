@@ -162,6 +162,9 @@ define([
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "livemap": "liveMap",
+            "ebay": "userStatsEbay",
+            "stats/ebay": "userStatsEbay",
+            "stats/eBay": "userStatsEbay",
             "stats/heatmap": "userStatsHeatMap",
             "stats/region/:id": "userStatsRegion",
             "stats/area/:id": "userStatsArea",
@@ -741,6 +744,15 @@ define([
 
             require(["iznik/views/pages/user/stats"], function() {
                 var page = new Iznik.Views.User.Pages.Heatmap();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStatsEbay: function(area) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stats"], function() {
+                var page = new Iznik.Views.User.Pages.Ebay();
                 self.loadRoute({page: page});
             });
         },

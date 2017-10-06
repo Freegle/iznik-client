@@ -107,6 +107,11 @@ class Bounce
             $this->dbhm->preExec("DELETE FROM bounces WHERE id = ?;", [ $bounce['id'] ]);
         }
 
+        if (!$id) {
+            # Shrink the table.
+            $this->dbhm->preExec("ALTER TABLE bounces engine=InnoDB;");
+        }
+
         return($ret);
     }
 

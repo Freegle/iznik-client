@@ -48,6 +48,11 @@ function session() {
                     # Tell them what mod work there is.  Similar code in Notifications.
                     $ret['work'] = [];
 
+                    if ($me->isAdminOrSupport()) {
+                        $v = new Volunteering($dbhr, $dbhm);
+                        $ret['work']['pendingvolunteering'] = $v->systemWideCount();
+                    }
+
                     # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
                     # Facebook, even though that makes the code hackier.
                     $gids = [];

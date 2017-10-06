@@ -115,6 +115,12 @@ class Dashboard {
             $ret['donationsthismonth'] = $donations[0]['total'];
         }
 
+        # eBay stats
+        $ret['eBay'] = $this->dbhr->preQuery("SELECT * FROM ebay_favourites ORDER BY timestamp ASC;");
+        foreach ($ret['eBay'] as &$e) {
+            $e['timestamp'] = ISODate($e['timestamp']);
+        }
+
         return($ret);
     }
 }

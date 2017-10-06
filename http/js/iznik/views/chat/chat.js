@@ -910,10 +910,8 @@ define([
                 // If the unread message count changes, we want to update it.
                 self.listenTo(self.model, 'change:unseen', self.updateCount);
 
-                // If the last message changes, we want to fetch more.
-                self.listenTo(self.model, 'change:lastmsg', function() {
-                    self.messages.fetch();
-                });
+                // If the snippet changes, we have new messages to pick up.
+                self.listenTo(self.model, 'change:snippet', self.getLatestMessages);
 
                 self.$('.js-messages').empty();
 

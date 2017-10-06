@@ -50,6 +50,7 @@ define([
                     systemWide: false,
                     all: true,
                     mod: true,
+                    counts: [ 'fbgroups' ],
                     id: 'approvedGroupSelect'
                 });
 

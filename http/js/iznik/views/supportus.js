@@ -461,6 +461,7 @@ define([
 
         vote: function() {
             ABTestAction('ebay', 'Vote');
+            this.close();
         },
 
         cancel: function() {
@@ -477,10 +478,14 @@ define([
         render: function() {
             var self = this;
 
+            var now = (new Date()).getTime();
+            if (now < 1509408000000) {  // Tuesday, 31 October 2017 
+
             ABTestShown('ebay', 'Vote');
 
             if (!Storage.get('ebaynotagain')) {
                 Iznik.Views.Modal.prototype.render.call(this);
+            }
             }
         }
     });

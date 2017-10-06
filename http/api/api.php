@@ -76,6 +76,7 @@ require_once(IZNIK_BASE . '/http/api/activity.php');
 require_once(IZNIK_BASE . '/http/api/alert.php');
 require_once(IZNIK_BASE . '/http/api/admin.php');
 require_once(IZNIK_BASE . '/http/api/address.php');
+require_once(IZNIK_BASE . '/http/api/changes.php');
 require_once(IZNIK_BASE . '/http/api/session.php');
 require_once(IZNIK_BASE . '/http/api/modconfig.php');
 require_once(IZNIK_BASE . '/http/api/stdmsg.php');
@@ -251,6 +252,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'admin':
                     $ret = admin();
+                    break;
+                case 'changes':
+                    $ret = changes();
                     break;
                 case 'dashboard':
                     $ret = dashboard();

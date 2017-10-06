@@ -4,6 +4,8 @@ define([
     'backbone',
     'moment',
     'iznik/base',
+    'iznik/models/config/bulkop',
+    'iznik/models/yahoo/user',
     'iznik/models/group'
 ], function($, _, Backbone, moment, Iznik) {
     // Plugin work.

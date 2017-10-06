@@ -195,27 +195,27 @@ class locationTest extends IznikTestCase {
         error_log(__METHOD__ . " end");
     }
 
-    public function testSpecial() {
-        error_log(__METHOD__);
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('Sevenoaks-Freegle');
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
-
-        $l = new Location($this->dbhr, $this->dbhm);
-        #$res = $l->search("", $gid);
-        #$res = $l->search("", $gid);
-
-        $m = new Message($this->dbhr, $this->dbhm);
-        foreach ([
-                "OFFER: Test post (Riverhead)"
-             ] as $subj) {
-            $start = microtime(TRUE);
-            error_log("$subj => " . $m->suggestSubject($gid, $subj) . " " . (microtime(TRUE) - $start));
-        }
-
-        error_log(__METHOD__ . " end");
-    }
+//    public function testSpecial() {
+//        error_log(__METHOD__);
+//
+//        $g = Group::get($this->dbhr, $this->dbhm);
+//        $gid = $g->findByShortName('Bradford-on-Avon-Freegle');
+//        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+//
+//        $l = new Location($this->dbhr, $this->dbhm);
+//        #$res = $l->search("", $gid);
+//        #$res = $l->search("", $gid);
+//
+//        $m = new Message($this->dbhr, $this->dbhm);
+//        foreach ([
+//                "TAKEN: 2 pallets (BoA)"
+//             ] as $subj) {
+//            $start = microtime(TRUE);
+//            error_log("$subj => " . $m->suggestSubject($gid, $subj) . " " . (microtime(TRUE) - $start));
+//        }
+//
+//        error_log(__METHOD__ . " end");
+//    }
 
     public function testClosestPostcode() {
         error_log(__METHOD__);

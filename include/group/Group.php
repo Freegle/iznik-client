@@ -315,6 +315,7 @@ class Group extends Entity
         # See also MessageCollection.
         $mysqltime = date ("Y-m-d", strtotime("Midnight 31 days ago"));
         $eventsqltime = date("Y-m-d H:i:s", time());
+        $f = new GroupFacebook($this->dbhr, $this->dbhm);
 
         $ret = [
             'pending' => $active ? $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid = ? AND messages_groups.collection = ? AND messages_groups.deleted = 0 AND messages.heldby IS NULL AND messages.deleted IS NULL;", [
@@ -351,7 +352,8 @@ class Group extends Entity
             ])[0]['count'],
             'plugin' => $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM plugin WHERE groupid = ?;", [
                 $this->id
-            ])[0]['count']
+            ])[0]['count'],
+            'fbgroups' => $f->getPostableMessagesCount($this->id)
         ];
 
         return($ret);
@@ -466,6 +468,8 @@ class Group extends Entity
             # get the rest of the stuff we need.
             $q = $this->dbhr->quote("$search%");
             $bq = $this->dbhr->quote(strrev($search) . "%");
+            $p = strpos($search, ' ');
+            $namesearch = $p === FALSE ? '' : ("(SELECT id FROM users WHERE firstname LIKE " . $this->dbhr->quote(substr($search, 0, $p) . '%') . " AND lastname LIKE " . $this->dbhr->quote(substr($search, $p + 1) . '%')) . ') UNION';
             $sql = "$sqlpref 
               WHERE users.id IN (SELECT * FROM (
                 (SELECT userid FROM users_emails WHERE email LIKE $q) UNION
@@ -473,6 +477,7 @@ class Group extends Entity
                 (SELECT id FROM users WHERE id = " . $this->dbhr->quote($search) . ") UNION
                 (SELECT id FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id FROM users WHERE yahooid LIKE $q) UNION
+                $namesearch
                 (SELECT userid FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id WHERE yahooAlias LIKE $q)
               ) t) AND 
               $groupq $collectionq $addq $ypsq $ydtq $opsq";
@@ -484,7 +489,7 @@ class Group extends Entity
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
 
         $members = $this->dbhr->preQuery($sql);
-        #error_log($sql);
+        error_log($sql);
 
         $ctx = [ 'Added' => NULL ];
 

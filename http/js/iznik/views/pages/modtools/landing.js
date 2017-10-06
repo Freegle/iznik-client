@@ -260,6 +260,11 @@ define([
 
                     var mobile_version = $('meta[name=iznik_mobile_version]').attr("content");	// CC
                     self.$('#js-mobile-version').text("ModTools mobile version "+mobile_version);
+
+                    var w = new Iznik.Views.ModTools.Settings.MissingFacebookBuySell();
+                    w.render().then(function() {
+                        self.$('.js-missingfacebookbuysell').html(w.el);
+                    });
                 });
 
                 return(p);

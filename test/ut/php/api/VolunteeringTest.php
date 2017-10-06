@@ -75,14 +75,21 @@ class volunteeringAPITest extends IznikAPITestCase {
         $ret = $this->call('volunteering', 'POST', [
             'title' => 'UTTest',
             'location' => 'UTTest',
-            'description' => 'UTTest'
+            'description' => 'UTTest',
+            'groupid' => $this->groupid
         ]);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
         assertNotNull($id);
         error_log("Created event $id");
 
-        # Add group
+        # Remove and Add group
+        $ret = $this->call('volunteering', 'PATCH', [
+            'id' => $id,
+            'groupid' => $this->groupid,
+            'action' => 'RemoveGroup'
+        ]);
+        assertEquals(0, $ret['ret']);
         $ret = $this->call('volunteering', 'PATCH', [
             'id' => $id,
             'groupid' => $this->groupid,
