@@ -613,6 +613,7 @@ class Message
             $text = preg_replace('/This message was sent via Freegle Direct[\s\S]*/m', '', $text);
             $text = preg_replace('/\[Non-text portions of this message have been removed\]/m', '', $text);
             $text = preg_replace('/^--$[\s\S]*/m', '', $text);
+            $text = preg_replace('/==========/m', '', $text);
 
             // Redundant line breaks.
             $text = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\n\n", $text);
