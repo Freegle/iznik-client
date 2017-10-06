@@ -2418,14 +2418,71 @@ define([
                 var role = group.get('role');
                 if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner')) {
                     var facebooks = group.get('facebook');
-                    if (!facebooks) {
-                        missingFacebook.push(group.get('namedisplay') + ' - not linked');
-                    } else {
-                        _.each(facebooks, function(facebook) {
+                    var gotpage = false;
+                    _.each(facebooks, function(facebook) {
+                        if (facebook.type == 'Page') {
                             if (!facebook.valid) {
-                                missingFacebook.push(group.get('namedisplay') + ' - token invalid');
+                                missingFacebook.push(faceboopk.name + ' - token invalid');
+                            } else {
+                                gotpage = true;
                             }
+                        }
+                    });
+
+                    if (!gotpage) {
+                        missingFacebook.push(group.get('namedisplay') + ' - not linked');
+                    }
+                }
+            });
+
+            if (missingFacebook.length > 0) {
+                var p = Iznik.View.prototype.render.call(this);
+                require(['jquery-show-first'], function() {
+                    p.then(function (self) {
+                        _.each(missingFacebook, function(missing) {
+                            self.$('.js-grouplist').append('<div>' + missing + '</div>');
                         });
+                        self.$('.js-grouplist').showFirst({
+                            controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                            count: 5
+                        });
+
+                        self.$('.js-profile').fadeIn('slow');
+                    });
+                });
+            } else {
+                p = resolvedPromise(this);
+            }
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.ModTools.Settings.MissingFacebookBuySell = Iznik.View.extend({
+        template: 'modtools_settings_missingfacebookbuysell',
+
+        render: function() {
+            var self = this;
+            var p;
+            var missingFacebook = [];
+            var groups = Iznik.Session.get('groups');
+            groups.each(function(group) {
+                var role = group.get('role');
+                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner')) {
+                    var facebooks = group.get('facebook');
+                    var gotgroup = false;
+                    _.each(facebooks, function(facebook) {
+                        if (facebook.type == 'Group') {
+                            if (!facebook.valid) {
+                                missingFacebook.push(facebook.name + ' - token invalid');
+                            } else {
+                                gotgroup = true;
+                            }
+                        }
+                    });
+
+                    if (!gotgroup) {
+                        missingFacebook.push(group.get('namedisplay') + ' - not linked');
                     }
                 }
             });

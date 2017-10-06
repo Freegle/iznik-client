@@ -962,6 +962,9 @@ define([
                     });
 
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
+
+                    // If the snippet changes, we have new messages to pick up.
+                    self.listenTo(self.model, 'change:snippet', self.getLatestMessages);
                 }
 
                 self.messageViews = new Backbone.CollectionView({

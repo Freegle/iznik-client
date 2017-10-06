@@ -385,5 +385,46 @@ define([
             return (p);
         }
     });
+    Iznik.Views.User.Pages.Ebay = Iznik.Views.Page.extend({
+        template: 'user_stats_ebay',
+
+        events: {
+        },
+
+        render: function () {
+            var self = this;
+
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function() {
+                $.ajax({
+                    url: API + 'dashboard',
+                    data: {
+                        start: '2 months ago',
+                        grouptype: 'Freegle',
+                        group: 1
+                    },
+                    success: function (ret) {
+                        var coll = new Iznik.Collections.DateCounts(ret.dashboard.eBay);
+                        console.log("Data", coll);
+                        var base = coll.first().get('count');
+                        coll.each(function (s) {
+                            s.set('count', s.get('count') - base);
+                            s.set('date', s.get('timestamp'));
+                        });
+
+                        var graph = new Iznik.Views.DateGraph({
+                            target: self.$('.js-graph').get()[0],
+                            data: coll,
+                            title: 'eBay Voting'
+                        });
+
+                        graph.render();
+                    }
+                });
+            });
+
+            return (p);
+        }
+    });
 });
 
