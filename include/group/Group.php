@@ -489,7 +489,7 @@ class Group extends Entity
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
 
         $members = $this->dbhr->preQuery($sql);
-        error_log($sql);
+        #error_log($sql);
 
         $ctx = [ 'Added' => NULL ];
 
