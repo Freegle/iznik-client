@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Shortlink.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
+require_once(IZNIK_BASE . '/include/group/Facebook.php');
 
 class Group extends Entity
 {
@@ -994,7 +995,10 @@ class Group extends Entity
                         ]);
                     }
 
-                    $this->dbhm->preExec("DELETE FROM memberships WHERE id = ?;", [ $todelete['id'] ]);
+                    $this->dbhm->preExec("DELETE FROM memberships WHERE id = ? AND groupid = ?;", [
+                        $todelete['id'],
+                        $this->id
+                    ]);
                 }
 
                 # Having logged them, delete them.
