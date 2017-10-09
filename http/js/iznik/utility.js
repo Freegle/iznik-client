@@ -323,6 +323,8 @@ function templateFetch(tpl) {
         require([tplName(tpl)], function(html) {
             loadedTemplates[tpl] = html;
             resolve(tpl);
+        }, function(err) {
+            console.log("Require error in", tpl, err);
         })
     });
 
