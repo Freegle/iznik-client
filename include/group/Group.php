@@ -995,9 +995,8 @@ class Group extends Entity
                         ]);
                     }
 
-                    $this->dbhm->preExec("DELETE FROM memberships WHERE id = ? AND groupid = ?;", [
-                        $todelete['id'],
-                        $this->id
+                    $this->dbhm->preExec("DELETE FROM memberships WHERE id = ?;", [
+                        $todelete['id']
                     ]);
                 }
 
