@@ -11,13 +11,18 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 error_log("Load auths");
 
 $g = new geoPHP();
-$auths = $dbhr->preQuery("SELECT id, name, AsText(simplified) as geom FROM authorities");
+$auths = $dbhr->preQuery("SELECT id, name, AsText(polygon) as geom FROM authorities");
 
 $authp = [];
 
 foreach ($auths as $auth) {
     $authg = $g->load($auth['geom']);
-    $authp[] = [ $auth, $authg ];
+
+    if ($authg) {
+        $authp[] = [ $auth, $authg ];
+    } else {
+        error_log("Invalid geometry in {$auth['name']}");
+    }
 }
 
 error_log("Loaded");
@@ -33,7 +38,6 @@ foreach ($groups as $group) {
     $garea = $g->load($group['poly']);
 
     if ($garea) {
-
         $garea = $garea->convexHull();
 
         foreach ($authp as $ent) {
@@ -76,6 +80,6 @@ foreach ($groups as $group) {
             error_log("{$group['nameshort']} => NONE FOUND");
         }
     } else {
-        error_log("{$group['nameshort']} => INVALID POLY");
+        error_log("{$group['nameshort']} => INVALID POLY {$group['poly']}");
     }
 }
