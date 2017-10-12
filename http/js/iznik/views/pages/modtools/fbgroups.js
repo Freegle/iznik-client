@@ -149,15 +149,15 @@ define([
         share: function() {
             var self = this;
 
-            FB.login(function(){
+            FB.login(function(response){
                 var id = self.options.message.get('id');
                 FB.api('/' + self.model.get('id') + '/feed', 'post', {
                     link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup'
                 }, function(response) {
                     console.log("Share returned", response);
                     if (response.hasOwnProperty('error')) {
-                        self.$('.js-error').html(response.error);
-                        self.$el.show();
+                        self.$('.js-error').html(response.error.message);
+                        self.$('.js-errorwrapper').fadeIn('slow');
                     } else {
                         self.$el.fadeOut('slow');
                         var g = new Iznik.Models.Group();
