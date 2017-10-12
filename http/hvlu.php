@@ -51,7 +51,6 @@ global $dbhr, $dbhm;
             console.log("Ready");
             require(['gmaps', 'richMarker'], function() {
                 var mapWidth = $('#map').width();
-                console.log("Map width", mapWidth);
 
                 var locs = [];
 
@@ -78,8 +77,12 @@ global $dbhr, $dbhm;
                 $fields = str_getcsv($row);
                 $name = $fields[1];
 
+
                 if ($name != 'Trimmed Name') {
                 $location = $fields[3];
+                $image = $fields[4];
+
+                error_log("Name $name image $image");
 
                 if ($name && $location) {
                 $locs = $dbhr->preQuery("SELECT lat,lng FROM locations WHERE name LIKE ? AND type = 'Polygon' LIMIT 1;", [
@@ -88,16 +91,11 @@ global $dbhr, $dbhm;
 
                 foreach ($locs as $loc) {
                     ?>
-//                    var richMarker = new RichMarker({
-//                        map: map,
-//                        position: new google.maps.LatLng(<?php //echo $loc['lat']; ?>//, <?php //echo $loc['lng']; ?>//)
-//                    });
-//
-//                    richMarker.setContent('<div style="background: white; font-size: 14pt;"><p><?php //echo $name; ?>//<p></div>');
+                    function genMarker(name, lat, lng, loc, img) {
+                        var c = '<div style="background: white; font-size: 14pt; max-width: 200px;"><p>OFFER: ' + name + ' (' + loc + ')<p></div>';
 
-                    function genMarker(name, lat, lng, loc) {
                         var info = new google.maps.InfoWindow({
-                            content: '<div style="background: white; font-size: 14pt;"><p>OFFER: ' + name + ' (' + loc + ')<p></div>'
+                            content: c
                         });
 
                         if (!locs[loc]) {
@@ -107,20 +105,27 @@ global $dbhr, $dbhm;
                         x = locs[loc][0];
                         y = locs[loc][1];
 
+                        var icon = {
+                            url: '/images/hvlu/' + img + '.jpg',
+                            scaledSize: new google.maps.Size(100, 100),
+                            origin: new google.maps.Point(0,0),
+                            anchor: new google.maps.Point(0, 0)
+                        };
+
                         var marker = new google.maps.Marker({
                             map: map,
                             position: new google.maps.LatLng(lat + x, lng + y),
-                            icon: '/images/truck.png',
+                            icon: icon,
                             draggable: true
                         });
 
-                        locs[loc][0] += 0.005;
-                        locs[loc][1] += 0.005;
+                        locs[loc][0] += 0.015;
+                        locs[loc][1] += 0.015;
 
                         info.open(map, marker);
                     }
 
-                    genMarker("<?php echo $name; ?>", <?php echo $loc['lat']; ?>, <?php echo $loc['lng']; ?>, "<?php echo $location; ?>");
+                    genMarker("<?php echo $name; ?>", <?php echo $loc['lat']; ?>, <?php echo $loc['lng']; ?>, "<?php echo $location; ?>", "<?php echo $image; ?>");
                     <?php
                 }
                 }
