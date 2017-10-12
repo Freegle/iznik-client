@@ -53,8 +53,7 @@ global $dbhr, $dbhm;
                 var mapWidth = $('#map').width();
                 console.log("Map width", mapWidth);
 
-                var x = 0;
-                var y = 0;
+                var locs = [];
 
                 $('#map').height(window.innerHeight - 100);
 
@@ -83,7 +82,6 @@ global $dbhr, $dbhm;
                 $location = $fields[3];
 
                 if ($name && $location) {
-                error_log("$name at $location");
                 $locs = $dbhr->preQuery("SELECT lat,lng FROM locations WHERE name LIKE ? AND type = 'Polygon' LIMIT 1;", [
                     $location
                 ]);
@@ -102,6 +100,13 @@ global $dbhr, $dbhm;
                             content: '<div style="background: white; font-size: 14pt;"><p>OFFER: ' + name + ' (' + loc + ')<p></div>'
                         });
 
+                        if (!locs[loc]) {
+                            locs[loc] = [0, 0];
+                        }
+
+                        x = locs[loc][0];
+                        y = locs[loc][1];
+
                         var marker = new google.maps.Marker({
                             map: map,
                             position: new google.maps.LatLng(lat + x, lng + y),
@@ -109,8 +114,8 @@ global $dbhr, $dbhm;
                             draggable: true
                         });
 
-                        x += 0.005;
-                        y += 0.005;
+                        locs[loc][0] += 0.005;
+                        locs[loc][1] += 0.005;
 
                         info.open(map, marker);
                     }
