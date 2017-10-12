@@ -83,7 +83,7 @@ class AlertTest extends IznikTestCase {
         $mock->method('preExec')->willThrowException(new Exception());
         $a->setDbhm($mock);
 
-        self::assertEquals(0, $a->mailMods($gid));
+        self::assertEquals(0, $a->mailMods($id, $gid));
 
         $mock = $this->getMockBuilder('LoggedPDO')
             ->setConstructorArgs([
@@ -96,7 +96,7 @@ class AlertTest extends IznikTestCase {
         $a->setDbhm($mock);
 
         $g->setPrivate('onyahoo', 1);
-        self::assertEquals(0, $a->mailMods($gid, FALSE));
+        self::assertEquals(0, $a->mailMods($id, $gid, FALSE));
 
         error_log(__METHOD__ . " end");
     }
