@@ -999,7 +999,6 @@ define([
     Iznik.Views.ModTools.User.FreegleMembership = Iznik.Views.ModTools.Member.Freegle.extend({
         // This view finds the appropriate group in a user, then renders that membership.
         render: function() {
-            console.log("FreegleMembership", this.model.get('id'));
             var self = this;
             var memberof = this.model.get('memberof');
             var membership = null;

@@ -351,10 +351,7 @@ define([
                             $(".js-notifholder").click(_.bind(function (e) {
                                 var self = this;
                                 // Fetch the notifications, which the CV will then render.
-                                console.log("Clicked on notifications");
                                 self.notifications.fetch().then(function() {
-                                    console.log("Notifications", self.notifications);
-
                                     // Clear the first notification after a while, because we'll have seen it.
                                     _.delay(function() {
                                         var notif = self.notifications.first();
@@ -452,6 +449,35 @@ define([
 
                             resolve(self);
                         });
+
+                        // Check whether we need to reconfirm any affiliation.
+                        if (Iznik.Session.isFreegleMod()) {
+                            var groups = Iznik.Session.get('groups');
+
+                            // Shuffle so that we ask for a different one, in case they need to consult other mods.
+                            groups.reset(groups.shuffle(), {silent:true});
+
+                            var first = true;
+                            groups.each(function(group) {
+                                if (group.get('type') == 'Freegle') {
+                                    var affiliated = group.get('affiliationconfirmed');
+                                    var age = ((new Date()).getTime() - (new Date(affiliated)).getTime()) / 60 * 60 * 24;
+
+                                    if (!affiliated || age > 365) {
+                                        // Not confirmed within the last year.
+                                        if (first) {
+                                            var v = new Iznik.Views.ConfirmAffiliation({
+                                                model: new Iznik.Models.Group(group.attributes)
+                                            });
+
+                                            v.render();
+
+                                            first = false;
+                                        }
+                                    }
+                                }
+                            });
+                        }
                     });
 
                     Iznik.Session.testLoggedIn();
@@ -754,4 +780,52 @@ define([
             return(p)
         }
     })
+
+    Iznik.Views.ConfirmAffiliation = Iznik.Views.Modal.extend({
+        template: 'confirmaffiliation',
+
+        events: {
+            'click .js-cancel': 'notnow',
+            'click .js-confirm': 'confirm'
+        },
+
+        notnow: function() {
+            var self = this;
+
+            var now = (new Date()).getTime();
+            Storage.set('lastaffiliationask', now);
+
+            self.close();
+        },
+
+        confirm: function() {
+            var self = this;
+
+            var now = (new Date()).getTime();
+            Storage.set('lastaffiliationask', now);
+
+            self.model.save({
+                'id': self.model.get('id'),
+                'affiliationconfirmed': (new Date()).toISOString()
+            }, {
+                patch: true
+            });
+
+            self.close();
+        },
+
+        render: function() {
+            var self = this;
+            var lastask = Storage.get('lastaffiliationask');
+            var now = (new Date()).getTime();
+
+            var p = resolvedPromise(self);
+
+            if (now - lastask > 24 * 60 * 60 * 1000) {
+                p = Iznik.Views.Modal.prototype.render.call(self);
+            }
+
+            return(p);
+        }
+    });
 });

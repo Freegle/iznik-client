@@ -20,7 +20,7 @@ class Group extends Entity
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo',
         'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
-        'contactmail', 'fundingtarget');
+        'contactmail', 'fundingtarget', 'affiliationconfigured');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -375,7 +375,7 @@ class Group extends Entity
         $atts['settings'] = array_replace_recursive($this->defaultSettings, json_decode($atts['settings'], true));
         $atts['founded'] = ISODate($this->group['founded']);
 
-        foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
+        foreach (['trial', 'licensed', 'licenseduntil', 'affiliationconfirmed'] as $datefield) {
             $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;
         }
 
