@@ -1651,6 +1651,7 @@ define([
                         all: false,
                         mod: false,
                         choose: true,
+                        grouptype: 'Freegle',
                         id: 'reportGroupSelect'
                     });
 
