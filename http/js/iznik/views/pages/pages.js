@@ -455,11 +455,20 @@ define([
                             var groups = Iznik.Session.get('groups');
 
                             // Shuffle so that we ask for a different one, in case they need to consult other mods.
-                            groups.reset(groups.shuffle(), {silent:true});
+                            //
+                            // Don't shuffle the collection as we don't want to change the order for elsewhere.
+                            var ids = [];
+                            groups.each(function(group) {
+                                ids.push(group.get('id'));
+                            });
+
+                            ids = _.shuffle(ids);
 
                             var first = true;
-                            groups.each(function(group) {
-                                if (group.get('type') == 'Freegle') {
+                            _.each(ids, function(id) {
+                                var group = groups.get(id);
+
+                                if (group.get('type') == 'Freegle' && (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
                                     var affiliated = group.get('affiliationconfirmed');
                                     var age = ((new Date()).getTime() - (new Date(affiliated)).getTime()) / 60 * 60 * 24;
 
