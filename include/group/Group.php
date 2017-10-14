@@ -376,7 +376,7 @@ class Group extends Entity
         $atts['founded'] = ISODate($this->group['founded']);
 
         foreach (['trial', 'licensed', 'licenseduntil', 'affiliationconfirmed'] as $datefield) {
-            $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;
+            $atts[$datefield] = pres($datefield, $atts) ? ISODate($atts[$datefield]) : NULL;
         }
 
         # Images
