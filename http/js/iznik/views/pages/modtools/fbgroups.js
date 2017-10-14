@@ -94,7 +94,9 @@ define([
                         }
                     });
 
-                    FBLoad().render();
+                    var facebookGraffitiAppId = $('meta[name=facebook-graffiti-app-id]').attr("content");
+
+                    FBLoad().render(facebookGraffitiAppId);
                 });
             });
 
