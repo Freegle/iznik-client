@@ -336,7 +336,7 @@ define([
                         'Message',
                         'CommunityEvent',
                         'VolunteerOpportunity',
-                        'CentralPublicity',
+                        // 'CentralPublicity',
                         'Alert',
                         'Story'
                     ]
