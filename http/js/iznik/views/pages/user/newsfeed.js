@@ -39,11 +39,11 @@ define([
         },
 
         newsfeedHelp: function() {
-            if (!Storage.get('newsfeedhelp')) {
-                Storage.set('newsfeedhelp', true);
-                var v = new Iznik.Views.User.Feed.Help();
-                v.render();
-            }
+            // if (!Storage.get('newsfeedhelp')) {
+            //     Storage.set('newsfeedhelp', true);
+            //     var v = new Iznik.Views.User.Feed.Help();
+            //     v.render();
+            // }
         },
 
         updateArea: function() {
