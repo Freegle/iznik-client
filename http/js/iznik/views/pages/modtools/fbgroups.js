@@ -143,7 +143,16 @@ define([
         template: 'modtools_fbgroups_group',
 
         events: {
-            'click .js-share': 'share'
+            'click .js-share': 'share',
+            'click .js-delete': 'delete'
+        },
+
+        delete: function() {
+            var self = this;
+            var g = new Iznik.Models.Group();
+            var id = self.options.message.get('id');
+            g.recordFacebookShare(self.model.get('uid'), id, self.options.message.get('arrival'));
+            self.$el.fadeOut('slow');
         },
 
         share: function() {
