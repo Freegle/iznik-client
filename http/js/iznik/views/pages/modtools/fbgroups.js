@@ -17,16 +17,11 @@ define([
         template: "modtools_fbgroups_main",
 
         events: {
-            'click .js-all': 'selectAll',
-            'click .js-share': 'share'
+            'click .js-deleteall': 'deleteall'
         },
 
-        selectAll: function() {
-            if (this.$('.js-all').is(':checked')) {
-                this.$('.js-msgselect').prop('checked', true);
-            } else {
-                this.$('.js-msgselect').prop('checked', false);
-            }
+        deleteall: function() {
+            this.$('.js-delete').click();
         },
 
         render: function () {
