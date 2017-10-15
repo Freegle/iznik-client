@@ -162,27 +162,37 @@ class Attachment
                 $options = new CreateBlobOptions();
                 $options->setBlobContentType("image/jpeg");
 
-                # Upload the thumbnail.  If this fails we'll leave it untouched.
-                $i = new Image($data);
-                if ($i->img) {
-                    $i->scale(250, 250);
-                    $thumbdata = $i->getData(100);
-                    $blobRestProxy->createBlockBlob("images", "timg_{$this->id}.jpg", $thumbdata, $options);
+                $name = NULL;
 
-                    # Upload the full size image.
-                    $blobRestProxy->createBlockBlob("images", "img_{$this->id}.jpg", $data, $options);
-
-                    $rc = TRUE;
-                } else {
-                    error_log("...failed to create image");
+                # Only these types are in archive_attachments.
+                switch ($this->type) {
+                    case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
+                    case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
                 }
 
-            } catch (Exception $e) {}
+                if ($name) {
+                    # Upload the thumbnail.  If this fails we'll leave it untouched.
+                    $i = new Image($data);
+                    if ($i->img) {
+                        $i->scale(250, 250);
+                        $thumbdata = $i->getData(100);
+                        $blobRestProxy->createBlockBlob("images", "{$tname}_{$this->id}.jpg", $thumbdata, $options);
+
+                        # Upload the full size image.
+                        $blobRestProxy->createBlockBlob("images", "{$name}_{$this->id}.jpg", $data, $options);
+
+                        $rc = TRUE;
+                    } else {
+                        error_log("...failed to create image");
+                    }
+                }
+
+            } catch (Exception $e) { error_log("Archive failed " . $e->getMessage()); }
         }
 
         if ($rc) {
             # Remove from the DB.
-            $sql = "UPDATE messages_attachments SET archived = 1, data = NULL WHERE id = {$this->id};";
+            $sql = "UPDATE {$this->table} SET archived = 1, data = NULL WHERE id = {$this->id};";
             $this->dbhm->exec($sql);
         }
 
@@ -211,7 +221,13 @@ class Attachment
                 #
                 # We fetch the data - not using SSL as we don't need to, and that host might not have a cert.  And
                 # we put it back in the DB, because we are probably going to fetch it again.
-                $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/img_{$this->id}.jpg";
+                # Only these types are in archive_attachments.
+                switch ($this->type) {
+                    case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
+                    case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
+                }
+
+                $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
                 $ret = @file_get_contents($url);
             } else {
                 $ret = $data['data'];
