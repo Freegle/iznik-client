@@ -182,8 +182,7 @@ define([
 
         allseen: function() {
             var self = this;
-            console.log("Allseen", self.get('unseen'), self.get('id'));
-            
+
             if (self.get('unseen') > 0) {
                 // Record that we have seen the last message, and there are no unseen ones left.
                 $.ajax({

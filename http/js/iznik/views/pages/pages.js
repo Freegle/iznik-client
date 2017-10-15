@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
+    'iznik/models/group',
     'iznik/events',
     'iznik/models/notification'
 ], function($, _, Backbone, Iznik, ChatHolder, monitor) {
@@ -747,7 +748,6 @@ define([
                     self.$('.backinfo').removeClass('backinfo');
 
                     if (self.options.notificationCheck) {
-                        console.log("Update notifications after seen");
                         self.options.notificationCheck.call(self.options.page);
                     }
                 });

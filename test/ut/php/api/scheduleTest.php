@@ -88,7 +88,8 @@ class scheduleAPITest extends IznikAPITestCase {
             'id' => $id,
             'schedule' => [
                 'test' => 2
-            ]
+            ],
+            'agreed' => '2017-01-01'
         ]);
         assertEquals(0, $ret['ret']);
 

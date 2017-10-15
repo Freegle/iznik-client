@@ -64,15 +64,22 @@ function schedule() {
 
             if (in_array($myid, $atts['users'])) {
                 $s->setSchedule(presdef('schedule', $_REQUEST, NULL));
+                $agreed = presdef('agreed', $_REQUEST, NULL);
 
                 foreach ($atts['users'] as $user) {
                     if ($user != $myid) {
                         # Create a message in a chat between the users to show that we have updated this schedule.
+                        #
+                        # Any agreed time is held in the message.
                         $r = new ChatRoom($dbhr, $dbhm);
                         $rid = $r->createConversation($myid, $user);
                         $m = new ChatMessage($dbhr, $dbhm);
-                        $mid = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, $id);
+                        $mid = $m->create($rid, $myid, $agreed, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, $id);
                     }
+                }
+
+                if ($agreed) {
+                    $s->setPrivate('agreed', $agreed);
                 }
 
                 $ret = [

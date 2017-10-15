@@ -1346,6 +1346,7 @@ define([
                         model: m,
                         id: s.get('id'),
                         other: true,
+                        schedule: s,
                         otherid: self.options.chatModel.otherUser(),
                         slots: s.get('schedule')
                     });
@@ -1509,6 +1510,12 @@ define([
 
                 p = Iznik.View.Timeago.prototype.render.call(this);
                 p.then(function (self) {
+                    if (self.model.get('type') == 'ScheduleUpdated') {
+                        // Any agreed time is held in the message.
+                        var m = new moment(self.model.get('message'));
+                        self.$('.js-agreed').html(m.format("dddd Do, hh:mma"));
+                    }
+
                     if (self.model.get('type') == 'ModMail' && self.model.get('refmsg')) {
                         // ModMails may related to a message which has been rejected.  If so, add a button to
                         // edit and resend.
