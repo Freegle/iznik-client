@@ -1241,7 +1241,7 @@ class Group extends Entity
     public function listByType($type, $support) {
         $typeq = $type ? "type = ?" : '1=1';
         $showq = $support ? '' : 'AND publish = 1 AND listable = 1';
-        $suppfields = $support ? ", lastmoderated, lastmodactive, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed": '';
+        $suppfields = $support ? ", lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed": '';
 
         $sql = "SELECT id, nameshort, region, authorityid, namefull, lat, lng, publish $suppfields, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
