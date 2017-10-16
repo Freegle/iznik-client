@@ -20,7 +20,7 @@ class Group extends Entity
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo',
         'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
-        'contactmail', 'fundingtarget', 'affiliationconfigured');
+        'contactmail', 'fundingtarget', 'affiliationconfirmed');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
