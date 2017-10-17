@@ -3850,6 +3850,13 @@ class Message
             }
         }
 
+        if (!$autoreply) {
+            $auto = $this->getHeader('auto-submitted');
+            if ($auto && stripos($auto, 'auto-') !== FALSE) {
+                $autoreply = TRUE;
+            }
+        }
+
         return ($autoreply);
     }
 
