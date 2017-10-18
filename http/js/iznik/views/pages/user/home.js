@@ -366,6 +366,7 @@ define([
                                     }
                                 });
                             } else if (self.options.action == 'repost') {
+                                console.log("Click repost");
                                 self.$('.js-repost').click();
                                 $.ajax({
                                     url: API + 'message',
@@ -437,7 +438,7 @@ define([
                 self.$el.fadeOut('slow', function () {
                     self.destroyIt();
                 });
-            })
+            });
 
             v.render();
         },
@@ -445,9 +446,13 @@ define([
         render: function() {
             var self = this;
 
-            Iznik.Views.User.Message.prototype.render.call(this).then(function() {
+            var p = Iznik.Views.User.Message.prototype.render.call(this);
+            p.then(function() {
                 self.$('.js-outcometime').timeago();
             });
+
+
+            return(p);
         }
     });
 
@@ -479,7 +484,7 @@ define([
                 self.$el.fadeOut('slow', function () {
                     self.destroyIt();
                 });
-            })
+            });
 
             v.render();
         },
@@ -487,9 +492,12 @@ define([
         render: function() {
             var self = this;
 
-            Iznik.Views.User.Message.prototype.render.call(this).then(function() {
+            var p = Iznik.Views.User.Message.prototype.render.call(this);
+            p.then(function() {
                 self.$('.js-outcometime').timeago();
             });
+
+            return(p);
         }
     });
 

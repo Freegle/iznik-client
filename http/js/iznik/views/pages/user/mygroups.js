@@ -56,6 +56,7 @@ define([
                         systemWide: false,
                         all: true,
                         mod: false,
+                        grouptype: 'Freegle',
                         id: 'myGroupsSelect'
                     });
 

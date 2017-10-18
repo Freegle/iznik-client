@@ -8,6 +8,23 @@ global $dbhr, $dbhm;
 
 $lockh = lockScript(basename(__FILE__));
 
+# We archive chat photos out of the DB into Azure.  This reduces load on the servers because we don't have to serve
+# the images up, and it also reduces the disk space we need within the DB (which is not an ideal
+# place to store large amounts of image data);
+$sql = "SELECT id FROM chat_images WHERE archived = 0;";
+$atts = $dbhr->preQuery($sql);
+error_log(count($atts) . " to archive");
+$count = 0;
+$total = count($atts);
+
+foreach ($atts as $att) {
+    $a = new Attachment($dbhr, $dbhm, $att['id'], Attachment::TYPE_CHAT_MESSAGE);
+    $a->archive();
+
+    $count++;
+    error_log("...$count / $total");
+}
+
 # We shrink profile pictures down to 200x200.
 $pics = $dbhr->preQuery("SELECT * FROM users_images WHERE data IS NOT NULL AND LENGTH(data) > 50000;");
 error_log("Check " . count($pics) . " profile pictures");
@@ -37,7 +54,7 @@ foreach ($dups as $dup) {
     ]);
 }
 
-# We archive message photos of the DB into Azure.  This reduces load on the servers because we don't have to serve
+# We archive message photos out of the DB into Azure.  This reduces load on the servers because we don't have to serve
 # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
 # place to store large amounts of image data);
 $sql = "SELECT id FROM messages_attachments WHERE archived = 0;";

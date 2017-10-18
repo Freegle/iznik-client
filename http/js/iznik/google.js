@@ -61,8 +61,6 @@ define([
                     self.disabled = true;
                 } */
 
-                console.log("Set up sign in button", id, self.disabled);
-
                 if (self.disabled) {
                     console.error("Google sign in failed - blocked?");
                     $('#' + id + ' img').addClass('signindisabled');

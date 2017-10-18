@@ -1,9 +1,29 @@
 <h3>
-    Schedule a collection with <span class="js-name" />
+    Choose a collection time with <span class="js-name" />
 </h3>
 <div class="js-help" />
+<div class="row js-suggestionwrapper" style="display: none;">
+    <div class="col-xs-12">
+        <% if (obj.agreed) { %>
+        <div class="alert alert-success">
+            <h4 class="text-center">Agreed time: <span class="js-agreed" /></h4>
+        </div>
+        <% } %>
+        <div class="alert alert-info">
+            <h4 class="text-center">Suggested Times</h4>
+            <p class="text-center">These are times you can both make.</p>
+            <ul class="list-unstyled js-suggestions" />
+            <div class="row">
+                <div class="col-xs-12">
+                    <button type="button" class="pull-right btn btn-success js-confirm"><span class="glyphicon glyphicon-floppy-save" />&nbsp;Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-xs-12">
+        <h4 class="text-center">Who's Free When</h4>
         <table class="table table-striped table-fixedheader backwhite" style="display: block">
             <thead class="completefull">
                 <tr class="completefull">

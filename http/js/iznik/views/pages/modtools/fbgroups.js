@@ -17,16 +17,11 @@ define([
         template: "modtools_fbgroups_main",
 
         events: {
-            'click .js-all': 'selectAll',
-            'click .js-share': 'share'
+            'click .js-deleteall': 'deleteall'
         },
 
-        selectAll: function() {
-            if (this.$('.js-all').is(':checked')) {
-                this.$('.js-msgselect').prop('checked', true);
-            } else {
-                this.$('.js-msgselect').prop('checked', false);
-            }
+        deleteall: function() {
+            this.$('.js-delete').click();
         },
 
         render: function () {
@@ -94,7 +89,9 @@ define([
                         }
                     });
 
-                    FBLoad().render();
+                    var facebookGraffitiAppId = $('meta[name=facebook-graffiti-app-id]').attr("content");
+
+                    FBLoad().render(facebookGraffitiAppId);
                 });
             });
 
@@ -143,21 +140,30 @@ define([
         template: 'modtools_fbgroups_group',
 
         events: {
-            'click .js-share': 'share'
+            'click .js-share': 'share',
+            'click .js-delete': 'delete'
+        },
+
+        delete: function() {
+            var self = this;
+            var g = new Iznik.Models.Group();
+            var id = self.options.message.get('id');
+            g.recordFacebookShare(self.model.get('uid'), id, self.options.message.get('arrival'));
+            self.$el.fadeOut('slow');
         },
 
         share: function() {
             var self = this;
 
-            FB.login(function(){
+            FB.login(function(response){
                 var id = self.options.message.get('id');
                 FB.api('/' + self.model.get('id') + '/feed', 'post', {
                     link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup'
                 }, function(response) {
                     console.log("Share returned", response);
                     if (response.hasOwnProperty('error')) {
-                        self.$('.js-error').html(response.error);
-                        self.$el.show();
+                        self.$('.js-error').html(response.error.message);
+                        self.$('.js-errorwrapper').fadeIn('slow');
                     } else {
                         self.$el.fadeOut('slow');
                         var g = new Iznik.Models.Group();

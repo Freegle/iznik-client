@@ -349,7 +349,7 @@ class ChatRoom extends Entity
                 case ChatMessage::TYPE_ADDRESS: $ret['snippet'] = 'Address sent...'; break;
                 case ChatMessage::TYPE_NUDGE: $ret['snippet'] = 'Nudged'; break;
                 case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Scheduling collection...'; break;
-                case ChatMessage::TYPE_SCHEDULE: $ret['snippet'] = 'Schedule updated...'; break;
+                case ChatMessage::TYPE_SCHEDULE_UPDATED: $ret['snippet'] = 'Schedule updated...'; break;
                 default: $ret['snippet'] = substr($last['message'], 0, 30); break;
             }
         }

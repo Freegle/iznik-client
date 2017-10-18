@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/misc/Shortlink.php');
 require_once(IZNIK_BASE . '/include/message/Attachment.php');
+require_once(IZNIK_BASE . '/include/group/Facebook.php');
 
 class Group extends Entity
 {
@@ -19,7 +20,7 @@ class Group extends Entity
     var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo',
         'onyahoo', 'onhere', 'ontn', 'trial', 'licenserequired', 'licensed', 'licenseduntil', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'showonyahoo', 'external', 'welcomemail', 'description',
-        'contactmail', 'fundingtarget');
+        'contactmail', 'fundingtarget', 'affiliationconfirmed');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -374,8 +375,8 @@ class Group extends Entity
         $atts['settings'] = array_replace_recursive($this->defaultSettings, json_decode($atts['settings'], true));
         $atts['founded'] = ISODate($this->group['founded']);
 
-        foreach (['trial', 'licensed', 'licenseduntil'] as $datefield) {
-            $atts[$datefield] = $atts[$datefield] ? ISODate($atts[$datefield]) : NULL;
+        foreach (['trial', 'licensed', 'licenseduntil', 'affiliationconfirmed'] as $datefield) {
+            $atts[$datefield] = pres($datefield, $atts) ? ISODate($atts[$datefield]) : NULL;
         }
 
         # Images
@@ -489,7 +490,7 @@ class Group extends Entity
         $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
 
         $members = $this->dbhr->preQuery($sql);
-        error_log($sql);
+        #error_log($sql);
 
         $ctx = [ 'Added' => NULL ];
 
@@ -994,7 +995,9 @@ class Group extends Entity
                         ]);
                     }
 
-                    $this->dbhm->preExec("DELETE FROM memberships WHERE id = ?;", [ $todelete['id'] ]);
+                    $this->dbhm->preExec("DELETE FROM memberships WHERE id = ?;", [
+                        $todelete['id']
+                    ]);
                 }
 
                 # Having logged them, delete them.
@@ -1238,7 +1241,7 @@ class Group extends Entity
     public function listByType($type, $support) {
         $typeq = $type ? "type = ?" : '1=1';
         $showq = $support ? '' : 'AND publish = 1 AND listable = 1';
-        $suppfields = $support ? ", lastmoderated, lastmodactive, activemodcount, backupmodsactive, backupownersactive, onmap": '';
+        $suppfields = $support ? ", lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed": '';
 
         $sql = "SELECT id, nameshort, region, authorityid, namefull, lat, lng, publish $suppfields, CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial, onhere, onyahoo, ontn, onmap, external, showonyahoo, profile, tagline, contactmail FROM groups WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);

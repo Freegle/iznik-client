@@ -379,59 +379,61 @@ class Newsfeed extends Entity
         $users = [];
         $items = [];
 
-        # We want the newsfeed items which are close to us.  Use the location in settings, or failing that the
-        # last location they've posted from.
-        list ($lat, $lng) = $u->getLatLng();
+        if ($userid) {
+            # We want the newsfeed items which are close to us.  Use the location in settings, or failing that the
+            # last location they've posted from.
+            list ($lat, $lng) = $u->getLatLng();
 
-        # To use the spatial index we need to have a box.
-        $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
-        $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
+            # To use the spatial index we need to have a box.
+            $ne = GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
+            $sw = GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
-        $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
+            $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
-        # We return most recent first.
-        $tq = pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
-        $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert')) AND $tq" : $tq;
-        $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
+            # We return most recent first.
+            $tq = pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
+            $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert')) AND $tq" : $tq;
+            $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
-        $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
-        #error_log($sql);
-        $entries = $this->dbhr->preQuery($sql);
-        $last = NULL;
+            $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL $typeq ORDER BY timestamp DESC LIMIT 5;";
+            #error_log($sql);
+            $entries = $this->dbhr->preQuery($sql);
+            $last = NULL;
 
-        $me = whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+            $me = whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
 
-        foreach ($entries as &$entry) {
-            $hidden = $entry['hidden'];
+            foreach ($entries as &$entry) {
+                $hidden = $entry['hidden'];
 
-            # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
-            # are there but nobody else sees them.
-            if (!$hidden || $myid == $entry['userid']) {
-                unset($entry['hidden']);
+                # Don't use hidden entries unless they are ours.  This means that to a spammer it looks like their posts
+                # are there but nobody else sees them.
+                if (!$hidden || $myid == $entry['userid']) {
+                    unset($entry['hidden']);
 
-                if ($fillin) {
-                    $this->fillIn($entry, $users);
+                    if ($fillin) {
+                        $this->fillIn($entry, $users);
 
-                    # We return invisible entries - they are filtered on the client, and it makes the paging work.
-                    if ($entry['visible'] &&
-                        $last['userid'] == $entry['userid'] &&
-                        $last['type'] == $entry['type'] &&
-                        $last['message'] == $entry['message']) {
-                        # Suppress duplicates.
-                        $entry['visible'] = FALSE;
+                        # We return invisible entries - they are filtered on the client, and it makes the paging work.
+                        if ($entry['visible'] &&
+                            $last['userid'] == $entry['userid'] &&
+                            $last['type'] == $entry['type'] &&
+                            $last['message'] == $entry['message']) {
+                            # Suppress duplicates.
+                            $entry['visible'] = FALSE;
+                        }
                     }
+
+                    $items[] = $entry;
                 }
 
-                $items[] = $entry;
+                $ctx = [
+                    'timestamp' => ISODate($entry['timestamp']),
+                    'distance' => $dist
+                ];
+
+                $last = $entry;
             }
-
-            $ctx = [
-                'timestamp' => ISODate($entry['timestamp']),
-                'distance' => $dist
-            ];
-
-            $last = $entry;
         }
 
         return([$users, $items]);
@@ -458,7 +460,6 @@ class Newsfeed extends Entity
             $myid,
             $referredid
         ]);
-        error_log("Refer $rc " . $this->dbhm->rowsAffected());
     }
 
     public function like() {

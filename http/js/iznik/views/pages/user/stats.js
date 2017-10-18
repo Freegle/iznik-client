@@ -405,20 +405,61 @@ define([
                     },
                     success: function (ret) {
                         var coll = new Iznik.Collections.DateCounts(ret.dashboard.eBay);
-                        console.log("Data", coll);
                         var base = coll.first().get('count');
+                        var baserival = coll.first().get('rival');
                         coll.each(function (s) {
                             s.set('count', s.get('count') - base);
+                            s.set('rival', s.get('rival') - baserival);
                             s.set('date', s.get('timestamp'));
                         });
 
-                        var graph = new Iznik.Views.DateGraph({
-                            target: self.$('.js-graph').get()[0],
-                            data: coll,
-                            title: 'eBay Voting'
-                        });
+                        function apiLoaded() {
+                            // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                            _.defer(function () {
+                                Iznik.View.prototype.render.call(self).then(function(self) {
+                                    var data = new google.visualization.DataTable();
+                                    data.addColumn('date', 'Date');
+                                    data.addColumn('number', 'Count');
+                                    data.addColumn('number', 'Rival');
+                                    coll.each(function (count) {
+                                        if (coll.indexOf(count) < coll.length) {
+                                            data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10), parseInt(count.get('rival'), 10)]);
+                                        }
+                                    });
 
-                        graph.render();
+                                    var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
+                                    formatter.format(data, 1);
+
+                                    self.chart = new google.visualization.LineChart(self.$('.js-graph').get()[0]);
+                                    self.data = data;
+                                    self.chartOptions = {
+                                        title: 'eBay Voting',
+                                        interpolateNulls: false,
+                                        animation: {
+                                            duration: 5000,
+                                            easing: 'out',
+                                            startup: true
+                                        },
+                                        legend: {position: 'none'},
+                                        chartArea: {'width': '80%', 'height': '80%'},
+                                        vAxis: {viewWindow: {min: 0}},
+                                        hAxis: {
+                                            format: 'dd MMM'
+                                        },
+                                        series: {
+                                            0: {color: 'darkgreen'},
+                                            1: {color: 'red'}
+                                        }
+                                    };
+                                    self.chart.draw(self.data, self.chartOptions);
+                                });
+                            });
+                        }
+
+                        google.load('visualization', '1.0', {
+                            'packages':['corechart', 'annotationchart'],
+                            'callback': apiLoaded
+                        });
                     }
                 });
             });

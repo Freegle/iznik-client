@@ -121,6 +121,8 @@ class dashboardTest extends IznikAPITestCase {
         $dash = $ret['dashboard'];
         self::assertEquals($group1, $ret['dashboard']['groupids'][0]);
 
+        $this->dbhm->preExec("DELETE FROM authorities WHERE name = 'Tuvulu Authority';");
+
         error_log(__METHOD__ . " end");
     }
 

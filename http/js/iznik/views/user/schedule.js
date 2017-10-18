@@ -17,11 +17,11 @@ define([
             'click .js-cancel': 'cancel'
         },
 
-        cancel: function() {
+        cancel: function () {
             this.trigger('cancelled');
         },
 
-        save: function() {
+        save: function () {
             var self = this;
 
             var myid = Iznik.Session.get('me').id;
@@ -29,10 +29,14 @@ define([
 
             var slots = [];
 
-            _.each(self.slots, function(slot) {
+            _.each(self.slots, function (slot) {
+                var d = new moment(slot.get('date'));
+                d.hour(slot.get('hour'));
+                d = d.format();
+
                 slots.push({
                     hour: slot.get('hour'),
-                    date: slot.get('date'),
+                    date: d,
                     available: [
                         {
                             user: myid,
@@ -44,7 +48,7 @@ define([
                 if (other) {
                     slots.push({
                         hour: slot.get('hour'),
-                        date: slot.get('date'),
+                        date: d,
                         available: [
                             {
                                 user: other,
@@ -58,33 +62,78 @@ define([
             var m = new Iznik.Models.Schedule({
                 id: self.options.id,
                 userid: self.model.get('id'),
-                schedule: slots
+                schedule: slots,
+                agreed: self.options.schedule.get('agreed')
             });
 
-            m.save().then(function() {
+            m.save().then(function () {
                 self.trigger('saved');
             })
         },
 
-        render: function() {
+        addSuggestions: function() {
+            var self = this;
+
+            self.suggestions = new Iznik.Collection();
+            self.suggestions.comparator = 'date';
+
+            _.each(self.slots, function (slot) {
+                if (slot.get('availableme') && slot.get('availableother')) {
+                    self.suggestions.add(slot);
+                }
+            });
+
+            if (self.suggestions.length) {
+                self.CV = new Backbone.CollectionView({
+                    el: self.$('.js-suggestions'),
+                    modelView: Iznik.Views.User.Schedule.Suggestion,
+                    collection: self.suggestions,
+                    processKeyEvents: false,
+                    modelViewOptions: {
+                        schedule: self.options.schedule,
+                        slots: self.slots
+                    }
+                });
+
+                self.CV.render();
+
+                self.$('.js-suggestionwrapper').fadeIn('slow');
+            }
+        },
+
+        render: function () {
             var self = this;
 
             var me = Iznik.Session.get('me');
             var myid = me ? me.id : null;
 
+            self.model.set('agreed', self.options.schedule.get('agreed'));
+
             var p = Iznik.View.prototype.render.call(this);
 
-            p.then(function() {
+            p.then(function () {
                 if (self.options.cancel) {
                     self.$('.js-cancel').show();
                 }
+
+                var v = new Iznik.Views.Help.Box();
+                v.template = 'user_schedule_help';
+                v.render().then(function (v) {
+                    self.$('.js-help').html(v.el);
+                });
+
                 self.$('.js-name').html(self.model.get('displayname'));
+
+                if (self.model.get('agreed')) {
+                    var m = new moment(self.model.get('agreed'));
+                    self.$('.js-agreed').html(m.format("dddd Do, hh:mma"));
+                }
 
                 // Add headings for the next seven days.
                 for (var i = 0; i < 7; i++) {
                     var d = new Date();
                     d.setDate(d.getDate() + i);
-                    d.setHours(0,0,0,0);
+                    d.setHours(0, 0, 0, 0);
 
                     var v = new Iznik.Views.User.Schedule.Date({
                         model: new Iznik.Model({
@@ -97,7 +146,7 @@ define([
                     self.$('.js-headings').append(v.$el);
                 }
 
-                _.delay(function() {
+                _.delay(function () {
                     // Add the time slots.
                     var me = new Iznik.Model(Iznik.Session.get('me'));
 
@@ -117,7 +166,7 @@ define([
                         for (var i = 0; i < 7; i++) {
                             var d = new Date();
                             d.setDate(d.getDate() + i);
-                            d.setHours(0,0,0,0);
+                            d.setHours(h, 0, 0, 0);
 
                             var availableme = false;
                             var availableother = false;
@@ -125,11 +174,11 @@ define([
                             if (self.options.slots) {
                                 // We have been passed the slot information.  That is currently objective - we need to
                                 // make it subjective, i.e. refer to us and the other.
-                                _.each(self.options.slots, function(slot) {
+                                _.each(self.options.slots, function (slot) {
                                     // console.log("Consider slot", slot, h, d);
                                     if (slot.hour == h && new Date(slot.date).getTime() == d.getTime()) {
 
-                                        _.each(slot.available, function(available) {
+                                        _.each(slot.available, function (available) {
                                             if (available.user == myid) {
                                                 availableme = available.hasOwnProperty('available') ? available.available : false;
                                             } else if (available.user == self.model.get('id')) {
@@ -137,10 +186,11 @@ define([
                                             }
                                         });
                                     }
-                                })
+                                });
                             }
 
                             var s = new Iznik.Model({
+                                id: d,
                                 hour: h,
                                 date: d,
                                 me: me,
@@ -160,40 +210,45 @@ define([
                             self.$('.js-slots tr:last').append(v.$el);
                         }
 
-                        _.delay(function() {
+                        _.delay(function () {
                             self.$('.js-slots').scrollTo(self.$('.js-morning'), 'slow');
                         }, 1000);
+
+                        self.addSuggestions();
+                        self.listenTo(self.slots, 'change', self.addSuggestions);
+                        self.listenTo(self.options.schedule, 'change', self.addSuggestions);
                     }
                 }, 100);
             });
 
-            return(p);
+            return (p);
         }
     });
 
     Iznik.Views.User.Schedule.Modal = Iznik.Views.Modal.extend({
         template: 'user_schedule_modal',
 
-        render: function() {
+        render: function () {
             var self = this;
 
             var p = Iznik.Views.Modal.prototype.render.call(this);
 
-            p.then(function() {
+            p.then(function () {
                 var v = new Iznik.Views.User.Schedule({
                     model: self.model,
                     id: self.options.id,
                     other: self.options.other,
                     otherid: self.options.otherid,
                     slots: self.options.slots,
+                    schedule: self.options.schedule,
                     cancel: true
                 });
 
-                self.listenToOnce(v, 'saved', function() {
+                self.listenToOnce(v, 'saved', function () {
                     self.close();
                 });
 
-                self.listenToOnce(v, 'cancelled', function() {
+                self.listenToOnce(v, 'cancelled', function () {
                     self.close();
                 });
 
@@ -201,7 +256,7 @@ define([
                 self.$('.js-schedule').append(v.$el);
             });
 
-            return(p);
+            return (p);
         }
     });
 
@@ -216,22 +271,26 @@ define([
             'click': 'select'
         },
 
-        initialize: function() {
+        initialize: function () {
             this.listenTo(this.model, 'change', this.render)
         },
 
-        select: function() {
+        select: function () {
+            var self = this;
+
             var myid = Iznik.Session.get('me').id;
-            this.model.set('availableme', this.model.get('availableme') ? false: true);
+            this.model.set('availableme', this.model.get('availableme') ? false : true);
 
             this.render();
+
+            self.options.slots.trigger('change');
         },
 
-        render: function() {
+        render: function () {
             var self = this;
             var p = Iznik.View.prototype.render.call(this);
 
-            p.then(function() {
+            p.then(function () {
                 if (self.options.other) {
                     self.$('.js-other').show();
                 }
@@ -245,10 +304,9 @@ define([
                 }
             });
 
-            return(p);
+            return (p);
         }
     });
-
 
     Iznik.Views.User.Schedule.Date = Iznik.View.extend({
         tagName: 'th',
@@ -261,12 +319,12 @@ define([
             'click': 'select'
         },
 
-        select: function() {
+        select: function () {
             var self = this;
             var currval = 0;
 
             // Take majority opinion about whether we're selected.
-            _.each(self.options.slots, function(slot) {
+            _.each(self.options.slots, function (slot) {
                 if (slot.get('date').getTime() == self.model.get('date').getTime()) {
                     if (slot.get('availableme')) {
                         currval++;
@@ -276,14 +334,16 @@ define([
                 }
             });
 
-            _.each(self.options.slots, function(slot) {
+            _.each(self.options.slots, function (slot) {
                 if (slot.get('date').getTime() == self.model.get('date').getTime()) {
                     slot.set('availableme', currval <= 0);
                 }
             });
+
+            self.options.slots.trigger('change');
         },
 
-        render: function() {
+        render: function () {
             var self = this;
 
             var p = Iznik.View.prototype.render.call(this);
@@ -311,13 +371,13 @@ define([
             'click': 'select'
         },
 
-        select: function() {
+        select: function () {
             var self = this;
 
             var currval = 0;
 
             // Take majority opinion about whether we're selected.
-            _.each(self.options.slots, function(slot) {
+            _.each(self.options.slots, function (slot) {
                 if (slot.get('hour') == self.model.get('hour')) {
                     if (slot.get('availableme')) {
                         currval++;
@@ -327,14 +387,16 @@ define([
                 }
             });
 
-            _.each(self.options.slots, function(slot) {
+            _.each(self.options.slots, function (slot) {
                 if (slot.get('hour') == self.model.get('hour')) {
                     slot.set('availableme', currval <= 0);
                 }
             });
+
+            self.options.slots.trigger('change');
         },
 
-        render: function() {
+        render: function () {
             var self = this;
 
             var p = Iznik.View.prototype.render.call(this);
@@ -345,6 +407,44 @@ define([
             });
 
             return (p);
+        }
+    });
+
+    Iznik.Views.User.Schedule.Suggestion = Iznik.View.extend({
+        tagName: 'li',
+
+        template: 'user_schedule_suggestion',
+
+        events: {
+            'click .js-choose': 'choose'
+        },
+
+        choose: function() {
+            var self = this;
+            self.options.schedule.set('agreed', self.model.get('date'));
+            self.$('.js-choose').hide();
+            self.$('.js-chosen').fadeIn('slow');
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
+                self.$('.js-date').html(m.format("dddd Do, hh:mma"));
+
+                if ((new Date(self.model.get('date'))).getTime() == (new Date(self.options.schedule.get('agreed'))).getTime()) {
+                    self.$('.js-choose').hide();
+                    self.$('.js-chosen').show();
+                } else {
+                    self.$('.js-chosen').hide();
+                    self.$('.js-choose').show();
+                }
+            });
+
+            return(p);
         }
     });
 });

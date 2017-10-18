@@ -116,7 +116,7 @@ class Alert extends Entity
 
             foreach ($groups as $group) {
                 #error_log("...{$alert['id']} -> {$group['nameshort']}");
-                $done += $a->mailMods($group['id'], $alert['tryhard'], $groupid != NULL);
+                $done += $a->mailMods($alert['id'], $group['id'], $alert['tryhard'], $groupid != NULL);
 
                 if ($groupid) {
                     # This is to a specific group.  We are now done.
@@ -224,7 +224,7 @@ class Alert extends Entity
         return($ret);
     }
 
-    public function mailMods($groupid, $tryhard = TRUE, $cc = FALSE) {
+    public function mailMods($alertid, $groupid, $tryhard = TRUE, $cc = FALSE) {
         list ($transport, $mailer) = getMailer();
         $done = 0;
 
@@ -233,7 +233,8 @@ class Alert extends Entity
 
         if ($tryhard || !$g->getPrivate('onyahoo')) {
             # Mail the mods individually if we're asked to, or if it's for a native group where we don't go via
-            # the owner address.
+            # the owner address.  We only want to mail each emailid once per alert, otherwise it's horrible for
+            # people on many groups.
             $sql = "SELECT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');";
             $mods = $this->dbhr->preQuery($sql, [ $groupid ]);
             error_log("..." . count($mods) . " volunteers");
@@ -247,12 +248,12 @@ class Alert extends Entity
                         error_log("check {$email['email']} real " . realEmail($email['email']));
 
                         if (realEmail($email['email'])) {
-                            # We don't want to send to a personal email if they've already clicked from that email - even
+                            # We don't want to send to a personal email if they've already been mailed at that email - even
                             # if it was on another group.  This is because some people are on many groups, with many emails,
                             # and this can flood them.  They may get a copy via the owner address, though.
                             $sql = "SELECT id, response FROM alerts_tracking WHERE userid = ? AND alertid = ? AND emailid = ?;";
                             $previous = $this->dbhr->preQuery($sql, [ $mod['userid'], $this->id, $email['id']]);
-                            $gotprevious = count($previous) > 0 && ($previous[0]['response'] == 'Read' || $previous[0]['response'] == 'Clicked');
+                            $gotprevious = count($previous) > 0;
 
                             if (!$gotprevious) {
                                 $this->dbhm->preExec("INSERT INTO alerts_tracking (alertid, groupid, userid, emailid, `type`) VALUES (?,?,?,?,?);",

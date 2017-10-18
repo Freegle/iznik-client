@@ -613,6 +613,7 @@ class Message
             $text = preg_replace('/This message was sent via Freegle Direct[\s\S]*/m', '', $text);
             $text = preg_replace('/\[Non-text portions of this message have been removed\]/m', '', $text);
             $text = preg_replace('/^--$[\s\S]*/m', '', $text);
+            $text = preg_replace('/==========/m', '', $text);
 
             // Redundant line breaks.
             $text = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}/s', "\n\n", $text);
@@ -3846,6 +3847,13 @@ class Message
                 if (stripos($this->message, $body) !== FALSE) {
                     $autoreply = TRUE;
                 }
+            }
+        }
+
+        if (!$autoreply) {
+            $auto = $this->getHeader('auto-submitted');
+            if ($auto && stripos($auto, 'auto-') !== FALSE) {
+                $autoreply = TRUE;
             }
         }
 

@@ -282,7 +282,8 @@ class Spam {
             }
         }
 
-        if (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE) {
+        # TODO Removed after 2017-11-01
+        if (strpos($message, '$') !== FALSE || (strpos($message, '£7000') === FALSE && strpos($message, '£') !== FALSE)) {
             $check = TRUE;
         }
 

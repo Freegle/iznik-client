@@ -7,6 +7,7 @@ define([
     // Stickily dismissible help boxes.
     Iznik.Views.Help.Box = Iznik.View.extend({
         events: {
+            'click .js-closehelp': 'close',
             'click .js-close': 'close',
             'click .js-show': 'show'
         },

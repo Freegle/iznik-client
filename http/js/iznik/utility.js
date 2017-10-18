@@ -2,7 +2,6 @@ define([
     'jquery',
     'underscore'
 ], function($, _) {
-    console.log("Load utils.")
     // TODO Namespace pollution here
     //
     // Ensure we can log.
@@ -327,6 +326,8 @@ function templateFetch(tpl) {
         	  //console.log(html);
         	  loadedTemplates[tpl] = html;
             resolve(tpl);
+        }, function(err) {
+            console.log("Require error in", tpl, err);
         })
     });
 
