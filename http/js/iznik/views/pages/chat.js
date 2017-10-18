@@ -179,7 +179,6 @@ define([
 
                     // When we click to select, we want to load that chat.
                     self.chatsCV1.on('selectionChanged', function(selected) {
-                        console.log("selectionChanged", selected);
                         if (selected.length > 0) {
                             self.loadChat(selected[0]);
                         }
@@ -908,7 +907,6 @@ define([
                 }).then(function () {
                     // If the last message was a while ago, remind them about nudging.
                     var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
-                    console.log("Age", age, self.model.get('lastdate'));
 
                     if (age > 24 && !self.shownNudge) {
                         self.$('.js-nudge').tooltip('show');

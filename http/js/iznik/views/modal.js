@@ -4,7 +4,7 @@ define([
     'backbone',
     'iznik/base'
 ], function($, _, Backbone, Iznik) {
-        var modalOpen = null;
+    var modalOpen = null;
 
     Iznik.Views.Modal = Iznik.View.extend({
         events: {
@@ -97,6 +97,10 @@ define([
         open: function(template){
             var self = this;
             var p;
+
+            // We want the back button to close the modal.  We achieve this by adding an entry for the modal here.
+            // When we get the popstate event we can then close this modal.
+            window.history.pushState('modalOpen', null, window.location.href);
 
             if (template) {
                 // For more complex modals we might have set up the content before calling open.
@@ -223,19 +227,11 @@ define([
         }
     });
 
-    // Test code.
-    //
-    // for (var i = 0; i < 10; i++) {
-    //     setTimeout(function() {
-    //         console.log("Open one")
-    //         var v = new Iznik.Views.PleaseWait({
-    //             timeout: Math.random() * 10000 + 5000
-    //         })
-    //         v.render();
-    //         setTimeout(function() {
-    //             console.log("Close one");
-    //             v.close();
-    //         },  Math.random() * 20000 + 5000);
-    //     }, Math.random() * 10000 + 5000);
-    // }
+    // We want the back button to close any open modal.
+    $(window).on('popstate', function(event, data) {
+        if (modalOpen) {
+            modalOpen.cancel();
+            modalOpen = null;
+        }
+    });
 });

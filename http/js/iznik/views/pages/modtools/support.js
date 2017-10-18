@@ -425,10 +425,15 @@ define([
                 editable: false,
                 cell: OurDate
             }, {
+                name: 'affiliationconfirmed',
+                label: 'Affiliation confirmed',
+                editable: false,
+                cell: 'date'
+            }, {
                 name: 'lastautoapprove',
                 label: 'Last auto-approve',
                 editable: false,
-                cell: OurDate
+                cell: 'date'
             }, {
                 name: 'lastmodactive',
                 label: 'Last on MT',

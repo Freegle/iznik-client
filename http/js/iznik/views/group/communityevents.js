@@ -326,6 +326,7 @@ define([
                         all: false,
                         mod: false,
                         choose: false,
+                        grouptype: 'Freegle',
                         id: 'eventGroupSelect-' + self.model.get('id')
                     });
 

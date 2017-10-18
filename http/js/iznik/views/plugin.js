@@ -348,7 +348,10 @@ define([
                         // console.log("Start", crumb);
                         v.start.call(v);
                     }, function() {
-                        self.collection.at(0).retry();
+                        var f = self.collection.at(0);
+                        if (f) {
+                            f.retry();
+                        }
                     }, function() {
                         v.drop.call(v);
                     })();

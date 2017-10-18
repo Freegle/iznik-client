@@ -391,9 +391,35 @@ class LoggedPDO {
                     $try++;
                 } catch (Exception $e) {
                     if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
-                        # It's a Percona deadlock - retry.
-                        $try++;
+                        # It's a Percona deadlock.
+                        #
+                        # If we're not in a transaction we can just retry and it's likely to work.
+                        #
+                        # If we're in a transaction, then there is a very nasty case we need to watch out for.
+                        # We're in a cluster, and it uses optimistic locking, which means that we can commit a
+                        # conflicting transaction on another node, and then get a deadlock error.  We can get this
+                        # on any operation partway through the transaction, even on a SELECT.  The deadline error
+                        # has aborted our transaction and everything up to this point, but if we retry then a SELECT
+                        # will work, and we will continue merrily on our way, implicitly committing as we go,
+                        # until the COMMIT; which may well work.  That means that we can do half of a transaction.
+                        # So instead we will give up, which will ripple up an exception causing either a retry of
+                        # the whole API request, or a failure of a script.  Either way we won't end up half doing stuff.
+                        #
+                        # We have observed this in practice due to user merges happening on different servers -
+                        # a background sync of the approved membership and a foreground sync of a pending membership
+                        # which both trigger a merge, but on different servers connected to different DB hosts in the
+                        # cluster.
+                        #
+                        # This is similar to https://ghostaldev.com/2016/05/22/galera-gotcha-mysql-users/
                         $msg = $e->getMessage();
+
+                        if (!$this->inTransaction) {
+                            $try++;
+                        } else {
+                            $msg = "Deadlock in transaction " . $e->getMessage() . " $sql";
+                            error_log($msg);
+                            $try = $this->tries;
+                        }
                     } else if (stripos($e->getMessage(), 'has gone away') !== FALSE || stripos($e->getMessage(), 'Lost connection to MySQL server') !== FALSE) {
                         # Try re-opening the connection.
                         $try++;

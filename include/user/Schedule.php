@@ -45,6 +45,9 @@ class Schedule extends Entity
             $ret['users'][] = $user['userid'];
         }
 
+        $ret['agreed'] = pres('agreed', $ret) ? ISODate($ret['agreed']) : NULL;
+        $ret['created'] = pres('created', $ret) ? ISODate($ret['created']) : NULL;
+
         return($ret);
     }
 

@@ -226,7 +226,42 @@ class dbTest extends IznikTestCase {
 
         $mock->retryQuery('SHOW COLUMNS FROM test;');
 
+        # Now a deadlock within a transaction.
+        error_log("Deadlock in transaction");
+        $dbconfig = array (
+            'host' => SQLHOST,
+            'port_read' => SQLPORT_READ,
+            'port_mod' => SQLPORT_MOD,
+            'user' => SQLUSER,
+            'pass' => SQLPASSWORD,
+            'database' => SQLDB
+        );
+
+        $dsn = "mysql:host={$dbconfig['host']};port={$dbconfig['port_read']};dbname={$dbconfig['database']};charset=utf8";
+
+        $mock = $this->getMockBuilder('LoggedPDO')
+            ->setConstructorArgs(array($dsn, $dbconfig['user'], $dbconfig['pass'], array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ), TRUE))
+            ->setMethods(array('parentQuery'))
+            ->getMock();
+        $this->count = 0;
+        $mock->method('parentQuery')->willThrowException(new Exception('Faked deadlock exception'));
+        $worked = false;
+
+        try {
+            $mock->beginTransaction();
+            $mock->retryQuery('SHOW COLUMNS FROM test;');
+            error_log("Didn't get exception");
+        } catch (Exception $e) {
+            error_log("Got exception as planned");
+            $worked = TRUE;
+        }
+
+        assertTrue($worked);
+
         # Now a failure in the return code
+
         error_log("query returns false");
         $dbconfig = array (
             'host' => SQLHOST,
