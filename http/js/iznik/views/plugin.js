@@ -370,7 +370,6 @@ define([
 
             function checkResponse(self) {
                 return(function(ret) {
-                    console.log("Yahoo check returned", ret);
                     if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
                         $('.js-pluginonly').show();
                         $('#js-loginbuildup').fadeOut('slow');
