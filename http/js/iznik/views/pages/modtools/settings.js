@@ -2422,7 +2422,7 @@ define([
                     _.each(facebooks, function(facebook) {
                         if (facebook.type == 'Page') {
                             if (!facebook.valid) {
-                                missingFacebook.push(faceboopk.name + ' - token invalid');
+                                missingFacebook.push(facebook.name + ' - token invalid');
                             } else {
                                 gotpage = true;
                             }
