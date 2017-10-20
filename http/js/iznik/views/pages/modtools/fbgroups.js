@@ -82,7 +82,7 @@ define([
                     self.$('.js-groupselect').html(v.el);
                 });
 
-                require(['iznik/facebook'], function(FBLoad) {
+                require(['iznik/facebook'], function (FBLoad) {
                     self.listenToOnce(FBLoad(), 'fbloaded', function () {
                         if (!FBLoad().isDisabled()) {
                             self.$('.js-share').show();
@@ -155,14 +155,20 @@ define([
         share: function() {
             var self = this;
 
-            alert("Sorry the app cannot share posts to a group");
-            //window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);   // Copy from D:\FreeglePenrithEden\iznik\http\js\iznik\views\user\message.js
+            console.log("Share 1");
+            // https://www.npmjs.com/package/cordova-plugin-facebook4
+            // https://developers.facebook.com/docs/javascript/reference/FB.api
 
-            /*FB.login(function(response){
+            facebookConnectPlugin.login(["public_profile"], function (response) {
+                console.log("Share 2");
                 var id = self.options.message.get('id');
-                FB.api('/' + self.model.get('id') + '/feed', 'post', {
-                    link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup'
-                }, function(response) {
+                //FB.api('/' + self.model.get('id') + '/feed', 'post', {
+                //    link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup'
+                //}, function(response) {
+                var requestPath = '/' + self.model.get('id') + '/feed?link=https://www.ilovefreegle.org/message/' + id + '&src=fbgroup';
+                facebookConnectPlugin.api(requestPath,["publish_actions"],
+                function(response) {
+                    console.log("Share 3");
                     console.log("Share returned", response);
                     if (response.hasOwnProperty('error')) {
                         self.$('.js-error').html(response.error.message);
@@ -172,10 +178,12 @@ define([
                         var g = new Iznik.Models.Group();
                         g.recordFacebookShare(self.model.get('uid'), id, self.options.message.get('arrival'));
                     }
+                }, function (error) {
+                    alert("2:"+error);
                 });
-            }, {
-                scope: 'publish_actions'
-            });*/
+            }, function (error) {
+                alert("1:" + error);
+            });
         }
     });
 });

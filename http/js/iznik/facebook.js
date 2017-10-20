@@ -20,8 +20,8 @@ define([
         },
         render: function () {
             var self = this;
-            // console.log("Render FBLoad");
-
+            //console.log("Render FBLoad");
+            this.trigger('fbloaded');   // For Facebook groups
             /*if (self.FBLoaded) {
                 // console.log("Already loaded");
                 this.trigger('fbloaded');
