@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="org.ilovefreegle.iphone" ios-CFBundleVersion="131" version="1.2.9" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="org.ilovefreegle.iphone" ios-CFBundleVersion="132" version="1.2.9" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Freegle</name>
     <description>Offer and request free items on your local Freegle reuse group</description>
     <author />
@@ -52,6 +52,7 @@
     <icon height="50" platform="ios" src="package-assets/FreegleLaunch50.png" width="50" />
     <icon height="100" platform="ios" src="package-assets/FreegleLaunch100.png" width="100" />
     <icon height="167" platform="ios" src="package-assets/FreegleLaunch167.png" width="167" />
+	  <icon height="1024" platform="ios" src="package-assets/FreegleLaunch1024.png" width="1024" />
     <platform name="ios">
         <config-file parent="LSApplicationQueriesSchemes" platform="ios" target="*-Info.plist">
             <array>
