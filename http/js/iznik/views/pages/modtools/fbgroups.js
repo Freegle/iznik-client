@@ -179,10 +179,12 @@ define([
                         g.recordFacebookShare(self.model.get('uid'), id, self.options.message.get('arrival'));
                     }
                 }, function (error) {
-                    alert("2:"+error);
+                    console.log("2:");
+                    console.log(error);
                 });
             }, function (error) {
-                alert("1:" + error);
+                console.log("1:");
+                console.log(error);
             });
         }
     });
