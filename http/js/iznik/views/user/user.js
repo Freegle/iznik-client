@@ -139,6 +139,8 @@ define([
             // Remove membership
             var self = this;
 
+            console.log("IDs in remove", self.model.get('id'), self.model.get('userid'));
+
             var v = new Iznik.Views.Confirm({
                 model: self.model
             });
@@ -242,6 +244,8 @@ define([
         render: function() {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
+                console.log("IDs in render", self.model.get('id'), self.model.get('userid'));
+
                 self.historyColl = new Iznik.Collections.ModTools.MessageHistory();
                 _.each(self.model.get('messagehistory'), function (message, index, list) {
                     // Invent a unique ID which will show reposts of the same message, otherwise the collection
