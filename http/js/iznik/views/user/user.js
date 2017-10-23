@@ -4,9 +4,10 @@ define([
     'backbone',
     'moment',
     'iznik/base',
+    'backform',
     'iznik/views/modal',
     'bootstrap-switch'
-], function($, _, Backbone, moment, Iznik) {
+], function($, _, Backbone, moment, Iznik, Backform) {
     Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
 
