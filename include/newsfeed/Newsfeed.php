@@ -549,11 +549,11 @@ class Newsfeed extends Entity
         }
     }
 
-    private function snip(&$msg) {
+    private function snip(&$msg, $len = 117) {
         if ($msg) {
             $msg = str_replace("\n", ' ', $msg);
-            if (strlen($msg) > 117) {
-                $msg = substr($msg, 0, strpos(wordwrap($msg, 120), "\n")) . '...';
+            if (strlen($msg) > $len) {
+                $msg = substr($msg, 0, strpos(wordwrap($msg, $len + 3), "\n")) . '...';
             }
         }
     }
@@ -584,7 +584,8 @@ class Newsfeed extends Entity
             # Get the first few user-posted messages.
             $ctx = NULL;
             list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 8046), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
-            $summ = '';
+            $textsumm = '';
+            $htmlsumm = '';
             $max = 0;
 
             $oldest = ISODate(date("Y-m-d H:i:s", strtotime("midnight 7 days ago")));
@@ -595,8 +596,14 @@ class Newsfeed extends Entity
 
                     $str = $feed['message'];
                     $this->snip($str);
+
+                    $short = $feed['message'];
+                    $this->snip($short, 40);
+                    $subj = '"' . $short . '" ' . " ($count new message" . ($count != 1 ? 's' : '') . " from your neighbours)";
+
                     $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
-                    $summ .= $u->getName() . " posted '$str'\n\n";
+                    $textsumm .= $u->getName() . " posted '$str'\n\n";
+                    $htmlsumm .= $u->getName() . ' posted &quot;<a href="https://' . USER_SITE . '/newsfeed/' . $feed['id'] . '">' . htmlspecialchars($str) . '</a>&quot;<br />';
                     $max = max($max, $feed['id']);
                 }
             }
@@ -615,14 +622,14 @@ class Newsfeed extends Entity
                     $url = $u->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
                     $noemail = 'notificationmailsoff-' . $userid . "@" . USER_DOMAIN;
 
-                    $html = notification_digest($url, $noemail, $u->getName(), $u->getEmailPreferred(), nl2br($summ));
+                    $html = notification_digest($url, $noemail, $u->getName(), $u->getEmailPreferred(), $htmlsumm);
 
                     $message = Swift_Message::newInstance()
-                        ->setSubject("Freeglers near you are talking - $count new post" . ($count != 1 ? 's' : ''))
+                        ->setSubject($subj)
                         ->setFrom([NOREPLY_ADDR => 'Freegle'])
                         ->setReturnPath($u->getBounce())
                         ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                        ->setBody("Recent posts from nearby freeglers:\r\n\r\n$summ\r\n\r\nPlease click here to read them: $url")
+                        ->setBody("Recent posts from nearby freeglers:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url")
                         ->addPart($html, 'text/html');
 
                     error_log("..." . $u->getEmailPreferred() . " send $count");
