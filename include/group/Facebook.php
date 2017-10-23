@@ -309,7 +309,8 @@ class GroupFacebook {
         $count = 0;
 
         if (count($groups) > 0) {
-            $counts = $this->dbhr->preQuery("SELECT MAX(postablecount) AS count, groupid FROM groups_facebook WHERE $groupq GROUP BY groupid;");
+            $sql = "SELECT MAX(postablecount) AS count, groupid FROM groups_facebook WHERE $groupq GROUP BY groupid;";
+            $counts = $this->dbhr->preQuery($sql);
             foreach ($counts as $acount) {
                 $count += $acount['count'];
             }
