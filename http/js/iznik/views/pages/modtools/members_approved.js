@@ -343,7 +343,6 @@ define([
                         // Our user.  In memberships the id is that of the member, so we need to get the userid.
                         self.usermod = new Iznik.Models.ModTools.User(self.model.attributes);
                         self.usermod.set('id', self.model.get('userid'));
-                        console.log("IDs in approved", self.usermod.get('id'), self.usermod.get('userid'));
                         self.usermod.set('myrole', Iznik.Session.roleForGroup(self.model.get('groupid'), true));
 
                         var v = new Iznik.Views.ModTools.User({
@@ -381,7 +380,7 @@ define([
 
                                 self.yahoomod.fetch().then(function () {
                                     // We don't want to show the Yahoo joined date because we have our own.
-                                    mod2.unset('date');
+                                    self.yahoomod.unset('date');
                                     var v = new Iznik.Views.ModTools.Yahoo.User({
                                         model: self.yahoomod
                                     });
