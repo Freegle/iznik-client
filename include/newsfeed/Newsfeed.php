@@ -581,17 +581,17 @@ class Newsfeed extends Entity
                 $lastseen = $seen['newsfeedid'];
             }
 
-            # Get the first few user-posted messages.
+            # Get the first few user-posted messages within 10 miles.
             $ctx = NULL;
-            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 8046), [ Newsfeed::TYPE_MESSAGE ], $ctx, FALSE);
+            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY ], $ctx, FALSE);
             $textsumm = '';
             $htmlsumm = '';
             $max = 0;
 
-            $oldest = ISODate(date("Y-m-d H:i:s", strtotime("24 hours ago")));
+            $oldest = ISODate(date("Y-m-d H:i:s", strtotime("14 days ago")));
 
             foreach ($feeds as $feed) {
-                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest && pres('message', $feed)) {
+                if ($feed['userid'] != $userid && $feed['id'] > $lastseen && $feed['timestamp'] > $oldest && pres('message', $feed) && !$feed['deleted']) {
                     $count++;
 
                     $str = $feed['message'];
