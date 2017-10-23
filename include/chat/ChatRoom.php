@@ -599,13 +599,15 @@ class ChatRoom extends Entity
     public function upToDate($userid) {
         $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
         foreach ($msgs as $msg) {
-            error_log("Set max to {$msg['max']} for $userid in room {$this->id} ");
-            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;",
+            #error_log("Set max to {$msg['max']} for $userid in room {$this->id} ");
+            $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
                 [
-                    $msg['max'],
-                    $msg['max'],
                     $this->id,
-                    $userid
+                    $userid,
+                    $msg['max'],
+                    $msg['max'],
+                    $msg['max'],
+                    $msg['max']
                 ]);
         }
     }
