@@ -155,20 +155,18 @@ define([
         share: function() {
             var self = this;
 
-            console.log("Share 1");
-            // https://www.npmjs.com/package/cordova-plugin-facebook4
-            // https://developers.facebook.com/docs/javascript/reference/FB.api
+            // Use https://www.npmjs.com/package/cordova-plugin-facebook4
+            // In place of https://developers.facebook.com/docs/javascript/reference/FB.api
 
             facebookConnectPlugin.login(["public_profile"], function (response) {
-                console.log("Share 2");
                 var id = self.options.message.get('id');
                 //FB.api('/' + self.model.get('id') + '/feed', 'post', {
                 //    link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup'
                 //}, function(response) {
-                var requestPath = '/' + self.model.get('id') + '/feed?link=https://www.ilovefreegle.org/message/' + id + '&src=fbgroup';
+                var requestPath = '/' + self.model.get('id') + '/feed?method=post&link=https://www.ilovefreegle.org/message/' + id + '&src=fbgroup';
+                console.log(requestPath);
                 facebookConnectPlugin.api(requestPath,["publish_actions"],
                 function(response) {
-                    console.log("Share 3");
                     console.log("Share returned", response);
                     if (response.hasOwnProperty('error')) {
                         self.$('.js-error').html(response.error.message);
@@ -179,11 +177,10 @@ define([
                         g.recordFacebookShare(self.model.get('uid'), id, self.options.message.get('arrival'));
                     }
                 }, function (error) {
-                    console.log("2:");
                     console.log(error);
                 });
+
             }, function (error) {
-                console.log("1:");
                 console.log(error);
             });
         }
