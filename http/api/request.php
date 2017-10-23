@@ -15,6 +15,7 @@ function request() {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 $outstanding = array_key_exists('outstanding', $_REQUEST) ? filter_var($_REQUEST['outstanding'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+                $recent = array_key_exists('recent', $_REQUEST) ? filter_var($_REQUEST['recent'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
                 if ($id) {
                     $ret = ['ret' => 3, 'status' => 'Access denied'];
@@ -33,6 +34,13 @@ function request() {
                         'status' => 'Success',
                         'ret' => 0,
                         'requests' => $me->hasPermission(User::PERM_BUSINESS_CARDS) ? $r->listOutstanding() : []
+                    ];
+                } else if ($recent) {
+                    # List recently completed requests.
+                    $ret = [
+                        'status' => 'Success',
+                        'ret' => 0,
+                        'recent' => $me->hasPermission(User::PERM_BUSINESS_CARDS) ? $r->listRecent() : []
                     ];
                 } else {
                     # List all for this user.

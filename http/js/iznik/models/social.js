@@ -74,4 +74,20 @@ define([
             return ret.requests;
         }
     });
+
+    Iznik.Collections.Requests.Recent = Iznik.Collection.extend({
+        model: Iznik.Models.Request,
+
+        url: API + 'request',
+
+        ret: null,
+
+        initialize: function (models, options) {
+            this.options = options;
+        },
+
+        parse: function(ret) {
+            return ret.recent;
+        }
+    });
 });
