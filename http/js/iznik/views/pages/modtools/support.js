@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'FileSaver',
     'gmaps',
     'backgrid',
     "iznik/modtools",
@@ -15,7 +16,7 @@ define([
     'iznik/views/user/user',
     'tinymce',
     'typeahead'
-], function($, _, Backbone, Iznik, moment) {
+], function($, _, Backbone, Iznik, moment, saveAs) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         modtools: true,
 
@@ -29,7 +30,38 @@ define([
             'click .js-sendalert': 'sendAlert',
             'click .js-getalerts': 'getAlerts',
             'click .js-addgroup': 'addGroup',
-            'click .js-getlist': 'getList'
+            'click .js-getlist': 'getList',
+            'click .js-exportgroups': 'exportGroups'
+        },
+
+        exportGroups: function() {
+            var self = this;
+
+            var exportList = [];
+            var headers = [];
+
+            _.each(self.columns, function(col) {
+                headers.push(col.name);
+            });
+
+            exportList.push(headers);
+
+            self.$('.js-allgroupslist tr').each(function() {
+                var row = [];
+                $(this).find('td').each(function() {
+                    row.push($(this).html());
+                });
+
+                exportList.push(row);
+            });
+
+            var csv = new csvWriter();
+            csv.del = ',';
+            csv.enc = '"';
+            var csvstr = csv.arrayToCSV(exportList);
+
+            var blob = new Blob([csvstr], {type: "text/csv;charset=utf-8"});
+            saveAs(blob, "groups.csv");
         },
 
         keyup: function (e) {
@@ -372,7 +404,7 @@ define([
             });
 
             // Create a backgrid for the groups.
-            var columns = [{
+            self.columns = [{
                 name: 'id',
                 label: 'ID',
                 editable: false,
@@ -473,7 +505,7 @@ define([
             });
 
             self.grid = new Backgrid.Grid({
-                columns: columns,
+                columns: self.columns,
                 collection: self.allGroups,
                 row: OurRow
             });
@@ -572,6 +604,8 @@ define([
                     };
 
                     self.groupchart.draw(data, chartOptions);
+
+                    self.$('.js-exportgroups').fadeIn('slow');
                 }
 
                 google.load('visualization', '1.0', {

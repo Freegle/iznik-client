@@ -107,8 +107,9 @@ class Bounce
             $this->dbhm->preExec("DELETE FROM bounces WHERE id = ?;", [ $bounce['id'] ]);
         }
 
-        if (!$id) {
-            # Shrink the table.
+        if (!$id && intval(date('H')) > 10) {
+            # Shrink the table.  Don't do this while the backup might be running, as ALTER TABLE is a DDL op
+            # which would interrupt the backup.
             $this->dbhm->preExec("ALTER TABLE bounces engine=InnoDB;");
         }
 

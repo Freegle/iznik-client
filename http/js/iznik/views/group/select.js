@@ -192,7 +192,7 @@ define([
             if (self.id && $('#' + self.id).length > 0 && !$('#' + self.id).is('select')) {
                 // Check that we've called this with the right element type, otherwise it fails in a way that's
                 // a pain to debug.  Not that I've made that mistake repeatedly, you understand.
-                console.error("Need to use a select element.");
+                console.error("Need to use a select element", self.id, $('#' + self.id));
             }
 
             // We hide the raw select now otherwise it shows briefly.  We set visibility on the dropdown once it's built.

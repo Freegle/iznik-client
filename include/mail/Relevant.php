@@ -49,56 +49,62 @@ class Relevant {
     }
 
     public function interestedIn($userid, $grouptype = Group::GROUP_FREEGLE) {
-        # Anything longer ago probably isn't relevant.
-        $start = date('Y-m-d', strtotime("30 days ago"));
-
-        # We have two sources:
-        # - outstanding posts by the user, which might be either OFFERs or WANTEDs, where we want to look for the
-        #   relevant WANTEDs or OFFERs respectively.
-        # - the searches by the user, where we want to look for relevant OFFERs.
         $interested = [];
 
-        # First the messages.
-        $sql = "SELECT DISTINCT messages.type, messages.subject, messages.arrival, messages.id FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? AND groups.onhere = 1 WHERE messages_outcomes.msgid IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted') AND messages.arrival >= ?;";
-        $msgs = $this->dbhr->preQuery($sql, [ $grouptype, $userid, $start ] );
-        #error_log("Look for posts from $userid since $start found " . count($msgs));
-        foreach ($msgs as $msg) {
-            # We only bother with messages with standard subject line formats.
-            if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
-                $item = trim($matches[2]);
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+        # Only send these mails if they are a still member of a group.
+        if (count($u->getMemberships(FALSE, $grouptype)) > 0) {
+            # We have two sources:
+            # - outstanding posts by the user, which might be either OFFERs or WANTEDs, where we want to look for the
+            #   relevant WANTEDs or OFFERs respectively.
+            # - the searches by the user, where we want to look for relevant OFFERs.
+
+            # Anything longer ago probably isn't relevant.
+            $start = date('Y-m-d', strtotime("30 days ago"));
+
+            # First the messages.
+            $sql = "SELECT DISTINCT messages.type, messages.subject, messages.arrival, messages.id FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? AND groups.onhere = 1 WHERE messages_outcomes.msgid IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted') AND messages.arrival >= ?;";
+            $msgs = $this->dbhr->preQuery($sql, [ $grouptype, $userid, $start ] );
+            #error_log("Look for posts from $userid since $start found " . count($msgs));
+            foreach ($msgs as $msg) {
+                # We only bother with messages with standard subject line formats.
+                if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
+                    $item = trim($matches[2]);
+                    $interested[] = [
+                        'type' => $msg['type'],
+                        'item' => $item,
+                        'reason' => [
+                            'type' => Relevant::MATCH_POST,
+                            'msgid' => $msg['id'],
+                            'subject' => $msg['subject'],
+                            'date' => ISODate($msg['arrival'])
+                        ]
+                    ];
+                }
+            }
+
+            # Now the searches.
+            $sql = "SELECT * FROM users_searches WHERE userid = ? AND deleted = 0 AND locationid IS NOT NULL AND `date` >= ?;";
+            $searches = $this->dbhr->preQuery($sql, [ $userid, $start ]);
+
+            foreach ($searches as $search) {
+                $term  = $search['term'];
+
+                # If they've searched for a whole subject line, strip out just the term.
+                $term = preg_match("/(.+)\:(.+)\((.+)\)/", $search['term'], $matches) ? trim($matches[2]) : $term;
+
                 $interested[] = [
-                    'type' => $msg['type'],
-                    'item' => $item,
+                    'type' => Message::TYPE_WANTED,
+                    'item' => $term,
                     'reason' => [
-                        'type' => Relevant::MATCH_POST,
-                        'msgid' => $msg['id'],
-                        'subject' => $msg['subject'],
-                        'date' => ISODate($msg['arrival'])
+                        'type' => Relevant::MATCH_SEARCH,
+                        'searchid' => $search['id'],
+                        'term' => $term,
+                        'date' => ISODate($search['date'])
                     ]
                 ];
             }
-        }
-
-        # Now the searches.
-        $sql = "SELECT * FROM users_searches WHERE userid = ? AND deleted = 0 AND locationid IS NOT NULL AND `date` >= ?;";
-        $searches = $this->dbhr->preQuery($sql, [ $userid, $start ]);
-
-        foreach ($searches as $search) {
-            $term  = $search['term'];
-
-            # If they've searched for a whole subject line, strip out just the term.
-            $term = preg_match("/(.+)\:(.+)\((.+)\)/", $search['term'], $matches) ? trim($matches[2]) : $term;
-
-            $interested[] = [
-                'type' => Message::TYPE_WANTED,
-                'item' => $term,
-                'reason' => [
-                    'type' => Relevant::MATCH_SEARCH,
-                    'searchid' => $search['id'],
-                    'term' => $term,
-                    'date' => ISODate($search['date'])
-                ]
-            ];
         }
 
         return($interested);

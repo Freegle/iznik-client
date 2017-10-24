@@ -1026,8 +1026,11 @@ class MailRouter
                         $uid = $u->findByEmail($to);
                         if ($log) { error_log("Find reply $to = $uid"); }
 
-                        if ($uid && $this->msg->getFromuser()) {
+                        if ($uid && $this->msg->getFromuser() && strtolower($to) != strtolower(MODERATOR_EMAIL)) {
                             # This is to one of our users.  We try to pair it as best we can with one of the posts.
+                            #
+                            # We don't want to process replies to ModTools user.  This can happen if MT is a member
+                            # rather than a mod on a group.
                             $original = $this->msg->findFromReply($uid);
                             if ($log) { error_log("Paired with $original"); }
 

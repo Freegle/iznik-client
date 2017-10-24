@@ -399,7 +399,6 @@ define([
 
         fallback: function () {
             var self = this;
-            log("Chat fallback");
 
             // Although we should be notified of new chat messages via the wait() function, this isn't guaranteed.  So
             // we have a fallback poll to pick up any lost messages.  This will return the last message we've seen

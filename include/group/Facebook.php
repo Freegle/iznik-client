@@ -309,7 +309,8 @@ class GroupFacebook {
         $count = 0;
 
         if (count($groups) > 0) {
-            $counts = $this->dbhr->preQuery("SELECT MAX(postablecount) AS count, groupid FROM groups_facebook WHERE $groupq GROUP BY groupid;");
+            $sql = "SELECT MAX(postablecount) AS count, groupid FROM groups_facebook WHERE $groupq GROUP BY groupid;";
+            $counts = $this->dbhr->preQuery($sql);
             foreach ($counts as $acount) {
                 $count += $acount['count'];
             }
@@ -324,7 +325,7 @@ class GroupFacebook {
         # We want to post any messages since the last one, with a max to avoid flooding things.
         $mysqltime1 = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "72 hours ago"));
         $mysqltime2 = date ("Y-m-d H:i:s.u", strtotime("72 hours ago"));
-        $sql = "SELECT COUNT(DISTINCT messages_groups.msgid) AS count FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.type = 'Group' WHERE messages.arrival > ? AND messages.arrival > ? AND (groups_facebook.msgarrival IS NULL OR groups_facebook.msgarrival < messages.arrival) AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC;";
+        $sql = "SELECT COUNT(DISTINCT messages_groups.msgid) AS count FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.type = 'Group' WHERE messages.arrival > ? AND messages.arrival > ? AND (groups_facebook.msgarrival IS NULL OR groups_facebook.msgarrival < messages.arrival) AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages_outcomes.msgid IS NULL AND messages_groups.deleted = 0 ORDER BY messages.arrival ASC;";
         $counts = $this->dbhr->preQuery($sql, [
             $mysqltime1,
             $mysqltime2,
@@ -365,7 +366,7 @@ class GroupFacebook {
         # We want to post any messages since the last one, with a max to avoid flooding things.
         $mysqltime1 = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "72 hours ago"));
         $mysqltime2 = date ("Y-m-d H:i:s.u", strtotime("72 hours ago"));
-        $sql = "SELECT DISTINCT messages_groups.msgid AS id, messages.arrival FROM messages_groups INNER JOIN groups ON $groupq groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.type = 'Group' WHERE messages.arrival > ? AND messages.arrival > ? AND (groups_facebook.msgarrival IS NULL OR groups_facebook.msgarrival < messages.arrival) $ctxq AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages_outcomes.msgid IS NULL ORDER BY messages.arrival ASC;";
+        $sql = "SELECT DISTINCT messages_groups.msgid AS id, messages.arrival FROM messages_groups INNER JOIN groups ON $groupq groups.id = messages_groups.groupid INNER JOIN messages ON messages_groups.msgid = messages.id INNER JOIN users ON users.id = messages.fromuser LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN groups_facebook ON groups_facebook.groupid = messages_groups.groupid AND groups_facebook.type = 'Group' WHERE messages.arrival > ? AND messages.arrival > ? AND (groups_facebook.msgarrival IS NULL OR groups_facebook.msgarrival < messages.arrival) $ctxq AND messages_groups.collection = 'Approved' AND users.publishconsent = 1 AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages_outcomes.msgid IS NULL AND messages_groups.deleted = 0 ORDER BY messages.arrival ASC;";
         $msgs = $this->dbhr->preQuery($sql, [ $mysqltime1, $mysqltime2, Message::PLATFORM ]);
 
         $ctx['id'] = count($msgs) ? $msgs[count($msgs) - 1]['id'] : NULL;
