@@ -497,7 +497,7 @@ define([
 
                                 if (group.get('type') == 'Freegle' && (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
                                     var affiliated = group.get('affiliationconfirmed');
-                                    var age = ((new Date()).getTime() - (new Date(affiliated)).getTime()) / 60 * 60 * 24 * 1000;
+                                    var age = ((new Date()).getTime() - (new Date(affiliated)).getTime()) / (60 * 60 * 24 * 1000);
 
                                     if (!affiliated || age > 365) {
                                         // Not confirmed within the last year.

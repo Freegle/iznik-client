@@ -9,6 +9,7 @@ require_once IZNIK_BASE . '/include/message/Message.php';
 require_once IZNIK_BASE . '/include/misc/plugin.php';
 require_once IZNIK_BASE . '/include/chat/ChatRoom.php';
 require_once IZNIK_BASE . '/include/chat/ChatMessage.php';
+require_once IZNIK_BASE . '/include/group/Group.php';
 
 /**
  * @backupGlobals disabled
@@ -1656,6 +1657,30 @@ class MailRouterTest extends IznikTestCase {
         $groups = $m->getPublic()['groups'];
         error_log("Groups " . var_export($groups, TRUE));
         self::assertEquals($uid, $groups[0]['approvedby']);
+
+        error_log(__METHOD__ . " end");
+    }
+
+    public function testModChat() {
+        error_log(__METHOD__);
+
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->findByEmail(MODERATOR_EMAIL);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($gid, User::ROLE_MEMBER);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('To: "freegleplayground@yahoogroups.com" <freegleplayground@yahoogroups.com>', 'To: ' . MODERATOR_EMAIL, $msg);
+        $msg = str_replace('X-Apparently-To: freegleplayground@yahoogroups.com', 'X-Apparently-To: ' . MODERATOR_EMAIL, $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'testgroup-volunteers@groups.ilovefreegle.org', MODERATOR_EMAIL, $msg);
+        assertNotNull($id);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
 
         error_log(__METHOD__ . " end");
     }

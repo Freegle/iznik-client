@@ -52,7 +52,7 @@
     <icon height="50" platform="ios" src="package-assets/FreegleLaunch50.png" width="50" />
     <icon height="100" platform="ios" src="package-assets/FreegleLaunch100.png" width="100" />
     <icon height="167" platform="ios" src="package-assets/FreegleLaunch167.png" width="167" />
-	  <icon height="1024" platform="ios" src="package-assets/FreegleLaunch1024.png" width="1024" />
+    <icon height="1024" platform="ios" src="package-assets/FreegleLaunch1024.png" width="1024" />
     <platform name="ios">
         <config-file parent="LSApplicationQueriesSchemes" platform="ios" target="*-Info.plist">
             <array>

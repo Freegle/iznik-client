@@ -194,7 +194,7 @@ define([
                     // We know from our Yahoo scan whether there is any work to do.
                     if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
                         doSync(group)) {
-                        console.log("Sync pending messages for", group.get('nameshort'));
+                        // console.log("Sync pending messages for", group.get('nameshort'));
                         self.collection.add(new Iznik.Models.Plugin.Work({
                             id: group.get('nameshort') + '.SyncMessages.Pending',
                             subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Pending({
@@ -1628,8 +1628,7 @@ define([
     
         changeOne: function() {
             var self = this;
-            console.log("changeOne", self.offset, self.members.length);
-    
+
             if (self.offset < self.members.length) {
                 var percent = Math.round((self.offset / self.members.length) * 100);
                 self.$('.progress-bar:last').css('width',  percent + '%').attr('aria-valuenow', percent);
@@ -1674,14 +1673,12 @@ define([
                         _.each(ret.members, function(member) {
                             if (member.hasOwnProperty('email') && member.email.toLowerCase().indexOf('fbuser') == -1) {
                                 // FBUser members are members on Yahoo which are allowed to be on Web Only.
-                                console.log("Push", member);
                                 self.members.push(member);
                             }
                         });
                         self.getChunk.call(self);
                     } else {
                         // We got them all.
-                        console.log("Got them all", self.members.length);
                         self.$('.js-download').hide();
                         self.$('.js-progress').show();
                         self.changeOne();

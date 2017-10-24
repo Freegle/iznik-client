@@ -342,12 +342,16 @@ define([
                         var group = Iznik.Session.getGroup(self.model.get('groupid'));
 
                         // Our user.  In memberships the id is that of the member, so we need to get the userid.
-                        var mod = self.model.clone();
-                        mod.set('id', self.model.get('userid'));
-                        mod.set('myrole', Iznik.Session.roleForGroup(self.model.get('groupid'), true));
+                        self.usermod = new Iznik.Models.ModTools.User(self.model.attributes);
+                        self.usermod.set('id', self.model.get('userid'));
+                        self.usermod.set('myrole', Iznik.Session.roleForGroup(self.model.get('groupid'), true));
 
                         var v = new Iznik.Views.ModTools.User({
-                            model: mod
+                            model: self.usermod
+                        });
+
+                        self.listenToOnce(self.usermod, 'removed', function () {
+                            self.$el.fadeOut('slow');
                         });
 
                         v.render().then(function(v) {
@@ -356,7 +360,7 @@ define([
 
                         if (group.get('type') == 'Freegle') {
                             var v = new Iznik.Views.ModTools.Member.Freegle({
-                                model: mod,
+                                model: self.usermod,
                                 group: group
                             });
 
@@ -369,17 +373,17 @@ define([
                             // Delay getting the Yahoo info slightly to improve apparent render speed.
                             _.delay(function () {
                                 // The Yahoo part of the user
-                                var mod = IznikYahooUsers.findUser({
+                                self.yahoomod = IznikYahooUsers.findUser({
                                     email: self.model.get('email'),
                                     group: group.get('nameshort'),
                                     groupid: group.get('id')
                                 });
 
-                                mod.fetch().then(function () {
+                                self.yahoomod.fetch().then(function () {
                                     // We don't want to show the Yahoo joined date because we have our own.
-                                    mod.unset('date');
+                                    self.yahoomod.unset('date');
                                     var v = new Iznik.Views.ModTools.Yahoo.User({
-                                        model: mod
+                                        model: self.yahoomod
                                     });
 
                                     v.render().then(function(v) {

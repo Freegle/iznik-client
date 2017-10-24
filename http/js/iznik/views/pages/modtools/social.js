@@ -25,7 +25,7 @@ define([
             'click .js-businesscards': 'businessCards'
         },
 
-        businessCards: function() {
+        businessCards: function () {
             var v = new Iznik.Views.ModTools.SocialAction.BusinessCards();
             v.render();
         },
@@ -34,8 +34,8 @@ define([
             var self = this;
             var p = Iznik.Views.Infinite.prototype.render.call(this);
 
-            p.then(function(self) {
-                require(['iznik/facebook'], function(FBLoad) {
+            p.then(function (self) {
+                require(['iznik/facebook'], function (FBLoad) {
                     self.listenToOnce(FBLoad(), 'fbloaded', function () {
                         if (!FBLoad().isDisabled()) {
                             self.$('.js-facebookonly').show();
@@ -47,7 +47,7 @@ define([
 
                 var v = new Iznik.Views.Help.Box();
                 v.template = 'modtools_socialactions_help';
-                v.render().then(function(v) {
+                v.render().then(function (v) {
                     self.$('.js-help').html(v.el);
                 })
 
@@ -95,20 +95,39 @@ define([
                         }
                     });
 
+                    self.recent = new Iznik.Collections.Requests.Recent();
+
+                    self.recentCollectionView = new Backbone.CollectionView({
+                        el: self.$('.js-recentlist'),
+                        modelView: Iznik.Views.ModTools.SocialAction.Recent,
+                        collection: self.recent,
+                        processKeyEvents: false
+                    });
+
+                    self.recentCollectionView.render();
+                    self.recent.fetch({
+                        data: {
+                            recent: true
+                        }
+                    }).then(function() {
+                        if (self.recent.length) {
+                            self.$('.js-recentwrapper').fadeIn('slow');
+                        }
+                    });
                 }
             });
 
-            return(p);
+            return (p);
         }
     });
 
     Iznik.Views.ModTools.SocialAction = Iznik.View.extend({
         template: 'modtools_socialactions_one',
 
-        render: function() {
+        render: function () {
             var self = this;
             var p = Iznik.View.prototype.render.call(this);
-            p.then(function(self) {
+            p.then(function (self) {
                 // Show buttons for the remaining Facebook groups/pages that haven't shared this.
                 //
                 // We have a list of those inside each group in our session.
@@ -117,13 +136,13 @@ define([
                 var uids = self.model.get('uids');
                 var groups = Iznik.Session.get('groups');
 
-                _.each(uids, function(uid) {
-                    groups.each(function(group) {
+                _.each(uids, function (uid) {
+                    groups.each(function (group) {
                         if (group.get('type') == 'Freegle') {
                             var facebooks = group.get('facebook');
 
                             if (facebooks) {
-                                _.each(facebooks, function(facebook) {
+                                _.each(facebooks, function (facebook) {
                                     if (facebook.uid == uid) {
                                         // This is the one we would want to share on.
                                         sharelist.push(new Iznik.Model(facebook));
@@ -138,7 +157,7 @@ define([
                 self.shares.comparator = 'name';
                 self.shares.sort();
 
-                self.shares.each(function(share) {
+                self.shares.each(function (share) {
                     // Page shares happen on the server.  Group ones don't so need a Facebook session.
                     if (share.get('type') == 'Page' || (share.get('type') == 'Group' && Iznik.Session.hasFacebook())) {
                         var v = new Iznik.Views.ModTools.SocialAction.FacebookGroupShare({
@@ -147,7 +166,7 @@ define([
                             action: self.model
                         });
 
-                        v.render().then(function() {
+                        v.render().then(function () {
                             self.$('.js-buttons').append(v.$el);
                         });
                     }
@@ -160,12 +179,12 @@ define([
                     shares: self.shares
                 });
 
-                v.render().then(function() {
+                v.render().then(function () {
                     self.$('.js-buttons').append(v.$el);
                 });
             });
 
-            return(this);
+            return (this);
         }
     });
 
@@ -178,7 +197,7 @@ define([
             'click .js-share': 'share'
         },
 
-        share: function() {
+        share: function () {
             var self = this;
 
             $.ajax({
@@ -204,10 +223,10 @@ define([
             'click .js-hide': 'hide'
         },
 
-        hide: function() {
+        hide: function () {
             var self = this;
 
-            self.options.shares.each(function(share) {
+            self.options.shares.each(function (share) {
                 $.ajax({
                     url: API + 'socialactions',
                     type: 'POST',
@@ -234,21 +253,21 @@ define([
             'click .js-more': 'more'
         },
 
-        justafew: function() {
+        justafew: function () {
             var self = this;
             self.$('.js-howmany').slideUp('slow');
             self.$('.js-more').hide();
             self.$('.js-afew, .js-submit').fadeIn('slow');
         },
 
-        more: function() {
+        more: function () {
             var self = this;
             self.$('.js-howmany').slideUp('slow');
             self.$('.js-more').fadeIn('slow');
             self.$('.js-afew, .js-submit').hide();
         },
 
-        submit: function() {
+        submit: function () {
             var self = this;
             var pafid = self.postalAddress.pafaddress();
             var to = self.postalAddress.to();
@@ -260,7 +279,7 @@ define([
                     data: {
                         pafid: pafid
                     },
-                    success: function(ret) {
+                    success: function (ret) {
                         if (ret.ret === 0) {
                             $.ajax({
                                 url: API + '/request',
@@ -270,7 +289,7 @@ define([
                                     to: to,
                                     addressid: ret.id
                                 },
-                                success: function(ret) {
+                                success: function (ret) {
                                     if (ret.ret === 0) {
                                         self.close();
                                         var v = new Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou();
@@ -284,11 +303,11 @@ define([
             }
         },
 
-        render: function() {
+        render: function () {
             var self = this;
             var p = Iznik.Views.Modal.prototype.render.call(self);
             p.then(function () {
-                self.waitDOM(self, function() {
+                self.waitDOM(self, function () {
                     var me = Iznik.Session.get('me');
                     var settings = me.hasOwnProperty('settings') ? me.settings : null;
                     var location = settings ? (settings.hasOwnProperty('mylocation') ? settings.mylocation : null) : null;
@@ -321,7 +340,7 @@ define([
             'click .js-delete': 'deleteIt'
         },
 
-        deleteIt: function() {
+        deleteIt: function () {
             var self = this;
             this.model.destroy().then(self.$el.fadeOut('slow'));
         }
@@ -337,14 +356,20 @@ define([
             'click .js-sent': 'sent'
         },
 
-        sent: function() {
+        sent: function () {
             var self = this;
             this.model.completed().then(self.$el.fadeOut('slow'));
         },
 
-        deleteIt: function() {
+        deleteIt: function () {
             var self = this;
             this.model.destroy().then(self.$el.fadeOut('slow'));
         }
+    });
+
+    Iznik.Views.ModTools.SocialAction.Recent = Iznik.View.extend({
+        tagName: 'li',
+
+        template: 'modtools_socialactions_recent'
     });
 });

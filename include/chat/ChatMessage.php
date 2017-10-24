@@ -83,7 +83,9 @@ class ChatMessage extends Entity
 
     public function checkReview($message) {
         $s = new Spam($this->dbhr, $this->dbhm);
-        return($s->checkReview($message));
+        $ret = $s->checkReview($message);
+
+        return($ret);
     }
 
     public function checkSpam($message) {

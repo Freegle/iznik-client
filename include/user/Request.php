@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/mailtemplates/requests/business_cards_mods.php');
 class Request extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'userid', 'type', 'date', 'completed', 'addressid', 'to');
+    var $publicatts = array('id', 'userid', 'type', 'date', 'completed', 'addressid', 'to', 'completedby');
     var $settableatts = array('completed', 'addressid');
 
     const TYPE_BUSINESS_CARDS = 'BusinessCards';
@@ -87,6 +87,27 @@ class Request extends Entity
         foreach ($requests as $request) {
             $r = new Request($this->dbhr, $this->dbhm, $request['id']);
             $ret[] = $r->getPublic(TRUE);
+        }
+
+        return($ret);
+    }
+
+    public function listRecent() {
+        $ret = [];
+
+        $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
+        $requests = $this->dbhr->preQuery("SELECT completedby, COUNT(*) AS count FROM users_requests WHERE completed IS NOT NULL AND completedby IS NOT NULL AND completed > ? GROUP BY completedby", [
+            $mysqltime
+        ]);
+
+        foreach ($requests as $request) {
+            $u = User::get($this->dbhr, $this->dbhm, $request['completedby']);
+            $ctx = NULL;
+            $thisone = $u->getPublic(NULL, FALSE, NULL, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+            $ret[] = [
+                'user' => $thisone,
+                'count' => $request['count']
+            ];
         }
 
         return($ret);
