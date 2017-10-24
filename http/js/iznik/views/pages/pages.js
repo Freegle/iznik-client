@@ -830,7 +830,7 @@ define([
 
             var p = resolvedPromise(self);
 
-            if (now - lastask > 24 * 60 * 60 * 1000) {
+            if (now - lastask > 7 * 24 * 60 * 60 * 1000) {
                 p = Iznik.Views.Modal.prototype.render.call(self);
             }
 

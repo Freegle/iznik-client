@@ -722,6 +722,29 @@ define([
     Iznik.Views.User.Pages.Message = Iznik.Views.Page.extend({
         template: 'user_explore_message',
 
+        events: {
+            'click .js-join': 'join'
+        },
+
+        join: function() {
+            var self = this;
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PUT',
+                data: {
+                    groupid: self.groupid
+                }, complete: function () {
+                    // Refresh our group list and re-render.
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                        self.render();
+                    });
+
+                    Iznik.Session.testLoggedIn(true);
+                }
+            });
+        },
+
         render: function () {
             var self = this;
             var p = Iznik.Views.Page.prototype.render.call(self).then(function () {
@@ -729,13 +752,50 @@ define([
                     id: self.options.id
                 });
                 self.model.fetch().then(function () {
-                    console.log("Fetched", self.model);
-                    // We might fail to fetch, or fetch a deleted message, or fetch a completed message.  In all these
-                    // cases the message shouldn't show.
-                    if (self.model.get('subject') &&
+                    var ret = self.model.get('ret');
+
+                    if (ret == 2) {
+                        // Permission denied.  This means it is a message which we are not allowed to see.
+                        //
+                        // Most commonly this is because we're logged out, and need to log in before
+                        // we're allowed to see it.
+                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function(loggedIn) {
+                            if (!loggedIn) {
+                                // We are logged out, and the contents are not visible to non-group members.
+                                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                                    self.render();
+                                });
+
+                                Iznik.Session.forceLogin({
+                                    modtools: false
+                                });
+                            } else {
+                                // Still can't see it logged in - need to join the group
+                                var groups = self.model.get('groups');
+                                _.each(groups, function(group) {
+                                    var name = group.namedisplay;
+                                    self.groupid = group.id;
+                                    self.$('.js-groupname').html(name);
+                                    self.$('.js-needtojoin').fadeIn('slow');
+                                });
+                            }
+                        });
+
+                        Iznik.Session.testLoggedIn();
+
+                        self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                            var page = new Iznik.Views.ModTools.Pages.Replay({
+                                sessionid: sessionid
+                            });
+                            self.loadRoute({page: page, modtools: true});
+                        });
+
+                    } else if (self.model.get('subject') &&
                         !self.model.get('deleted') &&
                         (!self.model.get('outcomes') || self.model.get('outcomes').length == 0)
                     ) {
+                        // We might fail to fetch, or fetch a deleted message, or fetch a completed message.  In all these
+                        // cases the message shouldn't show.
                         var v = new Iznik.Views.User.Message.Replyable({
                             model: self.model
                         });
