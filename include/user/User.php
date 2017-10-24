@@ -447,17 +447,30 @@ class User extends Entity
     }
 
     public function findByEmail($email) {
-        # Take care not to pick up empty or null else that will cause is to overmerge.
-        #
-        # Use canon to match - that handles variant TN addresses or % addressing.
-        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE (canon = ? OR canon = ?) AND canon IS NOT NULL AND LENGTH(canon) > 0;",
-            [
-                User::canonMail($email),
-                User::canonMail($email, TRUE)
+        if (preg_match('/.*\-(.*)\@' . USER_DOMAIN . '/', $email, $matches)) {
+            # Our own email addresses have the UID in there.  This will match even if the email address has
+            # somehow been removed from the list.
+            $uid = $matches[1];
+            $users = $this->dbhr->preQuery("SELECT id FROM users WHERE id = ?;", [
+                $uid
             ]);
 
-        foreach ($users as $user) {
-            return($user['userid']);
+            foreach ($users as $user) {
+                return($user['id']);
+            }
+        } else {
+            # Take care not to pick up empty or null else that will cause is to overmerge.
+            #
+            # Use canon to match - that handles variant TN addresses or % addressing.
+            $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE (canon = ? OR canon = ?) AND canon IS NOT NULL AND LENGTH(canon) > 0;",
+                [
+                    User::canonMail($email),
+                    User::canonMail($email, TRUE)
+                ]);
+
+            foreach ($users as $user) {
+                return($user['userid']);
+            }
         }
 
         return(NULL);
