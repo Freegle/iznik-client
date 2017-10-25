@@ -183,6 +183,8 @@ define([
                     self.$('.js-facebookauthpage').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected + '&type=Page');
 
                     self.group.fetch().then(function() {
+                        self.$('.js-modsemail').html(self.group.get('modsemail'));
+
                         // Because we switch the form based on our group select we need to remove old events to avoid saving new
                         // changes to the previous group.
                         if (self.myGroupForm) {
