@@ -554,8 +554,9 @@ class Message
         # - for Freegle groups which use this platform
         #   - we're a member, or
         #   - we have publish consent
+        # - it's a TrashNothing message (the TN TOS allows this).
         $role = $atts['myrole'];
-        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $this->getSourceheader() == Message::PLATFORM ;
+        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $this->getSourceheader() == Message::PLATFORM || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE;
 
         if (!$cansee) {
             foreach ($atts['groups'] as $group) {
