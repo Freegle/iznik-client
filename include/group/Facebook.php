@@ -334,9 +334,9 @@ class GroupFacebook {
         ]);
 
         foreach ($counts as $count) {
-            $this->dbhm->preExec("UPDATE groups_facebook SET postablecount = ? WHERE id = ?;", [
+            $this->dbhm->preExec("UPDATE groups_facebook SET postablecount = ? WHERE uid = ?;", [
                 $count['count'],
-                $this->id
+                $this->uid
             ]);
 
             $ret = $count['count'];
