@@ -1,3 +1,4 @@
+console.log("Support JS");
 define([
     'jquery',
     'underscore',
@@ -482,6 +483,21 @@ define([
             if (!Storage.get('ebaynotagain')) {
                 Iznik.Views.Modal.prototype.render.call(this);
             }
+        }
+    });
+
+    Iznik.Views.Aviva = Iznik.Views.Page.extend({
+        template: 'user_support_aviva',
+
+        render: function () {
+            var self = this;
+
+            ABTestShown('aviva', 'Show');
+
+            var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
+            });
+
+            return (p);
         }
     });
 });

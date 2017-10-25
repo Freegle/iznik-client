@@ -160,6 +160,8 @@ define([
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "livemap": "liveMap",
+            "helpus/aviva2017": "userAviva",
+            "aviva": "userAviva",
             "ebay": "userStatsEbay",
             "stats/ebay": "userStatsEbay",
             "stats/eBay": "userStatsEbay",
@@ -734,6 +736,17 @@ define([
             require(["iznik/views/pages/user/stats"], function() {
                 var page = new Iznik.Views.User.Pages.Heatmap();
                 self.loadRoute({page: page});
+            });
+        },
+
+        userAviva: function(area) {
+            var self = this;
+
+            require(["iznik/views/pages/pages"], function() {
+                require(["iznik/views/supportus"], function() {
+                    var page = new Iznik.Views.Aviva();
+                    self.loadRoute({page: page});
+                });
             });
         },
 
