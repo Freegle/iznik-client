@@ -4,6 +4,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/views/pages/pages',
     'iznik/facebook',
     'typeahead',
     'iznik/models/donations',

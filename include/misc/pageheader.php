@@ -1,4 +1,6 @@
 <?php
+global $previewpage;
+
 require_once(IZNIK_BASE . '/include/misc/scripts.php');
 ?><!DOCTYPE HTML>
 <html>
@@ -9,7 +11,24 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
     }
 
     # We serve up different og: tags to allow preview.
-    if (preg_match('/\/explore\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
+    if ($previewpage) {
+        # We have a title and description.
+        require_once(BASE_DIR . '/include/config.php');
+        require_once(IZNIK_BASE . '/include/db.php');
+        require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
+        global $dbhr, $dbhm;
+        $title = htmlentities($previewpage['title']);
+        $desc = htmlentities($previewpage['description']);
+        $icon = pres('icon', $previewpage) ? $previewpage['icon'] : USERLOGO;
+        ?>
+        <title><?php echo $title; ?></title>
+        <meta itemprop="title" content="<?php echo $title; ?>"/>
+        <meta name="description" content="<?php echo $desc; ?>"/>
+        <meta property="og:description" content="<?php echo $desc; ?>"/>
+        <meta property="og:title" content="<?php echo $title; ?>"/>
+        <meta property="og:image" content="<?php echo $icon; ?>"/>
+        <?php
+    } else if (preg_match('/\/explore\/(.*)/', $_SERVER["REQUEST_URI"], $matches)) {
         # Individual group - preview with name, tagline, image.
         require_once(BASE_DIR . '/include/config.php');
         require_once(IZNIK_BASE . '/include/db.php');
