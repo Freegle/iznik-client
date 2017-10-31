@@ -701,7 +701,9 @@ class User extends Entity
             $collection
         ]);
         $membershipid = $this->dbhm->lastInsertId();
-        $added = $this->dbhm->rowsAffected() && $existing[0]['count'] > 0;
+
+        # We added it if it wasn't there before and the INSERT worked.
+        $added = $this->dbhm->rowsAffected() && $existing[0]['count'] == 0;
 
         if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
