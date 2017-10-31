@@ -113,19 +113,6 @@ if ($previewpage) {
     $default = FALSE;
 }
 
-if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
-    # We're not logged in.  Check if we can pre-render some HTML to make us appear fast.  The user can gawp at our
-    # amazing speed, and while they do so, the JS on the client can catch up and do the actual render.
-    $url = "https://" . $_SERVER['HTTP_HOST'] . presdef('REQUEST_URI', $_SERVER, '');
-    $previewpages = $dbhr->preQuery("SELECT * FROM prerender WHERE url = ?;", [ $url ]);
-
-    if (count($previewpages) > 0 && $previewpages[0]['html']) {
-        $html = $previewpages[0]['html'];
-        echo $html;
-        $default = FALSE;
-    }
-}
-
 if ($default) {
 ?>
         <body style="background-colour: #dff2d1;" id="thebody">
