@@ -44,12 +44,12 @@ function abtest() {
 
             if ($uid && $variant) {
                 if ($shown !== NULL) {
-                    $sql = "INSERT INTO abtest (uid, variant, shown) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1) ON DUPLICATE KEY UPDATE shown = shown + 1, rate = 100 * action / shown;";
+                    $sql = "INSERT INTO abtest (uid, variant, shown) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1) ON DUPLICATE KEY UPDATE shown = shown + 1, rate = COALESCE(rate = 100 * action / shown, 0);";
                     $dbhm->background($sql);
                 }
 
                 if ($action !== NULL) {
-                    $sql = "INSERT INTO abtest (uid, variant, action, rate) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1,0) ON DUPLICATE KEY UPDATE action = action + 1, rate = 100 * action / shown;";
+                    $sql = "INSERT INTO abtest (uid, variant, action, rate) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1,0) ON DUPLICATE KEY UPDATE action = action + 1, rate = COALESCE(rate = 100 * action / shown, 0);";
                     $dbhm->background($sql);
                 }
             }
