@@ -686,6 +686,12 @@ class User extends Entity
         # which would result in the row in the child table being deleted.
         #
         #error_log("Add membership role $role for {$this->id} to $groupid with $emailid collection $collection");
+        $existing = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;", [
+            $this->id,
+            $groupid,
+            $collection
+        ]);
+
         $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?, collection = ?;", [
             $this->id,
             $groupid,
@@ -695,7 +701,7 @@ class User extends Entity
             $collection
         ]);
         $membershipid = $this->dbhm->lastInsertId();
-        $added = $this->dbhm->rowsAffected();
+        $added = $this->dbhm->rowsAffected() && $existing[0]['count'] > 0;
 
         if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";
