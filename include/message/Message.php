@@ -3342,9 +3342,10 @@ class Message
     }
 
     public function intendedOutcome($outcome) {
-        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
+        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?) ON DUPLICATE KEY UPDATE outcome = ?;";
         $this->dbhm->preExec($sql, [
             $this->id,
+            $outcome,
             $outcome
         ]);
     }
