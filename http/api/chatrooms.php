@@ -84,13 +84,15 @@ function chatrooms() {
                     $chatids = $r->listForUser($myid);
                     $count = 0;
 
-                    foreach ($chatids as $chatid) {
-                        $r = new ChatRoom($dbhr, $dbhm, $chatid);
+                    if ($chatids) {
+                        foreach ($chatids as $chatid) {
+                            $r = new ChatRoom($dbhr, $dbhm, $chatid);
 
-                        $unseen = $r->unseenCountForUser($myid);
-                        if ($unseen > 0) {
-                            $r->upToDate($myid);
-                            $count += $unseen;
+                            $unseen = $r->unseenCountForUser($myid);
+                            if ($unseen > 0) {
+                                $r->upToDate($myid);
+                                $count += $unseen;
+                            }
                         }
                     }
 
