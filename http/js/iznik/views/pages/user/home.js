@@ -366,7 +366,6 @@ define([
                                     }
                                 });
                             } else if (self.options.action == 'repost') {
-                                console.log("Click repost");
                                 self.$('.js-repost').click();
                                 $.ajax({
                                     url: API + 'message',
