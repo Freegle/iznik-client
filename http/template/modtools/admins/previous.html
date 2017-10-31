@@ -8,8 +8,13 @@
                 <div class="col-md-2">
                     <abbr class="timeago" title="{{created}}" />
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-6">
                     {{subject}}
+                </div>
+                <div class="col-md-3">
+                    <% if (obj.createdby && createdby.id) { %>
+                    {{createdby.displayname}} <span class="faded">#{{createdby.id}}</span>
+                    <% } %>
                 </div>
             </div>
         </a>

@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/mailtemplates/admin.php');
 class Admin extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text');
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby');
 
     /** @var  $log Log */
     private $log;
@@ -34,6 +34,21 @@ class Admin extends Entity
         }
 
         return($id);
+    }
+
+    public function getPublic() {
+        $atts = parent::getPublic();
+
+        if (pres('createdby', $atts)) {
+            $u = User::get($this->dbhr, $this->dbhm, $atts['createdby']);
+            
+            if ($u->getId() == $atts['createdby']) {
+                $ctx = NULL;
+                $atts['createdby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+            }
+        }
+
+        return($atts);
     }
 
     public function constructMessage($groupname, $to, $toname, $from, $subject, $text) {
@@ -74,6 +89,7 @@ class Admin extends Entity
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $atts = $g->getPublic();
+
         $groupname = $atts['namedisplay'];
         $onyahoo = $atts['onyahoo'];
 
