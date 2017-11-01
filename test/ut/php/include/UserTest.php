@@ -98,6 +98,7 @@ class userTest extends IznikTestCase {
         assertEquals(2, count($emails));
         assertEquals(0, $emails[1]['preferred']);
         assertEquals($id, $u->findByEmail('test2@test.com'));
+        assertEquals($id, $u->findByEmail("wibble-$id@" . USER_DOMAIN)); // Should parse the UID out of it.
         assertGreaterThan(0, $u->removeEmail('test2@test.com'));
         assertNull($u->findByEmail('test2@test.com'));
 

@@ -93,7 +93,6 @@ define([
 
         approve: function() {
             var self = this;
-            console.log("Approve", self.model);
             self.model.save({
                 'id': self.model.get('id'),
                 'pending': false

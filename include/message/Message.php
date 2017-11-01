@@ -554,8 +554,9 @@ class Message
         # - for Freegle groups which use this platform
         #   - we're a member, or
         #   - we have publish consent
+        # - it's a TrashNothing message (the TN TOS allows this).
         $role = $atts['myrole'];
-        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $this->getSourceheader() == Message::PLATFORM ;
+        $cansee = $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $this->getSourceheader() == Message::PLATFORM || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE;
 
         if (!$cansee) {
             foreach ($atts['groups'] as $group) {
@@ -2763,6 +2764,10 @@ class Message
         if ($type) {
             # Don't want to look for any messages which already have an outcome, otherwise we would fail to handle
             # crosspost messages correctly - we'd link all TAKENs to the same OFFER.
+            #
+            # A consequence of this is that we may not relate TAKEN/RECEIVED for platform messages correctly as
+            # we create an outcome first and then send the message to Yahoo.  But that is less bad, and Yahoo is
+            # on its way out.
             $sql = "SELECT messages.id, subject, date FROM messages LEFT JOIN messages_outcomes ON messages.id = messages_outcomes.msgid WHERE fromuser = ? AND type = ? AND DATEDIFF(NOW(), arrival) <= 31 AND messages_outcomes.id IS NULL;";
             $messages = $this->dbhr->preQuery($sql, [ $this->fromuser, $type ]);
             #error_log($sql . var_export([ $thissubj, $thissubj, $this->fromuser, $type ], TRUE));
@@ -3341,9 +3346,10 @@ class Message
     }
 
     public function intendedOutcome($outcome) {
-        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?);";
+        $sql = "INSERT INTO messages_outcomes_intended (msgid, outcome) VALUES (?, ?) ON DUPLICATE KEY UPDATE outcome = ?;";
         $this->dbhm->preExec($sql, [
             $this->id,
+            $outcome,
             $outcome
         ]);
     }

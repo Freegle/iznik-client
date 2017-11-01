@@ -90,25 +90,25 @@ function message() {
                     $atts = $m->getPublic($messagehistory, FALSE);
                     $cansee = $m->canSee($atts);
 
+                    # We want to return the groups info even if we can't see the message, so that we can tell them
+                    # which group to join.
                     $ret = [
                         'ret' => 2,
-                        'status' => 'Permission denied'
+                        'status' => 'Permission denied',
+                        'groups' => []
                     ];
 
-                    if ($cansee) {
-                        $ret = [
-                            'ret' => 0,
-                            'status' => 'Success',
-                            'groups' => [],
-                            'message' => $atts
-                        ];
+                    foreach ($atts['groups'] as &$group) {
+                        # The groups info returned in the message is not enough - doesn't include settings, for
+                        # example.
+                        $g = Group::get($dbhr, $dbhm, $group['groupid']);
+                        $ret['groups'][$group['groupid']] = $g->getPublic();
+                    }
 
-                        foreach ($ret['message']['groups'] as &$group) {
-                            # The groups info returned in the message is not enough - doesn't include settings, for
-                            # example.
-                            $g = Group::get($dbhr, $dbhm, $group['groupid']);
-                            $ret['groups'][$group['groupid']] = $g->getPublic();
-                        }
+                    if ($cansee) {
+                        $ret['ret'] = 0;
+                        $ret['status'] = 'Success';
+                        $ret['message'] = $atts;
                     }
                 } else if ($_REQUEST['type'] == 'PUT') {
                     if ($collection == MessageCollection::DRAFT) {

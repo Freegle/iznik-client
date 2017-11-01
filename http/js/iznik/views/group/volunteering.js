@@ -236,7 +236,7 @@ define([
                     }).then(function() {
                         // Add the group and dates.
                         var groups = self.model.get('groups');
-                        if (_.isUndefined(groups) || (groups.length > 0 && self.groupSelect.get() != groups[0]['id'])) {
+                        if (_.isUndefined(groups) || groups.length == 0 || (groups.length > 0 && self.groupSelect.get() != groups[0]['id'])) {
                             self.promises.push($.ajax({
                                 url: API + 'volunteering',
                                 type: 'PATCH',

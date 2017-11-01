@@ -56,7 +56,6 @@ class Yahoo
                 ($this->openid->identity != 'https://open.login.yahooapis.com/openid20/user_profile/xrds'))
             {
                 $attrs = $this->openid->getAttributes();
-                error_log("Yahoo login " . var_export($attrs, TRUE));
 
                 # The Yahoo ID is derived from the email; Yahoo should always returns the Yahoo email even if a different
                 # email is configured on the profile.  Way to go.
@@ -82,7 +81,6 @@ class Yahoo
                 }
 
                 $id = $eid ? $eid : $yid;
-                error_log("Login id $id from $eid and $yid");
 
                 if (!$id) {
                     # We don't know them.  Create a user.

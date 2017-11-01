@@ -746,6 +746,21 @@ And something after it.', $stripped);
         error_log(__METHOD__ . " end");
     }
 
+    public function testTNShow() {
+        error_log(__METHOD__);
+
+        $msg = $this->unique(file_get_contents('msgs/basic'));
+        $msg = str_replace('test@test.com', 'test@user.trashnothing.com', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::YAHOO_APPROVED, 'test@user.trashnothing.com', 'to@test.com', $msg);
+        list($id1, $already) = $m->save();
+        $atts = $m->getPublic();
+        assertTrue($m->canSee($atts));
+        $m->delete();
+
+        error_log(__METHOD__ . " end");
+    }
     // For manual testing
 //    public function testSpecial() {
 //        error_log(__METHOD__);

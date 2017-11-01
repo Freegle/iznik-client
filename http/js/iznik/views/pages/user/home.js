@@ -281,7 +281,7 @@ define([
                 }
 
                 // (new Iznik.Views.SupportUs()).render();
-                (new Iznik.Views.User.eBay()).render();
+                // (new Iznik.Views.User.eBay()).render();
 
                 var today = new Date().toISOString().slice(0, 10);
                 if (today == '2017-04-01') {
@@ -366,7 +366,6 @@ define([
                                     }
                                 });
                             } else if (self.options.action == 'repost') {
-                                console.log("Click repost");
                                 self.$('.js-repost').click();
                                 $.ajax({
                                     url: API + 'message',
@@ -584,9 +583,9 @@ define([
                         var v = new Iznik.Views.SupportUs();
 
                         // eBay voting campaign
-                        self.listenToOnce(v, 'modalClosed', function() {
-                            (new Iznik.Views.User.eBay()).render();
-                        });
+                        // self.listenToOnce(v, 'modalClosed', function() {
+                        //     (new Iznik.Views.User.eBay()).render();
+                        // });
 
                         v.render();
                     }

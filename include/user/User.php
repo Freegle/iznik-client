@@ -447,6 +447,19 @@ class User extends Entity
     }
 
     public function findByEmail($email) {
+        if (preg_match('/.*\-(.*)\@' . USER_DOMAIN . '/', $email, $matches)) {
+            # Our own email addresses have the UID in there.  This will match even if the email address has
+            # somehow been removed from the list.
+            $uid = $matches[1];
+            $users = $this->dbhr->preQuery("SELECT id FROM users WHERE id = ?;", [
+                $uid
+            ]);
+
+            foreach ($users as $user) {
+                return($user['id']);
+            }
+        }
+
         # Take care not to pick up empty or null else that will cause is to overmerge.
         #
         # Use canon to match - that handles variant TN addresses or % addressing.
@@ -638,7 +651,7 @@ class User extends Entity
             }
         }
     }
-
+    
     public function postToCollection($groupid) {
         # Which collection should we post to?  If this is a group on Yahoo then ourPostingStatus will be NULL.  We
         # will post to Pending, and send the message to Yahoo; if the user is unmoderated on there it will come back
@@ -673,6 +686,12 @@ class User extends Entity
         # which would result in the row in the child table being deleted.
         #
         #error_log("Add membership role $role for {$this->id} to $groupid with $emailid collection $collection");
+        $existing = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;", [
+            $this->id,
+            $groupid,
+            $collection
+        ]);
+
         $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?, collection = ?;", [
             $this->id,
             $groupid,
@@ -682,7 +701,9 @@ class User extends Entity
             $collection
         ]);
         $membershipid = $this->dbhm->lastInsertId();
-        $added = $this->dbhm->rowsAffected();
+
+        # We added it if it wasn't there before and the INSERT worked.
+        $added = $this->dbhm->rowsAffected() && $existing[0]['count'] == 0;
 
         if ($rc && $emailid && $g->onYahoo()) {
             $sql = "REPLACE INTO memberships_yahoo (membershipid, role, emailid, collection) VALUES (?,?,?,?);";

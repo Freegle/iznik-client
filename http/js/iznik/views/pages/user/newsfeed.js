@@ -1292,6 +1292,12 @@ define([
             });
 
             p.then(function() {
+                // We set the avatar in JS with a delay because on mobile the large number of image requests
+                // seems to cause the app to time out on slow devices.
+                _.delay(_.bind(function() {
+                    this.$('.js-replyprofile').attr('src', self.model.get('user').profile.url)
+                }, self), 50);
+
                 if (self.model.get('moremessage')) {
                     // Handle re-render.
                     self.model.set('message', self.model.get('moremessage'));

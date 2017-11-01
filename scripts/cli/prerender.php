@@ -57,11 +57,23 @@ if (count($opts) == 0) {
                             });
                             fs.write('{$file_name}', bodyhtml, 'w');
                             var title = page.evaluate(function() {
+                                var tits = document.getElementsByClassName('js-pagetitle');
+                                if (tits.length > 0) {
+                                    return tits[0].innerHTML.replace(/[\\r\\n]+/g, ' ').trim();
+                                }
+                                
                                 return document.title;
                             });
+                            
                             fs.write('{$file_name}.title', title, 'w');
                            
                             var description = page.evaluate(function() {
+                                var descs = document.getElementsByClassName('js-pagedescription');
+                                console.log('Descriptions ' + descs.length);
+                                if (descs.length > 0) {
+                                    return descs[0].innerHTML.replace(/<\/?[^>]+(>|$)/g, '').replace(/[\\r\\n]+/g, ' ').trim();
+                                }
+                                
                                 var metas = document.getElementsByTagName('meta');
                                 var desc = null; 
     

@@ -7,6 +7,8 @@ function memberships() {
     $userid = intval(presdef('userid', $_REQUEST, NULL));
 
     $groupid = intval(presdef('groupid', $_REQUEST, NULL));
+    $g = Group::get($dbhr, $dbhm, $groupid);
+
     $role = presdef('role', $_REQUEST, User::ROLE_MEMBER);
     $email = presdef('email', $_REQUEST, NULL);
     $limit = presdef('limit', $_REQUEST, 5);
@@ -16,7 +18,7 @@ function memberships() {
     $emailfrequency = array_key_exists('emailfrequency', $_REQUEST) ? intval($_REQUEST['emailfrequency']) : NULL;
     $eventsallowed = array_key_exists('eventsallowed', $_REQUEST) ? intval($_REQUEST['eventsallowed']) : NULL;
     $volunteeringallowed = array_key_exists('volunteeringallowed', $_REQUEST) ? intval($_REQUEST['volunteeringallowed']) : NULL;
-    $ourpostingstatus = array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL;
+    $ourpostingstatus = $g->ourPS(array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL);
     $filter = intval(presdef('filter', $_REQUEST, Group::FILTER_NONE));
     $message = presdef('message', $_REQUEST, NULL);
 
@@ -34,7 +36,7 @@ function memberships() {
     $action = presdef('action', $_REQUEST, NULL);
     $yps = presdef('yahooPostingStatus', $_REQUEST, NULL);
     $ydt = presdef('yahooDeliveryType', $_REQUEST, NULL);
-    $ops = presdef('ourPostingStatus', $_REQUEST, NULL);
+    $ops = $g->ourPS(presdef('ourPostingStatus', $_REQUEST, NULL));
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -50,7 +52,6 @@ function memberships() {
     }
 
     $u = User::get($dbhr, $dbhm, $userid);
-    $g = Group::get($dbhr, $dbhm, $groupid);
 
     if ($collection) {
         switch ($_REQUEST['type']) {
@@ -339,7 +340,7 @@ function memberships() {
                                 # then retries forever but the sync has actually happened.
                                 $last = $g->getPrivate('lastyahoomembersync');
                                 $time = strtotime('now') - strtotime($last);
-                                error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
+                                #error_log("Member sync for " . $g->getPrivate('nameshort') . " $last, $time ago");
 
                                 if ($time > 600) {
                                     # It's been a little while since we did this.  Queue it (the actual sync happens
@@ -347,7 +348,7 @@ function memberships() {
                                     $g->queueSetMembers($members, $mysqltime);
                                 } else {
                                     $ret = [ 'ret' => 0, 'status' => 'Ignore member sync as happened recently'];
-                                    error_log("Ignore member sync for " . $g->getPrivate('nameshort') . " as last sync at $last");
+                                    #error_log("Ignore member sync for " . $g->getPrivate('nameshort') . " as last sync at $last");
                                 }
                             } else {
                                 # For other collections, which aren't large, we do the work inline.
@@ -359,10 +360,10 @@ function memberships() {
                     if ($me->isModOrOwner($groupid) || $me->getId() == $userid) {
                         # We can change settings for a user if we're a mod or they are our own
                         $rc = TRUE;
-                        
+
                         if ($settings) {
                             $rc &= $u->setGroupSettings($groupid, $settings);
-                        } 
+                        }
 
                         if ($emailfrequency !== NULL) {
                             $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));

@@ -1,8 +1,10 @@
+console.log("Support JS");
 define([
     'jquery',
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/views/pages/pages',
     'iznik/facebook',
     'typeahead',
     'iznik/models/donations',
@@ -487,6 +489,21 @@ define([
                 Iznik.Views.Modal.prototype.render.call(this);
             }
             }
+        }
+    });
+
+    Iznik.Views.Aviva = Iznik.Views.Page.extend({
+        template: 'user_support_aviva',
+
+        render: function () {
+            var self = this;
+
+            ABTestShown('aviva', 'Show');
+
+            var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
+            });
+
+            return (p);
         }
     });
 });

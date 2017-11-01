@@ -206,6 +206,9 @@ function user() {
                 }
 
                 if ($ourPostingStatus) {
+                    $g = new Group($dbhr, $dbhm);
+                    $ourPostingStatus = $g->ourPS($ourPostingStatus);
+
                     $l->log([
                         'type' => Log::TYPE_USER,
                         'subtype' => Log::SUBTYPE_OUR_POSTING_STATUS,

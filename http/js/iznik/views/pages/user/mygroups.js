@@ -21,7 +21,7 @@ define([
         render: function () {
             var p = Iznik.Views.User.Pages.Group.prototype.render.call(this);
 
-            (new Iznik.Views.User.eBay()).render();
+            // (new Iznik.Views.User.eBay()).render();
 
             Storage.set('lasthomepage', 'mygroups');
 

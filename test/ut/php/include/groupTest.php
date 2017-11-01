@@ -415,5 +415,19 @@ class groupTest extends IznikTestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testOurPS() {
+        error_log(__METHOD__ );
+
+        $g = new Group($this->dbhr, $this->dbhm);
+
+        self::assertEquals(NULL, $g->ourPS(NULL));
+        self::assertEquals(Group::POSTING_DEFAULT, $g->ourPS(Group::POSTING_DEFAULT));
+        self::assertEquals(Group::POSTING_DEFAULT, $g->ourPS(Group::POSTING_UNMODERATED));
+        self::assertEquals(Group::POSTING_MODERATED, $g->ourPS(Group::POSTING_PROHIBITED));
+        self::assertEquals(Group::POSTING_MODERATED, $g->ourPS(Group::POSTING_MODERATED));
+
+        error_log(__METHOD__ . " end");
+    }
 }
 

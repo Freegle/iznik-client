@@ -94,7 +94,7 @@
                         <div class="glyphicon glyphicon-trash"></div>
                         Withdraw
                     </button>
-                    <% if (obj.canrepost) { %>
+                    <% if (obj.canrepost || obj.isdraft) { %>
                     <a href="/edit/{{id}}">
                         <button class="btn btn-white inline js-repost">
                             <div class="glyphicon glyphicon-refresh"></div>
