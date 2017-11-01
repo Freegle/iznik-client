@@ -102,7 +102,6 @@ class Item extends Entity
         }
 
         $bestweight = $bestwic > 10 ? $bestweight : NULL;
-        error_log("$name => $bestname, $bestweight");
 
         return($bestweight);
     }

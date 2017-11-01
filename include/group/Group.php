@@ -666,6 +666,19 @@ class Group extends Entity
         }
     }
 
+    public function ourPS($status) {
+        # For historical reasons, the ourPostingStatus field has various values, equivalent to those on Yahoo.  But
+        # we only support two settings - MODERATED, and DEFAULT aka Group Settings.
+        switch ($status) {
+            case NULL: $status = NULL; break;
+            case Group::POSTING_MODERATED: $status = Group::POSTING_MODERATED; break;
+            case Group::POSTING_PROHIBITED: $status = Group::POSTING_MODERATED; break;
+            default: $status = Group::POSTING_DEFAULT; break;
+        }
+
+        return($status);
+    }
+
     public function setNativeModerationStatus() {
         # This is used when migrating a group from Yahoo to this platform.
         $mods = $this->dbhr->preQuery("SELECT memberships.userid, memberships_yahoo.yahooPostingStatus FROM memberships_yahoo INNER JOIN memberships ON memberships.id = memberships_yahoo.membershipid WHERE groupid = ? AND memberships_yahoo.collection = 'Approved';",
@@ -675,7 +688,7 @@ class Group extends Entity
 
         foreach ($mods as $mod) {
             $this->dbhm->preExec("UPDATE memberships SET ourPostingStatus = ? WHERE userid = ? AND groupid = ?;", [
-                $mod['yahooPostingStatus'],
+                $this->ourPS($mod['yahooPostingStatus']),
                 $mod['userid'],
                 $this->id,
             ]);
@@ -719,7 +732,7 @@ class Group extends Entity
             #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
             #error_log("Yahoo membs before scan" . var_export($news, TRUE));
 
-            error_log("Scan members {$this->group['nameshort']}");
+            #error_log("Scan members {$this->group['nameshort']}");
             $gotanowner = FALSE;
 
             foreach ($members as &$memb) {
@@ -809,7 +822,7 @@ class Group extends Entity
             #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
             #error_log("Yahoo membs after scan" . var_export($news, TRUE));
 
-            error_log("Scanned members {$this->group['nameshort']}");
+            #error_log("Scanned members {$this->group['nameshort']}");
 
             if ($gotanowner || $collection !== MembershipCollection::APPROVED) {
                 $me = whoAmI($this->dbhr, $this->dbhm);
@@ -832,7 +845,7 @@ class Group extends Entity
                 $bulksql = '';
                 $tried = 0;
 
-                error_log("Update members {$this->group['nameshort']} role $myrole");
+                #error_log("Update members {$this->group['nameshort']} role $myrole");
 
                 for ($count = 0; $count < count($members); $count++) {
                     # Long
@@ -949,7 +962,7 @@ class Group extends Entity
                     $this->dbhm->exec($bulksql);
                 }
 
-                error_log("Updated members {$this->group['nameshort']}");
+                #error_log("Updated members {$this->group['nameshort']}");
 
                 #$news = $this->dbhm->preQuery("SELECT * FROM memberships_yahoo INNER JOIN memberships ON memberships_yahoo.membershipid = memberships.id AND groupid = {$this->id};");
                 #error_log("Yahoo membs after update" . var_export($news, TRUE));
@@ -1003,7 +1016,7 @@ class Group extends Entity
                 # Having logged them, delete them.
                 $this->dbhm->preExec("DROP TEMPORARY TABLE syncdelete;");
 
-                error_log("Tidied members {$this->group['nameshort']}");
+                #error_log("Tidied members {$this->group['nameshort']}");
             }
 
             if ($collection == MessageCollection::APPROVED) {
