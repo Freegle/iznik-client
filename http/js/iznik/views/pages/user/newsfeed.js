@@ -919,7 +919,11 @@ define([
             e.stopPropagation();
             self.showAll = true;
             self.$('.js-showearlier').hide();
-            self.collectionView.render();
+
+            // We re-render all the views - the earlier ones will not have been fully rendered before.
+            self.collectionView.viewManager.each(function(view) {
+                view.render.call(view);
+            });
         },
 
         addVolunteer: function() {
@@ -1067,7 +1071,7 @@ define([
             var vis = model.get('visible');
 
             // Show last few.
-            vis = vis && (self.showAll || model.collection.length < 10 || model.collection.indexOf(model) > (model.collection.length - 10));
+            vis = vis ;
 
             return(vis);
         },
@@ -1173,7 +1177,8 @@ define([
                                 visibleModelsFilter: _.bind(self.visible, self),
                                 modelViewOptions: {
                                     highlight: self.options.highlight,
-                                    contributors: self.contributors
+                                    contributors: self.contributors,
+                                    item: self
                                 },
                                 collection: self.replies,
                                 processKeyEvents: false
@@ -1246,94 +1251,96 @@ define([
         render: function() {
             var self = this;
 
-            var type = self.model.get('type');
+            // We want to try to show this if the reply is visible, and it's one of the last few or we've clicked
+            // to show all.
+            if (self.model.get('visible') &&
+                (self.options.item.showAll || self.model.collection.length < 10 ||
+                self.model.collection.indexOf(self.model) > (self.model.collection.length - 10))
+            ) {
+                var type = self.model.get('type');
 
-            self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
+                self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
 
-            switch (type) {
-                case 'ReferToWanted': {
-                    self.template = 'user_newsfeed_refertowanted';
-                    break;
-                }
-
-                case 'ReferToOffer': {
-                    self.template = 'user_newsfeed_refertooffer';
-                    break;
-                }
-
-                case 'ReferToTaken': {
-                    self.template = 'user_newsfeed_refertotaken';
-                    break;
-                }
-
-                case 'ReferToReceived': {
-                    self.template = 'user_newsfeed_refertoreceived';
-                    break;
-                }
-
-                default: {}
-            }
-
-            var preview = self.model.get('preview');
-            if (preview) {
-                // Don't allow previews which are too long.
-                if (preview.title) {
-                    preview.title = ellipsical(strip_tags(preview.title), 120);
-                }
-
-                if (preview.description) {
-                    preview.description = ellipsical(strip_tags(preview.description), 255);
-                }
-                self.model.set('preview', preview);
-            }
-
-            var p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
-                model: self.model
-            });
-
-            p.then(function() {
-                // We set the avatar in JS with a delay because on mobile the large number of image requests
-                // seems to cause the app to time out on slow devices.
-                _.delay(_.bind(function() {
-                    this.$('.js-replyprofile').attr('src', self.model.get('user').profile.url)
-                }, self), 50);
-
-                if (self.model.get('moremessage')) {
-                    // Handle re-render.
-                    self.model.set('message', self.model.get('moremessage'));
-                }
-
-                var message = self.model.get('message');
-
-                if (message) {
-                    if (message.length > self.morelimit) {
-                        var ellip = ellipsical(message, self.morelimit);
-                        self.$('.js-moremessage').show();
-                        self.model.set('moremessage', message);
-                        self.model.set('message', ellip);
+                switch (type) {
+                    case 'ReferToWanted': {
+                        self.template = 'user_newsfeed_refertowanted';
+                        break;
                     }
 
-                    var msg = _.escape(self.model.get('message'));
-                    msg = self.highlightMentions(msg);
-                    self.$('.js-message').html(msg);
+                    case 'ReferToOffer': {
+                        self.template = 'user_newsfeed_refertooffer';
+                        break;
+                    }
 
-                    if (self.$('.js-message').length) {
-                        twemoji.parse(self.$('.js-message').get()[0]);
+                    case 'ReferToTaken': {
+                        self.template = 'user_newsfeed_refertotaken';
+                        break;
+                    }
+
+                    case 'ReferToReceived': {
+                        self.template = 'user_newsfeed_refertoreceived';
+                        break;
+                    }
+
+                    default: {
                     }
                 }
 
-                if (self.model.get('id') == self.options.highlight) {
-                    // Make sure it's visible.
-                    $(window).scrollTo(self.$el);
+                var preview = self.model.get('preview');
+                if (preview) {
+                    // Don't allow previews which are too long.
+                    if (preview.title) {
+                        preview.title = ellipsical(strip_tags(preview.title), 120);
+                    }
 
-                    // Set the initial background colour and then fade to normal.  This draws the eye to the
-                    // item we've clicked to see.
-                    self.$el.addClass('highlightin');
-                    _.delay(function() {
-                        self.$el.addClass('highlightout');
-                    }, 5000);
+                    if (preview.description) {
+                        preview.description = ellipsical(strip_tags(preview.description), 255);
+                    }
+                    self.model.set('preview', preview);
                 }
-            });
+
+                var p = Iznik.Views.User.Feed.Base.prototype.render.call(this, {
+                    model: self.model
+                });
+
+                p.then(function () {
+                    if (self.model.get('moremessage')) {
+                        // Handle re-render.
+                        self.model.set('message', self.model.get('moremessage'));
+                    }
+
+                    var message = self.model.get('message');
+
+                    if (message) {
+                        if (message.length > self.morelimit) {
+                            var ellip = ellipsical(message, self.morelimit);
+                            self.$('.js-moremessage').show();
+                            self.model.set('moremessage', message);
+                            self.model.set('message', ellip);
+                        }
+
+                        var msg = _.escape(self.model.get('message'));
+                        msg = self.highlightMentions(msg);
+                        self.$('.js-message').html(msg);
+
+                        if (self.$('.js-message').length) {
+                            twemoji.parse(self.$('.js-message').get()[0]);
+                        }
+                    }
+
+                    if (self.model.get('id') == self.options.highlight) {
+                        // Make sure it's visible.
+                        $(window).scrollTo(self.$el);
+
+                        // Set the initial background colour and then fade to normal.  This draws the eye to the
+                        // item we've clicked to see.
+                        self.$el.addClass('highlightin');
+                        _.delay(function () {
+                            self.$el.addClass('highlightout');
+                        }, 5000);
+                    }
+                });
+            }
 
             return(p);
         }
