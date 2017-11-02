@@ -3389,13 +3389,6 @@ class Message
                 'text' => "$outcome $comment"
             ]);
 
-            # Update the arrival time.  This is so that if anyone (TN, I'm looking at you) is using the API to retrieve
-            # messages, it can tell that the message has had an outcome.
-            $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ? AND groupid = ?;", [
-                $this->id,
-                $groupid
-            ]);
-
             if ($g->getPrivate('onyahoo')) {
                 # For Yahoo, we send a TAKEN/RECEIVED message.  Not for native.
                 list ($eid, $email) = $u->getEmailForYahooGroup($groupid, TRUE, TRUE);
