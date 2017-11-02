@@ -4,6 +4,8 @@ require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
 function events_off($domain, $logo, $groupname) {
     $siteurl = "https://$domain";
+    $settingsurl = "https://$domain/settings";
+    $unsuburl = "https://$domain/unsubscribe";
 
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -54,6 +56,7 @@ EOT;
                                                         <td class="mobile" align="center" valign="top">
                                                             <h1>Email Confirmation</h1>
                                                             <p>We've turned your community event emails off on $groupname.</p> 
+                                                            <p>You can change which other emails you receive from <a href="$settingsurl">Settings</a> or leave groups from <a href="$unsuburl">here</a>.</p>
                                                         </td>
                                                     </tr>
                                                 </table>
