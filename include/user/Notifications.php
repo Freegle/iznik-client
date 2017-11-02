@@ -6,6 +6,7 @@ require_once(IZNIK_BASE . '/include/misc/Log.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 require_once(IZNIK_BASE . '/mailtemplates/notifications/email.php');
+require_once(IZNIK_BASE . '/mailtemplates/notifications/notificationsoff.php');
 
 class Notifications
 {
@@ -134,7 +135,7 @@ class Notifications
 
         if ($email) {
             list ($transport, $mailer) = getMailer();
-            $html = relevant_off(USER_SITE, USERLOGO);
+            $html = notifications_off(USER_SITE, USERLOGO);
 
             $message = Swift_Message::newInstance()
                 ->setSubject("Email Change Confirmation")

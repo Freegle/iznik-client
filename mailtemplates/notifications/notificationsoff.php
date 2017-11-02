@@ -2,7 +2,7 @@
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function newsletters_off($domain, $logo) {
+function notifications_off($domain, $logo) {
     $siteurl = "https://$domain";
     $settingsurl = "https://$domain/settings";
     $unsuburl = "https://$domain/unsubscribe";
@@ -55,7 +55,7 @@ EOT;
                                                         </td>
                                                         <td class="mobile" align="center" valign="top">
                                                             <h1>Email Confirmation</h1>
-                                                            <p>We've turned your newsletters off.</p> 
+                                                            <p>We've turned notifications about newsfeed posts off.</p> 
                                                             <p>You can change which other emails you receive from <a href="$settingsurl">Settings</a> or leave groups from <a href="$unsuburl">here</a>.</p>
                                                         </td>
                                                     </tr>

@@ -1,4 +1,3 @@
-console.log("Support JS");
 define([
     'jquery',
     'underscore',
