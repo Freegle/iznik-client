@@ -495,9 +495,41 @@ define([
             ABTestShown('aviva', 'Show');
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
+                $.ajax({
+                    url: API + 'dashboard',
+                    data: {
+                        start: '2 months ago',
+                        grouptype: 'Freegle',
+                        group: 1
+                    },
+                    success: function (ret) {
+                        var d = ret.dashboard.aviva;
+                        self.$('.js-position').html(d.ourposition);
+                        self.$('.js-votes').html(d.ourvotes);
+
+                        self.top20 = new Iznik.Collection(d.top20);
+
+                        self.top20CV = new Backbone.CollectionView({
+                            el: self.$('.js-top20'),
+                            modelView: Iznik.Views.Aviva.Top20,
+                            collection: self.top20,
+                            processKeyEvents: false
+                        });
+
+                        self.top20CV.render();
+
+                        self.$('.js-howweredoing').fadeIn('slow');
+                    }
+                });
             });
 
             return (p);
         }
+    });
+
+    Iznik.Views.Aviva.Top20 = Iznik.View.extend({
+        tagName: 'li',
+
+        template: 'user_support_avivatop20'
     });
 });

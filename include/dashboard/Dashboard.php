@@ -121,6 +121,37 @@ class Dashboard {
             $e['timestamp'] = ISODate($e['timestamp']);
         }
 
+        # Aviva stats
+        $votes = $this->dbhr->preQuery("SELECT aviva_votes.* FROM `aviva_votes` INNER JOIN (SELECT project, MAX(timestamp) AS maxtime FROM aviva_votes GROUP BY project) grouped ON grouped.project = aviva_votes.project AND grouped.maxtime = aviva_votes.timestamp ORDER BY votes DESC;");
+        $top20 = [];
+        $foundours = FALSE;
+        $position = 1;
+        $ourvotes = 0;
+
+        foreach ($votes as $vote) {
+            error_log("Compare {$vote['project']}");
+            if ($vote['project'] == '17-1949') {
+                $foundours = TRUE;
+                $ourvotes = $vote['votes'];
+            } else if (!$foundours) {
+                $position++;
+            }
+
+            if (count($top20) < 20) {
+                $top20[] = $vote;
+            }
+
+            if ($foundours && count($top20) >= 20) {
+                break;
+            }
+        }
+
+        $ret['aviva'] = [
+            'ourposition' => $foundours ? $position : 0,
+            'ourvotes' => $ourvotes,
+            'top20' => $top20
+        ];
+
         return($ret);
     }
 }
