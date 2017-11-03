@@ -1,6 +1,8 @@
 <div class="row">
     <div class="col-xs-8">
+        <% if (obj.project == '1949') { %><b><% } %>
         <a data-realurl="true" target="_blank" rel="noopener" href="https://www.avivacommunityfund.co.uk/voting/project/view/17-{{project}}">{{name}}</a>
+        <% if (obj.project == '1949') { %></b><% } %>
     </div>
     <div class="col-xs-4">
         {{votes}} votes

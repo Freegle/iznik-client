@@ -95,6 +95,8 @@ foreach ($recents as $recent) {
     $position++;
 }
 
+error_log("Finished");
+
 if ($lockh) {
     unlockScript($lockh);
 }
