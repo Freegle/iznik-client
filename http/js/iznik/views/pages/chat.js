@@ -696,6 +696,7 @@ define([
 
         scrollTimer: null,
         scrollTo: 0,
+        scrolledToBottomOnce: false,
 
         scrollBottom: function () {
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
@@ -718,13 +719,19 @@ define([
                 // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
                 // finished rendering yet.
                 scroll.scrollTop(height);
-                // console.log("Scroll now to ", self.model.get('id'), height);
 
                 self.scrollTo = height;
-                self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : (new Date()).getTime() + 5000;
 
-                if ((new Date()).getTime() < self.scrollToStopAt) {
-                    self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
+                if (!self.scrolledToBottomOnce) {
+                    // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
+                    // finished rendering yet.
+                    self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : ((new Date()).getTime() + 5000);
+
+                    if ((new Date()).getTime() < self.scrollToStopAt) {
+                        self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
+                    } else {
+                        self.scrolledToBottomOnce = true;
+                    }
                 }
             }
         },
@@ -913,6 +920,7 @@ define([
                             this.$('.js-nudge').tooltip('hide');
                         }, self), 10000);
                     }
+
                     // Encourage people to use the info button.
                     if (!self.shownInfo && !self.shownNudge) {
                         self.$('.js-tooltip.js-info').tooltip('show');
@@ -927,7 +935,6 @@ define([
                     v.close();
                     self.messageFocus();
                     self.scrollBottom();
-
                 });
 
                 // Show any warning for a while.
