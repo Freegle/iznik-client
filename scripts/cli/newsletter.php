@@ -34,6 +34,7 @@ if (count($opts) == 0) {
         if ($email) {
             $u = User::get($dbhr, $dbhm);
             $eid = $u->findByEmail($email);
+            error_log("Send to user $eid");
 
             if ($eid) {
                 $n->send(NULL, $eid);

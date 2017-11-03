@@ -3,8 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/pages/pages',
     'iznik/facebook',
+    'iznik/views/pages/pages',
     'typeahead',
     'iznik/models/donations',
     'iznik/views/postaladdress'
@@ -508,6 +508,7 @@ define([
                         self.$('.js-votes').html(d.ourvotes);
 
                         self.top20 = new Iznik.Collection(d.top20);
+                        self.history = d.history;
 
                         self.top20CV = new Backbone.CollectionView({
                             el: self.$('.js-top20'),
@@ -519,6 +520,48 @@ define([
                         self.top20CV.render();
 
                         self.$('.js-howweredoing').fadeIn('slow');
+
+                        function apiLoaded() {
+                            // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                            _.defer(function () {
+                                var data = new google.visualization.DataTable();
+                                data.addColumn('date', 'Date');
+                                data.addColumn('number', 'Count');
+                                _.each(self.history, function (hist) {
+                                    data.addRow([new Date(hist.timestamp), parseInt(hist.position, 10) ]);
+                                });
+
+                                var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
+                                formatter.format(data, 1);
+
+                                self.chart = new google.visualization.LineChart(self.$('.js-graph').get()[0]);
+                                self.data = data;
+                                self.chartOptions = {
+                                    title: 'Aviva Voting Position',
+                                    interpolateNulls: false,
+                                    animation: {
+                                        duration: 5000,
+                                        easing: 'out',
+                                        startup: true
+                                    },
+                                    legend: {position: 'none'},
+                                    chartArea: {'width': '80%', 'height': '80%'},
+                                    vAxis: {viewWindow: {min: 0}},
+                                    hAxis: {
+                                        format: 'dd MMM'
+                                    },
+                                    series: {
+                                        0: {color: 'darkgreen'}
+                                    }
+                                };
+                                self.chart.draw(self.data, self.chartOptions);
+                            });
+                        }
+
+                        google.load('visualization', '1.0', {
+                            'packages':['corechart', 'annotationchart'],
+                            'callback': apiLoaded
+                        });
                     }
                 });
             });

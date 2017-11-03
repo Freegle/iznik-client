@@ -4,87 +4,69 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 
+ini_set('default_socket_timeout', 10);
+
 $lockh = lockScript(basename(__FILE__));
 
 $pace = 100000;
 
-$siteurl = 'https://www.avivacommunityfund.co.uk/acfcms/sitefinity/public/services/custom/projectservice.svc/BrowseProjects';
+$id = 1;
 
-$urls = [ 'https://www.avivacommunityfund.co.uk/voting/project/view/17-1949' ];
+# We know from the site that there are fewer than 7K projects.  This may change year on year.
+for ($id = 0; $id < 7000; $id++) {
 
-# Get all the projects.
-$page = 1;
+    $url = "https://www.avivacommunityfund.co.uk/voting/project/view/17-$id";
 
-do {
-    error_log("Get page $page, urls " . count($urls));
-    $last = count($urls);
+    for ($try = 0; $try < 5; $try++) {
+        $data = @file_get_contents($url);
 
-    $data = [
-        'CentreLatitude' => "55.3781",
-        'CentreLongitude' => "3.4360",
-        'FundingLevelId' => "4",
-        'PageNumber' => $page,
-        'TerritoryCode' => "uk",
-        'UICulture' => "en",
-        'ZoomLevel' => "0"
-    ];
-
-    $options = array(
-        'http' => array(
-            'header'  => "Content-type: application/json\r\n",
-            'method'  => 'POST',
-            'content' => json_encode($data)
-        )
-    );
-
-    $context  = stream_context_create($options);
-    $result = file_get_contents($siteurl, false, $context);
-
-    if ($result) {
-        if (preg_match_all('/(voting..project..view...*?)\"/m', $result, $matches)) {
-            foreach ($matches as $val) {
-                foreach ($val as $url) {
-                    $url = "https://www.avivacommunityfund.co.uk/" . str_replace('\\', '', str_replace('"', '', $url));
-                    $urls[] = $url;
-                }
-            }
+        if ($data) {
+            break;
         }
-    } else {
-        break;
+
+        error_log("...retry");
     }
 
-    $page++;
-    usleep($pace);
-} while (count($urls) != $last);
-
-$urls = array_unique($urls);
-
-foreach ($urls as $url) {
-    $data = file_get_contents($url);
-    $p = strrpos($url, '/');
-    $id = substr($url, $p + 1);
-    error_log("ID $id from $p in $url");
     $votes = NULL;
     $title = NULL;
 
-    if (preg_match('/<span class="votes-count">(.*)<\/span/', $data, $matches)) {
-        $votes = str_replace(',', '', $matches[1]);
-    }
+    if (strpos($data, 'Funding level:  £10,001&nbsp;to&nbsp;£25,000') !== FALSE) {
+        if (preg_match('/<span class="votes-count">(.*)<\/span/', $data, $matches)) {
+            $votes = str_replace(',', '', $matches[1]);
+        }
 
-    if (preg_match('/<title>(.*) \|/', $data, $matches)) {
-        $title = $matches[1];
-    }
+        if (preg_match('/<title>(.*) \|/', $data, $matches)) {
+            $title = $matches[1];
+        }
 
-    error_log("$id, $title, $votes");
-    if ($id && $title && $votes) {
-        $dbhm->preExec("INSERT INTO aviva_votes (project, name, votes) VALUES (?, ?, ?);", [
-            $id,
-            $title,
-            $votes
+        error_log("$id, $title, $votes");
+        if ($id && $title && $votes) {
+            $dbhm->preExec("INSERT INTO aviva_votes (project, name, votes) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE timestamp = NOW(), votes = ?;", [
+                $id,
+                $title,
+                $votes,
+                $votes
+            ]);
+
+            usleep($pace);
+        }
+    }
+}
+
+# Now the history of our position.
+$recents = $dbhm->preQuery("SELECT * FROM aviva_votes ORDER BY votes DESC");
+$position = 1;
+
+foreach ($recents as $recent) {
+    if ($recent['project'] == '1949') {
+        $dbhm->preExec("INSERT INTO aviva_history (position, votes) VALUES (?,?);", [
+            $position,
+            $recent['votes']
         ]);
-
-        usleep($pace);
+        break;
     }
+
+    $position++;
 }
 
 unlockScript($lockh);
