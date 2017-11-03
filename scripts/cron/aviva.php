@@ -6,15 +6,41 @@ require_once(IZNIK_BASE . '/include/utils.php');
 
 ini_set('default_socket_timeout', 10);
 
-$lockh = lockScript(basename(__FILE__));
+$lockh = NULL;
 
+$opts = getopt('f:');
+
+$ids = [];
+
+if (pres('f', $opts)) {
+    error_log("Full scan");
+    $lockh = lockScript(basename(__FILE__));
+
+    # We want to do a full scan.
+    for ($id = 1; $id < 7000; $id++) {
+        $ids[] = $id;
+    }
+} else {
+    # We want a quick scan of the ones we're competing with.
+    $ours = $dbhr->preQuery("SELECT * FROM aviva_votes WHERE project = '1949';");
+
+    if (count($ours)) {
+        $ourvote = round($ours[0]['votes'] * 0.8);
+        $comps = $dbhr->preQuery("SELECT project FROM aviva_votes WHERE votes > ? ORDER BY id ASC;", [
+            $ourvote
+        ]);
+
+        foreach ($comps as $comp) {
+            $ids[] = $comp['project'];
+        }
+
+        error_log("Quick scan of " . count($ids));
+    }
+}
 $pace = 100000;
 
-$id = 1;
-
 # We know from the site that there are fewer than 7K projects.  This may change year on year.
-for ($id = 0; $id < 7000; $id++) {
-
+foreach ($ids as $id) {
     $url = "https://www.avivacommunityfund.co.uk/voting/project/view/17-$id";
 
     for ($try = 0; $try < 5; $try++) {
@@ -69,4 +95,6 @@ foreach ($recents as $recent) {
     $position++;
 }
 
-unlockScript($lockh);
+if ($lockh) {
+    unlockScript($lockh);
+}
