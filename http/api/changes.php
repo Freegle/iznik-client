@@ -14,8 +14,6 @@ function changes() {
                 'status' => 'Invalid parameters'
             ];
 
-            error_log("Since $since");
-
             if ($since) {
                 $m = new MessageCollection($dbhr, $dbhm);
 
