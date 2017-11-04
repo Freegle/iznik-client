@@ -653,6 +653,8 @@ class MailRouter
                                     $mid = $m->create($chatid, $uid, $textbody, ChatMessage::TYPE_DEFAULT, NULL, FALSE);
                                     if ($this->log) { error_log("Created message $mid"); }
 
+                                    $m->chatByEmail($mid, $this->msg->getID());
+
                                     # The user sending this is up to date with this conversation.  This prevents us
                                     # notifying her about other messages
                                     $r->mailedLastForUser($uid);
@@ -965,6 +967,8 @@ class MailRouter
                                 $cm = new ChatMessage($this->dbhr, $this->dbhm);
                                 $mid = $cm->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
 
+                                $m->chatByEmail($mid, $this->msg->getID());
+
                                 # The user sending this is up to date with this conversation.  This prevents us
                                 # notifying her about other messages.
                                 $r->mailedLastForUser($fromid);
@@ -1004,6 +1008,8 @@ class MailRouter
 
                                     $cm = new ChatMessage($this->dbhr, $this->dbhm);
                                     $mid = $cm->create($chatid, $userid, $textbody, ChatMessage::TYPE_DEFAULT, $this->msg->getID(), FALSE);
+
+                                    $cm->chatByEmail($mid, $this->msg->getID());
 
                                     # The user sending this is up to date with this conversation.  This prevents us
                                     # notifying her about other messages
@@ -1068,6 +1074,8 @@ class MailRouter
                                     FALSE,
                                     $spamscore);
                                 if ($log) { error_log("Created chat message $mid"); }
+
+                                $m->chatByEmail($mid, $this->msg->getID());
 
                                 # The user sending this is up to date with this conversation.  This prevents us
                                 # notifying her about other messages

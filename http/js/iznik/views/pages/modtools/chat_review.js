@@ -7,6 +7,7 @@ define([
     "iznik/modtools",
     "iznik/models/chat/chat",
     'iznik/views/pages/pages',
+    'iznik/views/pages/modtools/messages',
     'iznik/views/infinite'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Pages.ChatReview = Iznik.Views.Infinite.extend({
@@ -87,7 +88,20 @@ define([
             'click .js-approve': 'approve',
             'click .js-delete': 'deleteMe',
             'click .js-modnote': 'modnote',
+            'click .js-viewmsgsource': 'viewMsgSource',
             'click .js-view': 'view'
+        },
+
+        viewMsgSource: function() {
+            var self = this;
+
+            var v = new Iznik.Views.ModTools.Message.ViewSource({
+                model: new Iznik.Models.Message({
+                    id: self.model.get('msgid')
+                })
+            });
+
+            v.render();
         },
 
         modnote: function() {
