@@ -29,7 +29,9 @@ if (!pres('id', $_SESSION) && !pres('nocache', $_REQUEST)) {
     if (count($previewpages) > 0 && $previewpages[0]['html']) {
         $previewpage = $previewpages[0];
     }
+
 }
+
 
 if (pres('REQUEST_URI', $_SERVER) == 'yahoologin') {
     # We have been redirected here from Yahoo.  Time to try to log in while we still have the

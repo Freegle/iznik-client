@@ -133,6 +133,10 @@ class Dashboard {
             'top20' => $top20
         ];
 
+        # Pre-render.
+        $pres = $this->dbhr->preQuery("SELECT MIN(retrieved) AS min FROM prerender;");
+        $ret['prerender'] = ISODate($pres[0]['min']);
+
         return($ret);
     }
 }
