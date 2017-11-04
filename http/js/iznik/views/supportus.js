@@ -526,7 +526,7 @@ define([
                             _.defer(function () {
                                 var data = new google.visualization.DataTable();
                                 data.addColumn('date', 'Date');
-                                data.addColumn('number', 'Count');
+                                data.addColumn('number', 'Position');
                                 _.each(self.history, function (hist) {
                                     data.addRow([new Date(hist.timestamp), parseInt(hist.position, 10) ]);
                                 });
@@ -534,7 +534,7 @@ define([
                                 var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
                                 formatter.format(data, 1);
 
-                                self.chart = new google.visualization.LineChart(self.$('.js-graph').get()[0]);
+                                self.chart = new google.visualization.LineChart(self.$('.js-positiongraph').get()[0]);
                                 self.data = data;
                                 self.chartOptions = {
                                     title: 'Aviva Voting Position',
@@ -546,12 +546,50 @@ define([
                                     },
                                     legend: {position: 'none'},
                                     chartArea: {'width': '80%', 'height': '80%'},
-                                    vAxis: {viewWindow: {min: 0}},
+                                    vAxis: {
+                                        viewWindow: {min: 0},
+                                        title: 'Position'
+                                    },
                                     hAxis: {
                                         format: 'dd MMM'
                                     },
                                     series: {
                                         0: {color: 'darkgreen'}
+                                    }
+                                };
+                                self.chart.draw(self.data, self.chartOptions);
+
+                                var data = new google.visualization.DataTable();
+                                data.addColumn('date', 'Date');
+                                data.addColumn('number', 'Votes');
+                                _.each(self.history, function (hist) {
+                                    data.addRow([new Date(hist.timestamp), parseInt(hist.votes, 10) ]);
+                                });
+
+                                var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
+                                formatter.format(data, 1);
+
+                                self.chart = new google.visualization.LineChart(self.$('.js-votesgraph').get()[0]);
+                                self.data = data;
+                                self.chartOptions = {
+                                    title: 'Aviva Votes',
+                                    interpolateNulls: false,
+                                    animation: {
+                                        duration: 5000,
+                                        easing: 'out',
+                                        startup: true
+                                    },
+                                    legend: {position: 'none'},
+                                    chartArea: {'width': '80%', 'height': '80%'},
+                                    vAxis: {
+                                        viewWindow: {min: 0},
+                                        title: 'Votes'
+                                    },
+                                    hAxis: {
+                                        format: 'dd MMM'
+                                    },
+                                    series: {
+                                        1: {color: 'darkblue'}
                                     }
                                 };
                                 self.chart.draw(self.data, self.chartOptions);
