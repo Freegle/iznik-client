@@ -879,7 +879,7 @@ define([
             'click .js-addevent': 'addEvent',
             'click .js-showearlier': 'showEarlier',
             'click .js-sharefb': 'sharefb',
-            'click .js-moremessage': 'moreMessage'
+            'click .js-moremessagethread': 'moreMessage'
         },
 
         showAll: false,
@@ -890,9 +890,9 @@ define([
             e.preventDefault();
             e.stopPropagation();
 
-            self.$('.js-message').html(_.escape(self.model.get('moremessage')));
-            if (self.$('.js-message').length) {
-                twemoji.parse(self.$('.js-message').get()[0]);
+            self.$('.js-messagethread').html(_.escape(self.model.get('moremessage')));
+            if (self.$('.js-messagethread').length) {
+                twemoji.parse(self.$('.js-messagethread').get()[0]);
             }
 
             self.$('.js-moremessage').hide();
@@ -1128,14 +1128,14 @@ define([
                         if (message) {
                             if (message.length > self.morelimit) {
                                 var ellip = ellipsical(message, self.morelimit);
-                                self.$('.js-moremessage').show();
+                                self.$('.js-moremessagethread').show();
                                 self.model.set('moremessage', message);
                                 self.model.set('message', ellip);
                             }
 
-                            self.$('.js-message').html(_.escape(self.model.get('message')));
-                            if (self.$('.js-message').length) {
-                                twemoji.parse(self.$('.js-message').get()[0]);
+                            self.$('.js-messagethread').html(_.escape(self.model.get('message')));
+                            if (self.$('.js-messagethread').length) {
+                                twemoji.parse(self.$('.js-messagethread').get()[0]);
                             }
                         }
 
