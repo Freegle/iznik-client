@@ -3,8 +3,8 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/views/pages/pages',
     'iznik/facebook',
+    'iznik/views/pages/pages',
     'typeahead',
     'iznik/models/donations',
     'iznik/views/postaladdress'
@@ -500,9 +500,122 @@ define([
             ABTestShown('aviva', 'Show');
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
+                $.ajax({
+                    url: API + 'dashboard',
+                    data: {
+                        start: '2 months ago',
+                        grouptype: 'Freegle',
+                        group: 1
+                    },
+                    success: function (ret) {
+                        var d = ret.dashboard.aviva;
+                        self.$('.js-position').html(d.ourposition);
+                        self.$('.js-votes').html(d.ourvotes);
+
+                        self.top20 = new Iznik.Collection(d.top20);
+                        self.history = d.history;
+
+                        self.top20CV = new Backbone.CollectionView({
+                            el: self.$('.js-top20'),
+                            modelView: Iznik.Views.Aviva.Top20,
+                            collection: self.top20,
+                            processKeyEvents: false
+                        });
+
+                        self.top20CV.render();
+
+                        self.$('.js-howweredoing').fadeIn('slow');
+
+                        function apiLoaded() {
+                            // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                            _.defer(function () {
+                                var data = new google.visualization.DataTable();
+                                data.addColumn('date', 'Date');
+                                data.addColumn('number', 'Position');
+                                _.each(self.history, function (hist) {
+                                    data.addRow([new Date(hist.timestamp), parseInt(hist.position, 10) ]);
+                                });
+
+                                var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
+                                formatter.format(data, 1);
+
+                                self.chart = new google.visualization.LineChart(self.$('.js-positiongraph').get()[0]);
+                                self.data = data;
+                                self.chartOptions = {
+                                    title: 'Aviva Voting Position',
+                                    interpolateNulls: false,
+                                    animation: {
+                                        duration: 5000,
+                                        easing: 'out',
+                                        startup: true
+                                    },
+                                    legend: {position: 'none'},
+                                    chartArea: {'width': '80%', 'height': '80%'},
+                                    vAxis: {
+                                        viewWindow: {min: 0},
+                                        title: 'Position'
+                                    },
+                                    hAxis: {
+                                        format: 'dd MMM'
+                                    },
+                                    series: {
+                                        0: {color: 'darkgreen'}
+                                    }
+                                };
+                                self.chart.draw(self.data, self.chartOptions);
+
+                                var data = new google.visualization.DataTable();
+                                data.addColumn('date', 'Date');
+                                data.addColumn('number', 'Votes');
+                                _.each(self.history, function (hist) {
+                                    data.addRow([new Date(hist.timestamp), parseInt(hist.votes, 10) ]);
+                                });
+
+                                var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
+                                formatter.format(data, 1);
+
+                                self.chart = new google.visualization.LineChart(self.$('.js-votesgraph').get()[0]);
+                                self.data = data;
+                                self.chartOptions = {
+                                    title: 'Aviva Votes',
+                                    interpolateNulls: false,
+                                    animation: {
+                                        duration: 5000,
+                                        easing: 'out',
+                                        startup: true
+                                    },
+                                    legend: {position: 'none'},
+                                    chartArea: {'width': '80%', 'height': '80%'},
+                                    vAxis: {
+                                        viewWindow: {min: 0},
+                                        title: 'Votes'
+                                    },
+                                    hAxis: {
+                                        format: 'dd MMM'
+                                    },
+                                    series: {
+                                        1: {color: 'darkblue'}
+                                    }
+                                };
+                                self.chart.draw(self.data, self.chartOptions);
+                            });
+                        }
+
+                        google.load('visualization', '1.0', {
+                            'packages':['corechart', 'annotationchart'],
+                            'callback': apiLoaded
+                        });
+                    }
+                });
             });
 
             return (p);
         }
+    });
+
+    Iznik.Views.Aviva.Top20 = Iznik.View.extend({
+        tagName: 'li',
+
+        template: 'user_support_avivatop20'
     });
 });

@@ -121,6 +121,22 @@ class Dashboard {
             $e['timestamp'] = ISODate($e['timestamp']);
         }
 
+        # Aviva stats
+        $top20 = $this->dbhr->preQuery("SELECT * FROM `aviva_votes` ORDER BY votes DESC LIMIT 20;");
+        $history = $this->dbhr->preQuery("SELECT * FROM aviva_history ORDER BY timestamp ASC");
+        $ours = $this->dbhr->preQuery("SELECT * FROM aviva_votes WHERE project = '17-1949';");
+
+        $ret['aviva'] = [
+            'ourposition' => count($history) ? $history[count($history) - 1]['position'] : 0,
+            'ourvotes' => count($history) ? $history[count($history) - 1]['votes'] : 0,
+            'history' => $history,
+            'top20' => $top20
+        ];
+
+        # Pre-render.
+        $pres = $this->dbhr->preQuery("SELECT MIN(retrieved) AS min FROM prerender;");
+        $ret['prerender'] = ISODate($pres[0]['min']);
+
         return($ret);
     }
 }

@@ -116,7 +116,7 @@ function message() {
                         # creating one, or updating one.
                         $locationid = intval(presdef('locationid', $_REQUEST, NULL));
 
-                        $ret = [ 'ret' => 3, 'Missing location - client error' ];
+                        $ret = [ 'ret' => 3, 'status' => 'Missing location - client error' ];
 
                         if ($locationid) {
                             if (!$id) {

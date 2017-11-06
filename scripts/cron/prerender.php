@@ -42,7 +42,7 @@ $pages = $dbhr->preQuery("SELECT id, url FROM prerender WHERE html IS NULL OR TI
 shuffle($pages);
 
 foreach ($pages as $page) {
-    echo "php ../cli/prerender.php -i {$page['id']}&\nsleep 1\n";
+    echo "php ../cli/prerender.php -i {$page['id']}&\nsleep 10\n";
 }
 
 echo "wait\n";

@@ -504,6 +504,10 @@ class User extends Entity
 
     # TODO The $old paramter can be retired after 01/07/17
     public static function canonMail($email, $old = FALSE) {
+        # Googlemail is Gmail really in US and UK.
+        $email = str_replace('@googlemail.', '@gmail.', $email);
+        $email = str_replace('@googlemail.co.uk', '@gmail.co.uk', $email);
+
         # Canonicalise TN addresses.
         if (preg_match('/(.*)\-(.*)(@user.trashnothing.com)/', $email, $matches)) {
             $email = $matches[1] . $matches[3];

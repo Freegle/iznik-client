@@ -93,6 +93,13 @@ class ChatMessage extends Entity
         return($s->checkSpam($message) !== NULL);
     }
 
+    public function chatByEmail($chatmsgid, $msgid) {
+        # We record the link between a chat message an originating email in case we need it when reviewing in chat.
+        $this->dbhm->preExec("INSERT INTO chat_messages_byemail (chatmsgid, msgid) VALUES (?, ?);", [
+            $chatmsgid, $msgid
+        ]);
+    }
+
     public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $scheduleid = NULL) {
         try {
             $review = 0;

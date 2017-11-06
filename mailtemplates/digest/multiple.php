@@ -52,6 +52,7 @@ EOT;
                                                                 </table>               
                                                             </td>    
                                                             <td>
+                                                                <p style="color: red">We won the eBay vote!  Thank you.  Bad timing, but there's another one - please vote for Freegle in the Aviva Community Fund <a href="https://www.ilovefreegle.org/helpus/aviva2017">here</a>.</p>  
                                                                 <p>You've received this automated mail because you're a member of <a href="{{visit}}">$groupname</a>.</p>
                                                                 <table width="100%">
                                                                     <tr>

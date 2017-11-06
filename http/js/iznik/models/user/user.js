@@ -11,6 +11,29 @@ define([
     Iznik.Models.ModTools.User = Iznik.Model.extend({
         urlRoot: API + '/user',
 
+        unbounce: function() {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    type: 'POST',
+                    url: API + 'user',
+                    data: {
+                        id: self.get('id'),
+                        action: 'Unbounce'
+                    }, success: function(ret) {
+                        if (ret.ret === 0) {
+                            resolve();
+                        } else {
+                            reject();
+                        }
+                    }, error: reject
+                });
+            });
+
+            return(p);
+        },
+
         parse: function(ret) {
             // We might either be called from a collection, where the user is at the top level, or
             // from getting an individual user, where it's not.

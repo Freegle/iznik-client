@@ -1127,6 +1127,7 @@ define([
 
         scrollTimer: null,
         scrollTo: 0,
+        scrolledToBottomOnce: false,
 
         scrollBottom: function () {
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
@@ -1145,16 +1146,21 @@ define([
                     self.scrollToStopAt = null;
                 }
 
-                // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
-                // finished rendering yet.
                 msglist.scrollTop(height);
                 // console.log("Scroll now to ", self.model.get('id'), height);
 
                 self.scrollTo = height;
-                self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : (new Date()).getTime() + 5000;
 
-                if ((new Date()).getTime() < self.scrollToStopAt) {
-                    self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
+                if (!self.scrolledToBottomOnce) {
+                    // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
+                    // finished rendering yet.
+                    self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : ((new Date()).getTime() + 5000);
+
+                    if ((new Date()).getTime() < self.scrollToStopAt) {
+                        self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
+                    } else {
+                        self.scrolledToBottomOnce = true;
+                    }
                 }
             }
         },

@@ -279,19 +279,22 @@ class Story extends Entity
             }
         }
 
-        $url = 'https://' . USER_SITE . '/stories';
-        $html = story_central(CENTRAL_MAIL_TO, CENTRAL_MAIL_TO, $url, $html);
+        if ($count > 0) {
+            $url = 'https://' . USER_SITE . '/stories';
+            $html = story_central(CENTRAL_MAIL_TO, CENTRAL_MAIL_TO, $url, $html);
 
-        $message = Swift_Message::newInstance()
-            ->setSubject("Recent stories from freeglers")
-            ->setFrom([CENTRAL_MAIL_FROM => SITE_NAME])
-            ->setReturnPath(CENTRAL_MAIL_FROM)
-            ->setTo(CENTRAL_MAIL_TO)
-            ->setBody($text)
-            ->addPart($html, 'text/html');
+            $message = Swift_Message::newInstance()
+                ->setSubject("Recent stories from freeglers")
+                ->setFrom([CENTRAL_MAIL_FROM => SITE_NAME])
+                ->setReturnPath(CENTRAL_MAIL_FROM)
+                ->setTo(CENTRAL_MAIL_TO)
+                ->setBody($text)
+                ->addPart($html, 'text/html');
 
-        list ($transport, $mailer) = getMailer();
-        $this->sendIt($mailer, $message);
+            list ($transport, $mailer) = getMailer();
+            $this->sendIt($mailer, $message);
+        }
+
         return($count);
     }
 
