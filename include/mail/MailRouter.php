@@ -967,7 +967,7 @@ class MailRouter
                                 $cm = new ChatMessage($this->dbhr, $this->dbhm);
                                 $mid = $cm->create($chatid, $fromid, $textbody, ChatMessage::TYPE_INTERESTED, $msgid, FALSE);
 
-                                $m->chatByEmail($mid, $this->msg->getID());
+                                $cm->chatByEmail($mid, $this->msg->getID());
 
                                 # The user sending this is up to date with this conversation.  This prevents us
                                 # notifying her about other messages.
