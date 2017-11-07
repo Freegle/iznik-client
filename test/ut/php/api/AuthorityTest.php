@@ -57,6 +57,16 @@ class authorityAPITest extends IznikAPITestCase
         assertEquals($id, $ret['authority']['id']);
         assertEquals('UTAuth', $ret['authority']['name']);
 
+        $ret = $this->call('authority', 'GET', [
+            'search' => 'utau'
+        ]);
+
+        error_log("Search returned " . var_export($ret, TRUE));
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['authorities']));
+        assertEquals($id, $ret['authorities'][0]['id']);
+
         error_log(__METHOD__ . " end");
     }
 }

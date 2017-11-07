@@ -45,7 +45,7 @@ class Authority extends Entity
     public function create($name, $area_code, $polygon) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO authorities (name, area_code, polygon, simplified) VALUES (?,?,GeomFromText(?), ST_Simplify(GeomFromText(?), 0.001)) ON DUPLICATE KEY UPDATE polygon = GeomFromText(?), simplified = ST_Simplify(GeomFromText(?), 0.001));", [
+        $rc = $this->dbhm->preExec("INSERT INTO authorities (name, area_code, polygon, simplified) VALUES (?,?,GeomFromText(?), ST_Simplify(GeomFromText(?), 0.001)) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), polygon = GeomFromText(?), simplified = ST_Simplify(GeomFromText(?), 0.001);", [
             $name,
             $area_code,
             $polygon,
@@ -69,16 +69,14 @@ class Authority extends Entity
         # Remove any weird characters.
         $term = preg_replace("/[^[:alnum:][:space:]]/u", '', $term);
 
-        $auths = $this->dbhr->preQuery("SELECT id, name FROM authorities WHERE name LIKE ? LIMIT $limit;", [
-            $this->dbhr->quote("%$term%")
-        ]);
+        $auths = $this->dbhr->preQuery("SELECT id, name FROM authorities WHERE name LIKE " . $this->dbhr->quote("%$term%") . " LIMIT $limit;");
 
         return($auths);
     }
 
     public function getPublic()
     {
-        $auths = $this->dbhr->preQuery("SELECT id, name, AsText(simplified) AS polygon FROM authorities WHERE id = ?;", [
+        $auths = $this->dbhr->preQuery("SELECT id, name, area_code, AsText(simplified) AS polygon FROM authorities WHERE id = ?;", [
             $this->id
         ]);
 
@@ -86,5 +84,7 @@ class Authority extends Entity
 
         # Map the area code to something friendly.
         $atts['area_code'] = pres($atts['area_code'], $this->area_codes) ? $this->area_codes[$atts['area_code']] : NULL;
+
+        return($atts);
     }
 }
