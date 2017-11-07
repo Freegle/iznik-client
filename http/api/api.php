@@ -46,6 +46,7 @@ require_once(IZNIK_BASE . '/include/user/Story.php');
 require_once(IZNIK_BASE . '/include/user/Address.php');
 require_once(IZNIK_BASE . '/include/misc/PAF.php');
 require_once(IZNIK_BASE . '/include/misc/Donations.php');
+require_once(IZNIK_BASE . '/include/misc/Authority.php');
 require_once(IZNIK_BASE . '/include/user/MembershipCollection.php');
 require_once(IZNIK_BASE . '/include/user/Notifications.php');
 require_once(IZNIK_BASE . '/include/user/PushNotifications.php');
@@ -72,6 +73,7 @@ require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 
 # Include each API call
 require_once(IZNIK_BASE . '/http/api/abtest.php');
+require_once(IZNIK_BASE . '/http/api/authority.php');
 require_once(IZNIK_BASE . '/http/api/activity.php');
 require_once(IZNIK_BASE . '/http/api/alert.php');
 require_once(IZNIK_BASE . '/http/api/admin.php');
@@ -243,6 +245,9 @@ if ($_REQUEST['type'] == 'OPTIONS') {
                     break;
                 case 'activity':
                     $ret = activity();
+                    break;
+                case 'authority':
+                    $ret = authority();
                     break;
                 case 'address':
                     $ret = address();

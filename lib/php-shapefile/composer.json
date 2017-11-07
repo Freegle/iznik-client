@@ -1,0 +1,24 @@
+{
+    "name": "gasparesganga/php-shapefile",
+    "description": "PHP library to read any ESRI Shapefile and its associated DBF into a PHP Array or WKT",
+    "type": "library",
+    "keywords": ["shapefile", "shape", "shp", "dbf", "esri"],
+    "homepage": "http://gasparesganga.com/labs/php-shapefile/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gaspare Sganga",
+            "email": "contact@gasparesganga.com",
+            "homepage": "http://gasparesganga.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ShapeFile\\": "src/"
+        }
+    }
+}

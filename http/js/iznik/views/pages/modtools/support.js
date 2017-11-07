@@ -447,11 +447,6 @@ define([
                 editable: false,
                 cell: 'string'
             }, {
-                name: 'authority',
-                label: 'Authority',
-                editable: false,
-                cell: 'string'
-            }, {
                 name: 'lastmoderated',
                 label: 'Last moderated',
                 editable: false,
