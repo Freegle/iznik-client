@@ -2,6 +2,11 @@
     background-image: url('/images/wallpaper.png');
 }
 
+.bg-darkgreen {
+    background-color: darkgreen;
+    color: white !important;
+}
+
 .snowback {
     background-image: url('/images/snowman.jpg');
     background-size: contain;

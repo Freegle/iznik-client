@@ -4,6 +4,7 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/utils.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
+require_once(IZNIK_BASE . '/include/misc/Authority.php');
 require_once(IZNIK_BASE . '/lib/php-shapefile/src/ShapeFileAutoloader.php');
 require_once(IZNIK_BASE . '/lib/phpcoord.php');
 
@@ -13,6 +14,7 @@ require_once(IZNIK_BASE . '/lib/phpcoord.php');
 use \ShapeFile\ShapeFile;
 use \ShapeFile\ShapeFileException;
 
+$a = new Authority($dbhr, $dbhm);
 $opts = getopt('f:');
 
 $fn = presdef('f', $opts, NULL);
@@ -30,9 +32,9 @@ if ($fn) {
 
         while (preg_match('/([0-9\.\s]+)/', $wkt, $matches, PREG_OFFSET_CAPTURE, $last)) {
             $en = trim($matches[1][0]);
+            $off = $matches[1][1];
 
             if (strlen($en)) {
-                $off = $matches[1][1];
                 #error_log("Found match $en at $off");
                 $p = strpos($en, ' ');
                 if ($p) {
@@ -47,6 +49,8 @@ if ($fn) {
                     file_put_contents('/tmp/a', $wkt);
                     exit(1);
                 }
+            } else {
+                $new .= substr($wkt, $last, $off - $last);
             }
 
             #error_log("Move on " . strlen($matches[1][0]) . " from {$matches[1][0]}");
@@ -55,11 +59,22 @@ if ($fn) {
 
         $new .= substr($wkt, $last);
 
-        $dbhm->preExec("INSERT INTO authorities (name, area_code, polygon) VALUES (?,?,GeomFromText(?)) ON DUPLICATE KEY UPDATE polygon = GeomFromText(?);", [
-            $record['dbf']['NAME'],
-            $record['dbf']['AREA_CODE'],
-            $wkt,
-            $wkt
-        ]);
+        # Some polygons aren't closed; add the start point as an end point.
+        $p = strpos($new, '((');
+        $q = strpos($new, ',');
+        $start = substr($new, $p + 2, $q - $p -2);
+        $p = substr($new, 0, strlen($new) - 2) . ", $start))";
+
+        try {
+            $a->create(
+                $record['dbf']['NAME'],
+                $record['dbf']['AREA_CODE'],
+                $new
+            );
+        } catch (Exception $e) {
+            file_put_contents('/tmp/a', $new);
+            file_put_contents('/tmp/b', $wkt);
+            error_log("...failed");
+        }
     }
 }

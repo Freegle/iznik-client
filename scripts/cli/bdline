@@ -1,11 +1,11 @@
 # This is what we import from the OS Boundary Line dataset to get the list of
 # authorities.
-php bdline.php -f /tmp/Data/GB/county_electoral_division_region.shp
-php bdline.php -f /tmp/Data/GB/district_borough_unitary_region.shp
-php bdline.php -f /tmp/Data/GB/district_borough_unitary_ward_region.shp
-php bdline.php -f /tmp/Data/GB/greater_london_const_region.shp
-php bdline.php -f /tmp/Data/GB/scotland_and_wales_const_region.shp
-php bdline.php -f /tmp/Data/GB/scotland_and_wales_region_region.shp
-php bdline.php -f /tmp/Data/GB/unitary_electoral_division_region.shp
-php bdline.php -f /tmp/Data/GB/westminster_const_region.shp
-php bdline2.php
+php bdline.php -f /tmp/Data/GB/county_region
+php bdline.php -f /tmp/Data/GB/county_electoral_division_region
+php bdline.php -f /tmp/Data/GB/district_borough_unitary_region
+php bdline.php -f /tmp/Data/GB/district_borough_unitary_ward_region
+php bdline.php -f /tmp/Data/GB/greater_london_const_region
+php bdline.php -f /tmp/Data/GB/scotland_and_wales_const_region
+php bdline.php -f /tmp/Data/GB/scotland_and_wales_region_region
+php bdline.php -f /tmp/Data/GB/unitary_electoral_division_region
+php bdline.php -f /tmp/Data/GB/westminster_const_region

@@ -66,15 +66,24 @@ define([
                                 startup: true
                             },
                             legend: {position: 'none'},
-                            chartArea: {'width': '80%', 'height': '80%'},
+                            chartArea: self.options.hasOwnProperty('chartArea') ? self.options.chartArea : {'width': '80%', 'height': '80%'},
                             vAxis: {viewWindow: {min: 0}},
                             hAxis: {
-                                format: 'dd MMM'
+                                format: self.options.hAxisFormat ? self.options.hAxisFormat : 'dd MMM'
                             },
                             series: {
                                 0: {color: 'blue'}
                             }
                         };
+
+                        if (self.options.width) {
+                            self.chartOptions.width = self.options.width;
+                        }
+
+                        if (self.options.height) {
+                            self.chartOptions.height = self.options.height;
+                        }
+
                         self.chart.draw(self.data, self.chartOptions);
                     });
                 });
@@ -117,7 +126,7 @@ define([
                                 startup: true
                             },
                             legend: {position: 'none'},
-                            chartArea: {'width': '80%', 'height': '80%'},
+                            chartArea: self.options.hasOwnProperty('chartArea') ? self.options.chartArea : {'width': '80%', 'height': '80%'},
                             bar: { groupWidth: "100%" },
                             vAxis: {viewWindow: {min: 0}},
                             hAxis: {
@@ -159,7 +168,7 @@ define([
                         self.chart = new google.visualization.PieChart(self.options.target);
                         self.chartOptions = {
                             title: self.options.title,
-                            chartArea: {'width': '80%', 'height': '80%'},
+                            chartArea: self.options.hasOwnProperty('chartArea') ? self.options.chartArea : {'width': '80%', 'height': '80%'},
                             colors: self.colours ? self.colours : leftColours,
                             slices2: {
                                 1: {offset: 0.2},
@@ -223,7 +232,7 @@ define([
                         self.chart = new google.visualization.ColumnChart(self.options.target);
                         self.chartOptions = {
                             title: self.options.title,
-                            chartArea: {'width': '80%', 'height': '80%'},
+                            chartArea: self.options.hasOwnProperty('chartArea') ? self.options.chartArea : {'width': '80%', 'height': '80%'},
                             isStacked: 'percent',
                             legend: 'none',
                             series: colours
@@ -260,7 +269,7 @@ define([
                         self.chart = new google.visualization.PieChart(self.options.target);
                         self.chartOptions = {
                             title: self.options.title,
-                            chartArea: {'width': '80%', 'height': '80%'},
+                            chartArea: self.options.hasOwnProperty('chartArea') ? self.options.chartArea : {'width': '80%', 'height': '80%'},
                             colors: leftColours,
                             slices2: {
                                 1: {offset: 0.2},
@@ -299,7 +308,7 @@ define([
                         self.chart = new google.visualization.PieChart(self.options.target);
                         self.chartOptions = {
                             title: self.options.title,
-                            chartArea: {'width': '80%', 'height': '80%'},
+                            chartArea: self.options.hasOwnProperty('chartArea') ? self.options.chartArea : {'width': '80%', 'height': '80%'},
                             colors: leftColours,
                             slices2: {
                                 1: {offset: 0.2},
@@ -338,7 +347,7 @@ define([
                         self.chart = new google.visualization.PieChart(self.options.target);
                         self.chartOptions = {
                             title: self.options.title,
-                            chartArea: {'width': '80%', 'height': '80%'},
+                            chartArea: self.options.hasOwnProperty('chartArea') ? self.options.chartArea : {'width': '80%', 'height': '80%'},
                             colors: leftColours,
                             slices2: {
                                 1: {offset: 0.2},

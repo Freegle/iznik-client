@@ -18,7 +18,7 @@ class Dashboard {
         $this->stats = new Stats($dbhr, $dbhm);
     }
 
-    public function get($systemwide, $allgroups, $groupid, $area, $region, $type, $start = '30 days ago') {
+    public function get($systemwide, $allgroups, $groupid, $authorityid, $region, $type, $start = '30 days ago') {
         $groupids = [];
 
         # Get the possible groups.
@@ -32,9 +32,9 @@ class Dashboard {
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];
             }
-        } else if ($area) {
+        } else if ($authorityid) {
             # We use groups where the core area overlaps.
-            $groups = $this->dbhr->preQuery("SELECT groups.id FROM groups INNER JOIN authorities ON ST_Intersects(GeomFromText(polyofficial), polygon) WHERE polyofficial IS NOT NULL AND authorities.name LIKE ?;", [ $area ]);
+            $groups = $this->dbhr->preQuery("SELECT groups.id FROM groups INNER JOIN authorities ON ST_Intersects(GeomFromText(polyofficial), COALESCE(simplified, polygon)) WHERE polyofficial IS NOT NULL AND authorities.id = ?;", [ $authorityid ]);
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];
             }

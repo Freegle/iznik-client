@@ -4,11 +4,13 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'typeahead',
     'gmaps',
     'iznik/views/pages/pages',
     'iznik/views/dashboard',
-    'iznik/models/group'
-], function ($, _, Backbone, Iznik, moment) {
+    'iznik/models/group',
+    'iznik/models/authority'
+], function ($, _, Backbone, Iznik, moment, typeahead) {
     Iznik.Views.User.Pages.StatsGroup = Iznik.Views.Page.extend({
         template: 'user_stats_main',
 
@@ -465,6 +467,398 @@ define([
             });
 
             return (p);
+        }
+    });
+
+    Iznik.Views.User.Pages.Authorities = Iznik.Views.Page.extend({
+        template: 'user_stats_authorities',
+
+        authoritySource: function(query, syncResults, asyncResults) {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'authority',
+                data: {
+                    search: query
+                }, success: function(ret) {
+                    var matches = [];
+                    _.each(ret.authorities, function(authority) {
+                        matches.push(authority);
+                    });
+
+                    asyncResults(matches);
+                }
+            })
+        },
+
+        suggestion: function(s) {
+            var tpl = _.template('<div><span><%-name%></span>&nbsp;<span class="small faded"><%-area_code%></div></div>');
+            var html = tpl(s);
+            return(html);
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function() {
+                self.$('.js-search').typeahead({
+                    minLength: 3,
+                    highlight: true
+                }, {
+                    name: 'authority',
+                    limit: 10,
+                    source: _.bind(self.authoritySource, self),
+                    display: function(s) {
+                        return s.name
+                    },
+                    templates: {
+                        suggestion: self.suggestion,
+                        limit: 50
+                    }
+                });
+
+                self.$('.js-search').bind('typeahead:select', function(ev, suggestion) {
+                    Router.navigate('/stats/authority/' + suggestion.id, true);
+                });
+            });
+
+            return (p);
+        }
+    });
+
+    Iznik.Views.User.Pages.StatsAuthority = Iznik.Views.Page.extend({
+        template: 'user_stats_authority',
+
+        naked: true,
+
+        events: {
+        },
+
+        resize: function(e) {
+            var mapWidth = $(e.target).outerWidth();
+            $(e.target).css('height', mapWidth + 'px');
+            google.maps.event.trigger(this.map, "resize");
+        },
+
+        render: function () {
+            var self = this;
+
+            self.wait = new Iznik.Views.PleaseWait();
+            self.wait.render();
+
+            self.model = new Iznik.Models.Authority({
+                id: self.options.id
+            });
+
+            var p = self.model.fetch();
+            p.then(function() {
+                Iznik.Views.Page.prototype.render.call(self, {
+                    model: self.mode
+                }).then(function() {
+                    self.wait.close();
+                    self.wait = new Iznik.Views.PleaseWait();
+                    self.wait.render();
+
+                    self.waitDOM(self, function() {
+                        $('nav').slideUp('slow');
+
+                        var target = self.$('.js-map');
+
+                        var mapWidth = target.outerWidth();
+                        target.css('height', Math.min(400, mapWidth) + 'px');
+
+                        var centre = self.model.get('centre');
+
+                        var mapOptions = {
+                            mapTypeControl      : false,
+                            streetViewControl   : false,
+                            center              : new google.maps.LatLng(centre.lat, centre.lng),
+                            panControl          : mapWidth > 400,
+                            zoomControl         : mapWidth > 400,
+                            zoom                : 7
+                        };
+
+                        self.map = new google.maps.Map(target.get()[0], mapOptions);
+
+                        google.maps.event.addDomListener(window, 'resize', _.bind(self.resize, self));
+                        google.maps.event.addDomListener(window, 'load', _.bind(self.resize, self));
+
+                        // Add a polygon for the area.
+                        require(['wicket-gmap3', 'wicket'], function(gm, Wkt) {
+                            // No getBounds on polygon by default.
+                            google.maps.Polygon.prototype.getBounds = function() {
+                                var bounds = new google.maps.LatLngBounds();
+                                var paths = this.getPaths();
+                                var path;
+                                for (var i = 0; i < paths.getLength(); i++) {
+                                    path = paths.getAt(i);
+                                    for (var ii = 0; ii < path.getLength(); ii++) {
+                                        bounds.extend(path.getAt(ii));
+                                    }
+                                }
+                                return bounds;
+                            }
+
+                            var wkt = new Wkt.Wkt();
+                            var wktstr = self.model.get('polygon');
+                            wkt.read(wktstr);
+
+                            obj = wkt.toObject(self.map.defaults); // Make an object
+
+                            if (obj) {
+                                obj.setMap(self.map);
+                                obj.setOptions({
+                                    fillColor: 'blue',
+                                    strokeWeight: 0,
+                                    fillOpacity: 0.1
+                                });
+
+                                // Zoom the map to show the authority
+                                var bounds = obj.getBounds();
+
+                                var mapDim = {
+                                    height: self.$('.js-map').height(),
+                                    width: self.$('.js-map').width()
+                                };
+
+                                var zoom = getBoundsZoomLevel(bounds, mapDim);
+                                self.map.setZoom(zoom);
+
+                                // Add the group markers.
+                                var groups = self.model.get('groups');
+
+                                _.each(groups, function(group) {
+                                    var icon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarkerbrightgreen.gif';
+                                    var marker = new google.maps.Marker({
+                                        position: new google.maps.LatLng(group.lat, group.lng),
+                                        icon: icon,
+                                        title: group.namedisplay,
+                                        map: self.map
+                                    });
+
+                                    if (groups.length < 10) {
+                                        // If not too many, shade them.
+                                        var wkt = new Wkt.Wkt();
+                                        var wktstr = group.poly;
+
+                                        try {
+                                            wkt.read(wktstr);
+                                        } catch (e1) {
+                                            try {
+                                                self.Wkt.read(wktstr.replace('\n', '').replace('\r', '').replace('\t', ''));
+                                            } catch (e2) {
+                                            }
+                                        }
+
+                                        obj = wkt.toObject(self.map.defaults);
+                                        obj.setMap(self.map);
+                                        obj.setOptions({
+                                            fillColor: 'grey',
+                                            strokeWeight: 0,
+                                            fillOpacity: 0.1
+                                        });
+                                    }
+                                });
+
+                                // Get the dashboard stats info.
+                                $.ajax({
+                                    url: API + 'dashboard',
+                                    data: {
+                                        start: '12 months ago',
+                                        grouptype: 'Freegle',
+                                        authorityid: self.options.id
+                                    },
+                                    success: function (ret) {
+                                        var date = new Date();
+                                        var firstDay = (new Date(date.getFullYear(), date.getMonth(), 1)).getTime();
+                                        var total = 0;
+                                        var firstdate = null;
+                                        var lastdate = null;
+
+                                        _.each(ret.dashboard.Weight, function(w) {
+                                            if (!firstdate) {
+                                                var m = new moment(w.date);
+                                                firstdate = m.format('MMM YYYY');
+                                            }
+
+                                            if ((new Date(w.date)).getTime() < firstDay) {
+                                                total += w.count;
+                                                var m = new moment(w.date);
+                                                lastdate = m.format('MMM YYYY');
+                                            }
+                                        });
+
+                                        var members = 0;
+
+                                        _.each(ret.dashboard.ApprovedMemberCount, function(w) {
+                                            if ((new Date(w.date)).getTime() < firstDay) {
+                                                members = w.count;
+                                            }
+                                        });
+
+                                        var tonnes = Math.round(total / 1000);
+
+                                        // Headline stats.
+                                        var sitename = $('meta[name=izniksitename]').attr("content");
+                                        self.$('.js-weight').html(tonnes.toLocaleString() + '<br />TONNES REUSED');
+                                        self.$('.js-weightnobr').html(tonnes.toLocaleString() + ' TONNES REUSED');
+                                        self.$('.js-groupcount').html(groups.length.toLocaleString() + '<br />GROUPS');
+                                        self.$('.js-membercount').html(members.toLocaleString() + '<br />MEMBERS');
+                                        self.$('.js-firstdate').html(firstdate.toUpperCase());
+                                        self.$('.js-lastdate').html(lastdate.toUpperCase());
+                                        self.$('.js-lastdatelc').html(lastdate);
+
+                                        // Weight chart
+                                        var months = {};
+
+                                        _.each(ret.dashboard.Weight, function(ent) {
+                                            var date = new moment(ent.date);
+                                            var key = date.format('01 MMM YYYY');
+
+                                            // Exclude last month as incomplete.
+                                            if ((new Date(ent.date)).getTime() < firstDay && ent.count > 0) {
+                                                if (key in months) {
+                                                    months[key] = months[key] + ent.count;
+                                                } else {
+                                                    months[key] = ent.count;
+                                                }
+                                            }
+                                        });
+
+                                        var data = [];
+
+                                        for (var key in months) {
+                                            data.push({
+                                                date: key,
+                                                count: months[key]
+                                            });
+                                        }
+
+                                        var graph = new Iznik.Views.DateBar({
+                                            target: self.$('.js-weightchart').get()[0],
+                                            data: new Iznik.Collections.DateCounts(data),
+                                            hAxisFormat: 'MMM yyyy',
+                                            width: "100%",
+                                            height: "200px",
+                                            chartArea: null
+                                        });
+
+                                        graph.render();
+
+                                        // Member chart
+                                        var months = {};
+
+                                        _.each(ret.dashboard.ApprovedMemberCount, function(ent) {
+                                            var date = new moment(ent.date);
+                                            var key = date.format('01 MMM YYYY');
+
+                                            // Exclude last month as incomplete.
+                                            if ((new Date(ent.date)).getTime() < firstDay && ent.count > 0) {
+                                                if (key in months) {
+                                                    months[key] = ent.count;
+                                                } else {
+                                                    months[key] = ent.count;
+                                                }
+                                            }
+                                        });
+
+                                        var data = [];
+
+                                        for (var key in months) {
+                                            data.push({
+                                                date: key,
+                                                count: months[key]
+                                            });
+                                        }
+
+                                        var graph = new Iznik.Views.DateGraph({
+                                            target: self.$('.js-memberchart').get()[0],
+                                            data: new Iznik.Collections.DateCounts(data),
+                                            hAxisFormat: 'MMM yyyy',
+                                            width: "100%",
+                                            height: "200px",
+                                            chartArea: null
+                                        });
+
+                                        graph.render();
+
+                                        // Group table.
+                                        var promises = [];
+                                        var coll = new Iznik.Collection();
+
+                                        _.each(groups, function(group) {
+                                            var g = new Iznik.Models.Group({
+                                                id: group.id
+                                            });
+
+                                            promises.push(g.fetch());
+                                            coll.add(g);
+
+                                            promises.push($.ajax({
+                                                url: API + 'dashboard',
+                                                data: {
+                                                    start: '12 months ago',
+                                                    grouptype: 'Freegle',
+                                                    group: group.id
+                                                },
+                                                success: function (ret) {
+                                                    var g = coll.get(group.id);
+                                                    g.set('dashboard', ret.dashboard);
+                                                }
+                                            }));
+                                        });
+
+                                        Promise.all(promises).then(function() {
+                                            coll.comparator = function(mod) {
+                                                return(mod.get('namedisplay').toLowerCase());
+                                            };
+
+                                            coll.sort();
+
+                                            var totalweight = 0;
+                                            var totalmembers = 0;
+
+                                            coll.each(function(g) {
+                                                var dashboard = g.get('dashboard');
+
+                                                var total = 0;
+                                                var members = 0;
+
+                                                _.each(dashboard.Weight, function(w) {
+                                                    if ((new Date(w.date)).getTime() < firstDay) {
+                                                        total += w.count;
+                                                    }
+                                                });
+
+                                                _.each(dashboard.ApprovedMemberCount, function(w) {
+                                                    if ((new Date(w.date)).getTime() < firstDay) {
+                                                        members = w.count;
+                                                    }
+                                                });
+
+                                                var avgweight = Math.round(total / 12);
+
+                                                totalweight += avgweight;
+                                                totalmembers += members;
+
+                                                self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + '</td><td>' + members.toLocaleString() + '</td><td>' + avgweight.toLocaleString() + '</td></tr>');
+                                            });
+
+                                            self.$('.js-grouptable').append('<tr><td><b>Totals</b></td><td><b>' + totalmembers.toLocaleString() + '</b></td><td><b>' + totalweight.toLocaleString() + 'kg (' + (Math.round(totalweight/100) / 10) + ' tonnes)</b></td></tr>');
+                                            self.wait.close();
+                                            self.$('.js-stats').fadeIn('slow');
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    });
+                });
+            });
+
+            return(p);
         }
     });
 });
