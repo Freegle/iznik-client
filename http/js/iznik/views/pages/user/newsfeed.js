@@ -806,6 +806,8 @@ define([
     });
 
     Iznik.Views.User.Feed.Attach.One = Iznik.View.extend({
+        tagName: 'li',
+
         template: 'user_newsfeed_attachone',
 
         events: {
@@ -863,10 +865,12 @@ define([
     });
 
     Iznik.Views.User.Feed.Loves.List.One = Iznik.View.extend({
+        tagName: 'li',
         template: 'user_newsfeed_onelove'
     });
 
     Iznik.Views.User.Feed.Item = Iznik.Views.User.Feed.Base.extend({
+        tagName: 'li',
         lovetemplate: 'user_newsfeed_itemloves',
         lovesel: '.js-itemloves',
         morelimit: 1024,
@@ -1221,6 +1225,7 @@ define([
 
     Iznik.Views.User.Feed.Reply = Iznik.Views.User.Feed.Base.extend({
         template: 'user_newsfeed_reply',
+        tagName: 'li',
         lovetemplate: 'user_newsfeed_replyloves',
         lovesel: '.js-replyloves',
         morelimit: 512,

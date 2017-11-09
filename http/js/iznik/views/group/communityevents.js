@@ -87,6 +87,8 @@ define([
     });
 
     Iznik.Views.User.CommunityEvent  = Iznik.View.extend({
+        tagName: 'li',
+
         template: "communityevents_one",
         className: 'padleftsm',
 
@@ -494,6 +496,8 @@ define([
     });
 
     Iznik.Views.User.CommunityEvent.Date = Iznik.View.extend({
+        tagName: 'li',
+
         template: "communityevents_dates",
 
         events: {

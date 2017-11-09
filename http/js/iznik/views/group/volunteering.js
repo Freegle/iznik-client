@@ -86,6 +86,8 @@ define([
     });
 
     Iznik.Views.User.Volunteering  = Iznik.View.extend({
+        tagName: 'li',
+
         template: "volunteering_one",
         className: 'padleftsm',
 

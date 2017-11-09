@@ -81,6 +81,7 @@ define([
     });
 
     Iznik.Views.ModTools.Volunteering = Iznik.Views.User.Volunteering.Editable.extend({
+        tagName: 'li',
         template: 'modtools_volunteering_pending',
         parentClass: Iznik.View,
         closeAfterSave: false,

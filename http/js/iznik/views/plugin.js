@@ -841,6 +841,8 @@ define([
     });
 
     Iznik.Views.Plugin.Work = Iznik.View.extend({
+        tagName: 'li',
+
         render: function() {
             // This view is just a wrapper - the meat of the view is in the subview, so get that back and render it.
             var self = this;

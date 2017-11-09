@@ -99,6 +99,8 @@ define([
     });
 
     Iznik.Views.ModTools.Pages.Logs.One = Iznik.View.extend({
+        tagName: 'li',
+
         template: "modtools_logs_one",
 
         render: function() {

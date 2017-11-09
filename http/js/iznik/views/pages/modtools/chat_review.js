@@ -82,6 +82,8 @@ define([
     });
 
     Iznik.Views.ModTools.ChatReview = Iznik.View.Timeago.extend({
+        tagName: 'li',
+
         template: 'modtools_chatreview_one',
 
         events: {

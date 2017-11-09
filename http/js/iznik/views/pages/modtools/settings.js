@@ -2582,6 +2582,8 @@ define([
     });
 
     Iznik.Views.ModTools.Settings.GroupFacebook = Iznik.View.extend({
+        tagName: 'li',
+
         template: 'modtools_settings_groupfacebook',
 
         events: {

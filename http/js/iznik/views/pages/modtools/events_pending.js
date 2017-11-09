@@ -82,6 +82,7 @@ define([
     });
 
     Iznik.Views.ModTools.CommunityEvent = Iznik.Views.User.CommunityEvent.Editable.extend({
+        tagName: 'li',
         template: 'modtools_communityevents_pending',
         parentClass: Iznik.View,
         closeAfterSave: false,

@@ -162,6 +162,8 @@ define([
     });
 
     Iznik.Views.ModTools.Message.Approved = Iznik.Views.ModTools.Message.extend({
+        tagName: 'li',
+
         template: 'modtools_messages_approved_message',
 
         collectionType: 'Approved',
