@@ -104,7 +104,13 @@ require([
 
     function extendIt(args, options) {
         _.extend(args[0], options && typeof options === 'object' ? options : {}, {
-            error:   function () { retryIt.apply(this, arguments); }
+            error:   function (event, xhr) {
+                if (xhr.statusText === 'abort') {
+                    console.log("Aborted, don't retry");
+                } else {
+                    retryIt.apply(this, arguments);
+                }
+            }
         });
     }
     
