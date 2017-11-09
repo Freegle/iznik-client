@@ -1540,6 +1540,7 @@ class User extends Entity
                     if ($j && pres('entry', $j) && pres('gphoto$thumbnail', $j['entry']) && pres('$t', $j['entry']['gphoto$thumbnail'])) {
                         $atts['profile'] = [
                             'url' => $j['entry']['gphoto$thumbnail']['$t'],
+                            'turl' => $j['entry']['gphoto$thumbnail']['$t'],
                             'default' => FALSE,
                             'google' => TRUE
                         ];
@@ -1551,6 +1552,7 @@ class User extends Entity
                     $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . USER_SITE . '/images/defaultprofile.png');
                     $atts['profile'] = [
                         'url' => $url,
+                        'turl' => $url,
                         'default' => FALSE,
                         'TN' => TRUE
                     ];
@@ -1562,6 +1564,7 @@ class User extends Entity
                     if ($g) {
                         $atts['profile'] = [
                             'url' => $gurl,
+                            'turl' => $this->gravatar($email['email'], 100, 404),
                             'default' => FALSE,
                             'gravatar' => TRUE
                         ];
@@ -1579,6 +1582,7 @@ class User extends Entity
                         if (presdef('useprofile', $atts['settings'], TRUE)) {
                             $atts['profile'] = [
                                 'url' => "https://graph.facebook.com/{$login['uid']}/picture",
+                                'turl' => "https://graph.facebook.com/{$login['uid']}/picture",
                                 'default' => FALSE,
                                 'facebook' => TRUE
                             ];
@@ -1602,7 +1606,6 @@ class User extends Entity
 
                     if ($img) {
                         $hash = $hasher->hash($img);
-                        error_log("Ghashed to $hash");
                         $atts['profile']['default'] = FALSE;
                     }
                 }
@@ -1610,6 +1613,7 @@ class User extends Entity
                 if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' || $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash == 'c0c0e070e0603100') {
                     # This is a default profile - replace it with ours.
                     $atts['profile']['url'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
+                    $atts['profile']['turl'] = 'https://' . USER_SITE . '/images/defaultprofile.png';
                     $atts['profile']['default'] = TRUE;
                     $hash = NULL;
                 }
@@ -1617,9 +1621,9 @@ class User extends Entity
 
             if ($atts['profile']['default']) {
                 # Nothing - so get gravatar to generate a default for us.
-                $gurl = $this->gravatar($this->getEmailPreferred(), 200, 'identicon');
                 $atts['profile'] = [
-                    'url' => $gurl,
+                    'url' => $this->gravatar($this->getEmailPreferred(), 200, 'identicon'),
+                    'turl' => $this->gravatar($this->getEmailPreferred(), 100, 'identicon'),
                     'default' => FALSE,
                     'gravatardefault' => TRUE
                 ];
@@ -1668,6 +1672,7 @@ class User extends Entity
         # within it, so if we don't find one, we default to none.
         $atts['profile'] = [
             'url' => 'https://' . USER_SITE . '/images/defaultprofile.png',
+            'turl' => 'https://' . USER_SITE . '/images/defaultprofile.png',
             'default' => TRUE
         ];
 
@@ -1683,8 +1688,13 @@ class User extends Entity
                 # Anything we have wins
                 foreach ($profiles as $profile) {
                     if (!$profile['default']) {
+                        # If it's a gravatar image we can return a thumbnail url that specifies a different size.
+                        $turl = pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$profile['id']}.jpg");
+                        $turl = strpos($turl, 'https://www.gravatar.com') === 0 ? str_replace('?s=200', '?s=100', $turl) : $turl;
+
                         $atts['profile'] = [
                             'url' => pres('url', $profile) ? $profile['url'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$profile['id']}.jpg"),
+                            'turl' => $turl,
                             'default' => FALSE
                         ];
                     }

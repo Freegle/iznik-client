@@ -18,7 +18,7 @@
                     </ul>
                 </div>
                 <% if (story.user) { %>
-                <img src="{{story.user.profile.url}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
+                <img src="{{story.user.profile.turl}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
                 <div class="js-profile">
                     <b><span class="success">{{story.user.displayname}}</span> told their Freegle story</b>
                     <br />
@@ -57,7 +57,7 @@
             <div class="col-xs-12">
                 <div class="input-group">
                     <span class="input-group-addon nopad">
-                        <img src="{{me.profile.url}}" class="img-circle img-tinythumbnail clickme" />
+                        <img src="{{me.profile.turl}}" class="img-circle img-tinythumbnail clickme" />
                     </span>
                     <textarea rows="1" class="form-control js-comment" maxlength="2048" spellcheck="true" placeholder="Write a comment..." />
                 </div>
