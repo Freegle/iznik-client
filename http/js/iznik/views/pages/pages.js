@@ -180,7 +180,12 @@ define([
             if (currentPage) {
                 // We have previous rendered a page.  Kill that off, so that it is not listening for events and
                 // messing about with the DOM.
-                currentPage.remove();
+                //
+                // First remove the element from the DOM to get it out of the way - the tidyup can be backgrounded.
+                currentPage.$el.remove();
+                _.delay(_.bind(function() {
+                    this.remove();
+                }, currentPage), 5000);
             }
 
             currentPage = self;
