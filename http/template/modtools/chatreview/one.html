@@ -6,7 +6,7 @@
                     {{fromuser.displayname}} <span class="small text-muted">#{{fromuser.id}}</span> => {{touser.displayname}} <span class="small text-muted">#{{touser.id}}</span> <span class="text-muted">member of</span> {{group.nameshort}}
                     <div class="pull-right small text-muted padright">#{{id}}</div>
                 </h4>
-                <div class="padleft"><% if (obj.spamscore) { %>Spam score {{spamscore}} <% } %><abbr class="small margleft timeago faded" title="{{date}}" ></abbr>
+                <div class="padleft"><% if (obj.spamscore) { %>Spam score {{spamscore}} <% } %><abbr class="small margleft timeago faded" title="{{date}}" >{{timeago(date)}}</abbr>
             </div>
         </div>
     </div>

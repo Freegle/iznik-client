@@ -1,7 +1,8 @@
 define([
     'jquery',
-    'underscore'
-], function($, _) {
+    'underscore',
+    'moment'
+], function($, _, moment) {
     // TODO Namespace pollution here
     //
     // Ensure we can log.
@@ -320,11 +321,12 @@ var loadedTemplates = [];
 
 function templateFetch(tpl) {
     var promise = new Promise(function(resolve, reject) {
-        require([tplName(tpl)], function(html) {
+        require([ tplName(tpl), 'moment' ], function(html, moment) {
             // Make templates less likely to bomb out with an exception if a variable is undefined, by
             // using the internal obj.
             html = html ? html.replace(/\{\{/g, '{{obj.') : null;
             html = html.replace(/\{\{obj.obj./g, '{{obj.');
+            html = html.replace(/\{\{obj.timeago/g, '{{timeago');
             //console.log("Updated HTML", html);
 
             // Use a closure to wrap the underscore template so that if we get an error we can log it
@@ -332,6 +334,23 @@ function templateFetch(tpl) {
             function getClosure(tpl, und) {
                 return (function (obj) {
                     try {
+                        obj = _.extend(obj, {
+                            // We call this timeago function from within templates.  This allows us to insert a formatted time
+                            // into the HTML before it's added to the DOM, which is more efficient than adding it and then
+                            // manipulating it afterwards.
+                            timeago: function(d) {
+                                var m = (new moment(d));
+
+                                var s = m.fromNow();
+
+                                // Don't allow future times.
+                                s = s.indexOf('in ') === 0 ? 'just now': s;
+
+                                return(s);
+                            },
+                            moment: moment
+                        });
+
                         html = und(obj);
 
                         // Sanitise to remove script tags
@@ -352,10 +371,10 @@ function templateFetch(tpl) {
             loadedTemplates[tpl] = getClosure(tpl, _.template(html, {
                 interpolate: /\{\{(.+?)\}\}/g,
                 evaluate: /<%(.+?)%>/g,
-                escape: /<%-(.+?)%>/g
+                escape: /<%-(.+?)%>/g,
             }, {
                 // This supposedly improves performance - see https://jsperf.com/underscore-template-function-with-variable-setting
-                variable: 'obj'
+                variable: 'obj',
             }));
 
             resolve(tpl);

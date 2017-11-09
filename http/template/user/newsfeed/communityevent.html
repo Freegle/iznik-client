@@ -8,7 +8,7 @@
                     <b><span class="success">{{user.displayname}}</span></b> created an event
                     <br />
                     <small class="text-muted">
-                        <abbr class="timeago nodecor" title="{{added}}" />
+                        <abbr class="timeago nodecor" title="{{added}}">{{timeago(added)}}</abbr>
                         <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation.display}}<% } %>
                     </small>
                 </div>

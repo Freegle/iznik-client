@@ -1,11 +1,11 @@
 <% if (obj.collection == 'Rejected') { %>
 <div class="alert alert-danger">
-    Returned <abbr class="timeago" title="{{arrival}}"/> on {{namedisplay}}
+    Returned <abbr class="timeago" title="{{arrival}}">{{timeago(arrival)}}</abbr> on {{namedisplay}}
 </div>
 <% } else { %>
 <p class="text-muted">
     <small>
-        <abbr class="timeago" title="{{arrival}}"/> on {{namedisplay}}
+        <abbr class="timeago" title="{{arrival}}">{{timeago(arrival)}}</abbr> on {{namedisplay}}
     </small>
 </p>
 <% } %>

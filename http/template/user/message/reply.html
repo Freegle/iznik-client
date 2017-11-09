@@ -3,13 +3,13 @@
         <div class="nopad col-xs-8">
             <% if (chat.chattype == 'User2Mod') { %>
                 {{chat.name}}<br />
-                <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" ></abbr><br />
+                <span class="text-muted">Replied</span>&nbsp;<abbr class="timeago" title="{{lastdate}}" >{{timeago(lastdate)}}</abbr><br />
                 <span class="js-chat black">Open this chat&nbsp;>></span>
             <% } else { %>
                 <% if (chat.user1.id != me.id || chat.user2.id != me.id) { %>
                 <% if (chat.user1.id != me.id) { %><img src="{{chat.user1.profile.turl}}" class="img-tinythumbnail img-circle" /><% } else { %><img src="{{chat.user2.profile.url}}" class="img-tinythumbnail img-circle" /><% } %>
                 <% if (chat.user1.id != me.id) { %>{{chat.user1.displayname}}<% } else { %>{{chat.user2.displayname}}<% } %>
-                <abbr class="timeago" title="{{lastdate}}" ></abbr>
+                <abbr class="timeago" title="{{lastdate}}" >{{timeago(lastdate)}}</abbr>
                 <% } else { %>
                 You replied to yourself<br />
                 <% } %>

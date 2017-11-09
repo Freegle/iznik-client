@@ -1,6 +1,6 @@
 <% if (obj.type == 'BusinessCards') { %>
 <p>
-    You asked for business cards <abbr class="timeago" title="{{date}}" />.
+    You asked for business cards <abbr class="timeago" title="{{date}}">{{timeago(date)}}</abbr>.
     <% if (obj.completed) { %>
     They have been sent.
     <% } else { %>

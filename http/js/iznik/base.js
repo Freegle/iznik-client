@@ -420,22 +420,26 @@ define([
                 if (!self.timeagoRunning) {
                     self.timeagoRunning = true;
 
-                    self.$('.timeago').each(function() {
-                        // We put it in the title, but we can have a more human-readable title if we move it into
-                        // datetime
-                        var $el = $(this);
-                        var d = $el.prop('title');
+                    // We want to ensure this gets updated, and also update the title to be human readable on
+                    // mouseover.  But we don't need to do this immediately, so delay it, to avoid extra
+                    // expensive DOM manipulation during page load.
+                    _.delay(_.bind(function() {
+                        var self = this;
 
-                        if (d) {
-                            $el.prop('datetime', d);
-                            $el.timeago();
+                        self.$('.timeago').each(function() {
+                            var $el = $(this);
+                            var d = $el.prop('title');
 
-                            // Prettify the title.  Need to do this afterwards, as otherwise we see (at least on some
-                            // old FF versions) that some timeagos fail.
-                            var s = (new moment(d)).format('LLLL');
-                            $el.prop('title', s);
-                        }
-                    });
+                            if (d) {
+                                // Ensure that we will keep this up to date.
+                                $el.timeago(new moment(d));
+
+                                // Prettify the title so that it looks readable on mouseover.
+                                var s = (new moment(d)).format('LLLL');
+                                $el.prop('title', s);
+                            }
+                        });
+                    }, self), 30000);
                 }
             });
 
