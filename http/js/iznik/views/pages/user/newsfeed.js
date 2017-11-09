@@ -661,7 +661,8 @@ define([
                 self.model.set('message', msg);
             }
 
-            var p = new Promise(function(resolve, reject) {
+            var p = Iznik.View.Timeago.prototype.render.call(self);
+            p.then(function () {
                 var v = new Iznik.Views.User.Feed.Loves({
                     model: self.model
                 });
@@ -671,12 +672,8 @@ define([
                 self.model.set('ownpost', user && user.id == Iznik.Session.get('me').id);
 
                 v.template = self.lovetemplate;
-                v.render().then(function() {
-                    Iznik.View.Timeago.prototype.render.call(self).then(function () {
-                        self.$(self.lovesel).html(v.$el);
-                        resolve();
-                    });
-                });
+                v.render();
+                self.$(self.lovesel).html(v.$el);
             });
 
             return(p);
