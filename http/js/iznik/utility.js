@@ -310,6 +310,7 @@ function haversineDistance(coords1, coords2, isMiles) {
     return d;
 }
 
+// We fetch templates over AJAX, then compile them ready for use.
 function tplName(tpl) {
     var nm = 'text!/template/' + tpl.replace(/\_/g, '/') + '.html';
     return(nm);
@@ -320,7 +321,43 @@ var loadedTemplates = [];
 function templateFetch(tpl) {
     var promise = new Promise(function(resolve, reject) {
         require([tplName(tpl)], function(html) {
-            loadedTemplates[tpl] = html;
+            // Make templates less likely to bomb out with an exception if a variable is undefined, by
+            // using the internal obj.
+            html = html ? html.replace(/\{\{/g, '{{obj.') : null;
+            html = html.replace(/\{\{obj.obj./g, '{{obj.');
+            //console.log("Updated HTML", html);
+
+            // Use a closure to wrap the underscore template so that if we get an error we can log it
+            // rather than bomb out of the whole javascript.
+            function getClosure(tpl, und) {
+                return (function (obj) {
+                    try {
+                        html = und(obj);
+
+                        // Sanitise to remove script tags
+                        html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+
+                        // Add template name into the HTML, which is very useful for debugging.
+                        html = "<!-- " + tpl + " -->\r\n" + html;
+                        return html;
+                    } catch (e) {
+                        console.error("Template " + tpl + " expansion failed with " + e.message + ", ");
+                        console.log(this);
+                        console.log(html);
+                        return ('');
+                    }
+                });
+            }
+
+            loadedTemplates[tpl] = getClosure(tpl, _.template(html, {
+                interpolate: /\{\{(.+?)\}\}/g,
+                evaluate: /<%(.+?)%>/g,
+                escape: /<%-(.+?)%>/g
+            }, {
+                // This supposedly improves performance - see https://jsperf.com/underscore-template-function-with-variable-setting
+                variable: 'obj'
+            }));
+
             resolve(tpl);
         }, function(err) {
             console.log("Require error in", tpl, err);
