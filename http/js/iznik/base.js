@@ -337,12 +337,18 @@ define([
                     if (!self.template) {
                         // We don't have a template.  We can render.
                         resolve(self.ourRender.call(self));
-                        self.trigger('rendered');
+
+                        if (self.hasOwnProperty('triggerRender')) {
+                            // We don't often need this, so it's controlled by a flag.
+                            self.trigger('rendered');
+                        }
                     } else {
                         // We have a template.  We need to fetch it.
                         templateFetch(self.template).then(function() {
                             resolve(self.ourRender.call(self));
-                            self.trigger('rendered');
+                            if (self.hasOwnProperty('triggerRender')) {
+                                self.trigger('rendered');
+                            }
                         })
                     }
                 });

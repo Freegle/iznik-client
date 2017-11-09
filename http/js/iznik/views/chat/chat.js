@@ -1295,6 +1295,8 @@ define([
     Iznik.Views.Chat.Message = Iznik.View.extend({
         tagName: 'li',
 
+        triggerRender: true,
+
         events: {
             'click .js-viewchat': 'viewChat',
             'click .chat-when': 'msgZoom',
