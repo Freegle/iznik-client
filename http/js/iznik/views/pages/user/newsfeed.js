@@ -925,6 +925,13 @@ define([
             self.collectionView.viewManager.each(function(view) {
                 view.render.call(view);
             });
+
+            // Fetch and ask for all the replies.  We listen for add so will render them.
+            self.model.fetch({
+                data: {
+                    allreplies: true
+                }
+            });
         },
 
         addVolunteer: function() {

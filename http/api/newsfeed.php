@@ -18,7 +18,8 @@ function newsfeed() {
                     $n = new Newsfeed($dbhm, $dbhm, $id);
                     $lovelist = array_key_exists('lovelist', $_REQUEST) ? filter_var($_REQUEST['lovelist'], FILTER_VALIDATE_BOOLEAN) : FALSE;
                     $unfollowed = array_key_exists('unfollowed', $_REQUEST) ? filter_var($_REQUEST['unfollowed'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-                    $entry = $n->getPublic($lovelist, $unfollowed);
+                    $allreplies = array_key_exists('allreplies', $_REQUEST) ? filter_var($_REQUEST['allreplies'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+                    $entry = $n->getPublic($lovelist, $unfollowed, $allreplies);
 
                     $ret = [
                         'ret' => 0,
