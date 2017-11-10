@@ -5,9 +5,9 @@ define([
     'iznik/base',
     'jquery-visibility'
 ], function($, _, Backbone, Iznik) {
-    // We have a singleton collection for chats.  This is to avoid hitting the server too much, and to ensure that
-    // everything stays in step.
-    var instance;
+    // We have a single send queue shared across chat rooms.
+    var trigger = new Iznik.Model();
+    var sending = [];
 
     function log() {
         try {
@@ -15,10 +15,36 @@ define([
         } catch (e) {}
     }
 
+    function sendQueue() {
+        var self = this;
+
+        // Try to send any queued messages.
+        sending = JSON.parse(Storage.get('chatqueue'));
+        sending = sending ? sending : [];
+
+        if (sending) {
+            var msg = new Iznik.Models.Chat.Message(sending.pop());
+            msg.save({
+                error: function() {
+                    // Failed - retry later in case transient network issue.
+                    _.delay(_.bind(sendQueue, self), 10000);
+                }
+            }).then(function() {
+                // We've sent it successfully.
+                trigger.trigger('sent', msg);
+
+                Storage.set('chatqueue', JSON.stringify(sending));
+
+                if (sending.length > 0) {
+                    // We have another message to send.
+                    _.delay(_.bind(sendQueue, self), 100);
+                }
+            });
+        }
+    }
+
     Iznik.Models.Chat.Room = Iznik.Model.extend({
         urlRoot: API + 'chat/rooms',
-
-        sending: [],
 
         initialize: function() {
             // If the last message unseen changes, we want to tell the server.
@@ -33,20 +59,34 @@ define([
                     }
                 });
             });
+
+            self.listenTo(trigger, 'sent', function(msg) {
+                self.trigger('sent');
+
+                // Maintain the lastmsgseen flag.  We might send multiple messages which complete in
+                // different order, so don't go backwards.
+                var lastmsg = msg.get('lastmsgseen');
+                self.set('lastmsgseen', lastmsg ? Math.max(lastmsg, msg.get('id')) : msg.get('id'));
+                self.set('unseen', 0);
+            });
         },
 
         send: function(message) {
             var self = this;
 
             // Create a model for the message.
-            var msg = new Iznik.Models.Chat.Message({
+            var msg = {
                 message: message,
                 roomid: this.get('id')
-            });
+            };
 
             // Add it to our sending queue
-            self.sending.push(msg);
-            self.sendQueue();
+            sending.push(msg);
+
+            // Save to local storage so we don't lose it, for example if the network flakes out and our app is killed.
+            Storage.set('chatqueue', JSON.stringify(sending));
+
+            sendQueue();
         },
 
         otherUser: function() {
@@ -112,34 +152,6 @@ define([
             });
 
             return(p);
-        },
-
-        sendQueue: function() {
-            var self = this;
-
-            // Try to send any queued messages.
-            var msg = self.sending.pop();
-            msg.save({
-                error: function() {
-                    // Failed - retry later in case transient network issue.
-                    self.sending.unshift($msg);
-                    _.delay(_.bind(self.sendQueue, self), 10000);
-                }
-            }).then(function() {
-                // Maintain the lastmsgseen flag.  We might send multiple messages which complete in
-                // different order, so don't go backwards.
-                var lastmsg = msg.get('lastmsgseen');
-                self.set('lastmsgseen', lastmsg ? Math.max(lastmsg, msg.get('id')) : msg.get('id'));
-                self.set('unseen', 0);
-
-                if (self.sending.length > 0) {
-                    // We have another message to send.
-                    _.delay(_.bind(self.sendQueue, self), 100);
-                } else {
-                    // We have sent them all.
-                    self.trigger('sent');
-                }
-            });
         },
 
         parse: function (ret) {
@@ -535,4 +547,7 @@ define([
             return(msgs);
         }
     });
+
+    // Start the sending process in case there are any left from last time.
+    $(document).ready(sendQueue);
 });
