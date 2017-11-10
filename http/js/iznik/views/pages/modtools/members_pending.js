@@ -120,6 +120,8 @@ define([
     });
 
     Iznik.Views.ModTools.Member.Pending = Iznik.Views.ModTools.Member.extend({
+        tagName: 'li',
+
         template: 'modtools_members_pending_member',
 
         events: {

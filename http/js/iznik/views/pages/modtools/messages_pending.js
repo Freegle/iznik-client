@@ -87,6 +87,8 @@ define([
     });
 
     Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
+        tagName: 'li',
+
         template: 'modtools_messages_pending_message',
 
         collectionType: 'Pending',

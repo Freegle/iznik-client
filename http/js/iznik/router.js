@@ -168,7 +168,8 @@ define([
             "stats/eBay": "userStatsEbay",
             "stats/heatmap": "userStatsHeatMap",
             "stats/region/:id": "userStatsRegion",
-            "stats/area/:id": "userStatsArea",
+            "stats/authorities": "userStatsAuthorities",
+            "stats/authority/:id": "userStatsAuthority",
             "stats(/:id)": "userStatsGroup",
             "communityevents(/:id)": "userCommunityEvents",
             "communityevent(/:id)": "userCommunityEvent",
@@ -776,12 +777,21 @@ define([
             });
         },
 
-        userStatsArea: function(area) {
+        userStatsAuthorities: function() {
             var self = this;
 
             require(["iznik/views/pages/user/stats"], function() {
-                var page = new Iznik.Views.User.Pages.StatsGroup({
-                    area: area
+                var page = new Iznik.Views.User.Pages.Authorities();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userStatsAuthority: function(authorityid) {
+            var self = this;
+
+            require(["iznik/views/pages/user/stats"], function() {
+                var page = new Iznik.Views.User.Pages.StatsAuthority({
+                    id: authorityid
                 });
                 self.loadRoute({page: page});
             });

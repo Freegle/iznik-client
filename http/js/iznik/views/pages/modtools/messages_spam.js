@@ -87,6 +87,7 @@ define([
     });
 
     Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
+        tagName: 'li',
         template: 'modtools_spam_message',
         collectionType: 'Spam',
 

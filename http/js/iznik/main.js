@@ -1,6 +1,6 @@
-var API = 'https://www.ilovefreegle.org/api/'; // CC
+//var API = 'https://www.ilovefreegle.org/api/'; // CC
 //var API = 'https://dev.ilovefreegle.org/api/'; // CC
-//var API = 'https://iznik.ilovefreegle.org/api/'; // CC
+var API = 'https://iznik.ilovefreegle.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -268,7 +268,13 @@ require([
 
     function extendIt(args, options) {
         _.extend(args[0], options && typeof options === 'object' ? options : {}, {
-            error: function () { retryIt.apply(this, arguments); }
+            error:   function (event, xhr) {
+                if (xhr.statusText === 'abort') {
+                    console.log("Aborted, don't retry");
+                } else {
+                    retryIt.apply(this, arguments);
+                }
+            }
         });
     }
 

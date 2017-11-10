@@ -86,6 +86,8 @@ define([
     });
 
     Iznik.Views.ModTools.Member.Happiness = Iznik.Views.ModTools.Member.extend({
+        tagName: 'li',
+
         template: 'modtools_members_happiness_member',
 
         events: {

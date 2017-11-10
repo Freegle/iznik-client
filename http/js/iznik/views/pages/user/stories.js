@@ -123,6 +123,8 @@ define([
     });
 
     Iznik.Views.User.Pages.Stories.One = Iznik.View.extend({
+        tagName: 'li',
+
         template: 'user_stories_one',
 
         events: {

@@ -312,6 +312,8 @@ define([
     });
 
     Iznik.Views.ModTools.Member.Approved = Iznik.Views.ModTools.Member.extend({
+        tagName: 'li',
+
         template: 'modtools_members_approved_member',
 
         events: {

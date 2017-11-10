@@ -7,7 +7,14 @@ require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
 # Update record of which groups are on TN.
-$dbhm->preExec("UPDATE groups SET ontn = 0;");
+#
+# Not in a single call as this seems to hit a deadlock.
+$groups = $dbhr->preQuery("SELECT id FROM groups WHERE ontn = 1;");
+foreach ($groups as $group) {
+    $dbhm->preExec("UPDATE groups SET ontn = 0 WHERE id = ?;", [
+        $group['id']
+    ]);
+}
 
 $tngroups = file_get_contents("https://trashnothing.com/modtools/api/freegle-groups?key=" . TNKEY);
 $tngroups = str_replace("{u'", "{'", $tngroups);

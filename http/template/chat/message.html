@@ -9,7 +9,7 @@
             <% if (obj.group) { %>
             <div class="col-sm-2 padsmall ellipsis" title="<% if (user.id != obj.myid) { %>{{user.displayname}}<% } %>">
                 <% if (obj.left && !obj.sameaslast) { %>
-                    <img src="{{user.profile.url}}" class="img-circle img-tinythumbnail clickme botspace js-profile" />
+                    <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail clickme botspace js-profile" />
                     <% if (user.id != obj.myid) { %><br class="hidden-xs" />{{user.displayname}}<% } %>
                 <% } %>
                 </div>
@@ -19,10 +19,10 @@
                 <% } %>
                 <div class="<% if (obj.left) {%>pull-left<% } else { %>pull-right<% } %>">
                     <% if (obj.left && !obj.sameaslast && !obj.group) { %>
-                    <img src="{{user.profile.url}}" class="img-circle img-tinythumbnail clickme botspace js-profile" />
+                    <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail clickme botspace js-profile" />
                     <% } %>
                     <% if (!obj.left && !obj.sameaslast) { %>
-                    <img src="{{user.profile.url}}" class="img-circle img-tinythumbnail pull-right margleftsm clickme botspace js-profile" />
+                    <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail pull-right margleftsm clickme botspace js-profile" />
                     <% } %>
                     <div class="inline chat-message <% if ((obj.secondsago < 60) || (obj.user && id > lastmsgseen)) { %> chat-message-unseen <% } %>">
                         {{message}}
@@ -45,7 +45,7 @@
                     <span class="glyphicons glyphicons-envelope faded pull-right small" alt="Emailed" title="This has been sent by email." />
                     <% } %>
                 <% } %>
-                <abbr class="chat-when botspace  <% if (obj.left) { %>pull-left<% } else { %>pull-right<% } %> text-muted small timeago" title="{{date}}" />
+                <abbr class="chat-when botspace  <% if (obj.left) { %>pull-left<% } else { %>pull-right<% } %> text-muted small timeago" title="{{date}}">{{timeago(date)}}</abbr>
             </div>
         </div>
         <% } %>

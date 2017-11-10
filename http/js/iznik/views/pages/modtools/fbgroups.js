@@ -100,6 +100,8 @@ define([
     });
 
     Iznik.Views.ModTools.Message.FacebookSummary = Iznik.View.Timeago.extend({
+        tagName: 'li',
+
         template: 'modtools_fbgroups_summary',
 
         render: function() {

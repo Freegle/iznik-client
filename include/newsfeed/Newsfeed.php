@@ -140,11 +140,11 @@ class Newsfeed extends Entity
         return($engageds);
     }
 
-    public function getPublic($lovelist = FALSE, $unfollowed = TRUE) {
+    public function getPublic($lovelist = FALSE, $unfollowed = TRUE, $allreplies = FALSE) {
         $atts = parent::getPublic();
         $users = [];
 
-        $this->fillIn($atts, $users, TRUE);
+        $this->fillIn($atts, $users, TRUE, $allreplies);
 
         foreach ($users as $user) {
             if ($user['id'] == presdef('userid', $atts, NULL)) {
@@ -185,7 +185,7 @@ class Newsfeed extends Entity
         return($atts);
     }
 
-    private function fillIn(&$entry, &$users, $checkreplies = TRUE) {
+    private function fillIn(&$entry, &$users, $checkreplies = TRUE, $allreplies = FALSE) {
         unset($entry['position']);
 
         $entry['message'] = trim($entry['message']);
@@ -311,9 +311,14 @@ class Newsfeed extends Entity
 
             if ($checkreplies) {
                 # Don't cache replies - might be lots and might change frequently.
-                $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id ASC;", [
+                #
+                # We only return 11; this matches the 10 in the client in newsfeed.  That's enough to cause it to show
+                # the "Show earlier" prompt; it will then fetch more as required.
+                $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto = ? ORDER BY id DESC LIMIT 11;", [
                     $entry['id']
                 ], FALSE);
+
+                $replies = array_reverse($replies);
                 
                 $last = NULL;
 

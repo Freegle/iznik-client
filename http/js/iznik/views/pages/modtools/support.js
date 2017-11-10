@@ -447,11 +447,6 @@ define([
                 editable: false,
                 cell: 'string'
             }, {
-                name: 'authority',
-                label: 'Authority',
-                editable: false,
-                cell: 'string'
-            }, {
                 name: 'lastmoderated',
                 label: 'Last moderated',
                 editable: false,
@@ -919,6 +914,8 @@ define([
     // TODO This feels like an abuse of the memberships API just to use the search mechanism.  Should there be a user
     // search instead?
     Iznik.Views.ModTools.Member.SupportSearch = Iznik.View.Timeago.extend({
+        tagName: 'li',
+
         template: 'modtools_support_member',
 
         events: {
@@ -1274,6 +1271,8 @@ define([
     });
 
     Iznik.Views.ModTools.Member.SupportSearch.Chat = Iznik.View.Timeago.extend({
+        tagName: 'li',
+
         template: 'modtools_support_chat',
 
         events: {
@@ -1298,6 +1297,7 @@ define([
     });
 
     Iznik.Views.ModTools.Member.SupportSearch.EmailHistory = Iznik.View.Timeago.extend({
+        tagName: 'li',
         template: 'modtools_support_emailhistory'
     });
 
@@ -1382,14 +1382,17 @@ define([
     });
 
     Iznik.Views.ModTools.Member.SupportSearch.MembershipHistory = Iznik.View.Timeago.extend({
+        tagName: 'li',
         template: 'modtools_support_membershiphistory'
     });
 
     Iznik.Views.ModTools.Member.SupportSearch.Applied = Iznik.Views.ModTools.Member.Applied.extend({
+        tagName: 'li',
         template: 'modtools_support_appliedto'
     });
 
     Iznik.Views.ModTools.Member.SupportSearch.Login = Iznik.View.Timeago.extend({
+        tagName: 'li',
         template: 'modtools_support_login',
 
         events: {

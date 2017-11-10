@@ -661,7 +661,8 @@ define([
                 self.model.set('message', msg);
             }
 
-            var p = new Promise(function(resolve, reject) {
+            var p = Iznik.View.Timeago.prototype.render.call(self);
+            p.then(function () {
                 var v = new Iznik.Views.User.Feed.Loves({
                     model: self.model
                 });
@@ -671,12 +672,8 @@ define([
                 self.model.set('ownpost', user && user.id == Iznik.Session.get('me').id);
 
                 v.template = self.lovetemplate;
-                v.render().then(function() {
-                    Iznik.View.Timeago.prototype.render.call(self).then(function () {
-                        self.$(self.lovesel).html(v.$el);
-                        resolve();
-                    });
-                });
+                v.render();
+                self.$(self.lovesel).html(v.$el);
             });
 
             return(p);
@@ -806,6 +803,8 @@ define([
     });
 
     Iznik.Views.User.Feed.Attach.One = Iznik.View.extend({
+        tagName: 'li',
+
         template: 'user_newsfeed_attachone',
 
         events: {
@@ -863,10 +862,12 @@ define([
     });
 
     Iznik.Views.User.Feed.Loves.List.One = Iznik.View.extend({
+        tagName: 'li',
         template: 'user_newsfeed_onelove'
     });
 
     Iznik.Views.User.Feed.Item = Iznik.Views.User.Feed.Base.extend({
+        tagName: 'li',
         lovetemplate: 'user_newsfeed_itemloves',
         lovesel: '.js-itemloves',
         morelimit: 1024,
@@ -923,6 +924,13 @@ define([
             // We re-render all the views - the earlier ones will not have been fully rendered before.
             self.collectionView.viewManager.each(function(view) {
                 view.render.call(view);
+            });
+
+            // Fetch and ask for all the replies.  We listen for add so will render them.
+            self.model.fetch({
+                data: {
+                    allreplies: true
+                }
             });
         },
 
@@ -1221,6 +1229,7 @@ define([
 
     Iznik.Views.User.Feed.Reply = Iznik.Views.User.Feed.Base.extend({
         template: 'user_newsfeed_reply',
+        tagName: 'li',
         lovetemplate: 'user_newsfeed_replyloves',
         lovesel: '.js-replyloves',
         morelimit: 512,

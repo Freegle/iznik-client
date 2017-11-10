@@ -25,7 +25,7 @@
             <div class="msgsubj panel-title">
                   <span class="js-subject">
                       <% if (obj.fromuser) { %>
-                      <img src="{{fromuser.profile.url}}" class="img-circle img-smallerthumbnail clickme hidden-xs js-profile"/>
+                      <img src="{{fromuser.profile.turl}}" class="img-circle img-smallerthumbnail clickme hidden-xs js-profile"/>
                       <% } %>
                       <% if (obj.item && obj.keyword && obj.postcode && obj.area) { %>
                         <span class="keyword">{{obj.keyword}}</span>: <span class="js-item">{{obj.item.name}}</span> (<span class="area">{{obj.area.name}}</span> <span class="postcode">{{obj.postcode.name}}</span>)
@@ -81,7 +81,7 @@
                     <div class="lead prewrap forcebreak js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
                     <% if (obj.fromuser) { %>
                     <span class="text-muted">
-                        <img src="{{fromuser.profile.url}}" class="img-circle img-smallerthumbnail clickme visible-xs js-profile" />
+                        <img src="{{fromuser.profile.turl}}" class="img-circle img-smallerthumbnail clickme visible-xs js-profile" />
                         <% if (obj.mine) { %>
                         You posted this.
                         <% } else { %>

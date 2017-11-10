@@ -490,6 +490,8 @@ define([
     });
 
     Iznik.Views.User.Settings.Group = Iznik.View.extend({
+        tagName: 'li',
+
         template: "user_settings_group",
 
         events: {

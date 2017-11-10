@@ -154,6 +154,8 @@ define([
     });
 
     Iznik.Views.ModTools.Spammer = Iznik.Views.ModTools.Member.Spam.extend({
+        tagName: 'li',
+
         template: 'modtools_spammerlist_member',
 
         events: {

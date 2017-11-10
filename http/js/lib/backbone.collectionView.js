@@ -31,7 +31,6 @@
     };
 
     Backbone.CollectionView = Backbone.View.extend( {
-
         tagName : "ul",
 
         events : {

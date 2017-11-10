@@ -789,6 +789,8 @@ define([
     Iznik.Views.User.Message.Replyable = Iznik.Views.User.Message.extend({
         template: 'user_message_replyable',
 
+        triggerRender: true,
+
         events: {
             'click .js-send': 'send',
             'click .js-profile': 'showProfile',

@@ -122,6 +122,8 @@ define([
     });
 
     Iznik.Views.ModTools.SocialAction = Iznik.View.extend({
+        tagName: 'li',
+
         template: 'modtools_socialactions_one',
 
         render: function () {

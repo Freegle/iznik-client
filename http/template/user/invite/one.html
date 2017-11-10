@@ -3,14 +3,14 @@
         {{email}}
     </div>
     <div class="col-md-3">
-        invited <abbr class="timeago" title="{{date}}"/>
+        invited <abbr class="timeago" title="{{date}}">{{timeago(date)}}</abbr>
     </div>
     <div class="col-md-3">
         {{outcome}}
     </div>
     <div class="col-md-3">
         <% if (obj.outcome == 'Accepted') { %>
-        <abbr class="timeago" title="{{outcometimestamp}}"/>
+        <abbr class="timeago" title="{{outcometimestamp}}">{{timeago(outcometimestamp)}}</abbr>
         <% } %>
     </div>
 </div>

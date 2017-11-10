@@ -442,6 +442,8 @@ define([
     });
 
     Iznik.Views.ModTools.Pages.Replay.Session = Iznik.View.extend({
+        tagName: 'li',
+
         template: "modtools_replay_session",
 
         events: {

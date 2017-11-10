@@ -88,6 +88,8 @@ define([
     });
 
     Iznik.Views.ModTools.Member.Spam = Iznik.Views.ModTools.Member.extend({
+        tagName: 'li',
+
         template: 'modtools_members_spam_member',
 
         events: {

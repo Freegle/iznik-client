@@ -4,7 +4,7 @@
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
-                    <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.url}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
+                    <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.turl}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
                 </div>
             </div>
             <div class="media-body">
@@ -13,7 +13,7 @@
                     <strong class="js-emoji">{{newsfeed.message}}</strong>
                 </p>
                 <div class="notification-meta">
-                    <abbr class="small timeago nodecor" title="{{timestamp}}" />
+                    <abbr class="small timeago nodecor" title="{{timestamp}}">{{timeago(timestamp)}}</abbr>
                 </div>
             </div>
         </div>
@@ -21,7 +21,7 @@
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
-                    <img class="img-circle img-tinythumbnail" src="<% if (obj.fromuser) { %>{{fromuser.profile.url}}<% } else { %>/images/user_logo.png<%} %>" title="<% if (obj.fromuser) { %>{{fromuser.displayname}}<% } else { %>Freegle<% } %>" data-holder-rendered="true">
+                    <img class="img-circle img-tinythumbnail" src="<% if (obj.fromuser) { %>{{fromuser.profile.turl}}<% } else { %>/images/user_logo.png<%} %>" title="<% if (obj.fromuser) { %>{{fromuser.displayname}}<% } else { %>Freegle<% } %>" data-holder-rendered="true">
                 </div>
             </div>
             <div class="media-body">
@@ -30,7 +30,7 @@
                     <strong class="js-emoji">{{newsfeed.message}}</strong>
                 </p>
                 <div class="notification-meta">
-                    <abbr class="small timeago nodecor" title="{{timestamp}}" />
+                    <abbr class="small timeago nodecor" title="{{timestamp}}">{{timeago(timestamp)}}</abbr>
                 </div>
             </div>
         </div>
@@ -38,7 +38,7 @@
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
-                    <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.url}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
+                    <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.turl}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
                 </div>
             </div>
             <div class="media-body">
@@ -46,7 +46,7 @@
                 <p class="notification-desc">
                 </p>
                 <div class="notification-meta">
-                    <abbr class="small timeago nodecor" title="{{timestamp}}" />
+                    <abbr class="small timeago nodecor" title="{{timestamp}}">{{timeago(timestamp)}}</abbr>
                 </div>
             </div>
         </div>
@@ -54,7 +54,7 @@
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
-                    <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.url}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
+                    <img class="img-circle img-tinythumbnail" src="{{fromuser.profile.turl}}" title="{{fromuser.displayname}}" data-holder-rendered="true">
                 </div>
             </div>
             <div class="media-body">
@@ -62,7 +62,7 @@
                 <p class="notification-desc">
                 </p>
                 <div class="notification-meta">
-                    <abbr class="small timeago nodecor" title="{{timestamp}}" />
+                    <abbr class="small timeago nodecor" title="{{timestamp}}">{{timeago(timestamp)}}</abbr>
                 </div>
             </div>
         </div>

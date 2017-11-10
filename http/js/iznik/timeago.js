@@ -90,32 +90,31 @@ define([
             _.delay(pruneQueue, pruneInterval);
         }
 
-        $.fn.timeago = function () {
-            var self = $(this);
+        $.fn.timeago = function (m) {
+            if (m) {
+                // Actually setting up the DOM the first time is done by the caller, who can do it more efficiently; here
+                // we are concerned only with making sure that it gets updated later.
+                var self = $(this);
 
-            // We might already know about this one.
-            var ent = _.find(queue, function(e) {
-                return(e.el == self);
-            });
+                // We might already know about this one.
+                var ent = _.find(queue, function(e) {
+                    return(e.el == self);
+                });
 
-            if (!ent) {
-                var d = self.attr('title');
-                var m = new moment(d);
+                if (!ent) {
+                    var now = new moment();
+                    var delay = nextTime(m, now);
+                    var checkAt = now.add(delay, 'milliseconds');
 
-                display(m, self);
+                    if (delay !== null) {
+                        var ent = [checkAt, m, self];
+                        queue.push(ent);
 
-                var now = new moment();
-                var delay = nextTime(m, now);
-                var checkAt = now.add(delay, 'milliseconds');
-
-                if (delay !== null) {
-                    var ent = [checkAt, m, self];
-                    queue.push(ent);
-
-                    if (!queueRunning) {
-                        queueRunning = true;
-                        _.delay(checkQueue, queueInterval);
-                        _.delay(pruneQueue, pruneInterval);
+                        if (!queueRunning) {
+                            queueRunning = true;
+                            _.delay(checkQueue, queueInterval);
+                            _.delay(pruneQueue, pruneInterval);
+                        }
                     }
                 }
             }

@@ -1,6 +1,6 @@
 <span class="text-muted">
     <small>
-        <abbr class="timeago" title="{{message.arrival}}"></abbr><% if (obj.autoreposts) { %>, <span class="warning"> auto-repost #{{autoreposts}}</span><% } %>
+        <abbr class="timeago" title="{{message.arrival}}">{{timeago(message.arrival)}}</abbr><% if (obj.autoreposts) { %>, <span class="warning"> auto-repost #{{autoreposts}}</span><% } %>
         <% if (message.yahoopendingid) { %>
             #{{message.yahoopendingid}}
         <% } %>

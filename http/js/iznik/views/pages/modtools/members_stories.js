@@ -115,6 +115,8 @@ define([
     });
 
     Iznik.Views.ModTools.Member.Story = Iznik.View.Timeago.extend({
+        tagName: 'li',
+
         template: 'modtools_members_stories_story',
 
         events: {

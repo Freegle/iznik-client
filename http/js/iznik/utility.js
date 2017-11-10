@@ -1,7 +1,8 @@
 define([
     'jquery',
-    'underscore'
-], function($, _) {
+    'underscore',
+    'moment'
+], function($, _, moment) {
     // TODO Namespace pollution here
     //
     // Ensure we can log.
@@ -310,6 +311,7 @@ function haversineDistance(coords1, coords2, isMiles) {
     return d;
 }
 
+// We fetch templates over AJAX, then compile them ready for use.
 function tplName(tpl) {
     var nm = 'text!../../template/' + tpl.replace(/\_/g, '/') + '.html'; // CC
     return(nm);
@@ -319,12 +321,65 @@ var loadedTemplates = [];
 
 function templateFetch(tpl) {
     var promise = new Promise(function(resolve, reject) {
-        require([tplName(tpl)], function (html) {
-        	  //html = html.replace(/href=\"\//g, 'href="' + iznikroot);// ./	// CC Don't need to fix href as handled by Backbone router except with data-realurl
-        	  html = html.replace(/src=\"\//g, 'src="' + iznikroot);	// CC
-        	  html = html.replace(/src=\'\//g, "src='" + iznikroot);	// CC
-        	  //console.log(html);
-        	  loadedTemplates[tpl] = html;
+        require([ tplName(tpl), 'moment' ], function(html, moment) {
+            //html = html.replace(/href=\"\//g, 'href="' + iznikroot);// ./	// CC Don't need to fix href as handled by Backbone router except with data-realurl
+            html = html.replace(/src=\"\//g, 'src="' + iznikroot);	// CC
+            html = html.replace(/src=\'\//g, "src='" + iznikroot);	// CC
+            // Make templates less likely to bomb out with an exception if a variable is undefined, by
+            // using the internal obj.
+            html = html ? html.replace(/\{\{/g, '{{obj.') : null;
+            html = html.replace(/\{\{obj.obj./g, '{{obj.');
+            html = html.replace(/\{\{obj.timeago/g, '{{timeago');
+            //console.log("Updated HTML", html);
+
+            // Use a closure to wrap the underscore template so that if we get an error we can log it
+            // rather than bomb out of the whole javascript.
+            function getClosure(tpl, und) {
+                return (function (obj) {
+                    try {
+                        obj = _.extend(obj, {
+                            // We call this timeago function from within templates.  This allows us to insert a formatted time
+                            // into the HTML before it's added to the DOM, which is more efficient than adding it and then
+                            // manipulating it afterwards.
+                            timeago: function(d) {
+                                var m = (new moment(d));
+
+                                var s = m.fromNow();
+
+                                // Don't allow future times.
+                                s = s.indexOf('in ') === 0 ? 'just now': s;
+
+                                return(s);
+                            },
+                            moment: moment
+                        });
+
+                        html = und(obj);
+
+                        // Sanitise to remove script tags
+                        html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+
+                        // Add template name into the HTML, which is very useful for debugging.
+                        html = "<!-- " + tpl + " -->\r\n" + html;
+                        return html;
+                    } catch (e) {
+                        console.error("Template " + tpl + " expansion failed with " + e.message + ", ");
+                        console.log(this);
+                        console.log(html);
+                        return ('');
+                    }
+                });
+            }
+
+            loadedTemplates[tpl] = getClosure(tpl, _.template(html, {
+                interpolate: /\{\{(.+?)\}\}/g,
+                evaluate: /<%(.+?)%>/g,
+                escape: /<%-(.+?)%>/g,
+            }, {
+                // This supposedly improves performance - see https://jsperf.com/underscore-template-function-with-variable-setting
+                variable: 'obj',
+            }));
+
             resolve(tpl);
         }, function(err) {
             console.log("Require error in", tpl, err);
@@ -559,6 +614,34 @@ function getInputSelection(el) {
     };
 }
 
+function getBoundsZoomLevel(bounds, mapDim) {
+    var WORLD_DIM = { height: 256, width: 256 };
+    var ZOOM_MAX = 21;
+
+    function latRad(lat) {
+        var sin = Math.sin(lat * Math.PI / 180);
+        var radX2 = Math.log((1 + sin) / (1 - sin)) / 2;
+        return Math.max(Math.min(radX2, Math.PI), -Math.PI) / 2;
+    }
+
+    function zoom(mapPx, worldPx, fraction) {
+        return Math.floor(Math.log(mapPx / worldPx / fraction) / Math.LN2);
+    }
+
+    var ne = bounds.getNorthEast();
+    var sw = bounds.getSouthWest();
+
+    var latFraction = (latRad(ne.lat()) - latRad(sw.lat())) / Math.PI;
+
+    var lngDiff = ne.lng() - sw.lng();
+    var lngFraction = ((lngDiff < 0) ? (lngDiff + 360) : lngDiff) / 360;
+
+    var latZoom = zoom(mapDim.height, WORLD_DIM.height, latFraction);
+    var lngZoom = zoom(mapDim.width, WORLD_DIM.width, lngFraction);
+
+    return Math.min(latZoom, lngZoom, ZOOM_MAX);
+}
+
 var mobileGlobalRoot = false;   // CC
 var oneOffPathname = false; // CC
 
@@ -581,4 +664,3 @@ function mobile_pathname() { // CC
     }
     return pathname;
 }
-
