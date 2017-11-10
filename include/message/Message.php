@@ -3261,6 +3261,11 @@ class Message
 
     public function promise($userid) {
         # Promise this item to a user.
+        #
+        # We can't promise to multiple users.  This is because when we mark something as TAKEN, we ask who it was
+        # given to, and assume that anyone who it was promised to who isn't that person reneged.
+        #
+        # If we change that, we can remove the unique index, but we'll need to change the UI too.
         $sql = "REPLACE INTO messages_promises (msgid, userid) VALUES (?, ?);";
         $this->dbhm->preExec($sql, [
             $this->id,
