@@ -112,11 +112,12 @@ class dashboardTest extends IznikAPITestCase {
         $g->setPrivate('polyofficial', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
 
         $this->dbhm->preExec("REPLACE INTO authorities (name, polygon) VALUES ('Tuvulu Authority', GeomFromText('POLYGON((179.2 8.5, 179.2 8.6, 179.3 8.6, 179.3 8.5, 179.2 8.5))'))");
+        $aid = $this->dbhm->lastInsertId();
 
         $ret = $this->call('dashboard', 'GET', [
-            'area' => 'Tuvulu Authority'
+            'authorityid' => $aid
         ]);
-        error_log("Returned " . var_export($ret, TRUE));
+        #error_log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
         self::assertEquals($group1, $ret['dashboard']['groupids'][0]);
