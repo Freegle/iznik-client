@@ -4,7 +4,12 @@ define([
     'backbone',
     'iznik/base'
 ], function($, _, Backbone, Iznik) {
-    Iznik.Collections.DateCounts = Iznik.Collection.extend({});
+    Iznik.Collections.DateCounts = Iznik.Collection.extend({
+        comparator: function(a, b) {
+            var ret = (new Date(a.get('date'))).getTime() - (new Date(b.get('date'))).getTime();
+            return(ret);
+        }
+    });
 
     var leftColours = [
         '#8e0152',

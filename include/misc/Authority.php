@@ -111,11 +111,23 @@ class Authority extends Entity
             $atts['id']
         ]);
 
+        $ret = [];
+
         foreach ($groups as &$group) {
             $group['namedisplay'] = pres('namefull', $group) ? $group['namefull'] : $group['nameshort'];
+
+            if ($group['overlap'] > 0.95) {
+                # Assume it's basically all aimed at this area.
+                $group['overlap'] = 1;
+            }
+
+            if ($group['overlap'] > 0.05) {
+                # Exclude - minor overlap.
+                $ret[] = $group;
+            }
         }
 
-        $atts['groups'] = $groups;
+        $atts['groups'] = $ret;
 
         return($atts);
     }

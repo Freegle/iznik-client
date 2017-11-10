@@ -748,9 +748,6 @@ define([
                                             }
                                         });
 
-                                        // Assume 95% overlap means it's basically there.
-                                        overlap = overlap > 0.95 ? 1 : overlap;
-
                                         var total = 0;
                                         var unweighted = 0;
                                         var members = 0;
@@ -842,6 +839,8 @@ define([
                                             count: monthweights[key]
                                         });
                                     }
+
+                                    console.log("Wegiths data", data);
 
                                     var graph = new Iznik.Views.DateBar({
                                         target: self.$('.js-weightchart').get()[0],
