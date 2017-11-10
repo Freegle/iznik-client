@@ -18,25 +18,22 @@ class Dashboard {
         $this->stats = new Stats($dbhr, $dbhm);
     }
 
-    public function get($systemwide, $allgroups, $groupid, $authorityid, $region, $type, $start = '30 days ago') {
+    public function get($systemwide, $allgroups, $groupid, $region, $type, $start = '30 days ago') {
         $groupids = [];
+        $overlaps = [];
 
         # Get the possible groups.
         if ($systemwide) {
             $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE publish = 1;");
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];
+                $overlaps[$group['id']] = 1;
             }
         } else if ($region) {
-            $groups = $this->dbhr->preQuery("SELECT groups.id FROM groups WHERE region LIKE ?;;", [ $region ]);
+            $groups = $this->dbhr->preQuery("SELECT groups.id FROM groups WHERE region LIKE ?;", [ $region ]);
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];
-            }
-        } else if ($authorityid) {
-            # We use groups where the core area overlaps.
-            $groups = $this->dbhr->preQuery("SELECT groups.id FROM groups INNER JOIN authorities ON ST_Intersects(GeomFromText(polyofficial), COALESCE(simplified, polygon)) WHERE polyofficial IS NOT NULL AND authorities.id = ?;", [ $authorityid ]);
-            foreach ($groups as $group) {
-                $groupids[] = $group['id'];
+                $overlaps[$group['id']] = 1;
             }
         } else if ($groupid) {
             $groupids[] = $groupid;
@@ -45,6 +42,7 @@ class Dashboard {
         }
 
         $groupids = count($groupids) == 0 ? [0] : $groupids;
+
         if ($type) {
             # Filter by type
             $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE id IN (" . implode(',', $groupids) . ") AND type = ?;", [ $type ]);
@@ -98,6 +96,14 @@ class Dashboard {
 
             $ret['Outcomes'][$type] = $outcomes;
         }
+
+        # And the total successful outcomes per month.
+        $mysqltime = date("Y-m-01", strtotime("13 months ago"));
+        $ret['OutcomesPerMonth'] = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count, CONCAT(YEAR(timestamp), '-', LPAD(MONTH(timestamp), 2, '0')) AS date FROM messages_outcomes INNER JOIN messages_groups ON messages_outcomes.msgid = messages_groups.msgid WHERE groupid IN (" . implode(',', $groupids) . ") AND messages_outcomes.timestamp > ? AND messages_outcomes.outcome IN (?, ?) GROUP BY date ORDER BY date ASC;", [
+            $mysqltime,
+            Message::OUTCOME_TAKEN,
+            Message::OUTCOME_RECEIVED
+        ]);
 
         if ($groupid) {
             # Also get the donations this year.

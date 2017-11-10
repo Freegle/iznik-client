@@ -740,8 +740,6 @@ define([
                     self.startSyncs();
                     self.checkWork();
 
-                    console.log("My id vs Yahoo id", Iznik.Session.get('me').yahooid, Iznik.Session.get('loggedintoyahooas'));
-
                     if (Iznik.Session.get('me').yahooid == Iznik.Session.get('loggedintoyahooas')) {
                         // Although we'll do syncs and work with any Yahoo ID we happen to be logged into Yahoo with, we
                         // only want to auto-add if they're the same as the ID they're using on ModTools.

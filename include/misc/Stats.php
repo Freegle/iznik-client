@@ -327,7 +327,7 @@ class Stats
         return ($ret);
     }
 
-    function getMulti($date, $groupids, $startdate = "30 days ago", $enddate = "today", $systemwide = FALSE) {
+    function getMulti($date, $groupids, $startdate = "30 days ago", $enddate = "today", $systemwide = FALSE, $weightings = NULL) {
         # Get stats across multiple groups.
         $me = whoAmI($this->dbhr, $this->dbhm);
 

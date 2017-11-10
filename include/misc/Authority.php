@@ -106,7 +106,7 @@ class Authority extends Entity
         unset($atts['lng']);
 
         # Find groups which overlap with this area.
-        $groups = $this->dbhr->preQuery("SELECT groups.id, nameshort, namefull, lat, lng, COALESCE(poly, polyofficial) AS poly FROM groups INNER JOIN authorities ON ST_Intersects(GeomFromText(COALESCE(poly, polyofficial)), polygon) WHERE type = ? AND publish = 1 AND authorities.id = ?;", [
+        $groups = $this->dbhr->preQuery("SELECT groups.id, nameshort, namefull, lat, lng, COALESCE(poly, polyofficial) AS poly, ST_Area(ST_Intersection(GeomFromText(COALESCE(poly, polyofficial)), COALESCE(simplified, polygon)))/ST_Area(GeomFromText(COALESCE(poly, polyofficial))) AS overlap FROM groups INNER JOIN authorities ON ST_Intersects(GeomFromText(COALESCE(poly, polyofficial)), polygon) WHERE type = ? AND publish = 1 AND onmap = 1 AND authorities.id = ?;", [
             Group::GROUP_FREEGLE,
             $atts['id']
         ]);

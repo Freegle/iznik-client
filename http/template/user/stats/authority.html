@@ -15,20 +15,25 @@
 </div>
 <div class="js-map completefull" />
 <div class="row backwhite text-center js-stats" style="display: none">
-    <div class="col-xs-4" style="color: darkgoldenrod">
-        <div class="glyphicons glyphicon-behemoth glyphicons-scale-classic" />
-        <h1 class="nomargin js-weight" style="font-weight: bold; color: darkgoldenrod !important;" />
+    <div class="col-xs-3" style="color: darkgoldenrod">
+        <div class="glyphicons glyphicon-goliath glyphicons-scale-classic" />
+        <h2 class="nomargin js-weight" style="font-weight: bold; color: darkgoldenrod !important;" />
         <p class="muted" style="color: grey"><span class="js-firstdate" /> - <span class="js-lastdate" /></p>
     </div>
-    <div class="col-xs-4" style="color: blue">
-        <div class="glyphicons glyphicon-behemoth glyphicons-group" />
-        <h1 class="nomargin js-membercount" style="font-weight: bold; color: blue !important;" />
+    <div class="col-xs-3" style="color: purple">
+        <div class="glyphicons glyphicon-goliath glyphicons-gift" />
+        <h2 class="nomargin js-outcomes" style="font-weight: bold; color: purple !important;" />
+        <p class="muted" style="color: grey"><span class="js-firstdate" /> - <span class="js-lastdate" /></p>
+    </div>
+    <div class="col-xs-3" style="color: blue">
+        <div class="glyphicons glyphicon-goliath glyphicons-group" />
+        <h2 class="nomargin js-membercount" style="font-weight: bold; color: blue !important;" />
         <p style="color: grey" class="muted js-lastdate"/>
     </div>
-    <div class="col-xs-4" style="color: green">
-        <div class="glyphicons glyphicon-behemoth glyphicons-map-marker" />
-        <h1 class="nomargin js-groupcount" style="font-weight: bold; color: green !important;" />
-        <p class="muted" style="color: grey" class="muted js-lastyear">SERVE THIS AREA</h4>
+    <div class="col-xs-3" style="color: green">
+        <div class="glyphicons glyphicon-goliath glyphicons-map-marker" />
+        <h2 class="nomargin js-groupcount" style="font-weight: bold; color: green !important;" />
+        <p class="muted" style="color: grey" class="muted js-lastyear">SERVE THIS AREA</p>
     </div>
 </div>
 <hr class="nomargin backwhite js-stats" />
@@ -87,7 +92,7 @@
 </div>
 <div class="row backwhite js-stats" style="display: none">
     <div class="col-xs-12">
-        <h1 class="text-center">Freegle Groups in {{name}}</h1>
+        <h1 class="text-center">Freegle Groups serving {{name}}</h1>
         <table class="nomargin table table-striped backwhite js-grouptable">
             <tr>
                 <th>Group Location</th>
@@ -95,6 +100,7 @@
                 <th>Average kgs Reused <i>monthly</i></th>
             </tr>
         </table>
+        <p class="js-partial" style="display: none">* The area for this Freegle group partly overlaps the area you're looking at, so we've added an appropriate percentage.</p>
     </div>
 </div>
 <div class="botspace bg-darkgreen js-stats" style="display: none">

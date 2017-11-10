@@ -608,16 +608,30 @@ define([
                             obj = wkt.toObject(self.map.defaults); // Make an object
 
                             if (obj) {
-                                obj.setMap(self.map);
-                                obj.setOptions({
+                                var options = {
                                     fillColor: 'blue',
                                     strokeWeight: 0,
                                     fillOpacity: 0.1
-                                });
+                                };
+
+                                // This might be a multipolygon.
+                                var bounds = new google.maps.LatLngBounds();
+
+                                if (_.isArray(obj)) {
+                                    _.each(obj, function(ent) {
+                                        ent.setMap(self.map);
+                                        ent.setOptions(options);
+                                        var thisbounds = ent.getBounds();
+                                        bounds.extend(thisbounds.getNorthEast());
+                                        bounds.extend(thisbounds.getSouthWest());
+                                    });
+                                } else {
+                                    obj.setMap(self.map);
+                                    obj.setOptions(options);
+                                    bounds = obj.getBounds();
+                                }
 
                                 // Zoom the map to show the authority
-                                var bounds = obj.getBounds();
-
                                 var mapDim = {
                                     height: self.$('.js-map').height(),
                                     width: self.$('.js-map').width()
@@ -662,195 +676,218 @@ define([
                                     }
                                 });
 
-                                // Get the dashboard stats info.
-                                $.ajax({
-                                    url: API + 'dashboard',
-                                    data: {
-                                        start: '12 months ago',
-                                        grouptype: 'Freegle',
-                                        authorityid: self.options.id
-                                    },
-                                    success: function (ret) {
-                                        var date = new Date();
-                                        var firstDay = (new Date(date.getFullYear(), date.getMonth(), 1)).getTime();
-                                        var total = 0;
-                                        var firstdate = null;
-                                        var lastdate = null;
+                                // Get the dashboard stats info for all groups.
+                                var promises = [];
+                                var coll = new Iznik.Collection();
 
-                                        _.each(ret.dashboard.Weight, function(w) {
-                                            if (!firstdate) {
+                                _.each(groups, function(group) {
+                                    var g = new Iznik.Models.Group({
+                                        id: group.id
+                                    });
+
+                                    promises.push(g.fetch());
+                                    coll.add(g);
+
+                                    promises.push($.ajax({
+                                        url: API + 'dashboard',
+                                        data: {
+                                            start: '12 months ago',
+                                            grouptype: 'Freegle',
+                                            group: group.id
+                                        },
+                                        success: function (ret) {
+                                            var g = coll.get(group.id);
+                                            g.set('dashboard', ret.dashboard);
+                                        }
+                                    }));
+                                });
+
+                                Promise.all(promises).then(function() {
+                                    coll.comparator = function(mod) {
+                                        return(mod.get('namedisplay').toLowerCase());
+                                    };
+
+                                    coll.sort();
+
+                                    // Find the range we cover - we want to exclude the last month as it will
+                                    // be partial.
+                                    var date = new Date();
+                                    var firstDay = (new Date(date.getFullYear(), date.getMonth(), 1)).getTime();
+                                    var firstdate = null;
+                                    var someoverlaps = false;
+                                    var lastdate = null;
+
+                                    coll.each(function(g) {
+                                        var dash = g.get('dashboard');
+                                        _.each(dash.Weight, function(w) {
+                                            if (!firstdate || (new Date(firstdate)).getTime() > (new Date(w.date)).getTime()) {
                                                 var m = new moment(w.date);
                                                 firstdate = m.format('MMM YYYY');
                                             }
 
-                                            if ((new Date(w.date)).getTime() < firstDay) {
-                                                total += w.count;
+                                            if ((new Date(w.date)).getTime() < firstDay && (!lastdate || (new Date(lastdate)).getTime() < (new Date(w.date)).getTime())) {
                                                 var m = new moment(w.date);
                                                 lastdate = m.format('MMM YYYY');
                                             }
                                         });
+                                    })
 
+                                    var totalweight = 0;
+                                    var totalmembers = 0;
+                                    var totaloutcomes = 0;
+                                    var monthweights = {};
+                                    var monthmembers = {};
+
+                                    coll.each(function(g) {
+                                        var dashboard = g.get('dashboard');
+                                        var overlap = 0;
+                                        var gs = self.model.get('groups');
+                                        _.each(gs, function(s) {
+                                            if (s.id == g.get('id') && s.overlap) {
+                                                overlap = s.overlap;
+                                            }
+                                        });
+
+                                        // Assume 95% overlap means it's basically there.
+                                        overlap = overlap > 0.95 ? 1 : overlap;
+
+                                        var total = 0;
+                                        var unweighted = 0;
                                         var members = 0;
 
-                                        _.each(ret.dashboard.ApprovedMemberCount, function(w) {
+                                        _.each(dashboard.OutcomesPerMonth, function(o) {
+                                            totaloutcomes += o.count * overlap;
+                                        });
+
+                                        _.each(dashboard.Weight, function(w) {
                                             if ((new Date(w.date)).getTime() < firstDay) {
-                                                members = w.count;
-                                            }
-                                        });
+                                                var date = new moment(w.date);
+                                                var key = date.format('01 MMM YYYY');
 
-                                        var tonnes = Math.round(total / 1000);
+                                                total += w.count * overlap;
+                                                unweighted += w.count;
 
-                                        // Headline stats.
-                                        var sitename = $('meta[name=izniksitename]').attr("content");
-                                        self.$('.js-weight').html(tonnes.toLocaleString() + '<br />TONNES REUSED');
-                                        self.$('.js-weightnobr').html(tonnes.toLocaleString() + ' TONNES REUSED');
-                                        self.$('.js-groupcount').html(groups.length.toLocaleString() + '<br />GROUPS');
-                                        self.$('.js-membercount').html(members.toLocaleString() + '<br />MEMBERS');
-                                        self.$('.js-firstdate').html(firstdate.toUpperCase());
-                                        self.$('.js-lastdate').html(lastdate.toUpperCase());
-                                        self.$('.js-lastdatelc').html(lastdate);
-
-                                        // Weight chart
-                                        var months = {};
-
-                                        _.each(ret.dashboard.Weight, function(ent) {
-                                            var date = new moment(ent.date);
-                                            var key = date.format('01 MMM YYYY');
-
-                                            // Exclude last month as incomplete.
-                                            if ((new Date(ent.date)).getTime() < firstDay && ent.count > 0) {
-                                                if (key in months) {
-                                                    months[key] = months[key] + ent.count;
+                                                if (key in monthweights) {
+                                                    monthweights[key] += w.count * overlap;
                                                 } else {
-                                                    months[key] = ent.count;
+                                                    monthweights[key] = w.count * overlap;
                                                 }
                                             }
                                         });
 
-                                        var data = [];
+                                        var maxmembers = 0;
+                                        var maxunweighted = 0;
 
-                                        for (var key in months) {
-                                            data.push({
-                                                date: key,
-                                                count: months[key]
-                                            });
+                                        _.each(dashboard.ApprovedMemberCount, function(w) {
+                                            if ((new Date(w.date)).getTime() < firstDay) {
+                                                var members = Math.round(w.count * overlap);
+                                                maxmembers = Math.max(members, maxmembers);
+                                                var unweighted = Math.round(w.count);
+                                                maxunweighted = Math.max(unweighted, maxunweighted);
+
+                                                var date = new moment(w.date);
+                                                var key = date.format('01 MMM YYYY');
+
+                                                if (key in monthmembers) {
+                                                    if (g.get('id') in monthmembers[key]) {
+                                                        monthmembers[key][g.get('id')] = Math.max(monthmembers[key][g.get('id')], members);
+                                                    } else {
+                                                        monthmembers[key][g.get('id')] = members;
+                                                    }
+                                                } else {
+                                                    monthmembers[key] = [];
+                                                    monthmembers[key][g.get('id')] = members;
+                                                }
+                                            }
+                                        });
+
+                                        var avgweight = Math.round(total / 12);
+                                        var avgunweighted = Math.round(unweighted / 12);
+
+                                        totalweight += total;
+                                        totalmembers += maxmembers;
+
+                                        var overlapstr = '';
+
+                                        if (overlap < 1) {
+                                            overlapstr = " *";
+                                            someoverlaps = true;
+                                            self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + ' *</td><td>' + maxmembers.toLocaleString() + ' <span class="text-muted">(of ' + maxunweighted.toLocaleString() + ')</span></td><td>' + avgweight.toLocaleString() + ' <span class="text-muted">(of ' + avgunweighted.toLocaleString() + ')</span></td></tr>');
+                                        } else {
+                                            self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + '</td><td>' + maxmembers.toLocaleString() + '</td><td>' + avgweight.toLocaleString() + '</td></tr>');
                                         }
 
-                                        var graph = new Iznik.Views.DateBar({
-                                            target: self.$('.js-weightchart').get()[0],
-                                            data: new Iznik.Collections.DateCounts(data),
-                                            hAxisFormat: 'MMM yyyy',
-                                            width: "100%",
-                                            height: "200px",
-                                            chartArea: null
-                                        });
+                                    });
 
-                                        graph.render();
+                                    var tonnes = Math.round(totalweight / 100) / 10;
 
-                                        // Member chart
-                                        var months = {};
+                                    self.$('.js-grouptable').append('<tr><td><b>Totals</b></td><td><b>' + totalmembers.toLocaleString() + '</b></td><td><b>' + Math.round(totalweight/12).toLocaleString() + 'kg (' + (Math.round(totalweight / 12 / 100) / 10) + ' tonnes) monthly</b></td></tr>');
 
-                                        _.each(ret.dashboard.ApprovedMemberCount, function(ent) {
-                                            var date = new moment(ent.date);
-                                            var key = date.format('01 MMM YYYY');
+                                    // Headline stats.
+                                    self.$('.js-weight').html(tonnes.toLocaleString() + '<br />TONNES REUSED');
+                                    self.$('.js-outcomes').html(Math.round(totaloutcomes).toLocaleString() + '<br />GIFTS MADE');
+                                    self.$('.js-weightnobr').html(tonnes.toLocaleString() + ' TONNES REUSED');
+                                    self.$('.js-groupcount').html(groups.length.toLocaleString() + '<br />GROUPS');
+                                    self.$('.js-membercount').html(totalmembers.toLocaleString() + '<br />MEMBERS');
+                                    self.$('.js-firstdate').html(firstdate.toUpperCase());
+                                    self.$('.js-lastdate').html(lastdate.toUpperCase());
+                                    self.$('.js-lastdatelc').html(lastdate);
 
-                                            // Exclude last month as incomplete.
-                                            if ((new Date(ent.date)).getTime() < firstDay && ent.count > 0) {
-                                                if (key in months) {
-                                                    months[key] = ent.count;
-                                                } else {
-                                                    months[key] = ent.count;
-                                                }
-                                            }
-                                        });
+                                    // Weight chart
+                                    var data = [];
 
-                                        var data = [];
-
-                                        for (var key in months) {
-                                            data.push({
-                                                date: key,
-                                                count: months[key]
-                                            });
-                                        }
-
-                                        var graph = new Iznik.Views.DateGraph({
-                                            target: self.$('.js-memberchart').get()[0],
-                                            data: new Iznik.Collections.DateCounts(data),
-                                            hAxisFormat: 'MMM yyyy',
-                                            width: "100%",
-                                            height: "200px",
-                                            chartArea: null
-                                        });
-
-                                        graph.render();
-
-                                        // Group table.
-                                        var promises = [];
-                                        var coll = new Iznik.Collection();
-
-                                        _.each(groups, function(group) {
-                                            var g = new Iznik.Models.Group({
-                                                id: group.id
-                                            });
-
-                                            promises.push(g.fetch());
-                                            coll.add(g);
-
-                                            promises.push($.ajax({
-                                                url: API + 'dashboard',
-                                                data: {
-                                                    start: '12 months ago',
-                                                    grouptype: 'Freegle',
-                                                    group: group.id
-                                                },
-                                                success: function (ret) {
-                                                    var g = coll.get(group.id);
-                                                    g.set('dashboard', ret.dashboard);
-                                                }
-                                            }));
-                                        });
-
-                                        Promise.all(promises).then(function() {
-                                            coll.comparator = function(mod) {
-                                                return(mod.get('namedisplay').toLowerCase());
-                                            };
-
-                                            coll.sort();
-
-                                            var totalweight = 0;
-                                            var totalmembers = 0;
-
-                                            coll.each(function(g) {
-                                                var dashboard = g.get('dashboard');
-
-                                                var total = 0;
-                                                var members = 0;
-
-                                                _.each(dashboard.Weight, function(w) {
-                                                    if ((new Date(w.date)).getTime() < firstDay) {
-                                                        total += w.count;
-                                                    }
-                                                });
-
-                                                _.each(dashboard.ApprovedMemberCount, function(w) {
-                                                    if ((new Date(w.date)).getTime() < firstDay) {
-                                                        members = w.count;
-                                                    }
-                                                });
-
-                                                var avgweight = Math.round(total / 12);
-
-                                                totalweight += avgweight;
-                                                totalmembers += members;
-
-                                                self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + '</td><td>' + members.toLocaleString() + '</td><td>' + avgweight.toLocaleString() + '</td></tr>');
-                                            });
-
-                                            self.$('.js-grouptable').append('<tr><td><b>Totals</b></td><td><b>' + totalmembers.toLocaleString() + '</b></td><td><b>' + totalweight.toLocaleString() + 'kg (' + (Math.round(totalweight/100) / 10) + ' tonnes)</b></td></tr>');
-                                            self.wait.close();
-                                            self.$('.js-stats').fadeIn('slow');
+                                    for (var key in monthweights) {
+                                        data.push({
+                                            date: key,
+                                            count: monthweights[key]
                                         });
                                     }
+
+                                    var graph = new Iznik.Views.DateBar({
+                                        target: self.$('.js-weightchart').get()[0],
+                                        data: new Iznik.Collections.DateCounts(data),
+                                        hAxisFormat: 'MMM yyyy',
+                                        width: "100%",
+                                        height: "200px",
+                                        chartArea: null
+                                    });
+
+                                    graph.render();
+
+                                    // Member chart
+                                    var data = [];
+
+                                    for (var key in monthmembers) {
+                                        var total = 0;
+
+                                        for (var groupid in monthmembers[key]) {
+                                            total += monthmembers[key][groupid];
+                                        }
+
+                                        data.push({
+                                            date: key,
+                                            count: total
+                                        });
+                                    }
+
+                                    var graph = new Iznik.Views.DateGraph({
+                                        target: self.$('.js-memberchart').get()[0],
+                                        data: new Iznik.Collections.DateCounts(data),
+                                        hAxisFormat: 'MMM yyyy',
+                                        width: "100%",
+                                        height: "200px",
+                                        chartArea: null
+                                    });
+
+                                    graph.render();
+
+                                    if (someoverlaps) {
+                                        self.$('.js-partial').show();
+                                    }
+
+                                    // We're done
+                                    self.wait.close();
+                                    self.$('.js-stats').fadeIn('slow');
                                 });
                             }
                         });
