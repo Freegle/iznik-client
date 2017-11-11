@@ -2,24 +2,43 @@
 <div class="panel fadein">
     <div class="panel-body">
         <div class="row">
-            <div class="col-xs-12 clickme js-profile">
-                <img src="{{user.profile.turl}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
-                <div class="">
-                    <b><span class="success">{{user.displayname}}</span></b> posted a volunteering opportunity
-                    <br />
-                    <small class="text-muted">
-                        <abbr class="timeago nodecor" title="{{added}}">{{timeago(added)}}</abbr>
-                        <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation.display}}<% } %>
-                    </small>
+            <div class="<% if (volunteering.photo) { %>col-sm-6 col-lg-8<% } else { %>col-sm-12<% } %>">
+                <div class="row">
+                    <div class="col-xs-12 clickme js-profile">
+                        <img src="{{user.profile.turl}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
+                        <div class="">
+                            <b><span class="success">{{user.displayname}}</span></b> posted a volunteering opportunity: <b>{{volunteering.title}}</b>
+                            <br />
+                            <small class="text-muted">
+                                Posted <abbr class="timeago nodecor" title="{{added}}">{{timeago(added)}}</abbr><% if (volunteering.groups && volunteering.groups.length) { %> on {{volunteering.groups[0].namedisplay}}<% } %>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="glyphicons glyphicons-info-sign inline" /><div class="inline padleft js-description">{{volunteering.description}}</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="glyphicons glyphicons-map-marker inline" /><div class="inline padleft">{{volunteering.location}}</div>
+                    </div>
                 </div>
             </div>
+            <% if (volunteering.photo) { %>
+            <div class="col-sm-6 col-lg-4">
+                <img class="hidden-xs pull-right img-thumbnail botspace js-eventinfo clickme" src="{{volunteering.photo.paththumb}}" />
+                <img class="visible-xs pull-left img-thumbnail botspace js-eventinfo clickme" src="{{volunteering.photo.paththumb}}" />
+            </div>
+            <% } %>
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <div class="js-volunteeringsumm" />
                 <hr class="text-muted nomargin botspace" />
                 <div class="inline js-itemloves" />
                 <span class="inline btn btn-white btn-xs pull-right js-addvolunteer"><span class="glyphicons glyphicons-plus vcenter" />&nbsp;Add <span class="hidden-xs">your </span>opportunity</span>
+                <span class="margright inline btn btn-white btn-xs pull-right js-volunteeringinfo"><span class="glyphicons glyphicons-info-sign vcenter" />&nbsp;More info</span>
             </div>
         </div>
     </div>

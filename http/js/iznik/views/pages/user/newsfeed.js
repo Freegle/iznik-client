@@ -882,7 +882,8 @@ define([
             'click .js-showearlier': 'showEarlier',
             'click .js-sharefb': 'sharefb',
             'click .js-moremessagethread': 'moreMessage',
-            'click .js-eventinfo': 'eventInfo'
+            'click .js-eventinfo': 'eventInfo',
+            'click .js-volunteeringinfo': 'volunteeringInfo'
         },
 
         showAll: false,
@@ -890,6 +891,13 @@ define([
         eventInfo: function() {
             var v = new Iznik.Views.User.CommunityEvent.Details({
                 model: new Iznik.Models.CommunityEvent(this.model.get('communityevent'))
+            });
+            v.render();
+        },
+
+        volunteeringInfo: function() {
+            var v = new Iznik.Views.User.Volunteering.Details({
+                model: new Iznik.Models.Volunteering(this.model.get('volunteering'))
             });
             v.render();
         },
@@ -1157,37 +1165,40 @@ define([
                         }
 
                         if (self.model.get('eventid')) {
-                            var dates = self.model.get('communityevent').dates;
-                            var count = 0;
-                            if (dates) {
-                                for (var i = 0; i < dates.length; i++) {
-                                    var date = dates[i];
-                                    if (moment().diff(date.end) < 0  || moment().isSame(date.end, 'day')) {
-                                        if (count == 0) {
-                                            var startm = new moment(date.start);
-                                            self.$('.js-start').html(startm.format('ddd, Do MMM HH:mm'));
-                                            var endm = new moment(date.end);
-                                            self.$('.js-end').html(endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm'));
-                                        }
+                            var ev = self.model.get('communityevent');
+                            if (ev) {
+                                var dates = ev.dates;
+                                var count = 0;
+                                if (dates) {
+                                    for (var i = 0; i < dates.length; i++) {
+                                        var date = dates[i];
+                                        if (moment().diff(date.end) < 0  || moment().isSame(date.end, 'day')) {
+                                            if (count == 0) {
+                                                var startm = new moment(date.start);
+                                                self.$('.js-start').html(startm.format('ddd, Do MMM HH:mm'));
+                                                var endm = new moment(date.end);
+                                                self.$('.js-end').html(endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm'));
+                                            }
 
-                                        count++;
+                                            count++;
+                                        }
                                     }
                                 }
-                            }
 
-                            if (count > 1) {
-                                self.$('.js-moredates').html('...plus ' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
+                                if (count > 1) {
+                                    self.$('.js-moredates').html('...plus ' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
+                                }
                             }
                         }
 
                         if (self.model.get('volunteeringid')) {
-                            var v = new Iznik.Views.User.Volunteering({
-                                model: new Iznik.Model(self.model.get('volunteering'))
-                            });
-
-                            v.render().then(function() {
-                                self.$('.js-volunteeringsumm').html(v.$el);
-                            });
+                            var vol = self.model.get('volunteering');
+                            if (vol) {
+                                var desc = vol.description;
+                                if (desc && desc.length > 100) {
+                                    self.$('.js-description').html(desc.substring(0, 100) + '...');
+                                }
+                            }
                         }
 
                         var replies = self.model.get('replies')
