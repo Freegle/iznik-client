@@ -3442,6 +3442,7 @@ class Message
             'type' => Log::TYPE_MESSAGE,
             'subtype' => Log::SUBTYPE_OUTCOME,
             'msgid' => $this->id,
+            'user' => $this->getFromuser(),
             'byuser' => $me ? $me->getId() : NULL,
             'text' => "Withdrawn: $comment"
         ]);

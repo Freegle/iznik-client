@@ -2,7 +2,7 @@
 <div class="panel fadein">
     <div class="panel-body">
         <div class="row">
-            <div class="<% if (communityevent.photo) { %>col-sm-6<% } else { %>col-sm-12<% } %>">
+            <div class="<% if (communityevent.photo) { %>col-sm-6 col-lg-8<% } else { %>col-sm-12<% } %>">
                 <div class="row">
                     <div class="col-xs-12 clickme js-profile">
                         <img src="{{user.profile.turl}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
@@ -30,7 +30,7 @@
                 </div>
             </div>
             <% if (communityevent.photo) { %>
-            <div class="col-sm-6">
+            <div class="col-sm-6 col-lg-4">
                 <img class="hidden-xs pull-right img-thumbnail botspace js-eventinfo clickme" src="{{communityevent.photo.paththumb}}" />
                 <img class="visible-xs pull-left img-thumbnail botspace js-eventinfo clickme" src="{{communityevent.photo.paththumb}}" />
             </div>

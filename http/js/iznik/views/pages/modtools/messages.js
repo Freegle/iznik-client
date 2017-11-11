@@ -626,7 +626,7 @@ define([
                 }
 
                 $(".modal").draggable({
-                    // handle: ".modal-header",
+                    handle: ".modal-header",
                 });
 
                 self.closeWhenRequired();
