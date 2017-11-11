@@ -2,24 +2,46 @@
 <div class="panel fadein">
     <div class="panel-body">
         <div class="row">
-            <div class="col-xs-12 clickme js-profile">
-                <img src="{{user.profile.turl}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
-                <div class="">
-                    <b><span class="success">{{user.displayname}}</span></b> created an event
-                    <br />
-                    <small class="text-muted">
-                        <abbr class="timeago nodecor" title="{{added}}">{{timeago(added)}}</abbr>
-                        <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation.display}}<% } %>
-                    </small>
+            <div class="<% if (communityevent.photo) { %>col-sm-6<% } else { %>col-sm-12<% } %>">
+                <div class="row">
+                    <div class="col-xs-12 clickme js-profile">
+                        <img src="{{user.profile.turl}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright" />
+                        <div >
+                            <b><span class="success">{{user.displayname}}</span></b> created an event: <b>{{communityevent.title}}</b>
+                            <br />
+                            <small class="text-muted">
+                                Posted <abbr class="timeago nodecor" title="{{added}}">{{timeago(added)}}</abbr> on {{communityevent.groups[0].namedisplay}}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-xs-2">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="glyphicons glyphicons-clock inline" /><div class="js-start inline padleft" /> - <div class="js-end inline" />
+                        <span class="js-moredates" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="glyphicons glyphicons-map-marker inline" /><div class="inline padleft">{{communityevent.location}}</div>
+                    </div>
                 </div>
             </div>
+            <% if (communityevent.photo) { %>
+            <div class="col-sm-6">
+                <img class="hidden-xs pull-right img-thumbnail botspace js-eventinfo clickme" src="{{communityevent.photo.paththumb}}" />
+                <img class="visible-xs pull-left img-thumbnail botspace js-eventinfo clickme" src="{{communityevent.photo.paththumb}}" />
+            </div>
+            <% } %>
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <div class="js-eventsumm" />
                 <hr class="text-muted nomargin botspace" />
                 <div class="inline js-itemloves" />
                 <span class="inline btn btn-white btn-xs pull-right js-addevent"><span class="glyphicons glyphicons-plus vcenter" />&nbsp;Add <span class="hidden-xs">your </span>event</span>
+                <span class="margright inline btn btn-white btn-xs pull-right js-eventinfo"><span class="glyphicons glyphicons-info-sign vcenter" />&nbsp;More info</span>
             </div>
         </div>
     </div>

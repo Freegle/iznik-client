@@ -5,6 +5,7 @@ define([
     'iznik/base',
     'autosize',
     'iznik/facebook',
+    'moment',
     'jquery.caret.min',
     'jquery.atwho.min',
     'jquery-show-last',
@@ -18,7 +19,7 @@ define([
     'iznik/views/infinite',
     'iznik/views/user/polls',
     'jquery.scrollTo'
-], function($, _, Backbone, Iznik, autosize, FBLoad) {
+], function($, _, Backbone, Iznik, autosize, FBLoad, moment) {
     Iznik.Views.User.Feed = {};
     
     Iznik.Views.User.Pages.Newsfeed = Iznik.Views.Infinite.extend({
@@ -880,10 +881,18 @@ define([
             'click .js-addevent': 'addEvent',
             'click .js-showearlier': 'showEarlier',
             'click .js-sharefb': 'sharefb',
-            'click .js-moremessagethread': 'moreMessage'
+            'click .js-moremessagethread': 'moreMessage',
+            'click .js-eventinfo': 'eventInfo'
         },
 
         showAll: false,
+
+        eventInfo: function() {
+            var v = new Iznik.Views.User.CommunityEvent.Details({
+                model: new Iznik.Models.CommunityEvent(this.model.get('communityevent'))
+            });
+            v.render();
+        },
 
         moreMessage: function(e) {
             var self = this;
@@ -1148,13 +1157,27 @@ define([
                         }
 
                         if (self.model.get('eventid')) {
-                            var v = new Iznik.Views.User.CommunityEvent({
-                                model: new Iznik.Model(self.model.get('communityevent'))
-                            });
+                            var dates = self.model.get('communityevent').dates;
+                            var count = 0;
+                            if (dates) {
+                                for (var i = 0; i < dates.length; i++) {
+                                    var date = dates[i];
+                                    if (moment().diff(date.end) < 0  || moment().isSame(date.end, 'day')) {
+                                        if (count == 0) {
+                                            var startm = new moment(date.start);
+                                            self.$('.js-start').html(startm.format('ddd, Do MMM HH:mm'));
+                                            var endm = new moment(date.end);
+                                            self.$('.js-end').html(endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm'));
+                                        }
 
-                            v.render().then(function() {
-                                self.$('.js-eventsumm').html(v.$el);
-                            });
+                                        count++;
+                                    }
+                                }
+                            }
+
+                            if (count > 1) {
+                                self.$('.js-moredates').html('...plus ' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
+                            }
                         }
 
                         if (self.model.get('volunteeringid')) {
