@@ -57,7 +57,7 @@ requirejs.config({
         "ga": "//www.google-analytics.com/analytics",
         "waypoints": "/js/lib/jquery.waypoints",
         "jquery.ui.widget": "/js/lib/jquery-file-upload/vendor/jquery.ui.widget",
-        "jquery-ui": "/js/lib/jquery-ui/jquery-ui.min",
+        "jquery-ui": "/js/lib/jquery-ui",
         "underscore": "/js/lib/underscore",
         "jquery-show-first": "/js/lib/jquery-show-first",
         "tinymce": "https://cdn.tinymce.com/4/tinymce.min",

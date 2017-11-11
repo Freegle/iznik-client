@@ -4,6 +4,7 @@ define([
     'backbone',
     'moment',
     'iznik/base',
+    'jquery-ui',
     "iznik/modtools",
     'jquery-show-first',
     'iznik/views/pages/pages',
@@ -623,6 +624,10 @@ define([
                     // Put it in
                     self.$('.js-text').val(msg);
                 }
+
+                $(".modal").draggable({
+                    // handle: ".modal-header",
+                });
 
                 self.closeWhenRequired();
             });
