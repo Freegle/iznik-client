@@ -67,7 +67,7 @@ function session() {
                     $twitters = [];
 
                     if (count($gids) > 0) {
-                        $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ");");
+                        $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
                         foreach ($tws as $tw) {
                             $twitters[$tw['groupid']] = $tw;
                         }

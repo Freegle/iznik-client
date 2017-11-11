@@ -22,7 +22,7 @@ class Twitter {
             $this->$att = NULL;
         }
 
-        $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid = ?;", [ $groupid ]);
+        $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid = ? AND name IS NOT NULL;", [ $groupid ]);
         foreach ($groups as $group) {
             foreach ($this->publicatts as $att) {
                 $this->$att = $group[$att];
