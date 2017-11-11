@@ -67,6 +67,7 @@ function session() {
                     $twitters = [];
 
                     if (count($gids) > 0) {
+                        # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
                         $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
                         foreach ($tws as $tw) {
                             $twitters[$tw['groupid']] = $tw;

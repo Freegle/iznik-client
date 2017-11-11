@@ -685,7 +685,7 @@ define([
 
                         self.$('.js-twitter').hide();
 
-                        if (twitter) {
+                        if (twitter && twitter.name) {
                             self.$('.js-twittername').html(twitter.name);
                             self.$('.js-twitterurl').attr('href', 'https://twitter.com/' + twitter.name);
 

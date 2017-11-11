@@ -22,7 +22,8 @@ class Twitter {
             $this->$att = NULL;
         }
 
-        $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid = ? AND name IS NOT NULL;", [ $groupid ]);
+        # Note that we must return it even if there's no name yet, because that's used during the setting process.
+        $groups = $fetched ? [ $fetched ] : $this->dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid = ?;", [ $groupid ]);
         foreach ($groups as $group) {
             foreach ($this->publicatts as $att) {
                 $this->$att = $group[$att];
