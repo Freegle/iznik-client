@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 require_once(IZNIK_BASE . '/include/user/User.php');
 
 # Look for messages which never got submitted to Yahoo.  This can happen rarely in crash situations.
-$sql = "SELECT messages_groups.* FROM messages_groups INNER JOIN groups ON messages_groups.groupid = groups.id AND onyahoo = 1 WHERE collection = 'Approved' AND yahooapprovedid IS NULL AND yahoopendingid IS NULL AND deleted = 0 AND senttoyahoo = 0 AND arrival <= DATE_SUB(NOW(), INTERVAL 1 HOUR) AND arrival >= DATE_SUB(NOW(), INTERVAL 48 HOUR);";
+$sql = "SELECT messages_groups.* FROM messages_groups INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid INNER JOIN groups ON messages_groups.groupid = groups.id AND onyahoo = 1 WHERE collection = 'Approved' AND yahooapprovedid IS NULL AND yahoopendingid IS NULL AND deleted = 0 AND senttoyahoo = 0 AND arrival <= DATE_SUB(NOW(), INTERVAL 1 HOUR) AND arrival >= DATE_SUB(NOW(), INTERVAL 48 HOUR) AND messages_outcomes.outcome IS NULL;";
 $messages = $dbhr->preQuery($sql);
 
 $submitted = 0;
