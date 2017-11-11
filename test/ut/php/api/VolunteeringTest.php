@@ -197,6 +197,13 @@ class volunteeringAPITest extends IznikAPITestCase {
             'id' => $id
         ]);
 
+        $ret = $this->call('volunteering', 'GET', [
+            'id' => $id
+        ]);
+
+        error_log("Get after delete " . var_export($ret, TRUE));
+        self::assertEquals(3, $ret['ret']);
+
         error_log(__METHOD__ . " end");
     }
 }
