@@ -249,7 +249,7 @@ class Volunteering extends Entity
     public function delete() {
         $me = whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
-        $this->dbhm->preExec("UPDATE volunteering SET deleted = 1, deletedby = ? WHERE id = ?;", [ $this->id, $myid ]);
+        $this->dbhm->preExec("UPDATE volunteering SET deleted = 1, deletedby = ? WHERE id = ?;", [ $myid, $this->id ]);
     }
 
     # Split out for UT to override
