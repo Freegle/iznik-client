@@ -97,10 +97,6 @@
     <plugin name="cordova-plugin-file" spec="^4.3.3" />
     <plugin name="cordova-plugin-file-transfer" spec="^1.6.3" />
     <plugin name="cordova-plugin-geolocation" spec="^2.4.3" />
-    <plugin name="cordova-plugin-camera" spec="^2.4.1">
-        <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="To use a photo of an item you want to offer" />
-        <variable name="CAMERA_USAGE_DESCRIPTION" value="To take a photo of an item you want to offer" />
-    </plugin>
     <plugin name="cordova-plugin-googleplus" spec="git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git">
         <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.423761283916-mfrb9i0ntt1omq2knit8j49agnhje648" />
     </plugin>
@@ -108,5 +104,9 @@
     <plugin name="cordova-custom-config" spec="^4.0.2" />
     <plugin name="phonegap-plugin-push" spec="^1.10.5">
         <variable name="SENDER_ID" value="85075801930" />
+    </plugin>
+    <plugin name="cordova-plugin-camera" spec="^3.0.0">
+        <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="To use a photo of an item you want to offer" />
+        <variable name="CAMERA_USAGE_DESCRIPTION" value="To take a photo of an item you want to offer" />
     </plugin>
 </widget>
