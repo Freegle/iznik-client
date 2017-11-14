@@ -813,7 +813,6 @@ define([
             var self = this;
 
             var now = (new Date()).getTime();
-            Storage.set('lastaffiliationask', now);
 
             self.close();
         },
@@ -822,7 +821,6 @@ define([
             var self = this;
 
             var now = (new Date()).getTime();
-            Storage.set('lastaffiliationask', now);
 
             self.model.save({
                 'id': self.model.get('id'),
@@ -842,6 +840,7 @@ define([
             var p = resolvedPromise(self);
 
             if (now - lastask > 7 * 24 * 60 * 60 * 1000) {
+                Storage.set('lastaffiliationask', now);
                 p = Iznik.Views.Modal.prototype.render.call(self);
             }
 
