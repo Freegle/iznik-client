@@ -351,7 +351,7 @@ define([
                     targetWidth: maxDimension,
                     targetHeight: maxDimension,
                     //popoverOptions: CameraPopoverOptions,
-                    saveToPhotoAlbum: true,
+                    //saveToPhotoAlbum: true,   // breaks on iOS11
                     correctOrientation: true
                   }
             );
