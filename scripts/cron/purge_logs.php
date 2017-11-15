@@ -44,7 +44,7 @@ try {
         set_time_limit(60);
     } while ($count > 0);
 } catch (Exception $e) {
-    error_log("Failed to delete non-Freegle logs " . $e->getMessage());
+    error_log("Failed to delete email logs logs " . $e->getMessage());
 }
 
 error_log("Purge main logs");
@@ -142,21 +142,6 @@ try {
     $total = 0;
     do {
         $count = $dbhm->exec("DELETE FROM logs_sql WHERE `date` < '$start' LIMIT 1000;");
-        $total += $count;
-        set_time_limit(60);
-        error_log("...$total");
-    } while ($count > 0);
-} catch (Exception $e) {
-    error_log("Failed to delete SQL logs " . $e->getMessage());
-}
-
-$start = date('Y-m-d', strtotime("midnight 7 days ago"));
-
-try {
-    error_log("Email logs:");
-    $total = 0;
-    do {
-        $count = $dbhm->exec("DELETE FROM logs_emails WHERE `date` < '$start' LIMIT 1000;");
         $total += $count;
         set_time_limit(60);
         error_log("...$total");
