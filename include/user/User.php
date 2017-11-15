@@ -3457,7 +3457,7 @@ class User extends Entity
     public function setPrivate($att, $val) {
         User::clearCache($this->id);
         parent::setPrivate($att, $val);
-        #error_log("set $att = $val");
+        error_log("set $att = $val");
     }
 
     public function canMerge() {

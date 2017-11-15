@@ -25,7 +25,7 @@ define([
 
             Storage.set('lasthomepage', 'mygroups');
 
-            p.then(function(self) {
+            p.then(function (self) {
                 var mygroups = Iznik.Session.get('groups');
 
                 if (mygroups && mygroups.length > 0) {
@@ -60,7 +60,7 @@ define([
                         id: 'myGroupsSelect'
                     });
 
-                    self.listenTo(v, 'selected', function(selected) {
+                    self.listenTo(v, 'selected', function (selected) {
                         self.selected = selected;
                         self.refetch();
 
@@ -80,9 +80,9 @@ define([
 
                         if (group) {
                             var w = new Iznik.Views.User.Pages.MyGroups.GroupInfo({
-                                model: group
+                                model: new Iznik.Models.Group(group.attributes)
                             });
-                            w.render().then(function() {
+                            w.render().then(function () {
                                 self.$('.js-groupinfo').html(w.$el);
                             });
                         }
@@ -105,7 +105,7 @@ define([
                     });
 
                     // Render after the listen to as that are called during render.
-                    v.render().then(function(v) {
+                    v.render().then(function (v) {
                         self.$('.js-msggroupselect').html(v.el);
                     });
 
@@ -129,7 +129,7 @@ define([
             'click .js-leave': 'leave'
         },
 
-        leave: function() {
+        leave: function () {
             var self = this;
 
             $.ajax({
@@ -139,7 +139,7 @@ define([
                     groupid: self.model.get('id'),
                     userid: Iznik.Session.get('me').id
                 },
-                success: function(ret) {
+                success: function (ret) {
                     if (ret.ret === 0) {
                         // Now force a refresh of the session.
                         window.location.reload();
@@ -147,13 +147,13 @@ define([
                 }
             })
         },
-        
-        render: function() {
+
+        render: function () {
             var self = this;
 
             var p = Iznik.View.prototype.render.call(this);
-            
-            p.then(function() {
+
+            p.then(function () {
                 self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
 
                 // Add the description
@@ -173,9 +173,38 @@ define([
                     self.$('.js-foundeddate').html(m.format('Do MMMM, YYYY'));
                     self.$('.js-founded').show();
                 }
+
+                // Fetch any visible mods.
+                self.model.fetch({
+                    data: {
+                        showmods: true
+                    }
+                }).then(function () {
+                    console.log("Refetched", self.model.attributes);
+                    var showmods = self.model.get('showmods');
+
+                    if (showmods) {
+                        self.showmods = new Iznik.Collection(showmods);
+
+                        self.collectionView = new Backbone.CollectionView({
+                            el: self.$('.js-showmods'),
+                            modelView: Iznik.Views.User.Pages.MyGroups.ModInfo,
+                            collection: self.showmods,
+                            processKeyEvents: false
+                        });
+
+                        self.collectionView.render();
+                        self.$('.js-modstoshow').fadeIn('slow');
+                    }
+                });
             });
-            
-            return(p);
+
+            return (p);
         }
+    });
+
+    Iznik.Views.User.Pages.MyGroups.ModInfo = Iznik.View.extend({
+        tagName: 'li',
+        template: 'user_mygroups_modinfo'
     });
 });

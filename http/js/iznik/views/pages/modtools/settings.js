@@ -1086,7 +1086,6 @@ define([
         },
     
         success: function(model, response, options) {
-            console.log("Response", response);
             if (response.ret == 0) {
                 (new Iznik.Views.ModTools.Settings.Saved()).render();
             } else {
@@ -1175,13 +1174,22 @@ define([
                             label: 'Email',
                             type: 'email',
                             placeholder: 'Please enter an email address',
-                            control: 'input'
+                            control: 'input',
+                            helpMessage: 'Anything we mail to you, we\'ll mail to this email address.'
                         },
                         {
                             name: 'settings.playbeep',
                             label: 'Beep',
                             control: 'select',
-                            options: [{label: 'Off', value: 0 }, {label: 'Play beep for new work', value: 1}]
+                            options: [{label: 'Off', value: 0 }, {label: 'Play beep for new work', value: 1}],
+                            helpMessage: 'Play beep when new ModTools work arrives.'
+                        },
+                        {
+                            name: 'settings.showmod',
+                            label: 'Show me as a volunteer?',
+                            control: 'radio',
+                            options: [{label: 'Hide me', value: 0 }, {label: 'Show me', value: 1}],
+                            helpMessage: 'We can show members who the volunteers on a group are, to make it seem more friendly.  You can choose whether we show you.'
                         },
                         {
                             control: 'button',
@@ -1199,7 +1207,6 @@ define([
                             'submit': function(e) {
                                 e.preventDefault();
                                 var newdata = self.personalModel.toJSON();
-                                console.log("Save personal", newdata, self.personalModel);
                                 Iznik.Session.save(newdata, {
                                     patch: true,
                                     success: _.bind(self.success, self),

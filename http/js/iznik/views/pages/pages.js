@@ -462,8 +462,15 @@ define([
                             resolve(self);
                         });
 
-                        // Check whether we need to reconfirm any affiliation.
                         if (Iznik.Session.isFreegleMod()) {
+                            // Ask whether we can show them.
+                            if (Iznik.Session.getSetting('showmod', null) === null) {
+                                // We don't know yet.
+                                var v = new Iznik.Views.ShowMod();
+                                v.render();
+                            }
+
+                            // Check whether we need to reconfirm any affiliation.
                             var groups = Iznik.Session.get('groups');
 
                             // Shuffle so that we ask for a different one, in case they need to consult other mods.
@@ -799,10 +806,10 @@ define([
 
             return(p)
         }
-    })
+    });
 
     Iznik.Views.ConfirmAffiliation = Iznik.Views.Modal.extend({
-        template: 'confirmaffiliation',
+        template: 'modtools_confirmaffiliation',
 
         events: {
             'click .js-cancel': 'notnow',
@@ -845,6 +852,43 @@ define([
             }
 
             return(p);
+        }
+    });
+
+    Iznik.Views.ShowMod = Iznik.Views.Modal.extend({
+        template: 'modtools_showmod',
+
+        events: {
+            'click .js-yes': 'yes',
+            'click .js-no': 'no'
+        },
+
+        yes: function() {
+            var self = this;
+            var me = Iznik.Session.get('me');
+            var settings = presdef('settings', me, null);
+            settings.showmod = true;
+            me.settings = settings;
+            Iznik.Session.set('me', me);
+
+            Iznik.Session.save(me, {
+                patch: true,
+                success: _.bind(self.close, self)
+            });
+        },
+
+        no: function() {
+            var self = this;
+            var me = Iznik.Session.get('me');
+            var settings = presdef('settings', me, null);
+            settings.showmod = false;
+            me.settings = settings;
+            Iznik.Session.set('me', me);
+
+            Iznik.Session.save(me, {
+                patch: true,
+                success: _.bind(self.close, self)
+            });
         }
     });
 });

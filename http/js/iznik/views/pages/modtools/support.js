@@ -717,7 +717,6 @@ define([
                         limit: 100
                     }
                 }).then(function() {
-                    console.log("Mods", coll);
                     self.collectionView = new Backbone.CollectionView({
                         el: self.$('.js-mods'),
                         modelView: Iznik.Views.ModTools.Member.Approved,
@@ -730,7 +729,6 @@ define([
                     });
 
                     self.collectionView.render();
-                    console.log("Rendered", coll, self.$('.js-mods'));
                 })
             });
 

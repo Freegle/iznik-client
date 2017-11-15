@@ -30,6 +30,7 @@ function group() {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 $members = array_key_exists('members', $_REQUEST) ? filter_var($_REQUEST['members'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+                $showmods = array_key_exists('showmods', $_REQUEST) ? filter_var($_REQUEST['showmods'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
                 $ret = [
                     'ret' => 0,
@@ -78,6 +79,31 @@ function group() {
                     $ret['group']['polygon'] =  $g->getPrivate('poly') ? $g->getPrivate('poly') : $g->getPrivate('polyofficial');
                 }
 
+                if ($showmods) {
+                    # We want the list of visible mods.
+                    $ctx = NULL;
+                    $mods = $g->getMembers(100, NULL, $ctx, NULL, MembershipCollection::APPROVED, NULL, NULL, NULL, NULL, Group::FILTER_MODERATORS);
+                    $toshow = [];
+
+                    foreach ($mods as $mod) {
+                        $u = User::get($dbhr, $dbhm, $mod['userid']);
+                        $settings = $u->getPrivate('settings');
+                        $settings = $settings ? json_decode($settings, TRUE) : [];
+                        if (pres('showmod', $settings)) {
+                            # We can show this mod.  Return basic info about them.
+                            $ctx = NULL;
+                            $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                            $toshow[] = [
+                                'id' => $mod['userid'],
+                                'firstname' => $atts['firstname'],
+                                'displayname' => $atts['displayname'],
+                                'profile' => $atts['profile']
+                            ];
+                        }
+                    }
+
+                    $ret['group']['showmods'] = $toshow;
+                }
                 break;
             }
 

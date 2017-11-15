@@ -290,5 +290,40 @@ class groupAPITest extends IznikAPITestCase {
 
         error_log(__METHOD__ . " end");
     }
+
+    public function testShowmods() {
+        error_log(__METHOD__);
+
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid,
+            'showmods' => TRUE
+        ]);
+        error_log("Returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertFalse(pres('showmods', $ret['group']));
+
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('session', 'PATCH', [
+            'settings' => [
+                'showmod' => TRUE
+            ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        error_log("Settings after patch for {$this->uid} " . $this->user->getPrivate('settings'));
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid,
+            'showmods' => TRUE
+        ]);
+        error_log("Returned " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertTrue(array_key_exists('showmods', $ret['group']));
+        assertEquals(1, count($ret['group']['showmods']));
+        assertEquals($this->uid, $ret['group']['showmods'][0]['id']);
+
+        error_log(__METHOD__ . " end");
+    }
 }
 
