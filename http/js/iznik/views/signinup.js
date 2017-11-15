@@ -130,7 +130,6 @@ define([
             } else {
                 // Now, load the FB API.
                 FB.login(function (response) {
-                    console.log("FBLogin returned", response);
                     if (response.authResponse) {
                         // We're logged in on the client -
                         Iznik.Session.facebookLogin();

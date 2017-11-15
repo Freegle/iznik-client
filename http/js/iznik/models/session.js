@@ -532,7 +532,6 @@ define([
         },
 
         yahooLogin: function () {
-            console.log("Login with Yahoo");
             var self = this;
 
             var match,
