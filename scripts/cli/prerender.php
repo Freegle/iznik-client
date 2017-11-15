@@ -15,7 +15,7 @@ if (count($opts) == 0) {
         $url = $page['url'] . "?nocache=1";
         $file_name = tempnam('/tmp', 'prerender_') . ".html";
         $job_file = tempnam('/tmp', 'prerender_') . ".js";
-        error_log("Fetch $url using $job_file");
+        error_log("Fetch $url using $job_file into $file_name");
 
         # Create phantomjs script which loads the page, and then waits until a time has passed during which there have
         # been no new network requests.  That tells us that the page has loaded.
