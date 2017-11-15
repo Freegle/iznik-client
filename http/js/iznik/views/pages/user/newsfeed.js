@@ -662,15 +662,16 @@ define([
                 self.model.set('message', msg);
             }
 
+            self.model.set('ismod', Iznik.Session.isFreegleMod());
+
+            var user = self.model.get('user');
+            self.model.set('ownpost', user && user.id == Iznik.Session.get('me').id);
+
             var p = Iznik.View.Timeago.prototype.render.call(self);
             p.then(function () {
                 var v = new Iznik.Views.User.Feed.Loves({
                     model: self.model
                 });
-
-                self.model.set('ismod', Iznik.Session.isFreegleMod());
-                var user = self.model.get('user');
-                self.model.set('ownpost', user && user.id == Iznik.Session.get('me').id);
 
                 v.template = self.lovetemplate;
                 v.render();
