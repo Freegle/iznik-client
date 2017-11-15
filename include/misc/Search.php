@@ -286,6 +286,8 @@ class Search
                         # Search for typos.  This is slow, so we need to stick a limit on it.
                         $startq = pres('Typo', $context) ? " AND {$this->sortatt} > {$context['Typo']} " : "";
                         $sql = "SELECT DISTINCT {$this->idatt}, {$this->sortatt}, wordid FROM {$this->table} WHERE `wordid` IN (" . $this->getWordsTypo($word, $limit * Search::Depth) . ") $exclfilt $startq $filtfilt $minpopq ORDER BY ?,? LIMIT " . $limit * Search::Depth . ";";
+                        #error_log("Typo search $sql {$this->sortatt}, {$this->idatt}");
+
                         $batch = $this->dbhr->preQuery($sql, [
                             $this->sortatt,
                             $this->idatt
