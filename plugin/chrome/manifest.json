@@ -3,17 +3,15 @@
 
   "name": "ModTools",
   "description": "Make moderating Yahoo Groups easier",
-  "version": "0.21",
+  "version": "0.23",
 
   "permissions": [
     "*://*.modtools.org/",
     "webRequest",
     "webRequestBlocking",
     "cookies",
-    "storage",
     "*://direct.ilovefreegle.org/",
-    "*://*.yahoo.com/",
-    "*://*.facebook.com/"
+    "*://*.yahoo.com/"
   ],
 
   "icons": { "16": "ModToolsLogo16.png",
@@ -23,7 +21,7 @@
 
   "background": {
     "scripts": [
-      "jquery-1.10.2.min.js",
+      "jquery-3.2.1.min.js",
       "modtools.js"
     ],
     "persistent": true
@@ -31,13 +29,19 @@
 
   "content_scripts": [
     {
-      "matches": [ "*://modtools.org/*", "*://www.modtools.org/*", "*://dev.modtools.org/*", "*://iznik.modtools.org/*",  "*://www.facebook.com/*" ],
+      "matches": [ "*://modtools.org/*", "*://www.modtools.org/*", "*://dev.modtools.org/*", "*://iznik.modtools.org/*" ],
       "js": [
-        "jquery-1.10.2.min.js",
+        "jquery-3.2.1.min.js",
         "modtoolscont.js"
       ]
     }
   ],
 
-  "web_accessible_resources": ["manifest.json", "modtoolsinject.js"]
+  "web_accessible_resources": ["manifest.json"],
+
+  "applications": {
+    "gecko": {
+      "update_url": "https://modtools.org/plugin/update.json"
+    }
+  }
 }

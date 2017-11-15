@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "addon@example.com": {
+      "updates": [
+        {
+          "version": "0.23",
+          "update_link": "https://modtools.org/plugin/modtools.xpi"
+        }
+      ]
+    }
+  }
+}
