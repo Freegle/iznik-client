@@ -90,7 +90,8 @@ if (preg_match('/List-Unsubscribe: <mailto:(.*)-unsubscribe@yahoogroups.co/', $m
                 }
 
                 if ($cont) {
-                    $msgs = $dbhr->preQuery("SELECT msgid FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE fromuser = ? AND groupid = ? AND collection = ?;", [
+                    # Submit queued messages which haven't already had an outcome.
+                    $msgs = $dbhr->preQuery("SELECT msgid FROM messages_groups LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid INNER JOIN messages ON messages.id = messages_groups.msgid WHERE fromuser = ? AND groupid = ? AND collection = ? AND messages_outcomes.msgid IS NULL;", [
                         $uid,
                         $gid,
                         MessageCollection::QUEUED_YAHOO_USER
