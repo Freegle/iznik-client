@@ -167,8 +167,13 @@ class searchTest extends IznikTestCase
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
         assertEquals(2, count($ret));
-        assertEquals($id2, $ret[0]['id']);
-        assertEquals($id1, $ret[1]['id']);
+        if ($id2 == $ret[0]['id']) {
+            assertEquals($id1, $ret[1]['id']);
+        } else if ($id1 == $ret[0]['id']) {
+            assertEquals($id2, $ret[1]['id']);
+        } else {
+            assertTrue(FALSE);
+        }
 
         $ctx = NULL;
         $ret = $m->search("Test zzzutzzz", $ctx);
