@@ -136,7 +136,6 @@ class Log
                 ORDER BY logs.id DESC LIMIT $limit";
         }
 
-        error_log($sql);
         $logs = $this->dbhr->preQuery($sql);
 
         foreach ($logs as &$log) {
