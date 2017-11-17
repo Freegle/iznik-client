@@ -9,7 +9,6 @@ require_once(IZNIK_BASE . '/include/misc/scripts.php');
 $lockh = lockScript(basename(__FILE__));
 
 try {
- 
     while (true) {
         $version = getversion();
         file_put_contents("/tmp/iznik.version", $version);
