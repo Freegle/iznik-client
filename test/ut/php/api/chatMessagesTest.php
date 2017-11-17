@@ -32,16 +32,20 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
+        self::assertNotNull($this->uid);
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        assertEquals($this->user->getId(), $this->uid);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid2 = $u->create(NULL, NULL, 'Test User');
+        self::assertNotNull($this->uid2);
         $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
         assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid3 = $u->create(NULL, NULL, 'Test User');
+        self::assertNotNull($this->uid3);
         $this->user3 = User::get($this->dbhr, $this->dbhm, $this->uid3);
         assertGreaterThan(0, $this->user3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
@@ -176,6 +180,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $refmsgid = $r->received(Message::YAHOO_APPROVED, 'from@test.com', 'to@test.com', $msg);
+        self::assertNotNull($refmsgid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 

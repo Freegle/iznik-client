@@ -767,11 +767,18 @@ class MailRouter
                     }
                 } else if ($contentcheck) {
                     # Now check if we think this is spam according to SpamAssassin.
+                    #
+                    # Need to cope with SpamAssassin being unavailable.
                     $this->spamc->command = 'CHECK';
+                    $spamret = TRUE;
+                    $spamscore = 0;
 
-                    if ($this->spamc->filter($this->msg->getMessage())) {
+                    try {
+                        $spamret = $this->spamc->filter($this->msg->getMessage());
                         $spamscore = $this->spamc->result['SCORE'];
+                    } catch (Exception $e) {}
 
+                    if ($spamret) {
                         if ($spamscore >= MailRouter::ASSASSIN_THRESHOLD && ($this->msg->getEnvelopefrom() != 'from@test.com')) {
                             # This might be spam.  We'll mark it as such, then it will get reviewed.
                             #
