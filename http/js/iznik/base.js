@@ -35,7 +35,6 @@ function templateStore(tpl, html) {
                 // We're assuming here that we have already included moment by the time we execute this, so it
                 // completes synchronously.  We have - from the mention below in define.
                 var moment = require('moment');
-                var Storage = require('persist-min');
                 obj = _.extend(obj, {
                     // We call this timeago function from within templates.  This allows us to insert a formatted time
                     // into the HTML before it's added to the DOM, which is more efficient than adding it and then
@@ -99,11 +98,12 @@ define([
     'backbone',
     'iznik/underscore',
     'moment',
+    'react',
+    'react-dom',
     'backbone.collectionView',
     'waypoints',
     'dateshim',
     'bootstrap',
-    'persist-min',
     'bootstrap-select',
     'bootstrap-switch',
     'es6-promise',
@@ -114,8 +114,7 @@ define([
     'iznik/utility',
     'iznik/timeago',
     'iznik/majax'
-], function ($, Backbone, _, moment) {
-
+], function ($, Backbone, _, moment, React, ReactDOM) {
     // Promise polyfill for older browsers or IE11 which has less excuse.
     if (typeof window.Promise !== 'function') {
         require('es6-promise').polyfill();
@@ -401,11 +400,25 @@ define([
             },
 
             ourRender: function() {
+                var html;
+
+                var React = require('react');
+                var ReactDOM  = require('react-dom');
+
                 if (this.model) {
-                    this.$el.html(window.template(this.template)(this.model.toJSON2()));
+                    html = window.template(this.template)(this.model.toJSON2());
                 } else {
-                    this.$el.html(window.template(this.template));
+                    html = window.template(this.template)();
                 }
+
+                // console.log("React create", this.tagName, html, this.el);
+                // ReactDOM.render(React.createElement('div', {
+                //     dangerouslySetInnerHTML: {
+                //         __html: html
+                //     }
+                // }), this.el);
+
+                this.$el.html(html);
 
                 return this;
             },

@@ -21,6 +21,7 @@ function scriptInclude($minify)
     $jsfiles = array(
         "js/lib/require.js",
         "js/requirejs-setup.js",
+        "js/lib/persist-min.js",
         "js/iznik/main.js"
     );
 

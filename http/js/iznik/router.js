@@ -1683,54 +1683,56 @@ define([
         }
     });
 
-    // We're ready.  Get backbone up and running.
-    var Router = new IznikRouter();
-    window.Storage = null;
+    $(document).ready(function() {
+        // We're ready.  Get backbone up and running.
+        var Router = new IznikRouter();
+        window.Storage = null;
 
-    try {
         try {
-            // Set up storage.
-            Storage = new Persist.Store("Iznik");
-
-            // Make sure it works
-            Storage.set('enabled', true);
-
             try {
-                // The version may have been put in localStorage.
-                Storage.set('version', localStorage.getItem('version'));
-            } catch (e) {}
+                // Set up storage.
+                Storage = new Persist.Store("Iznik");
 
-            Backbone.history.start({
-                pushState: true
-            });
-        } catch (e) {
-            // We don't.
-            Router.navigate('/localstorage', true);
-        }
-    } catch (e) {
-        // We've got an uncaught exception.
-        // TODO Log it to the server.
-        window.alert("Top-level exception " + e);
-        console.log("Top-level exception", e);
-        console.trace();
-    }
+                // Make sure it works
+                Storage.set('enabled', true);
 
-    // We can flag anchors as not to be handled via Backbone using data-realurl
-    $(document).on('click', 'a:not([data-realurl]):not([data-toggle])', function (evt) {
-        // Only trigger for our own anchors, except selectpicker which relies on #.
-        // console.log("a click", $(this), $(this).parents('#bodyEnvelope').length);
-        if (($(this).parents('#bodyEnvelope').length > 0 || $(this).parents('footer').length > 0) &&
-            $(this).parents('.selectpicker').length == 0) {
-            evt.preventDefault();
-            evt.stopPropagation();
-            var href = $(this).attr('href');
-            var ret = Router.navigate(href, {trigger: true});
+                try {
+                    // The version may have been put in localStorage.
+                    Storage.set('version', localStorage.getItem('version'));
+                } catch (e) {}
 
-            if (ret === undefined && $link.hasClass('allow-reload')) {
-                Backbone.history.loadUrl(href);
+                Backbone.history.start({
+                    pushState: true
+                });
+            } catch (e) {
+                // We don't.
+                Router.navigate('/localstorage', true);
             }
+        } catch (e) {
+            // We've got an uncaught exception.
+            // TODO Log it to the server.
+            window.alert("Top-level exception " + e);
+            console.log("Top-level exception", e);
+            console.trace();
         }
-    });
 
-    window.Router = Router;
+        // We can flag anchors as not to be handled via Backbone using data-realurl
+        $(document).on('click', 'a:not([data-realurl]):not([data-toggle])', function (evt) {
+            // Only trigger for our own anchors, except selectpicker which relies on #.
+            // console.log("a click", $(this), $(this).parents('#bodyEnvelope').length);
+            if (($(this).parents('#bodyEnvelope').length > 0 || $(this).parents('footer').length > 0) &&
+                $(this).parents('.selectpicker').length == 0) {
+                evt.preventDefault();
+                evt.stopPropagation();
+                var href = $(this).attr('href');
+                var ret = Router.navigate(href, {trigger: true});
+
+                if (ret === undefined && $link.hasClass('allow-reload')) {
+                    Backbone.history.loadUrl(href);
+                }
+            }
+        });
+
+        window.Router = Router;
+    });
 });

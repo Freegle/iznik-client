@@ -59,11 +59,12 @@ requirejs.config({
         "jquery.ui.widget": "/js/lib/jquery-file-upload/vendor/jquery.ui.widget",
         "jquery-ui": "/js/lib/jquery-ui",
         "underscore": "/js/lib/underscore",
+        "react": "/js/lib/react.production.min",
+        "react-dom": "/js/lib/react-dom.production.min",
         "jquery-show-first": "/js/lib/jquery-show-first",
         "tinymce": "https://cdn.tinymce.com/4/tinymce.min",
         "gmaps": "https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization",
         "maplabel": "/js/lib/maplabel-compiled",
-
         "iznik": "/js/iznik"
     },
 
