@@ -4,12 +4,14 @@ define('IZNIK_BASE', dirname(__FILE__) . '/..');
 # To improve performance on the client, we catch templates in the JS we serve up.  This avoids us fetching the
 # JS in one HTTP request, then multiple templates in others.
 
+header('Content-Type: text/javascript');
+
 $script = array_key_exists('script', $_REQUEST) ? $_REQUEST['script'] : NULL;
 
 if ($script) {
     $script = IZNIK_BASE . "/http/$script.js";
     $scriptmtime = filemtime($script);
-    $cachefile = IZNIK_BASE . "/http/jscache/" . urlencode($script) . ".tpl";
+    $cachefile = strpos($script, '/jscache') !== FALSE ? $script : (IZNIK_BASE . "/http/jscache/" . urlencode($script) . ".tpl");
     $cachemtime = file_exists($cachefile) ? filemtime($cachefile) : NULL;
 
     #error_log("Script $script times $scriptmtime vs $cachemtime");
