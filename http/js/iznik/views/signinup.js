@@ -159,6 +159,8 @@ define([
         },
 
         showNative: function () {
+            var self = this;
+
             this.$('.js-buttons').hide();
             this.$('.js-native').show();
 
