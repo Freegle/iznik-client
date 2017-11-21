@@ -1,4 +1,6 @@
 <?php
+# No longer running.
+exit(0);
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');

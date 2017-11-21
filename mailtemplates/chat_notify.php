@@ -66,7 +66,6 @@ EOT;
                                                                 </tr>
                                                                 <tr>
                                                                     <td height="20" style="color: darkgreen; font-size:12px; line-height:18px;">
-                                                                    <p style="color: red">We won the eBay vote!  Thank you.  Bad timing, but there's another one - please vote for Freegle in the Aviva Community Fund <a href="https://www.ilovefreegle.org/helpus/aviva2017">here</a>.</p>  
                                                                         <p>You can respond by just replying to this email - but it works 
                                                                         better if you reply on the site using this button:</p>
                                                                     </td>
