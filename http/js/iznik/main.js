@@ -1,7 +1,3 @@
-var API = '/api/';
-var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
-var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
-
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
     // reload from scratch.

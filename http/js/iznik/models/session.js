@@ -5,6 +5,7 @@ define([
     'iznik/models/chat/chat',
     'jquery-visibility'
 ], function($, Backbone, Iznik) {
+    console.log("Session API is ", API);
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
 

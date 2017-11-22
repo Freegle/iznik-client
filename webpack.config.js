@@ -224,7 +224,7 @@ module.exports = {
     new HtmlWebpackPlugin(),
 
     new webpack.DefinePlugin({
-      API: '"/api/"',
+      API: '"https://dev.ilovefreegle.org/api/"',
       YAHOOAPI: '"https://groups.yahoo.com/api/v1/"',
       YAHOOAPIv2: '"https://groups.yahoo.com/api/v2/"'
     }),

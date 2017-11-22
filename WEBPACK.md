@@ -45,3 +45,4 @@ Another solution is to give up with that, and simply add them in the `<head>` se
 * [ ] consider loading the requirejs config directly in the webpack config (rather than copying in bits)
 * [ ] fix external script URLs (some of them seem to be wrong, e.g. 404s)
 * [ ] work out how to serve up a _real_ iznik/freegle page with the webpack (about injecting the webpack built scripts into the right place)
+* [ ] Google analytics doesn't load
