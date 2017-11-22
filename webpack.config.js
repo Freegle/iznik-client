@@ -163,7 +163,7 @@ const iznikUtilityShims = {
 }
 
 module.exports = {
-  devtool: 'eval',
+  devtool: 'source-map',
   entry: './client/app.js',
   output: {
     path: resolve(__dirname, 'dist'),
