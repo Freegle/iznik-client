@@ -31,12 +31,12 @@
                             <% if (obj.preview && !preview.invalid && !preview.spam) { %>
                             <div class="panel panel-default clickme preview small js-preview">
                                 <div class="row">
+                                    <% if (preview.image) { %>
                                     <div class="col-xs-3 col-sm-2">
-                                        <% if (preview.image) { %>
-                                        <img class="img-smallerthumbnail" src="{{preview.image}}" />
-                                        <% } %>
+                                        <img class="img-thumbnail" src="{{preview.image}}" />
                                     </div>
-                                    <div class="col-xs-9 col-sm-10">
+                                    <% } %>
+                                    <div class="<% if (preview.image) { %>col-xs-9 col-sm-10<% } else { %>col-xs-12<% } %>">
                                         <% if (preview.title) { %>
                                         <h4>{{preview.title}}</h4>
                                         <% } %>
