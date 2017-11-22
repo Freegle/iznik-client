@@ -35,8 +35,10 @@ requirejs.onError = function (err) {
         // surely fix very soon now), or Service Worker issues with registering a new one while a fetch is outstanding.
         //
         // In all cases, reloading the page will help.  Delay slightly to avoid hammering the server.
-        console.error("One we care about");
-        panicReload();
+        console.error("One we care about", err.requireModules);
+
+        console.log('DEBUG: NOT RELOADING (so we can see the console messages more easily)')
+        //panicReload();
     }
 };
 
