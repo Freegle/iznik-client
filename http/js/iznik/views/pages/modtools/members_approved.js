@@ -248,6 +248,9 @@ define([
 
                     var group = Iznik.Session.get('groups').get(self.selected);
 
+                    self.$('.js-membercount').html(group.get('membercount'));
+                    self.$('.js-membercountholder').fadeIn('slow');
+
                     if (group.get('onyahoo')) {
                         self.$('.js-exportyahoo, .js-sync').show();
                     } else {
