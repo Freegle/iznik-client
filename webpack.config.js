@@ -165,7 +165,7 @@ module.exports = {
   output: {
     path: resolve(__dirname, 'dist'),
     filename: 'js/[name].[hash].js',
-    chunkFilename: 'iznik-client/js/[id].[chunkhash].js'  // Otherwise fails to load chunks.
+    chunkFilename: 'js/[id].[chunkhash].js'
   },
   resolve: {
         modules: [
@@ -182,6 +182,7 @@ module.exports = {
       // next part would be getting a file-loader (or something) to apply to
       // those templates
       '/template': 'template',
+      '/images': 'iznik-client/images',
 
       ...convertPaths(requireJs.paths),
     },
@@ -207,6 +208,24 @@ module.exports = {
               iznikUtilityShims.windowFunctions.map(name => `window.${name}`))
             ).join(',')
         ]
+      },
+      {
+        test: /\.css$/,
+        use: [
+            'style-loader',
+            {
+                loader: 'css-loader',
+                options: {
+                    root: '../'
+                }
+            }
+        ]
+      },
+      {
+            test: /\.(png|jpeg|jpg|gif)$/,
+            use: [
+                { loader: 'url-loader', options: { limit: 8192 } }
+            ]
       }
     ]
   },
