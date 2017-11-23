@@ -53,9 +53,6 @@ const requireJs = {
     "bootstrap-switch": [ "bootstrap" ],
     "wicket": [ "jquery" ],
     "wicket-gmap3": [ "wicket" ],
-    "ga": {
-        exports: "ga"
-    },
     "gmaps": {
         exports: "google"
     },
@@ -86,7 +83,6 @@ const requireJs = {
   },
   paths: {
     "bootstrap" :  "/js/lib/bootstrap.min",
-    "ga": "//www.google-analytics.com/analytics",
     "waypoints": "/js/lib/jquery.waypoints",
     "jquery.ui.widget": "/js/lib/jquery-file-upload/vendor/jquery.ui.widget",
     "jquery-ui": "/js/lib/jquery-ui",
@@ -168,26 +164,26 @@ module.exports = {
   output: {
     path: resolve(__dirname, 'dist'),
     filename: 'js/[name].[hash].js',
-    chunkFilename: 'js/[id].[chunkhash].js'
+    chunkFilename: 'iznik-client/js/[id].[chunkhash].js'  // Otherwise fails to load chunks.
   },
   resolve: {
-		modules: [
+        modules: [
       'node_modules', 
       join(__dirname, 'http'),
       join(__dirname, 'http/js/lib')
     ],
     alias: {
-      // is referenced, but seems it was removed
+      // is referenced, but hasn't been written yet
       'iznik/views/pages/modtools/chat_report': 'empty-module',
 
-      // maybe the first part of the solution for template loading... 
+      // maybe the first part of the solution for template loading...
       // next part would be getting a file-loader (or something) to apply to
       // those templates
       '/template': 'template',
 
       ...convertPaths(requireJs.paths),
     },
-	},
+    },
   resolveLoader: {
     alias: {
         text: 'text-loader'
@@ -215,10 +211,13 @@ module.exports = {
   plugins: [
 
     new webpack.ProvidePlugin({
-      // waypoints wants it on window.jQuery
+      // waypoints wants $ on window.jQuery
       'window.jQuery': 'jquery',
-      // bootstrap wants it global
-      'jQuery': 'jquery'
+      // bootstrap wants $ global
+      'jQuery': 'jquery',
+      // Our template functions are used all over the place.
+      'window.template': [ 'iznik/templateloader', 'template' ],
+      'templateFetch': [ 'iznik/templateloader', 'templateFetch' ]
     }),
 
     new HtmlWebpackPlugin(),
@@ -244,8 +243,11 @@ module.exports = {
     //new webpack.IgnorePlugin(/vertx/),
 
     // https://github.com/moment/moment/issues/2979#issuecomment-287675568
-    new webpack.IgnorePlugin(/\.\/locale$/)
-  ]
+    new webpack.IgnorePlugin(/\.\/locale$/),
+  ],
+  node: {
+    fs: "empty"
+  }
 };
 
 function iznikUtilityProvideGlobals(names) {
