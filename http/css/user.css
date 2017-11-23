@@ -1,5 +1,5 @@
 .bodyback {
-    background-image: url('/images/wallpaper.png');
+    background-image: url('images/wallpaper.png');
 }
 
 .bg-darkgreen {
@@ -8,7 +8,7 @@
 }
 
 .snowback {
-    background-image: url('/images/snowman.jpg');
+    background-image: url('images/snowman.jpg');
     background-size: contain;
 }
 

@@ -171,6 +171,7 @@ module.exports = {
         modules: [
       'node_modules', 
       join(__dirname, 'http'),
+      join(__dirname, 'http/css'),
       join(__dirname, 'http/js/lib')
     ],
     alias: {
@@ -247,7 +248,8 @@ module.exports = {
     new webpack.IgnorePlugin(/\.\/locale$/),
 
     new CopyWebpackPlugin([
-        { from: 'http/template', to: 'template' }
+        { from: 'http/template', to: 'template' },
+        { from: 'http/images', to: 'images' }
     ])
   ],
   node: {

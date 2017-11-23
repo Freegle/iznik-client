@@ -1,4 +1,6 @@
 var loadedTemplates = [];
+var $ = require('jquery');
+var _ = require('underscore');
 
 // We fetch templates over AJAX, then compile them ready for use.
 function tplName(tpl) {
@@ -83,15 +85,12 @@ module.exports = {
     },
 
     templateFetch: function(tpl) {
-        console.log("Fetch template", tpl);
-
         var promise = new Promise(function(resolve, reject) {
             var $ = require('jquery');
             $.ajax({
                 url: tplName(tpl),
                 type: 'GET',
                 success: function(html) {
-                    console.log("Fetched template", tpl, html);
                     templateStore(tpl, html);
                     // console.log("Demand-loaded template", tpl);
                     resolve(tpl);
