@@ -2,7 +2,8 @@ var loadedTemplates = [];
 
 // We fetch templates over AJAX, then compile them ready for use.
 function tplName(tpl) {
-    var nm = '/template/' + tpl.replace(/\_/g, '/') + '.html';
+    // TODO Is this path right for live?
+    var nm = '/iznik-client/template/' + tpl.replace(/\_/g, '/') + '.html';
     return(nm);
 }
 

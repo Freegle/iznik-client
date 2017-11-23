@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { resolve, join } = require('path');
 const shell = require('shelljs');
 const { ConcatSource } = require('webpack-sources');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 clean()
 
@@ -244,6 +245,10 @@ module.exports = {
 
     // https://github.com/moment/moment/issues/2979#issuecomment-287675568
     new webpack.IgnorePlugin(/\.\/locale$/),
+
+    new CopyWebpackPlugin([
+        { from: 'http/template', to: 'template' }
+    ])
   ],
   node: {
     fs: "empty"
