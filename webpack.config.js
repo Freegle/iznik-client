@@ -4,6 +4,7 @@ const {resolve, join} = require('path');
 const shell = require('shelljs');
 const {ConcatSource} = require('webpack-sources');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const FaviconsPlugin = require('favicons-webpack-plugin');
 
 clean()
 
@@ -237,6 +238,8 @@ module.exports = {
         ]
     },
     plugins: [
+
+        new FaviconsPlugin('images/user_logo.png'),
 
         new webpack.ProvidePlugin({
             // waypoints wants $ on window.jQuery
