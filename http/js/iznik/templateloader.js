@@ -1,25 +1,41 @@
+// We fetch templates over AJAX, then compile them ready for use.
 var loadedTemplates = [];
 var $ = require('jquery');
 var _ = require('underscore');
+var servingFrm = null;
 
-// We fetch templates over AJAX, then compile them ready for use.
+function servingFrom() {
+    if (!servingFrm) {
+        // Find where we're serving from.  Live, this is /index.html, but when debugging from PhpStorm this
+        // might have the project name in there.  That will break any absolute URL paths in templates, so fix
+        // them up here.
+        //
+        // We only calculate this the first time as once we've routed, any such path in the URL will have gone.
+        var top = '/';
+        var re = /(http|https)\:\/\/(.*?\/)index.html/;
+        var match = re.exec(window.document.URL);
+
+        if (match) {
+            top = match[1] + '://' + match[2];
+        }
+
+        servingFrm = top;
+    }
+
+    return(servingFrm);
+}
+
 function tplName(tpl) {
     // TODO Is this path right for live?
-    var nm = '/iznik-client/template/' + tpl.replace(/\_/g, '/') + '.html';
+    var top = servingFrom();
+    var nm = top + '/template/' + tpl.replace(/\_/g, '/') + '.html';
     return(nm);
 }
 
 function templateStore(tpl, html) {
-    // Find where we're serving from.  Live, this is /index.html, but when debugging from PhpStorm this
-    // might have the project name in there.  That will break any absolute URL paths in templates, so fix
-    // them up here.
-    var re = /(http|https)\:\/\/(.*?\/)index.html/;
-    var match = re.exec(window.document.URL);
-
-    if (match) {
-        var top = match[1] + '://' + match[2];
-        html = html.replace(/src="\//g, 'src="' + top);
-    }
+    var top = servingFrom();
+    console.log("Store template", tpl, top);
+    html = html.replace(/src="\//g, 'src="' + top);
 
     // Make templates less likely to bomb out with an exception if a variable is undefined, by
     // using the internal obj.
@@ -98,16 +114,21 @@ module.exports = {
     templateFetch: function(tpl) {
         var promise = new Promise(function(resolve, reject) {
             var $ = require('jquery');
-            $.ajax({
-                url: tplName(tpl),
-                type: 'GET',
-                success: function(html) {
-                    templateStore(tpl, html);
-                    resolve(tpl);
-                }, error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("Template fetch failed", tpl, textStatus, errorThrown);
-                }
-            });
+            var promise;
+            if (tpl in loadedTemplates) {
+                resolve(tpl);
+            } else {
+                $.ajax({
+                    url: tplName(tpl),
+                    type: 'GET',
+                    success: function(html) {
+                        templateStore(tpl, html);
+                        resolve(tpl);
+                    }, error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("Template fetch failed", tpl, textStatus, errorThrown);
+                    }
+                });
+            }
         });
 
         return(promise);
