@@ -123,11 +123,7 @@ for (const [alias, script] of Object.entries(requireJs.paths)) {
 const iznikUtilityShims = {
     globalFunctions: [
         'haversineDistance',
-        /*
-        'tplName',
-        'templateFetch',
         'resolvedPromise',
-        */
         'getURLParam',
         'strip_tags',
         'ABTestShown',

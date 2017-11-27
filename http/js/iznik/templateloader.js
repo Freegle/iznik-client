@@ -34,7 +34,6 @@ function tplName(tpl) {
 
 function templateStore(tpl, html) {
     var top = servingFrom();
-    console.log("Store template", tpl, top);
     html = html.replace(/src="\//g, 'src="' + top);
 
     // Make templates less likely to bomb out with an exception if a variable is undefined, by

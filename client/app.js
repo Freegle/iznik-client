@@ -12,7 +12,6 @@ require("bootstrap-dropmenu.min.css");
 require("bootstrap-notifications.min.css");
 require("datepicker3.css");
 require("bootstrap-datepicker/dist/css/bootstrap-datepicker.css");
-require('loading.gif');
 require("dd.css");
 require("bootstrap-fileinput/css/fileinput.css");
 
