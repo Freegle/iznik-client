@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+</head>
+
+<body>
+
+<div itemscope itemtype="http://schema.org/Organization" style="display: none">
+    <span itemprop="name"><%= htmlWebpackPlugin.options.title %></span>
+    <img itemprop="logo" src="<%= htmlWebpackPlugin.options.logo %>" />
+    <a itemprop="url" href="<%= htmlWebpackPlugin.options.url %>"></a>
+</div>
+
+<my-app></my-app>
+
+<div id="fb-root"></div>
+<div id="bodyEnvelope">
+    <div id="bodyContent" class="nopad">
+    </div>
+</div>
+<div id="botleft" />
+
+<!-- Some nonsense to make browsers remember user/password. -->
+<div id="hiddenloginform" style="display: none">
+    <form action="" method="post">
+        <input type="text" name="email" id="hiddenloginemail"/>
+        <input type="password" name="password" id="hiddenloginpassword"/>
+        <input type="submit" value="Login" id="hiddenloginsubmit"/>
+    </form>
+</div>
+
+</body>
+</html>

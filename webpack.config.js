@@ -178,7 +178,8 @@ module.exports = {
             'node_modules',
             join(__dirname, 'http'),
             join(__dirname, 'http/css'),
-            join(__dirname, 'http/js/lib')
+            join(__dirname, 'http/js/lib'),
+            join(__dirname, 'node_modules/bootstrap-fileinput/img') // TODO Can't be the right way.
         ],
         alias: {
             // is referenced, but hasn't been written yet
@@ -228,7 +229,7 @@ module.exports = {
                 ]
             },
             {
-                test: /\.(png|jpeg|jpg|gif)$/,
+                test: /\.(png|jpeg|jpg|gif|woff|woff2|ttf|eot|svg)$/,
                 use: [
                     {loader: 'url-loader', options: {limit: 8192}}
                 ]
@@ -247,7 +248,14 @@ module.exports = {
             'templateFetch': ['iznik/templateloader', 'templateFetch']
         }),
 
-        new HtmlWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            hash: true,
+            title: 'Freegle',
+            template: './client/index.html',
+            filename: 'index.html',
+            logo: 'https://www.ilovefreegle.org/images/user_logo.png',
+            url: 'https://www.ilovefreegle.org'
+        }),
 
         new webpack.DefinePlugin({
             API: '"https://dev.ilovefreegle.org/api/"',

@@ -15,12 +15,10 @@ function templateStore(tpl, html) {
     // them up here.
     var re = /(http|https)\:\/\/(.*?\/)index.html/;
     var match = re.exec(window.document.URL);
-    console.log("URL matches", match, re, window.document.URL);
 
     if (match) {
         var top = match[1] + '://' + match[2];
         html = html.replace(/src="\//g, 'src="' + top);
-        console.log("Top at", top, html);
     }
 
     // Make templates less likely to bomb out with an exception if a variable is undefined, by
