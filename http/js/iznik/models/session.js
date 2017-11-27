@@ -693,12 +693,15 @@ define([
 
         isFreegleMod: function() {
             var ret = false;
+            var groups = this.get('groups');
 
-            this.get('groups').each(function (group) {
-                if (group.get('type') == 'Freegle' && (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
-                    ret = true;
-                }
-            });
+            if (groups) {
+                groups.each(function (group) {
+                    if (group.get('type') == 'Freegle' && (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+                        ret = true;
+                    }
+                });
+            }
 
             return(ret);
         },

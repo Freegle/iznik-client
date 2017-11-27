@@ -10,6 +10,19 @@ function tplName(tpl) {
 }
 
 function templateStore(tpl, html) {
+    // Find where we're serving from.  Live, this is /index.html, but when debugging from PhpStorm this
+    // might have the project name in there.  That will break any absolute URL paths in templates, so fix
+    // them up here.
+    var re = /(http|https)\:\/\/(.*?\/)index.html/;
+    var match = re.exec(window.document.URL);
+    console.log("URL matches", match, re, window.document.URL);
+
+    if (match) {
+        var top = match[1] + '://' + match[2];
+        html = html.replace(/src="\//g, 'src="' + top);
+        console.log("Top at", top, html);
+    }
+
     // Make templates less likely to bomb out with an exception if a variable is undefined, by
     // using the internal obj.
     html = html ? html.replace(/\{\{/g, '{{obj.') : null;
@@ -92,7 +105,6 @@ module.exports = {
                 type: 'GET',
                 success: function(html) {
                     templateStore(tpl, html);
-                    // console.log("Demand-loaded template", tpl);
                     resolve(tpl);
                 }, error: function(jqXHR, textStatus, errorThrown) {
                     console.error("Template fetch failed", tpl, textStatus, errorThrown);
