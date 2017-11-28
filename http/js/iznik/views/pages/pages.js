@@ -452,7 +452,9 @@ define([
                                 $('#bodyContent .js-signin').click(_.bind(self.signin, self));
                             }
 
-                            $('.js-logout').click(function() {
+                            $('.js-logout').click(function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 logout();
                             });
 
