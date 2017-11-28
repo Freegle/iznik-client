@@ -1,7 +1,0 @@
-#!/bin/bash
-#
-# Proxy from port 3306 to unix socket.  Needed because Percona 5.7 is flakey and can crash when listening on
-# TCP.
-killall -9 socat
-cd /var/www/iznik/scripts
-nohup socat TCP4-LISTEN:3306,fork UNIX-CONNECT:/var/run/mysqld/mysqld.sock&

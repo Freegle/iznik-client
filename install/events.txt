@@ -1,3 +1,0 @@
-These events need to be executed daily.  Hopefully they'll be preserved in the Events table.
-
-UPDATE groups SET publish = 0 WHERE licenserequired = 1 AND (licenseduntil IS NULL OR licenseduntil < NOW()) AND (trial IS NULL OR DATEDIFF(NOW(), trial) > 30);

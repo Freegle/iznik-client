@@ -1,8 +1,0 @@
-#!/bin/bash
-
-cd /tmp
-rm postcodes.*
-wget https://www.doogal.co.uk/files/postcodes.zip
-unzip postcodes.zip
-cd /var/www/iznik/scripts/cli
-php doogal.php -f /tmp/postcodes.csv

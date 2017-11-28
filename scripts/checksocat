@@ -1,4 +1,0 @@
-#!/bin/bash
-pgrep socat
-rc=$?
-exit $rc
