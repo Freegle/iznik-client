@@ -120,6 +120,7 @@ for (const [alias, script] of Object.entries(requireJs.paths)) {
     }
 }
 
+// We need to shim some global or window functions - see also base.js.
 const iznikUtilityShims = {
     globalFunctions: [
         'haversineDistance',
@@ -204,16 +205,6 @@ module.exports = {
                 use: ['./scriptjs-loader']
             },
             {
-                test: /iznik\/utility\.js/,
-                use: [
-                    'exports-loader?' +
-                    ([].concat(
-                            iznikUtilityShims.globalFunctions,
-                            iznikUtilityShims.windowFunctions.map(name => `window.${name}`))
-                    ).join(',')
-                ]
-            },
-            {
                 test: /\.css$/,
                 use: [
                     'style-loader',
@@ -244,7 +235,8 @@ module.exports = {
             'jQuery': 'jquery',
             // Our template functions are used all over the place.
             'window.template': ['iznik/templateloader', 'template'],
-            'templateFetch': ['iznik/templateloader', 'templateFetch']
+            'templateFetch': ['iznik/templateloader', 'templateFetch'],
+            'twemoji': 'twemoji'
         }),
 
         new HtmlWebpackPlugin({
@@ -263,7 +255,8 @@ module.exports = {
             $dirname: '__dirname'
         }),
 
-        new webpack.ProvidePlugin(iznikUtilityProvideGlobals(iznikUtilityShims.globalFunctions)),
+        new webpack.ProvidePlugin(iznikUtilityProvideGlobals([...iznikUtilityShims.globalFunctions, ...iznikUtilityShims.windowFunctions])),
+        new webpack.ProvidePlugin(iznikUtilityProvideWindows(iznikUtilityShims.windowFunctions)),
 
         /*
           WARNING in ./http/js/lib/es6-promise.js
@@ -293,7 +286,15 @@ module.exports = {
 function iznikUtilityProvideGlobals(names) {
     const config = {};
     for (let name of names) {
-        config[name] = ['iznik/utility', name];
+        config[name] = ['iznik/base', name];
+    }
+    return config;
+}
+
+function iznikUtilityProvideWindows(names) {
+    const config = {};
+    for (let name of names) {
+        config['window.' + name] = ['iznik/base', name];
     }
     return config;
 }

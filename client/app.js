@@ -18,6 +18,6 @@ require("bootstrap-fileinput/css/fileinput.css");
 require('style.css');
 // TODO ModTools css when appropriate
 require('user.css');
-                                                
+
 import 'iznik/main';
 
