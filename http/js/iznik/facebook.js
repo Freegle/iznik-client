@@ -4,9 +4,6 @@ define([
     'backbone',
     'iznik/base'
 ], function($, _, Backbone, Iznik) {
-    var facebookAppId = $('meta[name=facebook-app-id]').attr("content");
-    var facebookGraffitiAppId = $('meta[name=facebook-graffiti-app-id]').attr("content");
-
     Iznik.Views.FBLoad = Iznik.View.extend({
         FBLoaded: false,
         FBLoading: false,
@@ -17,7 +14,7 @@ define([
         },
 
         render: function (appid) {
-            appid = appid ? appid : facebookAppId;
+            appid = appid ? appid : FACEBOOK_APPID;
             var self = this;
             // console.log("Render FBLoad");
 

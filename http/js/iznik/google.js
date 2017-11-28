@@ -60,7 +60,7 @@ define([
                     $('#' + id + ' img').removeClass('signindisabled');
                     $('#' + id).click(function () {
                         // Get client id
-                        self.clientId = $('meta[name=google-signin-client_id]').attr("content");
+                        self.clientId = GOOGLE_CLIENT_ID;
 
                         if (navigator.userAgent.match('CriOS')) {
                             // Chrome on IOS opens the normal google signin in a different tab, which is unable

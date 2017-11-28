@@ -471,8 +471,7 @@ define([
             e.preventDefault();
             e.stopPropagation();
 
-            var usersite = $('meta[name=iznikusersite]').attr("content");
-            var url = 'https://' + usersite + '/newsfeed/' + self.model.get('id');
+            var url = 'https://' + USER_SITE + '/newsfeed/' + self.model.get('id');
 
             window.open(url);
         },
@@ -1119,7 +1118,7 @@ define([
                     case 'CommunityEvent':           self.template = 'user_newsfeed_communityevent'; break;
                     case 'VolunteerOpportunity':     self.template = 'user_newsfeed_volunteering'; break;
                     case 'CentralPublicity':         self.template = 'user_newsfeed_centralpublicity'; break;
-                    case 'Alert':                    self.template = 'user_newsfeed_alert'; self.model.set('sitename', $('meta[name=izniksitename]').attr("content")); break;
+                    case 'Alert':                    self.template = 'user_newsfeed_alert'; self.model.set('sitename', SITE_NAME); break;
                     case 'Story':                    self.template = 'user_newsfeed_story'; break;
                 }
 
@@ -1303,7 +1302,7 @@ define([
             ) {
                 var type = self.model.get('type');
 
-                self.model.set('sitename', $('meta[name=izniksitename]').attr("content"));
+                self.model.set('sitename', SITE_NAME);
 
                 switch (type) {
                     case 'ReferToWanted': {

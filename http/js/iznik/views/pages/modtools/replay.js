@@ -457,9 +457,8 @@ define([
             // Open a window of the appropriate size, and also in with an URL which will cause us to pick up the
             // correct stylesheet.
             var modsess = this.model.get('modtools');
-            var eventsite = $('meta[name=iznikevent]').attr("content");
 
-            var pref = "https://" + eventsite + (modsess ? '/modtools' : '');
+            var pref = "https://" + EVENT_HOST + (modsess ? '/modtools' : '');
             window.open(pref + '/replay/' + this.model.get('id'), 'Session Replay', 'width=' + width + ', height=' + height + ', top=' + ((window.innerHeight - height) / 2) + ', left=' + ((window.innerWidth - width) / 2));
         },
 

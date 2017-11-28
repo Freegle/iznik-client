@@ -230,9 +230,6 @@ define([
         initialize: function() {
             var self = this;
 
-            // The chat host is passed from the server.
-            self.chathost = $('meta[name=iznikchat]').attr("content");
-
             // We want to know when the tab is active, as this affects how often we hit the server.
             $(document).on('hide', function () {
                 self.tabActive = false;
@@ -342,7 +339,7 @@ define([
                 self.waiting = true;
 
                 $.ajax({
-                    url: window.location.protocol + '//' + self.chathost + '/subscribe/' + myid,
+                    url: CHAT_HOST + '/subscribe/' + myid,
                     global: false, // don't trigger ajaxStart to avoid showing a busy icon all the time
                     success: function (ret) {
                         self.waiting = false;

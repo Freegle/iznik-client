@@ -2,7 +2,6 @@ var wc = require('webpack-config');
 var Config = wc.Config;
 
 const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {resolve, join} = require('path');
 const shell = require('shelljs');
 const {ConcatSource} = require('webpack-sources');
@@ -238,17 +237,7 @@ exports['default'] = new Config().merge({
             'twemoji': 'twemoji'
         }),
 
-        new HtmlWebpackPlugin({
-            hash: true,
-            title: 'Freegle',
-            template: './client/index.html',
-            filename: 'index.html',
-            logo: 'https://www.ilovefreegle.org/images/user_logo.png',
-            url: 'https://www.ilovefreegle.org'
-        }),
-
         new webpack.DefinePlugin({
-            API: '"https://dev.ilovefreegle.org/api/"',
             YAHOOAPI: '"https://groups.yahoo.com/api/v1/"',
             YAHOOAPIv2: '"https://groups.yahoo.com/api/v2/"',
             $dirname: '__dirname'

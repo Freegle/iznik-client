@@ -89,9 +89,7 @@ define([
                         }
                     });
 
-                    var facebookGraffitiAppId = $('meta[name=facebook-graffiti-app-id]').attr("content");
-
-                    FBLoad().render(facebookGraffitiAppId);
+                    FBLoad().render(FACEBOOK_GRAFFITI_APPID);
                 });
             });
 

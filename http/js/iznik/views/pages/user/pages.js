@@ -500,14 +500,6 @@ define([
                         }
                     });
                 } catch (e) {};
-
-                var groupoverride = $('meta[name=iznikusergroupoverride]').attr("content");
-                if (groupoverride) {
-                    self.$('.js-groupoverridename').html(groupoverride);
-                    self.$('.js-groupoverride').fadeIn('slow');
-                } else {
-                    self.$('.js-groupoverride').remove();
-                }
             });
 
             return(p);

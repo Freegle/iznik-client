@@ -576,8 +576,7 @@ define([
                 }
 
                 // Events site is special.
-                var eventsite = $('meta[name=iznikevent]').attr("content");
-                self.$('.js-recentsessions').attr('href', 'https://' + eventsite + '/modtools/sessions');
+                self.$('.js-recentsessions').attr('href', 'https://' + EVENT_HOST + '/modtools/sessions');
             });
 
             return p;

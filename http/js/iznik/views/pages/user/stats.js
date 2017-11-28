@@ -30,12 +30,9 @@ define([
                 p = self.model.fetch();
             } else {
                 // We want all of them, or perhaps within an area
-                var sitename = $('meta[name=izniksitename]').attr("content");
-                var sitedesc = $('meta[name=izniksitedesc]').attr("content");
-
                 self.model = new Iznik.Model({
-                    'namedisplay': self.options.region ? self.options.region : (self.options.area ? self.options.area : sitename),
-                    'tagline': sitedesc
+                    'namedisplay': self.options.region ? self.options.region : (self.options.area ? self.options.area : SITE_NAME),
+                    'tagline': SITE_DESCRIPTION
                 });
 
                 p = resolvedPromise(self);

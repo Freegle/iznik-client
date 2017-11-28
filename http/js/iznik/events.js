@@ -72,8 +72,6 @@ define([
 
                     // If we have too much data, throw it away.
                     if (eventQueue.length < 20000) {
-                        var eventhost = $('meta[name=iznikevent]').attr("content");
-
                         // We will typically be posting to another domain, to avoid delaying requests on the main
                         // domain because of event tracking (the per host connection limit).  This means that our
                         // session from the main domain won't be inherited unless we set it manually.  It's the same
@@ -95,7 +93,7 @@ define([
                         // console.log("Flush events", currQueue);
 
                         $.ajax({
-                            url: 'https://' + eventhost + API + 'event',
+                            url: 'https://' + EVENT_HOST + API + 'event',
                             type: 'POST',
                             data: {
                                 api_key: sessionCookie,

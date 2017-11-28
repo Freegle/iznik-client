@@ -167,8 +167,7 @@ define([
             var self = this;
             Iznik.Views.Modal.prototype.render.call(this).then(function() {
                 // Add the link to this specific event.
-                var usersite = $('meta[name=iznikusersite]').attr("content");
-                var url = 'https://' + usersite + '/communityevent/' + self.model.get('id');
+                var url = 'https://' + USER_SITE + '/communityevent/' + self.model.get('id');
                 self.$('.js-url').html(url);
                 self.$('.js-url').attr('href', url);
 
