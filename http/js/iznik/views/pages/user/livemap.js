@@ -6,9 +6,8 @@ define([
     'moment',
     'iznik/views/pages/pages',
     'iznik/models/activity',
-    'gmaps',
-    'richMarker',
-    'jquery.geocomplete'
+    'googlemaps-js-rich-marker',
+    'geocomplete'
 ], function ($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.Pages.LiveMap = Iznik.Views.Page.extend({
         template: 'user_livemap_main',

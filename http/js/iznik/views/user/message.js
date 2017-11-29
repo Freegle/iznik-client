@@ -1081,47 +1081,45 @@ define([
 
             var p = Iznik.Views.Modal.prototype.render.call(self);
             p.then(function() {
-                require(['gmaps'], function() {
-                    self.waitDOM(self, function(self) {
-                        // Set map to be square - will have height 0 when we open.
-                        var map = self.$('.js-map');
-                        var mapWidth = map.width();
-                        map.height(mapWidth);
+                self.waitDOM(self, function(self) {
+                    // Set map to be square - will have height 0 when we open.
+                    var map = self.$('.js-map');
+                    var mapWidth = map.width();
+                    map.height(mapWidth);
 
-                        var location = self.model.get('location');
-                        var area = self.model.get('area');
-                        var centre = null;
+                    var location = self.model.get('location');
+                    var area = self.model.get('area');
+                    var centre = null;
 
-                        if (location) {
-                            centre = new google.maps.LatLng(location.lat, location.lng);
-                        } else if (area) {
-                            centre = new google.maps.LatLng(area.lat, area.lng);
-                            self.$('.js-vague').show();
-                        }
+                    if (location) {
+                        centre = new google.maps.LatLng(location.lat, location.lng);
+                    } else if (area) {
+                        centre = new google.maps.LatLng(area.lat, area.lng);
+                        self.$('.js-vague').show();
+                    }
 
-                        var mapOptions = {
-                            mapTypeControl      : false,
-                            streetViewControl   : false,
-                            center              : centre,
-                            panControl          : mapWidth > 400,
-                            zoomControl         : mapWidth > 400,
-                            zoom                : self.model.get('zoom') ? self.model.get('zoom') : 16
-                        };
+                    var mapOptions = {
+                        mapTypeControl      : false,
+                        streetViewControl   : false,
+                        center              : centre,
+                        panControl          : mapWidth > 400,
+                        zoomControl         : mapWidth > 400,
+                        zoom                : self.model.get('zoom') ? self.model.get('zoom') : 16
+                    };
 
-                        self.map = new google.maps.Map(map.get()[0], mapOptions);
+                    self.map = new google.maps.Map(map.get()[0], mapOptions);
 
-                        var icon = {
-                            url: '/images/user_logo.png',
-                            scaledSize: new google.maps.Size(50, 50),
-                            origin: new google.maps.Point(0,0),
-                            anchor: new google.maps.Point(0, 0)
-                        };
+                    var icon = {
+                        url: '/images/user_logo.png',
+                        scaledSize: new google.maps.Size(50, 50),
+                        origin: new google.maps.Point(0,0),
+                        anchor: new google.maps.Point(0, 0)
+                    };
 
-                        var marker = new google.maps.Marker({
-                            position: centre,
-                            icon: icon,
-                            map: self.map
-                        });
+                    var marker = new google.maps.Marker({
+                        position: centre,
+                        icon: icon,
+                        map: self.map
                     });
                 });
             });

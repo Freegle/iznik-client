@@ -8,7 +8,6 @@ define([
     'iznik/base',
     'backform',
     'fileinput',
-    'gmaps',
     'maplabel',
     'tinymce',
     "iznik/modtools",

@@ -50,6 +50,8 @@
     "extract-text-webpack-plugin": "^3.0.2",
     "fs": "0.0.1-security",
     "fs-extra": "^3.0.1",
+    "geocomplete": "^1.7.0",
+    "googlemaps-js-rich-marker": "^1.0.2",
     "jest": "^20.0.4",
     "jquery": "^2.2.4",
     "jquery-flesler-scrollto": "^2.1.1",

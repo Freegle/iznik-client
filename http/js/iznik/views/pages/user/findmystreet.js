@@ -9,8 +9,7 @@ define([
     'iznik/views/pages/user/pages',
     'iznik/models/membership',
     'iznik/models/group',
-    'gmaps',
-    'richMarker'
+    'googlemaps-js-rich-marker'
 ], function($, _, Backbone, Iznik, FBLoad, moment) {
     Iznik.Views.User.Pages.FindMyStreet = Iznik.Views.User.Pages.WhereAmI.extend({
         template: "user_findmystreet_main",

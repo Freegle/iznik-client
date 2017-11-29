@@ -5,7 +5,6 @@ define([
     'iznik/base',
     'moment',
     'FileSaver',
-    'gmaps',
     'backgrid',
     "iznik/modtools",
     'iznik/views/pages/pages',

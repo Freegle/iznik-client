@@ -9,9 +9,8 @@ define([
     'iznik/views/pages/user/group',
     'iznik/views/user/message',
     'iznik/models/group',
-    'gmaps',
-    'richMarker',
-    'jquery.geocomplete'
+    'googlemaps-js-rich-marker',
+    'geocomplete'
 ], function ($, _, Backbone, Iznik, moment) {
     Iznik.Views.User.Pages.Explore = Iznik.Views.Page.extend({
         template: 'user_explore_main',

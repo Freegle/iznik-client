@@ -5,7 +5,6 @@ define([
     'iznik/base',
     'moment',
     'typeahead',
-    'gmaps',
     'iznik/views/pages/pages',
     'iznik/views/dashboard',
     'iznik/models/group',
