@@ -1,10 +1,11 @@
 define([
     'jquery',
+    'underscore',
     'backbone',
     'iznik/base',
     'iznik/models/chat/chat',
     'jquery-visibility'
-], function($, Backbone, Iznik) {
+], function($, _, Backbone, Iznik) {
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
 
