@@ -31,7 +31,7 @@ define([
 
         filter: function(model) {
             var thetype = model.get('type');
-            var filttype = this.$('.js-type').val();
+            var filttype = this.$('.js-type').selectpicker('val');
 
             if (thetype != 'Offer' && thetype != 'Wanted') {
                 // Not interested in this type of message.

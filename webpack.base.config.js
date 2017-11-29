@@ -13,8 +13,6 @@ clean();
 const requireJs = {
     shims: {
         "bootstrap": ['jquery'],
-        "bootstrap-select": ["bootstrap"],
-        "bootstrap-switch": ["bootstrap"],
         "wicket": ["jquery"],
         "wicket-gmap3": ["wicket"],
         "waypoints": {

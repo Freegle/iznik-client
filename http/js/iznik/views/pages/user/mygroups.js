@@ -19,13 +19,15 @@ define([
         template: "user_mygroups_main",
 
         render: function () {
+            var self = this;
+
             var p = Iznik.Views.User.Pages.Group.prototype.render.call(this);
 
             // (new Iznik.Views.User.eBay()).render();
 
             Storage.set('lasthomepage', 'mygroups');
 
-            p.then(function (self) {
+            p.then(function () {
                 var mygroups = Iznik.Session.get('groups');
 
                 if (mygroups && mygroups.length > 0) {

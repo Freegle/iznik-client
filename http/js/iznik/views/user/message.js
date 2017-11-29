@@ -885,7 +885,6 @@ define([
         send: function() {
             var self = this;
             var replytext = self.$('.js-replytext').val();
-            console.log("Send reply", replytext);
 
             if (replytext.length == 0) {
                 self.$('.js-replytext').addClass('error-border').focus();
