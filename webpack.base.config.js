@@ -12,46 +12,6 @@ clean();
 
 const requireJs = {
     shims: {
-        /*
-        "bootstrap" : [ 'jquery' ],
-        "bootstrap-select": [ "bootstrap" ],
-        "bootstrap-switch": [ "bootstrap" ],
-        "wicket": [ "jquery" ],
-        "wicket-gmap3": [ "wicket" ],
-        "ga": {
-            exports: "ga"
-        },
-        "gmaps": {
-            exports: "google"
-        },
-        "richMarker": [ "gmaps" ],
-        "waypoints": {
-            deps: [ "jquery" ],
-            exports: 'Waypoint'
-        },
-        "maplabel": {
-            deps: [ "jquery", "gmaps"]
-        },
-        "combodate": {
-            deps: [ 'moment' ]
-        },
-        'moment': {
-            // get "Uncaught ReferenceError: moement is not defined" if I include the line below
-            //exports: 'moment'
-        },
-        "jquery.dd": [ "jquery" ],
-        "jquery.dotdotdot": [ "jquery" ],
-        "jquery.geocomplete": [ "jquery" ],
-        "jquery-show-first": [ "iznik/utility", "jquery" ],
-        'jquery.validate.additional-methods': [ 'jquery.validate.min' ],
-        "fileinput": [ "jquery", "canvas-to-blob" ],
-        "jquery.ui.widget": [ "jquery" ],
-        "jquery.ui.touch-punch": [ "jquery" ],
-        "iznik/accordionpersist": [ "jquery" ],
-        "iznik/selectpersist": [ "jquery" ],
-        "jquery-resizable": [ "jquery" ]
-        */
-
         "bootstrap": ['jquery'],
         "bootstrap-select": ["bootstrap"],
         "bootstrap-switch": ["bootstrap"],

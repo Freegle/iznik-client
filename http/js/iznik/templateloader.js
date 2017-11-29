@@ -2,40 +2,14 @@
 var loadedTemplates = [];
 var $ = require('jquery');
 var _ = require('underscore');
-var servingFrm = null;
-
-function servingFrom() {
-    if (!servingFrm) {
-        // Find where we're serving from.  Live, this is /index.html, but when debugging from PhpStorm this
-        // might have the project name in there.  That will break any absolute URL paths in templates, so fix
-        // them up here.
-        //
-        // We only calculate this the first time as once we've routed, any such path in the URL will have gone.
-        var top = '/';
-        var re = /(http|https)\:\/\/(.*?\/)index.html/;
-        var match = re.exec(window.document.URL);
-
-        if (match) {
-            top = match[1] + '://' + match[2];
-        }
-
-        servingFrm = top;
-    }
-
-    return(servingFrm);
-}
 
 function tplName(tpl) {
     // TODO Is this path right for live?
-    var top = servingFrom();
-    var nm = top + '/template/' + tpl.replace(/\_/g, '/') + '.html';
+    var nm = '/template/' + tpl.replace(/\_/g, '/') + '.html';
     return(nm);
 }
 
 function templateStore(tpl, html) {
-    var top = servingFrom();
-    html = html.replace(/src="\//g, 'src="' + top);
-
     // Make templates less likely to bomb out with an exception if a variable is undefined, by
     // using the internal obj.
     html = html ? html.replace(/\{\{/g, '{{obj.') : null;
