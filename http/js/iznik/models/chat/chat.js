@@ -61,13 +61,15 @@ define([
             });
 
             self.listenTo(trigger, 'sent', function(msg) {
-                self.trigger('sent');
+                if (msg.get('roomid') == self.get('id')) {
+                    self.trigger('sent');
 
-                // Maintain the lastmsgseen flag.  We might send multiple messages which complete in
-                // different order, so don't go backwards.
-                var lastmsg = msg.get('lastmsgseen');
-                self.set('lastmsgseen', lastmsg ? Math.max(lastmsg, msg.get('id')) : msg.get('id'));
-                self.set('unseen', 0);
+                    // Maintain the lastmsgseen flag.  We might send multiple messages which complete in
+                    // different order, so don't go backwards.
+                    var lastmsg = msg.get('lastmsgseen');
+                    self.set('lastmsgseen', lastmsg ? Math.max(lastmsg, msg.get('id')) : msg.get('id'));
+                    self.set('unseen', 0);
+                }
             });
         },
 
