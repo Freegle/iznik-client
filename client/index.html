@@ -2,16 +2,16 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title><%= htmlWebpackPlugin.options.title %></title>
+    <title><%= SITE_NAME %></title>
 </head>
 
 <body>
 <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
 
 <div itemscope itemtype="http://schema.org/Organization" style="display: none">
-    <span itemprop="name"><%= htmlWebpackPlugin.options.title %></span>
-    <img itemprop="logo" src="<%= htmlWebpackPlugin.options.logo %>" />
-    <a itemprop="url" href="<%= htmlWebpackPlugin.options.url %>"></a>
+    <span itemprop="name"><%= SITE_NAME %></span>
+    <img itemprop="logo" src="<%= BASE_URL %>/images/user_logo.png" />
+    <a itemprop="url" href="<%= BASE_URL %>"></a>
 </div>
 
 <my-app></my-app>
@@ -21,7 +21,7 @@
     <div id="bodyContent" class="nopad">
     </div>
 </div>
-<div id="botleft" />
+<div id="botleft"></div>
 
 <!-- Some nonsense to make browsers remember user/password. -->
 <div id="hiddenloginform" style="display: none">

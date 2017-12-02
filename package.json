@@ -2,27 +2,27 @@
   "name": "iznik",
   "version": "1.0.0",
   "description": "Iznik is a platform for online reuse of unwanted items.  The development has been funded by Freegle for use in the UK,  but it is an open source platform which can be used or adapted by others.",
-  "main": "index.js",
-  "directories": {
-    "lib": "lib",
-    "test": "test"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
-    "watch": "webpack -w"
+    "clean": "rimraf dist",
+    "build": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://www.ilovefreegle.org webpack --config dev/webpack.production.config.js",
+    "build:dev": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://dev.ilovefreegle.org webpack --config dev/webpack.production.config.js",
+    "build:local": "npm run clean && cross-env NODE_ENV=production BASE_URL=http://localhost:3000 webpack --config dev/webpack.production.config.js",
+    "serve": "node dev/server.js --use-dist",
+    "dev": "node dev/server.js",
+    "format": "prettier --single-quote --write dev/**.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nicksellen/iznik.git"
+    "url": "git+https://github.com/Freegle/iznik.git"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "GPLv2",
   "bugs": {
-    "url": "https://github.com/nicksellen/iznik/issues"
+    "url": "https://github.com/Freegle/iznik/issues"
   },
-  "homepage": "https://github.com/nicksellen/iznik#readme",
+  "homepage": "https://github.com/Freegle/iznik#readme",
   "dependencies": {
     "autoprefixer": "^7.1.6",
     "autosize": "^4.0.0",
@@ -84,17 +84,30 @@
     "xmlhttprequest-cookie": "^0.9.4"
   },
   "devDependencies": {
+    "assets-webpack-plugin": "^3.5.1",
+    "babel-preset-env": "^1.6.1",
     "copy-webpack-plugin": "^4.2.3",
+    "cross-env": "^5.1.1",
     "empty-module": "^0.0.2",
+    "eventsource-polyfill": "^0.9.6",
     "exports-loader": "^0.6.4",
     "expose-loader": "^0.7.4",
+    "express": "^4.16.2",
     "favicons-webpack-plugin": "0.0.7",
     "file-loader": "^1.1.5",
+    "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^2.29.0",
+    "http-proxy": "^1.16.2",
     "imports-loader": "^0.7.1",
+    "prettier": "^1.8.2",
+    "rimraf": "^2.6.2",
     "shelljs": "^0.7.8",
     "text-loader": "^0.0.1",
+    "transformer-proxy": "^0.3.4",
     "webpack": "^3.8.1",
-    "webpack-config": "^7.5.0"
+    "webpack-bundle-analyzer": "^2.9.1",
+    "webpack-config": "^7.5.0",
+    "webpack-dev-middleware": "^1.12.2",
+    "webpack-hot-middleware": "^2.21.0"
   }
 }

@@ -1,9 +1,6 @@
-
-module.exports = function (content) {
-  // console.log('my special loader!', 'query is', this)
-  // console.log('  loader', { request, query, resource, script });
-  const { request, query, resource } = this
-  const idx = resource.indexOf('=')
+module.exports = function(content) {
+  const { request, query, resource } = this;
+  const idx = resource.indexOf('=');
   if (idx === -1) return content;
   const script = resource.substring(idx + 1);
 
@@ -20,5 +17,5 @@ module.exports = function (content) {
     document.getElementsByTagName( "head" )[0].appendChild(script);
   })(function(){
     ${content}
-  })`
-}
+  })`;
+};
