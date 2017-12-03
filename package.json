@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Iznik is a platform for online reuse of unwanted items.  The development has been funded by Freegle for use in the UK,  but it is an open source platform which can be used or adapted by others.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf dist",
     "build": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://www.ilovefreegle.org webpack --config dev/webpack.production.config.js",
     "build:dev": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://dev.ilovefreegle.org webpack --config dev/webpack.production.config.js",
@@ -12,7 +11,8 @@
     "serve": "node dev/server.js --use-dist",
     "dev": "node dev/server.js",
     "lint": "eslint .",
-    "format": "prettier --single-quote --write dev/**.js"
+    "format": "prettier --single-quote --write dev/**.js tests/**.js",
+    "test:e2e": "node tests/e2e/run.js"
   },
   "repository": {
     "type": "git",
