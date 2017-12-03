@@ -43,7 +43,7 @@ jobs:
 
 workflows:
   version: 2
-  all-the-things:
+  build:
     jobs:
       - install-dependencies
       - lint:
