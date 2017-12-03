@@ -58,8 +58,8 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
     }),
     new HtmlWebpackPlugin({
       hash: true,
-      template: join(ROOT, 'client/index.html'),
-      filename: 'index.html'
+      template: join(ROOT, 'client/index.ejs'),
+      filename: 'index.html',
     })
   ]
 });
