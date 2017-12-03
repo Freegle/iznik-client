@@ -13,7 +13,7 @@ const browsers = isCI ? ['chromium:headless'] : ['chromium'];
     .browsers(browsers)
     .screenshots('e2e-screenshots')
     .run({
-      debugOnFail: true,
+      debugOnFail: !isCI,
     })
 
   console.log('Tests failed: ' + failedCount)
