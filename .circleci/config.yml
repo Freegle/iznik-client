@@ -36,10 +36,8 @@ jobs:
       - attach_workspace:
           at: .
       - run: npm run build:dev
-      - persist_to_workspace:
-          root: ~/repo
-          paths:
-            - dist
+      - store_artifacts:
+          path: dist
 
 workflows:
   version: 2
