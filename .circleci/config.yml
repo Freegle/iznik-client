@@ -21,11 +21,12 @@ jobs:
       - persist_to_workspace:
           root: ~/repo
           paths:
-            - .
+            - node_modules
 
   lint:
     <<: *defaults
     steps:
+      - checkout
       - attach_workspace:
           at: ~/repo
       - run: npm run lint
@@ -33,11 +34,14 @@ jobs:
   build:
     <<: *defaults
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - run: npm run build:dev
+      - run: tar cvzf iznik.dev.tar.gz dist
       - store_artifacts:
-          path: dist
+          path: iznik.dev.tar.gz
+          destination: builds
 
 workflows:
   version: 2
