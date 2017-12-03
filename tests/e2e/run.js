@@ -2,7 +2,7 @@ const createTestCafe = require('testcafe')
 const { join } = require('path')
 
 const isCI = process.argv.includes('--ci')
-const browsers = isCI ? ['chromium:headless'] : ['chromium'];
+const browsers = isCI ? ['chrome:headless'] : ['chromium'];
 
 (async () => {
   const testcafe = await createTestCafe('localhost')
