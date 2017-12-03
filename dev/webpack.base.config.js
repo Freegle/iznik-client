@@ -37,14 +37,13 @@ exports['default'] = new Config().merge({
       ...shims.aliases
     }
   },
-  resolveLoader: {
-    alias: {
-      text: 'text-loader'
-    }
-  },
   module: {
     rules: [
       ...shims.rules,
+      {
+        test: /\.html$/,
+        use: 'text-loader'
+      },
       {
         test: /\.(png|jpeg|jpg|gif|woff|woff2|ttf|eot|svg)$/,
         use: [{ loader: 'url-loader', options: { limit: 8192 } }]

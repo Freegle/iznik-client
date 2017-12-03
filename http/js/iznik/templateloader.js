@@ -3,12 +3,6 @@ var loadedTemplates = [];
 var $ = require('jquery');
 var _ = require('underscore');
 
-function tplName(tpl) {
-    // TODO Is this path right for live?
-    var nm = '/template/' + tpl.replace(/\_/g, '/') + '.html';
-    return(nm);
-}
-
 function templateStore(tpl, html) {
     // Make templates less likely to bomb out with an exception if a variable is undefined, by
     // using the internal obj.
@@ -91,16 +85,17 @@ module.exports = {
             if (tpl in loadedTemplates) {
                 resolve(tpl);
             } else {
-                $.ajax({
-                    url: tplName(tpl),
-                    type: 'GET',
-                    success: function(html) {
-                        templateStore(tpl, html);
-                        resolve(tpl);
-                    }, error: function(jqXHR, textStatus, errorThrown) {
-                        console.error("Template fetch failed", tpl, textStatus, errorThrown);
-                    }
-                });
+                const templatePath = tpl.replace(/\_/g, '/') + '.html';
+                return import(
+                    /* webpackMode: "lazy-once" */
+                    '/template/' + templatePath
+                ).then(function(html) {
+                    templateStore(tpl, html);
+                    resolve(tpl);
+                }).catch(function(err) {
+                    console.error("Template fetch failed", tpl, err);
+                    reject(err);
+                })
             }
         });
 
