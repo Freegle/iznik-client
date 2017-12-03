@@ -37,7 +37,7 @@ jobs:
       - attach_workspace:
           at: ~/repo
       - run: npm run build:dev
-      - run: mkdir builds && tar cvzf builds/iznik.dev.tar.gz dist
+      - run: mkdir builds && tar cvf builds/iznik.dev.tar dist
       - store_artifacts:
           path: builds
           destination: builds
