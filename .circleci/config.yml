@@ -17,28 +17,33 @@ jobs:
           paths:
             - node_modules
           key: node_modules
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - node_modules
 
   lint:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          keys:
-          - node_modules
+      - attach_workspace:
+          at: ~/repo
       - run: npm run lint
 
   build:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          keys:
-          - node_modules
+      - attach_workspace:
+          at: ~/repo
       - run: npm run build:dev
-      - run: tar cvzf iznik.dev.tar.gz dist
+      - run: mkdir builds && tar cvzf builds/iznik.dev.tar.gz dist
       - store_artifacts:
-          path: iznik.dev.tar.gz
-          destination: iznik.dev.tar.gz
+          path: builds
+          destination: builds
+      - store_artifacts:
+          path: dist/bundlesize.html
+          destination: bundlesize.html
 
 workflows:
   version: 2
