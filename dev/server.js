@@ -5,11 +5,14 @@ const { createProxyServer } = require('http-proxy');
 const { join } = require('path');
 const { createServer } = require('http');
 const express = require('express');
+const compression = require('compression');
 const publicRouteMiddleware = require('./publicRouteMiddleware');
 
 const ROOT = join(__dirname, '..');
 
 const app = express();
+
+app.use(compression());
 
 // Serve up index.html for the frontend routes
 app.use(publicRouteMiddleware());
