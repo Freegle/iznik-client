@@ -5,6 +5,7 @@ const { ConcatSource } = require('webpack-sources');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const FaviconsPlugin = require('favicons-webpack-plugin');
 const AssetsPlugin = require('assets-webpack-plugin');
+const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 
 const shims = require('./shims');
 
@@ -85,7 +86,10 @@ exports['default'] = new Config().merge({
       { from: 'http/template', to: 'template' },
       { from: 'http/images', to: 'images' }
     ]),
-    new AssetsPlugin()
+    new AssetsPlugin(),
+    new ProgressBarPlugin({
+      
+    })
   ],
   node: {
     fs: 'empty'

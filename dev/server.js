@@ -3,6 +3,8 @@ const webpackDevMiddleware = require('webpack-dev-middleware');
 const webpackHotMiddleware = require('webpack-hot-middleware');
 const { createProxyServer } = require('http-proxy');
 const { join } = require('path');
+const { green, yellow } = require('chalk');
+const { get: emoji } = require('node-emoji');
 const { createServer } = require('http');
 const express = require('express');
 const compression = require('compression');
@@ -25,6 +27,8 @@ process.on('unhandledRejection', error => {
   throw error;
 });
 
+let devMiddleware
+
 const USE_DIST = process.argv.indexOf('--use-dist') !== -1;
 
 if (USE_DIST) {
@@ -32,7 +36,6 @@ if (USE_DIST) {
   // You need to have run the build first or dist will be empty
   // This is for trying out the production build locally
 
-  console.log('serving static files from dist');
   app.use(express.static(join(ROOT, 'dist')));
 } else {
   // We want to serve up the latest webpack files and do all the cool stuff
@@ -41,7 +44,7 @@ if (USE_DIST) {
   const webpackConfig = require('./webpack.development.config');
   const compiler = webpack(webpackConfig);
 
-  const devMiddleware = webpackDevMiddleware(compiler, {
+  devMiddleware = webpackDevMiddleware(compiler, {
     publicPath: webpackConfig.output.publicPath,
     quiet: true
   });
@@ -79,5 +82,12 @@ app.use((req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`listening at http://localhost:${port}`);
+  const star = yellow(emoji('star2'));
+  const url = `http://localhost:${port}`;
+  const printMessage = () => console.log(`  ${star} Go and open ${green(url)} now! ${star}\n`);
+  if (devMiddleware) {
+    devMiddleware.waitUntilValid(printMessage)
+  } else {
+    printMessage();
+  }
 });
