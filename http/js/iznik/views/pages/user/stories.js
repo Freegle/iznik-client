@@ -100,7 +100,7 @@ define([
                 if (story.length == 0) {
                     self.$('.js-story').addClass('error');
                 } else {
-                    var public = self.$('input[name=js-public]:checked').val();
+                    var isPublic = self.$('input[name=js-public]:checked').val();
 
                     $.ajax({
                         url: API + 'stories',
@@ -108,7 +108,7 @@ define([
                         data: {
                             headline: headline,
                             story: story,
-                            public: public
+                            public: isPublic
                         }, success: function(ret) {
                             if (ret.ret == 0) {
                                 self.close();

@@ -1,5 +1,5 @@
 require(['jquery.validate.min'], function() {
-    $ = require('jquery');
+    var $ = require('jquery');
 
     $.extend($.validator.messages, {
         url: "Please enter a valid URL, including http:// or https://."

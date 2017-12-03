@@ -773,9 +773,9 @@ define([
                 return(false);
             }
             var createdby = this.modConfigModel.get('createdby');
-            var protected = this.modConfigModel.get('protected');
+            var isProtected = this.modConfigModel.get('protected');
     
-            return(protected && Iznik.Session.get('me').id != createdby);
+            return(isProtected && Iznik.Session.get('me').id != createdby);
         },
     
         configSelect: function() {

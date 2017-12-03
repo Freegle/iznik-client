@@ -229,8 +229,6 @@ define([
             Iznik.Session.set('modtools', self.modtools);
 
             function loadPage() {
-                firstbeep = true;
-
                 // Hide the page loader, which might still be there.
                 $('#pageloader').remove();
                 $('body').css('height', '');

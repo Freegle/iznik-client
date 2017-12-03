@@ -45,6 +45,11 @@ exports['default'] = new Config().merge({
         use: 'text-loader'
       },
       {
+        test: /\.js$/,
+        exclude: /(node_modules|js\/lib)/,
+        use: 'babel-loader'
+      },
+      {
         test: /\.(png|jpeg|jpg|gif|woff|woff2|ttf|eot|svg)$/,
         use: [{ loader: 'url-loader', options: { limit: 8192 } }]
       },
