@@ -38,12 +38,32 @@ jobs:
           at: ~/repo
       - run: npm run build:dev
       - run: mkdir builds && tar cvf builds/iznik.dev.tar dist
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - dist
       - store_artifacts:
           path: builds
           destination: builds
       - store_artifacts:
           path: dist/bundlesize.html
           destination: bundlesize.html
+
+  test-e2e:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9.2-browsers
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          command: npm run serve
+          background: true
+      - run:
+          name: wait for server to start
+          command: wget --retry-connrefused -T 30 http://localhost:3000
+      - run: npm run test:e2e -- --ci
 
 workflows:
   version: 2
@@ -56,3 +76,6 @@ workflows:
       - build:
           requires:
             - install-dependencies
+      - test-e2e:
+          requires:
+            - build
