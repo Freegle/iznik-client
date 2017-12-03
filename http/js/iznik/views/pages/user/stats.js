@@ -136,7 +136,7 @@ define([
                                 // Make sure they're percentages so that people don't try to cross-reference
                                 // with the activity numbers, which wouldn't be possible.
                                 var offer = ret.dashboard.Outcomes.Offer;
-                                var total = taken = offerwithdrawn = 0;
+                                var total = 0, taken = 0, offerwithdrawn = 0;
                                 _.each(offer, function(val) {
                                     total += val.count;
                                     if (val.outcome == 'Taken') {
@@ -165,7 +165,7 @@ define([
                                 graph.render();
 
                                 var wanted = ret.dashboard.Outcomes.Wanted;
-                                var total = received = wantedwithdrawn = 0;
+                                var total = 0, received = 0, wantedwithdrawn = 0;
                                 _.each(wanted, function(val) {
                                     total += val.count;
                                     if (val.outcome == 'Received') {
@@ -600,7 +600,7 @@ define([
                             var wktstr = self.model.get('polygon');
                             wkt.read(wktstr);
 
-                            obj = wkt.toObject(self.map.defaults); // Make an object
+                            var obj = wkt.toObject(self.map.defaults); // Make an object
 
                             if (obj) {
                                 var options = {

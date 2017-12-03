@@ -10,7 +10,7 @@
     "build:local": "npm run clean && cross-env NODE_ENV=production BASE_URL=http://localhost:3000 webpack --config dev/webpack.production.config.js",
     "serve": "node dev/server.js --use-dist",
     "dev": "node dev/server.js",
-    "lint": "eslint http/js/iznik",
+    "lint": "eslint .",
     "format": "prettier --single-quote --write dev/**.js"
   },
   "repository": {
