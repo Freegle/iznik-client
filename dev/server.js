@@ -27,7 +27,7 @@ process.on('unhandledRejection', error => {
   throw error;
 });
 
-let devMiddleware
+let devMiddleware;
 
 const USE_DIST = process.argv.indexOf('--use-dist') !== -1;
 
@@ -84,9 +84,10 @@ app.use((req, res, next) => {
 app.listen(port, () => {
   const star = yellow(emoji('star2'));
   const url = `http://localhost:${port}`;
-  const printMessage = () => console.log(`  ${star} Go and open ${green(url)} now! ${star}\n`);
+  const printMessage = () =>
+    console.log(`  ${star} Go and open ${green(url)} now! ${star}\n`);
   if (devMiddleware) {
-    devMiddleware.waitUntilValid(printMessage)
+    devMiddleware.waitUntilValid(printMessage);
   } else {
     printMessage();
   }

@@ -87,9 +87,7 @@ exports['default'] = new Config().merge({
       { from: 'http/images', to: 'images' }
     ]),
     new AssetsPlugin(),
-    new ProgressBarPlugin({
-      
-    })
+    new ProgressBarPlugin({})
   ],
   node: {
     fs: 'empty'
