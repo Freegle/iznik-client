@@ -225,7 +225,7 @@ define([
                             var now = (new Date()).getTime();
                             try {
                                 Storage.set('session', JSON.stringify(ret));
-                                lastloggedinas = Storage.get('lastloggedinas');
+                                var lastloggedinas = Storage.get('lastloggedinas');
                                 Storage.set('lastloggedinas', ret.me.id);
                                 Storage.set('myemail', ret.me.email);
 

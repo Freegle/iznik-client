@@ -3,6 +3,7 @@ define([
     'underscore',
     'backform' // ...which needs to call _ before we mess with template format
 ], function($, _) {
+    // TODO: this can be removed I think?
     window.template = function (id) {
         // We should already have required the template in fetchTemplate.
         try {

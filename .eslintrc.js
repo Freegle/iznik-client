@@ -30,6 +30,7 @@ module.exports = {
 
     // Iznik global utility functions
     // TODO: make them not global
+    majax: true,
     templateFetch: true,
     haversineDistance: true,
     resolvedPromise: true,

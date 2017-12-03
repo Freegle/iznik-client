@@ -392,7 +392,8 @@ define([
                     systemwide: self.options.id ? false : true
                 },
                 success: function (ret) {
-                    v.close();
+                    // TODO: v is not defined, should it be?
+                    //v.close(); 
 
                     if (ret.dashboard) {
                         self.$('.js-donations').html(ret.dashboard.donationsthisyear ? ret.dashboard.donationsthisyear : '0');
