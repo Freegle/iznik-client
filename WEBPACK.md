@@ -1,48 +1,63 @@
 # Webpack
 
-Main things to run:
+Iznik is now using webpack for asset packaging :)
 
+## Development
+
+First, install all the dependencies:
 ```
-# install all node deps
-yarn
-
-# build webpack project into dist/ directory
-yarn build
-
-# same, but and watch for changes in app code
-yarn watch
+npm install
 ```
 
-To access the files:
+Then start the dev server:
 ```
-cd dist
-
-# run an http server from this dir
-# using python3
-python -m http.server
+npm run dev
 ```
 
-Then visit site the URL and check the console for messages to see how it is doing.
+This will serve up the site at [localhost:3000](http://localhost:3000). API requests are proxied to [dev.ilovefreegle.org](https://dev.ilovefreegle.org) so you can use your account there.
 
-The entry point script is `./client/app.js` so you can add things to that, or import different modules to see whether they are able to load ok.
+It will watch for changes and do hot module reloading.
 
-## External scripts loading
+## Production
+
+When are you ready to build a production version run:
+
+```
+npm run build
+```
+
+The files end up in `dist/`. When accessed it will connect to [www.ilovefreegle.org](https://www.ilovefreegle.org).
+
+### Try it out locally
+
+If you want to try out the production build, but serve it locally, you can build a local version:
+
+```
+npm run build:local
+```
+
+This will be exactly like the production build, but connect to [localhost:3000](http://localhost:3000). Therefore you must run this local server, which you can do with:
+
+```
+npm run serve
+```
+
+This will serve up the built files from `dist/` and proxy to the backend.
+
+## Shims
+
+As this has been converted from a requirejs loader, there are a lot of shims to avoid having to change the existing code. These are all contained in `dev/shims.js`.
+
+Over time it would be nice to remove all of these.
+
+### External scripts loading
 
 As requirejs runs in the client, it can load scripts from the internet. Webpack is a bundler so it cannot load scripts from the internet.
 
 We hack together an approach whereby we dynamically create a little script (at build time) that will fetch the script (at runtime).
 
-My hacky solution is not great as I *think* it does not work properly async, so if something requires them it will not wait, and so the thing will not be available.
+This is configured in the shims file and implemented in `dev/script-loader.js`.
+
+I am not sure if this is implemented very well at the moment. Maybe it doesn't work async properly, need to check if it properly waits for the script to load, and also need to support IE better (re: the `onload` bit).
 
 Another solution is to give up with that, and simply add them in the `<head>` section. Might be simpler for now. Can use a template with the webpack html plugin if needed and stick them in.
-
-## TODO
-
-* [ ] get templates to load
-  * [ ] getting them to be loaded through a file-loader (or something)
-  * [ ] as they are dynamic, find a way to ensure webpack knows to bundle them
-* [ ] continue working through any other loading issues that come up
-* [ ] consider loading the requirejs config directly in the webpack config (rather than copying in bits)
-* [ ] fix external script URLs (some of them seem to be wrong, e.g. 404s)
-* [ ] work out how to serve up a _real_ iznik/freegle page with the webpack (about injecting the webpack built scripts into the right place)
-* [ ] Google analytics doesn't load

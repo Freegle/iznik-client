@@ -121,7 +121,7 @@ define([
                         self.collection = new Iznik.Collection(newgroups);
 
                         // Find a centre and bounding box
-                        var swlat = swlng = nelat = nelng = clat = clng = 0;
+                        var swlat = 0, swlng = 0, nelat = 0, nelng = 0, clat = 0, clng = 0;
                         var bounds = new google.maps.LatLngBounds();
                         self.collection.each(function(group) {
                             var lat = group.get('lat');

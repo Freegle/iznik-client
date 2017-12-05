@@ -1,23 +1,22 @@
-require('persist-js');
+import 'persist-js';
 global.Storage = new Persist.Store("Iznik");
 
-require("smart-app-banner.css?a=1");
-require("bootstrap.min.css");
-require("bootstrap-theme.min.css");
-require("glyphicons.css");
-require("glyphicons-social.css");
-require("bootstrap-select.min.css");
-require("bootstrap-switch.min.css");
-require("bootstrap-dropmenu.min.css");
-require("bootstrap-notifications.min.css");
-require("datepicker3.css");
-require("bootstrap-datepicker/dist/css/bootstrap-datepicker.css");
-require("dd.css");
-require("bootstrap-fileinput/css/fileinput.css");
+import "smart-app-banner.css?a=1";
+import "bootstrap.min.css";
+import "bootstrap-theme.min.css";
+import "glyphicons.css";
+import "glyphicons-social.css";
+import "bootstrap-select.min.css";
+import "bootstrap-switch.min.css";
+import "bootstrap-dropmenu.min.css";
+import "bootstrap-notifications.min.css";
+import "datepicker3.css";
+import "bootstrap-datepicker/dist/css/bootstrap-datepicker.css";
+import "dd.css";
+import "bootstrap-fileinput/css/fileinput.css";
 
-require('style.css');
+import 'style.css';
 // TODO ModTools css when appropriate
-require('user.css');
+import 'user.css';
 
 import 'iznik/main';
-

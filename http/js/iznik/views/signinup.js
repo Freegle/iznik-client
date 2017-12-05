@@ -125,7 +125,7 @@ define([
             if (navigator.userAgent.match('CriOS')) {
                 // Chrome on IOS doesn't work with FB.login; see http://stackoverflow.com/questions/16843116/facebook-oauth-unsupported-in-chrome-on-ios
                 // Log in via a redirect.
-                document.location = 'https://www.facebook.com/dialog/oauth?client_id=' + FACEBOOK_APP_ID + '&redirect_uri=' + encodeURIComponent(document.location.href + '?fblogin=1') + '&scope=email,public_profile';
+                document.location = 'https://www.facebook.com/dialog/oauth?client_id=' + FACEBOOK_APPID + '&redirect_uri=' + encodeURIComponent(document.location.href + '?fblogin=1') + '&scope=email,public_profile';
             } else {
                 // Now, load the FB API.
                 FB.login(function (response) {

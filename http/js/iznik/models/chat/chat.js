@@ -286,9 +286,9 @@ define([
 
             // This happens on a timer; maybe we've lost our session. So pass the persistent one.
             try {
-                sess = Storage.get('session');
+                var sess = Storage.get('session');
                 if (sess) {
-                    parsed = JSON.parse(sess);
+                    var parsed = JSON.parse(sess);
 
                     if (parsed.hasOwnProperty('persistent')) {
                         options.data.persistent = parsed.persistent;

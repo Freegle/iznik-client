@@ -683,7 +683,7 @@ define([
                 // If the number of unseen messages in this chat changes, update this view so that the count is
                 // displayed here.
                 self.listenToOnce(self.chat, 'change:unseen', self.render);
-                p = Iznik.View.Timeago.prototype.render.call(self);
+                Iznik.View.Timeago.prototype.render.call(self);
 
                 // We might promise to this person from a chat.
                 self.listenTo(self.chat, 'promised', _.bind(self.chatPromised, self));

@@ -577,8 +577,8 @@ define([
             // We show matches in order of Exact, Typo, StartsWith, SoundsLike, and then within that, most recent first.
             // This will give results that visually look most plausible first.
             var types = ['Exact', 'Typo', 'StartsWith', 'SoundsLike'];
-            atype = types.indexOf(this.getMatch(a));
-            btype = types.indexOf(this.getMatch(b));
+            var atype = types.indexOf(this.getMatch(a));
+            var btype = types.indexOf(this.getMatch(b));
             var ret;
 
             if (atype != btype) {
@@ -607,7 +607,7 @@ define([
 
     Iznik.Collections.Messages.SearchAll = Iznik.Collections.Message.extend({
         url: function() {
-            url = API + 'messages/searchall/' + encodeURIComponent(this.options.searchmess);
+            var url = API + 'messages/searchall/' + encodeURIComponent(this.options.searchmess);
             return(url);
         }
     });

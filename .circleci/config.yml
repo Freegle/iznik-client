@@ -1,0 +1,83 @@
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: circleci/node:9.2
+
+version: 2
+jobs:
+  install-dependencies:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - node_modules
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: node_modules
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - node_modules
+
+  lint:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      - run: npm run lint
+
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      - run: npm run build:dev
+      - run: mkdir builds && tar cvf builds/iznik.dev.tar dist
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - dist
+      - store_artifacts:
+          path: builds
+          destination: builds
+      - store_artifacts:
+          path: dist/bundlesize.html
+          destination: bundlesize.html
+
+  test-e2e:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9.2-browsers
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      # hacky way to create a local build without running "npm run build:local"
+      - run: find dist -type f -print0 | xargs -0 sed -i 's/https:\/\/\(www\|dev\)\.ilovefreegle\.org/http:\/\/localhost:3000/g'
+      - run:
+          command: npm run serve
+          background: true
+      - run:
+          name: wait for server to start
+          command: wget --retry-connrefused -T 30 http://localhost:3000
+      - run: npm run test:e2e -- --ci
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - install-dependencies
+      - lint:
+          requires:
+            - install-dependencies
+      - build:
+          requires:
+            - install-dependencies
+      - test-e2e:
+          requires:
+            - build
