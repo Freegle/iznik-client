@@ -67,17 +67,26 @@ jobs:
           command: wget --retry-connrefused -T 30 http://localhost:3000
       - run: npm run test:e2e -- --ci
 
+branch-filters: &branch-filters
+  filters:
+    branches:
+      only:
+        - webpack
+
 workflows:
   version: 2
   build:
     jobs:
       - install-dependencies
       - lint:
+          <<: *branch-filters
           requires:
             - install-dependencies
       - build:
+          <<: *branch-filters
           requires:
             - install-dependencies
       - test-e2e:
+          <<: *branch-filters
           requires:
             - build
