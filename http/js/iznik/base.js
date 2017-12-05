@@ -6,6 +6,7 @@
 define([
     'jquery',
     'backbone',
+    'underscore',
     'moment',
     'react',
     'react-dom',
