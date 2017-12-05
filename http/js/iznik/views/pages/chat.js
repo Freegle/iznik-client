@@ -118,11 +118,6 @@ define([
                             Storage.clear('lastchatid');
                         }
                     } catch (e) {}
-
-                    if (!isXS()) {
-                        // Don't focus on small, probably mobile devices as the onscreen keyboard will obscure the chat.
-                        self.activeChat.messageFocus();
-                    }
                 })
             }
         },
@@ -542,10 +537,6 @@ define([
             });
         },
 
-        focus: function () {
-            this.$('.js-message').click();
-        },
-
         noop: function () {
         },
 
@@ -931,9 +922,7 @@ define([
                         }, self), 10000);
                     }
 
-                    // We've just opened this chat - so we have had a decent chance to see any unread messages.
                     v.close();
-                    self.messageFocus();
                     self.scrollBottom();
                 });
 

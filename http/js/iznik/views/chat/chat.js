@@ -274,7 +274,6 @@ define([
                 if (chatView) {
                     retry = false;
                     chatView.restore();
-                    chatView.focus();
                 }
             }
 
@@ -606,10 +605,6 @@ define([
             });
 
             v.render();
-        },
-
-        focus: function () {
-            this.$('.js-message').click();
         },
 
         noop: function () {
@@ -1054,9 +1049,7 @@ define([
             self.messages.fetch({
                 remove: true
             }).then(function () {
-                // We've just opened this chat - so we have had a decent chance to see any unread messages.
                 v.close();
-                self.messageFocus();
                 self.scrollBottom();
                 self.trigger('restored');
             });
