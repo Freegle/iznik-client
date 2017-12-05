@@ -1,7 +1,7 @@
 define([
     'jquery',
     'underscore',
-    'iznik',
+    'iznik/base',
     'iznik/diff',
     'css-selector-generator'
 ], function($, _, Iznik, JsDiff, CssSelectorGenerator) {
