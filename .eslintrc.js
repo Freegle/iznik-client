@@ -1,7 +1,7 @@
 module.exports = {
   parser: 'babel-eslint',
   rules: {
-    'no-undef': 'warn'
+    'no-undef': 'error'
   },
   env: {
     browser: true,
