@@ -20,7 +20,7 @@ It will watch for changes and do hot module reloading.
 
 ## Production
 
-When are you ready to build a production version run:
+When you are ready to build a production version run:
 
 ```
 npm run build

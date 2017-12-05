@@ -10,6 +10,10 @@ module.exports = {
   },
   globals: {
     Promise: true,
+    pushManagerPromise: true,
+    webkitSpeechRecognition: true,
+    Uint8Array: true,
+    Map: true,
 
     // Libraries that end up as globals...
     jQuery: true,
@@ -21,6 +25,10 @@ module.exports = {
     RichMarker: true,
     Backform: true,
     Persist: true,
+    Waypoint: true,
+    tinyMCE: true,
+    tinymce: true,
+    MapLabel: true,
 
     // Iznik global definitions
     // TODO: make them not global

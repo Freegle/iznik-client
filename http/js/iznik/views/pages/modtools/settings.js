@@ -1923,7 +1923,7 @@ define([
     
             this.$('.js-wkt').val('');
     
-            for (i in this.features) {
+            for (var i in this.features) {
                 if (this.features.hasOwnProperty(i)) {
                     this.features[i].setMap(null);
                 }
@@ -2061,7 +2061,7 @@ define([
                 var bounds = new google.maps.LatLngBounds();
 
                 if (self.Wkt.isArray(obj)) { // Distinguish multigeometries (Arrays) from objects
-                    for (i in obj) {
+                    for (var i in obj) {
                         if (obj.hasOwnProperty(i) && !self.Wkt.isArray(obj[i])) {
                             obj[i].setMap(self.map);
                             this.features.push(obj[i]);

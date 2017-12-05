@@ -998,7 +998,7 @@ define([
                 if (e.altKey || e.shiftKey) {
                     // They've used the alt/shift trick.
                     var el = self.$('.js-comment').get(0);
-                    var pos = getInputSelection(el);
+                    var pos = Iznik.getInputSelection(el);
                     var val = self.$('.js-comment').val();
                     self.$('.js-comment').val(val.substring(0, pos.start) + "\n" + val.substring(pos.start));
                     autosize.update(self.$('.js-comment'));

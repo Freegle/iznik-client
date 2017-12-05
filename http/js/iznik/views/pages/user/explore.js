@@ -752,14 +752,6 @@ define([
                         });
 
                         Iznik.Session.testLoggedIn();
-
-                        self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                            var page = new Iznik.Views.ModTools.Pages.Replay({
-                                sessionid: sessionid
-                            });
-                            self.loadRoute({page: page, modtools: true});
-                        });
-
                     } else if (self.model.get('subject') &&
                         !self.model.get('deleted') &&
                         (!self.model.get('outcomes') || self.model.get('outcomes').length == 0)

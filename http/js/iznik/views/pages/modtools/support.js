@@ -15,7 +15,7 @@ define([
     'iznik/views/user/user',
     'tinymce',
     'typeahead'
-], function($, _, Backbone, Iznik, moment, saveAs) {
+], function($, _, Backbone, Iznik, moment, saveAs, Backgrid) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         modtools: true,
 
@@ -228,7 +228,7 @@ define([
                 matches = [];
 
                 // regex used to determine if a string contains the substring `q`
-                substrRegex = new RegExp(q, 'i');
+                var substrRegex = new RegExp(q, 'i');
 
                 // iterate through the pool of strings and for any string that
                 // contains the substring `q`, add it to the `matches` array
@@ -563,7 +563,7 @@ define([
                         }
                     });
 
-                    data = new google.visualization.DataTable();
+                    var data = new google.visualization.DataTable();
                     data.addColumn('string', 'Platform');
                     data.addColumn('number', 'Count');
                     data.addRows([
@@ -578,7 +578,7 @@ define([
                     ]);
 
                     self.groupchart = new google.visualization.PieChart(self.$('.js-groupplatforms').get()[0]);
-                    chartOptions = {
+                    var chartOptions = {
                         title: "Group Platforms",
                         chartArea: {'width': '80%', 'height': '80%'},
                         colors: [
@@ -831,7 +831,7 @@ define([
                     ]);
 
                     self.groupchart = new google.visualization.PieChart(self.$('.js-groups').get()[0]);
-                    chartOptions = {
+                    var chartOptions = {
                         title: "Groups",
                         chartArea: {'width': '80%', 'height': '80%'},
                         colors: colors,

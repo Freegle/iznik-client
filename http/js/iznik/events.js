@@ -1,9 +1,10 @@
 define([
     'jquery',
     'underscore',
+    'iznik',
     'iznik/diff',
     'css-selector-generator'
-], function($, _, JsDiff, CssSelectorGenerator) {
+], function($, _, Iznik, JsDiff, CssSelectorGenerator) {
     // We track the mouse, keyboard and DOM activity on the client, and periodically upload it to the server.  This allows
     // us to replay sessions and see what happened, which is invaluable for diagnosing problems and helping users with
     // issues.

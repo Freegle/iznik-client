@@ -528,6 +528,7 @@ define([
                         var config = self.options.config ? self.options.config.attributes : null;
 
                         var subj = self.model.get('subject');
+                        var focuson;
 
                         if (subj) {
                             // We have a pre-existing subject to include
@@ -923,7 +924,7 @@ define([
                     var wordArray = body.split(wordSplit);
                     var numWords = wordArray.length;
 
-                    for (x = 0; x < numWords; x++) {
+                    for (var x = 0; x < numWords; x++) {
 
                         if (!_.isUndefined(wordArray[x])) {
                             wordArray[x] = wordArray[x].replace(wordArray[x].charAt(0), wordArray[x].charAt(0).toUpperCase());
@@ -1032,6 +1033,7 @@ define([
         edit: function () {
             var self = this;
             var message = self.model.get('message');
+            var member = self.model.get('member');
 
             var v = new Iznik.Views.ModTools.StdMessage.Edit({
                 model: message ? message : member,

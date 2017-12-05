@@ -73,7 +73,7 @@ define([
                     }
                 } catch (e) {}
             } else {
-                self.id = id = "gs" + groupSelectIdCounter++;
+                self.id = "gs" + groupSelectIdCounter++;
             }
 
             self.options = _.extend({}, {

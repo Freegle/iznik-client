@@ -1724,7 +1724,7 @@ define([
                 var href = $(this).attr('href');
                 var ret = Router.navigate(href, {trigger: true});
 
-                if (ret === undefined && $link.hasClass('allow-reload')) {
+                if (ret === undefined && $(this).hasClass('allow-reload')) {
                     Backbone.history.loadUrl(href);
                 }
             }
