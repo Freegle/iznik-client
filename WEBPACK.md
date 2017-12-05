@@ -49,15 +49,3 @@ This will serve up the built files from `dist/` and proxy to the backend.
 As this has been converted from a requirejs loader, there are a lot of shims to avoid having to change the existing code. These are all contained in `dev/shims.js`.
 
 Over time it would be nice to remove all of these.
-
-### External scripts loading
-
-As requirejs runs in the client, it can load scripts from the internet. Webpack is a bundler so it cannot load scripts from the internet.
-
-We hack together an approach whereby we dynamically create a little script (at build time) that will fetch the script (at runtime).
-
-This is configured in the shims file and implemented in `dev/script-loader.js`.
-
-I am not sure if this is implemented very well at the moment. Maybe it doesn't work async properly, need to check if it properly waits for the script to load, and also need to support IE better (re: the `onload` bit).
-
-Another solution is to give up with that, and simply add them in the `<head>` section. Might be simpler for now. Can use a template with the webpack html plugin if needed and stick them in.
