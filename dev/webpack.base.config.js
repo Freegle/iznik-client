@@ -47,7 +47,7 @@ exports['default'] = new Config().merge({
       },
       {
         test: /\.js$/,
-        exclude: /(node_modules|js\/lib)/,
+        exclude: /(node_modules|js(\/|\\)lib)/,
         use: 'babel-loader'
       },
       {
