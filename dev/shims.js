@@ -42,7 +42,6 @@ const requireJs = {
     react: '/js/lib/react.production.min',
     'react-dom': '/js/lib/react-dom.production.min',
     'jquery-show-first': '/js/lib/jquery-show-first',
-    tinymce: 'https://cdn.tinymce.com/4/tinymce.min',
     maplabel: '/js/lib/maplabel-compiled',
     iznik: '/js/iznik'
   }
@@ -60,7 +59,9 @@ const globalFunctions = [
   'setTitleCounts',
   'ellipsical',
   'formatDuration',
-  'getBoundsZoomLevel'
+  'getBoundsZoomLevel',
+  'tinymce',
+  'tinyMCE'
 ];
 
 const windowFunctions = [
@@ -88,26 +89,15 @@ const windowFunctions = [
   'wbr'
 ];
 
-for (const [alias, script] of Object.entries(requireJs.paths)) {
-  // console.log('testing', alias, script);
-  if (/^http/.test(script) || /^\/\//.test(script)) {
-    // For now, we can't do anything with these external scripts so just stub them out...
-    // requireJs.paths[alias] = "/js/placeholder?script=" + script;
-    requireJs.paths[alias] = '/js/placeholder?script=' + script;
-  }
-}
-
 exports.aliases = {
+  // Is included in the script head for now.
+  'tinymce': 'empty-module',
   // is referenced, but hasn't been written yet
   'iznik/views/pages/modtools/chat_report': 'empty-module',
   ...convertPathsToAliases(requireJs.paths)
 };
 
 exports.rules = [
-  {
-    test: /placeholder/,
-    use: ['./dev/script-loader']
-  },
   ...convertShimsToRules(requireJs.shims)
 ];
 
