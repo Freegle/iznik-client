@@ -3,13 +3,14 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/models/yahoo/user',
     'moment',
     "iznik/modtools",
     'iznik/views/pages/pages',
     "iznik/views/pages/modtools/messages",
     'iznik/views/infinite',
     'iznik/views/group/select'
-], function($, _, Backbone, Iznik, moment) {
+], function($, _, Backbone, Iznik, IznikYahooUsers, moment) {
     Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Infinite.extend({
         modtools: true,
 

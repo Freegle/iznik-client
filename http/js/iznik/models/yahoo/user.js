@@ -278,5 +278,7 @@ define([
         }
     });
 
-    IznikYahooUsers = new Iznik.Collections.Yahoo.Users();
+    var IznikYahooUsers = new Iznik.Collections.Yahoo.Users();
+
+    return(IznikYahooUsers);
 });

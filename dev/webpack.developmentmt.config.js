@@ -9,7 +9,7 @@ const ROOT = join(__dirname, '..');
 
 module.exports = new Config().extend('dev/webpack.base.config.js').merge({
   entry: [
-    join(ROOT, 'client/app.js'),
+    join(ROOT, 'client/appmt.js'),
     'eventsource-polyfill',
     'webpack-hot-middleware/client?noInfo=true&reload=true'
   ],

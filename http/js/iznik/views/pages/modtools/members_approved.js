@@ -5,13 +5,14 @@ define([
     'moment',
     'FileSaver',
     'iznik/base',
+    'iznik/models/yahoo/user',
     "iznik/modtools",
     'iznik/views/pages/pages',
     "iznik/views/pages/modtools/messages",
     'iznik/views/infinite',
     'iznik/views/group/select',
     "iznik/views/user/user"
-], function($, _, Backbone, moment, saveAs, Iznik) {
+], function($, _, Backbone, moment, saveAs, Iznik, IznikYahooUsers) {
     Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
         modtools: true,
 

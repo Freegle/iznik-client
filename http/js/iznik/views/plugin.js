@@ -4,10 +4,10 @@ define([
     'backbone',
     'moment',
     'iznik/base',
-    'iznik/models/config/bulkop',
     'iznik/models/yahoo/user',
+    'iznik/models/config/bulkop',
     'iznik/models/group'
-], function($, _, Backbone, moment, Iznik) {
+], function($, _, Backbone, moment, Iznik, IznikYahooUsers) {
     // Plugin work.
     //
     // We have a collection for the work items, some of which come from the server, and some of which are generated

@@ -3,12 +3,13 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'iznik/models/yahoo/user',
     "iznik/modtools",
     'iznik/views/pages/pages',
     "iznik/views/pages/modtools/messages",
     'iznik/views/infinite',
     'iznik/views/group/select'
-], function($, _, Backbone, Iznik) {
+], function($, _, Backbone, Iznik, IznikYahooUsers) {
     Iznik.Views.ModTools.Pages.SpamMessages = Iznik.Views.Infinite.extend({
         modtools: true,
 

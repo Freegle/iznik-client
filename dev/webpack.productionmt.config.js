@@ -10,7 +10,7 @@ const ROOT = join(__dirname, '..');
 
 module.exports = new Config().extend('dev/webpack.base.config.js').merge({
   devtool: 'source-map',
-  entry: [join(ROOT, 'client/app.js')],
+  entry: [join(ROOT, 'client/appmt.js')],
   module: {
     rules: [
       {
