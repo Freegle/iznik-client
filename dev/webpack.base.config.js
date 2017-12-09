@@ -69,7 +69,7 @@ exports['default'] = new Config().merge({
   plugins: [
     new webpack.DefinePlugin({
       BASE_URL: JSON.stringify(BASE_URL),
-      CHAT_HOST: JSON.stringify(BASE_URL),
+      CHAT_HOST: JSON.stringify('https://direct.ilovefreegle.org'), // Long polls interact badly with per-host connection limits so send to here instead.
       EVENT_HOST: JSON.stringify(BASE_URL),
       API: JSON.stringify('/api/'),
       USER_SITE: JSON.stringify(DOMAIN),
