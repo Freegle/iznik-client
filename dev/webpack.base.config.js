@@ -71,7 +71,7 @@ exports['default'] = new Config().merge({
       BASE_URL: JSON.stringify(BASE_URL),
       CHAT_HOST: JSON.stringify(BASE_URL),
       EVENT_HOST: JSON.stringify(BASE_URL),
-      API: JSON.stringify(BASE_URL + '/api/'),
+      API: JSON.stringify('/api/'),
       USER_SITE: JSON.stringify(DOMAIN),
       YAHOOAPI: JSON.stringify('https://groups.yahoo.com/api/v1/'),
       YAHOOAPIv2: JSON.stringify('https://groups.yahoo.com/api/v2/')
