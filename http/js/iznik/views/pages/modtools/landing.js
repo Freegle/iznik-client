@@ -15,6 +15,8 @@ define([
             selected: null,
 
             updateGraphs: function() {
+                var self = this;
+
                 var data = {};
                 var showYahoo = true;
 

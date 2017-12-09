@@ -77,13 +77,13 @@ const proxy = createProxyServer({
 
 app.use((req, res, next) => {
   proxy.web(req, res, {
-    target: 'https://dev.ilovefreegle.org'
+    target: 'https://dev.modtools.org'
   });
 });
 
 app.listen(port, () => {
   const star = yellow(emoji('star2'));
-  const url = `http://localhost:${port}`;
+  const url = `http://localhost:${port}/modtools`;
   const printMessage = () =>
     console.log(`  ${star} Go and open ${green(url)} now! ${star}\n`);
   if (devMiddleware) {
