@@ -181,11 +181,9 @@ define([
                     waitOpen = self;
                     waitPromise = self.open(self.template);
 
-                    var modtools = parseInt($('meta[name=iznikmodtools]').attr("content"));
-
                     // Loader depends on which site we are.
                     waitPromise.then(function() {
-                        $('#js-modalloader').attr('src', modtools ? '/images/loadermodal.gif' : '/images/userloader.gif');
+                        $('#js-modalloader').attr('src', MODTOOLS ? '/images/loadermodal.gif' : '/images/userloader.gif');
                         $('#js-modalloader').show();
                     });
 
