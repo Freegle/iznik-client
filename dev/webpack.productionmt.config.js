@@ -41,17 +41,18 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
     new ExtractTextPlugin({
       filename: 'css/[name].[contenthash].css'
     }),
-    new FaviconsPlugin('images/user_logo.png'),
+    new FaviconsPlugin('images/modtools_logo.png'),
     new webpack.DefinePlugin({
       FACEBOOK_APPID: JSON.stringify('134980666550322'),
       FACEBOOK_GRAFFITI_APPID: JSON.stringify('115376591981611'),
       GOOGLE_CLIENT_ID: JSON.stringify(
         '423761283916-1rpa8120tpudgv4nf44cpmlf8slqbf4f.apps.googleusercontent.com'
       ),
-      SITE_NAME: JSON.stringify('Freegle'),
+      SITE_NAME: JSON.stringify('ModTools'),
       SITE_DESCRIPTION: JSON.stringify(
-        "Give and get stuff for free in your local community.  Don't just recycle - reuse, freecycle and freegle!"
-      )
+        "Moderating Tools for Freegle and Yahoo Groups"
+      ),
+      MODTOOLS: true
     }),
     new HtmlWebpackPlugin({
       hash: true,

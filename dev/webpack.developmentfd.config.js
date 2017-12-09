@@ -54,7 +54,8 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
       SITE_NAME: JSON.stringify('Freegle Dev'),
       SITE_DESCRIPTION: JSON.stringify(
         "Give and get stuff for free in your local community.  Don't just recycle - reuse, freecycle and freegle!"
-      )
+      ),
+      MODTOOLS: false
     }),
     new HtmlWebpackPlugin({
       hash: true,

@@ -41,7 +41,7 @@ if (USE_DIST) {
   // We want to serve up the latest webpack files and do all the cool stuff
   // watch for changes, do hot module replacement, etc...
 
-  const webpackConfig = require('./webpack.development.config');
+  const webpackConfig = require('./webpack.developmentfd.config');
   const compiler = webpack(webpackConfig);
 
   devMiddleware = webpackDevMiddleware(compiler, {
