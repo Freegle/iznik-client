@@ -1,6 +1,8 @@
-# iznik
+# iznik-client
 
-Iznik is a platform for online reuse of unwanted items.  The development has been funded by Freegle for use in the UK, 
+Iznik is a platform for online reuse of unwanted items.  This is the client half.  
+
+The development has been funded by Freegle for use in the UK, 
 but it is an open source platform which can be used or adapted by others.
 
 This codebase supports two sites - the user site Freegle Direct (aka FD), and the moderator site ModTools (aka MT).  If you're not sure, you're probably interested in MT. 
@@ -26,11 +28,11 @@ npm install
 
 Then start the dev server.  If you are developing the user website (Freegle Direct aka FD) then run
 ```
-npm run devfd 
+npm run dev:fd 
 ```
 Or for the ModTools site aka MT: 
 ```
-npm run devmt 
+npm run dev:mt 
 ```
 
 This will serve up the site at [localhost:3000](http://localhost:3000) for FD, or [localhost:3000/modtools](http://localhost:3000/modtools) for MT. API requests are proxied to [dev.ilovefreegle.org](https://dev.ilovefreegle.org) so you can use your account there, but social login won't work  - only an email/password.
@@ -42,11 +44,11 @@ It will watch for changes and do hot module reloading.
 When you are ready to build a production version run:
 
 ```
-npm run buildfd
+npm run build:fd
 ```
 Or
 ```
-npm run buildmt
+npm run build:mt
 ```
 
 The files end up in `dist/`. When accessed it will connect to [www.ilovefreegle.org](https://www.ilovefreegle.org).
@@ -66,11 +68,11 @@ npm run build:localmt
 This will be exactly like the production build, but connect to [localhost:3000](http://localhost:3000) or [localhost:3000/modtools](http://localhost:3000/modtools). Therefore you must run this local server, which you can do with:
 
 ```
-npm run servefd
+npm run serve:fd
 ```
 Or
 ```
-npm run servemt
+npm run serve:mt
 ```
 
 This will serve up the built files from `dist/` and proxy to the backend.

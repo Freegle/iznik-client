@@ -59,7 +59,7 @@ define([
             // Make sure we have google analytics for Backbone routes.
             try {
                 var ua = require('universal-analytics');
-                var visitor = ua('UA-10627716-2');
+                var visitor = ua('UA-10627716-2', {https: true});
                 visitor.pageview(url).send();
 
                 var timestamp = (new Date()).getTime();
