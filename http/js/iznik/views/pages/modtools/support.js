@@ -13,7 +13,6 @@ define([
     'iznik/views/pages/modtools/replay',
     'iznik/models/user/alert',
     'iznik/views/user/user',
-    'tinymce',
     'typeahead'
 ], function($, _, Backbone, Iznik, moment, saveAs, Backgrid) {
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({

@@ -9,7 +9,6 @@ define([
     'backform',
     'fileinput',
     'maplabel',
-    'tinymce',
     "iznik/modtools",
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages',

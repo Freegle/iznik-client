@@ -59,9 +59,7 @@ const globalFunctions = [
   'setTitleCounts',
   'ellipsical',
   'formatDuration',
-  'getBoundsZoomLevel',
-  'tinymce',
-  'tinyMCE'
+  'getBoundsZoomLevel'
 ];
 
 const windowFunctions = [
@@ -90,8 +88,6 @@ const windowFunctions = [
 ];
 
 exports.aliases = {
-  // Is included in the script head for now.
-  'tinymce': 'empty-module',
   // is referenced, but hasn't been written yet
   'iznik/views/pages/modtools/chat_report': 'empty-module',
   ...convertPathsToAliases(requireJs.paths)
