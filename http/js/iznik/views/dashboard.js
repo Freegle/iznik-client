@@ -94,10 +94,8 @@ define([
                 });
             }
 
-            google.load('visualization', '1.0', {
-                'packages':['corechart', 'annotationchart'],
-                'callback': apiLoaded
-            });
+            google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+            google.charts.setOnLoadCallback(apiLoaded);
         }
     });
 
@@ -146,10 +144,8 @@ define([
                 });
             }
 
-            google.load('visualization', '1.0', {
-                'packages':['corechart', 'annotationchart'],
-                'callback': apiLoaded
-            });
+            google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+            google.charts.setOnLoadCallback(apiLoaded);
         }
     });
 
@@ -185,10 +181,8 @@ define([
                 });
             }
 
-            google.load('visualization', '1.0', {
-                'packages':['corechart', 'annotationchart'],
-                'callback': apiLoaded
-            });
+          google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+          google.charts.setOnLoadCallback(apiLoaded);
         }
     });
 
@@ -247,10 +241,8 @@ define([
                 });
             }
 
-            google.load('visualization', '1.0', {
-                'packages':['corechart', 'annotationchart'],
-                'callback': apiLoaded
-            });
+          google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+          google.charts.setOnLoadCallback(apiLoaded);
         }
     });
 
@@ -286,10 +278,8 @@ define([
                 });
             }
 
-            google.load('visualization', '1.0', {
-                'packages':['corechart', 'annotationchart'],
-                'callback': apiLoaded
-            });
+          google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+          google.charts.setOnLoadCallback(apiLoaded);
         }
     });
 
@@ -325,10 +315,8 @@ define([
                 });
             }
 
-            google.load('visualization', '1.0', {
-                'packages':['corechart', 'annotationchart'],
-                'callback': apiLoaded
-            });
+            google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+            google.charts.setOnLoadCallback(apiLoaded);
         }
     });
 
@@ -364,10 +352,8 @@ define([
                 });
             }
 
-            google.load('visualization', '1.0', {
-                'packages':['corechart', 'annotationchart'],
-                'callback': apiLoaded
-            });
+            google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+            google.charts.setOnLoadCallback(apiLoaded);
         }
     });
 });

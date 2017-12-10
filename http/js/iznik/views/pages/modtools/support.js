@@ -602,12 +602,10 @@ define([
                     self.$('.js-exportgroups').fadeIn('slow');
                 }
 
-                google.load('visualization', '1.0', {
-                    'packages':['corechart', 'annotationchart'],
-                    'callback': apiLoaded
-                });
+                google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+                google.charts.setOnLoadCallback(apiLoaded);
 
-                self.wait.close()
+                self.wait.close();
             });
         },
 
@@ -892,10 +890,8 @@ define([
             // We have to load the chart after the modal is shown, otherwise odd things happen on the second such
             // modal we open.
             $('body').one('shown.bs.modal', '#alertstats', function(){
-                google.load('visualization', '1.0', {
-                    'packages':['corechart', 'annotationchart'],
-                    'callback': apiLoaded
-                });
+                google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+                google.charts.setOnLoadCallback(apiLoaded);
             });
 
             this.open(this.template);
