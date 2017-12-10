@@ -42,12 +42,6 @@ require([
 
     Backbone.emulateJSON = true;
 
-    $.ajaxSetup({
-        xhrFields: {
-            withCredentials: true
-        }
-    });
-
     // We have a busy indicator.
     $(document).ajaxStop(function () {
         $('#spinner').hide();
