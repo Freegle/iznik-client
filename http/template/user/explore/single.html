@@ -18,14 +18,14 @@
     <% if (obj.profile) { %>
     <div class="row visible-xs">
         <div class="col-xs-12">
-            <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded" />
+            <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded js-pageimage" />
         </div>
     </div>
     <% } %>
     <div class="row">
         <% if (obj.profile) { %>
         <div class="hidden-xs col-sm-2">
-            <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded" />
+            <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded js-pageimage" />
         </div>
         <% } %>
         <% if (obj.profile) { %>
@@ -34,7 +34,7 @@
         <div class="col-xs-12 col-sm-8 js-nameetc">
         <% } %>
             <h1>
-                {{namedisplay}}
+                <span class="js-pagetitle">{{namedisplay}}</span>
                 <div class="btn btn-success js-join" style="display: none;">
                     <div class="glyphicon glyphicon-plus" /><span class="topspace">&nbsp;Join</span>
                 </div>
@@ -58,7 +58,7 @@
     <div class="row">
         <div class="col-xs-12">
             <hr />
-            <div class="padleft groupdescription js-description" />
+            <div class="padleft groupdescription js-description js-pagedescription" />
             <br class="clearfix" />
         </div>
     </div>

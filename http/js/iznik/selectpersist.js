@@ -9,7 +9,7 @@
             // Find last value
             try {
                 var val = Storage.get('selectPersist.' + this.id);
-                console.log("Last select", this.id, val);
+                // console.log("Last select", this.id, val);
 
                 if (val) {
                     this.selectpicker('val', val);

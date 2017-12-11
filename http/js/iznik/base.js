@@ -670,6 +670,36 @@ define([
         return Math.min(latZoom, lngZoom, ZOOM_MAX);
     }
 
+    Iznik.setMeta = function(title, description, image) {
+        // We set meta tags for social preview.  You might think that this will have no effect
+        // since we're running on the client, but it will be picked up by the cron prerender
+        // and hence served up to crawlers.
+        //
+        // First remove the old ones.
+        $('meta[itemprop=title]').remove();
+        $('meta[name=description]').remove();
+        $('meta[property="og:title"]').remove();
+        $('meta[property="og:description"]').remove();
+        $('meta[property="og:image"]').remove();
+
+        title = title ? title : SITE_NAME;
+        description = description ? description : SITE_DESCRIPTION;
+        image = image ? image : (USER_SITE + '/images/user_logo.png');
+
+        $('head').append('<meta itemprop="title" />');
+        $('meta[itemprop=title]').attr('content', title);
+        $('head').append('<meta property="og:title" />');
+        $('meta[itemprop="og:title"]').attr('content, title');
+
+        $('head').append('<meta name="description" />');
+        $('meta[name=description]').attr('content', description);
+        $('head').append('<meta property="og:description" />');
+        $('meta[property="og:description"]').attr('content', description);
+
+        $('head').append('<meta property="og:image" />');
+        $('meta[property="og:image"]').attr('content', image);
+    }
+
     function cacheKey(url, data) {
         // Get a unique key for this URL and data.  The data is important because it is passed to the AJAX call and
         // can therefore return different data.

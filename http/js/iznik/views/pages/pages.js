@@ -59,40 +59,33 @@ define([
             }
         },
 
-        setTitle: function(title) {
-            // This sets new info in the tags used by search engines.
-            window.document.title = title;
-            $('title').remove();
-            $('head').append('<title>' + title + '</title>');
-            $('meta[itemprop=title]').remove();
-            $('head').append('<meta itemprop="title" content="' + title + '">');
-            $("meta[property='og:title']").remove();
-            $('head').append('<meta property="og:title" content="' + title + '">');
-        },
-
-        setDescription: function(desc) {
-            $('meta[name=description]').remove();
-            $('head').append( '<meta name="description" content="' + desc + '">');
-            $('meta[itemprop=description]').remove();
-            $('head').append( '<meta itemprop="description" content="' + desc + '">');
-            $("meta[property='og:description']").remove();
-            $('head').append( '<meta property="og:description" content="' + desc + '">');
-        },
-
         getTitle: function() {
             var self = this;
 
+            var title = null;
+            var descr = null;
+            var image = null;
+
             $('.js-pagetitle').each(function() {
                 if ($(this).length > 0) {
-                    self.setTitle($(this).get(0).textContent);
+                    title = $(this).get(0).textContent;
                 }
             });
 
             $('.js-pagedescription').each(function() {
                 if ($(this).length > 0 && $(this).css('display') != 'none') {
-                    self.setDescription($(this).get(0).textContent);
+                    descr = $(this).get(0).textContent;
                 }
             });
+
+            $('.js-pageimage').each(function() {
+                if ($(this).length > 0 && $(this).css('display') != 'none') {
+                    image = $(this).attr('src');
+                }
+            });
+
+            console.log("Set meta", title, descr, image);
+            Iznik.setMeta(title, descr, image);
         },
 
         signin: function () {
@@ -206,10 +199,6 @@ define([
             // Set the base page layout.
             var p = new Promise(function(resolve, reject) {
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
-                    if (self.title && self.title.length > 0) {
-                        self.setTitle(self.title);
-                    }
-
                     $('#bodyContent').html(window.template(tpl));
                     $('.js-pageContent').html(self.$el);
 
