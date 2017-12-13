@@ -84,7 +84,6 @@ define([
                 }
             });
 
-            console.log("Set meta", title, descr, image);
             Iznik.setMeta(title, descr, image);
         },
 

@@ -820,7 +820,7 @@ define([
                         {
                             name: 'subjreg',
                             label: 'Regular expression for colour-coding',
-                            disabled: self.locked,
+                            disabled: _.bind(self.locked, self),
                             control: 'input',
                             helpMessage: 'Regular expressions can be difficult; test changes at http://www.phpliveregex.com'
                         },
@@ -828,7 +828,7 @@ define([
                             name: 'subjlen',
                             label: 'Subject length warning',
                             control: 'input',
-                            disabled: self.locked,
+                            disabled: _.bind(self.locked, self),
                             type: 'number'
                         },
                         {
@@ -910,7 +910,7 @@ define([
                                         {
                                             name: 'cc' + tag + 'to',
                                             label: 'BCC to',
-                                            disabled: self.locked,
+                                            disabled: _.bind(_.bind(self.locked, self), self),
                                             control: 'select',
                                             options: [
                                                 {label: 'Nobody', value: 'Nobody'},
@@ -921,14 +921,14 @@ define([
                                         {
                                             name: 'cc' + tag + 'addr',
                                             label: 'Specific address',
-                                            disabled: self.locked,
+                                            disabled: _.bind(_.bind(self.locked, self), self),
                                             placeholder: 'Please enter the specific email address',
                                             type: 'email',
                                             control: 'input'
                                         },
                                         {
                                             control: 'button',
-                                            disabled: self.locked,
+                                            disabled: _.bind(self.locked, self),
                                             label: 'Save changes',
                                             type: 'submit',
                                             extraClasses: ['btn-success topspace botspace']
