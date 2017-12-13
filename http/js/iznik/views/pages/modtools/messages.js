@@ -4,7 +4,6 @@ define([
     'backbone',
     'moment',
     'iznik/base',
-    'jquery-ui',
     "iznik/modtools",
     'jquery-show-first',
     'iznik/views/pages/pages',

@@ -6,6 +6,8 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const FaviconsPlugin = require('favicons-webpack-plugin');
 const AssetsPlugin = require('assets-webpack-plugin');
 const ProgressBarPlugin = require('progress-bar-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
 
 const shims = require('./shims');
 
@@ -67,27 +69,39 @@ exports['default'] = new Config().merge({
     ]
   },
   plugins: [
-    new webpack.DefinePlugin({
-      BASE_URL: JSON.stringify(BASE_URL),
-      CHAT_HOST: JSON.stringify('https://users.ilovefreegle.org'), // Long polls interact badly with per-host connection limits so send to here instead.
-      EVENT_HOST: JSON.stringify(BASE_URL),
-      API: JSON.stringify('/api/'),
-      USER_SITE: JSON.stringify(DOMAIN),
-      YAHOOAPI: JSON.stringify('https://groups.yahoo.com/api/v1/'),
-      YAHOOAPIv2: JSON.stringify('https://groups.yahoo.com/api/v2/')
-    }),
+      new webpack.DefinePlugin({
+          BASE_URL: JSON.stringify(BASE_URL),
+          CHAT_HOST: JSON.stringify('https://users.ilovefreegle.org'), // Long polls interact badly with per-host connection limits so send to here instead.
+          EVENT_HOST: JSON.stringify(BASE_URL),
+          API: JSON.stringify('/api/'),
+          USER_SITE: JSON.stringify(DOMAIN),
+          YAHOOAPI: JSON.stringify('https://groups.yahoo.com/api/v1/'),
+          YAHOOAPIv2: JSON.stringify('https://groups.yahoo.com/api/v2/')
+      }),
 
-    new webpack.ProvidePlugin(shims.provides),
+      new webpack.ProvidePlugin(shims.provides),
 
-    // https://github.com/moment/moment/issues/2979#issuecomment-287675568
-    new webpack.IgnorePlugin(/\.\/locale$/),
+      // https://github.com/moment/moment/issues/2979#issuecomment-287675568
+      new webpack.IgnorePlugin(/\.\/locale$/),
 
-    new CopyWebpackPlugin([
-      { from: 'http/template', to: 'template' },
-      { from: 'http/images', to: 'images' }
-    ]),
-    new AssetsPlugin(),
-    new ProgressBarPlugin({})
+      new CopyWebpackPlugin([
+          {from: 'http/images', to: 'images'}
+      ]),
+
+      new AssetsPlugin(),
+
+      new ProgressBarPlugin({}),
+
+      new BundleAnalyzerPlugin({
+          analyzerMode: 'static',
+          generateStatsFile: true,
+          openAnalyzer: false
+      }),
+
+      new webpack.optimize.CommonsChunkPlugin({
+          children: true,
+          minChunks: 6
+      })
   ],
   node: {
     fs: 'empty'

@@ -8,8 +8,6 @@ define([
     'backbone',
     'underscore',
     'moment',
-    'react',
-    'react-dom',
     'backbone.collectionView',
     'waypoints',
     'dateshim',
@@ -23,7 +21,7 @@ define([
     'iznik/events',
     'iznik/timeago',
     'iznik/majax'
-], function ($, Backbone, _, moment, React, ReactDOM) {
+], function ($, Backbone, _, moment) {
     // Promise polyfill for older browsers or IE11 which has less excuse.
     if (typeof window.Promise !== 'function') {
         require('es6-promise').polyfill();
@@ -928,21 +926,11 @@ define([
             ourRender: function() {
                 var html;
 
-                var React = require('react');
-                var ReactDOM  = require('react-dom');
-
                 if (this.model) {
                     html = window.template(this.template)(this.model.toJSON2());
                 } else {
                     html = window.template(this.template)();
                 }
-
-                // console.log("React create", this.tagName, html, this.el);
-                // ReactDOM.render(React.createElement('div', {
-                //     dangerouslySetInnerHTML: {
-                //         __html: html
-                //     }
-                // }), this.el);
 
                 this.$el.html(html);
 
