@@ -357,7 +357,8 @@ define([
                 self.model.close().then(function() {
                     // Reload.  Bit clunky but it'll do.
                     Iznik.Session.chats.fetch().then(function() {
-                        window.location.reload();
+                        // CC window.location.reload();
+                        Router.navigate("/chats", true);
                     });
                 });
             });
@@ -801,7 +802,7 @@ define([
                 }
             });
 
-            self.$('.js-photo').on('fileimagesresized', function (event) {
+            self.$('.js-photopicker').on('fileimagesresized', function (event) {
                 // Upload as soon as we have it.  Add an entry for the progress bar.
                 $('.file-preview, .kv-upload-progress').hide();
                 var prelast = self.messages.last();

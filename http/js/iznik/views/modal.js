@@ -183,7 +183,7 @@ define([
 
                     // Loader depends on which site we are.
                     waitPromise.then(function() {
-                        $('#js-modalloader').attr('src', MODTOOLS ? '/images/loadermodal.gif' : '/images/userloader.gif');
+                        $('#js-modalloader').attr('src', iznikroot + (MODTOOLS ? 'images/loadermodal.gif' : 'images/userloader.gif'));    // CC
                         $('#js-modalloader').show();
                     });
 

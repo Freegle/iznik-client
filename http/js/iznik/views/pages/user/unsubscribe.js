@@ -40,7 +40,7 @@ define([
                         email: self.email,
                         groupid: groupid
                     }, complete: function() {
-                        window.location.reload();
+                        Router.mobileReload();  // CC
                     }
                 })
             });

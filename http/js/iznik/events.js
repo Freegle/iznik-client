@@ -20,7 +20,7 @@ define([
             idCount: 0,
             running: true,
 
-            trackEvent: function(target, event, posX, posY, data, timestamp) {
+            trackEvent: function (target, event, posX, posY, data, timestamp) {
                 if (!timestamp) {
                     timestamp = (new Date()).getTime();
                 }
@@ -40,7 +40,7 @@ define([
                 eventQueue.push(data);
             },
 
-            flushEventQueue: function() {
+            flushEventQueue: function () {
                 var self = this;
 
                 flushTimerRunning = false;
@@ -85,7 +85,7 @@ define([
                                     sessionCookie = sess.session;
                                     // console.log("Got session from local", sessionCookie);
                                 }
-                            } catch (e) {console.log(e.message)};
+                            } catch (e) { console.log(e.message) };
                         }
 
                         var me = Iznik.Session.get('me');
@@ -94,13 +94,13 @@ define([
                         // console.log("Flush events", currQueue);
 
                         $.ajax({
-                            url: 'https://' + EVENT_HOST + API + 'event',
+                            url: 'https://' + eventhost + 'event',    // CC
                             type: 'POST',
                             data: {
                                 api_key: sessionCookie,
                                 userid: myid,
                                 events: currQueue
-                            }, success: function(ret) {
+                            }, success: function (ret) {
                                 if (ret.ret === 0) {
                                     // Save the cookie
                                     sessionCookie = ret.session;
@@ -119,11 +119,11 @@ define([
                 }
             },
 
-            checkScroll: function() {
+            checkScroll: function () {
                 var self = this;
 
                 // Record scroll position in scrollable divs, e.g. chat windows.
-                $('.overscrolly').each(function(i) {
+                $('.overscrolly').each(function (i) {
                     var scrollTop = this.scrollTop;
                     if (this.scrollHeight > this.clientHeight && this.scrollTop > 0) {
                         var path = self.getPath($(this));
@@ -153,7 +153,7 @@ define([
                 });
 
                 // Now go through and set them in the copy.
-                clone.find('input, select, textarea').each(function() {
+                clone.find('input, select, textarea').each(function () {
                     var val = vals.shift();
                     var $this = $(this);
 
@@ -166,7 +166,7 @@ define([
                             }
                         } else {
                             if ($this.is("select")) {
-                                $this.find("option").each(function() {
+                                $this.find("option").each(function () {
                                     if ($(this).val() == val) {
                                         $(this).attr("selected", "selected");
                                     }
@@ -366,5 +366,5 @@ define([
         });
     })();
 
-    return(monitor);
+    return (monitor);
 });

@@ -437,6 +437,20 @@ h1,h2,h3,h4 {
     );
 }
 
+.navbar-title{ /* // CC */
+    text-align:center;
+    color:#1d6607;
+    font-size:40px;
+    position: absolute;
+    height: 55px;
+    left: 75px;
+}
+@media (min-width: 768px) {
+    .navbar-title {
+        left: 430px;
+    }
+}
+
 table.table-fixedheader {
     width: 100%;
 }
@@ -523,3 +537,4 @@ table.table-fixedheader>tbody>tr>td {
         display:block !important;
     }
 }
+

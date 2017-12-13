@@ -419,7 +419,8 @@ define([
 
         shareFB: function() {
             var self = this;
-            ABTestAction('FacebookShare', 'Favour');
+            alert("SUPPORTUS shareFB");
+            /*ABTestAction('FacebookShare', 'Favour');
 
             var params = {
                 method: 'share',
@@ -428,7 +429,7 @@ define([
 
             FB.ui(params, function (response) {
                 self.close();
-            });
+            });*/
         },
 
         render: function() {
@@ -479,10 +480,14 @@ define([
         render: function() {
             var self = this;
 
+            var now = (new Date()).getTime();
+            if (now < 1509408000000) {  // Tuesday, 31 October 2017 
+
             ABTestShown('ebay', 'Vote');
 
             if (!Storage.get('ebaynotagain')) {
                 Iznik.Views.Modal.prototype.render.call(this);
+            }
             }
         }
     });

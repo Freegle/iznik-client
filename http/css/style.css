@@ -27,8 +27,10 @@ body {
     max-height: 100px;
 }
 
-.navbar-header {
-    width: 100% !important;
+@media only screen and (min-width : 768px) { /* CC */
+    .navbar-header {
+        width: 100% !important;
+    }
 }
 
 .navbar img {
@@ -456,6 +458,13 @@ nav .nav-tabs>li {
     padding-bottom: 10px !important;
 }
 
+.padmdbotplus {
+    padding-top: 5px !important;
+    padding-bottom: 40px !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+}
+
 .padtopbotmd {
     padding-top: 7px !important;
     padding-bottom: 7px !important;
@@ -677,17 +686,17 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 .fadein {
     -webkit-animation: fadein 2s linear;
     -moz-animation: fadein 2s linear;
-    -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+    /* CC breaks loing news threads -webkit-animation-fill-mode:forwards;   this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)
     -moz-animation-fill-mode:forwards;
-    animation-fill-mode:forwards;
+    animation-fill-mode:forwards;*/
 }
 
 .fadepartout {
     -webkit-animation: fadepartout 10s linear;
     -moz-animation: fadepartout 10s linear;
-    -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+    /* CC -webkit-animation-fill-mode:forwards;  this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)
     -moz-animation-fill-mode:forwards;
-    animation-fill-mode:forwards;
+    animation-fill-mode:forwards;*/
 }
 
 @-webkit-keyframes fadepartout {
@@ -908,6 +917,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding-bottom: 5px;
 }
 
+#page-content-wrapper {
+    min-height: 90vh;
+}
+
 .white, .white a {
     color: #fff;
 }
@@ -1105,11 +1118,23 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     justify-content: space-between;
 }
 
+.chat-page-pane {
+    /*height: calc(100vh - 65px);*/
+}
+
 .chat-page-content {
+    /*height: calc(100vh - 80px - 60px);*/
     overflow-x: hidden;
     overflow-y: scroll;
     background-color: #f3f0da;
 }
+
+/*.chat-page-footer {*/
+    /*position: relative;*/
+    /*height: 20vh;*/
+    /*top: 100vh;*/
+    /*transform: translateY(-100vh);*/
+/*}*/
 
 .chat-page-input {
     bottom: 0;
@@ -1861,4 +1886,53 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 
 /* Large Devices, Wide Screens */
 @media only screen and (min-width : 1200px) {
+}
+
+/* // CC */
+
+.no-before{
+    vertical-align:top;
+}
+
+.no-before:before{
+    content:none;
+}
+
+#refreshicon{
+    margin: 11px 5px 5px 0;
+    display: none;
+}
+#refreshicon img{
+    height: 30px;
+}
+
+#nonetwork{
+}
+#nonetwork span {
+    color:red;
+}
+
+
+.js-loggedoutonly{
+    height: 41px;
+    margin-top: 7px;
+}
+
+.list-inline>li {
+  padding-right: 1px;
+  padding-left: 1px;
+}
+
+@keyframes fadein {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1
+    }
+}
+
+.mobile-version{
+    text-align:right;
+    font-style:italic;
 }

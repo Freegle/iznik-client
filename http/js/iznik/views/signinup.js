@@ -72,7 +72,7 @@ define([
                     if (ret.ret == 0) {
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
-                        window.location.reload();
+                        Router.mobileReload();  // CC
                     } else if (parseInt(ret.ret) == 2) {
                         self.$('.js-unknown').fadeIn('slow');
                     } else {
@@ -105,7 +105,7 @@ define([
                     if (parseInt(ret.ret) == 0) {
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
-                        window.location.reload();
+                        Router.mobileReload();  // CC
                     } else {
                         self.$('.js-signuperror .js-errmsg').html(ret.status);
                         self.$('.js-signuperror').fadeIn('slow');
@@ -122,37 +122,17 @@ define([
         fblogin: function () {
             var self = this;
 
-            if (navigator.userAgent.match('CriOS')) {
-                // Chrome on IOS doesn't work with FB.login; see http://stackoverflow.com/questions/16843116/facebook-oauth-unsupported-in-chrome-on-ios
-                // Log in via a redirect.
-                document.location = 'https://www.facebook.com/dialog/oauth?client_id=' + FACEBOOK_APPID + '&redirect_uri=' + encodeURIComponent(document.location.href + '?fblogin=1') + '&scope=email,public_profile';
-            } else {
-                // Now, load the FB API.
-                FB.login(function (response) {
-                    if (response.authResponse) {
-                        // We're logged in on the client -
-                        Iznik.Session.facebookLogin();
-
-                        Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function () {
-                            window.location.reload();
-                        });
-                    }
-                }, {
-                    scope: 'email'
-                });
-            }
+            var FBLoad = new Iznik.Views.FBLoad();
+            FBLoad.signin();
         },
         
         yahoologin: function () {
-            this.listenToOnce(Iznik.Session, 'yahoologincomplete', function (ret) {
-                if (ret.hasOwnProperty('redirect')) {
-                    window.location = ret.redirect;
-                } else if (ret.ret == 0) {
-                    window.location.reload();
-                } else {
-                    window.location.reload();
-                }
-            });
+            if (navigator.connection.type === Connection.NONE) {  // CC
+              console.log("No connection - please try again later.");
+              $('.js-signin-msg').text("No internet connection - please try again later");
+              $('.js-signin-msg').show();
+              return;
+            }
 
             Iznik.Session.yahooLogin();
         },
@@ -203,17 +183,9 @@ define([
                 }
 
                 $('.js-privacy').hide();
+                $('.js-signin-msg').hide(); // CC
                 
-                // We have to load the FB API now because otherwise when we click on the login button, we can't load
-                // it synchronously, and therefore the login popup would get blocked by the browser.
-                self.listenToOnce(FBLoad(), 'fbloaded', function () {
-                    if (FBLoad().isDisabled()) {
-                        self.$('.js-loginFB').addClass('signindisabled');
-                    } else {
-                        self.$('.js-loginFB').removeClass('signindisabled');
-                    }
-                });
-                FBLoad().render();
+                self.$('.js-loginFB').removeClass('signindisabled');  // CC
 
                 // Load the Google API
                 var GoogleLoad = new Iznik.Views.GoogleLoad();

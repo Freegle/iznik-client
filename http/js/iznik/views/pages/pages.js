@@ -35,12 +35,12 @@ define([
                     Storage.remove('session');
                 } catch (e) {
                 }
-
                 // Force reload of window to clear any data.
-                window.location = window.location.protocol + '//' + window.location.host;
+                Router.mobileReload('/'); // CC
             }
-        })
-    }
+        });
+
+    };
 
     Iznik.Views.Page = Iznik.View.extend({
         modtools: false,
@@ -53,7 +53,7 @@ define([
             if (window.location.pathname == homeurl) {
                 // Reload - this is because clicking on this when we're already on it can mean that something's 
                 // broken and they're confused.
-                window.location.reload();
+                Router.mobileReload('/'); // CC
             } else {
                 Router.navigate(homeurl, true);
             }
@@ -201,9 +201,11 @@ define([
                     $('#bodyContent').html(window.template(tpl));
                     $('.js-pageContent').html(self.$el);
 
+                    if (!useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
+                    showNetworkStatus(); // CC
                     if (self.appButtons) {
                         // Show app buttons.
-                        $('#js-appbuttons').show();
+                        // CC $('#js-appbuttons').show();
                     }
 
                     $('#botleft').empty();
@@ -259,16 +261,17 @@ define([
                         $('#botleft').append(v.$el);
 
                         // Highlight current page if any.
+                        var mobilePath =  mobile_pathname(); // CC
                         $('#navbar-collapse a').each(function () {
                             var href = $(this).attr('href');
                             $(this).closest('li').removeClass('active');
 
-                            if (href == window.location.pathname) {
+                            if (href == mobilePath) {   // CC
                                 $(this).closest('li').addClass('active');
 
                                 // Force reload on click, which doesn't happen by default.
                                 $(this).click(function () {
-                                    Backbone.history.loadUrl(href);
+                                    Router.mobileReload();  // CC
                                 });
                             }
                         });
@@ -399,6 +402,11 @@ define([
                                     $('body').addClass('Site');
                                     $('body').append(v.$el);
                                 });
+                            }
+
+                            // CC show debug sunglasses/specs icon
+                            if (showDebugConsole) {
+                                $('#mobile-debug').show();
                             }
 
                             // Show anything which should or shouldn't be visible based on login status.
@@ -534,19 +542,21 @@ define([
                 );
 
                 // Highlight current page if any.
+                var mobilePath =  mobile_pathname(); // CC
                 self.$('a').each(function () {
                     var href = $(this).attr('href');
                     $(this).closest('li').removeClass('active');
 
-                    if (href == window.location.pathname) {
+                    if (href == mobilePath) {   // CC
                         $(this).closest('li').addClass('active');
 
                         // Force reload on click, which doesn't happen by default.
                         $(this).click(function () {
-                            Backbone.history.loadUrl(href);
+                            Router.mobileReload();  // CC
                         });
                     }
                 });
+                $('#js-mobilelog').html(alllog);
 
                 if (Iznik.Session.isAdminOrSupport()) {
                     self.$('.js-adminsupportonly').removeClass('hidden');

@@ -337,7 +337,7 @@ define([
                         'Message',
                         'CommunityEvent',
                         'VolunteerOpportunity',
-                        // 'CentralPublicity',
+                        // CC Remove as IFRAMEs don't work in apps 'CentralPublicity',
                         'Alert',
                         'Story'
                     ]

@@ -14,7 +14,15 @@ define([
         template: "user_settings_main",
         
         getLocation: function() {
-            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
+            var self = this;
+            showHeaderWait();
+            self.$('.js-getloc').tooltip('destroy');
+            self.$('.js-getloc').tooltip({
+                'placement': 'bottom',
+                'title': "Finding location..."
+            });
+            self.$('.js-getloc').tooltip('show');
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), _.bind(this.errorLocation, this), { timeout: 10000 });
         },
 
         events: {
@@ -291,7 +299,7 @@ define([
             var self = this;
 
             var settings = Iznik.Session.get('me').settings;
-            console.log("Settings", settings);
+            // CC console.log("Settings", settings);
 
             var p = Iznik.Views.User.Pages.WhereAmI.prototype.render.call(this, {
                 model: new Iznik.Model(settings)

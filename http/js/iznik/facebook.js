@@ -1,84 +1,130 @@
+// CC Web FB API cannot be in mobile app so (a) signin done (altered) openfb and (b) share to FB disabled for now
 define([
     'jquery',
     'underscore',
     'backbone',
-    'iznik/base'
-], function($, _, Backbone, Iznik) {
-    Iznik.Views.FBLoad = Iznik.View.extend({
-        FBLoaded: false,
-        FBLoading: false,
-        FBDisabled: false,
+    'iznik/base',
+    'iznik/openfb'
+], function ($, _, Backbone, Iznik) {
+  var facebookAppId = $('meta[name=facebook-app-id]').attr("content");
 
-        isDisabled: function () {
-            return this.FBDisabled;
-        },
+  var tryingFacebookLogin = false;
 
-        render: function (appid) {
-            appid = appid ? appid : FACEBOOK_APPID;
-            var self = this;
-            // console.log("Render FBLoad");
+  Iznik.Views.FBLoad = Iznik.View.extend({
+    FBLoaded: false,
+    FBLoading: false,
+    FBDisabled: false,
 
-            if (self.FBLoaded) {
-                // console.log("Already loaded");
-                this.trigger('fbloaded');
-            } else if ((!self.FBLoaded) && (!self.FBLoading)) {
-                // console.log("Load FB API");
-                self.FBLoading = true;
+    isDisabled: function () {
+      return this.FBDisabled;
+    },
+    render: function () {
+      var self = this;
+      // console.log("Render FBLoad");
 
-                // The load might fail if we have a blocker.  The only way to deal with this is via a timeout.
-                self.timeout = window.setTimeout(function () {
-                    console.error("Facebook API load failed - blocked?");
-                    self.FBLoading = false;
-                    self.FBLoaded = true;
-                    self.FBDisabled = true;
-                    $('.js-privacy').show();
-                    self.trigger('fbloaded');
-                }, 30000);
+      /*if (self.FBLoaded) {
+        // console.log("Already loaded");
+        this.trigger('fbloaded');
+      } else if ((!self.FBLoaded) && (!self.FBLoading)) {
+        // console.log("Load FB API");
+        self.FBLoading = true;
 
-                // Load the SDK asynchronously
-                (function (d, s, id) {
-                    var js, fjs = d.getElementsByTagName(s)[0];
-                    if (d.getElementById(id)) return;
-                    js = d.createElement(s);
-                    js.id = id;
-                    js.src = "//connect.facebook.net/en_US/sdk.js";
-                    fjs.parentNode.insertBefore(js, fjs);
-                }(document, 'script', 'facebook-jssdk'));
+        // The load might fail if we have a blocker.  The only way to deal with this is via a timeout.
+        self.timeout = window.setTimeout(function () {
+            console.error("Facebook API load failed - blocked?");
+            self.FBLoading = false;
+            self.FBLoaded = true;
+            self.FBDisabled = true;
+            $('.js-privacy').show();
+            self.trigger('fbloaded');
+        }, 30000);
 
-                window.fbAsyncInit = function () {
-                    // console.log("FB asyncInit");
-                    self.FBLoading = false;
-                    self.FBLoaded = true;
-                    clearTimeout(self.timeout);
+        // Load the SDK asynchronously
+        (function (d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s);
+          js.id = id;
+          js.src = "https://connect.facebook.net/en_US/sdk.js";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
 
-                    try {
-                        FB.init({
-                            appId: appid,
-                            cookie: true,  // enable cookies to allow the server to access the session
-                            version: 'v2.10'
-                        });
+        window.fbAsyncInit = function () {
+          // console.log("FB asyncInit");
+          self.FBLoading = false;
+          self.FBLoaded = true;
+          clearTimeout(self.timeout);
 
-                        self.trigger('fbloaded');
-                        // console.log("FB Loaded");
-                    } catch (e) {
-                        console.log("Facebook init failed");
-                        console.log(e);
-                    }
-                }
-            } else {
-                // console.log("FB still loading...");
-            }
+          try {
+            FB.init({
+              appId: facebookAppId,
+              cookie: true,  // enable cookies to allow the server to access the session
+              version: 'v2.2' // use version 2.2
+            });
+
+            self.trigger('fbloaded');
+            // console.log("FB Loaded");
+          } catch (e) {
+            console.log("Facebook init failed");
+            console.log(e);
+          }
         }
-    });
+      } else {
+        // console.log("FB still loading...");
+      }*/
+    },
 
-    // This is a singleton view.
-    var instance;
+    signin: function () {  // CC..
+      var self = this;
+      if (navigator.connection.type === Connection.NONE) {
+        console.log("No connection - please try again later.");
+        $('.js-signin-msg').text("No internet connection - please try again later");
+        $('.js-signin-msg').show();
+        return;
+      }
 
-    return function(options) {
-        if (!instance) {
-            instance = new Iznik.Views.FBLoad(options);
-        }
+      if (tryingFacebookLogin) { return; }
+      tryingFacebookLogin = true;
 
-        return instance;
+      var fbTokenStore = window.sessionStorage; // or could be window.localStorage
+      openFB.init({ appId: facebookAppId, tokenStore: fbTokenStore });
+      console.log("Facebook authenticate window open");
+      var options = { scope: 'email' };
+      openFB.login(self.fb_done, options);
+    },
+
+    ///////////////////////////////////////
+    fb_done: function (response) {
+      tryingFacebookLogin = false;
+
+      if (response.status === 'connected') {
+
+        console.log("API.post session_login fbauthtoken: " + response.authResponse.token);
+
+        // We're logged in on the client -
+        Iznik.Session.facebookLogin(response.authResponse.token);
+
+        Iznik.Session.listenToOnce(Iznik.Session, 'facebookLoggedIn', function () {
+            setTimeout(Router.mobileReload(), 0);
+        });
+
+      } else {
+        console.log(response.error); // Facebook permission not given or failed
+        $('.js-signin-msg').text(response.error);
+        $('.js-signin-msg').show();
+      }
     }
+
+  });
+
+  // This is a singleton view.
+  var instance;
+
+  return function (options) {
+    if (!instance) {
+      instance = new Iznik.Views.FBLoad(options);
+    }
+
+    return instance;
+  }
 });

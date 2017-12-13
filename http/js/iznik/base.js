@@ -817,7 +817,7 @@ define([
                                     var key = cacheKey(url, options.data);
                                     var data = JSON.stringify(self.toJSON());
 
-                                    if (Persist.size == -1 || data.length < Persist.size) {
+                                    // CC   if (Persist.size == -1 || data.length < Persist.size) { // CC
                                         // Don't cache stuff that's too big.
                                         try {
                                             Storage.set(key, data);
@@ -840,14 +840,14 @@ define([
                                                 }
                                             });
                                         }
-                                    } else {
+                                    /* CC } else {
                                         // We can't cache this, as it's too big.  Remove any previously cached data
                                         // which might be below this limit, as otherwise it will persist forever and
                                         // become increasingly misleading.
                                         console.log("Don't cache too long", key, data.length);
                                         Storage.remove(key);
                                         Storage.remove(key + '.time');
-                                    }
+                                    } */
                                 } catch (e) {console.log("Exception", e); console.error(e.message);}
                             }
 

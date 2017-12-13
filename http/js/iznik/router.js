@@ -52,9 +52,9 @@ define([
         pageView: function () {
             var url = Backbone.history.getFragment();
 
-            if (!/^\//.test(url) && url != "") {
-                url = "/" + url;
-            }
+            // CC if (!/^\//.test(url) && url != "") {
+            // CC     url = "/" + url;
+            // CC }
 
             // Make sure we have google analytics for Backbone routes.
             try {
@@ -136,6 +136,7 @@ define([
             "modtools/replay/(:id)": "replay",
             "modtools": "modtools",
             "replay/(:id)": "replay",
+            "mobiledebug": "mobiledebug",
             "find": "userFindWhereAmI",
             "find/whereami": "userFindWhereAmI",
             "find/search/(:search)": "userSearched",
@@ -247,6 +248,10 @@ define([
             });
         },
 
+        mobileReload: function (url) {  // CC url not used - could be used to specify route to use
+            window.location.href = initialURL;  // Could add ?route=Xxx
+        },
+
         userHome: function () {
             var self = this;
 
@@ -254,17 +259,19 @@ define([
                 Router.navigate('/modtools', true);
             } else {
                 function f(loggedIn) {
-                    // console.log("Logged in", loggedIn);
-                    if (loggedIn || _.isUndefined(loggedIn)) {
-                        require(["iznik/views/pages/user/home"], function() {
+                    console.log("Logged in", loggedIn);
+                    if (Iznik.Session.maintenanceMode) {  // CC
+                        console.log("Don't load home or landing as in maintenanceMode");
+                    } else if (loggedIn || _.isUndefined(loggedIn)) {
+                        require(["iznik/views/pages/user/home"], function () {
                             var page = new Iznik.Views.User.Pages.Home();
-                            self.loadRoute({page: page});
+                            self.loadRoute({ page: page });
                         });
                     } else {
-                        require(["iznik/views/pages/user/landing"], function() {
+                        require(["iznik/views/pages/user/landing"], function () {
                             console.log("Load landing");
                             var page = new Iznik.Views.User.Pages.Landing();
-                            self.loadRoute({page: page});
+                            self.loadRoute({ page: page });
                         });
                     }
                 }
@@ -561,8 +568,7 @@ define([
                         }
                         self.listenToOnce(v, 'modalCancelled modalClosed', function () {
                             // Reload to force session refresh.
-                            // TODO lame.
-                            window.location = '/';
+                            Router.mobileReload(); // CC
                         });
 
                         v.render();
@@ -1455,6 +1461,14 @@ define([
             });
         },
 
+        mobiledebug: function () {  // CC 
+            var self = this; 
+               require(["iznik/views/pages/user/mobiledebug"], function () { 
+                   var page = new Iznik.Views.User.Pages.MobileDebug(); 
+                   self.loadRoute({ page: page });
+               });
+        },
+
         alertViewed: function(alertid) {
             var self = this;
 
@@ -1591,9 +1605,9 @@ define([
         userAbout: function() {
             var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.About();
-                self.loadRoute({page: page});
+            require(["iznik/views/pages/user/landing"], function () {
+            	var page = new Iznik.Views.User.Pages.Landing.About();
+            	self.loadRoute({ page: page });
             });
         },
 
@@ -1655,12 +1669,22 @@ define([
             var self = this;
 
             require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.Contact();
+                var mobile_version = $('meta[name=iznik_mobile_version]').attr("content");	// CC
+                var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
                 self.loadRoute({page: page});
             });
         },
 
-        communityEventsPlugin: function(groupid) {
+        userMaintenance: function () {  // CC
+          var self = this;
+
+          require(["iznik/views/pages/user/landing"], function () {
+            var page = new Iznik.Views.User.Pages.Landing.Maintenance();
+            self.loadRoute({ page: page });
+          });
+        },
+
+        communityEventsPlugin: function (groupid) {
             this.userCommunityEvents(groupid, true);
         },
 
@@ -1680,55 +1704,65 @@ define([
         }
     });
 
-    $(document).ready(function() {
-        // We're ready.  Get backbone up and running.
-        var Router = new IznikRouter();
-        window.Storage = null;
+    // Might need: $(document).ready(function() {
+    // We're ready.  Get backbone up and running.
+    var Router = new IznikRouter();
 
-        try {
-            try {
-                // Set up storage.
-                Storage = new Persist.Store("Iznik");
-
-                // Make sure it works
-                Storage.set('enabled', true);
-
-                try {
-                    // The version may have been put in localStorage.
-                    Storage.set('version', localStorage.getItem('version'));
-                } catch (e) {}
-
-                Backbone.history.start({
-                    pushState: true
-                });
-            } catch (e) {
-                // We don't.
-                Router.navigate('/localstorage', true);
-            }
-        } catch (e) {
-            // We've got an uncaught exception.
-            // TODO Log it to the server.
-            window.alert("Top-level exception " + e);
-            console.log("Top-level exception", e);
-            console.trace();
-        }
-
-        // We can flag anchors as not to be handled via Backbone using data-realurl
-        $(document).on('click', 'a:not([data-realurl]):not([data-toggle])', function (evt) {
-            // Only trigger for our own anchors, except selectpicker which relies on #.
-            // console.log("a click", $(this), $(this).parents('#bodyEnvelope').length);
-            if (($(this).parents('#bodyEnvelope').length > 0 || $(this).parents('footer').length > 0) &&
-                $(this).parents('.selectpicker').length == 0) {
-                evt.preventDefault();
-                evt.stopPropagation();
-                var href = $(this).attr('href');
-                var ret = Router.navigate(href, {trigger: true});
-
-                if (ret === undefined && $(this).hasClass('allow-reload')) {
-                    Backbone.history.loadUrl(href);
-                }
-            }
+    try {
+    	  var root = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
+    	  root = decodeURI(root.replace(/%25/g, '%2525'));	// CC
+    	  console.log("Backbone root", root);	// CC
+    	  Backbone.history.start({
+    	      root: root,	// CC
+              pushState: true
         });
+    } catch (e) {
+        // We've got an uncaught exception.
+        // TODO Log it to the server.
+        window.alert("Top-level exception " + e);
+        console.log("Top-level exception", e);
+        console.trace();
+    }
+
+    function internal(evt, href) {
+    	if (href.charAt(0) == '/') {
+    		evt.preventDefault();
+    		evt.stopPropagation();
+
+    		var ret = Router.navigate(href, { trigger: true });
+
+    		if (ret === undefined && $link.hasClass('allow-reload')) {
+    			console.log("LINK 5");
+    			alert("LINK 5: " + href);
+    			Backbone.history.loadUrl(href);
+    		}
+    		//console.log("LINK 6");
+    	}
+			// Could be #, #something or absolute URL: all OK
+    	//console.log("LINK 7: "+href);
+    }
+
+    // We can flag anchors as not to be handled via Backbone using data-realurl
+    /*$(document).on('click', 'a:not([data-realurl]):not([data-toggle])', function (evt) {
+        // Only trigger for our own anchors, except selectpicker which relies on #.
+        // console.log("a click", $(this), $(this).parents('#bodyEnvelope').length);
+    	  var href = $(this).attr('href');
+    	  console.log("LINK 1: " + href);
+    	  if (($(this).parents('#bodyEnvelope').length > 0 || $(this).parents('footer').length > 0) &&
+            $(this).parents('.selectpicker').length == 0) {
+        	console.log("LINK 2");
+        	internal(evt, href);
+        } else {
+        	//alert("Not data-realurl but ignored");
+        	console.log("LINK 3");
+        	internal(evt, href);
+        }
+    });*/
+    $(document).on('click', 'a', function (evt) {
+    	var href = $(this).attr('href');
+    	//console.log("LINK 4: " + href);
+    	internal(evt, href);
+    });
 
         window.Router = Router;
     });

@@ -3,12 +3,14 @@ define([
     'underscore',
     'backbone',
     'iznik/base'
-], function($, _, Backbone, Iznik) {
+], function ($, _, Backbone, Iznik) {
 
     Iznik.Views.GoogleLoad = Iznik.View.extend({
         authResult: undefined,
 
         disabled: false,
+
+        tryingGoogleLogin: false,   // CC
 
         onSignInCallback: function (authResult) {
             var self = this;
@@ -18,13 +20,20 @@ define([
                 self.authResult = authResult;
                 $.ajax({
                     type: 'POST',
-                    url: '/api/session',
+                    url: API + 'session',
                     data: {
                         'googleauthcode': self.authResult.code,
-                        'googlelogin': true
+                        'googlelogin': true,
+                        'mobile': true,
                     },
                     success: function (result) {
-                        window.location.reload();
+                        console.log(result);
+                        if (result.ret != 0) {
+                            $('.js-signin-msg').text(JSON.stringify(result));
+                            $('.js-signin-msg').show();
+                        } else {
+                            Router.mobileReload();  // CC
+                        }
                     }
                 });
             }
@@ -42,14 +51,15 @@ define([
 
         signInButton: function (id) {
             try {
+                console.log("google.signInButton");
                 var self = this;
                 self.buttonId = id;
                 self.scopes = "profile email";
 
-                if (_.isUndefined(window.gapi)) {
+                /* // CC if (_.isUndefined(window.gapi)) {
                     // This happens with Firefox privacy blocking.
                     self.disabled = true;
-                }
+                } */
 
                 if (self.disabled) {
                     console.error("Google sign in failed - blocked?");
@@ -60,28 +70,16 @@ define([
                     $('#' + id + ' img').removeClass('signindisabled');
                     $('#' + id).click(function () {
                         // Get client id
-                        self.clientId = GOOGLE_CLIENT_ID;
+                        console.log("Log in");
 
-                        if (navigator.userAgent.match('CriOS')) {
-                            // Chrome on IOS opens the normal google signin in a different tab, which is unable
-                            // to communicate with the main tab because Apple are a bunch of meanies.  So use a
-                            // server login in this case.
-                            var url = 'https://accounts.google.com/o/oauth2/v2/auth?scope=email%20profile&redirect_uri=' + encodeURIComponent(document.location.href + '?googlelogin=1') + '&response_type=code&client_id=' + self.clientId;
-                            console.log("Google login redirect " + url);
-                            document.location = url;
-                        } else {
-                            // Custom signin button
-                            var params = {
-                                'clientid': self.clientId,
-                                'cookiepolicy': 'single_host_origin',
-                                'callback': self.onSignInCallback,
-                                'immediate': false,
-                                'scope': self.scopes,
-                                'app_package_name': 'org.ilovefreegle.direct'
-                            };
-
-                            gapi.auth.signIn(params);
+                        // CC..
+                        if (navigator.connection.type === Connection.NONE) {
+                            console.log("No connection - please try again later.");
+                            $('.js-signin-msg').text("No internet connection - please try again later");
+                            $('.js-signin-msg').show();
+                            return;
                         }
+                        self.googleAuth();
                     });
                 }
             } catch (e) {
@@ -89,7 +87,46 @@ define([
             }
         },
 
-        noop: function(authResult) {
+        googleAuth: function () { // CC
+            var self = this;
+
+            if (self.tryingGoogleLogin) { return; }
+            self.clientId = $('meta[name=google-signin-client_id]').attr("content");
+            console.log("Google clientId: " + self.clientId);
+            self.tryingGoogleLogin = true;
+
+            // Not needed: window.plugins.googleplus.trySilentLogin(
+            window.plugins.googleplus.login(
+                {
+                    //'scopes': '... ', // optional - space-separated list of scopes, If not included or empty, defaults to `profile` and `email`.
+                    'webClientId': self.clientId, // optional - clientId of your Web application from Credentials settings of your project - On Android, this MUST be included to get an idToken. On iOS, it is not required.
+                    'offline': true, // Must be true to get serverAuthCode
+                },
+                function (obj) {    // SUCCESS
+                    //alert(JSON.stringify(obj)); // do something useful instead of alerting
+                    console.log(obj);
+                    self.tryingGoogleLogin = false;
+                    if (!obj.serverAuthCode){
+                        $('.js-signin-msg').text("No serverAuthCode");
+                        $('.js-signin-msg').show();
+                        return;
+                    }
+                    // Try logging in again at FD with given authcode
+                    var authResult = { code: obj.serverAuthCode };  // accessToken
+                    authResult['access_token'] = true;
+                    self.onSignInCallback(authResult);
+                },
+                function (msg) {    // ERROR
+                    alert('error: ' + msg);
+                    self.tryingGoogleLogin = false;
+                    $('.js-signin-msg').text("Google error:" + msg);
+                    $('.js-signin-msg').show();
+                    console.log("Google error:" + msg, { typ: 1 });
+                }
+            );
+        },
+
+        noop: function (authResult) {
             console.log("Noop", authResult)
             $('#googleshim').hide();
         },
@@ -111,6 +148,19 @@ define([
         },
 
         disconnectUser: function () {
+
+            //alert("Disconnecting");
+            try{
+                window.plugins.googleplus.disconnect(
+                    function (msg) {
+                        //alert("Disconnected");
+                        console.log(msg); // do something useful instead of alerting
+                    }
+                );
+            } catch (e) {
+                console.log("Disconnect except "+e);
+            }
+
             var self = this;
             var access_token = self.accessToken;
             var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' +

@@ -167,6 +167,11 @@ define([
             Iznik.Session.chats.each(function (chat) {
                 unseen += chat.get('unseen');
             });
+            /* CC Iznik.Session.chats.each(function (chat) {
+                var chatView = Iznik.activeChats.viewManager.findByModel(chat);
+                unseen += chat.get('unseen');
+                console.log("Unseen", unseen, chat);
+            });*/
 
             // This if test improves browser performance by avoiding unnecessary show/hides.
             $('.js-chattotalcount').each(function() {
@@ -182,6 +187,15 @@ define([
             });
 
             self.showMin();
+
+            if (mobilePush) {
+                console.log("Chat set badge: " + unseen);
+                mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
+                /*var msg = new Date();
+                msg = msg.toLocaleTimeString() + " C " + unseen + "<br/>";
+                badgeconsole += msg;
+                $('#badgeconsole').html(badgeconsole);*/
+            }
         },
 
         updateCountTimer: function() {

@@ -1,4 +1,7 @@
 dist
 node_modules
-.idea
 webpack-assets.json
+.idea/
+iosapp/www/ios/
+http/ios/
+

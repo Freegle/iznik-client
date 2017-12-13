@@ -6,8 +6,13 @@ define([
     'iznik/models/chat/chat',
     'jquery-visibility'
 ], function($, _, Backbone, Iznik) {
+
+    var tryingYahooLogin = false; // CC
+
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
+
+        maintenanceMode: false, // CC
 
         playBeep: false,
 
@@ -52,7 +57,31 @@ define([
         },
 
         askSubscription: function() {
-            var self = this;
+
+            console.log("askSubscription");
+            if (mobilePushId) {
+                var subscription = isiOS ? mobilePushId : 'https://android.googleapis.com/gcm/send/' + mobilePushId;
+                console.log(subscription);
+                //alert("Subs: "+subscription);
+                var me = Iznik.Session.get('me');
+                if (me) {
+                    Iznik.Session.save({
+                        id: me.id,
+                        notifications: {
+                            push: {
+                                type: isiOS ? 'IOS' : 'Android',
+                                subscription: subscription
+                            }
+                        }
+                    }, {
+                        patch: true
+                    });
+                }
+            }
+
+
+            /*var self = this;
+            console.log("askSubscription");
 
             if (window.serviceWorker) {
                 window.serviceWorker.pushManager.permissionState({
@@ -110,12 +139,13 @@ define([
                         }
                     }
                 });
-            }
+            }*/
         },
 
         gotSubscription: function (sub) {
             console.log('Subscription endpoint:', sub);
-            var subscription = sub.endpoint;
+
+            /*var subscription = sub.endpoint;
 
             try {
                 // Pass the subscription to the service worker, so that it can use it to authenticate to the server if we
@@ -159,7 +189,7 @@ define([
                         patch: true
                     });
                 }
-            }
+            }*/
         },
 
         testLoggedIn: function (forceserver) {
@@ -206,7 +236,6 @@ define([
             // We may have a persistent session from local storage which we can use to revive this session if the
             // PHP session has timed out.
             var now = (new Date()).getTime();
-
             if (!self.lastServerHit || now - self.lastServerHit > 1000) {
                 self.lastServerHit = now;
 
@@ -217,9 +246,14 @@ define([
                         persistent: sess ? parsed.persistent : null
                     },
                     success: function (ret) {
+                        self.maintenanceMode = false; // CC
                         if (ret.ret == 111) {
                             // Down for maintenance
-                            window.location = '/maintenance_on.html';
+                            self.testing = false; // CC
+                            console.log("set maintenanceMode");
+                            self.maintenanceMode = true;
+                            Router.navigate("/maintenance", true);
+                            self.trigger('isLoggedIn', false);
                         } else if ((ret.ret == 0)) {
                             // Save off the returned session information into local storage.
                             var now = (new Date()).getTime();
@@ -237,7 +271,8 @@ define([
                                         }
                                     });
 
-                                    window.location.reload(true);
+                                    // CC window.location.reload(true);
+                                    Router.navigate("/", true);
                                 }
 
                                 // We use this to decide whether to show sign up or sign in.
@@ -433,6 +468,10 @@ define([
                                 } else {
                                     $('.js-workcount').html('').hide();
                                 }
+                                if (mobilePush) {
+                                    console.log("Session set badge: " + total);
+                                    mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
+                                } // CC
 
                                 if (countschanged) {
                                     Iznik.Session.trigger('countschanged');
@@ -454,7 +493,7 @@ define([
                                         Storage.remove('session');
                                     } catch (e) {
                                     }
-                                    window.location.reload();
+                                    Router.mobileReload();  // CC
                                 } else {
                                     // We're not logged in.
                                     self.loggedIn = false;
@@ -468,7 +507,7 @@ define([
                             }
 
                             // We're not logged in
-                        }
+                            }
                     },
                     error: function () {
                         console.log("Get settings failed");
@@ -506,13 +545,14 @@ define([
             self.testLoggedIn();
         },
 
-        facebookLogin: function () {
+        facebookLogin: function (token) { // CC
             var self = this;
             //console.log("Do facebook login");
             $.ajax({
                 url: API + 'session',
                 type: 'POST',
                 data: {
+                    fbaccesstoken: token, // CC
                     fblogin: true
                 },
                 success: function (response) {
@@ -535,22 +575,13 @@ define([
         yahooLogin: function () {
             var self = this;
 
-            var match,
-                pl = /\+/g,  // Regex for replacing addition symbol with a space
-                search = /([^&=]+)=?([^&]*)/g,
-                decode = function (s) {
-                    return decodeURIComponent(s.replace(pl, " "));
-                },
-                query = window.location.search.substring(1);
+            if (tryingYahooLogin) { return; }
+            tryingYahooLogin = true;
 
-            // We want to post to the server to do the login there.  We pass all the URL
-            // parameters we have, which include the OpenID response.
+            // Try Yahoo login // CC
             var urlParams = {};
-            while (match = search.exec(query))
-                urlParams[decode(match[1])] = decode(match[2]);
             urlParams['yahoologin'] = true;
-            urlParams['returnto'] = document.URL;
-            console.log("Got URL params", urlParams);
+            console.log("URL params", urlParams);
 
             $.ajax({
                 url: API + 'session',
@@ -559,16 +590,96 @@ define([
                 success: function (response) {
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
-                        //We fire 2 separate calls, one to tell the CurrentUser that the user has just logged in.
-                        //another to tell anyone listening that the user is logged in (In case we were testing).
-                        self.trigger('yahoologincomplete', response);
                         self.trigger('loggedIn', response);
+                        Router.mobileReload('/');  // CC
+                        tryingYahooLogin = false;
+                    } else if (response.ret === 1) {  // CC
+                      self.yahooAuth(response.redirect);
                     } else {
-                        self.trigger('yahoologincomplete', response);
+                        $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
+                        $('.js-signin-msg').show();
                         self.trigger('loginFailed', response);
+                        tryingYahooLogin = false;
                     }
                 }
             });
+        },
+
+        ///////////////////////////////////////
+        // Request user authenticates by opening passed URL
+        // If user gives Ok, then pop-up window tries to open a page at ilovefreegle.
+        // We catch and stop this open, get passed parameters and pass them as part of repeat FD login request
+
+        yahooAuth: function (yauthurl) {   // CC
+          var self = this;
+          console.log("Yahoo authenticate window open");
+          console.log("yahooAuth: " + yauthurl);
+
+          var authGiven = false;
+
+          var authWindow = window.open(yauthurl, '_blank', 'location=yes,menubar=yes');
+
+          $(authWindow).on('loadstart', function (e) {
+            var url = e.originalEvent.url;
+            console.log("yloadstart: " + url);
+
+            // Catch redirect after auth back to ilovefreegle
+            if (url.indexOf("https://www.ilovefreegle.org/") === 0) {
+              authWindow.close();
+              var urlParams = self.extractQueryStringParams(url);
+              if (urlParams) {
+                authGiven = true;
+                urlParams.yahoologin = true;
+                console.log(urlParams);
+
+                // Try logging in again at FD
+                console.log("Got URL params", urlParams);
+                $.ajax({
+                  url: API + 'session',
+                  type: 'POST',
+                  data: urlParams,
+                  success: function (response) {
+                    console.log("Session login returned", response);
+                    if (response.ret === 0) {
+                      self.trigger('loggedIn', response);
+                      Router.mobileReload('/');  // CC
+                    } else {
+                      $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
+                      $('.js-signin-msg').show();
+                      self.trigger('loginFailed', response);
+                    }
+                  }
+                });
+              }
+            }
+          });
+
+          $(authWindow).on('exit', function (e) {
+            if (!authGiven) {
+              console.log("Yahoo permission not given or failed");
+              $('.js-signin-msg').text("Yahoo permission not given or failed");
+              $('.js-signin-msg').show();
+            }
+            tryingYahooLogin = false;
+          });
+        },
+
+        extractQueryStringParams: function (url) {  // CC
+          var urlParams = false;
+          var qm = url.indexOf('?');
+          if (qm >= 0) {
+            var qs = url.substring(qm + 1);
+            // http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+            var match;
+            var pl = /\+/g;  // Regex for replacing addition symbol with a space
+            var search = /([^&=]+)=?([^&]*)/g;
+            var decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); };
+            urlParams = {};
+            while (match = search.exec(qs)) {
+              urlParams[decode(match[1])] = decode(match[2]);
+            }
+          }
+          return urlParams;
         },
 
         catsForGroup: function (groupid) {
@@ -708,12 +819,13 @@ define([
         },
 
         hasFacebook: function() {
-            var facebook = null;
+            var facebook = true;    // CC true on mobile to enable any sharing
+            /*var facebook = null;
             _.each(this.get('logins'), function(login) {
                 if (login.type == 'Facebook') {
                     facebook = login;
                 }
-            });
+            });*/
 
             return(facebook);
         },

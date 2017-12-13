@@ -18,17 +18,43 @@ define([
 
         sharefb: function() {
             var self = this;
-            var params = {
-                method: 'share',
-                href: window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbshare',
-                image: self.image
-            };
+            // Can get the image but sharing both image and link on FB means that only image shown and we want link - so image won't be available to other share types
+            // var image = null;
+            // var atts = self.model.get('attachments');
+            // if (atts && atts.length > 0) {
+            //     image = atts[0].path;
+            // }
+            var href = 'https://www.ilovefreegle.org/message/' + self.model.get('id') + '?src=mobileshare';
+            var subject = self.model.get('subject');
+            // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
+            var options = {
+                message: "I saw this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
+                subject: 'Freegle post: ' + subject, // for email
+                //files: ['', ''], // an array of filenames either locally or remotely
+                url: href,
+                //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
+            }
+            // if (image) {
+            //     options.files = [image];
+            // }
 
-            FB.ui(params, function (response) {
+            var onSuccess = function (result) {
+                console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
+                console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+                self.$('.js-fbshare').fadeOut('slow');
+                ABTestAction('messagebutton', 'Mobile Share');
+            }
+
+            var onError = function (msg) {
+                console.log("Sharing failed with message: " + msg);
+            }
+
+            window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
+            /*FB.ui(params, function (response) {
                 self.$('.js-fbshare').fadeOut('slow');
 
                 ABTestAction('messagebutton', 'Facebook Share');
-            });
+            });*/
         },
 
         expanded: false,
@@ -192,7 +218,8 @@ define([
                 self.rendering = new Promise(function(resolve, reject) {
                     Iznik.View.prototype.render.call(self).then(function() {
                         if (Iznik.Session.hasFacebook()) {
-                            require(['iznik/facebook'], function(FBLoad) {
+                            self.$('.js-sharefb').show();
+                            /*require(['iznik/facebook'], function(FBLoad) {
                                 self.listenToOnce(FBLoad(), 'fbloaded', function () {
                                     if (!FBLoad().isDisabled()) {
                                         self.$('.js-sharefb').show();
@@ -200,7 +227,7 @@ define([
                                 });
 
                                 FBLoad().render();
-                            });
+                            });*/
                         }
 
                         if (self.expanded) {
@@ -962,16 +989,9 @@ define([
                         // log in, and then send it.  This also means that when the page is reloaded because of a login,
                         // we don't have issues with not seeing/needing to scroll to the message of interest.
                         //
-                        // We might already be on this page, so we can't always call navigate as usual.
-                        var url = '/message/' + self.model.get('id');
-                        console.log("Compare url", url, Backbone.history.getFragment());
-                        if ('/' + Backbone.history.getFragment() == url) {
-                            Backbone.history.loadUrl(url);
-                        } else {
-                            Router.navigate(url, {
-                                trigger: true
-                            });
-                        }
+                        // We might already be on this page, so we can't call navigate as usual.
+                        // CC Should we do Router.mobileReload();  // CC
+                        // CC Backbone.history.loadUrl('/message/' + self.model.get('id'));
                     }
                 });
 
@@ -1002,7 +1022,7 @@ define([
                 this.model.set('mylocation', mylocation);
 
                 // Static map custom markers don't support SSL.
-                this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapareamarker.png');
+                this.model.set('mapicon', 'images/mapareamarker.png'); // CC
 
                 // Get a zoom level for the map.
                 var zoom = 12;
@@ -1109,7 +1129,7 @@ define([
                     self.map = new google.maps.Map(map.get()[0], mapOptions);
 
                     var icon = {
-                        url: '/images/user_logo.png',
+                        url: iznikroot + 'images/user_logo.png',    // CC
                         scaledSize: new google.maps.Size(50, 50),
                         origin: new google.maps.Point(0,0),
                         anchor: new google.maps.Point(0, 0)

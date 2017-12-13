@@ -180,6 +180,7 @@
 
 .pageContent {
     padding: 0px !important;
+    min-height: 500px;
 }
 
 .rightSidebar h1 {
@@ -318,6 +319,7 @@ h1,h2,h3,h4 {
 
 body, #bodyContent {
     background-color: #dff2d1;
+    min-height: 100vh !important;
 }
 
 /*Side menu start*/
@@ -328,6 +330,7 @@ body, #bodyContent {
     -o-transition: all 0.5s ease;
     transition: all 0.5s ease;
     overflow: hidden;
+    min-height: 100vh !important;
 }
 
 #wrapper.toggled {
@@ -504,6 +507,10 @@ body, #bodyContent {
     }
 }
 /*Side menu end*/
+
+#wrapper, #page-content-wrapper {
+    height: 100%;
+}
 
 .stdmsgmodalbody {
     min-height: 700px !important;

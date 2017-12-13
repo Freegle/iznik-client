@@ -6,6 +6,14 @@
                 <li>
                     <div class="clickme ">
                         <ul class="list-unstyled list-inline">
+                            <li class="padbot">
+                              <div id="nonetwork" class="reallyHide">
+                                <span class="fullholder glyphicons glyphicon-larger glyphicons-cloud vcenter-left" aria-hidden="true" />
+                              </div>
+                              <a id="refreshbutton" href="#" class="js-loggedinonly reallyHide hidden-md hidden-lg" title="Refresh" onclick="return mobileRefresh();">
+                                <span class="white fullholder glyphicons glyphicon-larger glyphicons-refresh vcenter-left" type="button" />
+                              </a>
+                            </li>
                             <li>
                                 <a href="/help" class="js-loggedinonly reallyHide hidden-md hidden-lg" title="Help">
                                     <span class="white fullholder glyphicons glyphicon-larger glyphicons-question-sign vcenter-left padbot" type="button" />
@@ -43,9 +51,13 @@
                     </button>
                 </li>
             </ul>
+            <div id="refreshicon" class="margright pull-right">
+              <img src="/images/userloader.gif" />
+            </div>
             <div class="notop js-home clickme padleft pull-left">
                 <img src="/images/user_logo.png" class="padmd img-responsive img-morerounded inline" />
             </div>
+            <!--div class="navbar-title">Freegle</div-->
             <div class="collapse navbar-collapse" id="navbar-collapse">
                 <ul class="nav navbar-nav navbar-left reallyHide js-loggedinonly">
                     <li>
@@ -91,6 +103,12 @@
                         <a href="/communityevents" class="margleft nopad text-center">
                             <div class="fullholder glyphicons glyphicons-calendar glyphicon-larger" title="Community Events" />
                             <span class="">Events</span>
+                        </a>
+                    </li>
+                    <li id="mobile-debug" style="display:none !important;">
+                        <a href="/mobiledebug" class="margleft nopad text-center">
+                            <div class="fullholder glyphicons glyphicons-sunglasses glyphicon-larger vcenter-left" title="Debug" />
+                            <br /><span class="">Debug</span>
                         </a>
                     </li>
                     <li>

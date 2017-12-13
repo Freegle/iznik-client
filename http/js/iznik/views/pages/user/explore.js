@@ -36,11 +36,45 @@ define([
             this.$('.js-location').trigger('geocode');
         },
 
-        getLocation: function() {
-            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
+        getLocation: function () {
+            function geoError(error) {
+                hideHeaderWait();
+                alert('code: ' + error.code + '\n' +
+                      'message: ' + error.message + '\n');
+            }
+
+            var self = this;
+            showHeaderWait();
+            self.$('.js-getloc').tooltip('destroy');
+            self.$('.js-getloc').tooltip({
+                'placement': 'bottom',
+                'title': "Finding location..."
+            });
+            self.$('.js-getloc').tooltip('show');
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), _.bind(this.errorLocation, this), { timeout: 10000 });
         },
 
-        gotLocation: function(position) {
+        errorLocation: function (position) { // CC
+            console.log("errorLocation");
+            hideHeaderWait();
+            var self = this;
+            self.$('.js-getloc').tooltip('destroy');
+            _.delay(function () {
+                self.$('.js-getloc').tooltip({
+                    'placement': 'bottom',
+                    'title': "No location available. Check your Settings for Location access/services."
+                });
+                self.$('.js-getloc').tooltip('show');
+                _.delay(function () {
+                    self.$('.js-getloc').tooltip('destroy');
+                }, 20000);
+            }, 500);
+        },
+
+        gotLocation: function (position) {
+            hideHeaderWait();
+            var self = this;
+            self.$('.js-getloc').tooltip('destroy');
             this.map.moveTo(position.coords.latitude, position.coords.longitude);
         },
 
@@ -247,7 +281,7 @@ define([
 
                         if (within > 20) {
                             // Switch to pins for large collections
-                            var icon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif?a=1';
+                            var icon = 'images/mapmarker.gif';	// CC
                             var marker = new google.maps.Marker({
                                 position: latLng,
                                 icon: icon,

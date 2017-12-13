@@ -102,12 +102,16 @@ define([
             }, 2000);
         },
 
-        getLocation: function() {
+        getLocation: function () {
             var self = this;
-            self.wait = new Iznik.Views.PleaseWait();
-            self.wait.render();
-
-            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this));
+            showHeaderWait();
+            self.$('.js-getloc').tooltip('destroy');
+            self.$('.js-getloc').tooltip({
+                'placement': 'bottom',
+                'title': "Finding location..."
+            });
+            self.$('.js-getloc').tooltip('show');
+            navigator.geolocation.getCurrentPosition(_.bind(this.gotLocation, this), _.bind(this.errorLocation, this), { timeout: 10000 });
         },
 
         changeHomeGroup: function() {
@@ -197,8 +201,8 @@ define([
                             var width = Math.floor(self.$('.js-postcode').width());
                             map.css('width', width);
                             map.css('height', width);
-                            var mapicon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif';
-                            map.html('<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=' + width + 'x' + width + '&zoom=12&center=' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&maptype=roadmap&markers=icon:' + mapicon + '|' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&sensor=true&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg" />');
+                            var mapicon = 'https://www.ilovefreegle.org/images/mapmarker.gif';	// CC
+                            map.html('<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=' + width + 'x' + width + '&zoom=12&center=' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&maptype=roadmap&markers=icon:' + mapicon + '|' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&sensor=true" />');
                         }
                     }
                 }
@@ -384,9 +388,29 @@ define([
                 self.trigger('gotlocation', location);
             }
         },
+        
+        errorLocation: function (position) { // CC
+            console.log("errorLocation");
+            hideHeaderWait();
+            var self = this;
+            self.$('.js-getloc').tooltip('destroy');
+            _.delay(function () {
+                self.$('.js-getloc').tooltip({
+                    'placement': 'bottom',
+                    'title': "No location available. Check your Settings for Location access/services."
+                });
+                self.$('.js-getloc').tooltip('show');
+                _.delay(function () {
+                    self.$('.js-getloc').tooltip('destroy');
+                }, 20000);
+            }, 500);
+        },
 
         gotLocation: function(position) {
+            console.log("gotLocation");
+            hideHeaderWait();
             var self = this;
+            self.$('.js-getloc').tooltip('destroy');
 
             $.ajax({
                 type: 'GET',
@@ -425,6 +449,7 @@ define([
                 data: {
                     typeahead: query
                 }, success: function(ret) {
+                    if (ret == '') return;  // CC
                     var matches = [];
                     _.each(ret.locations, function(location) {
                         matches.push(location.name);
@@ -582,24 +607,43 @@ define([
         sharefb: function() {
             var self = this;
 
-            var image = null;
+            // Can get the image but sharing both image and link on FB means that only image shown and we want link - so image won't be available to other share types
+            // var image = null;
+            // var atts = self.model.get('attachments');
+            // if (atts && atts.length > 0) {
+            //     image = atts[0].path;
+            // }
 
-            var atts = self.model.get('attachments');
-            if (atts && atts.length > 0) {
-                image = atts[0].path;
+            var href = 'https://www.ilovefreegle.org/message/' + self.model.get('id') + '?src=mobileshare';
+            var subject = self.model.get('subject');
+
+            ABTestAction('sharepost', 'Mobile Share');
+            // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
+            var options = {
+                message: "I've just posted this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
+                subject: 'Freegle post: ' + subject, // for email
+                //files: ['', ''], // an array of filenames either locally or remotely
+                url: href,
+                //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
+            }
+            // if( image){
+            //     options.files = [image];
+            // }
+
+            var onSuccess = function (result) {
+                console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
+                console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+                self.close();
             }
 
-            var params = {
-                method: 'share',
-                href: self.url,
-                image: image
-            };
+            var onError = function (msg) {
+                console.log("Sharing failed with message: " + msg);
+            }
 
-            ABTestAction('sharepost', 'facebook');
-
-            FB.ui(params, function (response) {
+            window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
+            /*FB.ui(params, function (response) {
                 self.close();
-            });
+            });*/
         },
 
         whatsapp: function() {

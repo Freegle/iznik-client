@@ -345,10 +345,10 @@ define([
                     global: false, // don't trigger ajaxStart to avoid showing a busy icon all the time
                     success: function (ret) {
                         self.waiting = false;
-                        log("Received notif", ret);
 
                         if (ret && ret.hasOwnProperty('text')) {
                             var data = ret.text;
+                            log("Received notif", ret);
 
                             if (data) {
                                 if (data.hasOwnProperty('newroom')) {
