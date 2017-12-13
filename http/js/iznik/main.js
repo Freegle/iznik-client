@@ -1,6 +1,5 @@
-var API = 'https://www.ilovefreegle.org/api/'; // CC
-//var API = 'https://dev.ilovefreegle.org/api/'; // CC
-//var API = 'https://iznik.ilovefreegle.org/api/'; // CC
+var API = 'https://modtools.org/api/'; // CC
+//var API = 'https://iznik.modtools.org/api/'; // CC
 var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
@@ -372,26 +371,21 @@ require([
             msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
             badgeconsole += msg;
             $('#badgeconsole').html(badgeconsole);*/
-            if ((!foreground && doubleEvent) && (data.count > 0)) { // Only show chat if started/awakened ie not if in foreground
-                var chatids = data.additionalData.chatids;
-                chatids = _.uniq(chatids);
 
-                if (chatids.length > 0) {
-
-                    var chatid = chatids[0];
+            if ((!foreground && doubleEvent) && (data.count > 0)) { // Only go to route if started/awakened ie not if in foreground
+                if (data.additionalData.route) {
                     (function waitUntilLoggedIn(retry) {
                         if (Iznik.Session.loggedIn) {
-                            //ChatHolder().fetchAndRestore(chatid);
-                            setTimeout(function () { Router.navigate('/chat/' + chatid + '?' + $.now(), true); }, 500); // Add timestamp so chat refreshes
+                            setTimeout(function () {
+                                //console.log("Push go to: " + data.additionalData.route);
+                                Router.navigate(data.additionalData.route, true);
+                            }, 500);
                         } else {
                             setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
                         }
                     })(10);
                 }
             }
-            /*require(['iznik/views/chat/chat'], function (ChatHolder) {
-                ChatHolder().fallback();
-            });*/
 
             if (isiOS) {
                 mobilePush.finish(function () {

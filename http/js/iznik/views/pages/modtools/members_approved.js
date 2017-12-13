@@ -24,7 +24,7 @@ define([
             'click .js-search': 'search',
             'change .js-memberfilter': 'changeFilter',
             'keyup .js-searchterm': 'keyup',
-            'click .js-sync': 'sync',
+            'click .js-sync': 'msync',
             'click .js-export': 'export',
             'click .js-exportyahoo': 'exportYahoo',
             'click .js-merge': 'merge',
@@ -42,8 +42,9 @@ define([
             }
         },
 
-        sync: function () {
+        msync: function () {
             var group = Iznik.Session.getGroup(this.selected)
+            console.log("members_approved.msync " + group.get('nameshort'));
             IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
                 id: group.get('nameshort') + '.SyncMessages.Approved',
                 subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({

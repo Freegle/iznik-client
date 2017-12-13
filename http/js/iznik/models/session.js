@@ -8,6 +8,7 @@ define([
 ], function($, _, Backbone, Iznik) {
 
     var tryingYahooLogin = false; // CC
+    var gotYahooCookies = false; // CC
 
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
@@ -30,10 +31,12 @@ define([
 
             $(document).on('hide', function () {
                 self.playBeep = true;
+                //console.log("PLAYBEEP HIDDEN");
             });
 
             $(document).on('show', function () {
                 self.playBeep = false;
+                //console.log("PLAYBEEP SHOWN");
 
                 // Check if we're still logged in - this tab might have been hidden for a while.  If we were logged
                 // in and we no longer are, this will trigger a reload, so we don't look as though we're logged in
@@ -205,6 +208,8 @@ define([
             try {
                 sess = Storage.get('session');
                 if (sess) {
+                    //console.log("testLoggedIn: OK");
+                    //console.log(sess.substring(0,30));
                     parsed = JSON.parse(sess);
                 }
             } catch (e) {
@@ -265,6 +270,7 @@ define([
 
                                 if (lastloggedinas && ret.me.id && ret.me.id != lastloggedinas) {
                                     // We have logged in as someone else.  Zap our fetch cache.
+                                    gotYahooCookies = false;
                                     Storage.iterate(function(key,value) {
                                         if (key.indexOf('cache.') === 0) {
                                             Storage.remove(key);
@@ -272,7 +278,7 @@ define([
                                     });
 
                                     // CC window.location.reload(true);
-                                    Router.navigate("/", true);
+                                    Router.navigate("/modtools/", true);
                                 }
 
                                 // We use this to decide whether to show sign up or sign in.
@@ -280,6 +286,10 @@ define([
                             } catch (e) {
                             }
                             self.set(ret);
+
+                            if (!gotYahooCookies) {
+                                self.checkYahooCookies();
+                            }
 
                             // We get an array of groups back - we want it to be a collection.
                             self.set('groups', new Iznik.Collection(ret.groups));
@@ -446,7 +456,7 @@ define([
                                                 var settings = Iznik.Session.get('me').settings;
 
                                                 if (presdef('playbeep', settings, 1) && self.playBeep) {
-                                                    var sound = new Audio("/sounds/alert.wav");
+                                                    //var sound = new Audio(iznikroot + "sounds/alert.wav");
                                                     try {
                                                         // Some browsers prevent us using play unless in response to a
                                                         // user gesture, so catch any exception.
@@ -469,7 +479,7 @@ define([
                                     $('.js-workcount').html('').hide();
                                 }
                                 if (mobilePush) {
-                                    console.log("Session set badge: " + total);
+                                    //console.log("Session set badge: " + total);
                                     mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
                                 } // CC
 
@@ -491,6 +501,8 @@ define([
                                     try {
                                         console.error("Not logged in after all", sess, parsed, ret);
                                         Storage.remove('session');
+                                        Storage.remove('yahoo.email');
+                                        Storage.remove('yahoo.fullname');
                                     } catch (e) {
                                     }
                                     Router.mobileReload();  // CC
@@ -572,7 +584,38 @@ define([
             });
         },
 
-        yahooLogin: function () {
+        ///////////////////////////////////////
+        // For ModTools we need cookies direct from Yahoo so 'plugin' code can talk direct to Yahoo
+        // and the CORS headers need to be right - which doesn't seem to be an issue here.
+        //
+        // Flow is:
+        //  - we may have persistent session so try logging in at MT
+        //  - if not, log in options are shown
+        //  - if Yahoo chosen then come back to yahooMTLogin() here
+        //  - this tries MT session log in again
+        //  - if ret==1 then we have redirect info to pass to yahooAuth() here
+        //  - yahooAuth shows InAppBrowser to show Yahoo login to user
+        //  - this catches redirect back to modtools.org and stores authenticated info that is in URL and extracts user email and fullname
+        //  - authenticated info is passed to MT session and we will be able to log in.
+
+
+        //  - in iOS the InAppBrowser cookies are shared with the WebView so no problem
+        //  - in Android it is harder to get the cookies in the right place
+
+        // Using https://github.com/apache/cordova-plugin-inappbrowser executeScript
+
+        // ANDROID: NOT USING CROSSWALK SO NOT NOW NEEDED
+        // NO: Setting document.cookie doesn't work
+        // NO: Using com.cordova.plugins.cookiemaster doesn't work
+        // NO: Amending InAppBrowser to add getCookies() call does work - https://github.com/apache/cordova-plugin-inappbrowser/pull/122
+        // NO: https://github.com/wymsee/cordova-HTTP not tried
+        // NO: https://forums.meteor.com/t/meteor-1-3-beta-11-setting-cookies-from-cordova-on-android/18637 not tried
+        // NO: http://stackoverflow.com/questions/28107313/set-cookies-programatically-in-crosswalk-webview-on-android not tried
+        // NO: http://stackoverflow.com/questions/17228785/yahoo-authentication-by-oauth-without-any-redirectionclient-side-is-it-possib
+        // NO:  - looked at: OpenID solution uses window.open https://gist.github.com/erikeldridge/619947
+
+        yahooMTLogin: function () {
+            console.log("yahooMTLogin");
             var self = this;
 
             if (tryingYahooLogin) { return; }
@@ -591,6 +634,7 @@ define([
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
                         self.trigger('loggedIn', response);
+                        self.checkYahooCookies();
                         Router.mobileReload('/');  // CC
                         tryingYahooLogin = false;
                     } else if (response.ret === 1) {  // CC
@@ -612,28 +656,32 @@ define([
 
         yahooAuth: function (yauthurl) {   // CC
           var self = this;
-          console.log("Yahoo authenticate window open");
-          console.log("yahooAuth: " + yauthurl);
+          console.log("yahooAuth: Yahoo authenticate window open");
+          console.log(yauthurl);
 
           var authGiven = false;
 
-          var authWindow = window.open(yauthurl, '_blank', 'location=yes,menubar=yes');
+          var authWindow = cordova.InAppBrowser.open(yauthurl, '_blank', 'location=yes,menubar=yes');
 
           $(authWindow).on('loadstart', function (e) {
             var url = e.originalEvent.url;
             console.log("yloadstart: " + url);
 
-            // Catch redirect after auth back to ilovefreegle
-            if (url.indexOf("https://www.ilovefreegle.org/") === 0) {
+            // Catch redirect after auth back to modtools
+            if (url.indexOf("https://modtools.org/") === 0) {
               authWindow.close();
               var urlParams = self.extractQueryStringParams(url);
               if (urlParams) {
                 authGiven = true;
                 urlParams.yahoologin = true;
                 console.log(urlParams);
+                //alert(JSON.stringify(urlParams));
+                var email = urlParams['openid.ax.value.email'];
+                var fullname = urlParams['openid.ax.value.fullname'];
+                localStorage.setItem('yahoo.email', email);
+                localStorage.setItem('yahoo.fullname', fullname);
 
                 // Try logging in again at FD
-                console.log("Got URL params", urlParams);
                 $.ajax({
                   url: API + 'session',
                   type: 'POST',
@@ -642,6 +690,7 @@ define([
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
                       self.trigger('loggedIn', response);
+                      self.checkYahooCookies();
                       Router.mobileReload('/');  // CC
                     } else {
                       $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
@@ -651,6 +700,7 @@ define([
                   }
                 });
               }
+
             }
           });
 
@@ -662,6 +712,85 @@ define([
             }
             tryingYahooLogin = false;
           });
+        },
+
+        checkYahooCookies: function () {    // CC
+            var self = this;
+            console.log("checkYahooCookies");
+            var urlGetGroups = "https://groups.yahoo.com/api/v1/user/groups/all";
+
+            // If we've already got cookies then this will work
+            function checkResponse(ret) {
+                try{
+                    console.log("session typeof ret=" + typeof ret);
+                    if (typeof ret == "string") {
+                        console.log("session ret=" + ret.substring(0, 50));
+                    }
+
+                    if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
+                        gotYahooCookies = true;
+                        console.log("checkYahooCookies OK");
+                        return;
+                    }
+                    console.log("checkYahooCookies not OK");
+                    self.getYahooCookies();
+                } catch (e) {
+                    console.log(e.message);
+                }
+            }
+            $.ajax({
+                url: urlGetGroups,
+                context: this,
+                success: checkResponse,
+                error: self.getYahooCookies,
+            });
+        },
+
+        getYahooCookies: function () {    // CC
+
+            console.log("getYahooCookies start");
+
+            var urlGetGroups = "https://groups.yahoo.com/api/v1/user/groups/all";
+
+            // If not got cookies then try to get them in inAppBrowser
+            var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'hidden=yes');
+            //var wGetGroups = cordova.InAppBrowser.open(urlGetGroups, '_blank', 'location=yes,menubar=yes');
+            $(wGetGroups).on('loadstop', function (e) {
+                var url = e.originalEvent.url;
+                console.log("getYahooCookies: " + url);
+
+                function getBodyAndClose() {
+                    console.log("getBodyAndClose start");
+                    var jsReturnContent = "document.body.innerHTML";
+                    function cbReturnContent(params) {
+                        console.log("Android ReturnContent returned:");
+                        console.log(params[0]);
+                        //$('#js-mobiledebug').html(JSON.stringify(params[0]));
+                        wGetGroups.close();
+                    }
+                    wGetGroups.executeScript({ code: jsReturnContent }, cbReturnContent);
+                }
+
+                if (isiOS) {
+                    var jsReturnCookies = "document.cookie;";
+                    function cbReturnCookies(params) {
+                        console.log("iOS getYahooCookies returned:");
+                        console.log(params);
+                        var yahooCookies = params[0];
+                        localStorage.setItem('yahoo.cookies', yahooCookies);
+                        //getBodyAndClose();
+                    }
+                    wGetGroups.executeScript({ code: jsReturnCookies }, cbReturnCookies);
+                } else {
+
+                    // CC wGetGroups.getCookies({ url: 'https://groups.yahoo.com' }, function (count) {
+                    // CC     console.log("Android getCookies returned: " + count);
+                    // CC     getBodyAndClose();
+                    // CC });
+                    wGetGroups.close();
+                }
+                gotYahooCookies = true;
+            });
         },
 
         extractQueryStringParams: function (url) {  // CC

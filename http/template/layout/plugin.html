@@ -1,25 +1,26 @@
 <div class="panel-heading">
     <h1 class="panel-title">
+        <div class="js-connected pull-right" style="display: none;" id="js-pluginconnected">
+          <div class="glyphicon glyphicon-ok"></div>
+          Connected to Yahoo
+        </div>
+        <div class="topspace pull-right" style="display: none;" id="js-plugindisconnected">
+          <div class="panel-body alert-warning">
+            <div class="glyphicon glyphicon-warning-sign"></div>
+            Not connected to Yahoo
+          </div>
+        </div>
+
         <a data-toggle="collapse" data-parent="#rightaccordion" href="#rightPlugin">
             Background Work
             <span class="badge js-plugincount"></span>
         </a>
     </h1>
-    <div class="js-connected botspace topspace" style="display: none;" id="js-pluginconnected">
-        <div class="glyphicon glyphicon-ok" ></div>
-        Plugin Connected
-    </div>
-    <div class="panel panel-default topspace" style="display: none;" id="js-plugindisconnected">
-        <div class="panel-body alert-warning">
-            <div class="glyphicon glyphicon-warning-sign" ></div>
-            Plugin Disconnected - check installed and you are logged in to Yahoo too, then see <a href="http://wiki.modtools.org/index.php?title=FAQ#Browser_Plugin" data-realurl="true" target="_blank" rel="noopener">help</a>
-        </div>
-    </div>
 </div>
 <div id="rightPlugin" class="panel-collapse collapse">
     <div class="panel-body nopadleft nopadright">
         <div class="js-background" />
-        <p id="js-nowork" class="padmd text-muted topspace">No work outstanding.</p>
+        <p id="js-nowork" class="padmd text-muted">No work outstanding.</p>
         <ul class="nopad nomargin list-unstyled js-work" />
     </div>
 </div>

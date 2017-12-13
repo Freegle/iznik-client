@@ -1,7 +1,7 @@
 <div class="js-freestock" />
 <p>Hello, <% if (me.firstname) { %>{{me.firstname}}<% } else { %>{{me.fullname}}<% } %>.  <span class="js-yahooinfo" /><p>
 <% if (me.systemrole == 'User') { %>
-</p><div class="alert alert-info" role="alert">It looks like we've not yet worked out which groups you moderate on.  Make sure you've got the plugin installed, and refresh in a couple of minutes.</div>
+</p><div class="alert alert-info" role="alert">It looks like we've not yet worked out which groups you moderate on.  Make sure you're connected to Yahoo, and refresh in a couple of minutes.</div>
 <% } else if (me.systemrole == 'Moderator') { %>
 <p>You're a moderator.  Here's your dashboard.</p>
 <% } else if (me.systemrole == 'Support') { %>
@@ -11,6 +11,10 @@
 <% } %>
 <div class="alert alert-danger js-prerenderwrapper" style="display: none">
     <p>Some pages are not being pre-rendered.  This may affect Google search results.  Please make sure the Geeks are aware.</p>
+</div>
+<div class="row">
+  <div id="js-mobile-version" class="col-md-12">
+  </div>
 </div>
 <div class="js-missingprofile" />
 <div class="js-missingtwitter" />

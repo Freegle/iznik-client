@@ -196,25 +196,40 @@ define([
                         type: "GET",
                         url: "https://groups.yahoo.com/neo",
                         success: function (ret) {
-                            var re =/data-userid="(.*?)"/g;
+                            var re = /data-userid="(.*?)"/g;
                             var matches = re.exec(ret);
 
-                            if (matches && matches.length > 0 && matches[0].length > 0) {
+                            if (matches && matches.length > 0 && matches[0].length > 0 && matches[1].length > 0) {
                                 var yid = matches[1];
                                 var p = yid.indexOf('@');
                                 yid = p == -1 ? yid : yid.substring(0, p);
+                                console.log("landing.render success " + yid);
                                 self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + yid + ".");
                                 Iznik.Session.set('loggedintoyahooas', yid);
 
                             } else {
+                                console.log("landing.render fail");
                                 self.$('.js-yahooinfo').html("You aren't logged in to Yahoo.");
                                 Iznik.Session.unset('loggedintoyahooas');
                             }
-                        }, error: function() {
-                            self.$('.js-yahooinfo').html("You don't have the browser plugin installed.");
+                        }, error: function () {
+                            self.$('.js-yahooinfo').html("You aren't connected to Yahoo. (If the app has been updated then you may need to uninstall and install again to be able to sign in and connect.");
                             Iznik.Session.unset('loggedintoyahooas');
                         }
                     });
+
+                    // Get Yahoo login info // CC
+                    /*var email = localStorage.getItem('yahoo.email');
+                    var fullname = localStorage.getItem('yahoo.fullname');
+
+                    if (email) {
+                        self.$('.js-yahooinfo').html("You're logged in to Yahoo as " + email + " / " + fullname +".");
+                        //Iznik.Session.set('loggedintoyahooas', yid);
+                    } else {
+                        self.$('.js-yahooinfo').html("You aren't logged in to Yahoo.");
+                        //Iznik.Session.unset('loggedintoyahooas');
+                    }*/
+
 
                     self.$('.js-grouptype').selectPersist();
                     self.$('.js-grouptype').change(function() {
@@ -251,6 +266,12 @@ define([
                     x.render().then(function() {
                         self.$('.js-missingtwitter').html(x.el);
                     });
+
+                    Iznik.Session.askSubscription();
+
+                    var mobile_version = $('meta[name=iznik_mobile_version]').attr("content");	// CC
+                    self.$('#js-mobile-version').text("ModTools mobile version "+mobile_version);
+
                     var w = new Iznik.Views.ModTools.Settings.MissingFacebookBuySell();
                     w.render().then(function() {
                         self.$('.js-missingfacebookbuysell').html(w.el);

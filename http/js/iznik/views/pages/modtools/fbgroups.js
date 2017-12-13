@@ -82,7 +82,7 @@ define([
                     self.$('.js-groupselect').html(v.el);
                 });
 
-                require(['iznik/facebook'], function(FBLoad) {
+                require(['iznik/facebook'], function (FBLoad) {
                     self.listenToOnce(FBLoad(), 'fbloaded', function () {
                         if (!FBLoad().isDisabled()) {
                             self.$('.js-share').show();
@@ -155,11 +155,18 @@ define([
         share: function() {
             var self = this;
 
-            FB.login(function(response){
+            // Use https://www.npmjs.com/package/cordova-plugin-facebook4
+            // In place of https://developers.facebook.com/docs/javascript/reference/FB.api
+
+            facebookConnectPlugin.login(["public_profile"], function (response) {
                 var id = self.options.message.get('id');
-                FB.api('/' + self.model.get('id') + '/feed', 'post', {
-                    link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup'
-                }, function(response) {
+                //FB.api('/' + self.model.get('id') + '/feed', 'post', {
+                //    link: 'https://www.ilovefreegle.org/message/' + id + '?src=fbgroup'
+                //}, function(response) {
+                var requestPath = '/' + self.model.get('id') + '/feed?method=post&link=https://www.ilovefreegle.org/message/' + id + '&src=fbgroup';
+                console.log(requestPath);
+                facebookConnectPlugin.api(requestPath,["publish_actions"],
+                function(response) {
                     console.log("Share returned", response);
                     if (response.hasOwnProperty('error')) {
                         self.$('.js-error').html(response.error.message);
@@ -169,9 +176,12 @@ define([
                         var g = new Iznik.Models.Group();
                         g.recordFacebookShare(self.model.get('uid'), id, self.options.message.get('arrival'));
                     }
+                }, function (error) {
+                    console.log(error);
                 });
-            }, {
-                scope: 'publish_actions'
+
+            }, function (error) {
+                console.log(error);
             });
         }
     });

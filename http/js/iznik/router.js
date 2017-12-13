@@ -131,6 +131,7 @@ define([
             "modtools/settings/:id/map": "mapSettings",
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
+            "modtools/mobiledebug": "mobiledebug",
             "modtools/support": "support",
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
@@ -207,7 +208,7 @@ define([
             "volunteering/:id": "userVolunteering",
             "why": "userWhy",
             "myposts": "userHome",
-            "*path": "userDefault"
+            "*path": "modtools" // CC
         },
 
         loadRoute: function (routeOptions) {
@@ -226,7 +227,11 @@ define([
             //console.log("loadRoute"); console.log(routeOptions);
             routeOptions = routeOptions || {};
 
-            self.modtools = routeOptions.modtools;
+            // CC self.modtools = routeOptions.modtools;
+            self.modtools = parseInt($('meta[name=iznikmodtools]').attr("content"));    // CC
+            console.log("loadRoute self.modtools:" + self.modtools);
+            routeOptions.modtools = self.modtools;  // CC
+            routeOptions.page.modtools = self.modtools;  // CC
             Iznik.Session.set('modtools', self.modtools);
 
             function loadPage() {
@@ -255,7 +260,7 @@ define([
         userHome: function () {
             var self = this;
 
-            if (document.URL.indexOf('modtools') !== -1) {
+            if (true) {  // MT
                 Router.navigate('/modtools', true);
             } else {
                 function f(loggedIn) {
@@ -983,6 +988,7 @@ define([
 
         yahoologin: function (path) {
             var self = this;
+            console.log("router.yahoologin");
 
             // We have been redirected here after an attempt to sign in with Yahoo.  We now try again to login
             // on the server.  This time we should succeed.
@@ -997,11 +1003,12 @@ define([
                     }
                 } else {
                     // TODO
+                    console.log("router.yahoologin window.location = '/'");
                     window.location = '/';
                 }
             });
 
-            Iznik.Session.yahooLogin();
+            Iznik.Session.yahooMTLogin();
         },
 
         modtools: function () {
@@ -1018,10 +1025,10 @@ define([
             });
         },
 
-        supporters: function () {
+        /*supporters: function () {
             var page = new Iznik.Views.ModTools.Pages.Supporters();
             this.loadRoute({page: page});
-        },
+        },*/
 
         pendingMessages: function () {
             var self = this;
@@ -1461,15 +1468,26 @@ define([
             });
         },
 
-        mobiledebug: function () {  // CC 
-            var self = this; 
-               require(["iznik/views/pages/user/mobiledebug"], function () { 
-                   var page = new Iznik.Views.User.Pages.MobileDebug(); 
-                   self.loadRoute({ page: page });
-               });
+        mobiledebug: function () {  // CC
+            var self = this;
+
+            require(["iznik/views/pages/modtools/mobiledebug"], function () {
+                var page = new Iznik.Views.ModTools.Pages.MobileDebug();
+                self.loadRoute({ page: page, modtools: true });
+            });
         },
 
-        alertViewed: function(alertid) {
+        supporters: function () {  // CC
+            console.log("router supporters");
+            var self = this;
+
+            require(["iznik/views/pages/modtools/supporters"], function () {
+                var page = new Iznik.Views.ModTools.Pages.Supporters();
+                self.loadRoute({ page: page, modtools: true });
+            });
+        },
+
+        alertViewed: function (alertid) {
             var self = this;
 
             require(["iznik/views/pages/user/alerts"], function() {

@@ -11,6 +11,8 @@ define([
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
 
+    var inout = true;   // TEST-JUN-17
+
     function logout() {
         try {
             // We might be signed in to Google.  Make sure we're not.
@@ -36,10 +38,30 @@ define([
                 } catch (e) {
                 }
                 // Force reload of window to clear any data.
-                Router.mobileReload('/'); // CC
+                // Remove for MODTOOLS: Router.mobileReload('/'); // CC
             }
         });
 
+        // MODTOOLS only
+        var logoutYahooUrl = 'https://login.yahoo.com/config/login?logout=1';
+        //var logoutYahooUrl = 'https://uk.yahoo.com/';
+        var authWindow = cordova.InAppBrowser.open(logoutYahooUrl, '_blank', 'location=yes,menubar=yes');
+        $(authWindow).on('loadstart', function (e) {
+        });
+        $(authWindow).on('loadstop', function (e) {
+            authWindow.close();
+        });
+        $(authWindow).on('exit', function (e) {
+            //alert("InApp logout");
+            Router.mobileReload('/'); // CC
+        });
+
+        //console.log('Yahoo logout start');
+        //$.ajax({    // CC
+        //    url: logoutYahooUrl,
+        //    success: function (ret) { console.log('Yahoo logout OK'); },
+        //    error: function (ret) { console.log('Yahoo logout error'); },
+        //});
     };
 
     Iznik.Views.Page = Iznik.View.extend({
@@ -196,7 +218,8 @@ define([
             }
 
             // Set the base page layout.
-            var p = new Promise(function(resolve, reject) {
+            var p = new Promise(function (resolve, reject) {
+                //console.log("pages self.modtools:" + self.modtools);
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
                     $('#bodyContent').html(window.template(tpl));
                     $('.js-pageContent').html(self.$el);
@@ -219,17 +242,12 @@ define([
                         rightaccordion = $('#rightaccordion');
 
                         if (!rightbar) {
-                            var s = new Iznik.Views.Supporters();
-                            s.render().then(function(s) {
-                                rightaccordion.append(s.el);
-
-                                require(['iznik/accordionpersist', 'iznik/views/plugin'], function() {
-                                    window.IznikPlugin = new Iznik.Views.Plugin.Main();
-                                    IznikPlugin.render().then(function(v) {
-                                        rightaccordion.append(v.el);
-                                    })
-                                    rightaccordion.accordionPersist();
-                                });
+                            require(['iznik/accordionpersist', 'iznik/views/plugin'], function() {
+                                window.IznikPlugin = new Iznik.Views.Plugin.Main();
+                                IznikPlugin.render().then(function(v) {
+                                    rightaccordion.append(v.el);
+                                })
+                                rightaccordion.accordionPersist();
                             });
                         } else {
                             rightaccordion.empty().append(rightbar);

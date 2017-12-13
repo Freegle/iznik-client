@@ -358,7 +358,7 @@ define([
                     // Reload.  Bit clunky but it'll do.
                     Iznik.Session.chats.fetch().then(function() {
                         // CC window.location.reload();
-                        Router.navigate("/chats", true);
+                        Router.navigate("/modtools/chats", true);
                     });
                 });
             });
@@ -766,9 +766,10 @@ define([
             self.trigger('countupdated', unseen);
         },
 
-        photoUpload: function() {
+        photoUpload: function () {   // CC newer for the whole page view.
             var self = this;
 
+            console.log("chat photoUpload ======================");
             // Photo upload button
             self.$('.js-photopicker').fileinput({
                 uploadExtraData: {
@@ -804,6 +805,7 @@ define([
 
             self.$('.js-photopicker').on('fileimagesresized', function (event) {
                 // Upload as soon as we have it.  Add an entry for the progress bar.
+                console.log("fileimagesresized ======================");
                 $('.file-preview, .kv-upload-progress').hide();
                 var prelast = self.messages.last();
                 var nextid = prelast ? (prelast.get('id') + 1) : 1;
@@ -821,7 +823,7 @@ define([
             });
 
             self.$('.js-photopicker').on('fileuploaded', function (event, data) {
-                console.log("Uploaded", event, data);
+                console.log("Uploaded ======================");
                 var ret = data.response;
 
                 // Create a chat message to hold it.

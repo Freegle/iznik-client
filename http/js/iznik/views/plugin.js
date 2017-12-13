@@ -114,6 +114,10 @@ define([
                         processKeyEvents: false
                     } );
 
+                    var count = self.collection.length; // CC
+                    $("#js-work2").text("Background work: "+count);
+                    console.log("plugin render " + count + " work item(s)");    // REMOVE
+
                     // Update our count when the number of work items changes.
                     self.listenTo(self.collection, 'add remove', self.updatePluginCount);
 
@@ -310,6 +314,10 @@ define([
         checkWork: function() {
             var self = this;
 
+            var count = self.collection.length; // CC
+            $("#js-work2").text("Background work: " + count);
+            //console.log("plugin checkWork " + count + " work item(s)"); // REMOVE
+    
             if (self.connected) {
                 // Get any first item of work to do.
                 var first = this.collection.at(0);
@@ -369,8 +377,13 @@ define([
             var self = this;
 
             function checkResponse(self) {
-                return(function(ret) {
+                return (function (ret) {
+                    //console.log("plugin typeof ret=" + typeof ret);
+                    if (typeof ret == "string") {
+                        console.log("plugin ret=" + ret.substring(0,50));
+                    }
                     if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
+                        //console.log("checkResponse OK");
                         $('.js-pluginonly').show();
                         $('#js-loginbuildup').fadeOut('slow');
 
@@ -389,8 +402,13 @@ define([
                         $('#js-plugindisconnected').fadeOut('slow', function() {
                             $('#js-pluginconnected').fadeIn('slow');
                             $('#js-pluginbuildup').hide();
-                        })
+                        });
+                        $('#js-plugindisconnected2').fadeOut('slow', function () {
+                            $('#js-pluginconnected2').fadeIn('slow');
+                        });
                     } else {
+                        console.log("checkResponse not OK");
+                        //console.log(ret.substring(0,100));
                         $('.js-pluginonly').hide();
 
                         if (self.connected) {
@@ -399,6 +417,9 @@ define([
 
                         $('#js-pluginconnected').fadeOut('slow', function() {
                             $('#js-plugindisconnected').fadeIn('slow');
+                        });
+                        $('#js-pluginconnected2').fadeOut('slow', function () {
+                            $('#js-plugindisconnected2').fadeIn('slow');
                         });
                     }
                 });
@@ -671,13 +692,15 @@ define([
                         } else {
                             // Check if we are connected to Yahoo by issuing an API call.
                             //console.log("Not running item - query Yahoo");
+
                             new majax({
                                 type: 'GET',
                                 url: 'https://groups.yahoo.com/api/v1/user/groups/all',
                                 success: checkResponse(self),
                                 error: checkResponse(self),
-                                complete: function() {
-                                    window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
+                                complete: function () {
+                                    //console.log("majax get all complete");
+                                    window.setTimeout(_.bind(self.checkPluginStatus, self), 20000); // TODOCC 
                                 }
                             });
                         }
@@ -766,8 +789,8 @@ define([
                         console.log("Mod on Yahoo but not server", serverMissing);
                         console.log("Mod on server but but not Yahoo", yahooMissing);
                         console.log("NameToId", nameToId);
-                        console.log("Session", Iznik.Session);
-
+                        //console.log("Session", Iznik.Session);
+    
                         // If we're a mod on the server but not on Yahoo, then we need to demote ourselves.  But
                         // doing this might cause us to lose groups if we log in with multiple Yahoo IDs.  So we
                         // should only do this if we are sure.  It'll get picked up on the next member sync anyway
