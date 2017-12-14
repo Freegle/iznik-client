@@ -523,6 +523,7 @@ define([
     // Modmails are very similar to logs.
     Iznik.Views.ModTools.User.ModMails = Iznik.Views.ModTools.User.Logs.extend({
         template: 'modtools_user_modmails',
+
         addLog: function(log) {
             var self = this;
 

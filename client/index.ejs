@@ -26,6 +26,13 @@
 </div>
 <div id="botleft"></div>
 
+<script src="https://apis.google.com/js/client.js"></script>
+<script>
+    // TODO This is an ignorant and outrageous hack, to get the gapi var to google.js.
+    var env = document.getElementById('bodyEnvelope');
+    env.gapi = gapi;
+</script>
+
 <!-- Some nonsense to make browsers remember user/password. -->
 <div id="hiddenloginform" style="display: none">
     <form action="" method="post">

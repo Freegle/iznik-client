@@ -41,12 +41,15 @@ define([
         },
 
         signInButton: function (id) {
+            // TODO This is an ignorant and outrageous hack which gets the gapi var from index.ejs.
+            var gapi = document.getElementById('bodyEnvelope').gapi;
+
             try {
                 var self = this;
                 self.buttonId = id;
                 self.scopes = "profile email";
 
-                if (_.isUndefined(window.gapi)) {
+                if (_.isUndefined(gapi)) {
                     // This happens with Firefox privacy blocking.
                     self.disabled = true;
                 }
@@ -74,7 +77,7 @@ define([
                             var params = {
                                 'clientid': self.clientId,
                                 'cookiepolicy': 'single_host_origin',
-                                'callback': self.onSignInCallback,
+                                'callback': _.bind(self.onSignInCallback, self),
                                 'immediate': false,
                                 'scope': self.scopes,
                                 'app_package_name': 'org.ilovefreegle.direct'
