@@ -21,7 +21,7 @@ is therefore subject to the Open Database License.  You can request a copy of th
 
 # Development
 
-First, install all the dependencies:
+You'll need npm (>= v5.5.1).  Then install all the dependencies:
 ```
 npm install
 ```
