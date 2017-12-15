@@ -4,14 +4,16 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'googlemaps-js-rich-marker',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
     'iznik/views/pages/user/group',
     'iznik/views/user/message',
     'iznik/models/group',
-    'googlemaps-js-rich-marker',
     'geocomplete'
-], function ($, _, Backbone, Iznik, moment) {
+], function ($, _, Backbone, Iznik, moment,r) {
+    var RichMarker = r.default.RichMarker;
+
     Iznik.Views.User.Pages.Explore = Iznik.Views.Page.extend({
         template: 'user_explore_main',
 
@@ -247,7 +249,7 @@ define([
 
                         if (within > 20) {
                             // Switch to pins for large collections
-                            var icon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarker.gif?a=1';
+                            var icon = '/images/mapmarker.gif?a=1';
                             var marker = new google.maps.Marker({
                                 position: latLng,
                                 icon: icon,

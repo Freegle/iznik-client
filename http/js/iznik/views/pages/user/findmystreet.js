@@ -5,12 +5,14 @@ define([
     'iznik/base',
     'iznik/facebook',
     'moment',
+    'googlemaps-js-rich-marker',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
     'iznik/models/membership',
-    'iznik/models/group',
-    'googlemaps-js-rich-marker'
-], function($, _, Backbone, Iznik, FBLoad, moment) {
+    'iznik/models/group'
+], function($, _, Backbone, Iznik, FBLoad, moment, r) {
+    var RichMarker = r.default.RichMarker;
+
     Iznik.Views.User.Pages.FindMyStreet = Iznik.Views.User.Pages.WhereAmI.extend({
         template: "user_findmystreet_main",
 
