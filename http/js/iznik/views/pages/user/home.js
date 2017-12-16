@@ -282,6 +282,7 @@ define([
 
                 // (new Iznik.Views.SupportUs()).render();
                 // (new Iznik.Views.User.eBay()).render();
+                //(new Iznik.Views.User.BusinessCards()).render();
 
                 var today = new Date().toISOString().slice(0, 10);
                 if (today == '2017-04-01') {

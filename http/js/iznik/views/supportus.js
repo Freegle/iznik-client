@@ -375,7 +375,18 @@ define([
     });
 
     Iznik.Views.User.BusinessCards.Thankyou = Iznik.Views.Modal.extend({
-        template: 'user_support_businesscardsthanks'
+        template: 'user_support_businesscardsthanks',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function() {
+                self.$('input[name="custom"]').val(Iznik.Session.get('me').id);
+            });
+
+            return(p);
+        }
     });
 
     Iznik.Views.User.SupportGroup = Iznik.Views.Modal.extend({
