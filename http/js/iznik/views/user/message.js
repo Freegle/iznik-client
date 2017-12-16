@@ -329,13 +329,16 @@ define([
                         // If the number of promises changes, then we want to update what we display.
                         self.listenTo(self.model, 'change:promisecount', self.render);
 
-                        self.laughsAndLikes = new Iznik.Views.User.Message.LaughsAndLikes({
-                            model: self.model
-                        });
-
-                        self.laughsAndLikes.render().then(function() {
-                            self.$('.js-laughsandlikes').html(self.laughsAndLikes.el)
-                        });
+                        // People don't seem to click these buttons - we ran with them for several
+                        // months and only got 250 clicks.  So don't show them, as they're just
+                        // screen clutter.
+                        // self.laughsAndLikes = new Iznik.Views.User.Message.LaughsAndLikes({
+                        //     model: self.model
+                        // });
+                        //
+                        // self.laughsAndLikes.render().then(function() {
+                        //     self.$('.js-laughsandlikes').html(self.laughsAndLikes.el)
+                        // });
 
                         // By adding this at the end we avoid border flicker.
                         self.$el.addClass('panel panel-info');
