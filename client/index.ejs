@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
 </head>
 
-<body>
+<body id="thebody">
 <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
@@ -26,10 +26,10 @@
 </div>
 <div id="botleft" class="img-morerounded backwhitetrans vbottom"></div>
 
-<script src="https://apis.google.com/js/client.js"></script>
+<script src="https://apis.google.com/js/client:plusone.js"></script>
 <script>
     // TODO This is an ignorant and outrageous hack, to get the gapi var to google.js.
-    var env = document.getElementById('bodyEnvelope');
+    var env = document.getElementById('thebody');
     env.gapi = gapi;
 </script>
 

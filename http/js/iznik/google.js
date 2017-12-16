@@ -42,7 +42,7 @@ define([
 
         signInButton: function (id) {
             // TODO This is an ignorant and outrageous hack which gets the gapi var from index.ejs.
-            var gapi = document.getElementById('bodyEnvelope').gapi;
+            var gapi = document.getElementById('thebody').gapi;
 
             try {
                 var self = this;
@@ -99,6 +99,9 @@ define([
 
         buttonShim: function (id) {
             try {
+                var gapi = document.getElementById('thebody').gapi;
+                console.log("GAPI", gapi);
+
                 gapi.signin.render(id, {
                     'clientid': self.clientId,
                     'cookiepolicy': 'single_host_origin',
