@@ -54,6 +54,7 @@
     "dotenv": "^4.0.0",
     "es5-shim": "^4.5.9",
     "extract-text-webpack-plugin": "^3.0.2",
+    "file-saver": "^1.3.3",
     "fs": "0.0.1-security",
     "fs-extra": "^3.0.1",
     "geocomplete": "^1.7.0",

@@ -1764,6 +1764,5 @@ define([
     	internal(evt, href);
     });
 
-        window.Router = Router;
-    });
+    window.Router = Router;
 });
