@@ -240,6 +240,14 @@ nav .nav-tabs>li {
     border-style: none !important;
 }
 
+.vtop {
+    vertical-align: top;
+}
+
+.vbottom {
+    vertical-align: bottom;
+}
+
 .vcenter {
     display: inline-block !important;
     vertical-align: middle !important;
@@ -1067,6 +1075,10 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 .backwhite {
     background-color: white;
+}
+
+.backwhitetrans {
+    background-color: rgba(255, 255, 255, 0.6);
 }
 
 .white {

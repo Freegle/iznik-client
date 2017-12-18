@@ -566,8 +566,6 @@ define([
                     self.$('.js-newsletter').removeClass('hidden');
                 }
 
-                if (Iznik.Session.hasP)
-
                 // We need to create a hidden signin button because otherwise the Google logout method doesn't
                 // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
                 var GoogleLoad = new Iznik.Views.GoogleLoad();

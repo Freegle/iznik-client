@@ -3,17 +3,36 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger" class="close" data-dismiss="modal" />
-                <h2 class="modal-title js-modal-title">Thank you!</h2>
+                <h2 class="modal-title js-modal-title">Thanks for the address!</h2>
             </div>
             <div class="modal-body js-modal-body">
-                <p>We'll pop these in the post as soon as we can.</p>
-                <p>If you want to help cover the cost of this, you can donate:</p>
-                <a target="_blank" rel="noopener" data-realurl="true" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HEZK5EYTVLXNA">
-                    <span class="btn btn-primary btn-lg">
-                        <img alt="PayPal" class="img-thumbnail" src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" />
-                        &nbsp;Donate
-                    </span>
-                </a>
+                <p>&pound;1 will cover the cost to Freegle of sending them.  If you want to give more, we'll send you the 15 cards and use the rest to
+                keep Freegle running.</p>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <form method="post" action="https://www.paypal.com/cgi-bin/webscr" class="paypal-button" target="_blank" rel="noopener">
+                            <input type="hidden" name="button" value="buynow">
+                            <input type="hidden" name="item_name" value="About 15 Freegle Business Cards">
+                            <input type="hidden" name="quantity" value="1">
+                            <select class="form-control" name="amount">
+                                <option value="1.00">&pound;1 for about 15 cards</option>
+                                <option value="2.00">&pound;2 for about 15 cards</option>
+                                <option value="5.00">&pound;5 for about 15 cards</option>
+                                <option value="10.00">&pound;10 for about 15 cards</option>
+                            </select>
+                            <input type="hidden" name="currency_code" value="GBP">
+                            <input type="hidden" name="no_shipping" value="1">
+                            <input type="hidden" name="tax" value="0">
+                            <input type="hidden" name="cmd" value="_xclick">
+                            <input type="hidden" name="bn" value="JavaScriptButton_buynow">
+                            <input type="hidden" name="env" value="www">
+                            <input type="image" class="topspace" src="https://www.paypalobjects.com/en_GB/i/btn/btn_paynow_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+                            <input type="hidden" name="custom">
+                            <input type="hidden" name="notify_url" value="https://www.ilovefreegle.org/businesscards.php">
+                            <input type="hidden" name="business" value="treasurer@ilovefreegle.org">
+                        </form>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>

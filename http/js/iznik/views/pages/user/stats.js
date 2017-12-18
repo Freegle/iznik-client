@@ -641,7 +641,7 @@ define([
                                     self.wait.close();
                                 } else {
                                     _.each(groups, function(group) {
-                                        var icon = window.location.protocol + '//' + window.location.hostname + '/images/mapmarkerbrightgreen.gif';
+                                        var icon = '/images/mapmarkerbrightgreen.gif';
                                         var marker = new google.maps.Marker({
                                             position: new google.maps.LatLng(group.lat, group.lng),
                                             icon: icon,
