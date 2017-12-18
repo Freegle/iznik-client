@@ -188,9 +188,9 @@ define([
 
             self.showMin();
 
-            if (mobilePush) {
+            if (window.mobilePush) {
                 console.log("Chat set badge: " + unseen);
-                mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
+                window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
                 /*var msg = new Date();
                 msg = msg.toLocaleTimeString() + " C " + unseen + "<br/>";
                 badgeconsole += msg;

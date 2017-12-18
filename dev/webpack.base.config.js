@@ -6,7 +6,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const FaviconsPlugin = require('favicons-webpack-plugin');
 const AssetsPlugin = require('assets-webpack-plugin');
 const ProgressBarPlugin = require('progress-bar-webpack-plugin');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+// CC const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 
 const shims = require('./shims');
@@ -24,7 +24,7 @@ exports['default'] = new Config().merge({
     path: resolve(ROOT, 'dist'),
     filename: 'js/[name].[hash].js',
     chunkFilename: 'js/[id].[chunkhash].js',
-    publicPath: '/'
+    publicPath: ''  // CC '/'
   },
   resolve: {
     modules: [
@@ -73,7 +73,7 @@ exports['default'] = new Config().merge({
           BASE_URL: JSON.stringify(BASE_URL),
           CHAT_HOST: JSON.stringify('https://users.ilovefreegle.org'), // Long polls interact badly with per-host connection limits so send to here instead.
           EVENT_HOST: JSON.stringify(BASE_URL),
-          API: JSON.stringify('/api/'),
+          API: JSON.stringify(BASE_URL+'/api/'),    // CC
           USER_SITE: JSON.stringify(DOMAIN),
           YAHOOAPI: JSON.stringify('https://groups.yahoo.com/api/v1/'),
           YAHOOAPIv2: JSON.stringify('https://groups.yahoo.com/api/v2/')
@@ -92,11 +92,11 @@ exports['default'] = new Config().merge({
 
       new ProgressBarPlugin({}),
 
-      new BundleAnalyzerPlugin({
+      /*// CC new BundleAnalyzerPlugin({
           analyzerMode: 'static',
           generateStatsFile: true,
           openAnalyzer: false
-      }),
+      }),*/
 
       new webpack.optimize.CommonsChunkPlugin({
           children: true,

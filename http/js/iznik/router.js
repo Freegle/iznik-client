@@ -249,7 +249,7 @@ define([
         },
 
         mobileReload: function (url) {  // CC url not used - could be used to specify route to use
-            window.location.href = initialURL;  // Could add ?route=Xxx
+            window.location.href = window.initialURL;  // Could add ?route=Xxx
         },
 
         userHome: function () {
@@ -269,7 +269,7 @@ define([
                         });
                     } else {
                         require(["iznik/views/pages/user/landing"], function () {
-                            console.log("Load landing");
+                            console.log("Load landing1");
                             var page = new Iznik.Views.User.Pages.Landing();
                             self.loadRoute({ page: page });
                         });
@@ -367,7 +367,7 @@ define([
                     }
                 } else {
                     require(["iznik/views/pages/user/landing"], function() {
-                        console.log("Load landing");
+                        console.log("Load landing2");
                         var page = new Iznik.Views.User.Pages.Landing();
                         self.loadRoute({page: page});
                     });

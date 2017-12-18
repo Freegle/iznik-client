@@ -1,4 +1,4 @@
-define([
+/*define([
     'jquery',
     'underscore',
     'moment'
@@ -143,12 +143,6 @@ define([
         sortmsgs = $.merge(sortmsgs, stdmsgs);
         return (sortmsgs);
     };
-
-    /**
-     * Class for creating csv strings
-     * Handles multiple data types
-     * Objects are cast to Strings
-     **/
 
     window.csvWriter = function(del, enc) {
         this.del = del || ','; // CSV Delimiter
@@ -570,11 +564,6 @@ function formatDuration(secs) {
     return(ret);
 }
 
-/**
- * Return an object with the selection range or cursor position (if both have the same value)
- * @param {DOMElement} el A dom element of a textarea or input text.
- * @return {Object} reference Object with 2 properties (start and end) with the identifier of the location of the cursor and selected text.
- **/
 function getInputSelection(el) {
     var start = 0, end = 0, normalizedValue, range, textInputRange, len, endRange;
 
@@ -670,3 +659,4 @@ function mobile_pathname() { // CC
     }
     return pathname;
 }
+*/
