@@ -19,6 +19,7 @@ define([
     'twemoji.min',
     'iznik/diff',
     'iznik/events',
+    'iznik/utility',    // CC
     'iznik/timeago',
     'iznik/majax'
 ], function ($, Backbone, _, moment) {

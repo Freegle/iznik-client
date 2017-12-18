@@ -264,6 +264,12 @@ define([
         });
     };
 
+    window.template = function(id){  // CC
+        require(['iznik/templateloader'], function () {
+            return template(id);
+        });
+    };
+
     $.fn.isOnScreen = function(){
 
         var win = $(window);

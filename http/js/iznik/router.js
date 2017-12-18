@@ -57,7 +57,7 @@ define([
             // CC }
 
             // Make sure we have google analytics for Backbone routes.
-            try {
+            /*try {
                 var ua = require('universal-analytics');
                 var visitor = ua('UA-10627716-2', {https: true});
                 visitor.pageview(url).send();
@@ -66,7 +66,7 @@ define([
                 monitor.trackEvent('route', url, null, null, null, timestamp);
             } catch (e) {
                 console.log("Google exception - privacy blocker?", e);
-            }
+            }*/
         },
 
         routes: {

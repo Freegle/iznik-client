@@ -3,7 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'autosize',
+    'iznik/autosize',
     'moment',
     'iznik/models/chat/chat',
     'iznik/views/pages/pages',
