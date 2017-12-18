@@ -63,13 +63,8 @@ const globalFunctions = [
 ]
 
 const windowFunctions = [
-    'isXS',
-    'innerWidth',
-    'isSM',
     'innerWidth',
     'isShort',
-    'innerHeight',
-    'isVeryShort',
     'innerHeight',
     'canonSubj',
     'setURLParam',

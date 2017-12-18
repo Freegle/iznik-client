@@ -311,7 +311,7 @@ define([
                     autosize(self.$('.js-message'));
                 }
 
-                if (!isXS() && !isSM()) {
+                if (!Iznik.isXS() && !Iznik.isSM()) {
                     self.$('.js-message').focus();
                 }
 
