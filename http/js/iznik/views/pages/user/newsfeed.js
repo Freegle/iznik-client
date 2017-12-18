@@ -3,7 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'autosize',
+    'iznik/autosize',
     'iznik/facebook',
     'moment',
     'jquery.caret.min',
