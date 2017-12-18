@@ -364,7 +364,7 @@ define([
                 }, self));
 
                 // Photo upload.
-                self.$el.find('.js-photo').fileinput({
+                self.$el.find('.js-discussphoto').fileinput({
                     uploadExtraData: {
                         imgtype: 'Newsfeed',
                         newsfeed: 1,
@@ -397,16 +397,16 @@ define([
                 });
 
                 // Upload as soon as we have it.
-                self.$el.find('.js-photo').on('fileimagesresized', function (event) {
-                    self.$('.js-photopreviewwrapper').show();
+                self.$el.find('.js-discussphoto').on('fileimagesresized', function (event) {
+                    self.$('.js-discussphotopreviewwrapper').show();
                     self.$('.file-input').hide();
-                    self.$('.js-photo').fileinput('upload');
+                    self.$('.js-discussphoto').fileinput('upload');
                 });
 
-                self.$el.find('.js-photo').on('fileuploaded', function (event, data) {
+                self.$el.find('.js-discussphoto').on('fileuploaded', function (event, data) {
                     // Once it's uploaded, hide the controls.  This means we can't edit, but that's ok for
                     // this.
-                    self.$('.js-photopreview').attr('src', data.response.paththumb);
+                    self.$('.js-discussphotopreview').attr('src', data.response.paththumb);
                     self.$('.js-discussmessagewrapper').removeClass('col-sm-12');
                     self.$('.js-discussmessagewrapper').addClass('col-sm-10');
                     self.imageid = data.response.id;
