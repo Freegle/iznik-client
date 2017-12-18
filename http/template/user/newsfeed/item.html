@@ -67,6 +67,9 @@
         </div>
         <div class="row">
             <div class="col-xs-12">
+                <% if (obj.image) { %>
+                    <img class="img-thumbnail pull-right clickme js-photo" title="Click to zoom" width="150" src="{{image.paththumb}}" />
+                <% } %>
                 <b class="prewrap forcebreak js-emoji js-messagethread"></b><a class="js-moremessagethread" style="display: none">See more</a>
                 <% if (obj.preview && !preview.invalid && !preview.spam) { %>
                     <div class="panel panel-default topspace clickme preview js-preview">
@@ -88,6 +91,10 @@
                         </div>
                     </div>
                 <% } %>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
                 <hr class="text-muted nomargin botspace" />
                 <div class="inline js-itemloves" />
                 <span class="inline btn btn-white btn-xs pull-right js-sharefb"><span class="glyphicons glyphicons-share-alt vcenter" />&nbsp;Share<span class="hidden-xs"> on Facebook</span></span>
@@ -98,7 +105,7 @@
         <a href="#" class="js-showearlier" style="display: none">Show earlier...</a>
         <ul class="list-unstyled js-replies" />
         <div class="row">
-            <div class="col-xs-12">
+            <div class="col-xs-11 js-commentwrapper">
                 <% if (obj.closed) { %>
                 <div class="alert alert-info">This thread is now closed.  Thanks to everyone who contributed.</div>
                 <% } else { %>
@@ -109,6 +116,12 @@
                     <textarea rows="1" class="form-control js-comment"  maxlength="2048" spellcheck="true" placeholder="Write a comment..." />
                 </div>
                 <% } %>
+            </div>
+            <div class="col-xs-1 js-addphotowrapper">
+                <input class="js-addphoto" type="file" name="photo" multiple="">
+            </div>
+            <div class="col-xs-2 js-photopreviewwrapper" style="display: none">
+                <img class="topspace pull-right img-smallerthumbnail js-photopreview padleft" width="150" src="/images/userloader.gif" />
             </div>
         </div>
     </div>

@@ -90,10 +90,17 @@
                         </ul>
                         <div class="tab-content clearfix">
                             <div class="tab-pane active" id="js-writepost">
-                                <textarea id="js-discussmessage" rows="2" maxlength="2048" class="formfocus topspace form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether.  If you're looking to give or find stuff, please use the OFFER/WANTED tabs.  Everything on here is public." />
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 js-discussmessagewrapper">
+                                        <textarea id="js-discussmessage" rows="2" maxlength="2048" class="formfocus topspace form-control js-message" placeholder="Chat to nearby freeglers...ask for advice, recommendations, or just have a good old blether.  If you're looking to give or find stuff, please use the OFFER/WANTED tabs.  Everything on here is public." />
+                                    </div>
+                                    <div class="col-xs-12 col-sm-2 js-photopreviewwrapper" style="display: none">
+                                        <img class="topspace pull-right img-thumbnail js-photopreview padleft" width="150" src="/images/userloader.gif" />
+                                    </div>
+                                </div>
                                 <hr class="margintopsm marginbotsm" />
                                 <div class="row">
-                                    <div class="col-sm-4 col-md-5">
+                                    <div class="col-sm-4 col-md-4">
                                         <div class="pull-left vcenter">
                                             <% if (me.settings.mylocation && me.settings.mylocation.area) { %>
                                             <a class="text-muted" href="/settings">
@@ -102,7 +109,7 @@
                                             <% } %>
                                         </div>
                                     </div>
-                                    <div class="col-sm-6 col-md-6 text-muted">
+                                    <div class="col-sm-4 col-md-4 text-muted">
                                         <div class="pull-left">
                                             <select id='newsfeeddist' class="form-control input-sm js-distance">
                                                 <option value="nearby">Show news from nearby</option>
@@ -116,8 +123,15 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-sm-2 col-md-1">
-                                        <div class="btn btn-success pull-right js-post">Post&nbsp;it!</div>
+                                    <div class="col-sm-4 col-md-4">
+                                        <ul class="list-unstyled list-inline pull-right">
+                                            <li>
+                                                <input class="js-photo" type="file" name="photo" multiple="">
+                                            </li>
+                                            <li>
+                                                <div class="padleft btn btn-success js-post">Post&nbsp;it!</div>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>

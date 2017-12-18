@@ -10,6 +10,9 @@
                     </td>
                     <td>
                         <div class="">
+                            <% if (obj.image) { %>
+                            <img class="img-smallerthumbnail pull-right clickme js-photo" title="Click to zoom" width="150" src="{{image.paththumb}}" />
+                            <% } %>
                             <b><span class="success js-replyprofile">{{user.displayname}}</span></b>&nbsp;<b class="prewrap forcebreak js-emoji js-message"></b><a class="js-moremessage" style="display: none">See more</a>
                             <br />
                             <small class="text-muted">
