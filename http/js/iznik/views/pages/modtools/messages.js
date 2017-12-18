@@ -572,7 +572,7 @@ define([
                         self.$('.js-text').val(msg);
 
                         self.open(null);
-                        $('.modal').on('shown.bs.modal', function () {
+                        $('.modal').once('shown.bs.modal', function () {
                             $('.modal ' + focuson).focus();
                         });
 

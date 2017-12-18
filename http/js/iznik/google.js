@@ -100,7 +100,6 @@ define([
         buttonShim: function (id) {
             try {
                 var gapi = document.getElementById('thebody').gapi;
-                console.log("GAPI", gapi);
 
                 gapi.signin.render(id, {
                     'clientid': self.clientId,
