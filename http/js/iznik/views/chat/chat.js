@@ -1,3 +1,5 @@
+import 'bootstrap-fileinput';
+
 define([
     'jquery',
     'underscore',
@@ -11,8 +13,7 @@ define([
     'iznik/views/postaladdress',
     'iznik/views/user/schedule',
     'jquery-resizable',
-    'jquery-visibility',
-    'fileinput'
+    'jquery-visibility'
 ], function ($, _, Backbone, Iznik, autosize, moment) {
     // This is a singleton view.
     var instance;
