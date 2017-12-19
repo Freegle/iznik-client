@@ -1,3 +1,11 @@
+var Raven = require('raven-js');
+Raven.config(RAVEN_ID).install({
+    extra: {
+        BASE_URL: BASE_URL
+    },
+    release: GIT_COMMITHASH
+});
+
 import 'persist-js';
 global.Storage = new Persist.Store("Iznik");
 

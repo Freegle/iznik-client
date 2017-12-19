@@ -1,3 +1,5 @@
+var Raven = require('raven-js');
+
 define([
     'jquery',
     'underscore',
@@ -212,31 +214,36 @@ define([
         loadRoute: function (routeOptions) {
             var self = this;
 
-            // We're no longer interested in any outstanding requests, and we also want to avoid them clogging up
-            // our per-host limit.
-            self.abortAll();
+            try {
+                // We're no longer interested in any outstanding requests, and we also want to avoid them clogging up
+                // our per-host limit.
+                self.abortAll();
 
-            // Tidy any modal grey.
-            $('.modal-backdrop').remove();
+                // Tidy any modal grey.
+                $('.modal-backdrop').remove();
 
-            // The top button might be showing.
-            $('.js-scrolltop').addClass('hidden');
+                // The top button might be showing.
+                $('.js-scrolltop').addClass('hidden');
 
-            //console.log("loadRoute"); console.log(routeOptions);
-            routeOptions = routeOptions || {};
+                //console.log("loadRoute"); console.log(routeOptions);
+                routeOptions = routeOptions || {};
 
-            self.modtools = routeOptions.modtools;
-            Iznik.Session.set('modtools', self.modtools);
+                self.modtools = routeOptions.modtools;
+                Iznik.Session.set('modtools', self.modtools);
 
-            function loadPage() {
-                // Hide the page loader, which might still be there.
-                $('#pageloader').remove();
-                $('body').css('height', '');
+                function loadPage() {
+                    // Hide the page loader, which might still be there.
+                    $('#pageloader').remove();
+                    $('body').css('height', '');
 
-                routeOptions.page.render();
+                    routeOptions.page.render();
+                }
+
+                loadPage();
+
+            } catch (e) {
+                Raven.captureException(e);
             }
-             
-            loadPage();
         },
 
         localstorage: function () {

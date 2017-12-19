@@ -83,6 +83,7 @@ module.exports = {
     FACEBOOK_GRAFFITI_APPID: true,
     GOOGLE_CLIENT_ID: true,
     SITE_NAME: true,
-    SITE_DESCRIPTION: true
+    SITE_DESCRIPTION: true,
+    RAVEN_ID: true
   }
 }

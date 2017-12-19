@@ -918,7 +918,7 @@ define([
                     });
                 });
 
-                self.messageViews.render();
+                self.messageViews.render.call(self);
 
                 // Photo upload button
                 self.$('.js-photo').fileinput({
