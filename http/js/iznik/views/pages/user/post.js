@@ -273,10 +273,13 @@ define([
 
                 // Upload as soon as photos have been resized.
                 self.$('#fileupload').on('fileimageresized', function (event) {
-                    self.$('#fileupload').fileinput('upload');
+                    // Have to defer else break fileinput validation processing.
+                    _.defer(function() {
+                        self.$('#fileupload').fileinput('upload');
 
-                    // We don't seem to be able to hide this control using the options.
-                    self.$('.fileinput-remove').hide();
+                        // We don't seem to be able to hide this control using the options.
+                        self.$('.fileinput-remove').hide();
+                    })
                 });
 
                 // Watch for all uploaded
