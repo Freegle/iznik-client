@@ -196,7 +196,6 @@ define([
                         self.set('configs', new Iznik.Collection(parsed.configs));
                     }
 
-                    console.log("Raven is", Raven);
                     Raven.setUserContext({
                         user: self.get('me')
                     });
