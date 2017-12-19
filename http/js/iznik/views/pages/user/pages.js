@@ -666,7 +666,7 @@ define([
                 ABTestShown('sharepost', 'clipboard');
                 ABTestShown('sharepost', 'close');
 
-                if (isSM()) {
+                if (Iznik.isSM()) {
                     ABTestShown('sharepost', 'whatsapp');
                 }
 

@@ -99,11 +99,7 @@ define([
             'getBoundsZoomLevel'
         ],
         windowFunctions: [
-            'isXS',
             'innerWidth',
-            'isSM',
-            'innerWidth',
-            'isShort',
             'innerHeight',
             'isVeryShort',
             'innerHeight',

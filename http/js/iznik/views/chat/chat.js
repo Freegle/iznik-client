@@ -75,8 +75,7 @@ define([
                         // Make sure it's not stupidly tall or short.  We let the navbar show unless we're really short,
                         // which happens when on-screen keyboards open up.
                         // console.log("Consider height", css.height, windowInnerHeight, navbarOuterHeight, windowInnerHeight - navbarOuterHeight - 5);
-                        var height = Math.min(css.height, windowInnerHeight - (isVeryShort() ? 0 : navbarOuterHeight) - 10);
-                        // console.log("Consider shortness", height, css.height, windowInnerHeight, isVeryShort() ? 0 : navbarOuterHeight, navbarOuterHeight);
+                        var height = Math.min(css.height, windowInnerHeight - (Iznik.isVeryShort() ? 0 : navbarOuterHeight) - 10);
                         height = Math.max(height, 100);
                         maxHeight = Math.max(height, maxHeight);
                         // console.log("Height", height, css.height, windowInnerHeight, navbarOuterHeight);
@@ -90,7 +89,7 @@ define([
 
                 // console.log("Checked height", (new Date()).getMilliseconds() - start);
 
-                var max = window.innerWidth - (isSM() ? 0 : 100);
+                var max = window.innerWidth - (Iznik.isSM() ? 0 : 100);
 
                 //console.log("Consider width", totalOuter, max);
 
@@ -835,14 +834,14 @@ define([
                 // On mobile we maximise the chat window, as the whole resizing thing is too fiddly.
                 var height = Storage.get('chat-' + self.model.get('id') + '-height');
                 var width = Storage.get('chat-' + self.model.get('id') + '-width');
-                if (isSM()) {
+                if (Iznik.isSM()) {
                     // Just maximise it.
                     width = $(window).innerWidth();
                     console.log("Small, maximimise", width);
                 }
 
                 // console.log("Short?", isShort(), $(window).innerHeight(), $('.navbar').outerHeight(), $('#js-notifchat').outerHeight());
-                if (isShort()) {
+                if (Iznik.isShort()) {
                     // Maximise it.
                     height = $(window).innerHeight();
                 }
@@ -853,7 +852,7 @@ define([
                     self.$el.width(width);
                 }
 
-                if (!isSM()) {
+                if (!Iznik.isSM()) {
                     var lpwidth = Storage.get('chat-' + self.model.get('id') + '-lp');
                     lpwidth = self.$el.width() - 60 < lpwidth ? (self.$el.width() - 60) : lpwidth;
 
@@ -1267,7 +1266,7 @@ define([
                         var open = Storage.get(self.lsID() + '-open');
                         open = (open === null) ? open : parseInt(open);
 
-                        if (!open || (open != 2 && isSM())) {
+                        if (!open || (open != 2 && Iznik.isSM())) {
                             minimise = true;
                         } else {
                             minimise = false;
