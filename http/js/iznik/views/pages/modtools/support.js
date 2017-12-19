@@ -4,7 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'moment',
-    'FileSaver',
+    'file-saver',
     'backgrid',
     "iznik/modtools",
     'iznik/views/pages/pages',
@@ -14,7 +14,9 @@ define([
     'iznik/models/user/alert',
     'iznik/views/user/user',
     'typeahead'
-], function($, _, Backbone, Iznik, moment, saveAs, Backgrid) {
+], function($, _, Backbone, Iznik, moment, s, Backgrid) {
+    var saveAs = s.saveAs;
+
     Iznik.Views.ModTools.Pages.Support = Iznik.Views.Page.extend({
         modtools: true,
 

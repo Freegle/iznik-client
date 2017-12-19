@@ -3,7 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'autosize',
+    'iznik/autosize',
     'iznik/facebook',
     'moment',
     'jquery.caret.min',
@@ -26,6 +26,8 @@ define([
         template: "user_newsfeed_main",
 
         retField: 'newsfeed',
+
+        imageid: null,
 
         events: {
             'click .js-post': 'post',
@@ -211,7 +213,8 @@ define([
 
             if (msg) {
                 var mod = new Iznik.Models.Newsfeed({
-                    message: msg
+                    message: msg,
+                    imageid: self.imageid
                 });
 
                 mod.save().then(function() {
@@ -308,7 +311,7 @@ define([
                     autosize(self.$('.js-message'));
                 }
 
-                if (!isXS() && !isSM()) {
+                if (!Iznik.isXS() && !Iznik.isSM()) {
                     self.$('.js-message').focus();
                 }
 
@@ -353,8 +356,64 @@ define([
 
                 // Polls
                 var poll = new Iznik.Views.User.Poll();
-                poll.render().then(function() {
-                    self.$('.js-poll').html(poll.$el);
+                poll.render().then(_.bind(function() {
+                    var el = this.$('.js-poll');
+                    if (el.length) {
+                        el.html(poll.$el);
+                    }
+                }, self));
+
+                // Photo upload.
+                self.$el.find('.js-discussphoto').fileinput({
+                    uploadExtraData: {
+                        imgtype: 'Newsfeed',
+                        newsfeed: 1,
+                        ocr: false
+                    },
+                    showUpload: false,
+                    allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                    uploadUrl: API + 'image',
+                    resizeImage: true,
+                    maxImageWidth: 800,
+                    browseIcon: '',
+                    browseLabel: 'Add&nbsp;Photo',
+                    browseClass: 'btn btn-primary nowrap',
+                    showCaption: false,
+                    showRemove: false,
+                    showUploadedThumbs: false,
+                    dropZoneEnabled: false,
+                    buttonLabelClass: '',
+                    fileActionSettings: {
+                        showZoom: false,
+                        showRemove: false,
+                        showUpload: false
+                    },
+                    layoutTemplates: {
+                        footer: '<div class="file-thumbnail-footer">\n' +
+                        '    {actions}\n' +
+                        '</div>'
+                    },
+                    elErrorContainer: '#js-uploaderror'
+                });
+
+                // Upload as soon as we have it.
+                self.$el.find('.js-discussphoto').on('fileimagesresized', function (event) {
+                    self.$('.js-discussphotopreviewwrapper').show();
+                    self.$('.file-input').hide();
+                    self.$('.js-discussphoto').fileinput('upload');
+                });
+
+                self.$el.find('.js-discussphoto').on('fileuploaded', function (event, data) {
+                    // Once it's uploaded, hide the controls.  This means we can't edit, but that's ok for
+                    // this.
+                    self.$('.js-discussphotopreview').attr('src', data.response.paththumb);
+                    self.$('.js-discussmessagewrapper').removeClass('col-sm-12');
+                    self.$('.js-discussmessagewrapper').addClass('col-sm-10');
+                    self.imageid = data.response.id;
+
+                    _.delay(function() {
+                        self.$('.file-preview-frame').remove();
+                    }, 500);
                 });
             });
 
@@ -430,6 +489,7 @@ define([
             'click .js-profile': 'showProfile',
             'click .js-delete': 'deleteMe',
             'click .js-open': 'open',
+            'click .js-photo': 'photoZoom',
             'click .js-report': 'report',
             'click .js-follow': 'follow',
             'click .js-unfollow': 'unfollow',
@@ -441,6 +501,19 @@ define([
             'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply',
             'click .js-edit': 'edit'
+        },
+
+        imageid: null,
+
+        photoZoom: function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var v = new Iznik.Views.User.Feed.PhotoZoom({
+                model: this.model
+            });
+
+            v.render();
         },
 
         edit: function(e) {
@@ -676,9 +749,69 @@ define([
                 v.template = self.lovetemplate;
                 v.render();
                 self.$(self.lovesel).html(v.$el);
+
+                self.setupPhotoUpload();
             });
 
             return(p);
+        },
+
+        setupPhotoUpload: function() {
+            var self = this;
+
+            // Photo upload.
+            self.$el.find('.js-addphoto').fileinput({
+                uploadExtraData: {
+                    imgtype: 'Newsfeed',
+                    newsfeed: 1,
+                    ocr: false
+                },
+                showUpload: false,
+                allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                uploadUrl: API + 'image',
+                resizeImage: true,
+                maxImageWidth: 800,
+                browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
+                browseLabel: 'Photo',
+                browseClass: 'btn btn-primary nowrap pull-right',
+                showCaption: false,
+                showRemove: false,
+                showUploadedThumbs: false,
+                dropZoneEnabled: false,
+                buttonLabelClass: '',
+                fileActionSettings: {
+                    showZoom: false,
+                    showRemove: false,
+                    showUpload: false
+                },
+                layoutTemplates: {
+                    footer: '<div class="file-thumbnail-footer">\n' +
+                    '    {actions}\n' +
+                    '</div>'
+                },
+                elErrorContainer: '#js-uploaderror'
+            });
+
+            // Upload as soon as we have it.
+            self.$el.find('.js-addphoto').on('fileimagesresized', function (event) {
+                self.$('.js-commentwrapper').removeClass('col-xs-11');
+                self.$('.js-commentwrapper').addClass('col-xs-10');
+                self.$('.js-photopreviewwrapper').show();
+                self.$('.js-addphotowrapper').hide();
+                self.$('.js-addphoto').fileinput('upload');
+            });
+
+            self.$el.find('.js-addphoto').on('fileuploaded', function (event, data) {
+                self.$('.js-photopreview').attr('src', data.response.paththumb);
+                self.imageid = data.response.id;
+
+                // Focus back on the input so they will complete it.
+                self.$('.js-comment').focus();
+
+                _.delay(function() {
+                    self.$('.file-preview-frame').remove();
+                }, 500);
+            });
         }
     });
 
@@ -1014,6 +1147,7 @@ define([
 
                         var mod = new Iznik.Models.Newsfeed({
                             replyto: self.model.get('id'),
+                            imageid: self.imageid,
                             message: msg
                         });
 
@@ -1025,6 +1159,14 @@ define([
                             mod.fetch().then(function() {
                                 self.replies.add(mod);
                             });
+
+                            // We might have uploaded a photo.  Reset that button.
+                            self.$('.js-commentwrapper').addClass('col-xs-11');
+                            self.$('.js-commentwrapper').removeClass('col-xs-10');
+                            self.$('.js-photopreviewwrapper').hide();
+                            self.$('.js-addphotowrapper').show();
+                            self.$('.js-addphoto').fileinput('destroy');
+                            self.setupPhotoUpload();
                         });
                     }
                 }
@@ -1859,5 +2001,9 @@ define([
 
     Iznik.Views.User.Feed.Help = Iznik.Views.Modal.extend({
         template: "user_newsfeed_help"
+    });
+
+    Iznik.Views.User.Feed.PhotoZoom = Iznik.Views.Modal.extend({
+        template: 'user_newsfeed_photozoom'
     });
 });

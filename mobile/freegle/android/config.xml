@@ -64,7 +64,6 @@
     <plugin name="cordova-plugin-inappbrowser" spec="^1.7.2" />
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
     <plugin name="cordova-plugin-camera" spec="^2.4.1" />
-    <plugin name="cordova-plugin-file" spec="^4.3.3" />
     <plugin name="cordova-plugin-file-transfer" spec="^1.6.3" />
     <plugin name="cordova-plugin-geolocation" spec="^2.4.3" />
     <plugin name="cordova-plugin-googleplus" spec="git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git">
@@ -77,4 +76,5 @@
     <plugin name="phonegap-plugin-speech-recognition" spec="git+https://github.com/macdonst/SpeechRecognitionPlugin.git">
         <variable name="MICROPHONE_USAGE_DESCRIPTION" value="So you can say your offer" />
     </plugin>
+    <plugin name="cordova-plugin-file" spec="^4.3.3" />
 </widget>

@@ -32,30 +32,37 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-xs-12">
-                <div class="alert alert-info">
-                    <b class="prewrap">{{message}}</b>
-                    <% if (obj.preview && !preview.invalid && !preview.spam) { %>
-                    <div class="panel panel-default topspace clickme preview js-preview">
-                        <div class="row">
-                            <% if (preview.image) { %>
-                            <div class="col-xs-3 col-sm-2">
-                                <img class="img-thumbnail" src="{{preview.image}}" />
-                            </div>
+            <div class="<% if (obj.image) { %>col-xs-10<% } else { %>col-xs-12<% } %>">
+                <b class="prewrap">{{message}}</b>
+                <% if (obj.preview && !preview.invalid && !preview.spam) { %>
+                <div class="panel panel-default topspace clickme preview js-preview">
+                    <div class="row">
+                        <% if (preview.image) { %>
+                        <div class="col-xs-3 col-sm-2">
+                            <img class="img-thumbnail" src="{{preview.image}}" />
+                        </div>
+                        <% } %>
+                        <div class="<% if (preview.image) { %>col-xs-9 col-sm-10<% } else { %>col-xs-12<% } %>">
+                            <% if (preview.title) { %>
+                            <h3>{{preview.title}}</h3>
                             <% } %>
-                            <div class="<% if (preview.image) { %>col-xs-9 col-sm-10<% } else { %>col-xs-12<% } %>">
-                                <% if (preview.title) { %>
-                                <h3>{{preview.title}}</h3>
-                                <% } %>
-                                <% if (preview.description) { %>
-                                <div class="prewrap forcebreak">{{preview.description}}</div>
-                                <% } %>
-                                <span class="small text-muted">This is an automatic preview.  Click at your own risk.</span>
-                            </div>
+                            <% if (preview.description) { %>
+                            <div class="prewrap forcebreak">{{preview.description}}</div>
+                            <% } %>
+                            <span class="small text-muted">This is an automatic preview.  Click at your own risk.</span>
                         </div>
                     </div>
-                    <% } %>
                 </div>
+                <% } %>
+            </div>
+            <% if (obj.image) { %>
+            <div class="col-xs-2">
+                <img class="img-thumbnail pull-right clickme js-photo" title="Click to zoom" width="150" src="{{image.paththumb}}" />
+            </div>
+            <% } %>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
                 <hr class="text-muted nomargin botspace" />
                 <div class="inline js-itemloves" />
                 <span class="inline btn btn-white btn-xs pull-right js-sharefb"><span class="glyphicons glyphicons-share-alt vcenter" />&nbsp;Share<span class="hidden-xs"> on Facebook</span></span>

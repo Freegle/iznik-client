@@ -224,8 +224,8 @@ define([
                     $('#bodyContent').html(window.template(tpl));
                     $('.js-pageContent').html(self.$el);
 
-                    if (!useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
-                    showNetworkStatus(); // CC
+                    if (!window.useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
+                    window.showNetworkStatus(); // CC
                     if (self.appButtons) {
                         // Show app buttons.
                         // CC $('#js-appbuttons').show();
@@ -279,7 +279,7 @@ define([
                         $('#botleft').append(v.$el);
 
                         // Highlight current page if any.
-                        var mobilePath =  mobile_pathname(); // CC
+                        var mobilePath = window.mobile_pathname(); // CC
                         $('#navbar-collapse a').each(function () {
                             var href = $(this).attr('href');
                             $(this).closest('li').removeClass('active');
@@ -423,7 +423,7 @@ define([
                             }
 
                             // CC show debug sunglasses/specs icon
-                            if (showDebugConsole) {
+                            if (window.showDebugConsole) {
                                 $('#mobile-debug').show();
                             }
 
@@ -560,7 +560,7 @@ define([
                 );
 
                 // Highlight current page if any.
-                var mobilePath =  mobile_pathname(); // CC
+                var mobilePath = window.mobile_pathname(); // CC
                 self.$('a').each(function () {
                     var href = $(this).attr('href');
                     $(this).closest('li').removeClass('active');
@@ -583,8 +583,6 @@ define([
                 if (Iznik.Session.hasPermission('Newsletter')) {
                     self.$('.js-newsletter').removeClass('hidden');
                 }
-
-                if (Iznik.Session.hasP)
 
                 // We need to create a hidden signin button because otherwise the Google logout method doesn't
                 // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354

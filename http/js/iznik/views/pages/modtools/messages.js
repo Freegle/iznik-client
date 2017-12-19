@@ -4,6 +4,7 @@ define([
     'backbone',
     'moment',
     'iznik/base',
+    'jquery-ui',
     "iznik/modtools",
     'jquery-show-first',
     'iznik/views/pages/pages',
@@ -571,7 +572,7 @@ define([
                         self.$('.js-text').val(msg);
 
                         self.open(null);
-                        $('.modal').on('shown.bs.modal', function () {
+                        $('.modal').once('shown.bs.modal', function () {
                             $('.modal ' + focuson).focus();
                         });
 
@@ -623,6 +624,7 @@ define([
                     self.$('.js-text').val(msg);
                 }
 
+                // TODO We pull in jQuery UI just for this, I think.  That's overkill.
                 $(".modal").draggable({
                     handle: ".modal-header",
                 });

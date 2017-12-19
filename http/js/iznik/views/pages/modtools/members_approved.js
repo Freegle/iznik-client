@@ -3,7 +3,7 @@ define([
     'underscore',
     'backbone',
     'moment',
-    'FileSaver',
+    'file-saver',
     'iznik/base',
     'iznik/models/yahoo/user',
     "iznik/modtools",
@@ -12,7 +12,9 @@ define([
     'iznik/views/infinite',
     'iznik/views/group/select',
     "iznik/views/user/user"
-], function($, _, Backbone, moment, saveAs, Iznik, IznikYahooUsers) {
+], function($, _, Backbone, moment, s, Iznik, IznikYahooUsers) {
+    var saveAs = s.saveAs;
+
     Iznik.Views.ModTools.Pages.ApprovedMembers = Iznik.Views.Infinite.extend({
         modtools: true,
 

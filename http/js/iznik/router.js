@@ -57,7 +57,7 @@ define([
             // CC }
 
             // Make sure we have google analytics for Backbone routes.
-            try {
+            /*try {
                 var ua = require('universal-analytics');
                 var visitor = ua('UA-10627716-2', {https: true});
                 visitor.pageview(url).send();
@@ -66,7 +66,7 @@ define([
                 monitor.trackEvent('route', url, null, null, null, timestamp);
             } catch (e) {
                 console.log("Google exception - privacy blocker?", e);
-            }
+            }*/
         },
 
         routes: {
@@ -228,7 +228,7 @@ define([
             routeOptions = routeOptions || {};
 
             // CC self.modtools = routeOptions.modtools;
-            self.modtools = parseInt($('meta[name=iznikmodtools]').attr("content"));    // CC
+            self.modtools = MODTOOLS;    // CC
             console.log("loadRoute self.modtools:" + self.modtools);
             routeOptions.modtools = self.modtools;  // CC
             routeOptions.page.modtools = self.modtools;  // CC
@@ -254,7 +254,7 @@ define([
         },
 
         mobileReload: function (url) {  // CC url not used - could be used to specify route to use
-            window.location.href = initialURL;  // Could add ?route=Xxx
+            window.location.href = window.initialURL;  // Could add ?route=Xxx
         },
 
         userHome: function () {
@@ -274,7 +274,7 @@ define([
                         });
                     } else {
                         require(["iznik/views/pages/user/landing"], function () {
-                            console.log("Load landing");
+                            console.log("Load landing1");
                             var page = new Iznik.Views.User.Pages.Landing();
                             self.loadRoute({ page: page });
                         });
@@ -372,7 +372,7 @@ define([
                     }
                 } else {
                     require(["iznik/views/pages/user/landing"], function() {
-                        console.log("Load landing");
+                        console.log("Load landing2");
                         var page = new Iznik.Views.User.Pages.Landing();
                         self.loadRoute({page: page});
                     });
@@ -1687,7 +1687,7 @@ define([
             var self = this;
 
             require(["iznik/views/pages/user/landing"], function() {
-                var mobile_version = $('meta[name=iznik_mobile_version]').attr("content");	// CC
+                var mobile_version = APP_VERSION;	// CC
                 var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
                 self.loadRoute({page: page});
             });
@@ -1782,6 +1782,5 @@ define([
     	internal(evt, href);
     });
 
-        window.Router = Router;
-    });
+    window.Router = Router;
 });

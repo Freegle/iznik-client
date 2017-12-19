@@ -4,6 +4,9 @@ var $ = require('jquery');
 var _ = require('underscore');
 
 function templateStore(tpl, html) {
+    html = html.replace(/src=\"\//g, 'src="' + iznikroot);	// CC
+    html = html.replace(/src=\'\//g, "src='" + iznikroot);	// CC
+
     // Make templates less likely to bomb out with an exception if a variable is undefined, by
     // using the internal obj.
     html = html ? html.replace(/\{\{/g, '{{obj.') : null;

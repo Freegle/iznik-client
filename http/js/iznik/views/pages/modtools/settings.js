@@ -204,7 +204,8 @@ define([
                         var text;
                         if (self.group.get('licenserequired')) {
                             if (!self.group.get('licensed')) {
-                                text = '<div class="alert alert-warning">This group is using a trial license for 30 days from <abbr class="timeago" title="' + self.group.get('trial') + '">{{timeago(' + self.group.get('trial') + ')}}</abbr>.</div>'
+                                var now = new moment(self.group.get('trial'));
+                                text = '<div class="alert alert-warning">This group is using a trial license for 30 days from ' + now.format('ll') + '.</div>'
                             } else {
                                 var mom = new moment(self.group.get('licenseduntil'));
                                 text = 'This group is licensed until ' + mom.format('ll') + '.';

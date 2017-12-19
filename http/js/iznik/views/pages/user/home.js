@@ -81,10 +81,10 @@ define([
             if (count == 0) {
                 container.hide();
             } else if (count == 1) {
-                countel.html("1 old" + (isXS() ? '' : (' ' + type.toUpperCase())));
+                countel.html("1 old" + (Iznik.isXS() ? '' : (' ' + type.toUpperCase())));
                 container.show();
             } else {
-                countel.html(count + " old" + (isXS() ? '' : (' ' + type.toUpperCase() + "s")));
+                countel.html(count + " old" + (Iznik.isXS() ? '' : (' ' + type.toUpperCase() + "s")));
                 container.show();
             }
         },
@@ -282,6 +282,7 @@ define([
 
                 // (new Iznik.Views.SupportUs()).render();
                 // (new Iznik.Views.User.eBay()).render();
+                //(new Iznik.Views.User.BusinessCards()).render();
 
                 var today = new Date().toISOString().slice(0, 10);
                 if (today == '2017-04-01') {
@@ -521,6 +522,7 @@ define([
 
         defaultText: function() {
             var text;
+            var self = this;
 
             switch (this.$('.js-outcome').val()) {
                 case 'Taken': text = 'Thanks, this has now been taken.'; break;

@@ -1,25 +1,23 @@
-var API = 'https://modtools.org/api/'; // CC
+//CCvar API = 'https://modtools.org/api/'; // CC
 //var API = 'https://iznik.modtools.org/api/'; // CC
-var YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
-var YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
-var API = 'https://www.ilovefreegle.org/api/'; // CC
-var CHAT_HOST = 'https://users.ilovefreegle.org';
-var EVENT_HOST = 'iznik.modtools.org';
-var USER_SITE = 'www.ilovefreegle.org';
+//CCvar API = 'https://www.ilovefreegle.org/api/'; // CC
+//CCvar CHAT_HOST = 'https://users.ilovefreegle.org';
+//CCvar EVENT_HOST = 'iznik.modtools.org';
+//CCvar USER_SITE = 'www.ilovefreegle.org';
 
 var MODTOOLS = false;
 
-var isiOS = false; // CC
-var useSwipeRefresh = false;
-var initialURL = false;
+window.isiOS = false; // CC
+window.useSwipeRefresh = false;
+window.initialURL = false;
 var hammer = false;
-var mobilePushId = false;
-var mobilePush = false;
+window.mobilePushId = false;
+window.mobilePush = false;
 var lastPushMsgid = false;
-var badgeconsole = '';
+//var badgeconsole = '';
 var divertConsole = false;
-var showDebugConsole = false;
+window.showDebugConsole = false;
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -60,24 +58,24 @@ requirejs.onError = function (err) {
 };
 
 // Global error catcher so that we log to the server.
-window.onerror = function(message, file, line) {
+/*window.onerror = function(message, file, line) {
 	console.error(message, file, line);
-	/*$.ajax({
+	$.ajax({
 		url: API + 'error',
 		type: 'PUT',
 		data: {
 			'errortype': 'Exception',
 			'errortext': message + ' in ' + file + ' line ' + line
 		}
-	});*/
-};
+	});
+};*/
 
 function showHeaderWait() {
-    if (useSwipeRefresh) {
-        var refreshicon = $('#refreshicon');
+    if (window.useSwipeRefresh) {
+        var refreshicon = jQuery('#refreshicon');
         refreshicon.show();
     } else {
-        $('#refreshbutton span').addClass("rotate");
+        jQuery('#refreshbutton span').addClass("rotate");
     }
 }
 
@@ -85,11 +83,11 @@ function hideHeaderWait(event) {
     if (event) {    // If called as geolocationError
         console.log(event);
     }
-    if (useSwipeRefresh) {
-        var refreshicon = $('#refreshicon');
+    if (window.useSwipeRefresh) {
+        var refreshicon = jQuery('#refreshicon');
         refreshicon.hide();
     } else {
-        $('#refreshbutton span').removeClass("rotate");
+        jQuery('#refreshbutton span').removeClass("rotate");
     }
 }
 function mobileRefresh() {
@@ -99,13 +97,13 @@ function mobileRefresh() {
 }
 
 var isOnline = true;
-function showNetworkStatus() {
+window.showNetworkStatus = function() {
     if (isOnline) {
-        $('#nonetwork').addClass('reallyHide');
-        $('#refreshbutton').removeClass('reallyHide');
+        jQuery('#nonetwork').addClass('reallyHide');
+        jQuery('#refreshbutton').removeClass('reallyHide');
     } else {
-        $('#nonetwork').removeClass('reallyHide');
-        $('#refreshbutton').addClass('reallyHide');
+        jQuery('#nonetwork').removeClass('reallyHide');
+        jQuery('#refreshbutton').addClass('reallyHide');
     }
 }
 
@@ -137,19 +135,19 @@ var logtog = false;
 
 function mainOnAppStart() { // CC
 console.log("main boot");	// CC
-isiOS = (window.device.platform === 'iOS'); // CC
-if (!initialURL) {
-    initialURL = window.location.href;
+window.isiOS = (window.device.platform === 'iOS'); // CC
+if (!window.initialURL) {
+    window.initialURL = window.location.href;
 }
 
 console.log(device);
 
-if (!isiOS) {   // vertical swipe on iOS stops scrolling
+if (!window.isiOS) {   // vertical swipe on iOS stops scrolling
     var androidVersion = parseFloat(device.version);    // Not using Crosswalk so only enable swipe refresh for Android 4.4+
     if (androidVersion >= 4.4) {
-        useSwipeRefresh = true;
+        window.useSwipeRefresh = true;
     }
-    useSwipeRefresh = false;    // CC Hammer doesn't work in CLI version on Nexus
+    window.useSwipeRefresh = false;    // CC Hammer doesn't work in CLI version on Nexus
 }
 setTimeout(function(){  // Have small delay at startup to try to avoid cannot load index.html error
 require([
@@ -157,7 +155,7 @@ require([
     'underscore',
     'backbone',
     'iznik/router',
-    'hammer'   // CC
+    // CC 'hammer'   // CC
 ], function ($, _, Backbone) {
     console.log("starting Backbone");	// CC
     if (!Backbone) {
@@ -174,7 +172,7 @@ require([
     if (divertConsole) {
         var oldconsolelog = console.log;
         console.log = function () {
-            if (showDebugConsole) {
+            if (window.showDebugConsole) {
                 var now = new Date();
                 var msg = '###' + now.toJSON().substring(11) + ': ';
                 for (var i = 0; i < arguments.length; i++) {
@@ -198,7 +196,7 @@ require([
 
     // http://hammerjs.github.io/getting-started/
 
-    if (useSwipeRefresh) {
+    /* // CCif (window.useSwipeRefresh) {
         //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
         //alert(typeof Hammer);
         hammer = new Hammer(window);
@@ -220,7 +218,7 @@ require([
         //    console.log(ev);
         //    $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
         //});
-    }
+    }*/
 
     // Catch back button and clear chats
     window.addEventListener('popstate', function (e) {    // CC
@@ -230,8 +228,8 @@ require([
         } catch (e) { }
     });
 
-    document.addEventListener("offline", function () { isOnline = false; showNetworkStatus() }, false);
-    document.addEventListener("online", function () { isOnline = true; showNetworkStatus() }, false);
+    document.addEventListener("offline", function () { isOnline = false; window.showNetworkStatus() }, false);
+    document.addEventListener("online", function () { isOnline = true; window.showNetworkStatus() }, false);
 
     Backbone.emulateJSON = true;
 
@@ -313,8 +311,8 @@ require([
     if (!PushNotification) {
         console.log("no push notification service");
         //alert("No PN");
-    } else if( !mobilePushId) {
-        mobilePush = PushNotification.init({
+    } else if (!window.mobilePushId) {
+        window.mobilePush = PushNotification.init({
             android: {
                 senderID: "845879623324",
                 sound: false,
@@ -329,10 +327,10 @@ require([
                 sound: false
             }
         });
-        mobilePush.on('registration', function (data) {
-            mobilePushId = data.registrationId;
-            console.log("push registration " + mobilePushId);
-            //alert("registration: " + mobilePushId);
+        window.mobilePush.on('registration', function (data) {
+            window.mobilePushId = data.registrationId;
+            console.log("push registration " + window.mobilePushId);
+            //alert("registration: " + window.mobilePushId);
         });
 
         // Called to handle a push notification
@@ -349,13 +347,13 @@ require([
         // On Android this handler is called immediately if running in foreground;
         //  it is not called if not started; the handler is called twice when app started (double event)
         //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
-        mobilePush.on('notification', function (data) {
+        window.mobilePush.on('notification', function (data) {
             //alert("push notification");
             console.log("push notification");
             console.log(data);
             var foreground = data.additionalData.foreground.toString() == 'true';   // Was first called in foreground or background
             var msgid = data.additionalData['google.message_id'];
-            if (isiOS) {
+            if (window.isiOS) {
                 if (!('notId' in data.additionalData)) { data.additionalData.notId = 0; }
                 msgid = data.additionalData.notId;
             }
@@ -364,9 +362,9 @@ require([
             console.log("foreground "+foreground+" double " + doubleEvent + " msgid: " + msgid);
             if (!('count' in data)) { data.count = 0; }
             if (data.count == 0) {
-                mobilePush.clearAllNotifications();   // no success and error fns given
+                window.mobilePush.clearAllNotifications();   // no success and error fns given
             }
-            mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+            window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
             /*var msg = new Date();
             msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
             badgeconsole += msg;
@@ -387,8 +385,8 @@ require([
                 }
             }
 
-            if (isiOS) {
-                mobilePush.finish(function () {
+            if (window.isiOS) {
+                window.mobilePush.finish(function () {
                         console.log("push finished OK");
                         //alert("finished");
                     }, function () {
@@ -400,7 +398,7 @@ require([
             }
         });
 
-        mobilePush.on('error', function (e) {
+        window.mobilePush.on('error', function (e) {
             //alert("error: " + e.message);
             console.log("mobilePush error " + e.message);
         });
@@ -412,3 +410,41 @@ require([
 }, 250);
 
 }; // CC
+
+var mobileGlobalRoot = false;   // CC
+var oneOffPathname = false; // CC
+
+window.mobile_pathname = function () { // CC
+    var pathname = window.location.pathname;
+    if (oneOffPathname) {
+        pathname = oneOffPathname;
+        oneOffPathname = false;
+    }
+    var initialHome = "index.html"; // to remove
+    if (pathname.substr(-initialHome.length) == initialHome) {
+        pathname = pathname.substr(0, pathname.length - initialHome.length);
+    }
+    if (!mobileGlobalRoot) {
+        mobileGlobalRoot = pathname.substr(0, pathname.length - 1);
+    }
+    pathname = pathname.substr(mobileGlobalRoot.length);
+    if (pathname == "") {
+        pathname += "/";
+    }
+    return pathname;
+}
+
+document.addEventListener("app.Ready", mainOnAppStart, false);
+
+// Fix up CSS cases with absolute url path
+var style = document.createElement('style');
+style.type = 'text/css';
+var css = '.bodyback { background-image: url("' + iznikroot + 'images/wallpaper.png") !important; } \r';
+css += '.dd .ddTitle{color:#000;background:#e2e2e4 url("' + iznikroot + 'images/msdropdown/skin1/title-bg.gif") repeat-x left top !important; } \r';
+css += '.dd .ddArrow{width:16px;height:16px; margin-top:-8px; background:url("' + iznikroot + 'images/msdropdown/skin1/dd_arrow.gif") no-repeat !important;} \r';
+css += '.splitter { background: url("' + iznikroot + 'images/vsizegrip.png") center center no-repeat !important; } \r';
+style.innerHTML = css;
+//console.log(css);
+document.getElementsByTagName('head')[0].appendChild(style);
+
+

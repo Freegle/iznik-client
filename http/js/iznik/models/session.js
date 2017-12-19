@@ -62,8 +62,8 @@ define([
         askSubscription: function() {
 
             console.log("askSubscription");
-            if (mobilePushId) {
-                var subscription = isiOS ? mobilePushId : 'https://android.googleapis.com/gcm/send/' + mobilePushId;
+            if (window.mobilePushId) {
+                var subscription = window.isiOS ? window.mobilePushId : 'https://android.googleapis.com/gcm/send/' + mobilePushId;
                 console.log(subscription);
                 //alert("Subs: "+subscription);
                 var me = Iznik.Session.get('me');
@@ -72,7 +72,7 @@ define([
                         id: me.id,
                         notifications: {
                             push: {
-                                type: isiOS ? 'IOS' : 'Android',
+                                type: window.isiOS ? 'IOS' : 'Android',
                                 subscription: subscription
                             }
                         }
@@ -478,9 +478,9 @@ define([
                                 } else {
                                     $('.js-workcount').html('').hide();
                                 }
-                                if (mobilePush) {
-                                    //console.log("Session set badge: " + total);
-                                    mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
+                                if (window.mobilePush) {
+                                    console.log("Session set badge: " + total);
+                                    window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
                                 } // CC
 
                                 if (countschanged) {
