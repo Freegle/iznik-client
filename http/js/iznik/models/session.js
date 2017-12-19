@@ -1,3 +1,5 @@
+var Raven = require('raven-js');
+
 define([
     'jquery',
     'underscore',
@@ -224,6 +226,11 @@ define([
                         self.set('configs', new Iznik.Collection(parsed.configs));
                     }
 
+                    console.log("Raven is", Raven);
+                    Raven.setUserContext({
+                        user: self.get('me')
+                    });
+
                     self.loggedIn = true;
                     self.trigger('isLoggedIn', true);
                 }
@@ -279,6 +286,7 @@ define([
                                 Storage.set('signedinever', true);
                             } catch (e) {
                             }
+
                             self.set(ret);
 
                             // We get an array of groups back - we want it to be a collection.
@@ -290,6 +298,10 @@ define([
                             }
 
                             self.loggedIn = true;
+
+                            Raven.setUserContext({
+                                user: self.get('me')
+                            });
 
                             if (self.testing) {
                                 self.testing = false;

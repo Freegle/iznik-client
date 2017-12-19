@@ -861,55 +861,57 @@ define([
             });
             self.wait.render();
 
-            $.ajax({
-                type: 'PUT',
-                url: API + 'chat/rooms',
-                data: {
-                    userid: self.model.get('fromuser').id
-                }, success: function(ret) {
-                    if (ret.ret == 0) {
-                        var chatid = ret.id;
-                        var msg = self.$('.js-replytext').val();
+            // Get the message again as we might not have the fromuser if we fetched before login.
+            self.model.fetch().then(function() {
+                $.ajax({
+                    type: 'PUT',
+                    url: API + 'chat/rooms',
+                    data: {
+                        userid: self.model.get('fromuser').id
+                    }, success: function(ret) {
+                        if (ret.ret == 0) {
+                            var chatid = ret.id;
+                            var msg = self.$('.js-replytext').val();
 
-                        $.ajax({
-                            type: 'POST',
-                            url: API + 'chat/rooms/' + chatid + '/messages',
-                            data: {
-                                message: msg,
-                                refmsgid: self.model.get('id')
-                            }, complete: function() {
-                                self.wait.close();
-                                self.$('.js-replybox').slideUp();
+                            $.ajax({
+                                type: 'POST',
+                                url: API + 'chat/rooms/' + chatid + '/messages',
+                                data: {
+                                    message: msg,
+                                    refmsgid: self.model.get('id')
+                                }, complete: function() {
+                                    self.wait.close();
+                                    self.$('.js-replybox').slideUp();
 
-                                require(['iznik/views/chat/chat'], function(ChatHolder) {
-                                    ChatHolder().fetchAndRestore(chatid);
-                                });
-
-                                // If we were replying, we might have forced a login and shown the message in
-                                // isolation, in which case we need to return to where we were.  But fetch
-                                // the chat messages first, as otherwise we might have a cached version which
-                                // doesn't have our latest one in it which we then display.
-                                try {
-                                    var messages = new Iznik.Collections.Chat.Messages({
-                                        roomid: chatid
+                                    require(['iznik/views/chat/chat'], function(ChatHolder) {
+                                        ChatHolder().fetchAndRestore(chatid);
                                     });
-                                    messages.fetch({
-                                        remove: true
-                                    }).then(function () {
-                                        var ret = Storage.get('replyreturn');
-                                        console.log("Return after reply", ret);
 
-                                        if (ret) {
-                                            Storage.remove('replyreturn');
-                                            Router.navigate(ret, true);
-                                        }
-                                    });
-                                } catch (e) {};
-                            }
-                        });
+                                    // If we were replying, we might have forced a login and shown the message in
+                                    // isolation, in which case we need to return to where we were.  But fetch
+                                    // the chat messages first, as otherwise we might have a cached version which
+                                    // doesn't have our latest one in it which we then display.
+                                    try {
+                                        var messages = new Iznik.Collections.Chat.Messages({
+                                            roomid: chatid
+                                        });
+                                        messages.fetch({
+                                            remove: true
+                                        }).then(function () {
+                                            var ret = Storage.get('replyreturn');
+
+                                            if (ret) {
+                                                Storage.remove('replyreturn');
+                                                Router.navigate(ret, true);
+                                            }
+                                        });
+                                    } catch (e) {};
+                                }
+                            });
+                        }
                     }
-                }
-            })
+                });
+            });
         },
 
         send: function() {
@@ -923,7 +925,6 @@ define([
 
                 // If we're not already logged in, we want to be.
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedin) {
-                    console.log("Send; logged in?", loggedin);
                     if (loggedin) {
                         // We are logged in and can proceed.
                         // Remove local storage so that we don't get stuck sending the same message, for example if we reload the
@@ -954,7 +955,7 @@ define([
                             // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
                             // matter which.
                             var tojoin = self.model.get('groups')[0].id;
-                            console.log("To join", tojoin);
+
                             $.ajax({
                                 url: API + 'memberships',
                                 type: 'PUT',
@@ -1086,7 +1087,6 @@ define([
 
                     self.clipboard.on('success', function(e) {
                         ABTestAction('messagebutton', 'Copy Link');
-                        self.close();
                     });
                 })
             }

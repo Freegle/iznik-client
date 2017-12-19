@@ -14,7 +14,6 @@ define([
 
         onSignInCallback: function (authResult) {
             var self = this;
-            console.log("onSignInCallback", authResult);
 
             function doIt(authResult) {
                 self.authResult = authResult;

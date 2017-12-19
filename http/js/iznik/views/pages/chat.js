@@ -1,3 +1,5 @@
+import 'bootstrap-fileinput';
+
 define([
     'jquery',
     'underscore',
@@ -12,8 +14,7 @@ define([
     'iznik/views/user/schedule',
     'iznik/views/user/message',
     'jquery-resizable',
-    'jquery-visibility',
-    'fileinput'
+    'jquery-visibility'
 ], function ($, _, Backbone, Iznik, autosize, moment, ChatHolder) {
     Iznik.Views.Chat.Page = Iznik.Views.Page.extend({
         noback: true,
