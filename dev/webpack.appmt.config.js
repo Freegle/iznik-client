@@ -67,16 +67,15 @@ module.exports = new Config().extend({
     new ExtractTextPlugin({
       filename: 'css/[name].[contenthash].css'
     }),
-    // CC new FaviconsPlugin('images/user_logo.png'),
+    // CC new FaviconsPlugin('images/modtools_logo.png'),
     new webpack.DefinePlugin({
-      APP_VERSION: JSON.stringify('0.2.0, 19 December 2017'),
-      // CC SET AT END: API: JSON.stringify(BASE_URL+'/api/'),
+      APP_VERSION: JSON.stringify('0.1.0, 19 December 2017'),
       FACEBOOK_APPID: JSON.stringify('134980666550322'),
       FACEBOOK_GRAFFITI_APPID: JSON.stringify('115376591981611'),
       GOOGLE_CLIENT_ID: JSON.stringify(
         '423761283916-1rpa8120tpudgv4nf44cpmlf8slqbf4f.apps.googleusercontent.com'
       ),
-      SITE_NAME: JSON.stringify('Freegle'),
+      SITE_NAME: JSON.stringify('ModTools'),
       SITE_DESCRIPTION: JSON.stringify(
         "Moderating Tools for Freegle and Yahoo Groups"
       ),
@@ -97,9 +96,9 @@ module.exports = new Config().extend({
       // necessary to consistently work with multiple chunks via CommonsChunkPlugin
       chunksSortMode: 'dependency'
     }),
-      new CopyWebpackPlugin([
-          {from: 'http/xdk', to: 'xdk'}
-      ]),
+    new CopyWebpackPlugin([
+        {from: 'http/xdk', to: 'xdk'}
+    ]),
     /* CC new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       minimize: true,
