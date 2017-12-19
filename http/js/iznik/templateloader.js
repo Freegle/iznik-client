@@ -46,7 +46,7 @@ function templateStore(tpl, html) {
                 return html;
             } catch (e) {
                 console.error("Template " + tpl + " expansion failed with " + e.message + ", ");
-                console.log(this);
+                console.log(obj);
                 console.log(html);
                 return ('');
             }
