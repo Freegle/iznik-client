@@ -522,6 +522,7 @@ define([
 
         defaultText: function() {
             var text;
+            var self = this;
 
             switch (this.$('.js-outcome').val()) {
                 case 'Taken': text = 'Thanks, this has now been taken.'; break;
