@@ -730,6 +730,8 @@ define([
             var chat = Iznik.Session.chats.get({
                 id: self.model.get('chatid')
             });
+            console.log(self.model.get('chatid'));
+            console.log(chat);
 
             var p;
 
@@ -745,10 +747,9 @@ define([
 
                 p = self.chat.fetch();
             }
+            console.log(self.chat);
 
-            console.log("reply render2");
             p.then(_.bind(self.gotChat, self));
-            console.log("reply render3");
 
             return(p);
         }
@@ -997,8 +998,16 @@ define([
                         // we don't have issues with not seeing/needing to scroll to the message of interest.
                         //
                         // We might already be on this page, so we can't call navigate as usual.
+                        var url = '/message/' + self.model.get('id');
+                        console.log("Compare url", url, Backbone.history.getFragment());
                         // CC Should we do Router.mobileReload();  // CC
-                        // CC Backbone.history.loadUrl('/message/' + self.model.get('id'));
+                        /* // CC if ('/' + Backbone.history.getFragment() == url) {
+                            Backbone.history.loadUrl(url);
+                        } else {
+                            Router.navigate(url, {
+                                trigger: true
+                            });
+                        }*/
                     }
                 });
 
