@@ -175,7 +175,7 @@ define([
 
                     // When we click to select, we want to load that chat.
                     self.chatsCV1.on('selectionChanged', function(selected) {
-                        if (selected.length > 0) {
+                        if (selected.length > 0 && selected[0]) {
                             self.loadChat(selected[0]);
                         }
                     });
@@ -198,7 +198,9 @@ define([
                         // When we click on this one, we want to route to the chat/id.  This is so that the user
                         // can use the back button to return to the chat list.
                         self.chatsCV2.on('selectionChanged', function(selected) {
-                            Router.navigate((self.modtools ? '/modtools' : '') + '/chat/' + selected[0].get('id'), true);
+                            if (selected.length > 0 && selected[0]) {
+                                Router.navigate((self.modtools ? '/modtools' : '') + '/chat/' + selected[0].get('id'), true);
+                            }
                         });
                     }
 
