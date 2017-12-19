@@ -1,4 +1,4 @@
-var Raven = require('raven-js');
+// CC var Raven = require('raven-js');
 
 define([
     'jquery',
@@ -226,10 +226,9 @@ define([
                         self.set('configs', new Iznik.Collection(parsed.configs));
                     }
 
-                    console.log("Raven is", Raven);
-                    Raven.setUserContext({
-                        user: self.get('me')
-                    });
+                    // CC Raven.setUserContext({
+                    // CC     user: self.get('me')
+                    // CC });
 
                     self.loggedIn = true;
                     self.trigger('isLoggedIn', true);
@@ -299,9 +298,9 @@ define([
 
                             self.loggedIn = true;
 
-                            Raven.setUserContext({
-                                user: self.get('me')
-                            });
+                            // CC Raven.setUserContext({
+                            // CC     user: self.get('me')
+                            // CC });
 
                             if (self.testing) {
                                 self.testing = false;

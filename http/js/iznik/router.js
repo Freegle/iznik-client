@@ -1,4 +1,4 @@
-var Raven = require('raven-js');
+// CC var Raven = require('raven-js');
 
 define([
     'jquery',
@@ -243,7 +243,8 @@ define([
                 loadPage();
 
             } catch (e) {
-                Raven.captureException(e);
+                throw e;
+                // CC Raven.captureException(e);
             }
         },
 

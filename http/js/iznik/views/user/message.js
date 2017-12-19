@@ -720,7 +720,8 @@ define([
             });
         },
 
-        render: function() {
+        render: function () {
+            console.log("reply render1");
             var self = this;
 
             self.model.set('me', Iznik.Session.get('me'));
@@ -745,7 +746,9 @@ define([
                 p = self.chat.fetch();
             }
 
+            console.log("reply render2");
             p.then(_.bind(self.gotChat, self));
+            console.log("reply render3");
 
             return(p);
         }

@@ -1941,10 +1941,13 @@ define([
 
                 // Upload as soon as photos have been resized.
                 self.$(self.photoId).on('fileimageresized', function (event) {
-                    self.$(self.photoId).fileinput('upload');
+                    // Have to defer else break fileinput validation processing.
+                    _.defer(function() {
+                        self.$(self.photoId).fileinput('upload');
 
-                    // We don't seem to be able to hide this control using the options.
-                    self.$('.fileinput-remove').hide();
+                        // We don't seem to be able to hide this control using the options.
+                        self.$('.fileinput-remove').hide();
+                    });
                 });
 
                 // Watch for all uploaded

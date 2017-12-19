@@ -20,7 +20,7 @@ var lastPushMsgid = false;
 var divertConsole = false;
 window.showDebugConsole = false;
 
-var Raven = require('raven-js');
+// CC var Raven = require('raven-js');
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -153,7 +153,7 @@ function mainOnAppStart() { // CC
         window.useSwipeRefresh = false;    // CC Hammer doesn't work in CLI version on Nexus
     }
 
-    Raven.context(function () {
+    // CC     Raven.context(function () {
 
         require([
             'jquery',
@@ -426,7 +426,7 @@ function mainOnAppStart() { // CC
             $('body').css('padding-right', '');
         });
 
-    }); // CC
+        // CC }); // CC
 }
 
 var mobileGlobalRoot = false;   // CC
