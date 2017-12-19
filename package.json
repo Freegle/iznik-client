@@ -7,6 +7,7 @@
     "build:fd": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://www.ilovefreegle.org webpack --config dev/webpack.productionfd.config.js",
     "build:mt": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://modtools.org webpack --config dev/webpack.productionmt.config.js",
     "app:fd": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://www.ilovefreegle.org webpack --config dev/webpack.appfd.config.js",
+    "app:mt": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://modtools.org webpack --config dev/webpack.appmt.config.js",
     "build:devfd": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://dev.ilovefreegle.org webpack --config dev/webpack.productionfd.config.js",
     "build:devmt": "npm run clean && cross-env NODE_ENV=production BASE_URL=https://dev.modtools.org webpack --config dev/webpack.productionmt.config.js",
     "build:localfd": "npm run clean && cross-env NODE_ENV=production BASE_URL=http://localhost:3000 webpack --config dev/webpack.productionfd.config.js",

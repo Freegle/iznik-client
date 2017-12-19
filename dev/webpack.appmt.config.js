@@ -36,7 +36,7 @@ module.exports = new Config().extend({
     }
   }).merge({
   // CC devtool: 'source-map',
-  entry: [join(ROOT, 'client/appfd.js')],
+  entry: [join(ROOT, 'client/appmt.js')],
   module: {
     rules: [
       {
@@ -84,7 +84,7 @@ module.exports = new Config().extend({
     }),
     new HtmlWebpackPlugin({
       hash: true,
-      template: join(ROOT, 'client/fd-app.ejs'),
+      template: join(ROOT, 'client/mt-app.ejs'),
       filename: 'index.html',
       inject: true,
       minify: {
