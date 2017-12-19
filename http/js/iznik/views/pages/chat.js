@@ -150,9 +150,9 @@ define([
                     // Only sort if this chat is not already at the top or open in a popup window.
                     var first = self.chats.first();
                     var mod = self.chats.get(chatid);
-                    var view = Iznik.openChats.viewManager.findByModel(mod);
+                    var view = self.chatsCV1.viewManager.findByModel(mod);
 
-                    if (first && first.get('id') != chatid && (!view || view.minimised)) {
+                    if (first && first.get('id') != chatid) {
                         self.chats.sort();
                     }
                 });

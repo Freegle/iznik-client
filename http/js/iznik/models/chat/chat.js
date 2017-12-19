@@ -54,13 +54,14 @@ define([
         initialize: function() {
             // If the last message unseen changes, we want to tell the server.
             var self = this;
-            self.listenTo(self, 'change:lastmsgseen', function () {
+
+            self.listenTo(self, 'change:lastmsgseen', function (model, value, options) {
                 $.ajax({
                     url: API + 'chatrooms',
                     type: 'POST',
                     data: {
                         id: self.get('id'),
-                        'lastmsgseen': self.get('lastmsg')
+                        'lastmsgseen': value
                     }
                 });
             });
