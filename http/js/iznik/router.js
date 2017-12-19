@@ -1669,7 +1669,7 @@ define([
             var self = this;
 
             require(["iznik/views/pages/user/landing"], function() {
-                var mobile_version = $('meta[name=iznik_mobile_version]').attr("content");	// CC
+                var mobile_version = APP_VERSION;	// CC
                 var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
                 self.loadRoute({page: page});
             });

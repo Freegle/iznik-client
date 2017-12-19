@@ -6,6 +6,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const webpack = require('webpack');
 const { Config } = require('webpack-config');
 const { join } = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:3000').replace(
   /\/$/,
@@ -13,7 +14,28 @@ const BASE_URL = (process.env.BASE_URL || 'http://localhost:3000').replace(
 );
 const ROOT = join(__dirname, '..');
 
-module.exports = new Config().extend('dev/webpack.base.config.js').merge({
+module.exports = new Config().extend({
+    'dev/webpack.base.config.js': config => {
+        // Fix up base config
+        config.output.publicPath = '';
+        let bapno = -1;
+        for (var index = 0; index < config.plugins.length; index++) {
+          let plugin = config.plugins[index];
+          if( plugin.constructor.name=="DefinePlugin"){
+              console.log("Fix DefinePlugin API");
+              plugin.definitions.API = JSON.stringify(BASE_URL+'/api/');
+          }
+          if( plugin.constructor.name=="BundleAnalyzerPlugin"){
+              bapno = index;
+          }
+        }
+        if( bapno>=0){
+            console.log("Remove BundleAnalyzerPlugin "+bapno);
+            config.plugins.splice(bapno,1);
+        }
+        return config;
+    }
+  }).merge({
   // CC devtool: 'source-map',
   entry: [join(ROOT, 'client/appfd.js')],
   module: {
@@ -48,7 +70,8 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
     }),
     // CC new FaviconsPlugin('images/user_logo.png'),
     new webpack.DefinePlugin({
-      API: JSON.stringify(BASE_URL+'/api/'), // CC doesn't work
+      APP_VERSION: JSON.stringify('1.3.0, 19 December 2017'),
+      // CC SET AT END: API: JSON.stringify(BASE_URL+'/api/'),
       FACEBOOK_APPID: JSON.stringify('134980666550322'),
       FACEBOOK_GRAFFITI_APPID: JSON.stringify('115376591981611'),
       GOOGLE_CLIENT_ID: JSON.stringify(
@@ -79,6 +102,9 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
             return newHTML;
         }
     }),
+      new CopyWebpackPlugin([
+          {from: 'http/xdk', to: 'xdk'}
+      ]),
     new HtmlWebpackProcessingPlugin(),
     /* CC new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
@@ -123,3 +149,6 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
     new webpack.optimize.ModuleConcatenationPlugin()
   ]
 });
+
+//console.log(module.exports.plugins[0]);
+//console.log(module.exports);
