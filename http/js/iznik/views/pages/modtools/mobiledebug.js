@@ -14,7 +14,7 @@ define([
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
 
-                $('#js-mobilelog').val(alllog);
+                $('#js-mobilelog').val(window.alllog);
 
                 require(['iznik/views/plugin'], function() {
                     window.IznikPlugin = new Iznik.Views.Plugin.Main();
