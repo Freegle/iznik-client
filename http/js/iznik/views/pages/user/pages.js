@@ -188,7 +188,7 @@ define([
                 data: {
                     typeahead: loc
                 }, success: function(ret) {
-                    if (ret.ret == 0) {
+                    if (ret.ret == 0 && ret.locations.length > 0) {
                         self.recordLocation(ret.locations[0]);
 
                         // Update our map if we have one.
