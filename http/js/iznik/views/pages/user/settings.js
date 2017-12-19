@@ -140,6 +140,8 @@ define([
         },
 
         useProfileSwitch: function() {
+            var self = this;
+
             var me = Iznik.Session.get('me');
             var profile = this.$('#useprofile').bootstrapSwitch('state');
 
