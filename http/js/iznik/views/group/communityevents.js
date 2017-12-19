@@ -457,9 +457,12 @@ define([
 
                     // Upload as soon as we have it.
                     self.$('.js-photo').on('fileimagesresized', function (event) {
-                        self.$('.file-input').hide();
-                        self.$('.js-photopreview').hide();
-                        self.$('.js-photo').fileinput('upload');
+                        // Have to defer else break fileinput validation processing.
+                        _.defer(function() {
+                            self.$('.file-input').hide();
+                            self.$('.js-photopreview').hide();
+                            self.$('.js-photo').fileinput('upload');
+                        });
                     });
 
                     self.$('.js-photo').on('fileuploaded', function (event, data) {

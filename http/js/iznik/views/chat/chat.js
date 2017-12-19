@@ -919,7 +919,9 @@ define([
                     });
                 });
 
-                self.messageViews.render.call(self.messageViews);
+                self.waitDOM(self, _.bind(function() {
+                    this.messageViews.render();
+                }, self));
 
                 // Photo upload button
                 self.$('.js-photo').fileinput({
@@ -973,7 +975,6 @@ define([
                 });
 
                 self.$('.js-photo').on('fileuploaded', function (event, data) {
-                    console.log("Uploaded", event, data);
                     var ret = data.response;
 
                     // Create a chat message to hold it.

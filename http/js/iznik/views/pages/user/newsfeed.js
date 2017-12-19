@@ -398,9 +398,12 @@ define([
 
                 // Upload as soon as we have it.
                 self.$el.find('.js-discussphoto').on('fileimagesresized', function (event) {
-                    self.$('.js-discussphotopreviewwrapper').show();
-                    self.$('.file-input').hide();
-                    self.$('.js-discussphoto').fileinput('upload');
+                    // Have to defer else break fileinput validation processing.
+                    _.defer(function() {
+                        self.$('.js-discussphotopreviewwrapper').show();
+                        self.$('.file-input').hide();
+                        self.$('.js-discussphoto').fileinput('upload');
+                    });
                 });
 
                 self.$el.find('.js-discussphoto').on('fileuploaded', function (event, data) {
