@@ -1,9 +1,10 @@
 var Raven = require('raven-js');
-Raven.config(RAVEN_ID).install({
+Raven.config(RAVEN_ID, {
+    release: GIT_COMMITHASH
+}).install({
     extra: {
         BASE_URL: BASE_URL
-    },
-    release: GIT_COMMITHASH
+    }
 });
 
 import 'persist-js';
