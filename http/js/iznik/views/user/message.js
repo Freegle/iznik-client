@@ -748,6 +748,9 @@ define([
                 p = self.chat.fetch();
             }
             console.log(self.chat);
+            console.log(self.chat.chattype);
+            console.log(self.chat.user1);
+            console.log(self.chat.user2);
 
             p.then(_.bind(self.gotChat, self));
 
