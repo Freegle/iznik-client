@@ -92,7 +92,6 @@ function hideHeaderWait(event) {
     }
 }
 window.mobileRefresh = function () {
-    alert("mobileRefresh");
     showHeaderWait();
     Backbone.history.loadUrl();
     return false;
@@ -294,30 +293,22 @@ function mainOnAppStart() { // CC
                 // - Where the context is set to a different object, we'd need to figure out how to implement the retry.
                 // - File uploads, because we might have cancelled it.
                 if (!options.hasOwnProperty('context') && url && url.indexOf('groups.yahoo.com') == -1 && url != API + 'upload') {
-                    // We wrap the AJAX call in our own, with our own error handler.
-                    var args;
-                    if (typeof options === 'string') {
-                        arguments[1].url = options;
-                        args = sliceArgs(arguments[1]);
-                    } else {
-                        args = sliceArgs(arguments);
-                    }
-
-                    function retryIt(jqXHR) {
-                        var self = this;
-                        this.errors = this.errors === undefined ? 0 : this.errors + 1;
-                        var thedelay = delay(this.errors);
-                        console.log("retryIt", thedelay, this, arguments);
-                        setTimeout(function () {
-                            $.ajax(self);
-                        }, thedelay);
-                    }
-
+                    // We wrap the AJAX call in our own, with our own error handler. 
+                    var args; 
+                    if (typeof options === 'string') { 
+                        arguments[1].url = options; 
+                            args = sliceArgs(arguments[1]); 
+                        } else { 
+                            args = sliceArgs(arguments); 
+                        } 
+ 
+                    extendIt(args, options); 
+ 
                     return _ajax.apply($, args);
-                } else {
+                } else { 
                     return (_ajax.apply($, arguments));
-                }
-            };
+                } 
+            }; 
 
             console.log("push init start");
             if (!PushNotification) {
