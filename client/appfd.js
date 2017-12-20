@@ -1,6 +1,6 @@
 var Raven = require('raven-js');
 Raven.config(RAVEN_ID, {
-    release: GIT_COMMITHASH
+    release: BUILD_TIME + '.' + GIT_COMMITHASH
 }).install({
     extra: {
         BASE_URL: BASE_URL

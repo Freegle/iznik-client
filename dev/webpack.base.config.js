@@ -77,7 +77,8 @@ exports['default'] = new Config().merge({
           YAHOOAPI: JSON.stringify('https://groups.yahoo.com/api/v1/'),
           YAHOOAPIv2: JSON.stringify('https://groups.yahoo.com/api/v2/'),
           RAVEN_ID: JSON.stringify('https://421dadb7cd284c8aaeac285c65649728@sentry.io/261108'),
-          GIT_COMMITHASH: JSON.stringify((new GitRevisionPlugin()).commithash())
+          GIT_COMMITHASH: JSON.stringify((new GitRevisionPlugin()).commithash()),
+          BUILD_TIME:  JSON.stringify((new Date()).toISOString())
       }),
 
       new webpack.ProvidePlugin(shims.provides),
