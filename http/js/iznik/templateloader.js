@@ -4,6 +4,7 @@ var $ = require('jquery');
 var _ = require('underscore');
 
 function templateStore(tpl, html) {
+    console.log("templateStore:"+tpl);
     html = html.replace(/src=\"\//g, 'src="' + iznikroot);	// CC
     html = html.replace(/src=\'\//g, "src='" + iznikroot);	// CC
 
@@ -49,7 +50,7 @@ function templateStore(tpl, html) {
                 return html;
             } catch (e) {
                 console.error("Template " + tpl + " expansion failed with " + e.message + ", ");
-                console.log(this);
+                console.log(obj);
                 // CC console.log(html);
                 return ('');
             }
@@ -82,6 +83,7 @@ module.exports = {
     },
 
     templateFetch: function(tpl) {
+        console.log("templateFetch:"+tpl);
         var promise = new Promise(function(resolve, reject) {
             var $ = require('jquery');
             var promise;

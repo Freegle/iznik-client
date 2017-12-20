@@ -93,7 +93,8 @@ function hideHeaderWait(event) {
         jQuery('#refreshbutton span').removeClass("rotate");
     }
 }
-function mobileRefresh() {
+window.mobileRefresh = function () {
+    alert("mobileRefresh");
     showHeaderWait();
     Backbone.history.loadUrl();
     return false;
@@ -216,7 +217,7 @@ function mainOnAppStart() { // CC
                     //console.log("posn=" + posn);
                     //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
                     if (posn === 0) {
-                        mobileRefresh();
+                        window.mobileRefresh();
                     }
                 });
                 //hammer.on('swipeleft swiperight', function (ev) {
