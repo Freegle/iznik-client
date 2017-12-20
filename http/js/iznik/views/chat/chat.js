@@ -961,7 +961,6 @@ define([
                     });
 
                     self.$('.js-photo').on('fileimagesresized', function (event) {
-                        // Upload as soon as we have it.  Add an entry for the progress bar.
                         $('.file-preview, .kv-upload-progress').hide();
                         var prelast = self.messages.last();
                         var nextid = prelast ? (prelast.get('id') + 1) : 1;
@@ -975,7 +974,11 @@ define([
                         });
 
                         self.messages.add(tempmod);
-                        self.$('.js-photo').fileinput('upload');
+
+                        // Have to defer else break fileinput validation processing.
+                        _.defer(function() {
+                            self.$('.js-photo').fileinput('upload');
+                        });
                     });
 
                     self.$('.js-photo').on('fileuploaded', function (event, data) {

@@ -819,6 +819,7 @@ define([
                 });
 
                 self.messages.add(tempmod);
+
                 // Have to defer else break fileinput validation processing.
                 _.defer(function() {
                     self.$('.js-photopicker').fileinput('upload');

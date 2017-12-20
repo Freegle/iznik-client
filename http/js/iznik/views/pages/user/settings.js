@@ -365,7 +365,11 @@ define([
                     self.$('.js-profileimg').attr('src', '/images/userloader.gif');
 
                     $('.file-preview, .kv-upload-progress').hide();
-                    self.$('.js-profileupload').fileinput('upload');
+
+                    // Have to defer else break fileinput validation processing.
+                    _.defer(function() {
+                        self.$('.js-profileupload').fileinput('upload');
+                    });
                 });
 
                 // Watch for all uploaded
