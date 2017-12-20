@@ -1,3 +1,5 @@
+console.log("HELLO MT2");
+
 //CCvar API = 'https://modtools.org/api/'; // CC
 //var API = 'https://iznik.modtools.org/api/'; // CC
 //CCvar YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
@@ -439,3 +441,4 @@ style.innerHTML = css;
 //console.log(css);
 document.getElementsByTagName('head')[0].appendChild(style);
 
+console.log("HELLO MT3");

@@ -69,7 +69,7 @@ module.exports = new Config().extend({
     }),
     // CC new FaviconsPlugin('images/modtools_logo.png'),
     new webpack.DefinePlugin({
-      APP_VERSION: JSON.stringify('0.1.0, 19 December 2017'),
+      APP_VERSION: JSON.stringify('0.1.0, 20 December 2017'),
       FACEBOOK_APPID: JSON.stringify('134980666550322'),
       FACEBOOK_GRAFFITI_APPID: JSON.stringify('115376591981611'),
       GOOGLE_CLIENT_ID: JSON.stringify(
