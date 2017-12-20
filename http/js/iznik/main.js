@@ -7,8 +7,6 @@
 //CCvar EVENT_HOST = 'iznik.modtools.org';
 //CCvar USER_SITE = 'www.ilovefreegle.org';
 
-var MODTOOLS = false;
-
 window.isiOS = false; // CC
 window.useSwipeRefresh = false;
 window.initialURL = false;
