@@ -1,3 +1,5 @@
+import 'bootstrap-fileinput';
+
 define([
     'jquery',
     'underscore',
@@ -12,8 +14,7 @@ define([
     'iznik/views/user/schedule',
     'iznik/views/user/message',
     'jquery-resizable',
-    'jquery-visibility',
-    'fileinput'
+    'jquery-visibility'
 ], function ($, _, Backbone, Iznik, autosize, moment, ChatHolder) {
     Iznik.Views.Chat.Page = Iznik.Views.Page.extend({
         noback: true,
@@ -149,9 +150,9 @@ define([
                     // Only sort if this chat is not already at the top or open in a popup window.
                     var first = self.chats.first();
                     var mod = self.chats.get(chatid);
-                    var view = Iznik.openChats.viewManager.findByModel(mod);
+                    var view = self.chatsCV1.viewManager.findByModel(mod);
 
-                    if (first && first.get('id') != chatid && (!view || view.minimised)) {
+                    if (first && first.get('id') != chatid) {
                         self.chats.sort();
                     }
                 });
@@ -174,7 +175,7 @@ define([
 
                     // When we click to select, we want to load that chat.
                     self.chatsCV1.on('selectionChanged', function(selected) {
-                        if (selected.length > 0) {
+                        if (selected.length > 0 && selected[0]) {
                             self.loadChat(selected[0]);
                         }
                     });
@@ -197,7 +198,9 @@ define([
                         // When we click on this one, we want to route to the chat/id.  This is so that the user
                         // can use the back button to return to the chat list.
                         self.chatsCV2.on('selectionChanged', function(selected) {
-                            Router.navigate((self.modtools ? '/modtools' : '') + '/chat/' + selected[0].get('id'), true);
+                            if (selected.length > 0 && selected[0]) {
+                                Router.navigate((self.modtools ? '/modtools' : '') + '/chat/' + selected[0].get('id'), true);
+                            }
                         });
                     }
 

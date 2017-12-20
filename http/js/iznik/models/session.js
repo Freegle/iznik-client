@@ -1,3 +1,5 @@
+// CC var Raven = require('raven-js');
+
 define([
     'jquery',
     'underscore',
@@ -229,6 +231,10 @@ define([
                         self.set('configs', new Iznik.Collection(parsed.configs));
                     }
 
+                    // CC Raven.setUserContext({
+                    // CC     user: self.get('me')
+                    // CC });
+
                     self.loggedIn = true;
                     self.trigger('isLoggedIn', true);
                 }
@@ -285,6 +291,7 @@ define([
                                 Storage.set('signedinever', true);
                             } catch (e) {
                             }
+
                             self.set(ret);
 
                             if (!gotYahooCookies) {
@@ -300,6 +307,10 @@ define([
                             }
 
                             self.loggedIn = true;
+
+                            // CC Raven.setUserContext({
+                            // CC     user: self.get('me')
+                            // CC });
 
                             if (self.testing) {
                                 self.testing = false;

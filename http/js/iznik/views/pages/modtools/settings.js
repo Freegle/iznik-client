@@ -1,3 +1,5 @@
+import 'bootstrap-fileinput';
+
 define([
     'jquery',
     'underscore',
@@ -7,7 +9,6 @@ define([
     'moment',
     'iznik/base',
     'backform',
-    'fileinput',
     'maplabel',
     "iznik/modtools",
     'iznik/views/pages/pages',

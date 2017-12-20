@@ -111,6 +111,7 @@
     "favicons-webpack-plugin": "0.0.7",
     "file-loader": "^1.1.5",
     "friendly-errors-webpack-plugin": "^1.6.1",
+    "git-revision-webpack-plugin": "^2.5.1",
     "glob": "^7.1.2",
     "glob-promise": "^3.3.0",
     "html-webpack-plugin": "^2.29.0",

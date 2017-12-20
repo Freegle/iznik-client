@@ -1,9 +1,10 @@
+import 'bootstrap-fileinput';
+
 define([
     'jquery',
     'underscore',
     'backbone',
     'iznik/base',
-    'fileinput',
     'iznik/models/user/message',
     'iznik/views/group/select',
     'iznik/models/user/message',

@@ -1,3 +1,5 @@
+import 'bootstrap-fileinput';
+
 define([
     'jquery',
     'underscore',
@@ -352,100 +354,98 @@ define([
         render: function() {
             var self = this;
 
-            require([ 'fileinput' ], function() {
-                self.parentClass.prototype.render.call(self).then(function() {
-                    self.groupSelect = new Iznik.Views.Group.Select({
-                        systemWide: Iznik.Session.hasPermission('NationalVolunteers'),
-                        all: false,
-                        mod: false,
-                        choose: false,
-                        type: 'Freegle',
-                        id: 'volunteeringGroupSelect-' + self.model.get('id')
-                    });
+            self.parentClass.prototype.render.call(self).then(function() {
+                self.groupSelect = new Iznik.Views.Group.Select({
+                    systemWide: Iznik.Session.hasPermission('NationalVolunteers'),
+                    all: false,
+                    mod: false,
+                    choose: false,
+                    type: 'Freegle',
+                    id: 'volunteeringGroupSelect-' + self.model.get('id')
+                });
 
-                    // The group select render is a bit unusual because the dropdown requires us to have added it to the
-                    // DOM, so there's an event when we've really finished, at which point we can set a value.
-                    self.listenToOnce(self.groupSelect, 'completed', function() {
-                        var groups = self.model.get('groups');
-                        if (groups && groups.length) {
-                            // Only one group supported in the client at the moment.
-                            // TODO
-                            self.groupSelect.set(groups[0].id);
-                        }
-                        self.groupChange();
-                    });
-
-                    self.groupSelect.render().then(function () {
-                        self.$('.js-groupselect').html(self.groupSelect.el);
-                        self.listenTo(self.groupSelect, 'change', _.bind(self.groupChange, self));
-                    });
-
-                    // Set the values.  We do it here rather than in the template because they might contain user data
-                    // which would mess up the template expansion.
-                    _.each(['title', 'description', 'timecommitment', 'location', 'contactname', 'contactemail', 'contacturl', 'contactphone'], function(att)
-                    {
-                        self.$('.js-' + att).val(self.model.get(att));
-                    })
-
-                    var dates = self.model.get('dates');
-
-                    if (_.isUndefined(dates) || dates.length == 0) {
-                        // None so far.  Set up one for them to modify.
-                        self.dates = new Iznik.Collection([
-                            new Iznik.Model({})
-                        ]);
-                    } else {
-                        self.dates = new Iznik.Collection(dates);
+                // The group select render is a bit unusual because the dropdown requires us to have added it to the
+                // DOM, so there's an event when we've really finished, at which point we can set a value.
+                self.listenToOnce(self.groupSelect, 'completed', function() {
+                    var groups = self.model.get('groups');
+                    if (groups && groups.length) {
+                        // Only one group supported in the client at the moment.
+                        // TODO
+                        self.groupSelect.set(groups[0].id);
                     }
+                    self.groupChange();
+                });
 
-                    self.datesCV = new Backbone.CollectionView({
-                        el: self.$('.js-dates'),
-                        modelView: Iznik.Views.User.Volunteering.Date,
-                        collection: self.dates,
-                        processKeyEvents: false,
-                        modelViewOptions: {
-                            collection: self.dates
-                        }
-                    });
+                self.groupSelect.render().then(function () {
+                    self.$('.js-groupselect').html(self.groupSelect.el);
+                    self.listenTo(self.groupSelect, 'change', _.bind(self.groupChange, self));
+                });
 
-                    self.datesCV.render();
+                // Set the values.  We do it here rather than in the template because they might contain user data
+                // which would mess up the template expansion.
+                _.each(['title', 'description', 'timecommitment', 'location', 'contactname', 'contactemail', 'contacturl', 'contactphone'], function(att)
+                {
+                    self.$('.js-' + att).val(self.model.get(att));
+                })
 
-                    // Need to make sure we're in the DOM else the validate plugin fails.
-                    self.waitDOM(self, function() {
-                        self.validator = self.$('form').validate({
-                            rules: {
-                                title: {
-                                    required: true
-                                },
-                                description: {
-                                    required: true
-                                },
-                                start: {
-                                    mindate: self,
-                                    required: false
-                                },
-                                end: {
-                                    mindate: self,
-                                    required: false
-                                },
-                                end: {
-                                    mindate: self,
-                                    required: false
-                                },
-                                location: {
-                                    required: true
-                                },
-                                contactphone: {
-                                    phoneUK: true
-                                },
-                                contactemail: {
-                                    email: true
-                                },
-                                contacturl: {
-                                    url: true
-                                }
+                var dates = self.model.get('dates');
+
+                if (_.isUndefined(dates) || dates.length == 0) {
+                    // None so far.  Set up one for them to modify.
+                    self.dates = new Iznik.Collection([
+                        new Iznik.Model({})
+                    ]);
+                } else {
+                    self.dates = new Iznik.Collection(dates);
+                }
+
+                self.datesCV = new Backbone.CollectionView({
+                    el: self.$('.js-dates'),
+                    modelView: Iznik.Views.User.Volunteering.Date,
+                    collection: self.dates,
+                    processKeyEvents: false,
+                    modelViewOptions: {
+                        collection: self.dates
+                    }
+                });
+
+                self.datesCV.render();
+
+                // Need to make sure we're in the DOM else the validate plugin fails.
+                self.waitDOM(self, function() {
+                    self.validator = self.$('form').validate({
+                        rules: {
+                            title: {
+                                required: true
+                            },
+                            description: {
+                                required: true
+                            },
+                            start: {
+                                mindate: self,
+                                required: false
+                            },
+                            end: {
+                                mindate: self,
+                                required: false
+                            },
+                            end: {
+                                mindate: self,
+                                required: false
+                            },
+                            location: {
+                                required: true
+                            },
+                            contactphone: {
+                                phoneUK: true
+                            },
+                            contactemail: {
+                                email: true
+                            },
+                            contacturl: {
+                                url: true
                             }
-                        });
+                        }
                     });
                 });
             });

@@ -377,7 +377,7 @@ define([
                                     _.delay(function() {
                                         var notif = self.notifications.first();
 
-                                        if (!notif.get('seen')) {
+                                        if (notif && !notif.get('seen')) {
                                             notif.seen();
                                         }
                                     }, 5000);

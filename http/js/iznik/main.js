@@ -1,12 +1,7 @@
 //CCvar API = 'https://modtools.org/api/'; // CC
 //var API = 'https://iznik.modtools.org/api/'; // CC
-
-//CCvar API = 'https://www.ilovefreegle.org/api/'; // CC
-//CCvar CHAT_HOST = 'https://users.ilovefreegle.org';
-//CCvar EVENT_HOST = 'iznik.modtools.org';
-//CCvar USER_SITE = 'www.ilovefreegle.org';
-
-var MODTOOLS = false;
+//CCvar YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
+//CCvar YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
 window.isiOS = false; // CC
 window.useSwipeRefresh = false;
@@ -18,6 +13,8 @@ var lastPushMsgid = false;
 //var badgeconsole = '';
 var divertConsole = false;
 window.showDebugConsole = false;
+
+// CC var Raven = require('raven-js');
 
 function panicReload() {
     // This is used when we fear something has gone wrong with our fetching of the code, and want to bomb out and
@@ -58,9 +55,9 @@ requirejs.onError = function (err) {
 };
 
 // Global error catcher so that we log to the server.
-/*window.onerror = function(message, file, line) {
-	console.error(message, file, line);
-	$.ajax({
+/*window.onerror = function (message, file, line) {
+    console.error(message, file, line);
+    jQuery.ajax({
 		url: API + 'error',
 		type: 'PUT',
 		data: {
@@ -90,7 +87,8 @@ function hideHeaderWait(event) {
         jQuery('#refreshbutton span').removeClass("rotate");
     }
 }
-function mobileRefresh() {
+window.mobileRefresh = function () {
+    alert("mobileRefresh");
     showHeaderWait();
     Backbone.history.loadUrl();
     return false;
@@ -128,288 +126,282 @@ window.Storage = {
 
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
-if (typeof window.alllog === 'undefined') { 
+if (typeof window.alllog === 'undefined') {
     window.alllog = "Log started: " + (new Date()).toISOString();
-} 
-var logtog = false; 
+}
+var logtog = false;
 
 function mainOnAppStart() { // CC
-console.log("main boot");	// CC
-window.isiOS = (window.device.platform === 'iOS'); // CC
-if (!window.initialURL) {
-    window.initialURL = window.location.href;
-}
-
-console.log(device);
-
-if (!window.isiOS) {   // vertical swipe on iOS stops scrolling
-    var androidVersion = parseFloat(device.version);    // Not using Crosswalk so only enable swipe refresh for Android 4.4+
-    if (androidVersion >= 4.4) {
-        window.useSwipeRefresh = true;
-    }
-    window.useSwipeRefresh = false;    // CC Hammer doesn't work in CLI version on Nexus
-}
-setTimeout(function(){  // Have small delay at startup to try to avoid cannot load index.html error
-require([
-    'jquery',
-    'underscore',
-    'backbone',
-    'iznik/router',
-    // CC 'hammer'   // CC
-], function ($, _, Backbone) {
-    console.log("starting Backbone");	// CC
-    if (!Backbone) {
-        // Something has gone unpleasantly wrong.
-        console.error("Backbone failed to fetch");
-        panicReload();
+    console.log("main boot");	// CC
+    isiOS = (window.device.platform === 'iOS'); // CC
+    if (!window.initialURL) {
+        window.initialURL = window.location.href;
     }
 
-    $.ajaxSetup({
-        mobileapp: 1
-    });
+    console.log(device);
 
-    // Template to add link to /mobiledebug is in template/user/layout/layout.html
-    if (divertConsole) {
-        var oldconsolelog = console.log;
-        console.log = function () {
-            if (window.showDebugConsole) {
-                var now = new Date();
-                var msg = '###' + now.toJSON().substring(11) + ': ';
-                for (var i = 0; i < arguments.length; i++) {
-                    var arg = arguments[i];
-                    if (typeof arg !== "string") {
-                        arg = JSON.stringify(arg);
-                    }
-                    msg += arg + ' ';
-                }
-                if (msg.length > 300) {
-                    msg = msg.substring(0,300)+'...';
-                }
-                msg += "\r\n";
-                logtog = !logtog;
-                window.alllog = msg + alllog;
-                $('#js-mobilelog').val(window.alllog);
-                //oldconsolelog(msg); 
-            }
+    if (!isiOS) {   // vertical swipe on iOS stops scrolling
+        var androidVersion = parseFloat(device.version);    // Not using Crosswalk so only enable swipe refresh for Android 4.4+
+        if (androidVersion >= 4.4) {
+            window.useSwipeRefresh = true;
         }
+        window.useSwipeRefresh = false;    // CC Hammer doesn't work in CLI version on Nexus
     }
 
-    // http://hammerjs.github.io/getting-started/
-
-    /* // CCif (window.useSwipeRefresh) {
-        //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
-        //alert(typeof Hammer);
-        hammer = new Hammer(window);
-        //alert("got hammer");
-        //alert(typeof hammer);
-        //alert(JSON.stringify(hammer));
-        hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
-        hammer.on('swipedown', function (ev) {
-            //alert("hammer down");
-            //console.log(ev);
-            var posn = $(window).scrollTop();
-            //console.log("posn=" + posn);
-            //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
-            if (posn === 0) {
-                mobileRefresh();
-            }
-        });
-        //hammer.on('swipeleft swiperight', function (ev) {
-        //    console.log(ev);
-        //    $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
-        //});
-    }*/
-
-    // Catch back button and clear chats
-    window.addEventListener('popstate', function (e) {    // CC
-        try {
-            var ChatHolder = new Iznik.Views.Chat.Holder();
-            ChatHolder.minimiseall();
-        } catch (e) { }
-    });
-
-    document.addEventListener("offline", function () { isOnline = false; window.showNetworkStatus() }, false);
-    document.addEventListener("online", function () { isOnline = true; window.showNetworkStatus() }, false);
-
-    Backbone.emulateJSON = true;
-
-    // We have a busy indicator.
-    $(document).ajaxStop(function () {
-        $('#spinner').hide();
-        // We might have added a class to indicate that we were waiting for an AJAX call to complete.
-        $('.showclicked').removeClass('showclicked');
-        hideHeaderWait();
-    });
-
-    $(document).ajaxStart(function () {
-        $('#spinner').show();
-        showHeaderWait();
-    });
-
-    // We want to retry AJAX requests automatically, because we might have a flaky network.  This also covers us for
-    // Backbone fetches.
-    var _ajax = $.ajax;
-
-    function sliceArgs() {
-        return (Array.prototype.slice.call(arguments, 0));
-    }
-
-    function delay(errors) {
-        // Exponential backoff upto a limit.
-        return (Math.min(Math.pow(2, errors) * 1000, 30000));
-    }
-
-    function retryIt(jqXHR) {
-        var self = this;
-        this.errors = this.errors === undefined ? 0 : this.errors + 1;
-        var thedelay = delay(this.errors);
-        //console.log("retryIt", thedelay, this, arguments);
-        console.log("retryIt", thedelay, this.responseURL); // CC
-        setTimeout(function () {
-            $.ajax(self);
-        }, thedelay);
-    }
-
-    function extendIt(args, options) {
-        _.extend(args[0], options && typeof options === 'object' ? options : {}, {
-            error:   function (event, xhr) {
-                if (xhr.statusText === 'abort') {
-                    console.log("Aborted, don't retry");
-                } else {
-                    retryIt.apply(this, arguments);
-                }
-            }
-        });
-    }
-
-    $.ajax = function (options) {
-        var url = options.url;
-
-        // There are some cases we don't want to subject to automatic retrying:
-        // - Yahoo can validly return errors as part of its API, and we handle retrying via the plugin work.
-        // - Where the context is set to a different object, we'd need to figure out how to implement the retry.
-        // - File uploads, because we might have cancelled it.
-        if (!options.hasOwnProperty('context') && url && url.indexOf('groups.yahoo.com') == -1 && url != API + 'upload') {
-            // We wrap the AJAX call in our own, with our own error handler.
-            var args;
-            if (typeof options === 'string') {
-                arguments[1].url = options;
-                args = sliceArgs(arguments[1]);
-            } else {
-                args = sliceArgs(arguments);
-            }
-
-            extendIt(args, options);
-
-            return _ajax.apply($, args);
-        } else {
-            return (_ajax.apply($, arguments));
+    require([
+        'jquery',
+        'underscore',
+        'backbone',
+        'iznik/router'
+        // CC 'hammer'   // CC
+    ], function ($, _, Backbone) {
+        console.log("starting Backbone");	// CC
+        if (!Backbone) {
+            // Something has gone unpleasantly wrong.
+            console.error("Backbone failed to fetch");
+            panicReload();
         }
-    };
 
-    console.log("push init start");
-    if (!PushNotification) {
-        console.log("no push notification service");
-        //alert("No PN");
-    } else if (!window.mobilePushId) {
-        window.mobilePush = PushNotification.init({
-            android: {
-                senderID: "845879623324",
-                sound: false,
-                //iconColor: "#5EcA24",
-                //icon: "icon",
-                //forceShow: true,
-            },
-            ios: {
-                //senderID: "845879623324",
-                alert: true,
-                badge: true,
-                sound: false
-            }
-        });
-        window.mobilePush.on('registration', function (data) {
-            window.mobilePushId = data.registrationId;
-            console.log("push registration " + window.mobilePushId);
-            //alert("registration: " + window.mobilePushId);
+        $.ajaxSetup({
+            mobileapp: 1
         });
 
-        // Called to handle a push notification
-        //
-        // A push shows a notification immediately and sets desktop badge count (on iOS and some Android)
-        // Note: badge count also set elsewhere when unseen chats counted (and may disagree!)
-        //
-        // Some of the following description is probably not now right (yet again):
-        //
-        // On iOS this handler is called immediately if running in foreground;
-        //  it is not called if app not started; the handler is called when app started.
-        //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
-        //
-        // On Android this handler is called immediately if running in foreground;
-        //  it is not called if not started; the handler is called twice when app started (double event)
-        //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
-        window.mobilePush.on('notification', function (data) {
-            //alert("push notification");
-            console.log("push notification");
-            console.log(data);
-            var foreground = data.additionalData.foreground.toString() == 'true';   // Was first called in foreground or background
-            var msgid = data.additionalData['google.message_id'];
-            if (window.isiOS) {
-                if (!('notId' in data.additionalData)) { data.additionalData.notId = 0; }
-                msgid = data.additionalData.notId;
-            }
-            var doubleEvent = (msgid == lastPushMsgid);
-            lastPushMsgid = msgid;
-            console.log("foreground "+foreground+" double " + doubleEvent + " msgid: " + msgid);
-            if (!('count' in data)) { data.count = 0; }
-            if (data.count == 0) {
-                window.mobilePush.clearAllNotifications();   // no success and error fns given
-            }
-            window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
-            /*var msg = new Date();
-            msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
-            badgeconsole += msg;
-            $('#badgeconsole').html(badgeconsole);*/
-
-            if ((!foreground && doubleEvent) && (data.count > 0)) { // Only go to route if started/awakened ie not if in foreground
-                if (data.additionalData.route) {
-                    (function waitUntilLoggedIn(retry) {
-                        if (Iznik.Session.loggedIn) {
-                            setTimeout(function () {
-                                //console.log("Push go to: " + data.additionalData.route);
-                                Router.navigate(data.additionalData.route, true);
-                            }, 500);
-                        } else {
-                            setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
+        // Template to add link to /mobiledebug is in template/user/layout/layout.html
+        if (divertConsole) {
+            var oldconsolelog = console.log;
+            console.log = function () {
+                if (window.showDebugConsole) {
+                    var now = new Date();
+                    var msg = '###' + now.toJSON().substring(11) + ': ';
+                    for (var i = 0; i < arguments.length; i++) {
+                        var arg = arguments[i];
+                        if (typeof arg !== "string") {
+                            arg = JSON.stringify(arg);
                         }
-                    })(10);
+                        msg += arg + ' ';
+                    }
+                    if (msg.length > 300) {
+                        msg = msg.substring(0, 300) + '...';
+                    }
+                    msg += "\r\n";
+                    logtog = !logtog;
+                    window.alllog = msg + window.alllog;
+                    $('#js-mobilelog').val(window.alllog);
+                    //oldconsolelog(msg); 
                 }
             }
+        }
 
-            if (window.isiOS) {
-                window.mobilePush.finish(function () {
+        // http://hammerjs.github.io/getting-started/
+
+        /*if (window.useSwipeRefresh) {
+            //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+            //alert(typeof Hammer);
+            hammer = new Hammer(window);
+            //alert("got hammer");
+            //alert(typeof hammer);
+            //alert(JSON.stringify(hammer));
+            hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+            hammer.on('swipedown', function (ev) {
+                //alert("hammer down");
+                //console.log(ev);
+                var posn = $(window).scrollTop();
+                //console.log("posn=" + posn);
+                //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
+                if (posn === 0) {
+                    mobileRefresh();
+                }
+            });
+            //hammer.on('swipeleft swiperight', function (ev) {
+            //    console.log(ev);
+            //    $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
+            //});
+        }*/
+
+        // Catch back button and clear chats
+        window.addEventListener('popstate', function (e) {    // CC
+            try {
+                var ChatHolder = new Iznik.Views.Chat.Holder();
+                ChatHolder.minimiseall();
+            } catch (e) { }
+        });
+
+        document.addEventListener("offline", function () { isOnline = false; showNetworkStatus() }, false);
+        document.addEventListener("online", function () { isOnline = true; showNetworkStatus() }, false);
+
+        Backbone.emulateJSON = true;
+
+        // We have a busy indicator.
+        $(document).ajaxStop(function () {
+            $('#spinner').hide();
+            // We might have added a class to indicate that we were waiting for an AJAX call to complete.
+            $('.showclicked').removeClass('showclicked');
+            hideHeaderWait();
+        });
+
+        $(document).ajaxStart(function () {
+            $('#spinner').show();
+            showHeaderWait();
+        });
+
+        // We want to retry AJAX requests automatically, because we might have a flaky network.  This also covers us for
+        // Backbone fetches.
+        var _ajax = $.ajax;
+
+        function sliceArgs() {
+            return (Array.prototype.slice.call(arguments, 0));
+        }
+
+        function delay(errors) {
+            // Exponential backoff upto a limit.
+            return (Math.min(Math.pow(2, errors) * 1000, 30000));
+        }
+
+        function retryIt(jqXHR) {
+            var self = this;
+            this.errors = this.errors === undefined ? 0 : this.errors + 1;
+            var thedelay = delay(this.errors);
+            //console.log("retryIt", thedelay, this, arguments);
+            console.log("retryIt", thedelay, this.responseURL); // CC
+            setTimeout(function () {
+                $.ajax(self);
+            }, thedelay);
+        }
+
+        function extendIt(args, options) {
+            _.extend(args[0], options && typeof options === 'object' ? options : {}, {
+                error: function () { retryIt.apply(this, arguments); }
+            });
+        }
+
+        $.ajax = function (options) {
+            var url = options.url;
+
+            // There are some cases we don't want to subject to automatic retrying:
+            // - Yahoo can validly return errors as part of its API, and we handle retrying via the plugin work.
+            // - Where the context is set to a different object, we'd need to figure out how to implement the retry.
+            // - File uploads, because we might have cancelled it.
+            if (!options.hasOwnProperty('context') && url && url.indexOf('groups.yahoo.com') == -1 && url != API + 'upload') {
+                // We wrap the AJAX call in our own, with our own error handler.
+                var args;
+                if (typeof options === 'string') {
+                    arguments[1].url = options;
+                    args = sliceArgs(arguments[1]);
+                } else {
+                    args = sliceArgs(arguments);
+                }
+
+                extendIt(args, options);
+
+                return _ajax.apply($, args);
+            } else {
+                return (_ajax.apply($, arguments));
+            }
+        };
+
+        console.log("push init start");
+        if (!PushNotification) {
+            console.log("no push notification service");
+            //alert("No PN");
+        } else if (!window.mobilePushId) {
+            window.mobilePush = PushNotification.init({
+                android: {
+                    senderID: "845879623324",
+                    sound: false,
+                    //iconColor: "#5EcA24",
+                    //icon: "icon",
+                    //forceShow: true,
+                },
+                ios: {
+                    //senderID: "845879623324",
+                    alert: true,
+                    badge: true,
+                    sound: false
+                }
+            });
+            window.mobilePush.on('registration', function (data) {
+                window.mobilePushId = data.registrationId;
+                console.log("push registration " + window.mobilePushId);
+                //alert("registration: " + window.mobilePushId);
+            });
+
+            // Called to handle a push notification
+            //
+            // A push shows a notification immediately and sets desktop badge count (on iOS and some Android)
+            // Note: badge count also set elsewhere when unseen chats counted (and may disagree!)
+            //
+            // Some of the following description is probably not now right (yet again):
+            //
+            // On iOS this handler is called immediately if running in foreground;
+            //  it is not called if app not started; the handler is called when app started.
+            //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
+            //
+            // On Android this handler is called immediately if running in foreground;
+            //  it is not called if not started; the handler is called twice when app started (double event)
+            //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
+            window.mobilePush.on('notification', function (data) {
+                //alert("push notification");
+                console.log("push notification");
+                console.log(data);
+                var foreground = data.additionalData.foreground.toString() == 'true';   // Was first called in foreground or background
+                var msgid = data.additionalData['google.message_id'];
+                if (isiOS) {
+                    if (!('notId' in data.additionalData)) { data.additionalData.notId = 0; }
+                    msgid = data.additionalData.notId;
+                }
+                var doubleEvent = (msgid == lastPushMsgid);
+                lastPushMsgid = msgid;
+                console.log("foreground " + foreground + " double " + doubleEvent + " msgid: " + msgid);
+                if (!('count' in data)) { data.count = 0; }
+                if (data.count == 0) {
+                    window.mobilePush.clearAllNotifications();   // no success and error fns given
+                }
+                window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+                /*var msg = new Date();
+                msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
+                badgeconsole += msg;
+                $('#badgeconsole').html(badgeconsole);*/
+
+                if ((!foreground && doubleEvent) && (data.count > 0)) { // Only go to route if started/awakened ie not if in foreground
+                    if (data.additionalData.route) {
+                        (function waitUntilLoggedIn(retry) {
+                            if (Iznik.Session.loggedIn) {
+                                setTimeout(function () {
+                                    //console.log("Push go to: " + data.additionalData.route);
+                                    Router.navigate(data.additionalData.route, true);
+                                }, 500);
+                            } else {
+                                setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
+                            }
+                        })(10);
+                    }
+                }
+
+                if (isiOS) {
+                    window.mobilePush.finish(function () {
                         console.log("push finished OK");
                         //alert("finished");
                     }, function () {
                         console.log("push finished error");
                         //alert("finished");
                     },
-                    data.additionalData.notId
-                );
-            }
-        });
+                        data.additionalData.notId
+                    );
+                }
+            });
 
-        window.mobilePush.on('error', function (e) {
-            //alert("error: " + e.message);
-            console.log("mobilePush error " + e.message);
-        });
-    }
+            window.mobilePush.on('error', function (e) {
+                //alert("error: " + e.message);
+                console.log("mobilePush error " + e.message);
+            });
+        }
 
-    // Bootstrap adds body padding which we don't want.
-    $('body').css('padding-right', '');
-});
-}, 250);
+        // Bootstrap adds body padding which we don't want.
+        $('body').css('padding-right', '');
+    });
 
 }; // CC
+
 
 var mobileGlobalRoot = false;   // CC
 var oneOffPathname = false; // CC
@@ -446,5 +438,4 @@ css += '.splitter { background: url("' + iznikroot + 'images/vsizegrip.png") cen
 style.innerHTML = css;
 //console.log(css);
 document.getElementsByTagName('head')[0].appendChild(style);
-
 

@@ -1,3 +1,5 @@
+import 'bootstrap-fileinput';
+
 define([
     'jquery',
     'underscore',
@@ -320,174 +322,172 @@ define([
         render: function() {
             var self = this;
 
-            require([ 'fileinput' ], function() {
-                self.parentClass.prototype.render.call(self).then(function() {
-                    self.groupSelect = new Iznik.Views.Group.Select({
-                        systemWide: false,
-                        all: false,
-                        mod: false,
-                        choose: false,
-                        grouptype: 'Freegle',
-                        id: 'eventGroupSelect-' + self.model.get('id')
-                    });
+            self.parentClass.prototype.render.call(self).then(function() {
+                self.groupSelect = new Iznik.Views.Group.Select({
+                    systemWide: false,
+                    all: false,
+                    mod: false,
+                    choose: false,
+                    grouptype: 'Freegle',
+                    id: 'eventGroupSelect-' + self.model.get('id')
+                });
 
-                    // The group select render is a bit unusual because the dropdown requires us to have added it to the
-                    // DOM, so there's an event when we've really finished, at which point we can set a value.
-                    self.listenToOnce(self.groupSelect, 'completed', function() {
-                        var groups = self.model.get('groups');
-                        if (groups && groups.length) {
-                            // Only one group supported in the client at the moment.
-                            // TODO
-                            self.groupSelect.set(groups[0].id);
-                        }
-                        self.groupChange();
-                    });
-
-                    self.groupSelect.render().then(function () {
-                        self.$('.js-groupselect').html(self.groupSelect.el);
-                        self.listenTo(self.groupSelect, 'change', _.bind(self.groupChange, self));
-                    });
-
-                    // Set the values.  We do it here rather than in the template because they might contain user data
-                    // which would mess up the template expansion.
-                    _.each(['title', 'description', 'location', 'contactname', 'contactemail', 'contacturl', 'contactphone'], function(att)
-                    {
-                        self.$('.js-' + att).val(self.model.get(att));
-                    })
-
-                    var dates = self.model.get('dates');
-
-                    if (_.isUndefined(dates) || dates.length == 0) {
-                        // None so far.  Set up one for them to modify.
-                        self.dates = new Iznik.Collection([
-                            new Iznik.Model({})
-                        ]);
-                    } else {
-                        self.dates = new Iznik.Collection(dates);
+                // The group select render is a bit unusual because the dropdown requires us to have added it to the
+                // DOM, so there's an event when we've really finished, at which point we can set a value.
+                self.listenToOnce(self.groupSelect, 'completed', function() {
+                    var groups = self.model.get('groups');
+                    if (groups && groups.length) {
+                        // Only one group supported in the client at the moment.
+                        // TODO
+                        self.groupSelect.set(groups[0].id);
                     }
+                    self.groupChange();
+                });
 
-                    self.datesCV = new Backbone.CollectionView({
-                        el: self.$('.js-dates'),
-                        modelView: Iznik.Views.User.CommunityEvent.Date,
-                        collection: self.dates,
-                        processKeyEvents: false,
-                        modelViewOptions: {
-                            collection: self.dates
+                self.groupSelect.render().then(function () {
+                    self.$('.js-groupselect').html(self.groupSelect.el);
+                    self.listenTo(self.groupSelect, 'change', _.bind(self.groupChange, self));
+                });
+
+                // Set the values.  We do it here rather than in the template because they might contain user data
+                // which would mess up the template expansion.
+                _.each(['title', 'description', 'location', 'contactname', 'contactemail', 'contacturl', 'contactphone'], function(att)
+                {
+                    self.$('.js-' + att).val(self.model.get(att));
+                })
+
+                var dates = self.model.get('dates');
+
+                if (_.isUndefined(dates) || dates.length == 0) {
+                    // None so far.  Set up one for them to modify.
+                    self.dates = new Iznik.Collection([
+                        new Iznik.Model({})
+                    ]);
+                } else {
+                    self.dates = new Iznik.Collection(dates);
+                }
+
+                self.datesCV = new Backbone.CollectionView({
+                    el: self.$('.js-dates'),
+                    modelView: Iznik.Views.User.CommunityEvent.Date,
+                    collection: self.dates,
+                    processKeyEvents: false,
+                    modelViewOptions: {
+                        collection: self.dates
+                    }
+                });
+
+                self.datesCV.render();
+
+                self.listenTo(self.dates, 'update', function() {
+                    // Re-render the first date to make sure the delete button only appears when there are
+                    // multiple.
+                    console.log("Collection updated", self.dates.length);
+                    self.datesCV.viewManager.findByIndex(0).showHideDel();
+                });
+
+                // Need to make sure we're in the DOM else the validate plugin fails.
+                self.waitDOM(self, function() {
+                    self.validator = self.$('form').validate({
+                        rules: {
+                            title: {
+                                required: true
+                            },
+                            description: {
+                                required: true
+                            },
+                            start: {
+                                mindate: self,
+                                required: true
+                            },
+                            end: {
+                                mindate: self,
+                                required: true
+                            },
+                            location: {
+                                required: true
+                            },
+                            contactphone: {
+                                phoneUK: true
+                            },
+                            contactemail: {
+                                email: true
+                            },
+                            contacturl: {
+                                url: true
+                            }
                         }
                     });
 
-                    self.datesCV.render();
-
-                    self.listenTo(self.dates, 'update', function() {
-                        // Re-render the first date to make sure the delete button only appears when there are
-                        // multiple.
-                        console.log("Collection updated", self.dates.length);
-                        self.datesCV.viewManager.findByIndex(0).showHideDel();
+                    // Photo.  We ask for OCR because it is common for this to be a poster.
+                    var photo = self.model.get('photo');
+                    var url = !_.isUndefined(photo) ? photo.paththumb : "https://placehold.it/150x150";
+                    self.$('.js-photopreview').attr('src',  url);
+                    self.$('.js-photo').fileinput({
+                        uploadExtraData: {
+                            imgtype: 'CommunityEvent',
+                            communityevent: 1,
+                            ocr: true
+                        },
+                        showUpload: false,
+                        allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                        uploadUrl: API + 'image',
+                        resizeImage: true,
+                        maxImageWidth: 800,
+                        browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
+                        browseLabel: 'Upload photo',
+                        browseClass: 'btn btn-primary nowrap',
+                        showCaption: false,
+                        showRemove: false,
+                        showUploadedThumbs: false,
+                        dropZoneEnabled: false,
+                        buttonLabelClass: '',
+                        fileActionSettings: {
+                            showZoom: false,
+                            showRemove: false,
+                            showUpload: false
+                        },
+                        layoutTemplates: {
+                            footer: '<div class="file-thumbnail-footer">\n' +
+                            '    {actions}\n' +
+                            '</div>'
+                        },
+                        elErrorContainer: '#js-uploaderror'
                     });
 
-                    // Need to make sure we're in the DOM else the validate plugin fails.
-                    self.waitDOM(self, function() {
-                        self.validator = self.$('form').validate({
-                            rules: {
-                                title: {
-                                    required: true
-                                },
-                                description: {
-                                    required: true
-                                },
-                                start: {
-                                    mindate: self,
-                                    required: true
-                                },
-                                end: {
-                                    mindate: self,
-                                    required: true
-                                },
-                                location: {
-                                    required: true
-                                },
-                                contactphone: {
-                                    phoneUK: true
-                                },
-                                contactemail: {
-                                    email: true
-                                },
-                                contacturl: {
-                                    url: true
-                                }
-                            }
-                        });
+                    // Upload as soon as we have it.
+                    self.$('.js-photo').on('fileimagesresized', function (event) {
+                        self.$('.file-input').hide();
+                        self.$('.js-photopreview').hide();
+                        self.$('.js-photo').fileinput('upload');
+                    });
 
-                        // Photo.  We ask for OCR because it is common for this to be a poster.
-                        var photo = self.model.get('photo');
-                        var url = !_.isUndefined(photo) ? photo.paththumb : "https://placehold.it/150x150";
-                        self.$('.js-photopreview').attr('src',  url);
-                        self.$('.js-photo').fileinput({
-                            uploadExtraData: {
-                                imgtype: 'CommunityEvent',
-                                communityevent: 1,
-                                ocr: true
-                            },
-                            showUpload: false,
-                            allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-                            uploadUrl: API + 'image',
-                            resizeImage: true,
-                            maxImageWidth: 800,
-                            browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
-                            browseLabel: 'Upload photo',
-                            browseClass: 'btn btn-primary nowrap',
-                            showCaption: false,
-                            showRemove: false,
-                            showUploadedThumbs: false,
-                            dropZoneEnabled: false,
-                            buttonLabelClass: '',
-                            fileActionSettings: {
-                                showZoom: false,
-                                showRemove: false,
-                                showUpload: false
-                            },
-                            layoutTemplates: {
-                                footer: '<div class="file-thumbnail-footer">\n' +
-                                '    {actions}\n' +
-                                '</div>'
-                            },
-                            elErrorContainer: '#js-uploaderror'
-                        });
+                    self.$('.js-photo').on('fileuploaded', function (event, data) {
+                        // Once it's uploaded, hide the controls.  This means we can't edit, but that's ok for
+                        // this.
+                        self.$('.js-photopreview').attr('src', data.response.paththumb);
+                        self.$('.js-photopreview').show();
+                        self.model.set('photo', data.response.id);
 
-                        // Upload as soon as we have it.
-                        self.$('.js-photo').on('fileimagesresized', function (event) {
-                            self.$('.file-input').hide();
-                            self.$('.js-photopreview').hide();
-                            self.$('.js-photo').fileinput('upload');
-                        });
+                        if (data.response.ocr && data.response.ocr.length > 10) {
+                            // We got some text.  The first line is most likely to be a title.
+                            var p = data.response.ocr.indexOf("\n");
+                            var title = p !== -1 ? data.response.ocr.substring(0, p): null;
+                            var desc = p !== -1 ? data.response.ocr.substring(p + 1) : data.response.ocr;
 
-                        self.$('.js-photo').on('fileuploaded', function (event, data) {
-                            // Once it's uploaded, hide the controls.  This means we can't edit, but that's ok for
-                            // this.
-                            self.$('.js-photopreview').attr('src', data.response.paththumb);
-                            self.$('.js-photopreview').show();
-                            self.model.set('photo', data.response.id);
-
-                            if (data.response.ocr && data.response.ocr.length > 10) {
-                                // We got some text.  The first line is most likely to be a title.
-                                var p = data.response.ocr.indexOf("\n");
-                                var title = p !== -1 ? data.response.ocr.substring(0, p): null;
-                                var desc = p !== -1 ? data.response.ocr.substring(p + 1) : data.response.ocr;
-
-                                if (title && self.$('.js-title').val().length === 0) {
-                                    self.$('.js-title').val(title);
-                                }
-
-                                // Put the rest in the description for them to sort out.
-                                if (self.$('.js-description').val().length === 0) {
-                                    self.$('.js-description').val(desc);
-                                }
+                            if (title && self.$('.js-title').val().length === 0) {
+                                self.$('.js-title').val(title);
                             }
 
-                            _.delay(function() {
-                                self.$('.file-preview-frame').remove();
-                            }, 500);
-                        });
+                            // Put the rest in the description for them to sort out.
+                            if (self.$('.js-description').val().length === 0) {
+                                self.$('.js-description').val(desc);
+                            }
+                        }
+
+                        _.delay(function() {
+                            self.$('.file-preview-frame').remove();
+                        }, 500);
                     });
                 });
             });

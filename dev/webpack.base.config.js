@@ -7,11 +7,9 @@ const FaviconsPlugin = require('favicons-webpack-plugin');
 const AssetsPlugin = require('assets-webpack-plugin');
 const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-
-
 const shims = require('./shims');
-
 const ROOT = join(__dirname, '..');
+const GitRevisionPlugin = require('git-revision-webpack-plugin');
 
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:3000').replace(
   /\/$/,
@@ -33,6 +31,7 @@ exports['default'] = new Config().merge({
       join(ROOT, 'http/css'),
       join(ROOT, 'http/js/lib'),
       join(ROOT, 'node_modules/bootstrap-fileinput/img') // TODO Can't be the right way.
+      // CC join(ROOT, 'node_modules/raven-js/dist/plugins') // TODO Can't be the right way.
     ],
     alias: {
       '/template': 'template',
@@ -76,7 +75,9 @@ exports['default'] = new Config().merge({
           API: JSON.stringify('/api/'),
           USER_SITE: JSON.stringify(DOMAIN),
           YAHOOAPI: JSON.stringify('https://groups.yahoo.com/api/v1/'),
-          YAHOOAPIv2: JSON.stringify('https://groups.yahoo.com/api/v2/')
+          YAHOOAPIv2: JSON.stringify('https://groups.yahoo.com/api/v2/'),
+          // CC RAVEN_ID: JSON.stringify('https://421dadb7cd284c8aaeac285c65649728@sentry.io/261108'),
+          GIT_COMMITHASH: JSON.stringify((new GitRevisionPlugin()).commithash())
       }),
 
       new webpack.ProvidePlugin(shims.provides),
@@ -89,6 +90,8 @@ exports['default'] = new Config().merge({
       ]),
 
       new AssetsPlugin(),
+
+      new GitRevisionPlugin(),
 
       new ProgressBarPlugin({}),
 
