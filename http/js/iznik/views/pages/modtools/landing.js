@@ -269,7 +269,7 @@ define([
 
                     Iznik.Session.askSubscription();
 
-                    var mobile_version = $('meta[name=iznik_mobile_version]').attr("content");	// CC
+                    var mobile_version = APP_VERSION;	// CC
                     self.$('#js-mobile-version').text("ModTools mobile version "+mobile_version);
 
                     var w = new Iznik.Views.ModTools.Settings.MissingFacebookBuySell();

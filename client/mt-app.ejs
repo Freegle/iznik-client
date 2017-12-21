@@ -36,13 +36,11 @@
 </script>
 
 <script>
-  console.log("HELLO MT1");
 	var iznikroot = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
-  console.log(iznikroot);
 	iznikroot = decodeURI(iznikroot.replace(/%25/g, '%2525'));	// CC
 	console.log("iznikroot " + iznikroot);
-  alert(iznikroot);
-	//__webpack_public_path__ = 'http://' + host + ':45537/js/';	// https://github.com/webpack/webpack-dev-server/issues/262
+	//__webpack_public_path__ = iznikroot + 'js/';	// https://github.com/webpack/webpack-dev-server/issues/262
+	//__webpack_require__.p = iznikroot + 'js/';	// https://github.com/webpack/webpack-dev-server/issues/262
 </script>
 
 </body>
