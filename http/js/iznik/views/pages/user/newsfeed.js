@@ -1181,6 +1181,13 @@ define([
             var self = this;
             self.updateTimer = false;
 
+            if ($('.modal.in').length > 0) {
+                // Doing an AJAX call seems to lose focus in open modals - don't know why.
+                console.log("Modal open - skip check");
+                _.delay(_.bind(self.checkUpdate, self), 30000);
+                return;
+            }
+
             // console.log("Consider update", self.model.get('id'));
 
             if (self.inDOM()) {
@@ -1188,39 +1195,39 @@ define([
                 // Only update when we're in the viewport.
                 if (self.$el.isOnScreen()) {
                     // Get the latest info to update our view.
-                    self.model.fetch().then(function() {
-                        // Update the loves.
-                        // console.log("Update loves", self.model);
-                        self.loves.model = self.model;
-                        self.loves.render().then(function() {
-                            self.$('.js-itemloves').html(self.loves.$el);
-                            self.loves.delegateEvents();
-                        });
+                        self.model.fetch().then(function() {
+                            // Update the loves.
+                            // console.log("Update loves", self.model);
+                            self.loves.model = self.model;
+                            self.loves.render().then(function() {
+                                self.$('.js-itemloves').html(self.loves.$el);
+                                self.loves.delegateEvents();
+                            });
 
-                        if (self.replies) {
-                            // Update the replies collection.
-                            var replies = self.model.get('replies');
-                            // console.log("Replies", self.replies.length, replies.length);
+                            if (self.replies) {
+                                // Update the replies collection.
+                                var replies = self.model.get('replies');
+                                // console.log("Replies", self.replies.length, replies.length);
 
-                            if (replies && self.replies.length != replies.length) {
-                                self.replies.add(replies);
+                                if (replies && self.replies.length != replies.length) {
+                                    self.replies.add(replies);
+                                }
                             }
-                        }
 
-                        if (self.model.collection && self.model.collection.indexOf(self.model) === 0) {
-                            // This is the first one.  Fetch the collection so that if there are any new items
-                            // we'll pick them up.
-                            self.model.collection.trigger('refetch');
+                            if (self.model.collection && self.model.collection.indexOf(self.model) === 0) {
+                                // This is the first one.  Fetch the collection so that if there are any new items
+                                // we'll pick them up.
+                                self.model.collection.trigger('refetch');
 
-                            // This is the most recent one we've seen.
-                            self.model.seen();
-                        }
+                                // This is the most recent one we've seen.
+                                self.model.seen();
+                            }
 
-                        if (!self.updateTimer) {
-                            self.updateTimer = true;
-                            _.delay(_.bind(self.checkUpdate, self), 30000);
-                        }
-                    });
+                            if (!self.updateTimer) {
+                                self.updateTimer = true;
+                                _.delay(_.bind(self.checkUpdate, self), 30000);
+                            }
+                        });
                 }
             }
         },

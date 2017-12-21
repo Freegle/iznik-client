@@ -298,7 +298,6 @@ define([
     };
 
     $.fn.isOnScreen = function(){
-
         var win = $(window);
 
         var viewport = {

@@ -105,6 +105,13 @@ define([
         notificationCheck: function() {
             var self = this;
 
+            if ($('.modal.in').length > 0) {
+                // Doing an AJAX call seems to lose focus in open modals - don't know why.
+                console.log("Modal open - skip check");
+                _.delay(_.bind(this.notificationCheck, this), 30000);
+                return;
+            }
+
             if (!self.notificationChecking && self.inDOM()) {
                 self.notificationChecking = true;
 

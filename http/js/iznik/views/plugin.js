@@ -384,7 +384,7 @@ define([
             var self = this;
 
             if ($('.modal.in').length > 0) {
-                // This check seems to lose focus in open modals - don't understand why.
+                // Doing an AJAX call seems to lose focus in open modals - don't know why.
                 console.log("Modal open - skip check");
                 window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
                 return;

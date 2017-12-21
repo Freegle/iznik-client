@@ -51,6 +51,7 @@ module.exports = {
         SITE_DESCRIPTION: true,
         RAVEN_ID: true,
         GIT_COMMITHASH: true,
-        BUILD_TIME: true
+        BUILD_TIME: true,
+        MODTOOLS: true
     }
 }
