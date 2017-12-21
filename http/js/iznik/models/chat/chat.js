@@ -19,28 +19,32 @@ define([
         var self = this;
 
         if (!_.isUndefined(Storage)) {
-            // Try to send any queued messages.
-            sending = JSON.parse(Storage.get('chatqueue'));
-            sending = sending ? sending : [];
+            try {
+                // Try to send any queued messages.
+                sending = JSON.parse(Storage.get('chatqueue'));
+                sending = sending ? sending : [];
 
-            if (sending) {
-                var msg = new Iznik.Models.Chat.Message(sending.pop());
-                msg.save({
-                    error: function() {
-                        // Failed - retry later in case transient network issue.
-                        _.delay(_.bind(sendQueue, self), 10000);
-                    }
-                }).then(function() {
-                    // We've sent it successfully.
-                    trigger.trigger('sent', msg);
+                if (sending) {
+                    var msg = new Iznik.Models.Chat.Message(sending.pop());
+                    msg.save({
+                        error: function() {
+                            // Failed - retry later in case transient network issue.
+                            _.delay(_.bind(sendQueue, self), 10000);
+                        }
+                    }).then(function() {
+                        // We've sent it successfully.
+                        trigger.trigger('sent', msg);
 
-                    Storage.set('chatqueue', JSON.stringify(sending));
+                        Storage.set('chatqueue', JSON.stringify(sending));
 
-                    if (sending.length > 0) {
-                        // We have another message to send.
-                        _.delay(_.bind(sendQueue, self), 100);
-                    }
-                });
+                        if (sending.length > 0) {
+                            // We have another message to send.
+                            _.delay(_.bind(sendQueue, self), 100);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.log("Probably no suitable storage", e);
             }
         } else {
             // Not got Storage yet - try again later.
