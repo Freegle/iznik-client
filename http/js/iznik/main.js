@@ -5,6 +5,11 @@ console.log("HELLO MT2");
 //CCvar YAHOOAPI = 'https://groups.yahoo.com/api/v1/';
 //CCvar YAHOOAPIv2 = 'https://groups.yahoo.com/api/v2/';
 
+//CCvar API = 'https://www.ilovefreegle.org/api/'; // CC
+//CCvar CHAT_HOST = 'https://users.ilovefreegle.org';
+//CCvar EVENT_HOST = 'iznik.modtools.org';
+//CCvar USER_SITE = 'www.ilovefreegle.org';
+
 window.isiOS = false; // CC
 window.useSwipeRefresh = false;
 window.initialURL = false;
@@ -90,7 +95,6 @@ function hideHeaderWait(event) {
     }
 }
 window.mobileRefresh = function () {
-    alert("mobileRefresh");
     showHeaderWait();
     Backbone.history.loadUrl();
     return false;
@@ -420,6 +424,7 @@ window.mobile_pathname = function () { // CC
     }
     if (!mobileGlobalRoot) {
         mobileGlobalRoot = pathname.substr(0, pathname.length - 1);
+        console.log("mobileGlobalRoot=" + mobileGlobalRoot);
     }
     pathname = pathname.substr(mobileGlobalRoot.length);
     if (pathname == "") {

@@ -53,7 +53,6 @@ define([
         },
 
         signin: function () {
-            console.log("signinup.signin");
             var self = this;
             self.$('.js-signinerror').hide();
 

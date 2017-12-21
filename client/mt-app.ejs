@@ -38,8 +38,10 @@
 <script>
   console.log("HELLO MT1");
 	var iznikroot = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
+  console.log(iznikroot);
 	iznikroot = decodeURI(iznikroot.replace(/%25/g, '%2525'));	// CC
 	console.log("iznikroot " + iznikroot);
+  alert(iznikroot);
 </script>
 
 </body>

@@ -721,7 +721,6 @@ define([
         },
 
         render: function () {
-            console.log("reply render1");
             var self = this;
 
             self.model.set('me', Iznik.Session.get('me'));
@@ -730,8 +729,6 @@ define([
             var chat = Iznik.Session.chats.get({
                 id: self.model.get('chatid')
             });
-            console.log(self.model.get('chatid'));
-            console.log(chat);
 
             var p;
 
@@ -747,10 +744,6 @@ define([
 
                 p = self.chat.fetch();
             }
-            console.log(self.chat);
-            console.log(self.chat.chattype);
-            console.log(self.chat.user1);
-            console.log(self.chat.user2);
 
             p.then(_.bind(self.gotChat, self));
 
