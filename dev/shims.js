@@ -46,21 +46,6 @@ const requireJs = {
         iznik: '/js/iznik'
     }
 }
-const globalFunctions = [
-    'haversineDistance',
-    'resolvedPromise',
-    'getURLParam',
-    'strip_tags',
-    'ABTestShown',
-    'ABTestAction',
-    'ABTestGetVariant',
-    'nullFn',
-    'twem',
-    'setTitleCounts',
-    'ellipsical',
-    'formatDuration',
-    'getBoundsZoomLevel'
-]
 
 exports.aliases = {
     // is referenced, but hasn't been written yet
@@ -78,8 +63,7 @@ exports.provides = {
     'window.jQuery': 'jquery',
     // bootstrap wants $ global
     jQuery: 'jquery',
-    twemoji: 'twemoji',
-    ...provideGlobals(globalFunctions),
+    twemoji: 'twemoji'
 }
 
 function convertPathsToAliases (paths) {
@@ -135,12 +119,4 @@ function convertShimToRule (lib, config) {
         },
         use: loaders
     }
-}
-
-function provideGlobals (names) {
-    const config = {}
-    for (let name of names) {
-        config[name] = ['iznik/base', name]
-    }
-    return config
 }

@@ -733,7 +733,7 @@ define([
             var msg = self.model.get('message');
 
             if (msg) {
-                msg = twem(msg);
+                msg = Iznik.twem(msg);
                 self.model.set('message', msg);
             }
 
@@ -1062,7 +1062,7 @@ define([
 
             FB.ui(params, function (response) {
                 self.$('.js-fbshare').fadeOut('slow');
-                ABTestAction('newsfeedbutton', 'Facebook Share');
+                Iznik.ABTestAction('newsfeedbutton', 'Facebook Share');
             });
         },
 
@@ -1249,7 +1249,7 @@ define([
         render: function() {
             var self = this;
 
-            var p = resolvedPromise();
+            var p = Iznik.resolvedPromise();
 
             if (!self.rendered) {
                 self.rendered = true;
@@ -1274,11 +1274,11 @@ define([
                     if (preview) {
                         // Don't allow previews which are too long.
                         if (preview.title) {
-                            preview.title = ellipsical(strip_tags(preview.title), 120);
+                            preview.title = Iznik.ellipsical(Iznik.strip_tags(preview.title), 120);
                         }
 
                         if (preview.description) {
-                            preview.description = ellipsical(strip_tags(preview.description), 255);
+                            preview.description = Iznik.ellipsical(Iznik.strip_tags(preview.description), 255);
                         }
                         self.model.set('preview', preview);
                     }
@@ -1297,7 +1297,7 @@ define([
 
                         if (message) {
                             if (message.length > self.morelimit) {
-                                var ellip = ellipsical(message, self.morelimit);
+                                var ellip = Iznik.ellipsical(message, self.morelimit);
                                 self.$('.js-moremessagethread').show();
                                 self.model.set('moremessage', message);
                                 self.model.set('message', ellip);
@@ -1478,11 +1478,11 @@ define([
                 if (preview) {
                     // Don't allow previews which are too long.
                     if (preview.title) {
-                        preview.title = ellipsical(strip_tags(preview.title), 120);
+                        preview.title = Iznik.ellipsical(Iznik.strip_tags(preview.title), 120);
                     }
 
                     if (preview.description) {
-                        preview.description = ellipsical(strip_tags(preview.description), 255);
+                        preview.description = Iznik.ellipsical(Iznik.strip_tags(preview.description), 255);
                     }
                     self.model.set('preview', preview);
                 }
@@ -1501,7 +1501,7 @@ define([
 
                     if (message) {
                         if (message.length > self.morelimit) {
-                            var ellip = ellipsical(message, self.morelimit);
+                            var ellip = Iznik.ellipsical(message, self.morelimit);
                             self.$('.js-moremessage').show();
                             self.model.set('moremessage', message);
                             self.model.set('message', ellip);

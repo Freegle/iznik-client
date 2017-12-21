@@ -177,7 +177,7 @@ define([
                         $(this).empty().hide();
                     }
 
-                    setTitleCounts(unseen, null);
+                    Iznik.setTitleCounts(unseen, null);
                 }
             });
 
@@ -362,7 +362,7 @@ define([
                 });
             } else {
                 self.updateCounts();
-                p = resolvedPromise(self);
+                p = Iznik.resolvedPromise(self);
             }
 
             if (!self.windowResizeListening) {
@@ -1291,7 +1291,7 @@ define([
                     self.renderComplete = true;
                 });
             } else {
-                return(resolvedPromise(self));
+                return(Iznik.resolvedPromise(self));
             }
 
             return (p);
@@ -1436,7 +1436,7 @@ define([
                     message = message.replace(/\n\s*\n\s*\n/g, '\n\n');
 
                     // Strip HTML tags
-                    message = strip_tags(message, '<a>');
+                    message = Iznik.strip_tags(message, '<a>');
 
                     // Insert some wbrs to allow us to word break long words (e.g. URLs).
                     // It might have line breaks in if it comes originally from an email.
@@ -1561,7 +1561,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return (p);

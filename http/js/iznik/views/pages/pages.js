@@ -130,10 +130,10 @@ define([
                                     $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                                 }
 
-                                setTitleCounts(null, ret.count);
+                                Iznik.setTitleCounts(null, ret.count);
                             }
 
-                            setTitleCounts(null, ret.count);
+                            Iznik.setTitleCounts(null, ret.count);
                         }
                     }, complete: function() {
                         $.ajax({
@@ -765,7 +765,7 @@ define([
 
         render: function() {
             var self = this;
-            var p = resolvedPromise(self);
+            var p = Iznik.resolvedPromise(self);
 
             if (!self.rendered) {
                 self.rendered = true;
@@ -773,13 +773,13 @@ define([
 
                 if (newsfeed) {
                     if (newsfeed.message) {
-                        newsfeed.message = twem(newsfeed.message);
+                        newsfeed.message = Iznik.twem(newsfeed.message);
                     }
 
                     var replyto = newsfeed.replyto;
 
                     if (replyto && replyto.message) {
-                        newsfeed.replyto.message = twem(replyto.message);
+                        newsfeed.replyto.message = Iznik.twem(replyto.message);
                     }
 
                     self.model.set('newsfeed', newsfeed);
@@ -835,7 +835,7 @@ define([
             var lastask = Storage.get('lastaffiliationask');
             var now = (new Date()).getTime();
 
-            var p = resolvedPromise(self);
+            var p = Iznik.resolvedPromise(self);
 
             if (now - lastask > 7 * 24 * 60 * 60 * 1000) {
                 Storage.set('lastaffiliationask', now);

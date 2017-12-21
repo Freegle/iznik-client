@@ -34,7 +34,7 @@ define([
                     'tagline': SITE_DESCRIPTION
                 });
 
-                p = resolvedPromise(self);
+                p = Iznik.resolvedPromise(self);
             }
 
             p.then(function() {
@@ -633,7 +633,7 @@ define([
                                     width: self.$('.js-map').width()
                                 };
 
-                                var zoom = getBoundsZoomLevel(bounds, mapDim);
+                                var zoom = Iznik.getBoundsZoomLevel(bounds, mapDim);
                                 self.map.setZoom(zoom);
 
                                 // Add the group markers.

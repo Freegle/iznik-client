@@ -1006,7 +1006,7 @@ define([
             var self = this;
             var memberof = this.model.get('memberof');
             var membership = null;
-            var p = resolvedPromise(self);
+            var p = Iznik.resolvedPromise(self);
             var userid = self.model.get('id');
 
             _.each(memberof, function(member) {
@@ -1038,7 +1038,7 @@ define([
             var userid = self.model.get('id');
             var myid = Iznik.Session.get('me').id;
 
-            var p = resolvedPromise();
+            var p = Iznik.resolvedPromise();
 
             console.log("User ", myid, userid);
             // For now show this, though revisit if we get complaints or abuse.
@@ -1059,7 +1059,7 @@ define([
                         var mom = new moment(self.model.get('added'));
                         self.$('.js-since').html(mom.format('Do MMMM YYYY'));
 
-                        self.$('.js-replytime').html(formatDuration(self.model.get('info').replytime));
+                        self.$('.js-replytime').html(Iznik.formatDuration(self.model.get('info').replytime));
                     });
                 });
             }

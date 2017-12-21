@@ -86,40 +86,6 @@ define([
         }
     };
 
-    // Add utility functions are then shimmed by webpack config to global or window functions.
-    const iznikUtilityShims = {
-        globalFunctions: [
-            'haversineDistance',
-            'resolvedPromise',
-            'getURLParam',
-            'strip_tags',
-            'ABTestShown',
-            'ABTestAction',
-            'ABTestGetVariant',
-            'nullFn',
-            'twem',
-            'setTitleCounts',
-            'ellipsical',
-            'formatDuration',
-            'getBoundsZoomLevel'
-        ],
-        windowFunctions: [
-            'innerWidth',
-            'innerHeight',
-            'isVeryShort',
-            'innerHeight',
-            'canonSubj',
-            'decodeEntities',
-            'orderedMessages',
-            'csvWriter',
-            'presdef',
-            'chunkArray',
-            'base64url',
-            'isValidEmailAddress',
-            'wbr'
-        ]
-    }
-
     // Various utility functions.
     // TODO Poor to have these at the top level of the Iznik object - would be better to put them in a module,
     // but lots of code changes.
@@ -349,34 +315,6 @@ define([
         return (!(viewport.right < bounds.left || viewport.left > bounds.right || viewport.bottom < bounds.top || viewport.top > bounds.bottom));
     };
 
-    Iznik.haversineDistance = function(coords1, coords2, isMiles) {
-        function toRad(x) {
-            return x * Math.PI / 180;
-        }
-
-        var lon1 = coords1[0];
-        var lat1 = coords1[1];
-
-        var lon2 = coords2[0];
-        var lat2 = coords2[1];
-
-        var R = 6371; // km
-
-        var x1 = lat2 - lat1;
-        var dLat = toRad(x1);
-        var x2 = lon2 - lon1;
-        var dLon = toRad(x2)
-        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        var d = R * c;
-
-        if(isMiles) d /= 1.60934;
-
-        return d;
-    }
-
     Iznik.getURLParam = function(name) {
         var url = location.search.replace(/\&amp;/g, '&');
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -404,19 +342,19 @@ define([
         // bugfixed by: Kevin van Zonneveld (http://kvz.io)
         // bugfixed by: Tomasz Wesolowski
         //  revised by: Rafał Kukawski (http://blog.kukawski.pl)
-        //   example 1: strip_tags('<p>Kevin</p> <br /><b>van</b> <i>Zonneveld</i>', '<i><b>')
+        //   example 1: Iznik.strip_tags('<p>Kevin</p> <br /><b>van</b> <i>Zonneveld</i>', '<i><b>')
         //   returns 1: 'Kevin <b>van</b> <i>Zonneveld</i>'
-        //   example 2: strip_tags('<p>Kevin <img src="someimage.png" onmouseover="someFunction()">van <i>Zonneveld</i></p>', '<p>')
+        //   example 2: Iznik.strip_tags('<p>Kevin <img src="someimage.png" onmouseover="someFunction()">van <i>Zonneveld</i></p>', '<p>')
         //   returns 2: '<p>Kevin van Zonneveld</p>'
-        //   example 3: strip_tags("<a href='http://kvz.io'>Kevin van Zonneveld</a>", "<a>")
+        //   example 3: Iznik.strip_tags("<a href='http://kvz.io'>Kevin van Zonneveld</a>", "<a>")
         //   returns 3: "<a href='http://kvz.io'>Kevin van Zonneveld</a>"
-        //   example 4: strip_tags('1 < 5 5 > 1')
+        //   example 4: Iznik.strip_tags('1 < 5 5 > 1')
         //   returns 4: '1 < 5 5 > 1'
-        //   example 5: strip_tags('1 <br/> 1')
+        //   example 5: Iznik.strip_tags('1 <br/> 1')
         //   returns 5: '1  1'
-        //   example 6: strip_tags('1 <br/> 1', '<br>')
+        //   example 6: Iznik.strip_tags('1 <br/> 1', '<br>')
         //   returns 6: '1 <br/> 1'
-        //   example 7: strip_tags('1 <br/> 1', '<br><br/>')
+        //   example 7: Iznik.strip_tags('1 <br/> 1', '<br><br/>')
         //   returns 7: '1 <br/> 1'
 
         // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
@@ -469,8 +407,6 @@ define([
 
         return(p);
     }
-
-    Iznik.nullFn = function() {}
 
     Iznik.twem = function(msg) {
         if (msg) {
@@ -819,7 +755,7 @@ define([
                     }
                 });
             } else {
-                self.promise = resolvedPromise();
+                self.promise = Iznik.resolvedPromise();
             }
 
             return(self.promise);

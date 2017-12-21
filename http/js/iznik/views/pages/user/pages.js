@@ -474,7 +474,7 @@ define([
 
                         q = msg.fetch();
                     } else {
-                        q = resolvedPromise(self);
+                        q = Iznik.resolvedPromise(self);
                     }
 
                     q.then(function() {
@@ -574,7 +574,7 @@ define([
         },
 
         clickclose: function() {
-            ABTestAction('sharepost', 'close');
+            Iznik.ABTestAction('sharepost', 'close');
             this.close();
         },
 
@@ -594,7 +594,7 @@ define([
                 image: image
             };
 
-            ABTestAction('sharepost', 'facebook');
+            Iznik.ABTestAction('sharepost', 'facebook');
 
             FB.ui(params, function (response) {
                 self.close();
@@ -604,7 +604,7 @@ define([
         whatsapp: function() {
             var self = this;
 
-            ABTestAction('sharepost', 'whatsapp');
+            Iznik.ABTestAction('sharepost', 'whatsapp');
             var url = 'whatsapp://send?text=' + encodeURI(self.model.get('subject') + " - see more at " + self.url);
             window.open(url);
         },
@@ -617,12 +617,12 @@ define([
             self.url = window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbpost';
 
             p.then(function() {
-                ABTestShown('sharepost', 'facebook');
-                ABTestShown('sharepost', 'clipboard');
-                ABTestShown('sharepost', 'close');
+                Iznik.ABTestShown('sharepost', 'facebook');
+                Iznik.ABTestShown('sharepost', 'clipboard');
+                Iznik.ABTestShown('sharepost', 'close');
 
                 if (Iznik.isSM()) {
-                    ABTestShown('sharepost', 'whatsapp');
+                    Iznik.ABTestShown('sharepost', 'whatsapp');
                 }
 
                 self.clipboard = new Clipboard('.js-clip', {
@@ -633,7 +633,7 @@ define([
                 });
 
                 self.clipboard.on('success', function(e) {
-                    ABTestAction('sharepost', 'clipboard');
+                    Iznik.ABTestAction('sharepost', 'clipboard');
                     self.close();
                 });
 

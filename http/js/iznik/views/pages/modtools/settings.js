@@ -2111,7 +2111,7 @@ define([
 
                     _.defer(function() {
                         var group = null;
-                        var p = resolvedPromise(self);
+                        var p = Iznik.resolvedPromise(self);
                         if (self.options.groupid) {
                             group = new Iznik.Models.Group({
                                 id: self.options.groupid
@@ -2368,7 +2368,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return(p);
@@ -2412,7 +2412,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return(p);
@@ -2464,7 +2464,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return(p);
@@ -2516,7 +2516,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return(p);
