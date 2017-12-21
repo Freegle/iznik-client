@@ -267,7 +267,7 @@ define([
             var retry = true;
             var chat = Iznik.Session.chats.get(chatid);
 
-            if (chat) {
+            if (chat && !_.isUndefined(Iznik.openChats)) {
                 var chatView = Iznik.openChats.viewManager.findByModel(chat);
                 // console.log("Looked for view", chatid, chatView, chat);
 
