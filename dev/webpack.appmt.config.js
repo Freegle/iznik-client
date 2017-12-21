@@ -16,7 +16,7 @@ const ROOT = join(__dirname, '..');
 module.exports = new Config().extend({
     'dev/webpack.base.config.js': config => {
         // Fix up base config
-        config.output.publicPath = 'file:///android_asset/www';
+        config.output.publicPath = '';
         let bapno = -1;
         for (var index = 0; index < config.plugins.length; index++) {
           let plugin = config.plugins[index];
