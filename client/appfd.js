@@ -30,3 +30,7 @@ import 'user.css';
 
 import 'iznik/main';
 
+var iznikroot2 = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);
+iznikroot2 = decodeURI(iznikroot.replace(/%25/g, '%2525'));	// CC
+console.log("iznikroot2 " + iznikroot);
+__webpack_public_path__ = iznikroot2;	// https://github.com/webpack/webpack-dev-server/issues/262
