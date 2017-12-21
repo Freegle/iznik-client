@@ -24,7 +24,7 @@ define([
             var email = self.$('.js-inviteemail').val();
             ABTestAction('SupportUs', 'user_support_invite');
 
-            if (isValidEmailAddress(email)) {
+            if (Iznik.isValidEmailAddress(email)) {
                 $.ajax({
                     url: API + 'invitation',
                     type: 'PUT',

@@ -172,7 +172,7 @@ define([
                 // console.log("Work on MT", group.get('work'));
 
                 var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
-                        presdef(countname, group.get('work'), 0);
+                        Iznik.presdef(countname, group.get('work'), 0);
 
                 return(worthit);
             }
@@ -1080,7 +1080,7 @@ define([
                                                 success: function(ret) {
                                                     // console.log("Returned", url, ret);
                                                     if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
-                                                        var source = decodeEntities(ret.ygData.rawEmail);
+                                                        var source = Iznik.decodeEntities(ret.ygData.rawEmail);
 
                                                         if (source.indexOf('X-eGroups-Edited-By:') == -1) {
                                                             var data = {

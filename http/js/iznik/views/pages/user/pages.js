@@ -286,7 +286,6 @@ define([
                 // console.log("Record location", location);
                 if (!_.isUndefined(location.groupsnear)) {
                     self.groupsnear = location.groupsnear;
-                    console.log("Groupsnear length", self.groupsnear.length);
                 }
 
                 try {

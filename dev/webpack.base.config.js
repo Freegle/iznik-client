@@ -67,6 +67,11 @@ exports['default'] = new Config().merge({
       }
     ]
   },
+  externals: [
+    {
+        "window": "window"
+    }
+  ],
   plugins: [
       new webpack.DefinePlugin({
           BASE_URL: JSON.stringify(BASE_URL),

@@ -1,5 +1,8 @@
 import 'bootstrap-fileinput';
 
+var tpl = require('iznik/templateloader');
+var template = tpl.template;
+
 define([
     'jquery',
     'underscore',
@@ -525,7 +528,7 @@ define([
         render: function () {
             var self = this;
             var p = Iznik.View.prototype.render.call(this).then(function() {
-                self.$el.html(window.template(self.template)(self.model.toJSON2()));
+                self.$el.html(template(self.template)(self.model.toJSON2()));
 
                 var start = self.model.get('start');
                 var end = self.model.get('end');

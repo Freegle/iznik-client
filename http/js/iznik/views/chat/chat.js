@@ -1440,7 +1440,7 @@ define([
 
                     // Insert some wbrs to allow us to word break long words (e.g. URLs).
                     // It might have line breaks in if it comes originally from an email.
-                    message = wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />');
+                    message = Iznik.wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />');
 
                     this.model.set('message', message);
                 }

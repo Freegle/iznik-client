@@ -39,7 +39,6 @@ module.exports = {
         // Iznik global utility functions
         // TODO: make them not global
         majax: true,
-        templateFetch: true,
         haversineDistance: true,
         resolvedPromise: true,
         getURLParam: true,
@@ -53,23 +52,6 @@ module.exports = {
         ellipsical: true,
         formatDuration: true,
         getBoundsZoomLevel: true,
-        innerWidth: true,
-        isShort: true,
-        innerHeight: true,
-        canonSubj: true,
-        setURLParam: true,
-        removeURLParam: true,
-        getDistanceFromLatLonInKm: true,
-        deg2rad: true,
-        decodeEntities: true,
-        encodeHTMLEntities: true,
-        orderedMessages: true,
-        csvWriter: true,
-        presdef: true,
-        chunkArray: true,
-        base64url: true,
-        isValidEmailAddress: true,
-        wbr: true,
 
         // Iznik configuration defined via webpack DefinePlugin's
         BASE_URL: true,

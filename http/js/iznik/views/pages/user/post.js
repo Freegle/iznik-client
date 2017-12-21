@@ -435,7 +435,7 @@ define([
             } catch (e) {
             }
 
-            if (isValidEmailAddress(email)) {
+            if (Iznik.isValidEmailAddress(email)) {
                 this.$('.js-email').removeClass('error-border');
                 this.$('.js-next').fadeIn('slow');
                 this.$('.js-ok').fadeIn('slow');

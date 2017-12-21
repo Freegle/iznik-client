@@ -229,7 +229,7 @@ define([
 
             if (check) {
                 var id = self.model.get('id');
-                var subj = canonSubj(self.model.get('subject'));
+                var subj = Iznik.canonSubj(self.model.get('subject'));
 
                 _.each(self.model.get('groups'), function (group) {
                     var groupid = group.groupid;
@@ -239,14 +239,14 @@ define([
                         _.each(fromuser.messagehistory, function (message) {
                             message.dupage = dupage;
 
-                            // console.log("Check message", message.id, id, message.daysago, canonSubj(message.subject), subj);
+                            // console.log("Check message", message.id, id, message.daysago, Iznik.canonSubj(message.subject), subj);
                             // The id of the message might have been manipulated in user.js to make sure it's unique per
                             // posting.
 
                             var p = (message.id + '').indexOf('.');
                             var i = p ==  -1 ? message.id : (message.id + '').substring(0, p);
                             if (i != id && message.daysago < 60) {
-                                if (canonSubj(message.subject) == subj) {
+                                if (Iznik.canonSubj(message.subject) == subj) {
                                     // No point displaying any group tag in the duplicate.
                                     message.subject = message.subject.replace(/\[.*\](.*)/, "$1");
 
@@ -695,7 +695,7 @@ define([
                 text = text.replace(/\$membermail/g, model.fromaddr);
                 var from = model.fromuser.hasOwnProperty('realemail') ? model.fromuser.realemail : model.fromaddr;
                 var fromid = from.substring(0, from.indexOf('@'));
-                var memberid = presdef('yahooid', model.fromuser, fromid);
+                var memberid = Iznik.presdef('yahooid', model.fromuser, fromid);
                 text = text.replace(/\$memberid/g, fromid);
 
                 var summ = '';

@@ -1,3 +1,7 @@
+var tpl = require('iznik/templateloader');
+var template = tpl.template;
+var templateFetch = tpl.templateFetch;
+
 define([
     'jquery',
     'underscore',
@@ -198,7 +202,7 @@ define([
             // Set the base page layout.
             var p = new Promise(function(resolve, reject) {
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
-                    $('#bodyContent').html(window.template(tpl));
+                    $('#bodyContent').html(template(tpl));
                     $('.js-pageContent').html(self.$el);
 
                     if (self.appButtons) {
@@ -379,10 +383,10 @@ define([
 
                         templateFetch(self.template).then(function(tpl) {
                             if (self.model) {
-                                self.$el.html(window.template(tpl)(self.model.toJSON2()));
+                                self.$el.html(template(tpl)(self.model.toJSON2()));
                             } else {
                                 // Default is that we pass the session as the model.
-                                self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
+                                self.$el.html(template(tpl)(Iznik.Session.toJSON2()));
                             }
 
                             $('.js-pageContent').html(self.$el);
@@ -853,7 +857,7 @@ define([
         yes: function() {
             var self = this;
             var me = Iznik.Session.get('me');
-            var settings = presdef('settings', me, null);
+            var settings = Iznik.presdef('settings', me, null);
             settings.showmod = true;
             me.settings = settings;
             Iznik.Session.set('me', me);
@@ -867,7 +871,7 @@ define([
         no: function() {
             var self = this;
             var me = Iznik.Session.get('me');
-            var settings = presdef('settings', me, null);
+            var settings = Iznik.presdef('settings', me, null);
             settings.showmod = false;
             me.settings = settings;
             Iznik.Session.set('me', me);

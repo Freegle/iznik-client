@@ -20,7 +20,7 @@ define([
             var self = this;
             var email = self.$('.js-inviteemail').val();
 
-            if (isValidEmailAddress(email)) {
+            if (Iznik.isValidEmailAddress(email)) {
                 $.ajax({
                     url: API + 'invitation',
                     type: 'PUT',
