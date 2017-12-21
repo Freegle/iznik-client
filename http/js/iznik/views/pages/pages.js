@@ -1,3 +1,7 @@
+var tpl = require('iznik/templateloader');
+var template = tpl.template;
+var templateFetch = tpl.templateFetch;
+
 define([
     'jquery',
     'underscore',
@@ -123,6 +127,13 @@ define([
         notificationCheck: function() {
             var self = this;
 
+            if ($('.modal.in').length > 0) {
+                // Doing an AJAX call seems to lose focus in open modals - don't know why.
+                console.log("Modal open - skip check");
+                _.delay(_.bind(this.notificationCheck, this), 30000);
+                return;
+            }
+
             if (!self.notificationChecking && self.inDOM()) {
                 self.notificationChecking = true;
 
@@ -148,10 +159,10 @@ define([
                                     $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                                 }
 
-                                setTitleCounts(null, ret.count);
+                                Iznik.setTitleCounts(null, ret.count);
                             }
 
-                            setTitleCounts(null, ret.count);
+                            Iznik.setTitleCounts(null, ret.count);
                         }
                     }, complete: function() {
                         $.ajax({
@@ -221,7 +232,7 @@ define([
             var p = new Promise(function (resolve, reject) {
                 //console.log("pages self.modtools:" + self.modtools);
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
-                    $('#bodyContent').html(window.template(tpl));
+                    $('#bodyContent').html(template(tpl));
                     $('.js-pageContent').html(self.$el);
 
                     if (!window.useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
@@ -400,10 +411,10 @@ define([
 
                         templateFetch(self.template).then(function(tpl) {
                             if (self.model) {
-                                self.$el.html(window.template(tpl)(self.model.toJSON2()));
+                                self.$el.html(template(tpl)(self.model.toJSON2()));
                             } else {
                                 // Default is that we pass the session as the model.
-                                self.$el.html(window.template(tpl)(Iznik.Session.toJSON2()));
+                                self.$el.html(template(tpl)(Iznik.Session.toJSON2()));
                             }
 
                             $('.js-pageContent').html(self.$el);
@@ -582,13 +593,6 @@ define([
 
                 if (Iznik.Session.hasPermission('Newsletter')) {
                     self.$('.js-newsletter').removeClass('hidden');
-                }
-
-                // We need to create a hidden signin button because otherwise the Google logout method doesn't
-                // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
-                var GoogleLoad = new Iznik.Views.GoogleLoad();
-                if (GoogleLoad) {
-                    GoogleLoad.buttonShim('googleshim');
                 }
 
                 // Events site is special.
@@ -789,7 +793,7 @@ define([
 
         render: function() {
             var self = this;
-            var p = resolvedPromise(self);
+            var p = Iznik.resolvedPromise(self);
 
             if (!self.rendered) {
                 self.rendered = true;
@@ -797,13 +801,13 @@ define([
 
                 if (newsfeed) {
                     if (newsfeed.message) {
-                        newsfeed.message = twem(newsfeed.message);
+                        newsfeed.message = Iznik.twem(newsfeed.message);
                     }
 
                     var replyto = newsfeed.replyto;
 
                     if (replyto && replyto.message) {
-                        newsfeed.replyto.message = twem(replyto.message);
+                        newsfeed.replyto.message = Iznik.twem(replyto.message);
                     }
 
                     self.model.set('newsfeed', newsfeed);
@@ -859,7 +863,7 @@ define([
             var lastask = Storage.get('lastaffiliationask');
             var now = (new Date()).getTime();
 
-            var p = resolvedPromise(self);
+            var p = Iznik.resolvedPromise(self);
 
             if (now - lastask > 7 * 24 * 60 * 60 * 1000) {
                 Storage.set('lastaffiliationask', now);
@@ -881,7 +885,7 @@ define([
         yes: function() {
             var self = this;
             var me = Iznik.Session.get('me');
-            var settings = presdef('settings', me, null);
+            var settings = Iznik.presdef('settings', me, null);
             settings.showmod = true;
             me.settings = settings;
             Iznik.Session.set('me', me);
@@ -895,7 +899,7 @@ define([
         no: function() {
             var self = this;
             var me = Iznik.Session.get('me');
-            var settings = presdef('settings', me, null);
+            var settings = Iznik.presdef('settings', me, null);
             settings.showmod = false;
             me.settings = settings;
             Iznik.Session.set('me', me);

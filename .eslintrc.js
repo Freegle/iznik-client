@@ -36,42 +36,7 @@ module.exports = {
         IznikYahooUsers: true,
         IznikPlugin: true,
 
-        // Iznik global utility functions
-        // TODO: make them not global
-        majax: true,
-        templateFetch: true,
-        haversineDistance: true,
-        resolvedPromise: true,
-        getURLParam: true,
-        strip_tags: true,
-        ABTestShown: true,
-        ABTestAction: true,
-        ABTestGetVariant: true,
-        nullFn: true,
-        twem: true,
-        setTitleCounts: true,
-        ellipsical: true,
-        formatDuration: true,
-        getBoundsZoomLevel: true,
-        innerWidth: true,
-        isShort: true,
-        innerHeight: true,
-        canonSubj: true,
-        setURLParam: true,
-        removeURLParam: true,
-        getDistanceFromLatLonInKm: true,
-        deg2rad: true,
-        decodeEntities: true,
-        encodeHTMLEntities: true,
-        orderedMessages: true,
-        csvWriter: true,
-        presdef: true,
-        chunkArray: true,
-        base64url: true,
-        isValidEmailAddress: true,
-        wbr: true,
-
-        // Iznik configuration defined via webpack DefinePlugin's
+        // Iznik configuration defined via webpack DefinePlugin
         BASE_URL: true,
         CHAT_HOST: true,
         EVENT_HOST: true,
@@ -85,6 +50,8 @@ module.exports = {
         SITE_NAME: true,
         SITE_DESCRIPTION: true,
         RAVEN_ID: true,
-        GIT_COMMITHASH: true
+        GIT_COMMITHASH: true,
+        BUILD_TIME: true,
+        MODTOOLS: true
     }
 }

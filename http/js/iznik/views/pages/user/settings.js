@@ -244,7 +244,7 @@ define([
             if (e.type == 'click' || e.which === 13) {
                 self.$('.js-verifyemail').hide();
                 var email= this.$('.js-email').val();
-                if (email.length > 0 && isValidEmailAddress(email)) {
+                if (email.length > 0 && Iznik.isValidEmailAddress(email)) {
                     self.startSave(self.$('.js-saveemail'));
                     var me = Iznik.Session.get('me');
                     me.email = email;
@@ -373,7 +373,11 @@ define([
                     self.$('.js-profileimg').attr('src', '/images/userloader.gif');
 
                     $('.file-preview, .kv-upload-progress').hide();
-                    self.$('.js-profileupload').fileinput('upload');
+
+                    // Have to defer else break fileinput validation processing.
+                    _.defer(function() {
+                        self.$('.js-profileupload').fileinput('upload');
+                    });
                 });
 
                 // Watch for all uploaded
@@ -630,7 +634,7 @@ define([
             self.$('.js-email').removeClass('error-border');
             self.$('.js-verifyemail').hide();
             var email= this.$('.js-email').val();
-            if (email.length > 0 && isValidEmailAddress(email)) {
+            if (email.length > 0 && Iznik.isValidEmailAddress(email)) {
                 var me = Iznik.Session.get('me');
                 me.email = email;
                 Iznik.Session.set('me', me);

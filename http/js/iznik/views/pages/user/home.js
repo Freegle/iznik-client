@@ -183,7 +183,7 @@ define([
                     data: {
                         fromuser: Iznik.Session.get('me').id,
                         types: ['Offer', 'Wanted'],
-                        limit: 100
+                        limit: 200
                     }
                 }).then(cb);
             } else {

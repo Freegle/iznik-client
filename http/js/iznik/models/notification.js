@@ -14,7 +14,7 @@ define([
 
             // Only want to mark as seen once.
             if (self.haveSeen) {
-                return resolvedPromise(self);
+                return Iznik.resolvedPromise(self);
             } else {
                 self.haveSeen = true;
 

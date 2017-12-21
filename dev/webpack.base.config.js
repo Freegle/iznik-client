@@ -30,8 +30,8 @@ exports['default'] = new Config().merge({
       join(ROOT, 'http'),
       join(ROOT, 'http/css'),
       join(ROOT, 'http/js/lib'),
-      join(ROOT, 'node_modules/bootstrap-fileinput/img') // TODO Can't be the right way.
-      // CC join(ROOT, 'node_modules/raven-js/dist/plugins') // TODO Can't be the right way.
+      join(ROOT, 'node_modules/bootstrap-fileinput/img'), // TODO Can't be the right way.
+      join(ROOT, 'node_modules/raven-js/dist/plugins') // TODO Can't be the right way.
     ],
     alias: {
       '/template': 'template',
@@ -67,6 +67,11 @@ exports['default'] = new Config().merge({
       }
     ]
   },
+  externals: [
+    {
+        "window": "window"
+    }
+  ],
   plugins: [
       new webpack.DefinePlugin({
           BASE_URL: JSON.stringify(BASE_URL),
@@ -76,8 +81,9 @@ exports['default'] = new Config().merge({
           USER_SITE: JSON.stringify(DOMAIN),
           YAHOOAPI: JSON.stringify('https://groups.yahoo.com/api/v1/'),
           YAHOOAPIv2: JSON.stringify('https://groups.yahoo.com/api/v2/'),
-          // CC RAVEN_ID: JSON.stringify('https://421dadb7cd284c8aaeac285c65649728@sentry.io/261108'),
-          GIT_COMMITHASH: JSON.stringify((new GitRevisionPlugin()).commithash())
+          RAVEN_ID: JSON.stringify('https://421dadb7cd284c8aaeac285c65649728@sentry.io/261108'),
+          GIT_COMMITHASH: JSON.stringify((new GitRevisionPlugin()).commithash()),
+          BUILD_TIME:  JSON.stringify((new Date()).toISOString())
       }),
 
       new webpack.ProvidePlugin(shims.provides),

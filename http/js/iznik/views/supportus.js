@@ -16,15 +16,15 @@ define([
         },
 
         clickDonate: function() {
-            ABTestAction('SupportUs', this.template);
+            Iznik.ABTestAction('SupportUs', this.template);
         },
 
         doInvite: function() {
             var self = this;
             var email = self.$('.js-inviteemail').val();
-            ABTestAction('SupportUs', 'user_support_invite');
+            Iznik.ABTestAction('SupportUs', 'user_support_invite');
 
-            if (isValidEmailAddress(email)) {
+            if (Iznik.isValidEmailAddress(email)) {
                 $.ajax({
                     url: API + 'invitation',
                     type: 'PUT',
@@ -50,7 +50,7 @@ define([
             var p;
 
             if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
-                p = ABTestGetVariant('SupportUs', function(variant) {
+                p = Iznik.ABTestGetVariant('SupportUs', function(variant) {
                     self.template = variant.variant;
                     var showglobal = false;
 
@@ -111,7 +111,7 @@ define([
                         });
                     }
 
-                    ABTestShown('SupportUs', self.template);
+                    Iznik.ABTestShown('SupportUs', self.template);
                 });
             } else {
                 // If we're not asking for a donation, offer business cards, unless the group forbids it.
@@ -305,7 +305,7 @@ define([
             self.$('.js-howmany').slideUp('slow');
             self.$('.js-more').fadeIn('slow');
             self.$('.js-afew, .js-submit').hide();
-            ABTestAction('BusinessCards', 'more');
+            Iznik.ABTestAction('BusinessCards', 'more');
         },
 
         submit: function() {
@@ -340,7 +340,7 @@ define([
                                 }
                             });
 
-                            ABTestAction('BusinessCards', 'justafew');
+                            Iznik.ABTestAction('BusinessCards', 'justafew');
                         }
                     }
                 });
@@ -365,8 +365,8 @@ define([
                     self.postalAddress.render();
                     self.$('.js-postaladdress').append(self.postalAddress.$el);
 
-                    ABTestShown('BusinessCards', 'justafew');
-                    ABTestShown('BusinessCards', 'more');
+                    Iznik.ABTestShown('BusinessCards', 'justafew');
+                    Iznik.ABTestShown('BusinessCards', 'more');
                 });
             });
 
@@ -424,14 +424,14 @@ define([
 
         closeIt: function() {
             var self = this;
-            ABTestAction('FacebookShare', 'Close');
+            Iznik.ABTestAction('FacebookShare', 'Close');
             self.close();
         },
 
         shareFB: function() {
             var self = this;
-            alert("SUPPORTUS shareFB");
-            /*ABTestAction('FacebookShare', 'Favour');
+            
+            /*Iznik.ABTestAction('FacebookShare', 'Favour');
 
             var params = {
                 method: 'share',
@@ -456,7 +456,7 @@ define([
                     Storage.set('lastpleaseshare', (new Date()).getTime());
                     FBLoad().render();
 
-                    ABTestShown('FacebookShare', 'Favour');
+                    Iznik.ABTestShown('FacebookShare', 'Favour');
                     Iznik.Views.Modal.prototype.render.call(self);
                 }
             }
@@ -473,17 +473,17 @@ define([
         },
 
         vote: function() {
-            ABTestAction('ebay', 'Vote');
+            Iznik.ABTestAction('ebay', 'Vote');
             this.close();
         },
 
         cancel: function() {
-            ABTestAction('ebay', 'Cancel');
+            Iznik.ABTestAction('ebay', 'Cancel');
             this.close();
         },
 
         notagain: function() {
-            ABTestAction('ebay', 'Not again');
+            Iznik.ABTestAction('ebay', 'Not again');
             Storage.set('ebaynotagain', true);
             this.close();
         },
@@ -493,8 +493,7 @@ define([
 
             var now = (new Date()).getTime();
             if (now < 1509408000000) {  // Tuesday, 31 October 2017 
-
-            ABTestShown('ebay', 'Vote');
+            Iznik.ABTestShown('ebay', 'Vote');
 
             if (!Storage.get('ebaynotagain')) {
                 Iznik.Views.Modal.prototype.render.call(this);
@@ -509,7 +508,7 @@ define([
         render: function () {
             var self = this;
 
-            ABTestShown('aviva', 'Show');
+            Iznik.ABTestShown('aviva', 'Show');
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
                 $.ajax({

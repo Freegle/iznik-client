@@ -1,7 +1,7 @@
 /* // CC
 var Raven = require('raven-js');
 Raven.config(RAVEN_ID, {
-    release: GIT_COMMITHASH
+    release: BUILD_TIME + '.' + GIT_COMMITHASH
 }).install({
     extra: {
         BASE_URL: BASE_URL
@@ -9,7 +9,13 @@ Raven.config(RAVEN_ID, {
 });
 */
 import 'persist-js';
-global.Storage = new Persist.Store("Iznik");
+
+try {
+    global.Storage = new Persist.Store("Iznik");
+} catch (e) {
+    // We will display something sensible to the user later in router.
+    console.log("Storage exception", e);
+}
 
 import "smart-app-banner.css?a=1";
 import "bootstrap.min.css";

@@ -466,8 +466,8 @@ define([
                                             if (ret.work[count.fi] > 0 && count.sound) {
                                                 var settings = Iznik.Session.get('me').settings;
 
-                                                if (presdef('playbeep', settings, 1) && self.playBeep) {
-                                                    //var sound = new Audio(iznikroot + "sounds/alert.wav");
+                                                if (Iznik.presdef('playbeep', settings, 1) && self.playBeep) {
+                                                    // CC var sound = new Audio("/sounds/alert.wav");
                                                     try {
                                                         // Some browsers prevent us using play unless in response to a
                                                         // user gesture, so catch any exception.

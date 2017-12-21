@@ -1,5 +1,9 @@
 import 'bootstrap-fileinput';
 
+var tpl = require('iznik/templateloader');
+var template = tpl.template;
+var templateFetch = tpl.templateFetch;
+
 define([
     'jquery',
     'underscore',
@@ -984,7 +988,7 @@ define([
                     })
     
                     // Add buttons for the standard messages in the various places.
-                    var sortmsgs = orderedMessages(self.modConfigModel.get('stdmsgs'), self.modConfigModel.get('messageorder'));
+                    var sortmsgs = Iznik.orderedMessages(self.modConfigModel.get('stdmsgs'), self.modConfigModel.get('messageorder'));
                     self.$('.js-stdmsgspending, .js-stdmsgsapproved, .js-stdmsgspendingmembers, .js-stdmsgsmembers').empty();
     
                     _.each(sortmsgs, function (stdmsg) {
@@ -1149,7 +1153,7 @@ define([
 
                     // Personal settings
                     var me = Iznik.Session.get('me');
-                    var settings = presdef('settings', me, null);
+                    var settings = Iznik.presdef('settings', me, null);
                     settings = (settings == null || settings.length == 0) ? {
                         'playbeep': 1
                     } : settings;
@@ -1292,7 +1296,7 @@ define([
     
         render: function() {
             // Since this isn't one of our views we must fetch the template manually.
-            this.template = window.template("modtools_settings_action");
+            this.template = template("modtools_settings_action");
             Backform.InputControl.prototype.render.apply(this, arguments);
 
             return(this);
@@ -2107,7 +2111,7 @@ define([
 
                     _.defer(function() {
                         var group = null;
-                        var p = resolvedPromise(self);
+                        var p = Iznik.resolvedPromise(self);
                         if (self.options.groupid) {
                             group = new Iznik.Models.Group({
                                 id: self.options.groupid
@@ -2364,7 +2368,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return(p);
@@ -2408,7 +2412,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return(p);
@@ -2460,7 +2464,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return(p);
@@ -2512,7 +2516,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return(p);

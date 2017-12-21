@@ -3,6 +3,11 @@
 // If you add a standard jQuery plugin in here which is not AMD-compatible, then it also needs to go in
 // requirejs-setup as a shim.
 
+var window = require('window');
+var tpl = require('iznik/templateloader');
+var template = tpl.template;
+var templateFetch = tpl.templateFetch;
+
 define([
     'jquery',
     'backbone',
@@ -81,45 +86,6 @@ define([
         }
     };
 
-    // Add utility functions are then shimmed by webpack config to global or window functions.
-    const iznikUtilityShims = {
-        globalFunctions: [
-            'haversineDistance',
-            'resolvedPromise',
-            'getURLParam',
-            'strip_tags',
-            'ABTestShown',
-            'ABTestAction',
-            'ABTestGetVariant',
-            'nullFn',
-            'twem',
-            'setTitleCounts',
-            'ellipsical',
-            'formatDuration',
-            'getBoundsZoomLevel'
-        ],
-        windowFunctions: [
-            'innerWidth',
-            'innerHeight',
-            'isVeryShort',
-            'innerHeight',
-            'canonSubj',
-            'setURLParam',
-            'removeURLParam',
-            'getDistanceFromLatLonInKm',
-            'deg2rad',
-            'decodeEntities',
-            'encodeHTMLEntities',
-            'orderedMessages',
-            'csvWriter',
-            'presdef',
-            'chunkArray',
-            'base64url',
-            'isValidEmailAddress',
-            'wbr'
-        ]
-    }
-
     // Various utility functions.
     // TODO Poor to have these at the top level of the Iznik object - would be better to put them in a module,
     // but lots of code changes.
@@ -167,46 +133,6 @@ define([
         return (subj);
     };
 
-    Iznik.setURLParam = function(uri, key, value) {
-        console.log("Set url param", uri, key, value);
-        var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
-        var separator = uri.indexOf('?') !== -1 ? "&" : "?";
-        if (uri.match(re)) {
-            return uri.replace(re, '$1' + key + "=" + value + '$2');
-        }
-        else {
-            return uri + separator + key + "=" + value;
-        }
-    };
-
-    Iznik.removeURLParam = function(uri, key) {
-        var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
-        if (uri.match(re)) {
-            console.log("Found param");
-            return uri.replace(re, '$1$2');
-        }
-        else {
-            return uri;
-        }
-    };
-
-    Iznik.getDistanceFromLatLonInKm = function(lat1, lon1, lat2, lon2) {
-        var R = 6371; // Radius of the earth in km
-        var dLat = deg2rad(lat2 - lat1);  // deg2rad below
-        var dLon = deg2rad(lon2 - lon1);
-        var a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2)
-        ;
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return (R * c);
-    };
-
-    Iznik.deg2rad = function(deg) {
-        return deg * (Math.PI / 180)
-    };
-
     Iznik.decodeEntities = (function () {
         // this prevents any overhead from creating the object each time
         var element = document.createElement('div');
@@ -226,10 +152,6 @@ define([
 
         return decodeHTMLEntities;
     })();
-
-    Iznik.encodeHTMLEntities = function(str) {
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    };
 
 // Apply a custom order to a set of messages
     Iznik.orderedMessages = function(stdmsgs, order) {
@@ -338,23 +260,23 @@ define([
         encode: function encode(data) {
             data = new Uint8Array(data);
             var len = Math.ceil(data.length * 4 / 3);
-            return chunkArray(data, 3).map(function (chunk) {
+            return Iznik.chunkArray(data, 3).map(function (chunk) {
                 return [chunk[0] >>> 2, (chunk[0] & 0x3) << 4 | chunk[1] >>> 4, (chunk[1] & 0xf) << 2 | chunk[2] >>> 6, chunk[2] & 0x3f].map(function (v) {
-                    return base64url._strmap[v];
+                    return Iznik.base64url._strmap[v];
                 }).join('');
             }).join('').slice(0, len);
         },
         _lookup: function _lookup(s, i) {
-            return base64url._strmap.indexOf(s.charAt(i));
+            return Iznik.base64url._strmap.indexOf(s.charAt(i));
         },
         decode: function decode(str) {
             var v = new Uint8Array(Math.floor(str.length * 3 / 4));
             var vi = 0;
             for (var si = 0; si < str.length;) {
-                var w = base64url._lookup(str, si++);
-                var x = base64url._lookup(str, si++);
-                var y = base64url._lookup(str, si++);
-                var z = base64url._lookup(str, si++);
+                var w = Iznik.base64url._lookup(str, si++);
+                var x = Iznik.base64url._lookup(str, si++);
+                var y = Iznik.base64url._lookup(str, si++);
+                var z = Iznik.base64url._lookup(str, si++);
                 v[vi++] = w << 2 | x >>> 4;
                 v[vi++] = x << 4 | y >>> 2;
                 v[vi++] = y << 6 | z;
@@ -376,7 +298,6 @@ define([
     };
 
     $.fn.isOnScreen = function(){
-
         var win = $(window);
 
         var viewport = {
@@ -392,34 +313,6 @@ define([
 
         return (!(viewport.right < bounds.left || viewport.left > bounds.right || viewport.bottom < bounds.top || viewport.top > bounds.bottom));
     };
-
-    Iznik.haversineDistance = function(coords1, coords2, isMiles) {
-        function toRad(x) {
-            return x * Math.PI / 180;
-        }
-
-        var lon1 = coords1[0];
-        var lat1 = coords1[1];
-
-        var lon2 = coords2[0];
-        var lat2 = coords2[1];
-
-        var R = 6371; // km
-
-        var x1 = lat2 - lat1;
-        var dLat = toRad(x1);
-        var x2 = lon2 - lon1;
-        var dLon = toRad(x2)
-        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        var d = R * c;
-
-        if(isMiles) d /= 1.60934;
-
-        return d;
-    }
 
     Iznik.getURLParam = function(name) {
         var url = location.search.replace(/\&amp;/g, '&');
@@ -448,19 +341,19 @@ define([
         // bugfixed by: Kevin van Zonneveld (http://kvz.io)
         // bugfixed by: Tomasz Wesolowski
         //  revised by: Rafał Kukawski (http://blog.kukawski.pl)
-        //   example 1: strip_tags('<p>Kevin</p> <br /><b>van</b> <i>Zonneveld</i>', '<i><b>')
+        //   example 1: Iznik.strip_tags('<p>Kevin</p> <br /><b>van</b> <i>Zonneveld</i>', '<i><b>')
         //   returns 1: 'Kevin <b>van</b> <i>Zonneveld</i>'
-        //   example 2: strip_tags('<p>Kevin <img src="someimage.png" onmouseover="someFunction()">van <i>Zonneveld</i></p>', '<p>')
+        //   example 2: Iznik.strip_tags('<p>Kevin <img src="someimage.png" onmouseover="someFunction()">van <i>Zonneveld</i></p>', '<p>')
         //   returns 2: '<p>Kevin van Zonneveld</p>'
-        //   example 3: strip_tags("<a href='http://kvz.io'>Kevin van Zonneveld</a>", "<a>")
+        //   example 3: Iznik.strip_tags("<a href='http://kvz.io'>Kevin van Zonneveld</a>", "<a>")
         //   returns 3: "<a href='http://kvz.io'>Kevin van Zonneveld</a>"
-        //   example 4: strip_tags('1 < 5 5 > 1')
+        //   example 4: Iznik.strip_tags('1 < 5 5 > 1')
         //   returns 4: '1 < 5 5 > 1'
-        //   example 5: strip_tags('1 <br/> 1')
+        //   example 5: Iznik.strip_tags('1 <br/> 1')
         //   returns 5: '1  1'
-        //   example 6: strip_tags('1 <br/> 1', '<br>')
+        //   example 6: Iznik.strip_tags('1 <br/> 1', '<br>')
         //   returns 6: '1 <br/> 1'
-        //   example 7: strip_tags('1 <br/> 1', '<br><br/>')
+        //   example 7: Iznik.strip_tags('1 <br/> 1', '<br><br/>')
         //   returns 7: '1 <br/> 1'
 
         // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
@@ -513,8 +406,6 @@ define([
 
         return(p);
     }
-
-    Iznik.nullFn = function() {}
 
     Iznik.twem = function(msg) {
         if (msg) {
@@ -856,14 +747,14 @@ define([
                     // Now fetch - immediately or after a delay.
                     if (fetchDelay > 0) {
                         // console.log("Delay fetch for", fetchDelay);
-                        window.setTimeout(issueFetch, fetchDelay);
+                        setTimeout(issueFetch, fetchDelay);
                     } else {
                         // console.log("Immediate fetch");
                         issueFetch();
                     }
                 });
             } else {
-                self.promise = resolvedPromise();
+                self.promise = Iznik.resolvedPromise();
             }
 
             return(self.promise);
@@ -876,7 +767,7 @@ define([
             globalClick: function (e) {
                 // When a click occurs, we block further clicks for a few seconds, to stop double click damage.
                 $(e.target).addClass('blockclick');
-                window.setTimeout(function () {
+                setTimeout(function () {
                     $(e.target).removeClass('blockclick');
                 }, 5000);
 
@@ -885,12 +776,12 @@ define([
                 // provide visual comfort.
                 //
                 // Note that we expect to have one outstanding request (our long poll) at all times.
-                window.setTimeout(function () {
+                setTimeout(function () {
                     if ($.active > 1) {
                         // An AJAX call was started in another click handler.  Start pulsing.
                         $(e.target).addClass('showclicked');
 
-                        window.setTimeout(function () {
+                        setTimeout(function () {
                             // The pulse should be removed in the ajaxStop handler, but have a fallback just in
                             // case.
                             $(e.target).removeClass('showclicked');
@@ -915,7 +806,7 @@ define([
                     self.inDOMProm.resolve(self);
                 } else {
                     console.log("Not in DOM yet", self);
-                    window.setTimeout(self.checkDOM, 50, self);
+                    setTimeout(self.checkDOM, 50, self);
                 }
             },
 
@@ -923,9 +814,9 @@ define([
                 var html;
 
                 if (this.model) {
-                    html = window.template(this.template)(this.model.toJSON2());
+                    html = template(this.template)(this.model.toJSON2());
                 } else {
-                    html = window.template(this.template)();
+                    html = template(this.template)();
                 }
 
                 this.$el.html(html);
@@ -981,7 +872,7 @@ define([
                 if (self.$el.closest('body').length > 0) {
                     cb.call(self, self);
                 } else {
-                    window.setTimeout(self.waitDOM, 50, self, cb);
+                    setTimeout(self.waitDOM, 50, self, cb);
                 }
             },
 

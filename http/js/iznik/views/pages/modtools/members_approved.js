@@ -102,7 +102,7 @@ define([
                     } else {
                         // We got them all.
                         // Loop through converting each to CSV.
-                        var csv = new csvWriter();
+                        var csv = new Iznik.csvWriter();
                         csv.del = ',';
                         csv.enc = '"';
                         var csvstr = csv.arrayToCSV(self.exportList);
@@ -165,7 +165,7 @@ define([
                                 exp.push([date.format(), member['yahooid'], member['yahooAlias'], member['email'], member['yahooUserId'], member['yahooDeliveryType'], member['yahooPostingStatus']]);
                             });
 
-                            var csv = new csvWriter();
+                            var csv = new Iznik.csvWriter();
                             csv.del = ',';
                             csv.enc = '';
                             var csvstr = csv.arrayToCSV(exp);
@@ -425,7 +425,7 @@ define([
 
                             if (config) {
                                 // Add the other standard messages, in the order requested.
-                                var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
+                                var sortmsgs = Iznik.orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
                                 var anyrare = false;
 
                                 _.each(sortmsgs, function (stdmsg) {
@@ -485,7 +485,7 @@ define([
             var email = self.$('.js-email').val();
             var message = self.$('.js-welcome').val();
 
-            if (!email || email.trim().length == 0 || !isValidEmailAddress(email)) {
+            if (!email || email.trim().length == 0 || !Iznik.isValidEmailAddress(email)) {
                 self.$('.js-email').addClass('error-border');
             } else {
                 self.$('.js-email').removeClass('error-border');

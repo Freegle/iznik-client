@@ -323,7 +323,7 @@ define([
                                     self.showRelated();
 
                                     // Add the other standard messages, in the order requested.
-                                    var sortmsgs = orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
+                                    var sortmsgs = Iznik.orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
                                     var anyrare = false;
 
                                     _.each(sortmsgs, function (stdmsg) {

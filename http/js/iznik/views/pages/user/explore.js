@@ -400,7 +400,7 @@ define([
                 self.updateMap();
             });
 
-            return(resolvedPromise(self));
+            return(Iznik.resolvedPromise(self));
         }
     });
 
@@ -578,7 +578,7 @@ define([
                             width: self.$('#js-areamap').width()
                         };
 
-                        var zoom = getBoundsZoomLevel(bounds, mapDim);
+                        var zoom = Iznik.getBoundsZoomLevel(bounds, mapDim);
                         self.areamap.setZoom(zoom);
                     } catch (e) {
                         console.log("WKT error", e.message, wktstr, obj);

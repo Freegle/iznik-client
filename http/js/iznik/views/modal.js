@@ -111,7 +111,7 @@ define([
                 });
             } else {
                 this.attach();
-                p = resolvedPromise(self);
+                p = Iznik.resolvedPromise(self);
             }
 
             // Bootstrap seems to add padding, which has the effect of shrinking the body as more modals open.
@@ -195,7 +195,7 @@ define([
                 }
             }, self.options.timeout ? self.options.timeout : 3000);
 
-            return(resolvedPromise(this));
+            return(Iznik.resolvedPromise(this));
         },
 
         close: function() {

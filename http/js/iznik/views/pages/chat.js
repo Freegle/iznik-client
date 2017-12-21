@@ -1,5 +1,9 @@
 import 'bootstrap-fileinput';
 
+var tpl = require('iznik/templateloader');
+var template = tpl.template;
+var templateFetch = tpl.templateFetch;
+
 define([
     'jquery',
     'underscore',
@@ -158,7 +162,7 @@ define([
                 });
 
                 templateFetch('chat_page_list').then(function() {
-                    $(self.listContainer).html(window.template('chat_page_list'));
+                    $(self.listContainer).html(template('chat_page_list'));
                     $(self.listContainer).addClass('chat-list-holder');
 
                     // Now set up a collection view to list the chats.  First one is for the left sidebar, which
@@ -822,7 +826,11 @@ define([
                 });
 
                 self.messages.add(tempmod);
-                self.$('.js-photopicker').fileinput('upload');
+
+                // Have to defer else break fileinput validation processing.
+                _.defer(function() {
+                    self.$('.js-photopicker').fileinput('upload');
+                });
             });
 
             self.$('.js-photopicker').on('fileuploaded', function (event, data) {

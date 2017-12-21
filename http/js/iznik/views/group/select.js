@@ -201,7 +201,7 @@ define([
             // The dropdown library needs it to be in the DOM.
             self.waitDOM(self, self.inDOM);
 
-            return(resolvedPromise(self));
+            return(Iznik.resolvedPromise(self));
         },
 
         get: function() {
