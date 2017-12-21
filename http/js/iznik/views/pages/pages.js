@@ -567,13 +567,6 @@ define([
                     self.$('.js-newsletter').removeClass('hidden');
                 }
 
-                // We need to create a hidden signin button because otherwise the Google logout method doesn't
-                // work properly.  See http://stackoverflow.com/questions/19353034/how-to-sign-out-using-when-using-google-sign-in/19356354#19356354
-                var GoogleLoad = new Iznik.Views.GoogleLoad();
-                if (GoogleLoad) {
-                    GoogleLoad.buttonShim('googleshim');
-                }
-
                 // Events site is special.
                 self.$('.js-recentsessions').attr('href', 'https://' + EVENT_HOST + '/modtools/sessions');
             });
