@@ -982,19 +982,12 @@ define([
             });
         },
 
-        getURLParam: function (name) {
-            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-                results = regex.exec(location.search);
-            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-        },
-
         yahoologin: function (path) {
             var self = this;
 
             // We have been redirected here after an attempt to sign in with Yahoo.  We now try again to login
             // on the server.  This time we should succeed.
-            var returnto = this.getURLParam('returnto');
+            var returnto = Iznik.getURLParam('returnto');
 
             self.listenToOnce(Iznik.Session, 'yahoologincomplete', function (ret) {
                 if (ret.ret == 0) {

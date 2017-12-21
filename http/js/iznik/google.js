@@ -133,24 +133,6 @@ define([
             $('#googleshim').hide();
         },
 
-        buttonShim: function (id) {
-            try {
-                var gapi = document.getElementById('thebody').gapi;
-
-                gapi.signin.render(id, {
-                    'clientid': self.clientId,
-                    'cookiepolicy': 'single_host_origin',
-                    'callback': self.noop,
-                    'immediate': false,
-                    'scope': self.scopes
-                });
-            } catch (e) {
-                // Probably a blocker
-                console.log("Google button shim failed", e);
-                this.disabled = true;
-            }
-        },
-
         disconnectUser: function () {
 
             //alert("Disconnecting");

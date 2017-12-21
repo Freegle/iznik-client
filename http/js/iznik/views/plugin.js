@@ -36,6 +36,7 @@ define([
         },
     
         requeue: function() {
+            console.log("Requeue", this);
             this.set('running', false);
             this.collection.sort();
             window.IznikPlugin.checkWork();
@@ -171,7 +172,7 @@ define([
                 // console.log("Work on MT", group.get('work'));
 
                 var worthit = yahoocounts.indexOf(group.get('nameshort').toLowerCase()) != -1 ||
-                        presdef(countname, group.get('work'), 0);
+                        Iznik.presdef(countname, group.get('work'), 0);
 
                 return(worthit);
             }
@@ -267,18 +268,23 @@ define([
             return(function() {
 
                 function parseCrumb(ret) {
+                    console.log("parseCrumb");
                     var match = /GROUPS.YG_CRUMB = "(.*)"/.exec(ret);
 
                     if (ret.indexOf("not allowed to perform this operation") !== -1) {
                         // Can't do this - no point keeping the work.
+                        console.log("Can't do it");
                         drop.call(self);
                     } else if (match) {
+                        console.log("Got crumb");
                         success.call(self, match[1]);
                     } else {
+                        console.log("Redirect?");
                         var match = /window.location.href = "(.*)"/.exec(ret);
 
                         if (match) {
                             var url = match[1];
+                            console.log("Yes", url);
                             $.ajax({
                                 type: "GET",
                                 url: url,
@@ -286,8 +292,13 @@ define([
                                 error: function (request, status, error) {
                                     console.log("Redirect error", status, error);
                                     fail.call(self);
-                                }
+                                },
+                                timeout: 30000
                             });
+                        } else {
+                            console.log("No");
+                            // Something went wrong.
+                            fail.call(self);
                         }
                     }
                 }
@@ -302,7 +313,8 @@ define([
                     error: function (request, status, error) {
                         console.log("Get crumb error", status, error);
                         fail.call(self);
-                    }
+                    },
+                    timeout: 30000
                 });
             });
         },
@@ -316,7 +328,7 @@ define([
 
                 if (first && !first.get('running')) {
                     first.set('running', true);
-                    //console.log("First item", first);
+                    console.log("First item", first);
 
                     var groupname;
                     var v = first.get('subview');
@@ -337,14 +349,17 @@ define([
                     // We need a crumb to do the work.
                     self.getCrumb(groupname, v.crumbLocation, function(crumb) {
                         v.crumb = crumb;
-                        // console.log("Start", crumb);
+                        console.log("Crumb success start", crumb);
                         v.start.call(v);
                     }, function() {
+                        console.log("Crumb fail", self.collection);
                         var f = self.collection.at(0);
                         if (f) {
+                            console.log("Retry");
                             f.retry();
                         }
                     }, function() {
+                        console.log("Crumb drop");
                         v.drop.call(v);
                     })();
                 }
@@ -369,7 +384,7 @@ define([
             var self = this;
 
             if ($('.modal.in').length > 0) {
-                // This check seems to lose focus in open modals - don't understand why.
+                // Doing an AJAX call seems to lose focus in open modals - don't know why.
                 console.log("Modal open - skip check");
                 window.setTimeout(_.bind(self.checkPluginStatus, self), 10000);
                 return;
@@ -1065,7 +1080,7 @@ define([
                                                 success: function(ret) {
                                                     // console.log("Returned", url, ret);
                                                     if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
-                                                        var source = decodeEntities(ret.ygData.rawEmail);
+                                                        var source = Iznik.decodeEntities(ret.ygData.rawEmail);
 
                                                         if (source.indexOf('X-eGroups-Edited-By:') == -1) {
                                                             var data = {
@@ -1279,6 +1294,7 @@ define([
         processChunk: function(ret) {
             var self = this;
             var now = moment();
+            console.log("Process member chunk");
     
             if (ret.ygData) {
                 var total = ret.ygData[this.numField];
@@ -1352,15 +1368,18 @@ define([
     
                     self.members.push(thisone);
                 });
-    
+
+                console.log("Total etc", total, members.length, this.chunkSize);
+
                 if (total == 0 || members.length < this.chunkSize) {
                     // Finished.
     
                     if (typeof self.completed === 'function') {
                         // We have a custom callback
+                        console.log("Completed, callback");
                         self.completed(self.members);
-
                     } else {
+                        console.log("Pass to server");
                         // Pass to server
                         $.ajax({
                             type: 'POST',
@@ -1389,6 +1408,7 @@ define([
                         });
                     }
                 } else {
+                    console.log("Requeue");
                     this.requeue();
                 }
             }

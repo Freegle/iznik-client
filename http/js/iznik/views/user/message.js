@@ -53,7 +53,7 @@ define([
             /*FB.ui(params, function (response) {
                 self.$('.js-fbshare').fadeOut('slow');
 
-                ABTestAction('messagebutton', 'Facebook Share');
+                Iznik.ABTestAction('messagebutton', 'Facebook Share');
             });*/
         },
 
@@ -206,7 +206,7 @@ define([
 
                 // Make safe and decent for display.
                 this.model.stripGumf('textbody');
-                this.model.set('textbody', strip_tags(this.model.get('textbody')));
+                this.model.set('textbody', Iznik.strip_tags(this.model.get('textbody')));
 
                 // The server will have returned us a snippet.  But if we've stripped out the gumf and we have something
                 // short, use that instead.
@@ -736,7 +736,7 @@ define([
             // our cache.  If not, fetch it.
             if (!_.isUndefined(chat)) {
                 self.chat = chat;
-                p = resolvedPromise(self);
+                p = Iznik.resolvedPromise(self);
             } else {
                 self.chat = new Iznik.Models.Chat.Room({
                     id: self.model.get('chatid')
@@ -1018,7 +1018,7 @@ define([
             var p;
 
             if (self.rendered) {
-                p = resolvedPromise(self);
+                p = Iznik.resolvedPromise(self);
             } else {
                 self.rendered = true;
                 var mylocation = null;
@@ -1094,7 +1094,7 @@ define([
                     });
 
                     self.clipboard.on('success', function(e) {
-                        ABTestAction('messagebutton', 'Copy Link');
+                        Iznik.ABTestAction('messagebutton', 'Copy Link');
                     });
                 })
             }

@@ -46,41 +46,6 @@ const requireJs = {
         iznik: '/js/iznik'
     }
 }
-const globalFunctions = [
-    'haversineDistance',
-    'resolvedPromise',
-    'getURLParam',
-    'strip_tags',
-    'ABTestShown',
-    'ABTestAction',
-    'ABTestGetVariant',
-    'nullFn',
-    'twem',
-    'setTitleCounts',
-    'ellipsical',
-    'formatDuration',
-    'getBoundsZoomLevel'
-]
-
-const windowFunctions = [
-    'innerWidth',
-    'isShort',
-    'innerHeight',
-    'canonSubj',
-    'setURLParam',
-    'removeURLParam',
-    'getDistanceFromLatLonInKm',
-    'deg2rad',
-    'decodeEntities',
-    'encodeHTMLEntities',
-    'orderedMessages',
-    'csvWriter',
-    'presdef',
-    'chunkArray',
-    'base64url',
-    'isValidEmailAddress',
-    'wbr'
-]
 
 exports.aliases = {
     // is referenced, but hasn't been written yet
@@ -98,13 +63,7 @@ exports.provides = {
     'window.jQuery': 'jquery',
     // bootstrap wants $ global
     jQuery: 'jquery',
-    // Our template functions are used all over the place.
-    'window.template': ['iznik/templateloader', 'template'],
-    templateFetch: ['iznik/templateloader', 'templateFetch'],
-    twemoji: 'twemoji',
-    ...provideGlobals(globalFunctions),
-    ...provideGlobals(windowFunctions),
-    ...provideWindows(windowFunctions)
+    twemoji: 'twemoji'
 }
 
 function convertPathsToAliases (paths) {
@@ -160,20 +119,4 @@ function convertShimToRule (lib, config) {
         },
         use: loaders
     }
-}
-
-function provideGlobals (names) {
-    const config = {}
-    for (let name of names) {
-        config[name] = ['iznik/base', name]
-    }
-    return config
-}
-
-function provideWindows (names) {
-    const config = {}
-    for (let name of names) {
-        config['window.' + name] = ['iznik/base', name]
-    }
-    return config
 }

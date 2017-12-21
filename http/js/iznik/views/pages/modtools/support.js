@@ -1,3 +1,6 @@
+var tpl = require('iznik/templateloader');
+var template = tpl.template;
+
 define([
     'jquery',
     'underscore',
@@ -55,7 +58,7 @@ define([
                 exportList.push(row);
             });
 
-            var csv = new csvWriter();
+            var csv = new Iznik.csvWriter();
             csv.del = ',';
             csv.enc = '"';
             var csvstr = csv.arrayToCSV(exportList);

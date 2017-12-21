@@ -11,7 +11,9 @@
                 <strong class="chat-min-username hidden-sm hidden-xs hidden-md text-larger"><% if (obj.name && name.length > 0) {%>{{name}}<% } else { %><em>Unknown user</em><% } %></strong>
                 <strong class="chat-min-username visible-sm visible-xs visible-md"><% if (obj.name && name.length > 1) {%>{{name}}<% } else { %><em>Unknown user</em><% } %></strong>
                 <span class="js-count badge badge-unread" style="display: none;"></span>
+                <% if (obj.lastdate) { %>
                 <span class="text-muted pull-right"><small><abbr class="timeago" title="{{lastdate}}">{{timeago(lastdate)}}</abbr></small></span>
+                <% } %>
             </div>
             <div>
                 <%if (obj.snippet) { %>{{snippet}}...<% } %>
@@ -26,7 +28,9 @@
                 <% } %>
                 <strong class="chat-min-username text-larger"><% if (obj.name && name.length > 1) {%>{{name}}<% } else { %><em>Unknown user</em><% } %></strong>
                 <span class="js-count badge badge-unread" style="display: none;"></span>
+                <% if (obj.lastdate) { %>
                 <span class="text-muted pull-right"><small><abbr class="timeago" title="{{lastdate}}">{{timeago(lastdate)}}</abbr></small></span>
+                <% } %>
             </div>
             <div>
                 <%if (obj.snippet) { %>{{snippet}}...<% } %>

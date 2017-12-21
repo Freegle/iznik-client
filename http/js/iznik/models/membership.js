@@ -183,7 +183,7 @@ define([
 
     Iznik.Collections.Members.Search = Iznik.Collections.Members.extend({
         url: function() {
-            return(API + 'memberships/' + presdef('groupid', this.options, '') + '?search=' + encodeURIComponent(this.options.search) + '&collection=' + this.options.collection);
+            return(API + 'memberships/' + Iznik.presdef('groupid', this.options, '') + '?search=' + encodeURIComponent(this.options.search) + '&collection=' + this.options.collection);
         }
     });
 

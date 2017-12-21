@@ -182,7 +182,7 @@ define([
                         $(this).empty().hide();
                     }
 
-                    setTitleCounts(unseen, null);
+                    Iznik.setTitleCounts(unseen, null);
                 }
             });
 
@@ -281,7 +281,7 @@ define([
             var retry = true;
             var chat = Iznik.Session.chats.get(chatid);
 
-            if (chat) {
+            if (chat && !_.isUndefined(Iznik.openChats)) {
                 var chatView = Iznik.openChats.viewManager.findByModel(chat);
                 // console.log("Looked for view", chatid, chatView, chat);
 
@@ -376,7 +376,7 @@ define([
                 });
             } else {
                 self.updateCounts();
-                p = resolvedPromise(self);
+                p = Iznik.resolvedPromise(self);
             }
 
             if (!self.windowResizeListening) {
@@ -884,228 +884,237 @@ define([
 
         restore: function (large) {
             var self = this;
-            self.restoredAt = (new Date()).getTime();
-            self.minimised = false;
 
-            // We defer some stuff until the first time the chat is visible - no point doing it for minimised
-            // chats.
-            if (!self.doneFirst) {
-                self.doneFirst = true;
-
-                try {
-                    var status = Storage.get('mystatus');
-
-                    if (status) {
-                        self.$('.js-status').val(status);
-                    }
-                } catch (e) {
-                }
-
-                self.updateCount();
-
-                // If the unread message count changes, we want to update it.
-                self.listenTo(self.model, 'change:unseen', self.updateCount);
-
-                // If the snippet changes, we have new messages to pick up.
-                self.listenTo(self.model, 'change:snippet', self.getLatestMessages);
-
-                self.$('.js-messages').empty();
-
-                self.messageViews = new Backbone.CollectionView({
-                    el: self.$('.js-messages'),
-                    modelView: Iznik.Views.Chat.Message,
-                    collection: self.messages,
-                    chatView: self,
-                    comparator: 'id',
-                    modelViewOptions: {
-                        chatView: self,
-                        chatModel: self.model
-                    },
-                    processKeyEvents: false
-                });
-
-                // As new messages are added, we want to show them.  This also means when we first render, we'll
-                // scroll down to the latest messages.
-                self.listenTo(self.messageViews, 'add', function (modelView) {
-                    self.listenToOnce(modelView, 'rendered', function () {
-                        self.scrollBottom();
-                        // _.delay(_.bind(self.scrollBottom, self), 5000);
-                    });
-                });
-
-                self.messageViews.render.call(self.messageViews);
-
-                // Photo upload button
-                self.$('.js-photo').fileinput({
-                    uploadExtraData: {
-                        imgtype: 'ChatMessage',
-                        chatmessage: 1
-                    },
-                    showUpload: false,
-                    allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-                    uploadUrl: API + 'image',
-                    resizeImage: true,
-                    maxImageWidth: 800,
-                    browseIcon: '',
-                    browseLabel: '',
-                    browseClass: 'clickme glyphicons glyphicons-camera text-muted gi-2x',
-                    showCaption: false,
-                    showRemove: false,
-                    showCancel: false,
-                    showPreview: true,
-                    showUploadedThumbs: false,
-                    dropZoneEnabled: false,
-                    buttonLabelClass: '',
-                    fileActionSettings: {
-                        showZoom: false,
-                        showRemove: false,
-                        showUpload: false
-                    },
-                    layoutTemplates: {
-                        footer: '<div class="file-thumbnail-footer">\n' +
-                        '    {actions}\n' +
-                        '</div>'
-                    },
-                });
-
-                self.$('.js-photo').on('fileimagesresized', function (event) {
-                    // Upload as soon as we have it.  Add an entry for the progress bar.
-                    $('.file-preview, .kv-upload-progress').hide();
-                    var prelast = self.messages.last();
-                    var nextid = prelast ? (prelast.get('id') + 1) : 1;
-                    nextid = _.isNaN(nextid) ? 1 : nextid;
-                    var tempmod = new Iznik.Models.Chat.Message({
-                        id: nextid,
-                        roomid: self.model.get('id'),
-                        date: (new Date()).toISOString(),
-                        type: 'Progress',
-                        user: Iznik.Session.get('me')
-                    });
-
-                    self.messages.add(tempmod);
-                    self.$('.js-photo').fileinput('upload');
-                });
-
-                self.$('.js-photo').on('fileuploaded', function (event, data) {
-                    console.log("Uploaded", event, data);
-                    var ret = data.response;
-
-                    // Create a chat message to hold it.
-                    var tempmod = new Iznik.Models.Chat.Message({
-                        roomid: self.model.get('id'),
-                        imageid: ret.id
-                    });
-
-                    tempmod.save().then(function() {
-                        // Fetch the messages again to pick up this new one.
-                        self.messages.fetch();
-                    });
-                });
-
-                self.$('.js-tooltip').tooltip();
-
-                // If the last message was a while ago, remind them about nudging.  Wait until we'll have
-                // expanded.
-                _.delay(_.bind(function() {
-                    var self = this;
-                    var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
-
-                    if (age > 24 && !self.shownNudge) {
-                        self.$('.js-nudge').tooltip('show');
-                        self.shownNudge = true;
-
-                        _.delay(_.bind(function() {
-                            this.$('.js-nudge').tooltip('hide');
-                        }, self), 10000);
-                    }
-                }, self), 10000);
-
-                // Input text autosize
-                autosize(self.$('textarea'));
-            }
-
-            if (!self.options.modtools) {
-                self.$('.js-privacy').hide();
+            if (!self.renderComplete) {
+                // We've not quite finished rendering yet - probably still fetching the template.  We can't
+                // restore as the element we want to put the messages into won't exist yet.  So delay.
+                _.delay(_.bind(self.restore, self), 500);
             } else {
-                self.$('.js-promise').hide();
-            }
+                self.restoredAt = (new Date()).getTime();
+                self.minimised = false;
 
-            if (large) {
-                // We want a larger and more prominent chat.
+                // We defer some stuff until the first time the chat is visible - no point doing it for minimised
+                // chats.
+                if (!self.doneFirst) {
+                    self.doneFirst = true;
+
+                    try {
+                        var status = Storage.get('mystatus');
+
+                        if (status) {
+                            self.$('.js-status').val(status);
+                        }
+                    } catch (e) {
+                    }
+
+                    self.updateCount();
+
+                    // If the unread message count changes, we want to update it.
+                    self.listenTo(self.model, 'change:unseen', self.updateCount);
+
+                    // If the snippet changes, we have new messages to pick up.
+                    self.listenTo(self.model, 'change:snippet', self.getLatestMessages);
+
+                    self.$('.js-messages').empty();
+
+                    self.messageViews = new Backbone.CollectionView({
+                        el: self.$('.js-messages'),
+                        modelView: Iznik.Views.Chat.Message,
+                        collection: self.messages,
+                        chatView: self,
+                        comparator: 'id',
+                        modelViewOptions: {
+                            chatView: self,
+                            chatModel: self.model
+                        },
+                        processKeyEvents: false
+                    });
+
+                    // As new messages are added, we want to show them.  This also means when we first render, we'll
+                    // scroll down to the latest messages.
+                    self.listenTo(self.messageViews, 'add', function (modelView) {
+                        self.listenToOnce(modelView, 'rendered', function () {
+                            self.scrollBottom();
+                            // _.delay(_.bind(self.scrollBottom, self), 5000);
+                        });
+                    });
+
+                    self.messageViews.render();
+
+                    // Photo upload button
+                    self.$('.js-photo').fileinput({
+                        uploadExtraData: {
+                            imgtype: 'ChatMessage',
+                            chatmessage: 1
+                        },
+                        showUpload: false,
+                        allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                        uploadUrl: API + 'image',
+                        resizeImage: true,
+                        maxImageWidth: 800,
+                        browseIcon: '',
+                        browseLabel: '',
+                        browseClass: 'clickme glyphicons glyphicons-camera text-muted gi-2x',
+                        showCaption: false,
+                        showRemove: false,
+                        showCancel: false,
+                        showPreview: true,
+                        showUploadedThumbs: false,
+                        dropZoneEnabled: false,
+                        buttonLabelClass: '',
+                        fileActionSettings: {
+                            showZoom: false,
+                            showRemove: false,
+                            showUpload: false
+                        },
+                        layoutTemplates: {
+                            footer: '<div class="file-thumbnail-footer">\n' +
+                            '    {actions}\n' +
+                            '</div>'
+                        },
+                    });
+
+                    self.$('.js-photo').on('fileimagesresized', function (event) {
+                        $('.file-preview, .kv-upload-progress').hide();
+                        var prelast = self.messages.last();
+                        var nextid = prelast ? (prelast.get('id') + 1) : 1;
+                        nextid = _.isNaN(nextid) ? 1 : nextid;
+                        var tempmod = new Iznik.Models.Chat.Message({
+                            id: nextid,
+                            roomid: self.model.get('id'),
+                            date: (new Date()).toISOString(),
+                            type: 'Progress',
+                            user: Iznik.Session.get('me')
+                        });
+
+                        self.messages.add(tempmod);
+
+                        // Have to defer else break fileinput validation processing.
+                        _.defer(function() {
+                            self.$('.js-photo').fileinput('upload');
+                        });
+                    });
+
+                    self.$('.js-photo').on('fileuploaded', function (event, data) {
+                        var ret = data.response;
+
+                        // Create a chat message to hold it.
+                        var tempmod = new Iznik.Models.Chat.Message({
+                            roomid: self.model.get('id'),
+                            imageid: ret.id
+                        });
+
+                        tempmod.save().then(function() {
+                            // Fetch the messages again to pick up this new one.
+                            self.messages.fetch();
+                        });
+                    });
+
+                    self.$('.js-tooltip').tooltip();
+
+                    // If the last message was a while ago, remind them about nudging.  Wait until we'll have
+                    // expanded.
+                    _.delay(_.bind(function() {
+                        var self = this;
+                        var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
+
+                        if (age > 24 && !self.shownNudge) {
+                            self.$('.js-nudge').tooltip('show');
+                            self.shownNudge = true;
+
+                            _.delay(_.bind(function() {
+                                this.$('.js-nudge').tooltip('hide');
+                            }, self), 10000);
+                        }
+                    }, self), 10000);
+
+                    // Input text autosize
+                    autosize(self.$('textarea'));
+                }
+
+                if (!self.options.modtools) {
+                    self.$('.js-privacy').hide();
+                } else {
+                    self.$('.js-promise').hide();
+                }
+
+                if (large) {
+                    // We want a larger and more prominent chat.
+                    try {
+                        Storage.set(this.lsID() + '-height', Math.floor(window.innerHeight * 2 / 3));
+                        Storage.set(this.lsID() + '-width', Math.floor(window.innerWidth * 2 / 3));
+                    } catch (e) {
+                    }
+                }
+
+                // Restore the window first, so it feels zippier.
+                self.setSize();
+                self.waitDOM(self, self.options.organise);
+                self.options.updateCounts();
+
+                _.defer(function () {
+                    self.$el.css('visibility', 'visible');
+                    self.$el.show();
+                    self.adjust();
+                });
+
                 try {
-                    Storage.set(this.lsID() + '-height', Math.floor(window.innerHeight * 2 / 3));
-                    Storage.set(this.lsID() + '-width', Math.floor(window.innerWidth * 2 / 3));
+                    Storage.set(self.lsID() + '-open', 1);
                 } catch (e) {
                 }
-            }
 
-            // Restore the window first, so it feels zippier.
-            self.setSize();
-            self.waitDOM(self, self.options.organise);
-            self.options.updateCounts();
-
-            _.defer(function () {
-                self.$el.css('visibility', 'visible');
-                self.$el.show();
-                self.adjust();
-            });
-
-            try {
-                Storage.set(self.lsID() + '-open', 1);
-            } catch (e) {
-            }
-
-            // We fetch the messages when restoring - no need before then.
-            var v = new Iznik.Views.PleaseWait({
-                label: 'chat restore'
-            });
-            v.render();
-            self.messages.fetch({
-                remove: true
-            }).then(function () {
-                v.close();
-                self.scrollBottom();
-                self.trigger('restored');
-            });
-
-            self.$('.js-chatwarning').show();
-
-            window.setTimeout(_.bind(function () {
-                this.$('.js-chatwarning').slideUp('slow', _.bind(function() {
-                    this.adjust();
-                }, this));
-            }, self), 30000);
-
-            if (!self.windowResizeListening) {
-                // If the window size changes, we will need to adapt.
-                self.windowResizeListening = true;
-                $(window).resize(function () {
-                    self.setSize();
-                    self.adjust();
-                    self.options.organise();
+                // We fetch the messages when restoring - no need before then.
+                var v = new Iznik.Views.PleaseWait({
+                    label: 'chat restore'
+                });
+                v.render();
+                self.messages.fetch({
+                    remove: true
+                }).then(function () {
+                    v.close();
                     self.scrollBottom();
+                    self.trigger('restored');
                 });
+
+                self.$('.js-chatwarning').show();
+
+                window.setTimeout(_.bind(function () {
+                    this.$('.js-chatwarning').slideUp('slow', _.bind(function() {
+                        this.adjust();
+                    }, this));
+                }, self), 30000);
+
+                if (!self.windowResizeListening) {
+                    // If the window size changes, we will need to adapt.
+                    self.windowResizeListening = true;
+                    $(window).resize(function () {
+                        self.setSize();
+                        self.adjust();
+                        self.options.organise();
+                        self.scrollBottom();
+                    });
+                }
+
+                if (!self.madeResizable) {
+                    self.madeResizable = true;
+
+                    self.$el.resizable({
+                        handleSelector: '#chat-active-' + self.model.get('id') + ' .js-grip',
+                        resizeWidthFrom: 'left',
+                        resizeHeightFrom: 'top',
+                        onDrag: _.bind(self.drag, self),
+                        onDragEnd: _.bind(self.dragend, self)
+                    });
+
+                    self.$(".js-leftpanel").resizable({
+                        handleSelector: ".splitter",
+                        resizeHeight: false,
+                        onDragEnd: _.bind(self.panelSize, self)
+                    });
+                }
+
+                _.delay(_.bind(self.adjustTimer, self), 5000);
             }
-
-            if (!self.madeResizable) {
-                self.madeResizable = true;
-
-                self.$el.resizable({
-                    handleSelector: '#chat-active-' + self.model.get('id') + ' .js-grip',
-                    resizeWidthFrom: 'left',
-                    resizeHeightFrom: 'top',
-                    onDrag: _.bind(self.drag, self),
-                    onDragEnd: _.bind(self.dragend, self)
-                });
-
-                self.$(".js-leftpanel").resizable({
-                    handleSelector: ".splitter",
-                    resizeHeight: false,
-                    onDragEnd: _.bind(self.panelSize, self)
-                });
-            }
-
-            _.delay(_.bind(self.adjustTimer, self), 5000);
         },
 
         adjustTimer: function() {
@@ -1244,6 +1253,9 @@ define([
             self.trigger('countupdated', unseen);
         },
 
+        rendered: false,
+        renderComplete: false,
+
         render: function () {
             var self = this;
 
@@ -1290,9 +1302,10 @@ define([
                     self.listenTo(self.model, 'restore', self.restore);
 
                     self.trigger('rendered');
+                    self.renderComplete = true;
                 });
             } else {
-                return(resolvedPromise(self));
+                return(Iznik.resolvedPromise(self));
             }
 
             return (p);
@@ -1437,11 +1450,11 @@ define([
                     message = message.replace(/\n\s*\n\s*\n/g, '\n\n');
 
                     // Strip HTML tags
-                    message = strip_tags(message, '<a>');
+                    message = Iznik.strip_tags(message, '<a>');
 
                     // Insert some wbrs to allow us to word break long words (e.g. URLs).
                     // It might have line breaks in if it comes originally from an email.
-                    message = wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />');
+                    message = Iznik.wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />');
 
                     this.model.set('message', message);
                 }
@@ -1562,7 +1575,7 @@ define([
                     });
                 });
             } else {
-                p = resolvedPromise(this);
+                p = Iznik.resolvedPromise(this);
             }
 
             return (p);
