@@ -69,7 +69,8 @@ module.exports = new Config().extend({
     }),
     // CC new FaviconsPlugin('images/modtools_logo.png'),
     new webpack.DefinePlugin({
-      APP_VERSION: JSON.stringify('0.1.0, 21 December 2017'),
+      APP_VERSION: JSON.stringify('0.1.0, 22 December 2017'),
+      // CC SET ABOVE: API: JSON.stringify(BASE_URL+'/api/'),
       FACEBOOK_APPID: JSON.stringify('134980666550322'),
       FACEBOOK_GRAFFITI_APPID: JSON.stringify('115376591981611'),
       GOOGLE_CLIENT_ID: JSON.stringify(
@@ -99,13 +100,13 @@ module.exports = new Config().extend({
     new CopyWebpackPlugin([
         {from: 'http/xdk', to: 'xdk'}
     ]),
-    /* CC new webpack.optimize.UglifyJsPlugin({
+    new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       minimize: true,
       compress: {
         warnings: false
       }
-    }),*/
+    }),
 
     // split vendor js into its own file
     new webpack.optimize.CommonsChunkPlugin({
