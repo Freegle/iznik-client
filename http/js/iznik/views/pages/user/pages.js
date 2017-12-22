@@ -616,7 +616,7 @@ define([
             var href = 'https://www.ilovefreegle.org/message/' + self.model.get('id') + '?src=mobileshare';
             var subject = self.model.get('subject');
 
-            ABTestAction('sharepost', 'Mobile Share');
+            Iznik.ABTestAction('sharepost', 'Mobile Share');
             // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
             var options = {
                 message: "I've just posted this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
@@ -638,7 +638,7 @@ define([
             var onError = function (msg) {
                 console.log("Sharing failed with message: " + msg);
             }
-            // CC Iznik.ABTestAction('sharepost', 'facebook');
+            // Iznik.ABTestAction('sharepost', 'facebook');
 
             window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
             /*FB.ui(params, function (response) {

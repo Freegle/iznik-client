@@ -49,6 +49,7 @@ define([
                 console.log("Sharing failed with message: " + msg);
             }
 
+            alert("Message share");
             window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
             /*FB.ui(params, function (response) {
                 self.$('.js-fbshare').fadeOut('slow');
