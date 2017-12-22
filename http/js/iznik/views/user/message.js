@@ -42,14 +42,13 @@ define([
                 console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
                 console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
                 self.$('.js-fbshare').fadeOut('slow');
-                ABTestAction('messagebutton', 'Mobile Share');
+                Iznik.ABTestAction('messagebutton', 'Mobile Share');
             }
 
             var onError = function (msg) {
                 console.log("Sharing failed with message: " + msg);
             }
 
-            alert("Message share");
             window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
             /*FB.ui(params, function (response) {
                 self.$('.js-fbshare').fadeOut('slow');
