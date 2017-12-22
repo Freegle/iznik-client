@@ -729,17 +729,20 @@ define([
 
         promised: function() {
             var self = this;
+            var id = self.$('.js-offers').val();
 
-            $.ajax({
-                url: API + 'message/' + self.model.get('message').id,
-                type: 'POST',
-                data: {
-                    action: 'Promise',
-                    userid: self.model.get('user').id
-                }, success: function() {
-                    self.trigger('promised')
-                }
-            })
+            if (id) {
+                $.ajax({
+                    url: API + 'message/' + id,
+                    type: 'POST',
+                    data: {
+                        action: 'Promise',
+                        userid: self.model.get('user').id
+                    }, success: function() {
+                        self.trigger('promised')
+                    }
+                })
+            }
         },
 
         render: function() {
@@ -753,6 +756,7 @@ define([
                 });
 
                 var msg = self.model.get('message');
+                console.log("Message to promise", msg);
                 if (msg) {
                     self.$('.js-offers').val(msg.id);
                 }
