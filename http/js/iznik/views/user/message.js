@@ -555,14 +555,22 @@ define([
 
         nextPhoto: function() {
             var self = this;
-            self.currentPhoto.fadeOut('slow', function() {
-                self.offset++;
-                self.offset = self.offset % self.photos.length;
-                self.currentPhoto = self.photos[self.offset];
-                self.currentPhoto.fadeIn('slow', function() {
-                    _.delay(_.bind(self.nextPhoto, self), 10000);
+
+            if (self.inDOM()) {
+                self.currentPhoto.fadeOut('slow', function() {
+                    self.offset++;
+                    self.offset = self.offset % self.photos.length;
+                    self.currentPhoto = self.photos[self.offset];
+
+                    // Defer to get out of stack context - some browsers hit recursion loops, especially when tabs
+                    // are not visible and animations can run without delays.
+                    _.defer(function() {
+                        self.currentPhoto.fadeIn('slow', function() {
+                            _.delay(_.bind(self.nextPhoto, self), 10000);
+                        })
+                    });
                 })
-            })
+            }
         },
 
         render: function() {
@@ -756,17 +764,20 @@ define([
 
         promised: function() {
             var self = this;
+            var id = self.$('.js-offers').val();
 
-            $.ajax({
-                url: API + 'message/' + self.model.get('message').id,
-                type: 'POST',
-                data: {
-                    action: 'Promise',
-                    userid: self.model.get('user').id
-                }, success: function() {
-                    self.trigger('promised')
-                }
-            })
+            if (id) {
+                $.ajax({
+                    url: API + 'message/' + id,
+                    type: 'POST',
+                    data: {
+                        action: 'Promise',
+                        userid: self.model.get('user').id
+                    }, success: function() {
+                        self.trigger('promised')
+                    }
+                })
+            }
         },
 
         render: function() {
@@ -780,6 +791,7 @@ define([
                 });
 
                 var msg = self.model.get('message');
+                console.log("Message to promise", msg);
                 if (msg) {
                     self.$('.js-offers').val(msg.id);
                 }

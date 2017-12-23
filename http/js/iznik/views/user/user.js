@@ -6,8 +6,13 @@ define([
     'iznik/base',
     'backform',
     'iznik/views/modal',
-    'bootstrap-switch'
+    'bootstrap-switch',
+    'bootstrap-datepicker'
 ], function($, _, Backbone, moment, Iznik, Backform) {
+    // There's a conflict between jQuery UI and bootstrap datepicker.
+    var datepicker = $.fn.datepicker.noConflict();
+    $.fn.bootstrapDP = datepicker;
+
     Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
 
@@ -910,7 +915,9 @@ define([
         events: {
             'change .js-emailfrequency': 'changeFreq',
             'change .js-ourpostingstatus': 'changeOurPostingStatus',
-            'change .js-role': 'changeRole'
+            'change .js-role': 'changeRole',
+            'switchChange.bootstrapSwitch .js-onholiday': 'onholiday',
+            'changeDate .js-onholidaytill': 'saveHoliday',
         },
 
         changeFreq: function() {
@@ -958,6 +965,42 @@ define([
             });
         },
 
+        saveHoliday: function() {
+            var till = null;
+            var self = this;
+
+            if (this.$('.js-holidayswitch').bootstrapSwitch('state')) {
+                till = this.$('.datepicker.js-onholidaytill').bootstrapDP('getUTCDates');
+                till = till && till.length > 0 ? (new Date(Date.parse(till)).toISOString()) : null;
+            }
+
+            this.$('.js-onholidaytill').bootstrapDP('hide');
+
+            $.ajax({
+                url: API + 'user',
+                type: 'PATCH',
+                data: {
+                    id: self.model.get('userid'),
+                    groupid: self.model.get('groupid'),
+                    onholidaytill: till
+                }
+            });
+        },
+
+        onholiday: function(obj, state) {
+            if (state) {
+                this.$('.js-onholidaytill').show();
+                this.saveHoliday();
+                _.delay(_.bind(function() {
+                    this.$('.js-onholidaytill:visible').focus();
+                }, this), 500);
+            } else {
+                this.$('.js-onholidaytill').val(null);
+                this.$('.js-onholidaytill').hide();
+                this.saveHoliday();
+            }
+        },
+
         render: function () {
             var p = Iznik.View.prototype.render.call(this);
             p.then(function (self) {
@@ -978,7 +1021,7 @@ define([
 
                 self.$(".js-switch").bootstrapSwitch({
                     onText: 'Paused',
-                    offText: 'On',
+                    offText: 'Mail&nbsp;On',
                     state: onholiday != undefined
                 });
 
@@ -994,6 +1037,12 @@ define([
                     self.$('.js-onholidaytill').hide();
                     self.$('.js-emailfrequency').show();
                 }
+
+                self.$('.js-onholidaytill').bootstrapDP({
+                    format: 'D, dd MM yyyy',
+                    startDate: '0d',
+                    endDate: '+30d'
+                });
             });
 
             return(p);

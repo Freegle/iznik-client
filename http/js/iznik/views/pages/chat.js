@@ -33,7 +33,10 @@ define([
 
             // Apply the filter immediately - if we get matches on the name or snippet that will look zippy.
             self.chatsCV1.reapplyFilter('visibleModels');
-            self.chatsCV2.reapplyFilter('visibleModels');
+
+            if (self.chatsCV2) {
+                self.chatsCV2.reapplyFilter('visibleModels');
+            }
 
             if (self.filter.length > 2) {
                 // Now search on the sever.  But delay this to allow for extra keystrokes - avoids hitting
@@ -206,6 +209,8 @@ define([
                                 Router.navigate((self.modtools ? '/modtools' : '') + '/chat/' + selected[0].get('id'), true);
                             }
                         });
+                    } else {
+                        self.chatsCV2 = null;
                     }
 
                     self.selectedFirst = false;
