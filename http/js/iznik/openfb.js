@@ -9,9 +9,9 @@
 
 // CC: Uses an approach similar to this: https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow/v2.2?locale=en_GB
 
-var openFB = (function () {
+define([], function () {
 
-	var FB_LOGIN_URL = 'https://www.facebook.com/dialog/oauth',
+    var FB_LOGIN_URL = 'https://www.facebook.com/dialog/oauth',
       FB_LOGOUT_URL = 'https://www.facebook.com/logout.php', // DOESN'T WORK
 			CordovaOauthRedirectURL = "https://www.facebook.com/connect/login_success.html", // Must be listed a app redirect URI
 
@@ -202,7 +202,6 @@ var openFB = (function () {
 
 		if (callback) {
 		callback();
-		}
 		*/
 	}
 
@@ -297,5 +296,5 @@ var openFB = (function () {
 		getLoginStatus: getLoginStatus
 	};
 
-	///////////////////////////////////////
-} ());
+///////////////////////////////////////
+});
