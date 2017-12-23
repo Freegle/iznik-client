@@ -27,7 +27,7 @@ define([
                 } else {
                     data.group = this.selected;
                     var group = Iznik.Session.getGroup(data.group);
-                    if (!group.get('onyahoo')) {
+                    if (group && !group.get('onyahoo')) {
                         showYahoo = false;
                     }
                 }

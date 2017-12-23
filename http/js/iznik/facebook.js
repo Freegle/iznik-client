@@ -5,8 +5,9 @@ define([
     'backbone',
     'iznik/base',
     'iznik/openfb'
-], function ($, _, Backbone, Iznik) {
-    var facebookAppId = $('meta[name=facebook-app-id]').attr("content");
+], function ($, _, Backbone, Iznik, openFB) {
+
+    var facebookAppId = FACEBOOK_APPID;
 
     var tryingFacebookLogin = false;
 

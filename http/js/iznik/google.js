@@ -93,7 +93,7 @@ define([
             var self = this;
 
             if (self.tryingGoogleLogin) { return; }
-            self.clientId = $('meta[name=google-signin-client_id]').attr("content");
+            self.clientId = GOOGLE_CLIENT_ID;
             console.log("Google clientId: " + self.clientId);
             self.tryingGoogleLogin = true;
 
