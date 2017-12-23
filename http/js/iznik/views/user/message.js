@@ -528,14 +528,22 @@ define([
 
         nextPhoto: function() {
             var self = this;
-            self.currentPhoto.fadeOut('slow', function() {
-                self.offset++;
-                self.offset = self.offset % self.photos.length;
-                self.currentPhoto = self.photos[self.offset];
-                self.currentPhoto.fadeIn('slow', function() {
-                    _.delay(_.bind(self.nextPhoto, self), 10000);
+
+            if (self.inDOM()) {
+                self.currentPhoto.fadeOut('slow', function() {
+                    self.offset++;
+                    self.offset = self.offset % self.photos.length;
+                    self.currentPhoto = self.photos[self.offset];
+
+                    // Defer to get out of stack context - some browsers hit recursion loops, especially when tabs
+                    // are not visible and animations can run without delays.
+                    _.defer(function() {
+                        self.currentPhoto.fadeIn('slow', function() {
+                            _.delay(_.bind(self.nextPhoto, self), 10000);
+                        })
+                    });
                 })
-            })
+            }
         },
 
         render: function() {
