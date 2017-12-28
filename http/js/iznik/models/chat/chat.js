@@ -352,6 +352,7 @@ define([
 
                 $.ajax({
                     url: CHAT_HOST + '/subscribe/' + myid,
+                    context: self, // Don't retry, otherwise page transition would cause abort/retry/new wait
                     global: false, // don't trigger ajaxStart to avoid showing a busy icon all the time
                     success: function (ret) {
                         self.waiting = false;
