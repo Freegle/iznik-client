@@ -210,7 +210,7 @@ define([
                     if (FBLoad().isDisabled()) {
                         self.$('.js-loginFB').addClass('signindisabled');
                     } else {
-                        // self.$('.js-loginFB').removeClass('signindisabled');
+                        self.$('.js-loginFB').removeClass('signindisabled');
                     }
                 });
                 FBLoad().render();
