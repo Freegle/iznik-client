@@ -121,6 +121,7 @@ define([
 
         fblogin: function () {
             var self = this;
+            console.log("FB Login", FB);
 
             if (navigator.userAgent.match('CriOS')) {
                 // Chrome on IOS doesn't work with FB.login; see http://stackoverflow.com/questions/16843116/facebook-oauth-unsupported-in-chrome-on-ios
@@ -174,7 +175,6 @@ define([
 
         lostPassword: function (e) {
             e.preventDefault();
-            console.log("Lost password");
             var v = new Iznik.Views.SignInUp.LostPassword();
             v.render();
         },
@@ -210,7 +210,7 @@ define([
                     if (FBLoad().isDisabled()) {
                         self.$('.js-loginFB').addClass('signindisabled');
                     } else {
-                        self.$('.js-loginFB').removeClass('signindisabled');
+                        // self.$('.js-loginFB').removeClass('signindisabled');
                     }
                 });
                 FBLoad().render();
@@ -220,7 +220,6 @@ define([
 
                 // We have a custom signin button which needs googleising.
                 GoogleLoad.signInButton('gConnect');
-                
             });
 
             return (p);

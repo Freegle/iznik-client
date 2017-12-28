@@ -816,6 +816,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 .signindisabled {
     opacity: 0.2;
+    pointer-events: none;
 }
 
 .graph {
