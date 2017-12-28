@@ -269,7 +269,7 @@ define([
                         });
                     } else {
                         require(["iznik/views/pages/user/landing"], function() {
-                            console.log("Load landing");
+                            console.log("Load landing 1");
                             var page = new Iznik.Views.User.Pages.Landing();
                             self.loadRoute({page: page});
                         });
@@ -367,7 +367,7 @@ define([
                     }
                 } else {
                     require(["iznik/views/pages/user/landing"], function() {
-                        console.log("Load landing");
+                        console.log("Load landing 2");
                         var page = new Iznik.Views.User.Pages.Landing();
                         self.loadRoute({page: page});
                     });

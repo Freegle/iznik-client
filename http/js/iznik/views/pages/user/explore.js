@@ -756,7 +756,8 @@ define([
                         Iznik.Session.testLoggedIn();
                     } else if (self.model.get('subject') &&
                         !self.model.get('deleted') &&
-                        (!self.model.get('outcomes') || self.model.get('outcomes').length == 0)
+                        (!self.model.get('outcomes') || self.model.get('outcomes').length == 0) &&
+                        (self.model.get('groups').length > 0)
                     ) {
                         // We might fail to fetch, or fetch a deleted message, or fetch a completed message.  In all these
                         // cases the message shouldn't show.
