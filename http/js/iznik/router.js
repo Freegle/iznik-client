@@ -987,7 +987,7 @@ define([
                     if (returnto) {
                         window.location = returnto;
                     } else {
-                        self.home.call(self);
+                        self.userHome.call(self);
                     }
                 } else {
                     // TODO
