@@ -528,9 +528,12 @@ define([
 
         nextPhoto: function() {
             var self = this;
+            console.log("Next photo");
 
             if (self.inDOM()) {
+                console.log("In DOM");
                 self.currentPhoto.fadeOut('slow', function() {
+                    console.log("Faded out");
                     self.offset++;
                     self.offset = self.offset % self.photos.length;
                     self.currentPhoto = self.photos[self.offset];
@@ -538,7 +541,9 @@ define([
                     // Defer to get out of stack context - some browsers hit recursion loops, especially when tabs
                     // are not visible and animations can run without delays.
                     _.defer(function() {
+                        console.log("Deferred");
                         self.currentPhoto.fadeIn('slow', function() {
+                            console.log("Faded in");
                             _.delay(_.bind(self.nextPhoto, self), 10000);
                         })
                     });
