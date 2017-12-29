@@ -34,7 +34,6 @@ const requireJs = {
         'jquery-resizable': ['jquery']
     },
     paths: {
-        bootstrap: '/js/lib/bootstrap.min',
         waypoints: '/js/lib/jquery.waypoints',
         'jquery.ui.widget': '/js/lib/jquery-file-upload/vendor/jquery.ui.widget',
         'jquery-ui': '/js/lib/jquery-ui',
