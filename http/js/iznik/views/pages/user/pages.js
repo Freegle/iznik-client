@@ -624,6 +624,14 @@ define([
             self.url = window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbpost';
 
             p.then(function() {
+                self.listenToOnce(FBLoad(), 'fbloaded', function () {
+                    if (!FBLoad().isDisabled()) {
+                        self.$('.js-sharefb').show();
+                    }
+                });
+
+                FBLoad().render();
+
                 Iznik.ABTestShown('sharepost', 'facebook');
                 Iznik.ABTestShown('sharepost', 'clipboard');
                 Iznik.ABTestShown('sharepost', 'close');
