@@ -12,6 +12,8 @@ define([
     Iznik.Views.User.Pages.WhereAmI = Iznik.Views.Page.extend({
         firstMatch: null,
 
+        pctooltip: false,
+
         events: {
             'focus .tt-input': 'scrollTo',
             'click .js-getloc': 'getLocation',
@@ -24,7 +26,10 @@ define([
         },
 
         ttHide: function() {
-            this.$('.js-postcode').tooltip('destroy');
+            if (this.pctooltip) {
+                this.$('.js-postcode').tooltip('destroy');
+                this.pctooltip = false;
+            }
         },
 
         showButt: function() {
@@ -398,13 +403,14 @@ define([
                         self.recordLocation(ret.location, true);
 
                         // Add some eye candy to make them spot the location.
-                        self.$('.js-postcode').tooltip('destroy');
+                        self.ttHide();
                         self.$('.js-postcode').tooltip({
                             'placement': 'bottom',
                             'title': "Your device thinks you're here.  If it's wrong, please change it."});
                         self.$('.js-postcode').tooltip('show');
+                        self.pctooltip = true;
                         _.delay(function() {
-                            self.$('.js-postcode').tooltip('destroy');
+                            self.ttHide();
                         }, 20000);
                     }
                 }, complete: function() {
@@ -432,12 +438,13 @@ define([
                     asyncResults(matches);
 
                     _.delay(function() {
-                        self.$('.js-postcode').tooltip('destroy');
+                        self.ttHide();
                     }, 10000);
 
                     if (matches.length == 0) {
                         self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode (including the space)'});
                         self.$('.js-postcode').tooltip('show');
+                        self.pctooltip = true;
                     } else {
                         self.firstMatch = matches[0];
                     }
