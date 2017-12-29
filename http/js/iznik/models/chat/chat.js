@@ -24,7 +24,7 @@ define([
                 sending = JSON.parse(Storage.get('chatqueue'));
                 sending = sending ? sending : [];
 
-                if (sending) {
+                if (sending && sending.length) {
                     var msg = new Iznik.Models.Chat.Message(sending.pop());
                     msg.save({
                         error: function() {
