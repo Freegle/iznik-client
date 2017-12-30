@@ -231,6 +231,8 @@ define([
             });
 
             p.then(function(self) {
+                self.adSense();
+
                 // Left menu is community events
                 var v = new Iznik.Views.User.CommunityEventsSidebar();
                 v.render().then(function () {
