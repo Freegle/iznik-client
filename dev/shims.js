@@ -57,8 +57,7 @@ exports.provides = {
     'window.jQuery': 'jquery',
     // bootstrap wants $ global
     jQuery: 'jquery',
-    twemoji: 'twemoji',
-    Waypoint: 'jquery-waypoints/waypoints.js'
+    twemoji: 'twemoji'
 }
 
 function convertPathsToAliases (paths) {
