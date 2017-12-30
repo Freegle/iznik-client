@@ -881,6 +881,17 @@ define([
                 this.$el.removeData().unbind();
                 this.remove();
                 Backbone.View.prototype.remove.call(this);
+            },
+
+            adSense: function() {
+                // Convert our ins into a google ad and queue it up for rendering.
+                this.$('.js-googleads').each(function() {
+                    var d = $(this);
+
+                    var v = new Iznik.View.GoogleAd();
+                    v.render();
+                    d.html(v.el);
+                });
             }
         });
 
@@ -913,6 +924,28 @@ define([
         return (ourview);
 
     })(Backbone.View);
+
+    Iznik.View.GoogleAd = Iznik.View.extend({
+        template: 'ad',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+
+            p.then(function() {
+                var ins = self.$('ins');
+                ins.css('display', 'block');
+                ins.attr('data-ad-client', ADSENSE_CLIENT);
+                ins.attr('data-ad-slot', ADSENSE_SLOTID);
+                ins.attr('data-ad-format', 'auto');
+                ins.addClass('adsbygoogle');
+                window.adsbygoogle.push({});
+            });
+
+            return(p);
+        }
+    });
 
     Iznik.View.Timeago = Iznik.View.extend({
         timeagoRunning: false,

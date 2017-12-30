@@ -52,6 +52,8 @@ module.exports = {
         RAVEN_ID: true,
         GIT_COMMITHASH: true,
         BUILD_TIME: true,
-        MODTOOLS: true
+        MODTOOLS: true,
+        ADSENSE_CLIENT: true,
+        ADSENSE_SLOTID: true
     }
 }

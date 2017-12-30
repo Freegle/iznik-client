@@ -574,6 +574,8 @@ define([
                 }
 
                 Iznik.Views.User.Pages.Group.prototype.render.call(self).then(function () {
+                    self.adSense();
+
                     self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
 
                     var founded = self.model.get('founded');
@@ -720,6 +722,8 @@ define([
         render: function () {
             var self = this;
             var p = Iznik.Views.Page.prototype.render.call(self).then(function () {
+                self.adSense();
+
                 self.model = new Iznik.Models.Message({
                     id: self.options.id
                 });

@@ -84,7 +84,8 @@ exports['default'] = new Config().merge({
           RAVEN_ID: JSON.stringify('https://421dadb7cd284c8aaeac285c65649728@sentry.io/261108'),
           GIT_COMMITHASH: JSON.stringify((new GitRevisionPlugin()).commithash()),
           BUILD_TIME:  JSON.stringify((new Date()).toISOString()),
-          ADSENSE_CLIENT: JSON.stringify('ca-pub-9017028318226154')
+          ADSENSE_CLIENT: JSON.stringify('ca-pub-9017028318226154'),
+          ADSENSE_SLOTID: JSON.stringify(8707399344)
       }),
 
       new webpack.ProvidePlugin(shims.provides),
