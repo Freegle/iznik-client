@@ -1062,10 +1062,16 @@ define([
                 image: self.image
             };
 
-            FB.ui(params, function (response) {
-                self.$('.js-fbshare').fadeOut('slow');
-                Iznik.ABTestAction('newsfeedbutton', 'Facebook Share');
+            self.listenToOnce(FBLoad(), 'fbloaded', function () {
+                if (!FBLoad().isDisabled()) {
+                    FB.ui(params, function (response) {
+                        self.$('.js-fbshare').fadeOut('slow');
+                        Iznik.ABTestAction('newsfeedbutton', 'Facebook Share');
+                    });
+                }
             });
+
+            FBLoad().render();
         },
 
         showEarlier: function(e) {
