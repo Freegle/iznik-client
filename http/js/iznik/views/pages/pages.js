@@ -212,6 +212,11 @@ define([
                     $('#bodyContent').html(template(tpl));
                     $('.js-pageContent').html(self.$el);
 
+                    if (self.modtools) {
+                        // ModTools has ads on all pages.
+                        self.adSense($);
+                    }
+
                     if (self.appButtons) {
                         // Show app buttons.
                         $('#js-appbuttons').show();

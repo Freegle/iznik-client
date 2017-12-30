@@ -882,9 +882,11 @@ define([
                 Backbone.View.prototype.remove.call(this);
             },
 
-            adSense: function() {
+            adSense: function(jq) {
+                jq = _.isUndefined(jq) ? $ : jq;
+
                 // Convert our ins into a google ad and queue it up for rendering.
-                this.$('.js-googleads').each(function() {
+                jq('.js-googleads').each(function() {
                     var d = $(this);
 
                     var v = new Iznik.View.GoogleAd();
