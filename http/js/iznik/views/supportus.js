@@ -46,11 +46,12 @@ define([
             var self = this;
 
             var lastask = Storage.get('donationlastask');
+            var lastcardask = Storage.get('cardlastask');
             var now = (new Date()).getTime();
-            var p;
+            var p = Iznik.resolvedPromise(self);
 
             if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
-                p = Iznik.ABTestGetVariant('SupportUs', function(variant) {
+                p = Iznik.ABTestGetVariant('SupportUs', function (variant) {
                     self.template = variant.variant;
                     var showglobal = false;
 
@@ -113,8 +114,9 @@ define([
 
                     Iznik.ABTestShown('SupportUs', self.template);
                 });
-            } else {
+            } else if (!lastcardask || (now - lastcardask > 2 * 60 * 60 * 1000)) {
                 // If we're not asking for a donation, offer business cards, unless the group forbids it.
+                Storage.set('cardlastask', now);
                 var homegroup = Storage.get('myhomegroup');
                 var cardsallowed = true;
                 if (homegroup) {
