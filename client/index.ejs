@@ -28,9 +28,20 @@
 
 <script src="https://apis.google.com/js/client:plusone.js"></script>
 <script>
+
     // TODO This is an ignorant and outrageous hack, to get the gapi var to google.js.
-    var env = document.getElementById('thebody');
-    env.gapi = gapi;
+    function setGapi() {
+        var env = document.getElementById('thebody');
+
+        if (env) {
+            env.gapi = gapi;
+        } else {
+            console.log("Waiting for gapi");
+            window.setTimeout(setGapi, 100);
+        }
+    }
+
+    setGapi();
 </script>
 
 <!-- Some nonsense to make browsers remember user/password. -->
