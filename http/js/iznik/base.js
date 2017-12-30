@@ -14,7 +14,7 @@ define([
     'underscore',
     'moment',
     'backbone.collectionView',
-    'waypoints',
+    'jquery-waypoints/waypoints.js',
     'dateshim',
     'bootstrap',
     'bootstrap-select',

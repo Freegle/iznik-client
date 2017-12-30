@@ -85,7 +85,8 @@ exports['default'] = new Config().merge({
           GIT_COMMITHASH: JSON.stringify((new GitRevisionPlugin()).commithash()),
           BUILD_TIME:  JSON.stringify((new Date()).toISOString()),
           ADSENSE_CLIENT: JSON.stringify('ca-pub-9017028318226154'),
-          ADSENSE_SLOTID: JSON.stringify(8707399344)
+          ADSENSE_SLOTID: JSON.stringify(8707399344),
+          ANALYTICS_ID: JSON.stringify('UA-10627716-2')
       }),
 
       new webpack.ProvidePlugin(shims.provides),

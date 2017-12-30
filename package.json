@@ -88,7 +88,6 @@
     "twemoji": "^2.5.0",
     "typeahead.js": "^0.11.1",
     "underscore": "^1.8.3",
-    "universal-analytics": "^0.4.16",
     "url-loader": "^0.6.2",
     "visible": "^0.3.5",
     "webpack-dev-server": "^2.9.7",

@@ -54,6 +54,7 @@ module.exports = {
         BUILD_TIME: true,
         MODTOOLS: true,
         ADSENSE_CLIENT: true,
-        ADSENSE_SLOTID: true
+        ADSENSE_SLOTID: true,
+        ANALYTICS_ID: true
     }
 }

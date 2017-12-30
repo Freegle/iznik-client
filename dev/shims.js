@@ -3,10 +3,6 @@ const requireJs = {
         bootstrap: ['jquery'],
         wicket: ['jquery'],
         'wicket-gmap3': ['wicket'],
-        waypoints: {
-            deps: ['jquery'],
-            exports: 'Waypoint'
-        },
         maplabel: {
             deps: ['jquery']
         },
@@ -61,7 +57,8 @@ exports.provides = {
     'window.jQuery': 'jquery',
     // bootstrap wants $ global
     jQuery: 'jquery',
-    twemoji: 'twemoji'
+    twemoji: 'twemoji',
+    Waypoint: 'jquery-waypoints/waypoints.js'
 }
 
 function convertPathsToAliases (paths) {

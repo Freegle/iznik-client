@@ -1,4 +1,5 @@
 var Raven = require('raven-js');
+var google_analytics = require('iznik/google_analytics.js')
 
 define([
     'jquery',
@@ -18,6 +19,8 @@ define([
     var IznikRouter = Backbone.Router.extend({
         initialize: function () {
             var self = this;
+
+            google_analytics.init();
 
             // We want the ability to abort all outstanding requests, for example when we switch to a new route.
             self.xhrPool = [];
@@ -60,9 +63,11 @@ define([
 
             // Make sure we have google analytics for Backbone routes.
             try {
-                var ua = require('universal-analytics');
-                var visitor = ua('UA-10627716-2', {https: true});
-                visitor.pageview(url).send();
+                ga('send', {
+                    hitType: 'pageview',
+                    page: url,
+                    location: window.location.origin + url
+                });
 
                 var timestamp = (new Date()).getTime();
                 monitor.trackEvent('route', url, null, null, null, timestamp);
