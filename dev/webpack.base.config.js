@@ -95,7 +95,8 @@ exports['default'] = new Config().merge({
       new webpack.IgnorePlugin(/\.\/locale$/),
 
       new CopyWebpackPlugin([
-          {from: 'http/images', to: 'images'}
+          {from: 'http/images', to: 'images'},
+          {from: 'http/misc', to: 'misc'}
       ]),
 
       new AssetsPlugin(),
