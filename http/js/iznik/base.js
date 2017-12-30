@@ -930,19 +930,25 @@ define([
         template: 'ad',
 
         render: function() {
-            var self = this;
+            // Might be blocked.
+            if (!_.isUndefined(window.adsbygoogle)) {
+                var self = this;
 
-            var p = Iznik.View.prototype.render.call(this);
+                var p = Iznik.View.prototype.render.call(this);
 
-            p.then(function() {
-                var ins = self.$('ins');
-                ins.css('display', 'block');
-                ins.attr('data-ad-client', ADSENSE_CLIENT);
-                ins.attr('data-ad-slot', ADSENSE_SLOTID);
-                ins.attr('data-ad-format', 'auto');
-                ins.addClass('adsbygoogle');
-                window.adsbygoogle.push({});
-            });
+                p.then(function() {
+                    var ins = self.$('ins');
+                    ins.css('display', 'block');
+                    ins.attr('data-ad-client', ADSENSE_CLIENT);
+                    ins.attr('data-ad-slot', ADSENSE_SLOTID);
+                    ins.attr('data-ad-format', 'auto');
+                    ins.addClass('adsbygoogle');
+
+                    try {
+                        window.adsbygoogle.push({});
+                    } catch (e) {}
+                });
+            }
 
             return(p);
         }
