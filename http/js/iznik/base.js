@@ -39,7 +39,8 @@ define([
             Plugin: {},
             Message: {},
             Chat: {},
-            User: {}
+            User: {},
+            Visualise: {}
         },
         Views: {
             Activity: {},
@@ -72,7 +73,8 @@ define([
             },
             Group: {},
             Chat: {},
-            Help: {}
+            Help: {},
+            Visualise: {}
         },
         Collections: {
             Activity: {},
@@ -81,7 +83,8 @@ define([
             ModTools: {},
             Chat: {},
             Yahoo: {},
-            User: {}
+            User: {},
+            Visualise: {}
         }
     };
 
@@ -537,7 +540,7 @@ define([
         }
 
         function zoom(mapPx, worldPx, fraction) {
-            return Math.floor(Math.log(mapPx / worldPx / fraction) / Math.LN2);
+            return Math.floor(Math.log(mapPx / worldPx / Math.abs(fraction)) / Math.LN2);
         }
 
         var ne = bounds.getNorthEast();
@@ -550,6 +553,8 @@ define([
 
         var latZoom = zoom(mapDim.height, WORLD_DIM.height, latFraction);
         var lngZoom = zoom(mapDim.width, WORLD_DIM.width, lngFraction);
+
+        console.log("Zoom level for", bounds.toString(), Math.min(latZoom, lngZoom, ZOOM_MAX));
 
         return Math.min(latZoom, lngZoom, ZOOM_MAX);
     }

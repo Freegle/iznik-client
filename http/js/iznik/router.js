@@ -166,6 +166,7 @@ define([
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "livemap": "liveMap",
+            "recentfreegles": "userRecentFreegles",
             "helpus/aviva2017": "userAviva",
             "aviva": "userAviva",
             "ebay": "userStatsEbay",
@@ -736,6 +737,16 @@ define([
 
             require(["iznik/views/pages/user/livemap"], function() {
                 var page = new Iznik.Views.User.Pages.LiveMap();
+                self.loadRoute({page: page});
+            });
+        },
+
+        userRecentFreegles: function() {
+            var self = this;
+            console.log("Recent");
+
+            require(["iznik/views/pages/user/recentfreegles"], function() {
+                var page = new Iznik.Views.User.Pages.RecentFreegles();
                 self.loadRoute({page: page});
             });
         },
