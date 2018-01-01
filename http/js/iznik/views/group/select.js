@@ -128,11 +128,12 @@ define([
 
                 if ((!self.options.mod || role == 'Owner' || role ==  'Moderator') &&
                     (!self.options.grouptype || self.options.grouptype == group.get('type'))) {
+                    // We don't add an image; most of our profile images are poorly designed for a size suitable
+                    // to display here.
                     json.push({
                         text: self.getName(group),
                         value: group.get('id'),
-                        title: group.get('namedisplay'),
-                        image: group.get('grouplogo')
+                        title: group.get('namedisplay')
                     });
                 }
             });
