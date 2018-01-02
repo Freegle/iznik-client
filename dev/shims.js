@@ -52,6 +52,8 @@ exports.rules = [
     ...convertShimsToRules(requireJs.shims)
 ]
 
+console.log("Rules", exports.rules);
+
 exports.provides = {
     // waypoints wants $ on window.jQuery
     'window.jQuery': 'jquery',
