@@ -64,10 +64,6 @@ exports['default'] = new Config().merge({
                         presets: ['babel-preset-env']
                     }
                 }
-            },
-            {
-                test: require.resolve('googlemaps-js-rich-marker'),
-                user: 'imports-loader?google.maps.Marker=SlidingMarker!'
             }
         ]
     },

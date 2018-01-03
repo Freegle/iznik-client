@@ -1,4 +1,7 @@
-import SlidingMarker from 'marker-animate-unobtrusive';
+require('animate.css');
+
+import SlidingRichMarker from 'iznik/SlidingRichMarker';
+
 
 define([
     'jquery',
@@ -25,14 +28,12 @@ define([
         fromMarker: null,
         toMarker: null,
         markers: [],
-        infos: [],
         asks: [ 'Oooh!', 'Please!', 'Yes!', 'Me?', 'Perfect!', 'Ideal!' ],
+        thanks: [ 'Thanks!', 'Ta!', 'Cheers!'],
+        welcomes: [ 'Welcome!', 'No prob!' ],
 
         render: function () {
             var self = this;
-
-            // We want all marker moves to be animated.
-            SlidingMarker.initializeGlobally();
 
             self.items = new Iznik.Collections.Visualise.Items();
 
@@ -105,7 +106,6 @@ define([
 
         nowContains: function() {
             var self = this;
-            console.log("nowContains", self.moving, self.animating);
 
             if (!self.animating && !self.nextTimer) {
                 self.animating = true;
@@ -131,35 +131,44 @@ define([
                 };
 
                 // Add the offerer.
-                self.fromMarker = new google.maps.Marker({
+                self.fromMarker = new SlidingRichMarker({
                     position: self.from,
-                    animation: google.maps.Animation.DROP,
                     map: self.map,
-                    icon: fromicon
+                    shadow: 'none'
+                });
+
+                var v = new Iznik.Views.Visualise.User({
+                    model: new Iznik.Model(self.item.get('from'))
+                });
+
+                v.render().then(function() {
+                    v.$el.addClass('animated bounceInDown');
+                    self.fromMarker.setContent(v.el)
                 });
 
                 self.markers.push(self.fromMarker);
 
-                _.delay(_.bind(function() {
-                    // Make the offerer bounce.
-                    self.fromMarker.setAnimation(google.maps.Animation.BOUNCE);
-                }, self), 500);
-
                 _.delay(function() {
-                    // Stop offerer bouncing and show item.
-                    self.fromMarker.setAnimation(null);
-
-                    self.frominfo = new google.maps.InfoWindow({
-                        content: '<img src="' + self.item.get('attachment').thumb + '?w=150" class="img-mediumthumbnail img-thumbnail img-rounded img-responsive" />',
-                        disableAutoPan: true
+                    self.itemMarker = new SlidingRichMarker({
+                        position: self.from,
+                        duration: 5000,
+                        shadow: 'none',
+                        map: self.map,
+                        zIndex: google.maps.Marker.MAX_ZINDEX + 1
                     });
 
-                    self.frominfo.open(self.map, self.fromMarker);
-                    $(".gm-style-iw").next("div").hide();
+                    var v = new Iznik.Views.Visualise.Item({
+                        model: self.item
+                    });
+
+                    v.render().then(function() {
+                        self.itemMarker.setContent(v.el)
+                    });
+
+                    self.markers.push(self.itemMarker);
 
                     _.delay(_.bind(function() {
                         var self = this;
-                        console.log("Got others", self.item.get('others').length);
                         _.each(self.item.get('others'), function(other) {
                             var othericon = {
                                 url: other.icon,
@@ -168,24 +177,32 @@ define([
                                 anchor: new google.maps.Point(25,25)
                             };
 
-                            var marker = new google.maps.Marker({
+                            var marker = new SlidingRichMarker({
                                 position: new google.maps.LatLng(other.lat, other.lng),
-                                animation: google.maps.Animation.BOUNCE,
-                                map: self.map,
-                                icon: othericon
+                                shadow: 'none',
+                                map: self.map
                             });
 
                             self.markers.push(marker);
 
-                            var info = new google.maps.InfoWindow({
-                                content: '<b>' + _.sample(self.asks) + '</b>',
-                                disableAutoPan: true
+                            var v = new Iznik.Views.Visualise.Other({
+                                model: new Iznik.Model(other)
                             });
 
-                            info.open(self.map, marker);
-                            $(".gm-style-iw").next("div").hide();
+                            v.render().then(function() {
+                                v.$el.addClass('animated zoomIn');
+                                marker.setContent(v.el)
+                            });
 
-                            self.infos.push(info);
+                            self.markers.push(marker);
+
+                            (new Iznik.Views.Visualise.Speech({
+                                model: new Iznik.Model({ text: _.sample(self.asks) }),
+                                map: self.map,
+                                position: new google.maps.LatLng(other.lat, other.lng),
+                                startDelay: 1000,
+                                endDelay: 2000
+                            })).render();
                         });
 
                         var toicon = {
@@ -195,66 +212,78 @@ define([
                             anchor: new google.maps.Point(25,25)
                         };
 
-                        self.toMarker = new SlidingMarker({
+                        self.toMarker = new SlidingRichMarker({
                             position: self.to,
-                            animation: google.maps.Animation.BOUNCE,
                             duration: 5000,
                             map: self.map,
+                            shadow: 'none',
                             icon: toicon,
                             zIndex: google.maps.Marker.MAX_ZINDEX + 1
                         });
 
-                        self.markers.push(self.toMarker);
-
-                        var info = new google.maps.InfoWindow({
-                            content: '<b>' + _.sample(self.asks) + '</b>',
-                            disableAutoPan: true
+                        var v = new Iznik.Views.Visualise.User({
+                            model: new Iznik.Model(self.item.get('to'))
                         });
 
-                        info.open(self.map, self.toMarker);
-                        $(".gm-style-iw").next("div").hide();
+                        v.render().then(function() {
+                            v.$el.addClass('animated zoomIn');
+                            self.toMarker.setContent(v.el)
+                        });
 
-                        self.infos.push(info);
+                        self.markers.push(self.toMarker);
+
+                        (new Iznik.Views.Visualise.Speech({
+                                model: new Iznik.Model({ text: _.sample(self.asks) }),
+                                map: self.map,
+                                position: self.to,
+                                startDelay: 1000,
+                                endDelay: 2000
+                        })).render();
 
                         _.delay(_.bind(function() {
-                            // Stop them all bouncing.
-                            _.each(self.markers, function(marker) {
-                                marker.setAnimation(null);
-                            });
-
-                            // Close their info windows.
-                            _.each(self.infos, function(info) {
-                                info.close();
-                            });
-
-                            self.infos = [];
+                            _.delay(_.bind(function() {
+                                // Fade out the others now that the taker is moving there.
+                                $('.js-other').addClass('animated zoomOut');
+                            }, self), 1000);
 
                             // // Slide the taker to the offerer.
                             self.toMarker.setPosition(self.from);
 
                             _.delay(_.bind(function() {
-                                // Close the offerer info and open the taker - at the same place.
-                                self.frominfo.close();
-
-                                self.toinfo = new google.maps.InfoWindow({
-                                    content: '<img src="' + self.item.get('attachment').thumb + '?w=150" class="img-mediumthumbnail img-thumbnail img-rounded img-responsive" />',
-                                    disableAutoPan: true
-                                });
-
-                                self.toinfo.open(self.map, self.toMarker);
-                                $(".gm-style-iw").next("div").hide();
-
-                                // Move back with the item we've collected; the info window will tag along.
+                                // Move back with the item we've collected.
                                 self.toMarker.setPosition(self.to);
+                                self.itemMarker.setPosition(self.to);
 
-                                self.animating = false;
+                                _.delay(_.bind(function() {
+                                    _.delay(_.bind(function() {
+                                        self.itemMarker.setMap(null);
+                                    }, self), 5000);
 
-                                if (!self.nextTimer) {
-                                    self.nextTimer = true;
-                                    _.delay(_.bind(self.nextItem, self), 6000);
-                                }
+                                    (new Iznik.Views.Visualise.Speech({
+                                        model: new Iznik.Model({ text: _.sample(self.thanks) }),
+                                        map: self.map,
+                                        position: self.to,
+                                        startDelay: 5000,
+                                        endDelay: 3000
+                                    })).render();
+
+                                    (new Iznik.Views.Visualise.Speech({
+                                        model: new Iznik.Model({ text: _.sample(self.welcomes) }),
+                                        map: self.map,
+                                        position: self.from,
+                                        startDelay: 6000,
+                                        endDelay: 2000
+                                    })).render();
+
+                                    self.animating = false;
+
+                                    if (!self.nextTimer) {
+                                        self.nextTimer = true;
+                                        _.delay(_.bind(self.nextItem, self), 8000);
+                                    }
+                                }, self), 1000);
                             }, self), 5000);
-                        }, self), 2000);
+                        }, self), 3000);
                     }, self), 2000);
                 }, 2000);
             }
@@ -268,9 +297,9 @@ define([
 
             self.nextTimer = false;
 
-            if (self.marker) {
+            if (self.itemMarker) {
                 // Destroy last one.
-                self.marker.setMap(null);
+                self.itemMarker.setMap(null);
             }
 
             self.item = self.items.shift();
@@ -294,19 +323,15 @@ define([
 
                 // Get the zoom.  Zoom out one so that we have some space for info windows
                 var idealZoom = Iznik.getBoundsZoomLevel(self.bounds, mapDim) - 1;
-                console.log("Ideal zoom", idealZoom);
                 idealZoom = Math.max(10, idealZoom);
 
                 if (idealZoom != self.map.getZoom() || !self.map.getBounds().contains(self.from) || !self.map.getBounds().contains(self.to)) {
                     // The map doesn't currently contain the points we need.
-                    console.log("Need to move");
                     self.moving = true;
                     self.map.fitBounds(self.bounds);
                     self.map.setZoom(idealZoom);
-                    console.log("Zoom to", idealZoom);
                 } else {
                     // The map does currently contain the point we need.
-                    console.log("No need to move");
                     self.moving = false;
                     self.nowContains();
                 }
@@ -318,5 +343,49 @@ define([
 
     Iznik.Views.Visualise.Item = Iznik.View.extend({
         template: 'user_visualise_item'
+    });
+
+    Iznik.Views.Visualise.User = Iznik.View.extend({
+        template: 'user_visualise_user'
+    });
+
+    Iznik.Views.Visualise.Other = Iznik.View.extend({
+        template: 'user_visualise_other'
+    });
+
+    Iznik.Views.Visualise.Speech = Iznik.View.extend({
+        template: 'user_visualise_speech',
+
+        render: function() {
+            var self = this;
+
+            _.delay(_.bind(function() {
+                var self = this;
+
+                self.marker = new RichMarker({
+                    position: self.options.position,
+                    map: self.options.map,
+                    shadow: 'none'
+                });
+
+                var p = Iznik.View.prototype.render.call(self);
+
+                p.then(function() {
+                    self.marker.setContent(self.el);
+                    console.log("Set content", self.el.innerHTML);
+                    self.$el.addClass('animated zoomIn');
+
+                    _.delay(_.bind(function() {
+                        console.log("Zoom out");
+                        self.$el.addClass('animated zoomOut');
+
+                        _.delay(_.bind(function() {
+                            self.marker.setMap(null);
+                            self.destroyIt();
+                        }, self), 1000);
+                    }, self), self.options.endDelay);
+                });
+            }, self), self.options.startDelay)
+        }
     });
 });
