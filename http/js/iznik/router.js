@@ -743,7 +743,6 @@ define([
 
         userRecentFreegles: function() {
             var self = this;
-            console.log("Recent");
 
             require(["iznik/views/pages/user/recentfreegles"], function() {
                 var page = new Iznik.Views.User.Pages.RecentFreegles();

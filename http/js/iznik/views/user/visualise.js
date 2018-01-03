@@ -17,6 +17,7 @@ define([
 
         index: 0,
 
+        ctx: null,
         firstFetch: true,
         nextTimer: false,
         bounds: null,
@@ -27,6 +28,7 @@ define([
         marker: null,
         fromMarker: null,
         toMarker: null,
+        mapBounds: null,
         markers: [],
         asks: [ 'Oooh!', 'Please!', 'Yes!', 'Me?', 'Perfect!', 'Ideal!' ],
         thanks: [ 'Thanks!', 'Ta!', 'Cheers!'],
@@ -71,7 +73,11 @@ define([
 
             // Might be the same as the last fetch, but might not be if we started with the map zoomed into
             // one area and then moved it.
-            var bounds = self.map.getBounds();
+            if (!self.mapBounds) {
+                self.mapBounds = self.map.getBounds();
+            }
+
+            var bounds = self.mapBounds;
             var ne = bounds.getNorthEast();
             var sw = bounds.getSouthWest();
             var parms = {
@@ -81,10 +87,25 @@ define([
                 nelng: ne.lng()
             };
 
+            if (self.ctx) {
+                parms.context = self.ctx;
+            }
+
             self.items.fetch({
-                data: parms,
-                remove: false
-            }).then(_.bind(self.nextItem, self));
+                data: parms
+            }).then(_.bind(function() {
+                this.ctx = self.items.ret.context;
+
+                if (self.items.length) {
+                    // Got more
+                    this.nextItem();
+                } else {
+                    // Start again.
+                    self.firstFetch = true;
+                    self.ctx = null;
+                    self.map.setZoom(5);
+                }
+            }, self));
         },
 
         idle: function() {
@@ -94,7 +115,9 @@ define([
                 self.firstFetch = false;
                 self.doFetch();
             } else if (self.moving) {
-                if (self.map.getBounds().contains(self.from) && self.map.getBounds().contains(self.to)) {
+                if (self.zoom != self.map.getZoom()) {
+                    self.map.setZoom(self.zoom);
+                } else if (self.map.getBounds().contains(self.from) && self.map.getBounds().contains(self.to)) {
                     // The map now contains both from and to.  But we might be zoomed out too far.
                     self.nowContains();
                 }
@@ -328,8 +351,8 @@ define([
                 if (idealZoom != self.map.getZoom() || !self.map.getBounds().contains(self.from) || !self.map.getBounds().contains(self.to)) {
                     // The map doesn't currently contain the points we need.
                     self.moving = true;
+                    self.zoom = idealZoom;
                     self.map.fitBounds(self.bounds);
-                    self.map.setZoom(idealZoom);
                 } else {
                     // The map does currently contain the point we need.
                     self.moving = false;
@@ -365,18 +388,17 @@ define([
                 self.marker = new RichMarker({
                     position: self.options.position,
                     map: self.options.map,
-                    shadow: 'none'
+                    shadow: 'none',
+                    zIndex: google.maps.Marker.MAX_ZINDEX + 2
                 });
 
                 var p = Iznik.View.prototype.render.call(self);
 
                 p.then(function() {
                     self.marker.setContent(self.el);
-                    console.log("Set content", self.el.innerHTML);
                     self.$el.addClass('animated zoomIn');
 
                     _.delay(_.bind(function() {
-                        console.log("Zoom out");
                         self.$el.addClass('animated zoomOut');
 
                         _.delay(_.bind(function() {
