@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
+    'iznik/views/user/visualise',
     'iznik/models/donations',
     'iznik/views/pages/pages',
     'iznik/views/group/select',
@@ -20,6 +21,11 @@ define([
             var p = Iznik.Views.Page.prototype.render.call(this);
 
             p.then(function(self) {
+                // Add map.
+                var v = new Iznik.Views.Visualise.Map();
+                v.render();
+                self.$('.js-visualise').html(v.$el);
+
                 // Add stories
                 require(['iznik/models/membership'], function () {
                     self.collection = new Iznik.Collections.Members.Stories();
