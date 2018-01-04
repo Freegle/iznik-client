@@ -1088,6 +1088,7 @@ define([
             }
 
             window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
+
             /*self.listenToOnce(FBLoad(), 'fbloaded', function () {
                 if (!FBLoad().isDisabled()) {
                     FB.ui(params, function (response) {
