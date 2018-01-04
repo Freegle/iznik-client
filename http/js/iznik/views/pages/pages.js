@@ -237,6 +237,11 @@ define([
 
                     if (!window.useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
                     window.showNetworkStatus(); // CC
+                    if (self.modtools) {
+                        // ModTools has ads on all pages.
+                        self.adSense($);
+                    }
+
                     if (self.appButtons) {
                         // Show app buttons.
                         // CC $('#js-appbuttons').show();

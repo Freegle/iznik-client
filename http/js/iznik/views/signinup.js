@@ -123,6 +123,7 @@ define([
         fblogin: function () {
             console.log("signinup.fblogin");
             var self = this;
+            console.log("FB Login", FB);
 
             var FBLoad = new Iznik.Views.FBLoad();
             FBLoad.signin();
@@ -158,7 +159,6 @@ define([
 
         lostPassword: function (e) {
             e.preventDefault();
-            console.log("Lost password");
             var v = new Iznik.Views.SignInUp.LostPassword();
             v.render();
         },
@@ -196,7 +196,6 @@ define([
 
                 // We have a custom signin button which needs googleising.
                 GoogleLoad.signInButton('gConnect');
-
             });
 
             return (p);

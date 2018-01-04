@@ -456,7 +456,8 @@
         defaults: {
             label: "",
             options: [], // List of options as [{label:<label>, value:<value>}, ...]
-            extraClasses: []
+            extraClasses: [],
+            helpMessage: null
         },
         template: _.template([
             '<label class="<%=Backform.controlLabelClassName%>"><%=label%></label>',
@@ -467,6 +468,9 @@
             '      <option value="<%-formatter.fromRaw(option.value)%>" <%=option.value === rawValue ? "selected=\'selected\'" : ""%> <%=option.disabled ? "disabled=\'disabled\'" : ""%>><%-option.label%></option>',
             '    <% } %>',
             '  </select>',
+            '  <% if (helpMessage && helpMessage.length) { %>',
+            '    <span class="<%=Backform.helpMessageClassName%>"><%=helpMessage%></span>',
+            '  <% } %>',
             '</div>'
         ].join("\n")),
         events: _.extend({}, Control.prototype.events, {

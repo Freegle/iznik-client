@@ -665,8 +665,10 @@ define([
                     });
 
                     self.listenToOnce(v, 'promised', function () {
-                        msg.fetch();
-                        self.model.trigger('promised');
+                        if (msg) {
+                            msg.fetch();
+                            self.model.trigger('promised');
+                        }
                     });
 
                     v.render();

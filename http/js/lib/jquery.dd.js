@@ -855,20 +855,21 @@ var msBeautify = msBeautify || {};
                     evt.hasEvent = true;
                     evt.byElement = true;
                 };
+
+                // True if a handler has been added using jQuery.
+                var evs;
+                if (typeof $._data == "function") { //1.8
+                    evs = $._data(obj[0], "events");
+                } else {
+                    evs = obj.data("events");
+                };
+                if (evs && evs[name]) {
+                    evt.hasEvent = true;
+                    evt.byJQuery = true;
+                };
             } catch(e) {
                 //console.log(e.message);
             }
-            // True if a handler has been added using jQuery.
-            var evs;
-            if (typeof $._data == "function") { //1.8
-                evs = $._data(obj[0], "events");
-            } else {
-                evs = obj.data("events");
-            };
-            if (evs && evs[name]) {
-                evt.hasEvent = true;
-                evt.byJQuery = true;
-            };
             return evt;
         };
         var bind_on_events = function () {

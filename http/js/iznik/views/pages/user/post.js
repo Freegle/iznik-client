@@ -446,7 +446,6 @@ define([
                             // At least, we think it's a draft.  But there's a timing window where we could fail to
                             // clear out our local storage but still have submitted the message.  In that case
                             // we don't want to use it.
-                            console.log("Draft?", msg.get('isdraft'))
                             if (self.msgType == msg.get('type') && msg.get('isdraft')) {
                                 // Parse out item from subject.
                                 var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(msg.get('subject'));

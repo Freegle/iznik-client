@@ -301,7 +301,6 @@ define([
             var self = this;
 
             var settings = Iznik.Session.get('me').settings;
-            // CC console.log("Settings", settings);
 
             var p = Iznik.Views.User.Pages.WhereAmI.prototype.render.call(this, {
                 model: new Iznik.Model(settings)

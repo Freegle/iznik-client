@@ -5,6 +5,8 @@
     <title><%= SITE_NAME %></title>
     <script src="https://cdn.tinymce.com/4/tinymce.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 </head>
 
 <body id="thebody">
@@ -28,9 +30,20 @@
 
 <script src="https://apis.google.com/js/client:plusone.js"></script>
 <script>
+
     // TODO This is an ignorant and outrageous hack, to get the gapi var to google.js.
-    var env = document.getElementById('thebody');
-    env.gapi = gapi;
+    function setGapi() {
+        var env = document.getElementById('thebody');
+
+        if (env) {
+            env.gapi = gapi;
+        } else {
+            console.log("Waiting for gapi");
+            window.setTimeout(setGapi, 100);
+        }
+    }
+
+    setGapi();
 </script>
 
 <!-- Some nonsense to make browsers remember user/password. -->

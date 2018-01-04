@@ -1,3 +1,5 @@
+require('waypoints/lib/jquery.waypoints.js');
+
 define([
     'jquery',
     'underscore',
