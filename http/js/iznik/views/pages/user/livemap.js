@@ -85,27 +85,21 @@ define([
                         map: self.map
                     });
 
+                    var subj = activity.message.subject;
+                    if (subj.charAt(0) === '[') {
+                        // Remove group tag.
+                        subj = subj.substring(subj.indexOf(']') + 1).trim();
+                        activity.message.subject = subj;
+                    }
+
                     var content = new Iznik.Views.User.Pages.LiveMap.Message({
-                        model: new Iznik.Model(activity)    ,
+                        model: new Iznik.Model(activity),
                         map: self.map,
                         marker: marker
                     });
 
-                    // Show the message as a tooltip below.
                     content.render().then(function() {
-                        var subj = content.model.get('message').subject;
-                        if (subj.charAt(0) === '[') {
-                            // Remove group tag.
-                            subj = subj.substring(subj.indexOf(']') + 1).trim();
-                        }
-                        content.$el.tooltip({
-                            'trigger': 'manual',
-                            'placement': 'bottom',
-                            'title': subj
-                        });
-
                         marker.setContent(content.el);
-                        content.$el.tooltip('show');
 
                         // Clear after a while.
                         _.delay(_.bind(function() {

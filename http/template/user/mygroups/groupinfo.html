@@ -1,22 +1,6 @@
 <div class="panel panel-white">
     <div class="row">
-        <div class="col-xs-12">
-            <div class="pull-right margright">
-                <% if (obj.profile) { %>
-                <img alt="Group profile picture" src="{{obj.profile}}" class="img-thumbnail img-rounded img-maxthumb botspace pull-right" />
-                <br class="clearfix" />
-                <% } %>
-                <div class="pull-right">
-                    <div class="btn btn-white js-leave">
-                        <div class="glyphicon glyphicon-trash inline" /><span class="topspace">&nbsp;Leave&nbsp;Group</span>
-                    </div>
-                    <a href="/help" class="topspace">
-                        <span class="btn btn-white">
-                            <span class="glyphicon glyphicon-question-sign inline" /><span class="topspace">&nbsp;Contact volunteers</span>
-                        </span>
-                    </a>
-                </div>
-            </div>
+        <div class="col-xs-8 col-sm-8">
             <h1>
                 {{namedisplay}}
             </h1>
@@ -28,12 +12,44 @@
                 <span class="js-membercount" /> current freeglers.
                 <a href="/stats/{{nameshort}}">More stats...</a>
             </div>
+        </div>
+        <div class="col-xs-4 col-sm-4 text-right">
+            <% if (obj.profile) { %>
+            <img alt="Group profile picture" src="{{obj.profile}}" class="fullholder img-responsive img-thumbnail img-rounded img-maxthumb botspace pull-right" />
+            <br class="clearfix" />
+            <% } %>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <ul class="list-unstyled list-inline">
+                <li>
+                    <div class="btn btn-white js-leave">
+                        <div class="glyphicon glyphicon-trash inline" /><span class="topspace">&nbsp;Leave&nbsp;Group</span>
+                    </div>
+                </li>
+                <li>
+                    <a href="/help" class="topspace">
+                        <span class="btn btn-white">
+                            <span class="glyphicon glyphicon-question-sign inline" /><span class="topspace">&nbsp;Contact volunteers</span>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
             <div class="js-gotdesc" style="display: none">
                 <hr />
                 <div class="groupdescription js-description" />
                 <br class="clearfix" />
             </div>
-            <div class="pull-left text-muted js-modstoshow">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="text-muted js-modstoshow">
                 <h4>Group volunteers</h4>
                 <ul class="list-unstyled list-inline js-showmods" />
             </div>

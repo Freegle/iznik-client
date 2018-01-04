@@ -385,8 +385,11 @@ define([
                 self.listenTo(self.dates, 'update', function() {
                     // Re-render the first date to make sure the delete button only appears when there are
                     // multiple.
-                    console.log("Collection updated", self.dates.length);
-                    self.datesCV.viewManager.findByIndex(0).showHideDel();
+                    var first = self.datesCV.viewManager.findByIndex(0);
+
+                    if (first) {
+                        first.showHideDel();
+                    }
                 });
 
                 // Need to make sure we're in the DOM else the validate plugin fails.

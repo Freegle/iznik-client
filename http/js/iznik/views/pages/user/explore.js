@@ -608,6 +608,8 @@ define([
                 }
 
                 Iznik.Views.User.Pages.Group.prototype.render.call(self).then(function () {
+                    self.adSense();
+
                     self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
 
                     var founded = self.model.get('founded');
@@ -754,6 +756,8 @@ define([
         render: function () {
             var self = this;
             var p = Iznik.Views.Page.prototype.render.call(self).then(function () {
+                self.adSense();
+
                 self.model = new Iznik.Models.Message({
                     id: self.options.id
                 });
@@ -790,7 +794,8 @@ define([
                         Iznik.Session.testLoggedIn();
                     } else if (self.model.get('subject') &&
                         !self.model.get('deleted') &&
-                        (!self.model.get('outcomes') || self.model.get('outcomes').length == 0)
+                        (!self.model.get('outcomes') || self.model.get('outcomes').length == 0) &&
+                        (self.model.get('groups').length > 0)
                     ) {
                         // We might fail to fetch, or fetch a deleted message, or fetch a completed message.  In all these
                         // cases the message shouldn't show.

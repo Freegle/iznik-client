@@ -752,7 +752,8 @@ define([
                 v.render();
                 self.$(self.lovesel).html(v.$el);
 
-                self.setupPhotoUpload();
+                // Delay to speed up apparent render.
+                _.delay(_.bind(self.setupPhotoUpload, self), 500);
             });
 
             return(p);
@@ -762,6 +763,7 @@ define([
             var self = this;
 
             // Photo upload.
+            var small = Iznik.isSM();
             self.$el.find('.js-addphoto').fileinput({
                 uploadExtraData: {
                     imgtype: 'Newsfeed',
@@ -773,8 +775,8 @@ define([
                 uploadUrl: API + 'image',
                 resizeImage: true,
                 maxImageWidth: 800,
-                browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
-                browseLabel: 'Photo',
+                browseIcon: small ? '<span class="glyphicon glyphicon-camera" />' : '<span class="glyphicon glyphicon-camera" />&nbsp;',
+                browseLabel: small ? '' : 'Photo',
                 browseClass: 'btn btn-primary nowrap pull-right',
                 showCaption: false,
                 showRemove: false,
@@ -1086,11 +1088,16 @@ define([
             }
 
             window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
+            /*self.listenToOnce(FBLoad(), 'fbloaded', function () {
+                if (!FBLoad().isDisabled()) {
+                    FB.ui(params, function (response) {
+                        self.$('.js-fbshare').fadeOut('slow');
+                        Iznik.ABTestAction('newsfeedbutton', 'Facebook Share');
+                    });
+                }
+            });
 
-            /*FB.ui(params, function (response) {
-                self.$('.js-fbshare').fadeOut('slow');
-                Iznik.ABTestAction('newsfeedbutton', 'Facebook Share');
-            });*/
+            FBLoad().render();*/
         },
 
         showEarlier: function(e) {

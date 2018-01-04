@@ -28,6 +28,8 @@ define([
             Storage.set('lasthomepage', 'mygroups');
 
             p.then(function () {
+                self.adSense();
+
                 var mygroups = Iznik.Session.get('groups');
 
                 if (mygroups && mygroups.length > 0) {

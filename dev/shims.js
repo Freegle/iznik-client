@@ -3,10 +3,6 @@ const requireJs = {
         bootstrap: ['jquery'],
         wicket: ['jquery'],
         'wicket-gmap3': ['wicket'],
-        waypoints: {
-            deps: ['jquery'],
-            exports: 'Waypoint'
-        },
         maplabel: {
             deps: ['jquery']
         },
@@ -34,8 +30,6 @@ const requireJs = {
         'jquery-resizable': ['jquery']
     },
     paths: {
-        bootstrap: '/js/lib/bootstrap.min',
-        waypoints: '/js/lib/jquery.waypoints',
         'jquery.ui.widget': '/js/lib/jquery-file-upload/vendor/jquery.ui.widget',
         'jquery-ui': '/js/lib/jquery-ui',
         underscore: '/js/lib/underscore',
@@ -57,6 +51,8 @@ exports.aliases = {
 exports.rules = [
     ...convertShimsToRules(requireJs.shims)
 ]
+
+console.log("Rules", exports.rules);
 
 exports.provides = {
     // waypoints wants $ on window.jQuery

@@ -24,7 +24,7 @@ define([
                 sending = JSON.parse(Storage.get('chatqueue'));
                 sending = sending ? sending : [];
 
-                if (sending) {
+                if (sending && sending.length) {
                     var msg = new Iznik.Models.Chat.Message(sending.pop());
                     msg.save({
                         error: function() {
@@ -352,6 +352,7 @@ define([
 
                 $.ajax({
                     url: CHAT_HOST + '/subscribe/' + myid,
+                    context: self, // Don't retry, otherwise page transition would cause abort/retry/new wait
                     global: false, // don't trigger ajaxStart to avoid showing a busy icon all the time
                     success: function (ret) {
                         self.waiting = false;

@@ -1,4 +1,5 @@
 // CC var Raven = require('raven-js');
+// CC var google_analytics = require('iznik/google_analytics.js')
 
 define([
     'jquery',
@@ -18,6 +19,8 @@ define([
     var IznikRouter = Backbone.Router.extend({
         initialize: function () {
             var self = this;
+
+            // CC google_analytics.init();
 
             // We want the ability to abort all outstanding requests, for example when we switch to a new route.
             self.xhrPool = [];
@@ -60,9 +63,11 @@ define([
 
             // Make sure we have google analytics for Backbone routes.
             /*try {
-                var ua = require('universal-analytics');
-                var visitor = ua('UA-10627716-2', {https: true});
-                visitor.pageview(url).send();
+                ga('send', {
+                    hitType: 'pageview',
+                    page: url,
+                    location: window.location.origin + url
+                });
 
                 var timestamp = (new Date()).getTime();
                 monitor.trackEvent('route', url, null, null, null, timestamp);
@@ -162,6 +167,7 @@ define([
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
             "livemap": "liveMap",
+            "recentfreegles": "userRecentFreegles",
             "helpus/aviva2017": "userAviva",
             "aviva": "userAviva",
             "ebay": "userStatsEbay",
@@ -276,8 +282,8 @@ define([
                             self.loadRoute({ page: page });
                         });
                     } else {
-                        require(["iznik/views/pages/user/landing"], function () {
-                            console.log("Load landing1");
+                        require(["iznik/views/pages/user/landing"], function() {
+                            console.log("Load landing 1");
                             var page = new Iznik.Views.User.Pages.Landing();
                             self.loadRoute({ page: page });
                         });
@@ -375,7 +381,7 @@ define([
                     }
                 } else {
                     require(["iznik/views/pages/user/landing"], function() {
-                        console.log("Load landing2");
+                        console.log("Load landing 2");
                         var page = new Iznik.Views.User.Pages.Landing();
                         self.loadRoute({page: page});
                     });
@@ -742,6 +748,15 @@ define([
             });
         },
 
+        userRecentFreegles: function() {
+            var self = this;
+
+            require(["iznik/views/pages/user/recentfreegles"], function() {
+                var page = new Iznik.Views.User.Pages.RecentFreegles();
+                self.loadRoute({page: page});
+            });
+        },
+
         userStatsHeatMap: function(area) {
             var self = this;
 
@@ -994,7 +1009,7 @@ define([
                     if (returnto) {
                         window.location = returnto;
                     } else {
-                        self.home.call(self);
+                        self.userHome.call(self);
                     }
                 } else {
                     // TODO

@@ -562,337 +562,342 @@ define([
                     self.wait.render();
 
                     self.waitDOM(self, function() {
-                        $('nav').slideUp('slow');
+                        try {
+                            $('nav').slideUp('slow');
 
-                        var target = self.$('.js-map');
+                            var target = self.$('.js-map');
 
-                        var mapWidth = target.outerWidth();
-                        target.css('height', Math.min(400, mapWidth) + 'px');
+                            var mapWidth = target.outerWidth();
+                            target.css('height', Math.min(400, mapWidth) + 'px');
 
-                        var centre = self.model.get('centre');
+                            var centre = self.model.get('centre');
 
-                        var mapOptions = {
-                            mapTypeControl      : false,
-                            streetViewControl   : false,
-                            center              : new google.maps.LatLng(centre.lat, centre.lng),
-                            panControl          : mapWidth > 400,
-                            zoomControl         : mapWidth > 400,
-                            zoom                : 7
-                        };
+                            var mapOptions = {
+                                mapTypeControl      : false,
+                                streetViewControl   : false,
+                                center              : new google.maps.LatLng(centre.lat, centre.lng),
+                                panControl          : mapWidth > 400,
+                                zoomControl         : mapWidth > 400,
+                                zoom                : 7
+                            };
 
-                        self.map = new google.maps.Map(target.get()[0], mapOptions);
+                            self.map = new google.maps.Map(target.get()[0], mapOptions);
 
-                        google.maps.event.addDomListener(window, 'resize', _.bind(self.resize, self));
-                        google.maps.event.addDomListener(window, 'load', _.bind(self.resize, self));
+                            google.maps.event.addDomListener(window, 'resize', _.bind(self.resize, self));
+                            google.maps.event.addDomListener(window, 'load', _.bind(self.resize, self));
 
-                        // Add a polygon for the area.
-                        require(['wicket-gmap3', 'wicket'], function(gm, Wkt) {
-                            // No getBounds on polygon by default.
-                            google.maps.Polygon.prototype.getBounds = function() {
-                                var bounds = new google.maps.LatLngBounds();
-                                var paths = this.getPaths();
-                                var path;
-                                for (var i = 0; i < paths.getLength(); i++) {
-                                    path = paths.getAt(i);
-                                    for (var ii = 0; ii < path.getLength(); ii++) {
-                                        bounds.extend(path.getAt(ii));
-                                    }
-                                }
-                                return bounds;
-                            }
-
-                            var wkt = new Wkt.Wkt();
-                            var wktstr = self.model.get('polygon');
-                            wkt.read(wktstr);
-
-                            var obj = wkt.toObject(self.map.defaults); // Make an object
-
-                            if (obj) {
-                                var options = {
-                                    fillColor: 'blue',
-                                    strokeWeight: 0,
-                                    fillOpacity: 0.1
-                                };
-
-                                // This might be a multipolygon.
-                                var bounds = new google.maps.LatLngBounds();
-
-                                if (_.isArray(obj)) {
-                                    _.each(obj, function(ent) {
-                                        ent.setMap(self.map);
-                                        ent.setOptions(options);
-                                        var thisbounds = ent.getBounds();
-                                        bounds.extend(thisbounds.getNorthEast());
-                                        bounds.extend(thisbounds.getSouthWest());
-                                    });
-                                } else {
-                                    obj.setMap(self.map);
-                                    obj.setOptions(options);
-                                    bounds = obj.getBounds();
-                                }
-
-                                // Zoom the map to show the authority
-                                var mapDim = {
-                                    height: self.$('.js-map').height(),
-                                    width: self.$('.js-map').width()
-                                };
-
-                                var zoom = Iznik.getBoundsZoomLevel(bounds, mapDim);
-                                self.map.setZoom(zoom);
-
-                                // Add the group markers.
-                                var groups = self.model.get('groups');
-
-                                if (groups.length === 0) {
-                                    self.$('.js-nogroup').fadeIn('slow');
-                                    self.wait.close();
-                                } else {
-                                    _.each(groups, function(group) {
-                                        var icon = '/images/mapmarkerbrightgreen.gif';
-                                        var marker = new google.maps.Marker({
-                                            position: new google.maps.LatLng(group.lat, group.lng),
-                                            icon: icon,
-                                            title: group.namedisplay,
-                                            map: self.map
-                                        });
-
-                                        if (groups.length < 10) {
-                                            // If not too many, shade them.
-                                            var wkt = new Wkt.Wkt();
-                                            var wktstr = group.poly;
-
-                                            try {
-                                                wkt.read(wktstr);
-                                            } catch (e1) {
-                                                try {
-                                                    self.Wkt.read(wktstr.replace('\n', '').replace('\r', '').replace('\t', ''));
-                                                } catch (e2) {
-                                                }
-                                            }
-
-                                            obj = wkt.toObject(self.map.defaults);
-                                            obj.setMap(self.map);
-                                            obj.setOptions({
-                                                fillColor: 'grey',
-                                                strokeWeight: 0,
-                                                fillOpacity: 0.1
-                                            });
+                            // Add a polygon for the area.
+                            require(['wicket-gmap3', 'wicket'], function(gm, Wkt) {
+                                // No getBounds on polygon by default.
+                                google.maps.Polygon.prototype.getBounds = function() {
+                                    var bounds = new google.maps.LatLngBounds();
+                                    var paths = this.getPaths();
+                                    var path;
+                                    for (var i = 0; i < paths.getLength(); i++) {
+                                        path = paths.getAt(i);
+                                        for (var ii = 0; ii < path.getLength(); ii++) {
+                                            bounds.extend(path.getAt(ii));
                                         }
-                                    });
+                                    }
+                                    return bounds;
+                                }
 
-                                    // Get the dashboard stats info for all groups.
-                                    var promises = [];
-                                    var coll = new Iznik.Collection();
+                                var wkt = new Wkt.Wkt();
+                                var wktstr = self.model.get('polygon');
+                                wkt.read(wktstr);
 
-                                    _.each(groups, function(group) {
-                                        var g = new Iznik.Models.Group({
-                                            id: group.id
+                                var obj = wkt.toObject(self.map.defaults); // Make an object
+
+                                if (obj) {
+                                    var options = {
+                                        fillColor: 'blue',
+                                        strokeWeight: 0,
+                                        fillOpacity: 0.1
+                                    };
+
+                                    // This might be a multipolygon.
+                                    var bounds = new google.maps.LatLngBounds();
+
+                                    if (_.isArray(obj)) {
+                                        _.each(obj, function(ent) {
+                                            ent.setMap(self.map);
+                                            ent.setOptions(options);
+                                            var thisbounds = ent.getBounds();
+                                            bounds.extend(thisbounds.getNorthEast());
+                                            bounds.extend(thisbounds.getSouthWest());
                                         });
+                                    } else {
+                                        obj.setMap(self.map);
+                                        obj.setOptions(options);
+                                        bounds = obj.getBounds();
+                                    }
 
-                                        promises.push(g.fetch());
-                                        coll.add(g);
+                                    // Zoom the map to show the authority
+                                    var mapDim = {
+                                        height: self.$('.js-map').height(),
+                                        width: self.$('.js-map').width()
+                                    };
 
-                                        promises.push($.ajax({
-                                            url: API + 'dashboard',
-                                            data: {
-                                                start: '12 months ago',
-                                                grouptype: 'Freegle',
-                                                group: group.id
-                                            },
-                                            success: function (ret) {
-                                                var g = coll.get(group.id);
-                                                g.set('dashboard', ret.dashboard);
-                                            }
-                                        }));
-                                    });
+                                    var zoom = Iznik.getBoundsZoomLevel(bounds, mapDim);
+                                    self.map.setZoom(zoom);
 
-                                    Promise.all(promises).then(function() {
-                                        coll.comparator = function(mod) {
-                                            return(mod.get('namedisplay').toLowerCase());
-                                        };
+                                    // Add the group markers.
+                                    var groups = self.model.get('groups');
 
-                                        coll.sort();
-
-                                        // Find the range we cover - we want to exclude the last month as it will
-                                        // be partial.
-                                        var date = new Date();
-                                        var firstDay = (new Date(date.getFullYear(), date.getMonth(), 1)).getTime();
-                                        var firstdate = null;
-                                        var someoverlaps = false;
-                                        var lastdate = null;
-
-                                        coll.each(function(g) {
-                                            var dash = g.get('dashboard');
-                                            _.each(dash.Weight, function(w) {
-                                                if (!firstdate || (new Date(firstdate)).getTime() > (new Date(w.date)).getTime()) {
-                                                    var m = new moment(w.date);
-                                                    firstdate = m.format('MMM YYYY');
-                                                }
-
-                                                if ((new Date(w.date)).getTime() < firstDay && (!lastdate || (new Date(lastdate)).getTime() < (new Date(w.date)).getTime())) {
-                                                    var m = new moment(w.date);
-                                                    lastdate = m.format('MMM YYYY');
-                                                }
-                                            });
-                                        })
-
-                                        var totalweight = 0;
-                                        var totalmembers = 0;
-                                        var totaloutcomes = 0;
-                                        var monthweights = {};
-                                        var monthmembers = {};
-
-                                        coll.each(function(g) {
-                                            var dashboard = g.get('dashboard');
-                                            var overlap = 0;
-                                            var gs = self.model.get('groups');
-                                            _.each(gs, function(s) {
-                                                if (s.id == g.get('id') && s.overlap) {
-                                                    overlap = s.overlap;
-                                                }
+                                    if (groups.length === 0) {
+                                        self.$('.js-nogroup').fadeIn('slow');
+                                        self.wait.close();
+                                    } else {
+                                        _.each(groups, function(group) {
+                                            var icon = '/images/mapmarkerbrightgreen.gif';
+                                            var marker = new google.maps.Marker({
+                                                position: new google.maps.LatLng(group.lat, group.lng),
+                                                icon: icon,
+                                                title: group.namedisplay,
+                                                map: self.map
                                             });
 
-                                            var total = 0;
-                                            var unweighted = 0;
-                                            var members = 0;
+                                            if (groups.length < 10) {
+                                                // If not too many, shade them.
+                                                var wkt = new Wkt.Wkt();
+                                                var wktstr = group.poly;
 
-                                            _.each(dashboard.OutcomesPerMonth, function(o) {
-                                                totaloutcomes += o.count * overlap;
-                                            });
-
-                                            _.each(dashboard.Weight, function(w) {
-                                                if ((new Date(w.date)).getTime() < firstDay) {
-                                                    var date = new moment(w.date);
-                                                    var key = date.format('01 MMM YYYY');
-
-                                                    total += w.count * overlap;
-                                                    unweighted += w.count;
-
-                                                    if (key in monthweights) {
-                                                        monthweights[key] += w.count * overlap;
-                                                    } else {
-                                                        monthweights[key] = w.count * overlap;
+                                                try {
+                                                    wkt.read(wktstr);
+                                                } catch (e1) {
+                                                    try {
+                                                        self.Wkt.read(wktstr.replace('\n', '').replace('\r', '').replace('\t', ''));
+                                                    } catch (e2) {
                                                     }
                                                 }
+
+                                                obj = wkt.toObject(self.map.defaults);
+                                                obj.setMap(self.map);
+                                                obj.setOptions({
+                                                    fillColor: 'grey',
+                                                    strokeWeight: 0,
+                                                    fillOpacity: 0.1
+                                                });
+                                            }
+                                        });
+
+                                        // Get the dashboard stats info for all groups.
+                                        var promises = [];
+                                        var coll = new Iznik.Collection();
+
+                                        _.each(groups, function(group) {
+                                            var g = new Iznik.Models.Group({
+                                                id: group.id
                                             });
 
-                                            var maxmembers = 0;
-                                            var maxunweighted = 0;
+                                            promises.push(g.fetch());
+                                            coll.add(g);
 
-                                            _.each(dashboard.ApprovedMemberCount, function(w) {
-                                                if ((new Date(w.date)).getTime() < firstDay) {
-                                                    var members = Math.round(w.count * overlap);
-                                                    maxmembers = Math.max(members, maxmembers);
-                                                    var unweighted = Math.round(w.count);
-                                                    maxunweighted = Math.max(unweighted, maxunweighted);
+                                            promises.push($.ajax({
+                                                url: API + 'dashboard',
+                                                data: {
+                                                    start: '12 months ago',
+                                                    grouptype: 'Freegle',
+                                                    group: group.id
+                                                },
+                                                success: function (ret) {
+                                                    var g = coll.get(group.id);
+                                                    g.set('dashboard', ret.dashboard);
+                                                }
+                                            }));
+                                        });
 
-                                                    var date = new moment(w.date);
-                                                    var key = date.format('01 MMM YYYY');
+                                        Promise.all(promises).then(function() {
+                                            coll.comparator = function(mod) {
+                                                return(mod.get('namedisplay').toLowerCase());
+                                            };
 
-                                                    if (key in monthmembers) {
-                                                        if (g.get('id') in monthmembers[key]) {
-                                                            monthmembers[key][g.get('id')] = Math.max(monthmembers[key][g.get('id')], members);
+                                            coll.sort();
+
+                                            // Find the range we cover - we want to exclude the last month as it will
+                                            // be partial.
+                                            var date = new Date();
+                                            var firstDay = (new Date(date.getFullYear(), date.getMonth(), 1)).getTime();
+                                            var firstdate = null;
+                                            var someoverlaps = false;
+                                            var lastdate = null;
+
+                                            coll.each(function(g) {
+                                                var dash = g.get('dashboard');
+                                                _.each(dash.Weight, function(w) {
+                                                    if (!firstdate || (new Date(firstdate)).getTime() > (new Date(w.date)).getTime()) {
+                                                        var m = new moment(w.date);
+                                                        firstdate = m.format('MMM YYYY');
+                                                    }
+
+                                                    if ((new Date(w.date)).getTime() < firstDay && (!lastdate || (new Date(lastdate)).getTime() < (new Date(w.date)).getTime())) {
+                                                        var m = new moment(w.date);
+                                                        lastdate = m.format('MMM YYYY');
+                                                    }
+                                                });
+                                            })
+
+                                            var totalweight = 0;
+                                            var totalmembers = 0;
+                                            var totaloutcomes = 0;
+                                            var monthweights = {};
+                                            var monthmembers = {};
+
+                                            coll.each(function(g) {
+                                                var dashboard = g.get('dashboard');
+                                                var overlap = 0;
+                                                var gs = self.model.get('groups');
+                                                _.each(gs, function(s) {
+                                                    if (s.id == g.get('id') && s.overlap) {
+                                                        overlap = s.overlap;
+                                                    }
+                                                });
+
+                                                var total = 0;
+                                                var unweighted = 0;
+                                                var members = 0;
+
+                                                _.each(dashboard.OutcomesPerMonth, function(o) {
+                                                    totaloutcomes += o.count * overlap;
+                                                });
+
+                                                _.each(dashboard.Weight, function(w) {
+                                                    if ((new Date(w.date)).getTime() < firstDay) {
+                                                        var date = new moment(w.date);
+                                                        var key = date.format('01 MMM YYYY');
+
+                                                        total += w.count * overlap;
+                                                        unweighted += w.count;
+
+                                                        if (key in monthweights) {
+                                                            monthweights[key] += w.count * overlap;
                                                         } else {
+                                                            monthweights[key] = w.count * overlap;
+                                                        }
+                                                    }
+                                                });
+
+                                                var maxmembers = 0;
+                                                var maxunweighted = 0;
+
+                                                _.each(dashboard.ApprovedMemberCount, function(w) {
+                                                    if ((new Date(w.date)).getTime() < firstDay) {
+                                                        var members = Math.round(w.count * overlap);
+                                                        maxmembers = Math.max(members, maxmembers);
+                                                        var unweighted = Math.round(w.count);
+                                                        maxunweighted = Math.max(unweighted, maxunweighted);
+
+                                                        var date = new moment(w.date);
+                                                        var key = date.format('01 MMM YYYY');
+
+                                                        if (key in monthmembers) {
+                                                            if (g.get('id') in monthmembers[key]) {
+                                                                monthmembers[key][g.get('id')] = Math.max(monthmembers[key][g.get('id')], members);
+                                                            } else {
+                                                                monthmembers[key][g.get('id')] = members;
+                                                            }
+                                                        } else {
+                                                            monthmembers[key] = [];
                                                             monthmembers[key][g.get('id')] = members;
                                                         }
-                                                    } else {
-                                                        monthmembers[key] = [];
-                                                        monthmembers[key][g.get('id')] = members;
                                                     }
+                                                });
+
+                                                var avgweight = Math.round(total / 12);
+                                                var avgunweighted = Math.round(unweighted / 12);
+
+                                                totalweight += total;
+                                                totalmembers += maxmembers;
+
+                                                var overlapstr = '';
+
+                                                if (overlap < 1) {
+                                                    overlapstr = " *";
+                                                    someoverlaps = true;
+                                                    self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + ' *</td><td>' + maxmembers.toLocaleString() + ' <span class="text-muted">(of ' + maxunweighted.toLocaleString() + ')</span></td><td>' + avgweight.toLocaleString() + ' <span class="text-muted">(of ' + avgunweighted.toLocaleString() + ')</span></td></tr>');
+                                                } else {
+                                                    self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + '</td><td>' + maxmembers.toLocaleString() + '</td><td>' + avgweight.toLocaleString() + '</td></tr>');
                                                 }
+
                                             });
 
-                                            var avgweight = Math.round(total / 12);
-                                            var avgunweighted = Math.round(unweighted / 12);
+                                            var tonnes = Math.round(totalweight / 100) / 10;
 
-                                            totalweight += total;
-                                            totalmembers += maxmembers;
+                                            self.$('.js-grouptable').append('<tr><td><b>Totals</b></td><td><b>' + totalmembers.toLocaleString() + '</b></td><td><b>' + Math.round(totalweight/12).toLocaleString() + 'kg (' + (Math.round(totalweight / 12 / 100) / 10) + ' tonnes) monthly</b></td></tr>');
 
-                                            var overlapstr = '';
+                                            // Headline stats.
+                                            self.$('.js-weight').html(tonnes.toLocaleString() + '<br />TONNES REUSED');
+                                            self.$('.js-outcomes').html(Math.round(totaloutcomes).toLocaleString() + '<br />GIFTS MADE');
+                                            self.$('.js-weightnobr').html(tonnes.toLocaleString() + ' TONNES REUSED');
+                                            self.$('.js-groupcount').html(groups.length.toLocaleString() + '<br />GROUPS');
+                                            self.$('.js-membercount').html(totalmembers.toLocaleString() + '<br />MEMBERS');
+                                            self.$('.js-firstdate').html(firstdate.toUpperCase());
+                                            self.$('.js-lastdate').html(lastdate.toUpperCase());
+                                            self.$('.js-lastdatelc').html(lastdate);
 
-                                            if (overlap < 1) {
-                                                overlapstr = " *";
-                                                someoverlaps = true;
-                                                self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + ' *</td><td>' + maxmembers.toLocaleString() + ' <span class="text-muted">(of ' + maxunweighted.toLocaleString() + ')</span></td><td>' + avgweight.toLocaleString() + ' <span class="text-muted">(of ' + avgunweighted.toLocaleString() + ')</span></td></tr>');
-                                            } else {
-                                                self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + '</td><td>' + maxmembers.toLocaleString() + '</td><td>' + avgweight.toLocaleString() + '</td></tr>');
+                                            // Weight chart
+                                            var data = [];
+
+                                            for (var key in monthweights) {
+                                                data.push({
+                                                    date: key,
+                                                    count: monthweights[key]
+                                                });
                                             }
 
-                                        });
-
-                                        var tonnes = Math.round(totalweight / 100) / 10;
-
-                                        self.$('.js-grouptable').append('<tr><td><b>Totals</b></td><td><b>' + totalmembers.toLocaleString() + '</b></td><td><b>' + Math.round(totalweight/12).toLocaleString() + 'kg (' + (Math.round(totalweight / 12 / 100) / 10) + ' tonnes) monthly</b></td></tr>');
-
-                                        // Headline stats.
-                                        self.$('.js-weight').html(tonnes.toLocaleString() + '<br />TONNES REUSED');
-                                        self.$('.js-outcomes').html(Math.round(totaloutcomes).toLocaleString() + '<br />GIFTS MADE');
-                                        self.$('.js-weightnobr').html(tonnes.toLocaleString() + ' TONNES REUSED');
-                                        self.$('.js-groupcount').html(groups.length.toLocaleString() + '<br />GROUPS');
-                                        self.$('.js-membercount').html(totalmembers.toLocaleString() + '<br />MEMBERS');
-                                        self.$('.js-firstdate').html(firstdate.toUpperCase());
-                                        self.$('.js-lastdate').html(lastdate.toUpperCase());
-                                        self.$('.js-lastdatelc').html(lastdate);
-
-                                        // Weight chart
-                                        var data = [];
-
-                                        for (var key in monthweights) {
-                                            data.push({
-                                                date: key,
-                                                count: monthweights[key]
+                                            var graph = new Iznik.Views.DateBar({
+                                                target: self.$('.js-weightchart').get()[0],
+                                                data: new Iznik.Collections.DateCounts(data),
+                                                hAxisFormat: 'MMM yyyy',
+                                                width: "100%",
+                                                height: "200px",
+                                                chartArea: null
                                             });
-                                        }
 
-                                        var graph = new Iznik.Views.DateBar({
-                                            target: self.$('.js-weightchart').get()[0],
-                                            data: new Iznik.Collections.DateCounts(data),
-                                            hAxisFormat: 'MMM yyyy',
-                                            width: "100%",
-                                            height: "200px",
-                                            chartArea: null
-                                        });
+                                            graph.render();
 
-                                        graph.render();
+                                            // Member chart
+                                            var data = [];
 
-                                        // Member chart
-                                        var data = [];
+                                            for (var key in monthmembers) {
+                                                var total = 0;
 
-                                        for (var key in monthmembers) {
-                                            var total = 0;
+                                                for (var groupid in monthmembers[key]) {
+                                                    total += monthmembers[key][groupid];
+                                                }
 
-                                            for (var groupid in monthmembers[key]) {
-                                                total += monthmembers[key][groupid];
+                                                data.push({
+                                                    date: key,
+                                                    count: total
+                                                });
                                             }
 
-                                            data.push({
-                                                date: key,
-                                                count: total
+                                            var graph = new Iznik.Views.DateGraph({
+                                                target: self.$('.js-memberchart').get()[0],
+                                                data: new Iznik.Collections.DateCounts(data),
+                                                hAxisFormat: 'MMM yyyy',
+                                                width: "100%",
+                                                height: "200px",
+                                                chartArea: null
                                             });
-                                        }
 
-                                        var graph = new Iznik.Views.DateGraph({
-                                            target: self.$('.js-memberchart').get()[0],
-                                            data: new Iznik.Collections.DateCounts(data),
-                                            hAxisFormat: 'MMM yyyy',
-                                            width: "100%",
-                                            height: "200px",
-                                            chartArea: null
+                                            graph.render();
+
+                                            if (someoverlaps) {
+                                                self.$('.js-partial').show();
+                                            }
+
+                                            // We're done
+                                            self.wait.close();
+                                            self.$('.js-stats').fadeIn('slow');
                                         });
-
-                                        graph.render();
-
-                                        if (someoverlaps) {
-                                            self.$('.js-partial').show();
-                                        }
-
-                                        // We're done
-                                        self.wait.close();
-                                        self.$('.js-stats').fadeIn('slow');
-                                    });
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        } catch (e) {
+                            self.wait.close();
+                            self.$('.js-error').fadeIn('slow');
+                        }
                     });
                 });
             });

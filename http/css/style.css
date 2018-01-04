@@ -646,6 +646,12 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     border-radius: 12px;
 }
 
+.img-mediumthumbnail {
+    min-width:125px !important;
+    max-width:125px !important;
+    width:125px !important;
+}
+
 .img-smallishthumbnail {
     min-height:75px !important;
     max-height:75px !important;
@@ -825,6 +831,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 .signindisabled {
     opacity: 0.2;
+    pointer-events: none;
 }
 
 .graph {

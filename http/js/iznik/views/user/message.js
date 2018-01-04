@@ -714,18 +714,22 @@ define([
 
         gotChat: function() {
             var self = this;
-            self.model.set('chat', self.chat.toJSON2());
-            self.model.set('unseen', self.chat.get('unseen'));
 
-            Iznik.View.prototype.render.call(self).then(function(self) {
-                // If the number of unseen messages in this chat changes, update this view so that the count is
-                // displayed here.
-                self.listenToOnce(self.chat, 'change:unseen', self.render);
-                Iznik.View.Timeago.prototype.render.call(self);
+            // Make sure this chat is valid - it should have a type.
+            if (self.chat.get('chattype')) {
+                self.model.set('chat', self.chat.toJSON2());
+                self.model.set('unseen', self.chat.get('unseen'));
 
-                // We might promise to this person from a chat.
-                self.listenTo(self.chat, 'promised', _.bind(self.chatPromised, self));
-            });
+                Iznik.View.prototype.render.call(self).then(function(self) {
+                    // If the number of unseen messages in this chat changes, update this view so that the count is
+                    // displayed here.
+                    self.listenToOnce(self.chat, 'change:unseen', self.render);
+                    Iznik.View.Timeago.prototype.render.call(self);
+
+                    // We might promise to this person from a chat.
+                    self.listenTo(self.chat, 'promised', _.bind(self.chatPromised, self));
+                });
+            }
         },
 
         render: function () {
