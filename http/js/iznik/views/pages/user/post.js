@@ -17,8 +17,6 @@ define([
         uploading: 0,
 
         events: {
-            'click .js-take-photo': 'addPhoto', // CC
-            'click .js-choose-photo': 'choosePhoto',  // CC
             'click .js-next': 'next',
             'change .js-item': 'checkNext',
             'change .tt-hint': 'checkNext',
@@ -31,39 +29,15 @@ define([
         // It could be enabled for iOS9 using www.ispeech.org but not done
         speechItem: function() {
             var self = this;
-            var initem = true;
-            try{
-                var speechHandler = function (event) {
-                    console.log(event);
-                    if (event.results.length > 0) {
-                        if (initem) {
-                            self.$('.js-item').val(event.results[0][0].transcript);
-                            self.$('.js-description').focus();
-                            var recognition = new SpeechRecognition();  // Need new instance for iOS9
-                            recognition.onresult = speechHandler;
-                            initem = false;
-                            recognition.start();
-                        } else {
-                            self.$('.js-description').val(event.results[0][0].transcript);
-                        }
-                    }
-                };
-                var recognition = new SpeechRecognition();
-                recognition.onresult = speechHandler;
-                //self.$('.js-item').focus();
-                recognition.start();
-            } catch (e) {
-                console.log(e.message);
-            }
-            /*require([ 'iznik/speech' ], function() {
+            require([ 'iznik/speech' ], function() {
                 self.$('.js-item').on('result', function(e, str) {
                     self.$('.js-item').val(str);
                     self.$('.js-description').focus();
                     self.speechDescription();
                 });
 
-                self.$('.js-item').speech();
-            })*/
+                // CC self.$('.js-item').speech();
+            })
         },
 
         speechDescription: function() {
@@ -225,170 +199,6 @@ define([
             }
         },
 
-        cameraSuccess: function (imageURI, self) {  // CC
-          console.log("cameraSuccess " + imageURI);
-          setTimeout(function () {
-            // do your thing here!
-            console.log(imageURI);
-            self.$('.js-addprompt').addClass('hidden');
-
-            var post_params = {
-              type: 'Message',
-              identify: true
-            };
-
-            var options = new FileUploadOptions();
-            options.fileKey = "photo";
-            options.fileName = new Date().getTime() + ".jpg"; // Best use a safe filename
-            options.chunkedMode = false;
-            options.mimeType = "image/jpeg";
-
-            options.params = post_params;
-
-            $('.js-upload-progress').show();
-            var ft = new FileTransfer();
-            var progressPercent = 1;
-            var showProgress = function(pc){
-              if( typeof pc==="undefined"){
-                progressPercent += 5;
-              } else {
-                progressPercent = pc * 100;
-              }
-              progressPercent = Math.min(parseInt(progressPercent),100);
-              $('.progress-bar').text(progressPercent+"%");
-              $('.progress-bar').css('width', progressPercent + '%');
-              $('.progress-bar').attr('aria-valuenow',progressPercent);
-            };
-            showProgress();
-            ft.onprogress = function (progressEvent) {
-              if (progressEvent.lengthComputable) {
-                showProgress(progressEvent.loaded / progressEvent.total);
-              } else {
-                showProgress();
-              }
-            };
-              // https://cordova.apache.org/blog/2017/10/18/from-filetransfer-to-xhr2.html
-            ft.upload(imageURI, encodeURI(API + 'image'),
-								function (r) {
-								  showProgress(1);
-								  var data = JSON.parse(r.response);
-								  console.log(data);
-
-								  if (data.initialPreview.length > 0) {
-								    $('.file-preview').show();
-								    var thumbs = $('.file-initial-thumbs');
-								    _.each(data.initialPreview, function (thumbimg) {
-								      var thumb = $('<div>', {
-								        'class': "file-preview-frame file-preview-initial",
-								        'style': "padding:0;",
-								        'data-template': "image"
-								      });
-								      var thumbcontent = $('<div>', { 'class': "kv-file-content" });
-								      thumbcontent.html(thumbimg);
-								      thumb.html(thumbcontent);
-								      thumbs.append(thumb);
-								    });
-								  }
-
-								  // Add the photo to our list
-								  var mod = new Iznik.Models.Message.Attachment({
-								    id: data.id,
-								    src: data.paththumb
-								  });
-
-								  self.photos.add(mod);
-
-								  // Add any hints about the item
-								  self.$('.js-suggestions').empty();
-								  self.suggestions = [];
-
-								  _.each(data.items, function (item) {
-								    self.suggestions.push(item);
-								  });
-
-							    self.allUploaded();
-							    $('.js-upload-progress').hide();
-								},
-								function (e) {
-								  $('.js-upload-progress').hide();
-								  self.$('.js-photo-msg').text("Photo upload fail " + JSON.stringify(e));
-								  self.$('.js-photo-msg').show();
-								},
-								options);
-          }, 0);
-
-        },
-
-        cameraError: function (msg, self) {  // CC
-          setTimeout(function () {
-            if (msg === "no image selected") { msg = "No photo taken or chosen"; }
-            if (msg === "Camera cancelled") { msg = "No photo taken or chosen"; }
-            console.log(msg);
-            self.$('js-photo-msg').text(msg);
-            self.$('js-photo-msg').show();
-          }, 0);
-        },
-
-        addPhoto: function () {  // CC
-          var self = this;
-          self.$('js-photo-msg').hide();
-
-      		var maxDimension = 800; // Connection.UNKNOWN Connection.ETHERNET Connection.WIFI Connection.CELL_4G and Connection.NONE
-      		if ((navigator.connection.type === Connection.CELL_2G) ||
-            (navigator.connection.type === Connection.CELL_2G) ||
-            (navigator.connection.type === Connection.CELL)) {
-      		  maxDimension = 400;
-      		}
-
-      		navigator.camera.getPicture(function (imageURI) {
-      		          self.cameraSuccess(imageURI, self);
-      		        }, function (msg) {
-      		          self.cameraError(msg, self);
-      		        },
-                  { quality: 50,
-                    destinationType: Camera.DestinationType.FILE_URI,
-                    sourceType: Camera.PictureSourceType.CAMERA,
-                    //allowEdit: true,	// Don't: adds unhelpful crop photo step
-                    encodingType: Camera.EncodingType.JPEG,
-                    targetWidth: maxDimension,
-                    targetHeight: maxDimension,
-                    //popoverOptions: CameraPopoverOptions,
-                    //saveToPhotoAlbum: true,   // breaks on iOS11
-                    correctOrientation: true
-                  }
-            );
-        },
-
-        choosePhoto: function () {
-          var self = this;
-          self.$('js-photo-msg').hide();
-
-          var maxDimension = 800; // Connection.UNKNOWN Connection.ETHERNET Connection.WIFI Connection.CELL_4G and Connection.NONE
-          if ((navigator.connection.type === Connection.CELL_2G) ||
-            (navigator.connection.type === Connection.CELL_2G) ||
-            (navigator.connection.type === Connection.CELL)) {
-            maxDimension = 400;
-          }
-
-          navigator.camera.getPicture(function (imageURI) {
-                    self.cameraSuccess(imageURI, self);
-                  }, function (msg) {
-                    self.cameraError(msg, self);
-                  },
-                  { quality: 50,
-                    destinationType: Camera.DestinationType.FILE_URI,
-                    sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
-                    //allowEdit: true,
-                    encodingType: Camera.EncodingType.JPEG,
-                    targetWidth: maxDimension,
-                    targetHeight: maxDimension,
-                    //popoverOptions: CameraPopoverOptions,
-                    //saveToPhotoAlbum: true
-                    correctOrientation: true
-                  }
-            );
-        },
-
         render: function () {
             var self = this;
             self.photos = new Iznik.Collection();
@@ -398,10 +208,8 @@ define([
                 showAll: true
             });
 
-            // https://github.com/macdonst/SpeechRecognitionPlugin
-            // http://www.ispeech.org/api/#minimum-requirements
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
-                if (typeof SpeechRecognition === 'function') {    // CC
+                if (window.hasOwnProperty('webkitSpeechRecognition')) {
                     self.$('.js-speechItem').show();
                 }
 
@@ -430,9 +238,87 @@ define([
                 });
 
                 // File upload
-                self.$('js-photo-msg').hide();
-                self.$('#post_add_photo').show();
-                self.$('#post_choose_photo').show();
+                self.$('#fileupload').fileinput({
+                    uploadExtraData: {
+                        imgtype: 'Message',
+                        identify: true
+                    },
+                    showUpload: false,
+                    allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                    uploadUrl: API + 'image',
+                    resizeImage: true,
+                    maxImageWidth: 800,
+                    browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
+                    browseLabel: 'Add photos',
+                    browseClass: 'btn btn-primary nowrap',
+                    showCaption: false,
+                    showRemove: false,
+                    showUploadedThumbs: false,
+                    dropZoneEnabled: false,
+                    buttonLabelClass: '',
+                    fileActionSettings: {
+                        showZoom: false,
+                        showRemove: false,
+                        showUpload: false
+                    },
+                    layoutTemplates: {
+                        footer: '<div class="file-thumbnail-footer">\n' +
+                        '    {actions}\n' +
+                        '</div>'
+                    }
+                });
+
+                // Count how many we will upload.
+                self.$('#fileupload').on('fileloaded', function (event) {
+                    self.uploading++;
+                });
+
+                // Upload as soon as photos have been resized.
+                self.$('#fileupload').on('fileimageresized', function (event) {
+                    // Have to defer else break fileinput validation processing.
+                    _.defer(function() {
+                        self.$('#fileupload').fileinput('upload');
+
+                        // We don't seem to be able to hide this control using the options.
+                        self.$('.fileinput-remove').hide();
+                    })
+                });
+
+                // Watch for all uploaded
+                self.$('#fileupload').on('fileuploaded', function (event, data) {
+                    // Add the photo to our list
+                    var mod = new Iznik.Models.Message.Attachment({
+                        id: data.response.id,
+                        path: data.response.path,
+                        paththumb: data.response.paththumb,
+                        mine: true
+                    });
+
+                    self.photos.add(mod);
+
+                    // Show the uploaded thumbnail and hackily remove the one provided for us.
+                    self.draftPhotos.render().then(function() {
+                        self.$('.js-draftphotos').html(self.draftPhotos.el);
+                    });
+
+                    _.delay(function() {
+                        self.$('.file-preview-frame').remove();
+                    }, 500);
+
+                    // Add any hints about the item
+                    self.$('.js-suggestions').empty();
+                    self.suggestions = [];
+
+                    _.each(data.response.items, function (item) {
+                        self.suggestions.push(item);
+                    });
+
+                    self.uploading--;
+
+                    if (self.uploading == 0) {
+                        self.allUploaded();
+                    }
+                });
 
                 try {
                     var id = Storage.get('draft');

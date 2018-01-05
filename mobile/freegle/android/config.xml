@@ -74,7 +74,5 @@
     <plugin name="phonegap-plugin-speech-recognition" spec="git+https://github.com/macdonst/SpeechRecognitionPlugin.git">
         <variable name="MICROPHONE_USAGE_DESCRIPTION" value="So you can say your offer" />
     </plugin>
-    <plugin name="cordova-plugin-file" spec="^5.0.0" />
-    <plugin name="cordova-plugin-file-transfer" spec="^1.7.0" />
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
 </widget>
