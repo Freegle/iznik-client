@@ -51,10 +51,6 @@
         <preference name="deployment-target" value="9.0" />
     </platform>
     <engine name="ios" spec="^4.5.4" />
-    <plugin name="cordova-plugin-camera" spec="^2.4.1">
-        <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="To use a photo of an item you want to offer" />
-        <variable name="CAMERA_USAGE_DESCRIPTION" value="To take a photo of an item you want to offer" />
-    </plugin>
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
     <plugin name="cordova-plugin-device" spec="^1.1.7" />
     <plugin name="cordova-plugin-geolocation" spec="^2.4.3">
@@ -73,6 +69,10 @@
         <variable name="APP_ID" value="134980666550322" />
         <variable name="APP_NAME" value="Freegle" />
     </plugin>
-    <plugin name="cordova-plugin-file" spec="^5.0.0" />
-    <plugin name="cordova-plugin-file-transfer" spec="^1.7.0" />
+    <plugin name="cordova-plugin-ios-camera-permissions" spec="^1.2.0">
+        <variable name="CAMERA_USAGE_DESCRIPTION" value="This app needs camera access" />
+        <variable name="MICROPHONE_USAGE_DESCRIPTION" value="This app needs microphone access" />
+        <variable name="PHOTOLIBRARY_ADD_USAGE_DESCRIPTION" value="This app needs write-access to photo library" />
+        <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="This app needs read/write-access photo library access" />
+    </plugin>
 </widget>
