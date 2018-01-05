@@ -267,7 +267,8 @@ define([
                 showProgress();
               }
             };
-            ft.upload(imageURI, API + 'image',
+              // https://cordova.apache.org/blog/2017/10/18/from-filetransfer-to-xhr2.html
+            ft.upload(imageURI, encodeURI(API + 'image'),
 								function (r) {
 								  showProgress(1);
 								  var data = JSON.parse(r.response);
