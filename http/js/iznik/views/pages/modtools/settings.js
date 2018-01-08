@@ -743,6 +743,8 @@ define([
         },
     
         addStdMsg: function() {
+            var self = this;
+
             // Having no id in the model means we will do a POST when we save it, and therefore create it on the server.
             var model = new Iznik.Models.ModConfig.StdMessage({
                 configid: self.$('.js-configselect').val()
@@ -758,7 +760,9 @@ define([
         },
     
         addBulkOp: function() {
-            // Having no id in the model means we will do a POST when we save it, and therefore create it on the server.
+          var self = this;
+
+          // Having no id in the model means we will do a POST when we save it, and therefore create it on the server.
             var model = new Iznik.Models.ModConfig.BulkOp({
                 configid: self.$('.js-configselect').val()
             });
