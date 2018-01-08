@@ -6,6 +6,7 @@ define([
     'file-saver',
     'iznik/base',
     'iznik/models/yahoo/user',
+    'jquery-ui',
     "iznik/modtools",
     'iznik/views/pages/pages',
     "iznik/views/pages/modtools/messages",
