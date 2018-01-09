@@ -219,6 +219,11 @@ define([
                     $('.js-search').on('keyup', _.bind(self.searchKey, self));
                     $('.js-allseen').on('click', _.bind(self.allseen, self));
                 });
+
+                // Right sidebar is ads.
+                var ad = new Iznik.View.GoogleAd();
+                ad.render();
+                $('#js-rightsidebar').html(ad.el);
             });
 
             return (p);
