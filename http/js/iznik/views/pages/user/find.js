@@ -358,6 +358,9 @@ define([
                             }
                         });
 
+                        var cont = m.get('content');
+                        m.set('content', m.replace('http://', 'https://'));
+
                         self.collectionView = new Backbone.CollectionView({
                             el: self.$('.js-list'),
                             modelView: Iznik.Views.User.Pages.Find.eBayAd,
