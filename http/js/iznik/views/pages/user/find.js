@@ -54,7 +54,6 @@ define([
             var self = this;
             try {
                 var val = self.$('.js-searchoffers').prop('checked') ? 'Offer' : 'Wanted';
-                console.log("Save search type", val);
                 Storage.set('searchtype', val);
             } catch (e) {}
         },
@@ -115,7 +114,6 @@ define([
 
         showOfferWanted: function(){
             var self = this;
-            console.log("Show offer wanted ", self.$(".js-searchoffers").bootstrapSwitch('state'));
 
             if (self.$(".js-searchoffers").bootstrapSwitch('state')) {
                 self.$('.js-offeronly').show();
@@ -354,10 +352,8 @@ define([
                             var desc = m.get('content');
                             var re = /img src='(.*?)'/;
                             var match = re.exec(desc);
-                            console.log("Match", match, desc, re, m.attributes);
 
                             if (match && match.length > 1) {
-                                console.log("Got image", match[1]);
                                 m.set('image', match[1]);
                             }
                         });
