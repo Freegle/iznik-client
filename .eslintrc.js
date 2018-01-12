@@ -55,6 +55,9 @@ module.exports = {
         MODTOOLS: true,
         ADSENSE_CLIENT: true,
         ADSENSE_SLOTID: true,
-        ANALYTICS_ID: true
+        ANALYTICS_ID: true,
+        EBAY_CAMPAIGNID: true,
+        EBAY_PROGRAMID: true,
+        EBAY_TOOLID: true,
     }
 }
