@@ -935,6 +935,8 @@ define([
                                 _.each(msggroups, function (msggroup) {
                                     if (memberof.id == msggroup.groupid) {
                                         member = true;
+                                    } else {
+                                        tojoin = msggroup.groupid;
                                     }
                                 });
                             });
@@ -943,8 +945,6 @@ define([
                         if (!member) {
                             // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
                             // matter which.
-                            var tojoin = self.model.get('groups')[0].groupid;
-
                             $.ajax({
                                 url: API + 'memberships',
                                 type: 'PUT',
@@ -984,7 +984,7 @@ define([
                         //
                         // We might already be on this page, so we can't always call navigate as usual.
                         var url = '/message/' + self.model.get('id');
-                        console.log("Compare url", url, Backbone.history.getFragment());
+
                         if ('/' + Backbone.history.getFragment() == url) {
                             Backbone.history.loadUrl(url);
                         } else {
