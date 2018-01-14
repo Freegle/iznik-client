@@ -192,6 +192,7 @@ define([
                     };
 
                     // Add eBay search results.
+                    console.log("Consider add ebay", mylocation);
                     if (mylocation) {
                         var v = new Iznik.Views.User.Pages.Find.eBayAds({
                             term: self.options.search,
@@ -356,10 +357,13 @@ define([
                             if (match && match.length > 1) {
                                 m.set('image', match[1]);
                             }
-                        });
 
-                        var cont = m.get('content');
-                        m.set('content', m.replace('http://', 'https://'));
+                            var cont = m.get('content');
+
+                            if (cont) {
+                                m.set('content', cont.replace(/http\:\/\//g, 'https://'));
+                            }
+                        });
 
                         self.collectionView = new Backbone.CollectionView({
                             el: self.$('.js-list'),
