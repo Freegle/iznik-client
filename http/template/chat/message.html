@@ -30,7 +30,7 @@
                 </div>
             </div>
         </div>
-        <% if (!obj.sameasnext) { %>
+        <% if (!obj.sameasnext || obj.gap) { %>
         <div class="row-fluid fullholder nopad">
             <% if (obj.group) { %>
             <div class="col-sm-2 padleft" />
