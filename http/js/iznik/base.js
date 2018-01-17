@@ -948,7 +948,7 @@ define([
                     ins.addClass('adsbygoogle');
 
                     // Wait for DOM otherwise we might get an exception because we trigger the ad too soon.
-                    self.wait(self, function() {
+                    self.waitDOM(self, function() {
                         try {
                             window.adsbygoogle.push({});
                         } catch (e) {}
