@@ -86,6 +86,11 @@ define([
         send: function(message) {
             var self = this;
 
+            // Escape any emojis.
+            message = twemoji.replace(message, function(emoji) {
+                return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
+            });
+
             // Create a model for the message.
             var msg = {
                 message: message,

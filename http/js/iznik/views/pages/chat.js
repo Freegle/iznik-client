@@ -288,8 +288,15 @@ define([
             self.model.set('modtools', self.options.modtools);
             // console.log("Render chat", self.model.get('id'), self.model.get('icon'), self.model.attributes, self.chats);
 
+            // Unescape emojis - might be in snippet.
+            var snippet = self.model.get('snippet');
+            snippet = Iznik.twem(snippet);
+            self.model.set('snippet', snippet);
+
             var p = Iznik.View.Timeago.prototype.render.call(this);
             p.then(function (self) {
+                twemoji.parse(self.$el);
+
                 self.updateCount();
 
                 // If the unread message count changes, we want to update it.
