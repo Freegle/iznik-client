@@ -91,7 +91,39 @@ define([
             'click .js-delete': 'deleteMe',
             'click .js-modnote': 'modnote',
             'click .js-viewmsgsource': 'viewMsgSource',
-            'click .js-view': 'view'
+            'click .js-view': 'view',
+            'click .js-addcommentfrom': 'addCommentFrom',
+            'click .js-addcommentto': 'addCommentTo'
+        },
+
+        addCommentFrom: function () {
+            var self = this
+
+            var model = new Iznik.Models.ModTools.User.Comment({
+                userid: this.model.get('fromuser').id,
+                groupid: this.model.get('group').id
+            })
+
+            var v = new Iznik.Views.ModTools.User.CommentModal({
+                model: model
+            })
+
+            v.render()
+        },
+
+        addCommentTo: function () {
+            var self = this
+
+            var model = new Iznik.Models.ModTools.User.Comment({
+                userid: this.model.get('touser').id,
+                groupid: this.model.get('group').id
+            })
+
+            var v = new Iznik.Views.ModTools.User.CommentModal({
+                model: model
+            })
+
+            v.render()
         },
 
         viewMsgSource: function() {
