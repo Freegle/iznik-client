@@ -924,23 +924,51 @@ define([
                     // If the last message was a while ago, remind them about nudging.
                     var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
 
-                    if (age > 24 && !self.shownNudge) {
+                    if (age > 24 && !Storage.get('shownNudge')) {
                         self.$('.js-nudge').tooltip('show');
-                        self.shownNudge = true;
+
+                        // Only once though else it will get old.
+                        Storage.set('shownNudge', true);
 
                         _.delay(_.bind(function() {
                             this.$('.js-nudge').tooltip('hide');
                         }, self), 10000);
-                    }
+                    } else {
+                        // Encourage people to use the info button.
+                        if (!Storage.get('shownInfo')) {
+                            self.$('.js-tooltip.js-info').tooltip('show');
 
-                    // Encourage people to use the info button.
-                    if (!self.shownInfo && !self.shownNudge) {
-                        self.$('.js-tooltip.js-info').tooltip('show');
-                        self.shownInfo = true;
+                            // Likewise only once.
+                            Storage.set('shownInfo', true);
 
-                        _.delay(_.bind(function() {
-                            this.$('.js-tooltip.js-info').tooltip('hide');
-                        }, self), 10000);
+                            _.delay(_.bind(function () {
+                                this.$('.js-tooltip.js-info').tooltip('hide');
+                            }, self), 10000);
+                        } else {
+                            if (!Storage.get('shownPromise')) {
+                                // Tell them about the Promise button.
+                                self.$('.js-tooltip.js-promise').tooltip('show');
+
+                                // Likewise only once.
+                                Storage.set('shownPromise', true);
+
+                                _.delay(_.bind(function () {
+                                    this.$('.js-tooltip.js-promise').tooltip('hide');
+                                }, self), 10000);
+                            } else {
+                                if (!Storage.get('shownAddress')) {
+                                    // Tell them about the Address book.
+                                    self.$('.js-tooltip.js-address').tooltip('show');
+
+                                    // Likewise only once.
+                                    Storage.set('shownAddress', true);
+
+                                    _.delay(_.bind(function () {
+                                        this.$('.js-tooltip.js-address').tooltip('hide');
+                                    }, self), 10000);
+                                }
+                            }
+                        }
                     }
 
                     v.close();
