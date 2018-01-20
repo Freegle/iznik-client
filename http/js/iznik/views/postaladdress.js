@@ -126,7 +126,10 @@ define([
                     asyncResults(matches);
 
                     _.delay(function() {
-                        self.$('.js-postcode').tooltip('destroy');
+                        var field = self.$('.js-postcode');
+                        if (field.data && field.data('bs.tooltip')) {
+                            self.$('.js-postcode').tooltip('destroy');
+                        }
                     }, 10000);
 
                     if (matches.length == 0) {

@@ -947,9 +947,12 @@ define([
                     ins.attr('data-ad-format', 'auto');
                     ins.addClass('adsbygoogle');
 
-                    try {
-                        window.adsbygoogle.push({});
-                    } catch (e) {}
+                    // Wait for DOM otherwise we might get an exception because we trigger the ad too soon.
+                    self.waitDOM(self, function() {
+                        try {
+                            window.adsbygoogle.push({});
+                        } catch (e) {}
+                    });
                 });
             }
 

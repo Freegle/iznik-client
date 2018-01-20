@@ -197,8 +197,11 @@ define([
                             processKeyEvents: false
                         });
 
+                        if (self.showmods.length > 0) {
+                            self.$('.js-modstoshow').fadeIn('slow');
+                        }
+
                         self.collectionView.render();
-                        self.$('.js-modstoshow').fadeIn('slow');
                     }
                 });
             });

@@ -86,7 +86,11 @@ exports['default'] = new Config().merge({
             BUILD_TIME: JSON.stringify((new Date()).toISOString()),
             ADSENSE_CLIENT: JSON.stringify('ca-pub-9017028318226154'),
             ADSENSE_SLOTID: JSON.stringify(8707399344),
-            ANALYTICS_ID: JSON.stringify('UA-10627716-2')
+            ANALYTICS_ID: JSON.stringify('UA-10627716-2'),
+            EBAY_PROGRAMID: JSON.stringify(15),
+            EBAY_CAMPAIGNID: JSON.stringify('5338241976'),
+            EBAY_TOOLID: JSON.stringify(10039),
+            GOOGLE_SITE_VERIFICATION: JSON.stringify('-HPBuTqTyEeOHZIJr3HDiWquMgG_3Tc38Z8Ij2x_snw')
         }),
 
         new webpack.ProvidePlugin(shims.provides),

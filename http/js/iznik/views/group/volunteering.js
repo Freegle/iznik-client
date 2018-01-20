@@ -53,7 +53,13 @@ define([
 
                 self.containerHeight();
                 $(window).resize(self.containerHeight);
-                $('#js-volunteeringcontainer').fadeIn('slow');
+
+                // Place an ad below the list.
+                var ad = new Iznik.View.GoogleAd();
+                ad.render();
+                $('#js-volunteeringads').html(ad.el);
+
+                $('#js-volunteeringcontainer, #js-volunteeringads').fadeIn('slow');
             }
 
             if (self.volunteering.length == 0) {

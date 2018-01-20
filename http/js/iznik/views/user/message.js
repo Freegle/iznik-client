@@ -962,6 +962,8 @@ define([
                                 _.each(msggroups, function (msggroup) {
                                     if (memberof.id == msggroup.groupid) {
                                         member = true;
+                                    } else {
+                                        tojoin = msggroup.groupid;
                                     }
                                 });
                             });
@@ -970,8 +972,6 @@ define([
                         if (!member) {
                             // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
                             // matter which.
-                            var tojoin = self.model.get('groups')[0].id;
-
                             $.ajax({
                                 url: API + 'memberships',
                                 type: 'PUT',
