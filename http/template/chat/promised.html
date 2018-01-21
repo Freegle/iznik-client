@@ -10,7 +10,7 @@
         </div>
      </div>
     <div class="panel-body">
-        <div class="row">`
+        <div class="row">
             <% if (refmsg.attachments && refmsg.attachments.length > 0) { %>
                 <div class="col-xs-2 nopad">
                     <img alt="Item Picture" class="nomargin thumbnail img-responsive " src="{{refmsg.attachments[0].path}}?w=100" />
@@ -22,7 +22,7 @@
                     {{refmsg.subject}}
                 </div>
         </div>
-        <div class="row topspace">`
+        <div class="row topspace">
             <div class="col-xs-12 nopad">
             <% if (refmsg.fromuser.id == obj.myid) { %>
                 <% if (refmsg.promisecount) { %>
