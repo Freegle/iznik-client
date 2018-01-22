@@ -25,7 +25,7 @@ define([
                 sending = sending ? sending : [];
 
                 if (sending && sending.length) {
-                    var msg = new Iznik.Models.Chat.Message(sending.pop());
+                    var msg = new Iznik.Models.Chat.Message(sending.shift());
                     msg.save({
                         error: function() {
                             // Failed - retry later in case transient network issue.
