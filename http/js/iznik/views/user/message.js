@@ -950,26 +950,26 @@ define([
                             Storage.remove('replytext');
                         } catch (e) {}
 
-                        //
                         // When we reply to a message on a group, we join the group if we're not already a member.
                         var memberofs = Iznik.Session.get('groups');
-                        var member = false;
                         var tojoin = null;
 
+                        // Get a group the message is on.
+                        var msggroups = self.model.get('groups');
+                        _.each(msggroups, function (msggroup) {
+                            tojoin = msggroup.groupid;
+                        });
+
+                        // If we have memberships, see if we're already on it.
                         if (memberofs) {
                             memberofs.each(function (memberof) {
-                                var msggroups = self.model.get('groups');
-                                _.each(msggroups, function (msggroup) {
-                                    if (memberof.id == msggroup.groupid) {
-                                        member = true;
-                                    } else {
-                                        tojoin = msggroup.groupid;
-                                    }
-                                });
+                                if (memberof.id == tojoin) {
+                                    tojoin = null;
+                                }
                             });
                         }
 
-                        if (!member) {
+                        if (tojoin) {
                             // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
                             // matter which.
                             $.ajax({
