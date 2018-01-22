@@ -294,8 +294,10 @@ define([
             self.model.set('snippet', snippet);
 
             var p = Iznik.View.Timeago.prototype.render.call(this);
-            p.then(function (self) {
-                twemoji.parse(self.$el);
+            p.then(function () {
+                self.waitDOM(self, function() {
+                    twemoji.parse(this.el);
+                });
 
                 self.updateCount();
 
