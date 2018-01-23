@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="org.ilovefreegle.iphone" ios-CFBundleVersion="138" version="1.3.3" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="org.ilovefreegle.iphone" ios-CFBundleVersion="139" version="1.3.4" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Freegle</name>
     <description>Offer and request free items on your local Freegle reuse group</description>
     <author />
@@ -106,9 +106,9 @@
         <variable name="SENDER_ID" value="85075801930" />
     </plugin>
     <plugin name="cordova-plugin-ios-camera-permissions" spec="^1.2.0">
-        <variable name="CAMERA_USAGE_DESCRIPTION" value="This app needs camera access" />
-        <variable name="MICROPHONE_USAGE_DESCRIPTION" value="This app needs microphone access" />
-        <variable name="PHOTOLIBRARY_ADD_USAGE_DESCRIPTION" value="This app needs write-access to photo library" />
-        <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="This app needs read/write-access photo library access" />
+        <variable name="CAMERA_USAGE_DESCRIPTION" value="So you can take a photo of an item to offer" />
+        <variable name="MICROPHONE_USAGE_DESCRIPTION" value="This app needs microphone access so you can say what you are looking for" />
+        <variable name="PHOTOLIBRARY_ADD_USAGE_DESCRIPTION" value="So you can send a photo of an item to offer" />
+        <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="So you can save a photo of an item to offer" />
     </plugin>
 </widget>
