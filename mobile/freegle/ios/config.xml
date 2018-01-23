@@ -107,7 +107,7 @@
     </plugin>
     <plugin name="cordova-plugin-ios-camera-permissions" spec="^1.2.0">
         <variable name="CAMERA_USAGE_DESCRIPTION" value="So you can take a photo of an item to offer" />
-        <variable name="MICROPHONE_USAGE_DESCRIPTION" value="This app needs microphone access so you can say what you are looking for" />
+        <variable name="MICROPHONE_USAGE_DESCRIPTION" value="So you can say what you are looking for" />
         <variable name="PHOTOLIBRARY_ADD_USAGE_DESCRIPTION" value="So you can send a photo of an item to offer" />
         <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="So you can save a photo of an item to offer" />
     </plugin>
