@@ -518,7 +518,7 @@ define([
             // TODO Allow this by recording the origin of the message as being on the platform.
             message = message.replace('>', '');
 
-            if (message.length > 0) {
+            if (message.trim().length > 0) {
                 // We get called back when the message has actually been sent to the server.
                 self.listenToOnce(this.model, 'sent', function () {
                     self.getLatestMessages();
