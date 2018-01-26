@@ -110,7 +110,7 @@ define([
                 var me = Iznik.Session.get('me');
                 var myid = me ? me.id : null;
 
-                if (dates.length === 0 && self.model.get('user').id == myid) {
+                if (dates.length === 0 && self.model.get('user').id == myid && myid) {
                     // Check if this will expire soon.
                     var added = self.model.get('added');
                     var renewed = self.model.get('renewed');
@@ -123,10 +123,14 @@ define([
                     }
 
                     if (warn) {
+                        console.log("Show warn");
                         self.$('.js-warn').show();
                     } else {
+                        console.log("Show nowarn");
                         self.$('.js-nowarn').show();
                     }
+
+                    self.$('.js-alert').show();
                 }
             });
 
