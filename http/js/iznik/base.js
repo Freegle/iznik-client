@@ -410,7 +410,7 @@ define([
     }
 
     Iznik.twem = function(msg) {
-        if (msg) {
+        if (_.isString(msg)) {
             msg = msg.replace(/\\\\u(.*?)\\\\u/g, function(match, contents, offset, s) {
                 var s = contents.split('-');
                 var ret = '';
