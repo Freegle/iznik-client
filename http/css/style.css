@@ -1132,6 +1132,12 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 }
 
 .chat-page-pane {
+    /*
+        Use position fixed to ensure that the vh calculation reflects the URL bar as per
+        https://developers.google.com/web/updates/2016/12/url-bar-resizing
+     */
+    position: fixed;
+    top: 60px;
     height: calc(100vh - 60px);
     overflow-x: hidden;
     overflow-y: hidden;
