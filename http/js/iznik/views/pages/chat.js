@@ -718,36 +718,39 @@ define([
         scrollBottom: function () {
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
             var self = this;
-            var scroll = self.$('.js-scroll');
-            // console.log("Scrollbottom", scroll);
 
-            if (scroll.length > 0) {
-                var height = scroll[0].scrollHeight;
+            if (self.inDOM()) {
+                var scroll = self.$('.js-scroll');
 
-                if (self.scrollTimer && self.scrollTo < height) {
-                    // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
-                    // in doing that.
-                    // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
-                    clearTimeout(self.scrollTimer);
-                    self.scrollTimer = null;
-                    self.scrollToStopAt = null;
-                }
+                if (scroll.length > 0) {
+                    var height = scroll[0].scrollHeight;
+                    // console.log("Scroll", height, scroll.scrollTop(), scroll);
 
-                // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
-                // finished rendering yet.
-                scroll.scrollTop(height);
+                    if (self.scrollTimer && self.scrollTo < height) {
+                        // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
+                        // in doing that.
+                        // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
+                        clearTimeout(self.scrollTimer);
+                        self.scrollTimer = null;
+                        self.scrollToStopAt = null;
+                    }
 
-                self.scrollTo = height;
-
-                if (!self.scrolledToBottomOnce) {
                     // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
                     // finished rendering yet.
-                    self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : ((new Date()).getTime() + 5000);
+                    scroll.scrollTop(height);
 
-                    if ((new Date()).getTime() < self.scrollToStopAt) {
-                        self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
-                    } else {
-                        self.scrolledToBottomOnce = true;
+                    self.scrollTo = height;
+
+                    if (!self.scrolledToBottomOnce) {
+                        // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
+                        // finished rendering yet.
+                        self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : ((new Date()).getTime() + 5000);
+
+                        if ((new Date()).getTime() < self.scrollToStopAt) {
+                            self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
+                        } else {
+                            self.scrolledToBottomOnce = true;
+                        }
                     }
                 }
             }
@@ -973,6 +976,14 @@ define([
 
                     // If the text area grows, make sure we're scrolled to the bottom
                     self.$('textarea').get(0).addEventListener('autosize:resized', _.bind(self.scrollBottom, self));
+
+                    // If the window size changes, scroll to the bottom. This helps with on-screen keyboards
+                    // hiding the bottom content.
+                    //
+                    // Need to delay a bit on IOS, for some reason.
+                    window.addEventListener('resize',  _.bind(function() {
+                        this.scrollBottom();
+                    }, self));
 
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
 
