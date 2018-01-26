@@ -203,17 +203,23 @@ define([
                     };
 
                     // Add eBay search results.
-                    console.log("Consider add ebay", mylocation);
-                    if (mylocation) {
-                        var v = new Iznik.Views.User.Pages.Find.eBayAds({
-                            term: self.options.search,
-                            postcode: mylocation.name
-                        });
+                    //
+                    // Turns out this yields peanuts.
+                    //
+                    // if (mylocation) {
+                    //     var v = new Iznik.Views.User.Pages.Find.eBayAds({
+                    //         term: self.options.search,
+                    //         postcode: mylocation.name
+                    //     });
+                    //
+                    //     v.render().then(function() {
+                    //         $('#js-rightsidebar').html(v.$el);
+                    //     });
+                    // }
 
-                        v.render().then(function() {
-                            $('#js-rightsidebar').html(v.$el);
-                        });
-                    }
+                    var ad = new Iznik.View.GoogleAd();
+                    ad.render();
+                    $('#js-rightsidebar').html(ad.el);
                 } else {
                     // We've not searched yet.
                     var mygroups = Iznik.Session.get('groups');

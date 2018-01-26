@@ -1107,7 +1107,7 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
 
 /* Chat */
 .chat-list-holder {
-    height: calc(100vh - 60px);
+    height: calc(100vh - 200px);
     overflow-y: scroll;
 }
 
@@ -1124,25 +1124,37 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding: 5px;
 }
 
+.chat-page-header {
+    order: 1;
+}
+
+.chat-page-warning {
+    order: 2;
+    justify-content: flex-start;
+}
+
+.chat-page-footer {
+    order: 4;
+    justify-content: flex-end;
+}
+
 .chat-footer {
     position: absolute;
     bottom: 0px;
     width: 100%;
 }
 
-.chat-footer .btn {
-    max-height: 34px !important;
-}
-
-.flexbot {
-    /*display: flex;*/
-    flex: 1 0 auto;
+.chat-page-pane {
+    height: calc(100vh - 60px);
+    overflow-x: hidden;
+    overflow-y: hidden;
+    display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-.chat-page-pane {
-    /*height: calc(100vh - 65px);*/
+.chat-footer .btn {
+    max-height: 34px !important;
 }
 
 .chat-page-content {
@@ -1150,6 +1162,9 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     overflow-x: hidden;
     overflow-y: scroll;
     background-color: #f3f0da;
+    order: 3;
+    justify-content: flex-start;
+    flex-grow: 1;
 }
 
 /*.chat-page-footer {*/
