@@ -212,8 +212,8 @@ define([
                     $('#bodyContent').html(template(tpl));
                     $('.js-pageContent').html(self.$el);
 
-                    if (self.modtools) {
-                        // ModTools has ads on all pages.
+                    if (self.modtools && !self.noGoogleAds) {
+                        // ModTools has ads on most pages.
                         self.adSense($);
                     }
 

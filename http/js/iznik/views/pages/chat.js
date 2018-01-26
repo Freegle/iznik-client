@@ -27,6 +27,8 @@ define([
 
         filter: null,
 
+        noGoogleAds: true,
+
         searchKey: function (e) {
             var self = this;
             self.filter = $(e.target).val();
@@ -322,8 +324,6 @@ define([
 
         className: 'chat-page-pane bordleft bordright',
 
-        maxAdjustDelay: 300,
-        currentAdjustDelay: 10,
         shownAddress: false,
 
         events: {
@@ -866,43 +866,6 @@ define([
             });
         },
 
-        adjust: function() {
-            var self = this;
-            self.adjustTimerRunning = false;
-
-            if (self.inDOM()) {
-                var windowInnerHeight = $(window).innerHeight();
-                var bodyMargin = parseInt($('body').css('margin-top').replace('px', ''));
-                var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
-                var chatHeaderHeight = self.$('.js-chatheader').is(':visible') ? self.$('.js-chatheader').outerHeight() : 0;
-                var footerHeight = self.$('.js-chatfooter').outerHeight();
-                var chatSearchHolderHeight = self.$('.js-chatsearchholder').is(':visible') ? self.$('.js-chatsearchholder').outerHeight() : 0;
-
-                var height = windowInnerHeight - bodyMargin - chatWarningHeight - chatSearchHolderHeight - chatHeaderHeight - footerHeight;
-                var str = "Heights " + height + " " + windowInnerHeight + " " + bodyMargin + " " + chatSearchHolderHeight + " " + chatWarningHeight + " " + chatHeaderHeight + " " + footerHeight;
-                var currHeight = self.$('.js-scroll').css('height').replace('px', '');
-
-                // Don't adjust 1px differences immediately - leads to jittering.
-                if (currHeight != height && (self.currentAdjustDelay > 10 || Math.abs(currHeight - height) > 1)) {
-                    self.$('.js-scroll').css('height', height + 'px');
-                    self.currentAdjustDelay = 10;
-                    // console.log(str);
-                } else {
-                    self.currentAdjustDelay *= 2;
-                    self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
-                }
-
-                // self.$('.js-message').val(str);
-
-                if (!self.adjustTimerRunning) {
-                    self.adjustTimerRunning = true;
-                    _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
-                }
-            } else {
-                console.log("Not in DOM");
-            }
-        },
-
         rendered: false,
 
         render: function () {
@@ -1008,9 +971,8 @@ define([
                     // Input text autosize
                     autosize(self.$('textarea'));
 
-                    self.waitDOM(self, function() {
-                        self.adjust();
-                    });
+                    // If the text area grows, make sure we're scrolled to the bottom
+                    self.$('textarea').get(0).addEventListener('autosize:resized', _.bind(self.scrollBottom, self));
 
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
 
