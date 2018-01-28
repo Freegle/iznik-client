@@ -422,7 +422,7 @@ nav .nav-tabs>li {
 }
 
 .padleft {
-    padding-left: 10px;
+    padding-left: 10px !important;
 }
 
 .padleftonlysm {
@@ -446,6 +446,10 @@ nav .nav-tabs>li {
 
 .padrightlg {
     padding-right: 20px;
+}
+
+.padrightxl {
+    padding-right: 30px;
 }
 
 .searchhighlight {
@@ -1131,6 +1135,16 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     width: 100%;
 }
 
+.chat-page-search {
+    order: 1;
+}
+
+.chat-page-list {
+    order: 2;
+    flex-grow: 1;
+    justify-content: flex-start;
+}
+
 .chat-page-pane {
     /*
         Use position fixed to ensure that the vh calculation reflects the URL bar as per
@@ -1145,6 +1159,60 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     flex-direction: column;
     justify-content: space-between;
 }
+
+/* fix iOS bug not displaying 100vh correctly */
+/* ipad */
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : landscape) {
+    .fullheight {
+        height: 768px;
+    }
+    .chat-page-footer {
+        margin-bottom: 80px;
+    }
+}
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : portrait) {
+    .fullheight {
+        height: 1024px;
+    }
+    .chat-page-footer {
+        margin-bottom: 80px;
+    }
+}
+/* iphone5 */
+@media only screen and (min-device-width: 320px) and (max-device-height: 568px) and (orientation : landscape) and (-webkit-device-pixel-ratio: 2) {
+    .fullheight {
+        height: 320px;
+    }
+    .chat-page-footer {
+        margin-bottom: 80px;
+    }
+}
+@media only screen and (min-device-width: 320px) and (max-device-height: 568px) and (orientation : portrait) and (-webkit-device-pixel-ratio: 2) {
+    .fullheight {
+        height: 568px;
+    }
+    .chat-page-footer {
+        margin-bottom: 80px;
+    }
+}
+/* iPhone 4 */
+/* Don't do this as also catches Samsung S8+ where we don't want it, and iPhone 4 is pretty old now. */
+/*@media only screen and (min-device-width : 320px) and (max-device-width : 480px) and (orientation : landscape) and (-webkit-min-device-pixel-ratio : 2) {*/
+    /*.fullheight {*/
+        /*height: 320px;*/
+    /*}*/
+    /*.chat-page-footer {*/
+        /*margin-bottom: 80px;*/
+    /*}*/
+/*}*/
+/*@media only screen and (min-device-width : 320px) and (max-device-width : 480px) and (orientation : portrait) and (-webkit-min-device-pixel-ratio : 2) {*/
+    /*.fullheight {*/
+        /*height: 480px;*/
+    /*}*/
+    /*.chat-page-footer {*/
+        /*margin-bottom: 80px;*/
+    /*}*/
+/*}*/
 
 .chat-footer .btn {
     max-height: 34px !important;

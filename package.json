@@ -92,6 +92,7 @@
     "typeahead.js": "^0.11.1",
     "underscore": "^1.8.3",
     "url-loader": "^0.6.2",
+    "viewport-units-buggyfill": "^0.6.2",
     "visible": "^0.3.5",
     "waypoints": "^4.0.1",
     "webpack-dev-server": "^2.9.7",

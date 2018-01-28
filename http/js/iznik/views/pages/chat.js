@@ -3,6 +3,7 @@ import 'bootstrap-fileinput';
 var tpl = require('iznik/templateloader');
 var template = tpl.template;
 var templateFetch = tpl.templateFetch;
+var viewportUnitsBuggyfill = require('viewport-units-buggyfill');
 
 define([
     'jquery',
@@ -168,6 +169,10 @@ define([
 
                 templateFetch('chat_page_list').then(function() {
                     $(self.listContainer).html(template('chat_page_list'));
+
+                    // This is a bit of a hack for ModTools
+                    $(self.listContainer).find('.chat-page-pane').addClass(self.modtools ? 'col-lg-2' : ' col-lg-3');
+
                     $(self.listContainer).addClass('chat-list-holder');
 
                     // Now set up a collection view to list the chats.  First one is for the left sidebar, which
@@ -322,7 +327,7 @@ define([
     Iznik.Views.Chat.Page.Pane = Iznik.View.extend({
         template: 'chat_page_pane',
 
-        className: 'chat-page-pane bordleft bordright',
+        className: 'chat-page-pane bordleft bordright col-xs-12 col-sm-12 col-md-6 nopad',
 
         shownAddress: false,
 
@@ -693,6 +698,11 @@ define([
             self.model.allseen();
 
             this.updateCount();
+
+            // On IOS we can't tell when the onscreen keyboard has opened, so we might lose the latest message.
+            // This prevents that; it does mean that if the latest isn't the one they want, then that's unfortunate
+            // but that's less likely.
+            self.scrollBottom();
         },
 
         messageFocus: function() {
@@ -948,6 +958,9 @@ define([
 
                     v.close();
                     self.scrollBottom();
+
+                    // Try to ensure that the viewport units all work ok.
+                    viewportUnitsBuggyfill.init({force: true});
                 });
 
                 // Show any warning for a while.

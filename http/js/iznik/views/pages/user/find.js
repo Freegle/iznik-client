@@ -206,9 +206,11 @@ define([
                     //     });
                     // }
 
-                    var ad = new Iznik.View.GoogleAd();
-                    ad.render();
-                    $('#js-rightsidebar').html(ad.el);
+                    if (!self.noGoogleAds) {
+                        var ad = new Iznik.View.GoogleAd();
+                        ad.render();
+                        $('#js-rightsidebar').html(ad.el);
+                    }
                 } else {
                     // We've not searched yet.
                     var mygroups = Iznik.Session.get('groups');
