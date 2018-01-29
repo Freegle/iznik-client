@@ -986,8 +986,8 @@ define([
 
                     if (!Iznik.isMobile()) {
                         // Input text autosize.  We don't do this on mobile because it breaks function where the
-                        // soft keyboard pops up and tends to hide the input (because it doesn't recognise our
-                        // textarea, because that's hidden).
+                        // soft keyboard pops up and tends to hide the input.  See
+                        // https://github.com/jackmoore/autosize/issues/343
                         autosize(self.$('textarea'));
 
                         // If the text area grows, make sure we're scrolled to the bottom
