@@ -984,19 +984,15 @@ define([
                 if (!self.rendered) {
                     self.rendered = true;
 
-                    // Input text autosize
-                    autosize(self.$('textarea'));
+                    if (!Iznik.isMobile()) {
+                        // Input text autosize.  We don't do this on mobile because it breaks function where the
+                        // soft keyboard pops up and tends to hide the input (because it doesn't recognise our
+                        // textarea, because that's hidden).
+                        autosize(self.$('textarea'));
 
-                    // If the text area grows, make sure we're scrolled to the bottom
-                    self.$('textarea').get(0).addEventListener('autosize:resized', _.bind(self.scrollBottom, self));
-
-                    // If the window size changes, scroll to the bottom. This helps with on-screen keyboards
-                    // hiding the bottom content.
-                    //
-                    // Need to delay a bit on IOS, for some reason.
-                    window.addEventListener('resize',  _.bind(function() {
-                        this.scrollBottom();
-                    }, self));
+                        // If the text area grows, make sure we're scrolled to the bottom
+                        self.$('textarea').get(0).addEventListener('autosize:resized', _.bind(self.scrollBottom, self));
+                    }
 
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
 
