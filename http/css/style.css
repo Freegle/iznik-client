@@ -1160,6 +1160,25 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     justify-content: space-between;
 }
 
+/* fix iOS bug not displaying 100vh correctly */
+/* ipad */
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : landscape) {
+    .fullheight {
+        height: 768px;
+    }
+    .chat-page-footer {
+        margin-bottom: 80px;
+    }
+}
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : portrait) {
+    .fullheight {
+        height: 1024px;
+    }
+    .chat-page-footer {
+        margin-bottom: 80px;
+    }
+}
+
 .chat-footer .btn {
     max-height: 34px !important;
 }
