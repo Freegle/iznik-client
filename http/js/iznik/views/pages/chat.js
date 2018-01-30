@@ -171,7 +171,7 @@ define([
                     $(self.listContainer).html(template('chat_page_list'));
 
                     // This is a bit of a hack for ModTools
-                    $(self.listContainer).find('.chat-page-pane').addClass(self.modtools ? 'col-lg-2' : ' col-lg-3');
+                    $(self.listContainer).find('.chat-page-pane').addClass(self.modtools ? 'col-md-2 col-lg-2' : 'col-md-3 col-lg-3');
 
                     $(self.listContainer).addClass('chat-list-holder');
 
