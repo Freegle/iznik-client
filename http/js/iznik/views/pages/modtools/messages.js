@@ -836,9 +836,18 @@ define([
                 id: this.model.get('id')
             });
 
-            m.fetch().then(function () {
+            var data = {};
+
+            if (self.options.chat) {
+              data.collection = 'Chat'
+            }
+
+            m.fetch({
+              data: data
+            }).then(function () {
                 self.$('.js-source').text(m.get('message'));
             });
+
             return (this);
         }
     });

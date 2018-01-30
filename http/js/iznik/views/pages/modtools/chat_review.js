@@ -132,7 +132,8 @@ define([
             var v = new Iznik.Views.ModTools.Message.ViewSource({
                 model: new Iznik.Models.Message({
                     id: self.model.get('msgid')
-                })
+                }),
+                chat: true
             });
 
             v.render();
