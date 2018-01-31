@@ -184,7 +184,6 @@ define([
                         showmods: true
                     }
                 }).then(function () {
-                    console.log("Refetched", self.model.attributes);
                     var showmods = self.model.get('showmods');
 
                     if (showmods) {

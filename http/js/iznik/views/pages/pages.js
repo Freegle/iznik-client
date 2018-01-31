@@ -210,6 +210,20 @@ define([
             var p = new Promise(function(resolve, reject) {
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
                     $('#bodyContent').html(template(tpl));
+
+                    if (!self.modtools) {
+                        // We might have a logo override for a specific date.
+                        $.ajax({
+                            url: API + 'logo',
+                            type: 'GET',
+                            success: function (ret) {
+                                if (ret.ret == 0 && ret.hasOwnProperty('logo')) {
+                                    $('#js-homelogo').attr('src', ret.logo.path);
+                                }
+                            }
+                        });
+                    }
+
                     $('.js-pageContent').html(self.$el);
 
                     if (self.modtools && !self.noGoogleAds) {
