@@ -57,6 +57,9 @@ define([
                             }
 
                             if (Iznik.Session.isFreegleMod() &&
+                                ret.dashboard.hasOwnProperty('Happy') &&
+                                ret.dashboard.hasOwnProperty('Unhappy') &&
+                                ret.dashboard.hasOwnProperty('Fine') &&
                                 (ret.dashboard.Happy.length + ret.dashboard.Unhappy.length + ret.dashboard.Fine.length > 0)) {
                                 self.$('.js-freegleonly').show();
                                 var happy = new Iznik.Collections.DateCounts(ret.dashboard.Happy);
