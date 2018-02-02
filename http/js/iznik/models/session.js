@@ -224,10 +224,8 @@ define([
                     },
                     success: function (ret) {
                         if (ret.ret == 111) {
-                            // Down for maintenance.  It's possible that this isn't intentional, but is a cluster
-                            // error - so go to a page which always exists rather than the one we use to trigger
-                            // maintenance (maintenance_on).
-                            window.location = '/maintenance_api.html';
+                            // Down for maintenance.
+                            window.location = '/maintenance.html';
                         } else if ((ret.ret == 0)) {
                             // Save off the returned session information into local storage.
                             var now = (new Date()).getTime();
