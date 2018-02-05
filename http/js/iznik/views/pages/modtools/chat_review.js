@@ -93,7 +93,9 @@ define([
             'click .js-viewmsgsource': 'viewMsgSource',
             'click .js-view': 'view',
             'click .js-addcommentfrom': 'addCommentFrom',
-            'click .js-addcommentto': 'addCommentTo'
+            'click .js-addcommentto': 'addCommentTo',
+            'click .js-hold': 'hold',
+            'click .js-release': 'release'
         },
 
         addCommentFrom: function () {
@@ -147,34 +149,16 @@ define([
 
         approve: function() {
             var self = this;
-            $.ajax({
-                url: API + 'chatmessages',
-                type: 'POST',
-                data: {
-                    id: self.model.get('id'),
-                    action: 'Approve'
-                }, success: function(ret) {
-                    if (ret.ret === 0) {
-                        self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
-                    }
-                }
-            })
+            self.model.approve().then(function() {
+                self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
+            });
         },
 
         deleteMe: function() {
             var self = this;
-            $.ajax({
-                url: API + 'chatmessages',
-                type: 'POST',
-                data: {
-                    id: self.model.get('id'),
-                    action: 'Reject'
-                }, success: function(ret) {
-                    if (ret.ret === 0) {
-                        self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
-                    }
-                }
-            })
+            self.model.reject().then(function() {
+                self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
+            });
         },
 
         view: function() {
@@ -191,6 +175,45 @@ define([
 
                 v.render();
             });
+        },
+
+        showheld: function() {
+            var self = this;
+
+            if (self.model.get('held')) {
+                self.$('.js-heldenable').show();
+                self.$('.js-helddisable').hide();
+            } else {
+                self.$('.js-heldenable').hide();
+                self.$('.js-helddisable').show();
+            }
+        },
+
+        hold: function() {
+            var self = this;
+            self.model.hold().then(function() {
+                self.model.set('held', true);
+                self.showheld();
+            });
+        },
+
+        release: function() {
+            var self = this;
+            self.model.release().then(function() {
+                self.model.set('held', null);
+                self.showheld();
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.Timeago.prototype.render.call(this)
+            p.then(function (self) {
+                self.showheld();
+            });
+
+            return(p);
         }
     });
 

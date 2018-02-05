@@ -504,6 +504,50 @@ define([
             return(API + 'chat/rooms/' + this.get('roomid') + '/messages')
         },
 
+        approve: function() {
+            return($.ajax({
+                url: API + 'chatmessages',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Approve'
+                }
+            }));
+        },
+
+        reject: function() {
+            return ($.ajax({
+                url: API + 'chatmessages',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Reject'
+                }
+            }))
+        },
+
+        hold: function() {
+            return($.ajax({
+                url: API + 'chatmessages',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Hold'
+                }
+            }));
+        },
+
+        release: function() {
+            return($.ajax({
+                url: API + 'chatmessages',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Release'
+                }
+            }));
+        },
+
         parse: function (ret) {
             // We might either be called from a collection, where the message is at the top level, or
             // from getting an individual message, where it's not.
