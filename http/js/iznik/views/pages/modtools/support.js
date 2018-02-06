@@ -725,6 +725,13 @@ define([
             var p = Iznik.View.prototype.render.call(this);
             p.then(function() {
                 self.$('.js-role').val(self.model.get('role'));
+                self.$('.js-email').html(self.model.get('email'));
+
+                _.each(self.model.get('emails'), function(email) {
+                    if (email.preferred) {
+                        self.$('.js-email').html(email.email);
+                    }
+                })
 
                 if (!Iznik.Session.isAdmin()) {
                     self.$('.js-role').prop('disabled', true);
