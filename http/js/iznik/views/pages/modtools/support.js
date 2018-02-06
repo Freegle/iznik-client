@@ -696,6 +696,45 @@ define([
         }
     });
 
+    Iznik.Views.ModTools.Pages.Support.Mod = Iznik.View.extend({
+        template: 'modtools_support_mod',
+
+        events: {
+            'change .js-role': 'changeRole'
+        },
+
+        changeRole: function () {
+            var self = this;
+
+            var data = {
+                userid: self.model.get('userid'),
+                groupid: self.model.get('groupid'),
+                role: self.$('.js-role').val()
+            }
+
+            $.ajax({
+                url: API + 'memberships',
+                type: 'PATCH',
+                data: data
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function() {
+                self.$('.js-role').val(self.model.get('role'));
+
+                if (!Iznik.Session.isAdmin()) {
+                    self.$('.js-role').prop('disabled', true);
+                }
+            });
+
+            return(p);
+        }
+    });
+
     Iznik.Views.ModTools.Pages.Support.Group = Iznik.View.extend({
         template: 'modtools_support_group',
 
@@ -720,7 +759,7 @@ define([
                 }).then(function() {
                     self.collectionView = new Backbone.CollectionView({
                         el: self.$('.js-mods'),
-                        modelView: Iznik.Views.ModTools.Member.Approved,
+                        modelView: Iznik.Views.ModTools.Pages.Support.Mod,
                         modelViewOptions: {
                             collection: coll,
                             page: self
@@ -736,6 +775,8 @@ define([
             return(p);
         }
     });
+
+
 
     Iznik.Views.ModTools.Alert = Iznik.View.extend({
         tagName: 'li',
