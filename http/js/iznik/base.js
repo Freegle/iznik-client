@@ -954,7 +954,9 @@ define([
                     // Wait for DOM otherwise we might get an exception because we trigger the ad too soon.
                     self.waitDOM(self, function() {
                         try {
-                            window.adsbygoogle.push({});
+                            window.adsbygoogle.push({
+                                google_ad_client: ADSENSE_CLIENT
+                            });
                         } catch (e) {}
                     });
                 });
