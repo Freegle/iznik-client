@@ -123,7 +123,7 @@ define([
         fblogin: function () {
             console.log("signinup.fblogin");
             var self = this;
-            console.log("FB Login", FB);
+            // CC: FB causes iOS exception: console.log("FB Login", FB);
 
             var FBLoad = new Iznik.Views.FBLoad();
             FBLoad.signin();

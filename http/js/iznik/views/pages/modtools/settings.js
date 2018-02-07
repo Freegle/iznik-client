@@ -315,6 +315,8 @@ define([
                             });
                         }
 
+                        var role = self.group.get('myrole');
+
                         self.groupFields = [
                             {
                                 name: 'region',
@@ -347,7 +349,8 @@ define([
                                 label: 'Hosted on Yahoo?',
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
-                                helpMessage: '(Freegle only) If Yes, this group exists on Yahoo Groups too.  If No, this group is only hosted here.'
+                                helpMessage: '(Freegle only) If Yes, this group exists on Yahoo Groups too.  If No, this group is only hosted here.',
+                                disabled: role != 'Owner' && !Iznik.Session.isAdminOrSupport()
                             },
                             {
                                 name: 'communityevents',
@@ -743,6 +746,8 @@ define([
         },
     
         addStdMsg: function() {
+            var self = this;
+
             // Having no id in the model means we will do a POST when we save it, and therefore create it on the server.
             var model = new Iznik.Models.ModConfig.StdMessage({
                 configid: self.$('.js-configselect').val()
@@ -758,7 +763,9 @@ define([
         },
     
         addBulkOp: function() {
-            // Having no id in the model means we will do a POST when we save it, and therefore create it on the server.
+          var self = this;
+
+          // Having no id in the model means we will do a POST when we save it, and therefore create it on the server.
             var model = new Iznik.Models.ModConfig.BulkOp({
                 configid: self.$('.js-configselect').val()
             });

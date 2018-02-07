@@ -10,6 +10,8 @@ Raven.config(RAVEN_ID, {
 */
 import 'persist-js';
 
+require('viewport-units-buggyfill').init();
+
 try {
     global.Storage = new Persist.Store("Iznik");
 } catch (e) {
@@ -26,8 +28,7 @@ import "bootstrap-select.min.css";
 import "bootstrap-switch.min.css";
 import "bootstrap-dropmenu.min.css";
 import "bootstrap-notifications.min.css";
-import "datepicker3.css";
-import "bootstrap-datepicker/dist/css/bootstrap-datepicker.css";
+import "bootstrap-datepicker/dist/css/bootstrap-datepicker3.css";
 import "dd.css";
 import "bootstrap-fileinput/css/fileinput.css";
 

@@ -233,12 +233,26 @@ define([
                 //console.log("pages self.modtools:" + self.modtools);
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
                     $('#bodyContent').html(template(tpl));
+
+                    if (!self.modtools) {
+                        // We might have a logo override for a specific date.
+                        $.ajax({
+                            url: API + 'logo',
+                            type: 'GET',
+                            success: function (ret) {
+                                if (ret.ret == 0 && ret.hasOwnProperty('logo')) {
+                                    $('#js-homelogo').attr('src', ret.logo.path);
+                                }
+                            }
+                        });
+                    }
+
                     $('.js-pageContent').html(self.$el);
 
                     if (!window.useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
                     window.showNetworkStatus(); // CC
-                    if (self.modtools) {
-                        // ModTools has ads on all pages.
+                    if (self.modtools && !self.noGoogleAds) {
+                        // ModTools has ads on most pages.
                         self.adSense($);
                     }
 
@@ -869,11 +883,17 @@ define([
             var now = (new Date()).getTime();
 
             var p = Iznik.resolvedPromise(self);
+            var month = (new Date()).getMonth();
 
-            if (now - lastask > 7 * 24 * 60 * 60 * 1000) {
-                Storage.set('lastaffiliationask', now);
-                p = Iznik.Views.Modal.prototype.render.call(self);
+            // Ask in October, November, December
+            if (month >= 9) {
+                // ...not too frequently.
+                if (now - lastask > 7 * 24 * 60 * 60 * 1000) {
+                    Storage.set('lastaffiliationask', now);
+                    p = Iznik.Views.Modal.prototype.render.call(self);
+                }
             }
+
 
             return(p);
         }

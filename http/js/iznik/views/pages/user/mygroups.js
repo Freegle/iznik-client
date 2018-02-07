@@ -184,7 +184,6 @@ define([
                         showmods: true
                     }
                 }).then(function () {
-                    console.log("Refetched", self.model.attributes);
                     var showmods = self.model.get('showmods');
 
                     if (showmods) {
@@ -197,8 +196,11 @@ define([
                             processKeyEvents: false
                         });
 
+                        if (self.showmods.length > 0) {
+                            self.$('.js-modstoshow').fadeIn('slow');
+                        }
+
                         self.collectionView.render();
-                        self.$('.js-modstoshow').fadeIn('slow');
                     }
                 });
             });

@@ -67,9 +67,6 @@
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <% if (obj.image) { %>
-                    <img class="img-thumbnail pull-right clickme js-photo" title="Click to zoom" width="150" src="{{image.paththumb}}" />
-                <% } %>
                 <b class="prewrap forcebreak js-emoji js-messagethread"></b><a class="js-moremessagethread" style="display: none">See more</a>
                 <% if (obj.preview && !preview.invalid && !preview.spam) { %>
                     <div class="panel panel-default topspace clickme preview js-preview">
@@ -93,6 +90,13 @@
                 <% } %>
             </div>
         </div>
+        <% if (obj.image) { %>
+        <div class="row">
+            <div class="col-xs-12">
+                <img class="img-thumbnail img-responsive clickme js-photo" title="Click to zoom" src="{{image.paththumb}}" />
+            </div>
+        </div>
+        <% } %>
         <div class="row">
             <div class="col-xs-12">
                 <hr class="text-muted nomargin botspace" />

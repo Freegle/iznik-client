@@ -1,13 +1,38 @@
 <div class="panel panel-default">
     <div class="panel-heading">
-        <div class="row">
-            <div class="panel-title">
+        <div class="panel-title">
+            <div class="row">
                 <h4 class="padleft">
-                    {{fromuser.displayname}} <span class="small text-muted">#{{fromuser.id}}</span> => {{touser.displayname}} <span class="small text-muted">#{{touser.id}}</span> <span class="text-muted">member of</span> {{group.nameshort}}
-                    <div class="pull-right small text-muted padright">#{{id}}</div>
+                    <div class="col-xs-3">
+                        {{fromuser.displayname}} <span class="small text-muted"><br />
+                        #{{fromuser.id}}</span><br />
+                        <div class="btn btn-xs btn-white topspace js-addcommentfrom">
+                            <div class="glyphicon glyphicon-tag" />&nbsp;Add Note
+                        </div>
+                    </div>
+                    <div class="col-xs-1">
+                        =>
+                    </div>
+                    <div class="col-xs-3">
+                        {{touser.displayname}} <span class="small text-muted"><br />
+                        #{{touser.id}}</span><br />
+                        <div class="btn btn-xs btn-white topspace js-addcommentto">
+                            <div class="glyphicon glyphicon-tag" />&nbsp;Add Note
+                        </div>
+                        <br />
+                        <span class="text-muted small">member of {{group.nameshort}}</span>
+                    </div>
+                    <div class="col-xs-5">
+                        <div class="pull-right small text-muted padright">#{{id}}</div>
+                    </div>
                 </h4>
-                <div class="padleft"><% if (obj.spamscore) { %>Spam score {{spamscore}} <% } %><abbr class="small margleft timeago faded" title="{{date}}" >{{timeago(date)}}</abbr>
             </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="padleft"><% if (obj.spamscore) { %>Spam score {{spamscore}} <% } %><abbr class="small margleft timeago faded" title="{{date}}" >{{timeago(date)}}</abbr>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
     <div class="panel-body">
@@ -25,22 +50,33 @@
             <pre class="js-message"><%-message%></pre>
             <% } %>
         </div>
+        <% if (obj.held) { %>
+        <div class="alert alert-warning js-helddisable">
+            Held by {{held.name}}
+        </div>
+        <% } %>
         <div class="clearfix"></div>
         <div class="panel-footer">
             <button type="button" class="btn btn-white js-view">
                 <span class="glyphicon glyphicon-comment" />&nbsp;View Conversation</span>
             </button>
-            <button type="button" class="btn btn-info js-modnote">
+            <button type="button" class="btn btn-info js-modnote js-helddisable" style="display: none">
                 <span class="glyphicon glyphicon-warning-sign" />&nbsp;Add Mod Message</span>
             </button>
-            <button type="button" class="btn btn-success js-approve">
+            <button type="button" class="btn btn-success js-approve js-helddisable" style="display: none">
                 <span class="glyphicon glyphicon-ok" />&nbsp;Not Spam
             </button>
-            <button type="button" class="btn btn-warning js-delete">
+            <button type="button" class="btn btn-warning js-hold js-helddisable" style="display: none">
+                <span class="glyphicon glyphicon-pause" />&nbsp;Hold
+            </button>
+            <button type="button" class="btn btn-warning js-delete js-helddisable" style="display: none">
                 <span class="glyphicon glyphicon-trash" />&nbsp;Delete
             </button>
-            <button type="button" class="btn btn-danger js-delete">
+            <button type="button" class="btn btn-danger js-delete js-helddisable" style="display: none">
                 <span class="glyphicon glyphicon-remove-sign" />&nbsp;Spam
+            </button>
+            <button type="button" class="btn btn-warning js-release js-heldenable" style="display: none">
+                <span class="glyphicon glyphicon-play" />&nbsp;Release
             </button>
         </div>
     </div>

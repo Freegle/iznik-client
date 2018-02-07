@@ -26,8 +26,13 @@ define([
         },
 
         ttHide: function() {
+            var self = this;
+
             if (this.pctooltip) {
-                this.$('.js-postcode').tooltip('destroy');
+                var field = self.$('.js-postcode');
+                if (field.data && field.data('bs.tooltip')) {
+                    self.$('.js-postcode').tooltip('destroy');
+                }
                 this.pctooltip = false;
             }
         },

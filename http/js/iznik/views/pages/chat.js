@@ -3,6 +3,7 @@ import 'bootstrap-fileinput';
 var tpl = require('iznik/templateloader');
 var template = tpl.template;
 var templateFetch = tpl.templateFetch;
+var viewportUnitsBuggyfill = require('viewport-units-buggyfill');
 
 define([
     'jquery',
@@ -26,6 +27,8 @@ define([
         noEmailOk: true,
 
         filter: null,
+
+        noGoogleAds: true,
 
         searchKey: function (e) {
             var self = this;
@@ -166,6 +169,10 @@ define([
 
                 templateFetch('chat_page_list').then(function() {
                     $(self.listContainer).html(template('chat_page_list'));
+
+                    // This is a bit of a hack for ModTools
+                    $(self.listContainer).find('.chat-page-pane').addClass(self.modtools ? 'col-md-2 col-lg-2' : 'col-md-3 col-lg-3');
+
                     $(self.listContainer).addClass('chat-list-holder');
 
                     // Now set up a collection view to list the chats.  First one is for the left sidebar, which
@@ -219,6 +226,11 @@ define([
                     $('.js-search').on('keyup', _.bind(self.searchKey, self));
                     $('.js-allseen').on('click', _.bind(self.allseen, self));
                 });
+
+                // Right sidebar is ads.
+                var ad = new Iznik.View.GoogleAd();
+                ad.render();
+                $('#js-rightsidebar').html(ad.el);
             });
 
             return (p);
@@ -283,8 +295,17 @@ define([
             self.model.set('modtools', self.options.modtools);
             // console.log("Render chat", self.model.get('id'), self.model.get('icon'), self.model.attributes, self.chats);
 
+            // Unescape emojis - might be in snippet.
+            var snippet = self.model.get('snippet');
+            snippet = Iznik.twem(snippet);
+            self.model.set('snippet', snippet);
+
             var p = Iznik.View.Timeago.prototype.render.call(this);
-            p.then(function (self) {
+            p.then(function () {
+                self.waitDOM(self, function() {
+                    twemoji.parse(this.el);
+                });
+
                 self.updateCount();
 
                 // If the unread message count changes, we want to update it.
@@ -306,10 +327,8 @@ define([
     Iznik.Views.Chat.Page.Pane = Iznik.View.extend({
         template: 'chat_page_pane',
 
-        className: 'chat-page-pane bordleft bordright',
+        className: 'chat-page-pane bordleft bordright col-xs-12 col-sm-12 col-md-6 nopad',
 
-        maxAdjustDelay: 300,
-        currentAdjustDelay: 10,
         shownAddress: false,
 
         events: {
@@ -505,7 +524,7 @@ define([
             // TODO Allow this by recording the origin of the message as being on the platform.
             message = message.replace('>', '');
 
-            if (message.length > 0) {
+            if (message.trim().length > 0) {
                 // We get called back when the message has actually been sent to the server.
                 self.listenToOnce(this.model, 'sent', function () {
                     self.getLatestMessages();
@@ -680,6 +699,11 @@ define([
             self.model.allseen();
 
             this.updateCount();
+
+            // On IOS we can't tell when the onscreen keyboard has opened, so we might lose the latest message.
+            // This prevents that; it does mean that if the latest isn't the one they want, then that's unfortunate
+            // but that's less likely.
+            self.scrollBottom();
         },
 
         messageFocus: function() {
@@ -705,36 +729,39 @@ define([
         scrollBottom: function () {
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
             var self = this;
-            var scroll = self.$('.js-scroll');
-            // console.log("Scrollbottom", scroll);
 
-            if (scroll.length > 0) {
-                var height = scroll[0].scrollHeight;
+            if (self.inDOM()) {
+                var scroll = self.$('.js-scroll');
 
-                if (self.scrollTimer && self.scrollTo < height) {
-                    // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
-                    // in doing that.
-                    // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
-                    clearTimeout(self.scrollTimer);
-                    self.scrollTimer = null;
-                    self.scrollToStopAt = null;
-                }
+                if (scroll.length > 0) {
+                    var height = scroll[0].scrollHeight;
+                    // console.log("Scroll", height, scroll.scrollTop(), scroll);
 
-                // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
-                // finished rendering yet.
-                scroll.scrollTop(height);
+                    if (self.scrollTimer && self.scrollTo < height) {
+                        // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
+                        // in doing that.
+                        // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
+                        clearTimeout(self.scrollTimer);
+                        self.scrollTimer = null;
+                        self.scrollToStopAt = null;
+                    }
 
-                self.scrollTo = height;
-
-                if (!self.scrolledToBottomOnce) {
                     // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
                     // finished rendering yet.
-                    self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : ((new Date()).getTime() + 5000);
+                    scroll.scrollTop(height);
 
-                    if ((new Date()).getTime() < self.scrollToStopAt) {
-                        self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
-                    } else {
-                        self.scrolledToBottomOnce = true;
+                    self.scrollTo = height;
+
+                    if (!self.scrolledToBottomOnce) {
+                        // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
+                        // finished rendering yet.
+                        self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : ((new Date()).getTime() + 5000);
+
+                        if ((new Date()).getTime() < self.scrollToStopAt) {
+                            self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
+                        } else {
+                            self.scrolledToBottomOnce = true;
+                        }
                     }
                 }
             }
@@ -855,43 +882,6 @@ define([
             });
         },
 
-        adjust: function() {
-            var self = this;
-            self.adjustTimerRunning = false;
-
-            if (self.inDOM()) {
-                var windowInnerHeight = $(window).innerHeight();
-                var bodyMargin = parseInt($('body').css('margin-top').replace('px', ''));
-                var chatWarningHeight = (self.$('.js-chatwarning') && self.$('.js-chatwarning').is(':visible')) ? self.$('.js-chatwarning').outerHeight() : 0;
-                var chatHeaderHeight = self.$('.js-chatheader').is(':visible') ? self.$('.js-chatheader').outerHeight() : 0;
-                var footerHeight = self.$('.js-chatfooter').outerHeight();
-                var chatSearchHolderHeight = self.$('.js-chatsearchholder').is(':visible') ? self.$('.js-chatsearchholder').outerHeight() : 0;
-
-                var height = windowInnerHeight - bodyMargin - chatWarningHeight - chatSearchHolderHeight - chatHeaderHeight - footerHeight;
-                var str = "Heights " + height + " " + windowInnerHeight + " " + bodyMargin + " " + chatSearchHolderHeight + " " + chatWarningHeight + " " + chatHeaderHeight + " " + footerHeight;
-                var currHeight = self.$('.js-scroll').css('height').replace('px', '');
-
-                // Don't adjust 1px differences immediately - leads to jittering.
-                if (currHeight != height && (self.currentAdjustDelay > 10 || Math.abs(currHeight - height) > 1)) {
-                    self.$('.js-scroll').css('height', height + 'px');
-                    self.currentAdjustDelay = 10;
-                    // console.log(str);
-                } else {
-                    self.currentAdjustDelay *= 2;
-                    self.currentAdjustDelay = Math.min(self.currentAdjustDelay, self.maxAdjustDelay);
-                }
-
-                // self.$('.js-message').val(str);
-
-                if (!self.adjustTimerRunning) {
-                    self.adjustTimerRunning = true;
-                    _.delay(_.bind(self.adjust, self), self.currentAdjustDelay);
-                }
-            } else {
-                console.log("Not in DOM");
-            }
-        },
-
         rendered: false,
 
         render: function () {
@@ -922,27 +912,58 @@ define([
                     // If the last message was a while ago, remind them about nudging.
                     var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
 
-                    if (age > 24 && !self.shownNudge) {
+                    if (age > 24 && !Storage.get('shownNudge')) {
                         self.$('.js-nudge').tooltip('show');
-                        self.shownNudge = true;
+
+                        // Only once though else it will get old.
+                        Storage.set('shownNudge', true);
 
                         _.delay(_.bind(function() {
                             this.$('.js-nudge').tooltip('hide');
                         }, self), 10000);
-                    }
+                    } else {
+                        // Encourage people to use the info button.
+                        if (!Storage.get('shownInfo')) {
+                            self.$('.js-tooltip.js-info').tooltip('show');
 
-                    // Encourage people to use the info button.
-                    if (!self.shownInfo && !self.shownNudge) {
-                        self.$('.js-tooltip.js-info').tooltip('show');
-                        self.shownInfo = true;
+                            // Likewise only once.
+                            Storage.set('shownInfo', true);
 
-                        _.delay(_.bind(function() {
-                            this.$('.js-tooltip.js-info').tooltip('hide');
-                        }, self), 10000);
+                            _.delay(_.bind(function () {
+                                this.$('.js-tooltip.js-info').tooltip('hide');
+                            }, self), 10000);
+                        } else {
+                            if (!Storage.get('shownPromise')) {
+                                // Tell them about the Promise button.
+                                self.$('.js-tooltip.js-promise').tooltip('show');
+
+                                // Likewise only once.
+                                Storage.set('shownPromise', true);
+
+                                _.delay(_.bind(function () {
+                                    this.$('.js-tooltip.js-promise').tooltip('hide');
+                                }, self), 10000);
+                            } else {
+                                if (!Storage.get('shownAddress')) {
+                                    // Tell them about the Address book.
+                                    self.$('.js-tooltip.js-address').tooltip('show');
+
+                                    // Likewise only once.
+                                    Storage.set('shownAddress', true);
+
+                                    _.delay(_.bind(function () {
+                                        this.$('.js-tooltip.js-address').tooltip('hide');
+                                    }, self), 10000);
+                                }
+                            }
+                        }
                     }
 
                     v.close();
                     self.scrollBottom();
+
+                    // Try to ensure that the viewport units all work ok.
+                    viewportUnitsBuggyfill.init({force: true});
                 });
 
                 // Show any warning for a while.
@@ -966,12 +987,15 @@ define([
                 if (!self.rendered) {
                     self.rendered = true;
 
-                    // Input text autosize
-                    autosize(self.$('textarea'));
+                    if (!Iznik.isMobile()) {
+                        // Input text autosize.  We don't do this on mobile because it breaks function where the
+                        // soft keyboard pops up and tends to hide the input.  See
+                        // https://github.com/jackmoore/autosize/issues/343
+                        autosize(self.$('textarea'));
 
-                    self.waitDOM(self, function() {
-                        self.adjust();
-                    });
+                        // If the text area grows, make sure we're scrolled to the bottom
+                        self.$('textarea').get(0).addEventListener('autosize:resized', _.bind(self.scrollBottom, self));
+                    }
 
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
 

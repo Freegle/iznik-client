@@ -73,7 +73,10 @@ define([
                     asyncResults(matches);
 
                     _.delay(function() {
-                        self.$('.js-postcode').tooltip('destroy');
+                        var field = self.$('.js-postcode');
+                        if (field.data && field.data('bs.tooltip')) {
+                            self.$('.js-postcode').tooltip('destroy');
+                        }
                     }, 10000);
 
                     if (matches.length == 0) {
@@ -833,9 +836,18 @@ define([
                 id: this.model.get('id')
             });
 
-            m.fetch().then(function () {
+            var data = {};
+
+            if (self.options.chat) {
+              data.collection = 'Chat'
+            }
+
+            m.fetch({
+              data: data
+            }).then(function () {
                 self.$('.js-source').text(m.get('message'));
             });
+
             return (this);
         }
     });

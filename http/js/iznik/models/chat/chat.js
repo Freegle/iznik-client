@@ -25,7 +25,7 @@ define([
                 sending = sending ? sending : [];
 
                 if (sending && sending.length) {
-                    var msg = new Iznik.Models.Chat.Message(sending.pop());
+                    var msg = new Iznik.Models.Chat.Message(sending.shift());
                     msg.save({
                         error: function() {
                             // Failed - retry later in case transient network issue.
@@ -85,6 +85,11 @@ define([
 
         send: function(message) {
             var self = this;
+
+            // Escape any emojis.
+            message = twemoji.replace(message, function(emoji) {
+                return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
+            });
 
             // Create a model for the message.
             var msg = {
@@ -497,6 +502,50 @@ define([
     Iznik.Models.Chat.Message = Iznik.Model.extend({
         urlRoot: function() {
             return(API + 'chat/rooms/' + this.get('roomid') + '/messages')
+        },
+
+        approve: function() {
+            return($.ajax({
+                url: API + 'chatmessages',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Approve'
+                }
+            }));
+        },
+
+        reject: function() {
+            return ($.ajax({
+                url: API + 'chatmessages',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Reject'
+                }
+            }))
+        },
+
+        hold: function() {
+            return($.ajax({
+                url: API + 'chatmessages',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Hold'
+                }
+            }));
+        },
+
+        release: function() {
+            return($.ajax({
+                url: API + 'chatmessages',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'Release'
+                }
+            }));
         },
 
         parse: function (ret) {

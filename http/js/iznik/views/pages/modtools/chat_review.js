@@ -91,7 +91,41 @@ define([
             'click .js-delete': 'deleteMe',
             'click .js-modnote': 'modnote',
             'click .js-viewmsgsource': 'viewMsgSource',
-            'click .js-view': 'view'
+            'click .js-view': 'view',
+            'click .js-addcommentfrom': 'addCommentFrom',
+            'click .js-addcommentto': 'addCommentTo',
+            'click .js-hold': 'hold',
+            'click .js-release': 'release'
+        },
+
+        addCommentFrom: function () {
+            var self = this
+
+            var model = new Iznik.Models.ModTools.User.Comment({
+                userid: this.model.get('fromuser').id,
+                groupid: this.model.get('group').id
+            })
+
+            var v = new Iznik.Views.ModTools.User.CommentModal({
+                model: model
+            })
+
+            v.render()
+        },
+
+        addCommentTo: function () {
+            var self = this
+
+            var model = new Iznik.Models.ModTools.User.Comment({
+                userid: this.model.get('touser').id,
+                groupid: this.model.get('group').id
+            })
+
+            var v = new Iznik.Views.ModTools.User.CommentModal({
+                model: model
+            })
+
+            v.render()
         },
 
         viewMsgSource: function() {
@@ -100,7 +134,8 @@ define([
             var v = new Iznik.Views.ModTools.Message.ViewSource({
                 model: new Iznik.Models.Message({
                     id: self.model.get('msgid')
-                })
+                }),
+                chat: true
             });
 
             v.render();
@@ -114,34 +149,16 @@ define([
 
         approve: function() {
             var self = this;
-            $.ajax({
-                url: API + 'chatmessages',
-                type: 'POST',
-                data: {
-                    id: self.model.get('id'),
-                    action: 'Approve'
-                }, success: function(ret) {
-                    if (ret.ret === 0) {
-                        self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
-                    }
-                }
-            })
+            self.model.approve().then(function() {
+                self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
+            });
         },
 
         deleteMe: function() {
             var self = this;
-            $.ajax({
-                url: API + 'chatmessages',
-                type: 'POST',
-                data: {
-                    id: self.model.get('id'),
-                    action: 'Reject'
-                }, success: function(ret) {
-                    if (ret.ret === 0) {
-                        self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
-                    }
-                }
-            })
+            self.model.reject().then(function() {
+                self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
+            });
         },
 
         view: function() {
@@ -158,6 +175,45 @@ define([
 
                 v.render();
             });
+        },
+
+        showheld: function() {
+            var self = this;
+
+            if (self.model.get('held')) {
+                self.$('.js-heldenable').show();
+                self.$('.js-helddisable').hide();
+            } else {
+                self.$('.js-heldenable').hide();
+                self.$('.js-helddisable').show();
+            }
+        },
+
+        hold: function() {
+            var self = this;
+            self.model.hold().then(function() {
+                self.model.set('held', true);
+                self.showheld();
+            });
+        },
+
+        release: function() {
+            var self = this;
+            self.model.release().then(function() {
+                self.model.set('held', null);
+                self.showheld();
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.Timeago.prototype.render.call(this)
+            p.then(function (self) {
+                self.showheld();
+            });
+
+            return(p);
         }
     });
 

@@ -410,7 +410,7 @@ define([
     }
 
     Iznik.twem = function(msg) {
-        if (msg) {
+        if (_.isString(msg)) {
             msg = msg.replace(/\\\\u(.*?)\\\\u/g, function(match, contents, offset, s) {
                 var s = contents.split('-');
                 var ret = '';
@@ -423,6 +423,10 @@ define([
         }
 
         return(msg);
+    }
+
+    Iznik.isMobile = function() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
     }
 
     var chatTitleCount = 0;
@@ -947,9 +951,12 @@ define([
                     ins.attr('data-ad-format', 'auto');
                     ins.addClass('adsbygoogle');
 
-                    try {
-                        window.adsbygoogle.push({});
-                    } catch (e) {}
+                    // Wait for DOM otherwise we might get an exception because we trigger the ad too soon.
+                    self.waitDOM(self, function() {
+                        try {
+                            window.adsbygoogle.push({});
+                        } catch (e) {}
+                    });
                 });
             }
 

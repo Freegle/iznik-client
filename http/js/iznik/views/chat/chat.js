@@ -1446,6 +1446,9 @@ define([
             if (this.model.get('id')) {
                 var message = this.model.get('message');
                 if (message) {
+                    // Unescape emojis.
+                    message = Iznik.twem(message);
+
                     // Remove duplicate newlines.  Make sure we have a string - might not if the message was just a digit.
                     message += '';
                     message = message.replace(/\n\s*\n\s*\n/g, '\n\n');
@@ -1541,6 +1544,9 @@ define([
 
                 p = Iznik.View.Timeago.prototype.render.call(this);
                 p.then(function (self) {
+                    // Expand emojis.
+                    twemoji.parse(self.el);
+
                     if (self.model.get('type') == 'ScheduleUpdated') {
                         // Any agreed time is held in the message.
                         var m = new moment(self.model.get('message'));

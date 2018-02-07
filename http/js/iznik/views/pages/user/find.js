@@ -1,3 +1,5 @@
+var parser = require('rss-parser');
+
 define([
     'jquery',
     'underscore',
@@ -63,7 +65,6 @@ define([
             var self = this;
             try {
                 var val = self.$('.js-searchoffers').prop('checked') ? 'Offer' : 'Wanted';
-                console.log("Save search type", val);
                 Storage.set('searchtype', val);
             } catch (e) {}
         },
@@ -72,7 +73,6 @@ define([
             var self = this;
             try {
                 var t = Storage.get('searchtype');
-                console.log("Restore search type", t);
                 if (t) {
                     self.$(".js-searchoffers").boostrapSwitch('state', t == 'Offer' );
                 }
@@ -125,7 +125,6 @@ define([
 
         showOfferWanted: function(){
             var self = this;
-            console.log("Show offer wanted ", self.$(".js-searchoffers").bootstrapSwitch('state'));
 
             if (self.$(".js-searchoffers").bootstrapSwitch('state')) {
                 self.$('.js-offeronly').show();
@@ -202,6 +201,27 @@ define([
                         search: self.options.search,
                         subaction: 'searchmess'
                     };
+
+                    // Add eBay search results.
+                    //
+                    // Turns out this yields peanuts.
+                    //
+                    // if (mylocation) {
+                    //     var v = new Iznik.Views.User.Pages.Find.eBayAds({
+                    //         term: self.options.search,
+                    //         postcode: mylocation.name
+                    //     });
+                    //
+                    //     v.render().then(function() {
+                    //         $('#js-rightsidebar').html(v.$el);
+                    //     });
+                    // }
+
+                    if (!self.noGoogleAds) {
+                        var ad = new Iznik.View.GoogleAd();
+                        ad.render();
+                        $('#js-rightsidebar').html(ad.el);
+                    }
                 } else {
                     // We've not searched yet.
                     var mygroups = Iznik.Session.get('groups');
@@ -330,6 +350,86 @@ define([
             });
 
             return (p);
+        }
+    });
+
+    Iznik.Views.User.Pages.Find.eBayAds = Iznik.View.extend({
+        template: 'user_find_ebay',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+
+            p.then(function() {
+                var url = "/ebay.php?keyword=" + encodeURIComponent(self.options.term) + "&sortOrder=PricePlusShippingLowest&programid=" + EBAY_PROGRAMID + "&campaignid=" + EBAY_CAMPAIGNID + "&toolid=" + EBAY_TOOLID + "&buyerPostalCode=" + encodeURIComponent(self.options.postcode) + "&maxDistance=25&listingType1=All&feedType=rss&lgeo=1";
+                parser.parseURL(url, function(err, parsed) {
+                    if (parsed && parsed.feed && parsed.feed.entries && parsed.feed.entries.length) {
+                        self.collection = new Iznik.Collection(parsed.feed.entries);
+
+                        // Get the images from the description.
+                        self.collection.each(function(m) {
+                            var desc = m.get('content');
+                            var re = /img src='(.*?)'/;
+                            var match = re.exec(desc);
+
+                            if (match && match.length > 1) {
+                                m.set('image', match[1]);
+                            }
+
+                            var cont = m.get('content');
+
+                            if (cont) {
+                                m.set('content', cont.replace(/http\:\/\//g, 'https://'));
+                            }
+                        });
+
+                        self.collectionView = new Backbone.CollectionView({
+                            el: self.$('.js-list'),
+                            modelView: Iznik.Views.User.Pages.Find.eBayAd,
+                            collection: self.collection,
+                            processKeyEvents: false
+                        });
+
+                        self.collectionView.render();
+
+                        self.$('.js-ebay').css('height', window.innerHeight - $('#botleft').height() - $('nav').height() - 50);
+                        self.$('.js-ebay').css('overflow-y', 'scroll');
+                        self.$('.js-ebay').css('overflow-x', 'hidden');
+                        self.$('.js-ebay').fadeIn('slow');
+                    }
+                })
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Pages.Find.eBayAd = Iznik.View.Timeago.extend({
+        template: 'user_find_ebayone',
+
+        tagName: 'li',
+
+        className: 'completefull',
+
+        render: function() {
+            var self = this;
+
+            Iznik.ABTestShown('eBayAd', 'Find');
+            var p = Iznik.View.Timeago.prototype.render.call(this);
+
+            p.then(function() {
+                // Make image prettier.
+                self.$('img').addClass('img-rounded img-thumbnail margright');
+
+                // Make links clickable outside backbone.
+                self.$('a').attr('data-realurl', true);
+
+                // Pad info
+                self.$('td:eq(1)').addClass('padleft');
+            });
+
+            return(p);
         }
     });
 

@@ -1665,13 +1665,19 @@ define([
                         self.recordLocation(ret.location, true);
 
                         // Add some eye candy to make them spot the location.
-                        self.$('.js-postcode').tooltip('destroy');
+                        var field = self.$('.js-postcode');
+                        if (field.data && field.data('bs.tooltip')) {
+                            self.$('.js-postcode').tooltip('destroy');
+                        }
                         self.$('.js-postcode').tooltip({
                             'placement': 'top',
                             'title': "Your device thinks you're here.  If it's wrong, please change it."});
                         self.$('.js-postcode').tooltip('show');
                         _.delay(function() {
-                            self.$('.js-postcode').tooltip('destroy');
+                            var field = self.$('.js-postcode');
+                            if (field.data && field.data('bs.tooltip')) {
+                                self.$('.js-postcode').tooltip('destroy');
+                            }
                         }, 20000);
                     }
                 }, complete: function() {
@@ -1743,7 +1749,10 @@ define([
                     asyncResults(matches);
 
                     _.delay(function() {
-                        self.$('.js-postcode').tooltip('destroy');
+                        var field = self.$('.js-postcode');
+                        if (field.data && field.data('bs.tooltip')) {
+                            self.$('.js-postcode').tooltip('destroy');
+                        }
                     }, 10000);
 
                     if (matches.length == 0) {

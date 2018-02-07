@@ -16,7 +16,6 @@ import "bootstrap-select.min.css";
 import "bootstrap-switch.min.css";
 import "bootstrap-dropmenu.min.css";
 import "bootstrap-notifications.min.css";
-import "datepicker3.css";
 import "bootstrap-datepicker/dist/css/bootstrap-datepicker.css";
 import "dd.css";
 import "bootstrap-fileinput/css/fileinput.css";

@@ -424,7 +424,7 @@ nav .nav-tabs>li {
 }
 
 .padleft {
-    padding-left: 10px;
+    padding-left: 10px !important;
 }
 
 .padleftonlysm {
@@ -448,6 +448,10 @@ nav .nav-tabs>li {
 
 .padrightlg {
     padding-right: 20px;
+}
+
+.padrightxl {
+    padding-right: 30px;
 }
 
 .searchhighlight {
@@ -1124,25 +1128,72 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     padding: 5px;
 }
 
+.chat-page-header {
+    order: 1;
+}
+
+.chat-page-warning {
+    order: 2;
+    justify-content: flex-start;
+}
+
+.chat-page-footer {
+    order: 4;
+    justify-content: flex-end;
+}
+
 .chat-footer {
     position: absolute;
     bottom: 0px;
     width: 100%;
 }
 
-.chat-footer .btn {
-    max-height: 34px !important;
+.chat-page-search {
+    order: 1;
 }
 
-.flexbot {
-    /*display: flex;*/
-    flex: 1 0 auto;
+.chat-page-list {
+    order: 2;
+    flex-grow: 1;
+    justify-content: flex-start;
+}
+
+.chat-page-pane {
+    /*
+        Use position fixed to ensure that the vh calculation reflects the URL bar as per
+        https://developers.google.com/web/updates/2016/12/url-bar-resizing
+     */
+    position: fixed;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-x: hidden;
+    overflow-y: hidden;
+    display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-.chat-page-pane {
-    /*height: calc(100vh - 65px);*/
+/* fix iOS bug not displaying 100vh correctly */
+/* ipad */
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : landscape) {
+    .fullheight {
+        height: 768px;
+    }
+    .chat-page-footer {
+        margin-bottom: 80px;
+    }
+}
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : portrait) {
+    .fullheight {
+        height: 1024px;
+    }
+    .chat-page-footer {
+        margin-bottom: 80px;
+    }
+}
+
+.chat-footer .btn {
+    max-height: 34px !important;
 }
 
 .chat-page-content {
@@ -1150,6 +1201,9 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     overflow-x: hidden;
     overflow-y: scroll;
     background-color: #f3f0da;
+    order: 3;
+    justify-content: flex-start;
+    flex-grow: 1;
 }
 
 /*.chat-page-footer {*/
