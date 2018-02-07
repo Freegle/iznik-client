@@ -60,10 +60,9 @@ define([
 
         askSubscription: function() {
 
-            console.log("askSubscription");
+            console.log("askSubscription " + window.mobilePushId);
             if (window.mobilePushId) {
                 var subscription = window.isiOS ? window.mobilePushId : 'https://android.googleapis.com/gcm/send/' + mobilePushId;
-                console.log(subscription);
                 //alert("Subs: "+subscription);
                 var me = Iznik.Session.get('me');
                 if (me) {

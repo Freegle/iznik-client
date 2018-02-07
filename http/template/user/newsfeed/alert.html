@@ -53,14 +53,16 @@
                         </div>
                     </div>
                 </div>
-                <% } %>
-            </div>
-            <% if (obj.image) { %>
-            <div class="col-xs-2">
-                <img class="img-thumbnail pull-right clickme js-photo" title="Click to zoom" width="150" src="{{image.paththumb}}" />
             </div>
             <% } %>
         </div>
+        <% if (obj.image) { %>
+        <div class="row">
+            <div class="col-xs-12">
+                <img class="img-thumbnail img-responsive clickme js-photo" title="Click to zoom" src="{{image.paththumb}}" />
+            </div>
+        </div>
+        <% } %>
         <div class="row">
             <div class="col-xs-12">
                 <hr class="text-muted nomargin botspace" />

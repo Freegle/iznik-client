@@ -350,7 +350,7 @@ define([
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
                                 helpMessage: '(Freegle only) If Yes, this group exists on Yahoo Groups too.  If No, this group is only hosted here.',
-                                disabled: role != 'Owner'
+                                disabled: role != 'Owner' && !Iznik.Session.isAdminOrSupport()
                             },
                             {
                                 name: 'communityevents',

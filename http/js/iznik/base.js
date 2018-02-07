@@ -425,6 +425,10 @@ define([
         return(msg);
     }
 
+    Iznik.isMobile = function() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+    }
+
     var chatTitleCount = 0;
     var newsfeedTitleCount = 0;
 

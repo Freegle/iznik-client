@@ -3,6 +3,7 @@ import 'bootstrap-fileinput';
 var tpl = require('iznik/templateloader');
 var template = tpl.template;
 var templateFetch = tpl.templateFetch;
+var viewportUnitsBuggyfill = require('viewport-units-buggyfill');
 
 define([
     'jquery',
@@ -168,6 +169,10 @@ define([
 
                 templateFetch('chat_page_list').then(function() {
                     $(self.listContainer).html(template('chat_page_list'));
+
+                    // This is a bit of a hack for ModTools
+                    $(self.listContainer).find('.chat-page-pane').addClass(self.modtools ? 'col-md-2 col-lg-2' : 'col-md-3 col-lg-3');
+
                     $(self.listContainer).addClass('chat-list-holder');
 
                     // Now set up a collection view to list the chats.  First one is for the left sidebar, which
@@ -322,7 +327,7 @@ define([
     Iznik.Views.Chat.Page.Pane = Iznik.View.extend({
         template: 'chat_page_pane',
 
-        className: 'chat-page-pane bordleft bordright',
+        className: 'chat-page-pane bordleft bordright col-xs-12 col-sm-12 col-md-6 nopad',
 
         shownAddress: false,
 
@@ -519,7 +524,7 @@ define([
             // TODO Allow this by recording the origin of the message as being on the platform.
             message = message.replace('>', '');
 
-            if (message.length > 0) {
+            if (message.trim().length > 0) {
                 // We get called back when the message has actually been sent to the server.
                 self.listenToOnce(this.model, 'sent', function () {
                     self.getLatestMessages();
@@ -694,6 +699,11 @@ define([
             self.model.allseen();
 
             this.updateCount();
+
+            // On IOS we can't tell when the onscreen keyboard has opened, so we might lose the latest message.
+            // This prevents that; it does mean that if the latest isn't the one they want, then that's unfortunate
+            // but that's less likely.
+            self.scrollBottom();
         },
 
         messageFocus: function() {
@@ -719,36 +729,39 @@ define([
         scrollBottom: function () {
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
             var self = this;
-            var scroll = self.$('.js-scroll');
-            // console.log("Scrollbottom", scroll);
 
-            if (scroll.length > 0) {
-                var height = scroll[0].scrollHeight;
+            if (self.inDOM()) {
+                var scroll = self.$('.js-scroll');
 
-                if (self.scrollTimer && self.scrollTo < height) {
-                    // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
-                    // in doing that.
-                    // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
-                    clearTimeout(self.scrollTimer);
-                    self.scrollTimer = null;
-                    self.scrollToStopAt = null;
-                }
+                if (scroll.length > 0) {
+                    var height = scroll[0].scrollHeight;
+                    // console.log("Scroll", height, scroll.scrollTop(), scroll);
 
-                // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
-                // finished rendering yet.
-                scroll.scrollTop(height);
+                    if (self.scrollTimer && self.scrollTo < height) {
+                        // We have a timer outstanding to scroll to somewhere less far down that we now want to.  No point
+                        // in doing that.
+                        // console.log("Clear old scroll timer",  self.model.get('id'), self.scrollTo, height);
+                        clearTimeout(self.scrollTimer);
+                        self.scrollTimer = null;
+                        self.scrollToStopAt = null;
+                    }
 
-                self.scrollTo = height;
-
-                if (!self.scrolledToBottomOnce) {
                     // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
                     // finished rendering yet.
-                    self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : ((new Date()).getTime() + 5000);
+                    scroll.scrollTop(height);
 
-                    if ((new Date()).getTime() < self.scrollToStopAt) {
-                        self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
-                    } else {
-                        self.scrolledToBottomOnce = true;
+                    self.scrollTo = height;
+
+                    if (!self.scrolledToBottomOnce) {
+                        // We want to scroll immediately, and gradually over the next few seconds for when things haven't quite
+                        // finished rendering yet.
+                        self.scrollToStopAt = self.scrollToStopAt ? self.scrollToStopAt : ((new Date()).getTime() + 5000);
+
+                        if ((new Date()).getTime() < self.scrollToStopAt) {
+                            self.scrollTimer = setTimeout(_.bind(self.scrollBottom, self), 1000);
+                        } else {
+                            self.scrolledToBottomOnce = true;
+                        }
                     }
                 }
             }
@@ -946,6 +959,9 @@ define([
 
                     v.close();
                     self.scrollBottom();
+
+                    // Try to ensure that the viewport units all work ok.
+                    viewportUnitsBuggyfill.init({force: true});
                 });
 
                 // Show any warning for a while.
@@ -969,11 +985,15 @@ define([
                 if (!self.rendered) {
                     self.rendered = true;
 
-                    // Input text autosize
-                    autosize(self.$('textarea'));
+                    if (!Iznik.isMobile()) {
+                        // Input text autosize.  We don't do this on mobile because it breaks function where the
+                        // soft keyboard pops up and tends to hide the input.  See
+                        // https://github.com/jackmoore/autosize/issues/343
+                        autosize(self.$('textarea'));
 
-                    // If the text area grows, make sure we're scrolled to the bottom
-                    self.$('textarea').get(0).addEventListener('autosize:resized', _.bind(self.scrollBottom, self));
+                        // If the text area grows, make sure we're scrolled to the bottom
+                        self.$('textarea').get(0).addEventListener('autosize:resized', _.bind(self.scrollBottom, self));
+                    }
 
                     self.listenTo(self.model, 'change:unseen', self.updateCount);
 

@@ -10,6 +10,8 @@ Raven.config(RAVEN_ID, {
 */
 import 'persist-js';
 
+require('viewport-units-buggyfill').init();
+
 try {
     global.Storage = new Persist.Store("Iznik");
 } catch (e) {
