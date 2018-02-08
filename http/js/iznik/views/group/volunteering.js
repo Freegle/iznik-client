@@ -8,6 +8,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    '/template/volunteering/one',
     'moment',
     'combodate',
     'jquery.validate.min',
@@ -15,7 +16,7 @@ define([
     'iznik/models/volunteering',
     'iznik/views/group/select',
     'iznik/customvalidate'
-], function($, _, Backbone, Iznik, moment) {
+], function($, _, Backbone, Iznik, VolunteeringOne, moment) {
     Iznik.Views.User.VolunteeringSidebar = Iznik.View.extend({
         template: "volunteering_list",
 
@@ -96,14 +97,14 @@ define([
         }
     });
 
-    Iznik.Views.User.Volunteering  = Iznik.View.extend({
+    Iznik.Views.User.Volunteering = Iznik.VueView.extend({
         tagName: 'li',
 
-        template: "volunteering_one",
-        className: 'padleftsm',
+        component: VolunteeringOne,
+        className: 'padleftsm completefull',
 
-        events: {
-            'click .js-info': 'info'
+        vueEvents: {
+            info: 'info'
         },
 
         info: function() {
@@ -123,22 +124,6 @@ define([
                 v.render();
             });
         },
-
-        render: function() {
-            var self = this;
-
-            var desc = self.model.get('description');
-            if (desc && desc.length > 100) {
-                self.model.set('description', desc.substring(0, 100) + '...');
-            }
-
-            var p = Iznik.View.prototype.render.call(this).then(function() {
-                self.$el.closest('li').addClass('completefull');
-                self.model.on('change', self.render, self);
-            });
-
-            return(p);
-        }
     });
 
     Iznik.Views.User.Volunteering.Details  = Iznik.Views.Modal.extend({
