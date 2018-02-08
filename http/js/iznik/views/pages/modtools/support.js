@@ -52,7 +52,13 @@ define([
             self.$('.js-allgroupslist tr').each(function() {
                 var row = [];
                 $(this).find('td').each(function() {
-                    row.push($(this).html());
+                    var val = $(this).html();
+
+                    if (val.indexOf("checkbox") !== -1) {
+                        val = $(this).find('input').prop('checked')
+                    }
+
+                    row.push(val);
                 });
 
                 exportList.push(row);
@@ -449,6 +455,16 @@ define([
                 label: 'Region',
                 editable: false,
                 cell: 'string'
+            }, {
+                name: 'lat',
+                label: 'Lat',
+                editable: false,
+                cell: 'number'
+            }, {
+                name: 'lng',
+                label: 'Lng',
+                editable: false,
+                cell: 'number'
             }, {
                 name: 'lastmoderated',
                 label: 'Last moderated',
