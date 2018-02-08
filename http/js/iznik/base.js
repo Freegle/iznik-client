@@ -1007,14 +1007,15 @@ define([
     Iznik.VueView = Iznik.View.extend({
         render: function(){
             var self = this;
-            self.$el.html('<span class="vue"></span>');
+            var vueEl = document.createElement('span');
+            self.$el.append(vueEl);
             var on = _.mapObject(self.vueEvents, function(methodName){
                 return self[methodName].bind(self);
             });
             return Promise.resolve(self.component).then(function(Component){
                 if (Component.default) Component = Component.default;
                 new Vue({
-                    el: self.$('.vue')[0],
+                    el: vueEl,
                     data: self.model.toJSON(),
                     created: function () {
                         var vm = this;
