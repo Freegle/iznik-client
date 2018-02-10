@@ -274,7 +274,7 @@ define([
                             group.fetch().then(function() {
                                 group.save({
                                     namefull: self.$('.js-addnamefull').val(),
-                                    publish: 1,
+                                    publish: 0, // Default to not shown.
                                     polyofficial: self.$('.js-addcore').val(),
                                     poly: self.$('.js-addcatchment').val(),
                                     lat: self.$('.js-addlat').val(),
