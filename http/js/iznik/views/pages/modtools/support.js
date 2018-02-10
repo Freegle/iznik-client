@@ -743,7 +743,7 @@ define([
                 self.$('.js-role').val(self.model.get('role'));
                 self.$('.js-email').html(self.model.get('email'));
 
-                _.each(self.model.get('emails'), function(email) {
+                _.each(self.model.get('otheremails'), function(email) {
                     if (email.preferred) {
                         self.$('.js-email').html(email.email);
                     }
