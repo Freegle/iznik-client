@@ -1092,6 +1092,8 @@ define([
                 data: {
                     allreplies: true
                 }
+            }).then(function() {
+                self.replies.add(self.model.get('replies'));
             });
         },
 
