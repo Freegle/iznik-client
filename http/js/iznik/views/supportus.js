@@ -51,69 +51,53 @@ define([
             var p = Iznik.resolvedPromise(self);
 
             if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
-                p = Iznik.ABTestGetVariant('SupportUs', function (variant) {
-                    self.template = variant.variant;
-                    var showglobal = false;
+                self.template = (Math.random() <= 0.5) ? 'user_support_askdonationgroup' : 'user_support_askdonationgroupcharity';
+                var showglobal = false;
 
-                    if (variant.variant.indexOf('group') !== -1) {
-                        // Get home group to ask for per-group donation.
-                        var homegroup = Storage.get('myhomegroup');
-                        var group = Iznik.Session.getGroup(homegroup);
+                // Get home group to ask for per-group donation.
+                var homegroup = Storage.get('myhomegroup');
+                var group = Iznik.Session.getGroup(homegroup);
 
-                        if (!group) {
-                            var groups = Iznik.Session.get('groups');
-                            if (groups.length > 0) {
-                                homegroup = groups.at(0).get('id');
-                                group = groups.at(0);
-                            }
+                if (!group) {
+                    var groups = Iznik.Session.get('groups');
+                    if (groups.length > 0) {
+                        homegroup = groups.at(0).get('id');
+                        group = groups.at(0);
+                    }
+                }
+
+                if (group) {
+                    self.donations = new Iznik.Models.Donations();
+                    self.donations.fetch({
+                        data: {
+                            groupid: homegroup
+                        }
+                    }).then(function () {
+                        group.set('donations', self.donations.attributes);
+
+                        if (self.donations.attributes.raised < self.donations.attributes.target) {
+                            // Not reached the target - show the per-group appeal.
+                            self.model = group;
+                        } else {
+                            // Reached the group target - show the global appeal
+                            homegroup = null;
+                            self.template = (Math.random() <= 0.5) ? 'user_support_askdonation' : 'user_support_askdonationcharity';
                         }
 
-                        if (group) {
-                            self.donations = new Iznik.Models.Donations();
-                            self.donations.fetch({
-                                data: {
-                                    groupid: homegroup
-                                }
-                            }).then(function () {
-                                group.set('donations', self.donations.attributes);
-
-                                if (self.donations.attributes.raised < self.donations.attributes.target) {
-                                    // Not reached the target - show the per-group appeal.
-                                    self.model = group;
-                                } else {
-                                    // Reached the group target - show the global appeal
-                                    homegroup = null;
-                                    self.template = 'user_support_askdonation';
-                                }
-
-                                var p = Iznik.Views.Modal.prototype.render.call(self);
-                                p.then(function () {
-                                    var w = new Iznik.Views.DonationThermometer({
-                                        groupid: homegroup
-                                    });
-                                    w.render().then(function () {
-                                        Storage.set('donationlastask', now);
-                                        self.$('.js-thermometer').html(w.$el);
-                                    });
-                                });
-                            });
-                        }
-                    } else {
-                        // Global thermometer.
                         var p = Iznik.Views.Modal.prototype.render.call(self);
                         p.then(function () {
                             var w = new Iznik.Views.DonationThermometer({
-                                groupid: null
+                                groupid: homegroup
                             });
                             w.render().then(function () {
                                 Storage.set('donationlastask', now);
                                 self.$('.js-thermometer').html(w.$el);
                             });
                         });
-                    }
+                    });
+                }
 
-                    Iznik.ABTestShown('SupportUs', self.template);
-                });
+                Iznik.ABTestShown('SupportUs', self.template);
             } else if (!lastcardask || (now - lastcardask > 2 * 60 * 60 * 1000)) {
                 // If we're not asking for a donation, offer business cards, unless the group forbids it.
                 Storage.set('cardlastask', now);
