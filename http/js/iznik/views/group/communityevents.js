@@ -609,7 +609,7 @@ define([
         }
     });
 
-    Iznik.Views.User.CommunityEvent.Confirm = Iznik.Views.User.BusinessCards.extend({
+    Iznik.Views.User.CommunityEvent.Confirm = Iznik.Views.Modal.extend({
         template: "communityevents_confirm"
     });
 });

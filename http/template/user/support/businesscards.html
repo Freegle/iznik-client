@@ -3,23 +3,69 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger clickme" class="close" data-dismiss="modal" />
-                <h4 class="modal-title js-modal-title">Can you help get more people freegling?</h4>
+                <h4 class="modal-title text-center js-modal-title">Share the love!</h4>
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-xs-12">
-                        <p>"Business cards" are a great way to get more people freegling - you can hand them out, or stick up on noticeboards,
-                            in cafes etc.  They look like this:</p>
-                        <div class="row topspace botspace">
-                            <div class="col-xs-12">
-                                <img class="img-responsive img-rounded img-thumbnail" width="300px" src="/images/businesscard.png" />
+                    <div class="col-xs-12 text-center botspace">
+                        <b>Freegle spreads by word of mouth.  Can you help get more people freegling?</b>
+                    </div>
+                </div>
+                <div class="row js-choice">
+                    <div class="col-xs-12 col-sm-6">
+                        <div class="panel panel-default">
+                            <div class="panel-body text-center">
+                                <h4>Download Poster</h4>
+                                <p>
+                                    This is an A4 poster with tear-off strips - good for noticeboards
+                                    in cafes, community venues, or at work.
+                                </p>
+                                <a data-realurl="true" target="_blank" href="/images/posters/A4.pdf" class="js-download">
+                                    <img class="img-responsive" src="/images/posters/A4.png" />
+                                    <br />
+                                    <span class="btn btn-lg btn-success">Download PDF</span>
+                                </a>
                             </div>
                         </div>
-                        <div class="js-howmany">
-                            <p>Would you like some?</p>
+                    </div>
+                    <div class="col-xs-12 col-sm-6">
+                        <div class="panel panel-default">
+                            <div class="panel-body text-center">
+                                <h4>Business Cards</h4>
+                                <p>Keep in your pocket when you're out and about or give to people you know.</p>
+                                <div class="row topspace botspace">
+                                    <div class="col-xs-12">
+                                        <img class="img-responsive img-rounded img-thumbnail" width="300px" src="/images/businesscard.png" />
+                                    </div>
+                                </div>
+                                <div class="js-howmany">
+                                    <p>Would you like some?</p>
+                                    <div class="row">
+                                        <div class="col-xs-12 text-center">
+                                            <div class="btn btn-primary btn-lg botspace js-justafew">About 15</div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-12 text-center">
+                                            <div class="btn btn-default btn-lg botspace js-more">More than 15</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+                <div class="row js-backtochoice" style="display: none">
+                    <div class="col-xs-12">
+                        <div class="btn btn-white">
+                            << Back to choices
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
                         <div class="js-afew" style="display: none">
-                            <p>One of our lovely volunteers can post them to you.  A couple of things first:</p>
+                            <p>One of our lovely volunteers can post cards to you.  A couple of things first:</p>
                             <ul>
                                 <li>
                                     We can send these if you pay &pound;1 via PayPal to cover the cards,
@@ -37,16 +83,16 @@
                             <p>Please give us a postal address to send them to.</p>
                             <div class="js-postaladdress" />
                         </div>
-                        <div class="js-more" style="display: none">
+                        <div class="js-moredesc" style="display: none">
                             <p>For larger numbers, you'll need to order them directly.</p>
                             <p>You can do this from Moo - they're not the cheapest, but we've uploaded the design.  Register
                                 and click to create a product.</p>
                             <div class="row">
                                 <div class="col-xs-12 text-center">
-                                    <a href="https://www.moo.com/m4b/account/signup/landing/29f50f18-fe02-4b54-b95a-f10dea647081" data-realurl="true" target="_blank" rel="noopener">
-                                <span class="btn btn-success btn-lg">
-                                    Order from Moo
-                                </span>
+                                    <a class="js-moo" href="https://www.moo.com/m4b/account/signup/landing/29f50f18-fe02-4b54-b95a-f10dea647081" data-realurl="true" target="_blank" rel="noopener">
+                                            <span class="btn btn-success btn-lg botspace">
+                                                Order from Moo
+                                            </span>
                                     </a>
                                 </div>
                             </div>
@@ -57,7 +103,7 @@
                             </p>
                             <div class="row">
                                 <div class="col-xs-12 text-center">
-                                    <a class="js-nodefault" href="/misc/businesscards/FreegleBusinessCardFront.pdf" data-realurl="true" target="_blank" rel="noopener">
+                                    <a class="js-nodefault js-carddesign" href="/misc/businesscards/FreegleBusinessCardFront.pdf" data-realurl="true" target="_blank" rel="noopener">
                                         <span class="btn btn-white btn-lg">
                                             Download Design
                                         </span>
@@ -69,17 +115,9 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <div class="row">
-                    <div class="col-xs-4 text-center">
-                        <div class="btn btn-success btn-lg botspace js-justafew">About 15</div>
-                        <button type="button" class="btn btn-lg btn-success js-submit" style="display: none">Next</button>
-                    </div>
-                    <div class="col-xs-4 text-center">
-                        <div class="btn btn-primary btn-lg botspace js-more">More than 15</div>
-                    </div>
-                    <div class="col-xs-4 text-center">
-                        <div class="btn btn-white btn-lg botspace js-cancel">No thanks</div>
-                    </div>
+                <div class="col-xs-12 text-right">
+                    <div class="btn btn-white btn-lg botspace js-cancel">Close</div>
+                    <div class="btn btn-lg botspace btn-success js-submit" style="display: none">Next >></div>
                 </div>
             </div>
         </div>

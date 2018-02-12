@@ -276,22 +276,49 @@ define([
         events: {
             'click .js-submit': 'submit',
             'click .js-justafew': 'justafew',
-            'click .js-more': 'more'
+            'click .js-more': 'more',
+            'click .js-download': 'download',
+            'click .js-moo': 'moo',
+            'click .js-backtochoice': 'backtochoice'
+        },
+
+        download: function() {
+            Iznik.ABTestAction('CardsOrPoster', 'poster');
+        },
+
+        moo: function() {
+            Iznik.ABTestAction('CardsOrPoster', 'moo');
+        },
+
+        carddesign: function() {
+            Iznik.ABTestAction('CardsOrPoster', 'carddesign');
+        },
+
+        backtochoice: function() {
+            var self = this;
+            self.$('.js-backtochoice').hide();
+            self.$('.js-more, .js-justafew').show();
+            self.$('.js-choice').slideDown('slow');
+            self.$('.js-submit, .js-moredesc, .js-afew').hide();
         },
 
         justafew: function() {
             var self = this;
-            self.$('.js-howmany').slideUp('slow');
+            self.$('.js-choice').slideUp('slow');
+            self.$('.js-backtochoice').show();
             self.$('.js-more, .js-justafew').hide();
             self.$('.js-afew, .js-submit').fadeIn('slow');
         },
 
         more: function() {
             var self = this;
-            self.$('.js-howmany').slideUp('slow');
-            self.$('.js-more').fadeIn('slow');
+            self.$('.js-choice').slideUp('slow');
+            self.$('.js-backtochoice').show();
+            self.$('.js-moredesc').fadeIn('slow');
             self.$('.js-afew, .js-submit').hide();
-            Iznik.ABTestAction('BusinessCards', 'more');
+            Iznik.ABTestAction('CardsOrPoster', 'more');
+            Iznik.ABTestShown('CardsOrPoster', 'moo');
+            Iznik.ABTestShown('CardsOrPoster', 'carddesign');
         },
 
         submit: function() {
@@ -326,7 +353,7 @@ define([
                                 }
                             });
 
-                            Iznik.ABTestAction('BusinessCards', 'justafew');
+                            Iznik.ABTestAction('CardsOrPoster', 'justafew');
                         }
                     }
                 });
@@ -351,8 +378,9 @@ define([
                     self.postalAddress.render();
                     self.$('.js-postaladdress').append(self.postalAddress.$el);
 
-                    Iznik.ABTestShown('BusinessCards', 'justafew');
-                    Iznik.ABTestShown('BusinessCards', 'more');
+                    Iznik.ABTestShown('CardsOrPoster', 'poster');
+                    Iznik.ABTestShown('CardsOrPoster', 'justafew');
+                    Iznik.ABTestShown('CardsOrPoster', 'more');
                 });
             });
 
