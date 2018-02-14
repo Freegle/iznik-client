@@ -421,13 +421,64 @@ define([
         tagName: 'li',
 
         events: {
-            'click img': 'zoom',
+            'click img': 'zoom'
+        },
+        
+        template: 'user_message_photo',
+
+        zoom: function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var v = new Iznik.Views.User.Message.PhotoZoom({
+                model: this.model
+            });
+            v.render();
+        }
+    });
+
+    Iznik.Views.User.Message.PhotoZoom = Iznik.Views.Modal.extend({
+        template: 'user_message_photozoom',
+
+        events: {
             'click .js-rotateright': 'rotateRight',
             'click .js-rotateleft': 'rotateLeft',
             'click .js-delete': 'deleteMe'
         },
-        
-        template: 'user_message_photo',
+
+        rotateRight: function() {
+            this.rotate(-90);
+        },
+
+        rotateLeft: function() {
+            this.rotate(90);
+        },
+
+        rotate: function(deg) {
+            var self = this;
+
+            $.ajax({
+                url: API + 'image',
+                type: 'POST',
+                data: {
+                    id: self.model.get('id'),
+                    rotate: deg,
+                    bust: (new Date()).getTime()
+                },
+                success: function(ret) {
+                    var t = (new Date()).getTime();
+
+                    if (ret.ret === 0) {
+                        // Force the image to reload.  We might not have the correct model set up, so hack it
+                        // by using image directly
+                        // TODO
+                        var url = '/img_' + self.model.get('id') + '.jpg?t=' + t;
+                        console.log("Rotated", url);
+                        self.$('img').attr('src', url);
+                    }
+                }
+            })
+        },
 
         deleteMe: function() {
             var self = this;
@@ -473,52 +524,16 @@ define([
             }
         },
 
-        rotateRight: function() {
-            this.rotate(-90);
-        },
-
-        rotateLeft: function() {
-            this.rotate(90);
-        },
-
-        rotate: function(deg) {
+        render: function() {
             var self = this;
 
-            $.ajax({
-                url: API + 'image',
-                type: 'POST',
-                data: {
-                    id: self.model.get('id'),
-                    rotate: deg,
-                    bust: (new Date()).getTime()
-                },
-                success: function(ret) {
-                    var t = (new Date()).getTime();
+            console.log("Editable?", self.model.get('mine'), Iznik.Session.isFreegleMod());
+            self.model.set('canedit', self.model.get('mine') || Iznik.Session.isFreegleMod());
 
-                    if (ret.ret === 0) {
-                        // Force the image to reload.
-                        var url = self.$('img').attr('src');
-                        var p = url.indexOf('?');
-                        url =  p === -1 ? (url + '?t=' + t) : (url + '&t' + t + '=' + t);
-                        self.$('img').attr('src', url);
-                    }
-                }
-            })
-        },
+            var p = Iznik.Views.Modal.prototype.render.call(this);
 
-        zoom: function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            var v = new Iznik.Views.User.Message.PhotoZoom({
-                model: this.model
-            });
-            v.render();
+            return(p);
         }
-    });
-
-    Iznik.Views.User.Message.PhotoZoom = Iznik.Views.Modal.extend({
-        template: 'user_message_photozoom'
     });
 
     Iznik.Views.User.Message.Photos = Iznik.View.extend({
