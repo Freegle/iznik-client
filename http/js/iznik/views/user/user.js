@@ -31,7 +31,20 @@ define([
             'click .js-addcomment': 'addComment',
             'click .js-spammer': 'spammer',
             'click .js-whitelist': 'whitelist',
-            'click .js-unbounce': 'unbounce'
+            'click .js-unbounce': 'unbounce',
+            'click .js-showprofile': 'showProfile'
+        },
+
+        showProfile: function() {
+            var self = this;
+
+            require([ 'iznik/views/user/user' ], function() {
+                var v = new Iznik.Views.UserInfo({
+                    model: new Iznik.Model(self.model)
+                });
+
+                v.render();
+            });
         },
 
         unbounce: function () {
