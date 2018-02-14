@@ -767,6 +767,10 @@ define([
             var p = Iznik.View.prototype.render.call(this);
 
             p.then(function() {
+                var confirmed = self.model.get('affiliationconfirmed');
+                confirmed = confirmed ? (new Date(confirmed)).toLocaleString() : 'Never';
+                self.$('.js-affiliation').html(confirmed);
+
                 // Get the mods.
                 var coll = new Iznik.Collections.Members(null, {
                     groupid: self.model.get('id'),
