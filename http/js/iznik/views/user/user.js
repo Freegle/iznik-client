@@ -1030,7 +1030,25 @@ define([
         render: function () {
             var p = Iznik.View.prototype.render.call(this)
             p.then(function (self) {
-                self.$('.js-emailfrequency').val(self.model.get('emailfrequency'))
+                // We don't want to show the email frequency for a group which is on Yahoo and where the
+                // email membership is not one of ours.  In that case Yahoo would be responsible for
+                // sending the email, not us.
+                var theemail = self.model.get('email');
+                var emails = self.model.get('otheremails');
+                var show = true;
+
+                _.each(emails, function(email) {
+                    if (theemail == email.email && !email.ourdomain) {
+                        show = false;
+                    }
+                });
+
+                if (show) {
+                    self.$('.js-emailfrequency').val(self.model.get('emailfrequency'))
+                } else {
+                    self.$('.js-emailfrequency').val(0)
+                }
+
                 self.$('.js-ourpostingstatus').val(self.model.get('ourpostingstatus'))
                 self.$('.js-role').val(self.model.get('role'))
 

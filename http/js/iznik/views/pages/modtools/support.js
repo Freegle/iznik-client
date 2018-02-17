@@ -1129,7 +1129,25 @@ define([
 
                     v.render().then(function (v) {
                         self.$('.js-memberof').append(v.el);
-                        v.$el.find('.js-emailfrequency').val(group.emailfrequency);
+
+                        // We don't want to show the email frequency for a group which is on Yahoo and where the
+                        // email membership is not one of ours.  In that case Yahoo would be responsible for
+                        // sending the email, not us.
+                        var emailid = group.emailid;
+                        var emails = self.model.get('emails');
+                        var show = true;
+
+                        _.each(emails, function(email) {
+                            if (emailid == email.id && !email.ourdomain) {
+                                show = false;
+                            }
+                        });
+
+                        if (show) {
+                            v.$el.find('.js-emailfrequency').val(group.emailfrequency);
+                        } else {
+                            v.$el.find('.js-emailfrequency').val(0);
+                        }
                     });
                 });
 
