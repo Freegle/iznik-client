@@ -1082,8 +1082,13 @@ define([
         addMessages: function() {
             var self = this;
 
-            _.each(self.model.get('messagehistory'), function (message) {
+            if (self.model.get('messagehistory').length == 0) {
+                self.$('.js-messagesnone').show();
+            } else {
                 self.$('.js-messagesnone').hide();
+            }
+
+            _.each(self.model.get('messagehistory'), function (message) {
                 message.group = self.groups[message.groupid];
                 self.addMessage(message);
             });
