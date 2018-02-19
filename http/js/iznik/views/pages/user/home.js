@@ -509,6 +509,7 @@ define([
         events: {
             'click .js-confirm': 'confirm',
             'change .js-outcome': 'changeOutcome',
+            'change .js-user': 'checkSubmit',
             'click .btn-radio .btn': 'click'
         },
 
@@ -519,7 +520,26 @@ define([
                 this.$('.js-user').removeClass('reallyHide');
             }
 
+            this.checkSubmit();
             this.defaultText();
+        },
+
+        checkSubmit: function() {
+            var cont = false;
+
+            if (this.$('.js-outcome').val() == 'Withdrawn') {
+                cont = true;
+            } else {
+                cont = this.$('.js-user').val() != -1;
+            }
+
+            this.$('.js-confirm').prop('disabled', !cont);
+
+            if (!cont) {
+                this.$('.js-user').addClass('error');
+            } else {
+                this.$('.js-user').removeClass('error');
+            }
         },
 
         defaultText: function() {
@@ -603,19 +623,20 @@ define([
             var p = this.open(this.template);
 
             p.then(function() {
-                self.changeOutcome();
-
                 // We want to show the people to whom it's promised first, as they're likely to be correct and most
                 // likely to make the user change it if they're not correct.
                 var replies = self.model.get('replies');
                 replies = _.sortBy(replies, function (reply) {
                     return (-reply.promised);
                 });
+                self.$('.js-user').append('<option value="-1">Please choose...</option>');
                 _.each(replies, function (reply) {
                     self.$('.js-user').append('<option value="' + reply.user.id + '" />');
                     self.$('.js-user option:last').html(reply.user.displayname);
                 })
                 self.$('.js-user').append('<option value="0">Someone else</option>');
+
+                self.changeOutcome();
             });
 
             return(p);
