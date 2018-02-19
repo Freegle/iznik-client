@@ -51,7 +51,7 @@ define([
             var p = Iznik.resolvedPromise(self);
 
             if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
-                self.template = (Math.random() <= 0.5) ? 'user_support_askdonationgroup' : 'user_support_askdonationgroupcharity';
+                self.template = 'user_support_askdonationgroup';
                 var showglobal = false;
 
                 // Get home group to ask for per-group donation.
@@ -81,7 +81,7 @@ define([
                         } else {
                             // Reached the group target - show the global appeal
                             homegroup = null;
-                            self.template = (Math.random() <= 0.5) ? 'user_support_askdonation' : 'user_support_askdonationcharity';
+                            self.template = 'user_support_askdonation';
                         }
 
                         var p = Iznik.Views.Modal.prototype.render.call(self);
