@@ -1348,7 +1348,7 @@ define([
                                 }
 
                                 if (count > 1) {
-                                    self.$('.js-moredates').html('...plus ' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
+                                    self.$('.js-moredates').html('...+' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
                                 }
                             }
                         }
