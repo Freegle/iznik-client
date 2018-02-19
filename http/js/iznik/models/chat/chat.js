@@ -420,6 +420,8 @@ define([
             // and hence our long poll.
             // TODO Do we get tidied?
             log("Wait error", this);
+            self.waiting = false;
+
             // Probably a network glitch.  Retry later.
             _.delay(_.bind(this.wait, this), 1000);
         },
