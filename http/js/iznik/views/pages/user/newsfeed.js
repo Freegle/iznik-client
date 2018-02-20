@@ -631,12 +631,16 @@ define([
             v.render();
         },
 
-        clickPreview: function() {
+        clickPreview: function(e) {
             var p = this.model.get('preview');
 
             if (p && p.hasOwnProperty('url') && p.url) {
                 window.open(p.url);
             }
+
+            // Don't let this click propagate, because if we have a comment on something which also has a preview
+            // then this would open that.
+            e.stopPropagation();
         },
 
         report: function(e) {
