@@ -102,14 +102,24 @@ define([
         },
 
         info: function() {
+            var self = this;
+
             var v = new Iznik.Views.User.CommunityEvent.Details({
                 model: this.model
             });
+
             v.render();
+        },
+
+        rerender: function() {
+            var self = this;
+
+            self.model.fetch().then(_.bind(self.render, self));
         },
 
         render: function() {
             var self = this;
+
             var p = Iznik.View.prototype.render.call(this).then(function() {
                 var dates = self.model.get('dates');
                 var count = 0;
@@ -130,12 +140,12 @@ define([
                 }
 
                 if (count > 1) {
-                    self.$('.js-moredates').html('...plus ' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
+                    self.$('.js-moredates').html('...+' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
                 }
 
                 self.$el.closest('li').addClass('completefull');
 
-                self.model.on('change', self.render, self);
+                self.model.on('edited', _.bind(self.rerender, self));
             });
 
             return(p);
@@ -292,10 +302,23 @@ define([
                             }));
                         });
 
+                        if (self.model.get('photo')) {
+                            self.promises.push($.ajax({
+                                url: API + 'communityevent',
+                                type: 'PATCH',
+                                data: {
+                                    id: self.model.get('id'),
+                                    action: 'SetPhoto',
+                                    photoid: self.model.get('photo')
+                                }
+                            }));
+                        }
+
                         Promise.all(self.promises).then(function() {
                             self.wait.close();
                             self.wait = null;
                             self.trigger('saved');
+                            self.model.trigger('edited');
 
                             if (self.closeAfterSave) {
                                 self.close();
@@ -609,7 +632,7 @@ define([
         }
     });
 
-    Iznik.Views.User.CommunityEvent.Confirm = Iznik.Views.User.BusinessCards.extend({
+    Iznik.Views.User.CommunityEvent.Confirm = Iznik.Views.Modal.extend({
         template: "communityevents_confirm"
     });
 });

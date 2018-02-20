@@ -24,7 +24,7 @@
                     <% } else { %>
                     <p><span class="glyphicon glyphicon-ok faded" />&nbsp;Not received any items yet so far as we know.</p>
                     <% } %>
-                    <% if (info.reneged && (info.reneged * 100 / (info.reneged + info.collected) > 25)) { %>
+                    <% if (info.reneged && info.reneged > 1 && (info.reneged * 100 / (info.reneged + info.collected) > 25)) { %>
                     <div class="alert alert-warning">
                         <p><span class="glyphicon glyphicon-warning-sign" />&nbsp;Things haven't always worked out for this freegler.  That might not be their fault, but please make very clear arrangements.</p>
                     </div>

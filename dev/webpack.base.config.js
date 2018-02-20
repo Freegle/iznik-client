@@ -100,6 +100,7 @@ exports['default'] = new Config().merge({
 
         new CopyWebpackPlugin([
             {from: 'http/images', to: 'images'},
+            {from: 'http/sounds', to: 'sounds'},
             {from: 'http/misc', to: 'misc'}
         ]),
 
