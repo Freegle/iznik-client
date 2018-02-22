@@ -26,6 +26,7 @@ define([
 
         specialSettings: [
             'onhere',
+            'publish',
             'onyahoo',
             'welcomemail',
             'region'
@@ -336,6 +337,14 @@ define([
                                     {label: 'Yorkshire and the Humber', value: 'Yorkshire and the Humber'},
                                     {label: 'Scotland', value: 'Scotland'}
                                 ],
+                            },
+                            {
+                                name: 'publish',
+                                label: 'Visible on website?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: '(Freegle only) Is this group available for people to find and use?',
+                                disabled: role != 'Owner' && !Iznik.Session.isAdminOrSupport()
                             },
                             {
                                 name: 'onhere',

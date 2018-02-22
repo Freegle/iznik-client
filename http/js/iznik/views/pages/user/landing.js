@@ -8,6 +8,7 @@ define([
     'iznik/models/donations',
     'iznik/views/pages/pages',
     'iznik/views/group/select',
+    'iznik/views/supportus',
     'jquery.dd'
 ], function($, _, Backbone, Iznik, ChatHolder) {
     Iznik.Views.User.Pages.Landing = Iznik.Views.Page.extend({
@@ -125,7 +126,12 @@ define([
         noback: true,
 
         events: {
-            'click .js-chat': 'chatMods'
+            'click .js-chat': 'chatMods',
+            'click .js-cards': 'cards'
+        },
+
+        cards: function() {
+            (new Iznik.Views.User.BusinessCards()).render();
         },
 
         chatMods: function(e) {

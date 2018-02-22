@@ -51,69 +51,53 @@ define([
             var p = Iznik.resolvedPromise(self);
 
             if (!lastask || (now - lastask > 7 * 24 * 60 * 60 * 1000)) {
-                p = Iznik.ABTestGetVariant('SupportUs', function (variant) {
-                    self.template = variant.variant;
-                    var showglobal = false;
+                self.template = 'user_support_askdonationgroup';
+                var showglobal = false;
 
-                    if (variant.variant.indexOf('group') !== -1) {
-                        // Get home group to ask for per-group donation.
-                        var homegroup = Storage.get('myhomegroup');
-                        var group = Iznik.Session.getGroup(homegroup);
+                // Get home group to ask for per-group donation.
+                var homegroup = Storage.get('myhomegroup');
+                var group = Iznik.Session.getGroup(homegroup);
 
-                        if (!group) {
-                            var groups = Iznik.Session.get('groups');
-                            if (groups.length > 0) {
-                                homegroup = groups.at(0).get('id');
-                                group = groups.at(0);
-                            }
+                if (!group) {
+                    var groups = Iznik.Session.get('groups');
+                    if (groups.length > 0) {
+                        homegroup = groups.at(0).get('id');
+                        group = groups.at(0);
+                    }
+                }
+
+                if (group) {
+                    self.donations = new Iznik.Models.Donations();
+                    self.donations.fetch({
+                        data: {
+                            groupid: homegroup
+                        }
+                    }).then(function () {
+                        group.set('donations', self.donations.attributes);
+
+                        if (self.donations.attributes.raised < self.donations.attributes.target) {
+                            // Not reached the target - show the per-group appeal.
+                            self.model = group;
+                        } else {
+                            // Reached the group target - show the global appeal
+                            homegroup = null;
+                            self.template = 'user_support_askdonation';
                         }
 
-                        if (group) {
-                            self.donations = new Iznik.Models.Donations();
-                            self.donations.fetch({
-                                data: {
-                                    groupid: homegroup
-                                }
-                            }).then(function () {
-                                group.set('donations', self.donations.attributes);
-
-                                if (self.donations.attributes.raised < self.donations.attributes.target) {
-                                    // Not reached the target - show the per-group appeal.
-                                    self.model = group;
-                                } else {
-                                    // Reached the group target - show the global appeal
-                                    homegroup = null;
-                                    self.template = 'user_support_askdonation';
-                                }
-
-                                var p = Iznik.Views.Modal.prototype.render.call(self);
-                                p.then(function () {
-                                    var w = new Iznik.Views.DonationThermometer({
-                                        groupid: homegroup
-                                    });
-                                    w.render().then(function () {
-                                        Storage.set('donationlastask', now);
-                                        self.$('.js-thermometer').html(w.$el);
-                                    });
-                                });
-                            });
-                        }
-                    } else {
-                        // Global thermometer.
                         var p = Iznik.Views.Modal.prototype.render.call(self);
                         p.then(function () {
                             var w = new Iznik.Views.DonationThermometer({
-                                groupid: null
+                                groupid: homegroup
                             });
                             w.render().then(function () {
                                 Storage.set('donationlastask', now);
                                 self.$('.js-thermometer').html(w.$el);
                             });
                         });
-                    }
+                    });
+                }
 
-                    Iznik.ABTestShown('SupportUs', self.template);
-                });
+                Iznik.ABTestShown('SupportUs', self.template);
             } else if (!lastcardask || (now - lastcardask > 2 * 60 * 60 * 1000)) {
                 // If we're not asking for a donation, offer business cards, unless the group forbids it.
                 Storage.set('cardlastask', now);
@@ -292,22 +276,49 @@ define([
         events: {
             'click .js-submit': 'submit',
             'click .js-justafew': 'justafew',
-            'click .js-more': 'more'
+            'click .js-more': 'more',
+            'click .js-download': 'download',
+            'click .js-moo': 'moo',
+            'click .js-backtochoice': 'backtochoice'
+        },
+
+        download: function() {
+            Iznik.ABTestAction('CardsOrPoster', 'poster');
+        },
+
+        moo: function() {
+            Iznik.ABTestAction('CardsOrPoster', 'moo');
+        },
+
+        carddesign: function() {
+            Iznik.ABTestAction('CardsOrPoster', 'carddesign');
+        },
+
+        backtochoice: function() {
+            var self = this;
+            self.$('.js-backtochoice').hide();
+            self.$('.js-more, .js-justafew').show();
+            self.$('.js-choice').slideDown('slow');
+            self.$('.js-submit, .js-moredesc, .js-afew').hide();
         },
 
         justafew: function() {
             var self = this;
-            self.$('.js-howmany').slideUp('slow');
+            self.$('.js-choice').slideUp('slow');
+            self.$('.js-backtochoice').show();
             self.$('.js-more, .js-justafew').hide();
             self.$('.js-afew, .js-submit').fadeIn('slow');
         },
 
         more: function() {
             var self = this;
-            self.$('.js-howmany').slideUp('slow');
-            self.$('.js-more').fadeIn('slow');
+            self.$('.js-choice').slideUp('slow');
+            self.$('.js-backtochoice').show();
+            self.$('.js-moredesc').fadeIn('slow');
             self.$('.js-afew, .js-submit').hide();
-            Iznik.ABTestAction('BusinessCards', 'more');
+            Iznik.ABTestAction('CardsOrPoster', 'more');
+            Iznik.ABTestShown('CardsOrPoster', 'moo');
+            Iznik.ABTestShown('CardsOrPoster', 'carddesign');
         },
 
         submit: function() {
@@ -342,7 +353,7 @@ define([
                                 }
                             });
 
-                            Iznik.ABTestAction('BusinessCards', 'justafew');
+                            Iznik.ABTestAction('CardsOrPoster', 'justafew');
                         }
                     }
                 });
@@ -367,8 +378,9 @@ define([
                     self.postalAddress.render();
                     self.$('.js-postaladdress').append(self.postalAddress.$el);
 
-                    Iznik.ABTestShown('BusinessCards', 'justafew');
-                    Iznik.ABTestShown('BusinessCards', 'more');
+                    Iznik.ABTestShown('CardsOrPoster', 'poster');
+                    Iznik.ABTestShown('CardsOrPoster', 'justafew');
+                    Iznik.ABTestShown('CardsOrPoster', 'more');
                 });
             });
 
@@ -523,103 +535,105 @@ define([
                         group: 1
                     },
                     success: function (ret) {
-                        var d = ret.dashboard.aviva;
+                        if (ret.ret === 0) {
+                            var d = ret.dashboard.aviva;
 
-                        if (d) {
-                            self.$('.js-position').html(d.ourposition);
-                            self.$('.js-votes').html(d.ourvotes);
+                            if (d) {
+                                self.$('.js-position').html(d.ourposition);
+                                self.$('.js-votes').html(d.ourvotes);
 
-                            self.top20 = new Iznik.Collection(d.top20);
-                            self.history = d.history;
+                                self.top20 = new Iznik.Collection(d.top20);
+                                self.history = d.history;
 
-                            self.top20CV = new Backbone.CollectionView({
-                                el: self.$('.js-top20'),
-                                modelView: Iznik.Views.Aviva.Top20,
-                                collection: self.top20,
-                                processKeyEvents: false
-                            });
-
-                            self.top20CV.render();
-
-                            self.$('.js-howweredoing').fadeIn('slow');
-
-                            function apiLoaded() {
-                                // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
-                                _.defer(function () {
-                                    var data = new google.visualization.DataTable();
-                                    data.addColumn('date', 'Date');
-                                    data.addColumn('number', 'Position');
-                                    _.each(self.history, function (hist) {
-                                        data.addRow([new Date(hist.timestamp), parseInt(hist.position, 10) ]);
-                                    });
-
-                                    var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
-                                    formatter.format(data, 1);
-
-                                    self.chart = new google.visualization.LineChart(self.$('.js-positiongraph').get()[0]);
-                                    self.data = data;
-                                    self.chartOptions = {
-                                        title: 'Aviva Voting Position',
-                                        interpolateNulls: false,
-                                        animation: {
-                                            duration: 5000,
-                                            easing: 'out',
-                                            startup: true
-                                        },
-                                        legend: {position: 'none'},
-                                        chartArea: {'width': '80%', 'height': '80%'},
-                                        vAxis: {
-                                            viewWindow: {min: 0},
-                                            title: 'Position'
-                                        },
-                                        hAxis: {
-                                            format: 'dd MMM'
-                                        },
-                                        series: {
-                                            0: {color: 'darkgreen'}
-                                        }
-                                    };
-                                    self.chart.draw(self.data, self.chartOptions);
-
-                                    var data = new google.visualization.DataTable();
-                                    data.addColumn('date', 'Date');
-                                    data.addColumn('number', 'Votes');
-                                    _.each(self.history, function (hist) {
-                                        data.addRow([new Date(hist.timestamp), parseInt(hist.votes, 10) ]);
-                                    });
-
-                                    var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
-                                    formatter.format(data, 1);
-
-                                    self.chart = new google.visualization.LineChart(self.$('.js-votesgraph').get()[0]);
-                                    self.data = data;
-                                    self.chartOptions = {
-                                        title: 'Aviva Votes',
-                                        interpolateNulls: false,
-                                        animation: {
-                                            duration: 5000,
-                                            easing: 'out',
-                                            startup: true
-                                        },
-                                        legend: {position: 'none'},
-                                        chartArea: {'width': '80%', 'height': '80%'},
-                                        vAxis: {
-                                            viewWindow: {min: 0},
-                                            title: 'Votes'
-                                        },
-                                        hAxis: {
-                                            format: 'dd MMM'
-                                        },
-                                        series: {
-                                            1: {color: 'darkblue'}
-                                        }
-                                    };
-                                    self.chart.draw(self.data, self.chartOptions);
+                                self.top20CV = new Backbone.CollectionView({
+                                    el: self.$('.js-top20'),
+                                    modelView: Iznik.Views.Aviva.Top20,
+                                    collection: self.top20,
+                                    processKeyEvents: false
                                 });
-                            }
 
-                            google.charts.load('current', {packages: ['corechart', 'annotationchart']});
-                            google.charts.setOnLoadCallback(apiLoaded);
+                                self.top20CV.render();
+
+                                self.$('.js-howweredoing').fadeIn('slow');
+
+                                function apiLoaded() {
+                                    // Defer so that it's in the DOM - google stuff doesn't work well otherwise.
+                                    _.defer(function () {
+                                        var data = new google.visualization.DataTable();
+                                        data.addColumn('date', 'Date');
+                                        data.addColumn('number', 'Position');
+                                        _.each(self.history, function (hist) {
+                                            data.addRow([new Date(hist.timestamp), parseInt(hist.position, 10) ]);
+                                        });
+
+                                        var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
+                                        formatter.format(data, 1);
+
+                                        self.chart = new google.visualization.LineChart(self.$('.js-positiongraph').get()[0]);
+                                        self.data = data;
+                                        self.chartOptions = {
+                                            title: 'Aviva Voting Position',
+                                            interpolateNulls: false,
+                                            animation: {
+                                                duration: 5000,
+                                                easing: 'out',
+                                                startup: true
+                                            },
+                                            legend: {position: 'none'},
+                                            chartArea: {'width': '80%', 'height': '80%'},
+                                            vAxis: {
+                                                viewWindow: {min: 0},
+                                                title: 'Position'
+                                            },
+                                            hAxis: {
+                                                format: 'dd MMM'
+                                            },
+                                            series: {
+                                                0: {color: 'darkgreen'}
+                                            }
+                                        };
+                                        self.chart.draw(self.data, self.chartOptions);
+
+                                        var data = new google.visualization.DataTable();
+                                        data.addColumn('date', 'Date');
+                                        data.addColumn('number', 'Votes');
+                                        _.each(self.history, function (hist) {
+                                            data.addRow([new Date(hist.timestamp), parseInt(hist.votes, 10) ]);
+                                        });
+
+                                        var formatter = new google.visualization.DateFormat({formatType: 'yy-M-d H'});
+                                        formatter.format(data, 1);
+
+                                        self.chart = new google.visualization.LineChart(self.$('.js-votesgraph').get()[0]);
+                                        self.data = data;
+                                        self.chartOptions = {
+                                            title: 'Aviva Votes',
+                                            interpolateNulls: false,
+                                            animation: {
+                                                duration: 5000,
+                                                easing: 'out',
+                                                startup: true
+                                            },
+                                            legend: {position: 'none'},
+                                            chartArea: {'width': '80%', 'height': '80%'},
+                                            vAxis: {
+                                                viewWindow: {min: 0},
+                                                title: 'Votes'
+                                            },
+                                            hAxis: {
+                                                format: 'dd MMM'
+                                            },
+                                            series: {
+                                                1: {color: 'darkblue'}
+                                            }
+                                        };
+                                        self.chart.draw(self.data, self.chartOptions);
+                                    });
+                                }
+
+                                google.charts.load('current', {packages: ['corechart', 'annotationchart']});
+                                google.charts.setOnLoadCallback(apiLoaded);
+                            }
                         }
                     }
                 });

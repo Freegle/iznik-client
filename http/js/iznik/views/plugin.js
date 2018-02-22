@@ -848,32 +848,35 @@ define([
                                 var g = new Iznik.Models.Group({ id: group});
 
                                 g.fetch().then(function() {
-                                    // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
-                                    $.ajax({
-                                        url: API + 'group',
-                                        type: 'POST',
-                                        data: {
-                                            id: g.get('id'),
-                                            action: 'ConfirmKey'
-                                        },
-                                        success: function(ret) {
-                                            console.log("Confirm mod status server returned", group, ret);
-                                            if (ret.ret == 0) {
-                                                console.log("Confirm mod to server on on", group);
-                                                var email = 'modconfirm-' + g.get('id') + '-' +
-                                                    Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
+                                    // Only want to promote if the group is actually on Yahoo.
+                                    if (g.get('onyahoo')) {
+                                        // The group is hosted by the server; trigger a confirm.  First we need a confirm key.
+                                        $.ajax({
+                                            url: API + 'group',
+                                            type: 'POST',
+                                            data: {
+                                                id: g.get('id'),
+                                                action: 'ConfirmKey'
+                                            },
+                                            success: function(ret) {
+                                                console.log("Confirm mod status server returned", group, ret);
+                                                if (ret.ret == 0) {
+                                                    console.log("Confirm mod to server on on", group);
+                                                    var email = 'modconfirm-' + g.get('id') + '-' +
+                                                        Iznik.Session.get('me').id + '-' + ret.key + '@' + location.host;
 
-                                                self.collection.add(new Iznik.Models.Plugin.Work({
-                                                    subview: new Iznik.Views.Plugin.Yahoo.ConfirmMod({
-                                                        model: new Iznik.Model({
-                                                            nameshort: group,
-                                                            email: email
+                                                    self.collection.add(new Iznik.Models.Plugin.Work({
+                                                        subview: new Iznik.Views.Plugin.Yahoo.ConfirmMod({
+                                                            model: new Iznik.Model({
+                                                                nameshort: group,
+                                                                email: email
+                                                            })
                                                         })
-                                                    })
-                                                }));
+                                                    }));
+                                                }
                                             }
-                                        }
-                                    })
+                                        })
+                                    }
                                 });
                             });
                         }

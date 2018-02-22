@@ -419,7 +419,8 @@ define([
             // This can validly happen when we switch pages, because we abort outstanding requests
             // and hence our long poll.
             // TODO Do we get tidied?
-            log("Wait error", this);
+            this.waiting = false;
+
             // Probably a network glitch.  Retry later.
             _.delay(_.bind(this.wait, this), 1000);
         },

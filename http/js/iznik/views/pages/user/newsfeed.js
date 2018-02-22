@@ -631,12 +631,16 @@ define([
             v.render();
         },
 
-        clickPreview: function() {
+        clickPreview: function(e) {
             var p = this.model.get('preview');
 
             if (p && p.hasOwnProperty('url') && p.url) {
                 window.open(p.url);
             }
+
+            // Don't let this click propagate, because if we have a comment on something which also has a preview
+            // then this would open that.
+            e.stopPropagation();
         },
 
         report: function(e) {
@@ -1120,6 +1124,8 @@ define([
                 data: {
                     allreplies: true
                 }
+            }).then(function() {
+                self.replies.add(self.model.get('replies'));
             });
         },
 
@@ -1374,7 +1380,7 @@ define([
                                 }
 
                                 if (count > 1) {
-                                    self.$('.js-moredates').html('...plus ' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
+                                    self.$('.js-moredates').html('...+' + (count - 1) + ' more date' + (count == 2 ? '' : 's'));
                                 }
                             }
                         }
