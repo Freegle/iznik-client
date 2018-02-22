@@ -442,7 +442,7 @@ define([
                                         }
 
                                         countel.html(ret.work[count.fi]);
-                                        // console.log("Sound", ret.work[count.fi], currcount, self.playBeep);
+                                        //console.log("Sound", ret.work[count.fi], currcount, self.playBeep, count.sound);
 
                                         if (ret.work[count.fi] > currcount || currcount == 0) {
                                             // Only trigger this when the counts increase.  This will pick up new messages
@@ -462,6 +462,7 @@ define([
                                                         // user gesture, so catch any exception.
                                                         sound.play();
                                                     } catch (e) {
+                                                        console.log("Failed to play beep", e.message);
                                                     }
                                                 }
                                             }

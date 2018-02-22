@@ -52,7 +52,13 @@ define([
             self.$('.js-allgroupslist tr').each(function() {
                 var row = [];
                 $(this).find('td').each(function() {
-                    row.push($(this).html());
+                    var val = $(this).html();
+
+                    if (val.indexOf("checkbox") !== -1) {
+                        val = $(this).find('input').prop('checked')
+                    }
+
+                    row.push(val);
                 });
 
                 exportList.push(row);
@@ -268,7 +274,7 @@ define([
                             group.fetch().then(function() {
                                 group.save({
                                     namefull: self.$('.js-addnamefull').val(),
-                                    publish: 1,
+                                    publish: 0, // Default to not shown.
                                     polyofficial: self.$('.js-addcore').val(),
                                     poly: self.$('.js-addcatchment').val(),
                                     lat: self.$('.js-addlat').val(),
@@ -449,6 +455,16 @@ define([
                 label: 'Region',
                 editable: false,
                 cell: 'string'
+            }, {
+                name: 'lat',
+                label: 'Lat',
+                editable: false,
+                cell: 'number'
+            }, {
+                name: 'lng',
+                label: 'Lng',
+                editable: false,
+                cell: 'number'
             }, {
                 name: 'lastmoderated',
                 label: 'Last moderated',
@@ -727,7 +743,7 @@ define([
                 self.$('.js-role').val(self.model.get('role'));
                 self.$('.js-email').html(self.model.get('email'));
 
-                _.each(self.model.get('emails'), function(email) {
+                _.each(self.model.get('otheremails'), function(email) {
                     if (email.preferred) {
                         self.$('.js-email').html(email.email);
                     }
@@ -751,6 +767,10 @@ define([
             var p = Iznik.View.prototype.render.call(this);
 
             p.then(function() {
+                var confirmed = self.model.get('affiliationconfirmed');
+                confirmed = confirmed ? (new Date(confirmed)).toLocaleString() : 'Never';
+                self.$('.js-affiliation').html(confirmed);
+
                 // Get the mods.
                 var coll = new Iznik.Collections.Members(null, {
                     groupid: self.model.get('id'),
@@ -1062,8 +1082,13 @@ define([
         addMessages: function() {
             var self = this;
 
-            _.each(self.model.get('messagehistory'), function (message) {
+            if (self.model.get('messagehistory').length == 0) {
+                self.$('.js-messagesnone').show();
+            } else {
                 self.$('.js-messagesnone').hide();
+            }
+
+            _.each(self.model.get('messagehistory'), function (message) {
                 message.group = self.groups[message.groupid];
                 self.addMessage(message);
             });
@@ -1109,7 +1134,25 @@ define([
 
                     v.render().then(function (v) {
                         self.$('.js-memberof').append(v.el);
-                        v.$el.find('.js-emailfrequency').val(group.emailfrequency);
+
+                        // We don't want to show the email frequency for a group which is on Yahoo and where the
+                        // email membership is not one of ours.  In that case Yahoo would be responsible for
+                        // sending the email, not us.
+                        var emailid = group.emailid;
+                        var emails = self.model.get('emails');
+                        var show = true;
+
+                        _.each(emails, function(email) {
+                            if (emailid == email.id && !email.ourdomain) {
+                                show = false;
+                            }
+                        });
+
+                        if (show) {
+                            v.$el.find('.js-emailfrequency').val(group.emailfrequency);
+                        } else {
+                            v.$el.find('.js-emailfrequency').val(0);
+                        }
                     });
                 });
 

@@ -86,12 +86,17 @@
             <div class="glyphicon glyphicon-tag" />&nbsp;Add Note
         </div>
     </li>
+    <% if (obj.systemrole == 'User') { %>
     <li>
-        <% if (obj.systemrole == 'User') { %>
         <div class="btn btn-xs btn-white botspace js-adminsupportonly hidden js-purge">
             <div class="glyphicon glyphicon-trash" />&nbsp;Purge from DB
         </div>
-        <% } %>
+    </li>
+    <% } %>
+    <li>
+        <div class="btn btn-xs btn-white botspace js-showprofile">
+            <div class="glyphicon glyphicon-user" />&nbsp;Show profile
+        </div>
     </li>
 </ul>
 <% if (obj.activedistance && obj.activedistance > 50) { %>

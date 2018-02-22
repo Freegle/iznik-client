@@ -1,6 +1,11 @@
 <div class="row">
     <div class="col-md-2 js-date"></div>
-    <div class="col-md-2"><% if (obj.group) { %>{{group.nameshort}}<% } %></div>
+    <div class="col-md-2">
+        <% if (obj.group) { %>{{group.nameshort}}<% } %>
+        <% if (obj.collection != 'Approved') { %>
+        &nbsp;<span class="error">{{collection}}</span>
+        <% } %>
+    </div>
     <div class="col-md-1 text-muted">#{{id}}</div>
     <div class="col-md-2 forcebreak">{{fromaddr}}</div>
     <div class="col-md-5">{{subject}}</div>

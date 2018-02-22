@@ -8,6 +8,7 @@ define([
     "iznik/modtools",
     'jquery-show-first',
     'iznik/views/pages/pages',
+    'iznik/views/user/message',
     'iznik/models/message'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Message = Iznik.View.extend({
@@ -505,11 +506,9 @@ define([
             e.preventDefault();
             e.stopPropagation();
 
-            var v = new Iznik.Views.Modal({
+            (new Iznik.Views.User.Message.PhotoZoom({
                 model: this.model
-            });
-
-            v.open('modtools_message_photozoom');
+            })).render();
         }
     });
 
