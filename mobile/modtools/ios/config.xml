@@ -50,7 +50,6 @@
         <preference name="Orientation" value="all" />
         <preference name="deployment-target" value="9.0" />
     </platform>
-    <engine name="ios" spec="^4.5.4" />
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
     <plugin name="cordova-plugin-device" spec="^1.1.7" />
     <plugin name="cordova-plugin-geolocation" spec="^2.4.3">
@@ -75,4 +74,5 @@
         <variable name="PHOTOLIBRARY_ADD_USAGE_DESCRIPTION" value="This app needs write-access to photo library" />
         <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="This app needs read/write-access photo library access" />
     </plugin>
+    <engine name="ios" spec="^4.5.4" />
 </widget>
