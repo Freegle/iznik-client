@@ -1102,9 +1102,12 @@ define([
         render: function () {
             var self = this;
 
+            var admin = Iznik.Session.isAdmin();
+            self.model.set('isadmin', admin);
+
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                if (Iznik.Session.isAdmin()) {
+                if (admin) {
                     self.$('.js-adminonly').removeClass('hidden');
                 }
 

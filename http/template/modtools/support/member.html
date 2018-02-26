@@ -58,7 +58,7 @@
                 <div class="glyphicons glyphicons-ban-circle" />&nbsp;Report as Spammer
             </div>
             <% } %>
-            <% if (obj.systemrole == 'User') { %>
+            <% if (obj.systemrole == 'User' || obj.isadmin) { %>
             <div class="btn btn-white js-purge">
                 <div class="glyphicons glyphicons-bin" />&nbsp;Purge from DB
             </div>
