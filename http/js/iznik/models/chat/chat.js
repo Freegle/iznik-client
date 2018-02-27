@@ -128,6 +128,12 @@ define([
             return(other);
         },
 
+        otherUserSpammer: function() {
+            var u = this.otherUserMod();
+            console.log("Other", u);
+            return(u && u.spammer);
+        },
+
         nudge: function(userid) {
             var self = this;
 
