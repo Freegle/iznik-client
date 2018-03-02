@@ -369,7 +369,11 @@ define([
                         self.waiting = false;
                         log("Received notif", ret);
 
-                        if (ret && ret.hasOwnProperty('text')) {
+                        // We will get notified for both MT and FD chats.  But we only want to react to
+                        // the one which this client actually is.
+                        var mt = ret && ret.hasOwnProperty('modtools') ? ret.modtools : false;
+
+                        if ((MODTOOLS == mt) && ret && ret.hasOwnProperty('text')) {
                             var data = ret.text;
 
                             if (data) {
