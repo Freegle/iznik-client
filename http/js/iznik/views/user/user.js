@@ -1133,29 +1133,28 @@ define([
 
             var p = Iznik.resolvedPromise()
 
-            console.log('User ', myid, userid)
-            // For now show this, though revisit if we get complaints or abuse.
-            // if (myid && myid != userid)
-            {
-                self.model = new Iznik.Models.ModTools.User({
-                    id: userid
-                })
+            self.model = new Iznik.Models.ModTools.User({
+                id: userid
+            })
 
-                p = self.model.fetch({
-                    data: {
-                        info: true
-                    }
-                })
+            p = self.model.fetch({
+                data: {
+                    info: true
+                }
+            })
 
-                p.then(function () {
-                    Iznik.Views.Modal.prototype.render.call(self).then(function () {
-                        var mom = new moment(self.model.get('added'))
-                        self.$('.js-since').html(mom.format('Do MMMM YYYY'))
+            p.then(function () {
+                Iznik.Views.Modal.prototype.render.call(self).then(function () {
+                    var mom = new moment(self.model.get('added'))
+                    self.$('.js-since').html(mom.format('Do MMMM YYYY'))
 
-                        self.$('.js-replytime').html(Iznik.formatDuration(self.model.get('info').replytime))
-                    })
+                    self.$('.js-replytime').html(Iznik.formatDuration(self.model.get('info').replytime));
+
+                    // Cover image
+                    var cover = self.model.get('coverimage') ? self.model.get('coverimage') : '/images/wallpaper.png'
+                    self.$('.modal-header').css('background-image', 'url(' + cover + ')');
                 })
-            }
+            });
 
             return (p)
         }
