@@ -1402,7 +1402,7 @@ define([
         remove: function() {
             var self = this;
 
-            if (self.options.user.get('systemrole') == 'User') {
+            if (self.options.user.get('systemrole') == 'User' || Iznik.Session.isAdmin()) {
                 var v = new Iznik.Views.Confirm({
                     model: self.options.user
                 });
