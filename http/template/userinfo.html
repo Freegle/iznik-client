@@ -26,7 +26,7 @@
                     <% } %>
                     <div class="panel panel-info topspace">
                         <div class="panel-heading">
-                            <span class="glyphicons glyphicons-info-sign" />&nbsp;About this freegler
+                            <span class="glyphicons glyphicons-info-sign vcenter" />&nbsp;About this freegler
                         </div>
                         <div class="panel-body">
                             <p><% if (info.milesaway) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %><% if (info.publiclocation.location) { %>{{info.publiclocation.location}}<% } else { %>{{info.publiclocation.groupname}}<% } %>, <% } %>{{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.</span><% } %></p>
