@@ -77,7 +77,7 @@
             </div>
             <% } %>
             <div class="row">
-                <div class="col-sm-10">
+                <div class="col-sm-9 col-md-10">
                     <div class="lead prewrap forcebreak js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
                     <% if (obj.fromuser) { %>
                     <span class="text-muted">
@@ -100,7 +100,7 @@
                     </div>
                     <% } %>
                 </div>
-                <div class="hidden-xs col-sm-2 js-mapzoom" style="display:none">
+                <div class="hidden-xs col-sm-3 col-md-2 js-mapzoom" style="display:none">
                     <% if (obj.location) { %>
                     <div class="mapimage margleft topspace pull-right location">
                         <img alt="Thumbnail map" class="img-thumbnail js-map"/>
