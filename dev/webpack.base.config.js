@@ -30,6 +30,7 @@ exports['default'] = new Config().merge({
             join(ROOT, 'http'),
             join(ROOT, 'http/css'),
             join(ROOT, 'http/js/lib'),
+            join(ROOT, 'node_modules/bootstrap-less'),
             join(ROOT, 'node_modules/bootstrap-fileinput/img'), // TODO Can't be the right way.
             join(ROOT, 'node_modules/raven-js/dist/plugins') // TODO Can't be the right way.
         ],
@@ -42,6 +43,16 @@ exports['default'] = new Config().merge({
     module: {
         rules: [
             ...shims.rules,
+            {
+                test: /\.less$/,
+                use: [{
+                    loader: "style-loader" // creates style nodes from JS strings
+                }, {
+                    loader: "css-loader" // translates CSS into CommonJS
+                }, {
+                    loader: "less-loader" // compiles Less to CSS
+                }]
+            },
             {
                 test: /\.html$/,
                 use: 'text-loader'

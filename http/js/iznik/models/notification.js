@@ -47,6 +47,16 @@ define([
             return(-(new Date(a.get('timestamp'))).getTime());
         },
 
+        allSeen: function() {
+            return($.ajax({
+                url: this.url,
+                type: 'POST',
+                data: {
+                    action: 'AllSeen'
+                }
+            }));
+        },
+
         parse: function(ret) {
             var self = this;
 
