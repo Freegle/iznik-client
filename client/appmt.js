@@ -20,7 +20,7 @@ import "bootstrap-datepicker/dist/css/bootstrap-datepicker.css";
 import "dd.css";
 import "bootstrap-fileinput/css/fileinput.css";
 
-import 'style.css';
+import 'style.less';
 import 'modtools.css';
 
 import 'iznik/main';

@@ -400,13 +400,9 @@ define([
                                 e.preventDefault();
                                 e.stopPropagation();
 
-                                self.notifications.each(function(notif) {
-                                    if (!notif.get('seen')) {
-                                        notif.seen();
-                                    }
+                                self.notifications.allSeen().then(function() {
+                                    $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                                 });
-
-                                $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                             });
                         }
 

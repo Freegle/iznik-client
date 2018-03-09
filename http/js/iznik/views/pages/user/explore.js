@@ -335,12 +335,16 @@ define([
                         marker.setDraggable(false);
                         self.addMarker(marker);
 
-                        var v = new Iznik.Views.Map.GroupText({
-                            model: group
-                        });
-                        v.render().then(function() {
-                            $('.js-grouptextlist').append(v.$el);
-                        });
+                        // Delay adding the text ones to the list, because this fetches the group icon, and
+                        // could delay fetching the map marker, which makes the map look slow.
+                        _.delay(_.bind(function() {
+                            var v = new Iznik.Views.Map.GroupText({
+                                model: this
+                            });
+                            v.render().then(function() {
+                                $('.js-grouptextlist').append(v.$el);
+                            });
+                        }, group), 5000);
                     }
                 });
 

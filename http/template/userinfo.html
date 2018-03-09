@@ -1,56 +1,86 @@
 <div class="modal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content nopad cover">
+            <div class="modal-header coverphoto">
                 <h4 class="modal-title js-modal-title">
-                    <img src="{{profile.url}}" class="img-circle img-smallishthumbnail img-responsive inline" />&nbsp;{{displayname}}
-                            <span class="small faded pull-right">#{{id}}</span>
-                        </span>
-                    </span>
+                    <div class="coverprofilecontainer">
+                        <div class="coverprofilecircle">
+                            <img src="{{profile.url}}" class="coverprofileimage" />
+                        </div>
+                        <div class="covername">
+                            {{displayname}}
+                            <span class="small faded pull-right padtopsm">#{{id}}</span>
+                            <br />
+                            <p class="text-muted small">Freegler since <span class="js-since" />.</p>
+                        </div>
+                    </div>
+                    <div class="completefull" />
                 </h4>
             </div>
             <div class="modal-body js-modal-body row">
                 <div class="col-xs-12">
-                    <p><% if (info.milesaway) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %><% if (info.publiclocation.location) { %>{{info.publiclocation.location}}<% } else { %>{{info.publiclocation.groupname}}<% } %>, <% } %>{{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.</span><% } %></p>
-
-                    <p><span class="glyphicon glyphicon-calendar" />&nbsp;Freegler since <span class="js-since" />.</p>
-                    <% if (info.replytime) { %>
-                    <p><span class="glyphicon glyphicon-time" />&nbsp;Typically replies in <span class="js-replytime" />.</p>
-                    <% } else { %>
-                    <p><span class="glyphicon glyphicon-time" />&nbsp;We don't know how long they typically take to reply.</p>
-                    <% } %>
-                    <% if (info.collected) { %>
-                    <p><span class="glyphicon glyphicon-ok" />&nbsp;Picked up about {{info.collected}} item<% if (info.collected != 1) { %>s<% } %> in the last 90 days.</p>
-                    <% } else { %>
-                    <p><span class="glyphicon glyphicon-ok faded" />&nbsp;Not received any items yet so far as we know.</p>
-                    <% } %>
                     <% if (info.reneged && info.reneged > 1 && (info.reneged * 100 / (info.reneged + info.collected) > 25)) { %>
                     <div class="alert alert-warning">
                         <p><span class="glyphicon glyphicon-warning-sign" />&nbsp;Things haven't always worked out for this freegler.  That might not be their fault, but please make very clear arrangements.</p>
                     </div>
                     <% } %>
-                    <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>
-                        <p>No recent activity.</p>
-                    <% } else { %>
-                        <p>Activity in the last 90 days:</p>
-                        <ul class="list-unstyled">
-                            <% if (obj.info.replies) { %>
-                            <li>
-                                <span class="glyphicon glyphicon-envelope" />&nbsp;{{info.replies}} <% if (info.replies != 1) { %>replies<% } else { %>reply<% } %>.
-                            </li>
-                            <% } %>
-                            <% if (obj.info.offers) { %>
-                            <li><span class="glyphicon glyphicon-gift" />&nbsp;{{info.offers}} recent OFFER<% if (info.offers != 1) { %>s<% } %>.</li>
+                    <div class="panel panel-info topspace">
+                        <div class="panel-heading">
+                            <span class="glyphicons glyphicons-info-sign vcenter" />&nbsp;About this freegler
+                        </div>
+                        <div class="panel-body">
+                            <p><% if (info.milesaway) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %><% if (info.publiclocation.location) { %>{{info.publiclocation.location}}<% } else { %>{{info.publiclocation.groupname}}<% } %>, <% } %>{{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.</span><% } %></p>
+                            <% if (info.replytime) { %>
+                            <p><span class="glyphicon glyphicon-time" />&nbsp;Typically replies in <span class="js-replytime" />.</p>
                             <% } else { %>
-                            <li><span class="glyphicon glyphicon-gift" />&nbsp;No recent OFFERs.</li>
+                            <p><span class="glyphicon glyphicon-time" />&nbsp;We don't know how long they typically take to reply.</p>
                             <% } %>
-                            <% if (obj.info.wanteds) { %>
-                            <li><span class="glyphicon glyphicon-shopping-cart" />&nbsp;{{info.wanteds}} recent WANTED<% if (info.wanted != 1) { %>s<% } %>.</li>
+                        </div>
+                    </div>
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            <span class="glyphicons glyphicons-charts vcenter" />&nbsp;
+                            <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>
+                            No recent activity
                             <% } else { %>
-                            <span class="glyphicon glyphicon-shopping-cart" />&nbsp;No recent WANTEDs.
+                            Activity in the last 90 days
                             <% } %>
-                        </ul>
-                    <% } %>
+                        </div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <% if (obj.info.offers + obj.info.wanteds + obj.info.replies > 0) { %>
+                                <div class="col-sm-4">
+                                    <% if (obj.info.offers) { %>
+                                    <span class="glyphicon glyphicon-gift" />&nbsp;{{info.offers}} recent OFFER<% if (info.offers != 1) { %>s<% } %>.
+                                    <% } else { %>
+                                    <span class="glyphicon glyphicon-gift" />&nbsp;No recent OFFERs.
+                                    <% } %>
+                                </div>
+                                <div class="col-sm-4">
+                                    <% if (obj.info.wanteds) { %>
+                                    <span class="glyphicon glyphicon-shopping-cart" />&nbsp;{{info.wanteds}} recent WANTED<% if (info.wanted != 1) { %>s<% } %>.
+                                    <% } else { %>
+                                    <span class="glyphicon glyphicon-shopping-cart" />&nbsp;No recent WANTEDs.
+                                    <% } %>
+                                </div>
+                                <div class="col-sm-4">
+                                    <% if (obj.info.replies) { %>
+                                    <span class="glyphicon glyphicon-envelope" />&nbsp;{{info.replies}} <% if (info.replies != 1) { %>replies<% } else { %>reply<% } %>.
+                                    <% } %>
+                                </div>
+                                <% } %>
+                            </div>
+                            <div class="row margtopsm">
+                                <div class="col-xs-12">
+                                    <% if (info.collected) { %>
+                                    <span class="glyphicon glyphicon-ok" />&nbsp;Picked up about {{info.collected}} item<% if (info.collected != 1) { %>s<% } %>.
+                                    <% } else { %>
+                                    <span class="glyphicon glyphicon-ok faded" />&nbsp;Not received any items recently, so far as we know.
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
