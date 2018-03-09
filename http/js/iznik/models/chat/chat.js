@@ -128,6 +128,12 @@ define([
             return(other);
         },
 
+        otherUserSpammer: function() {
+            var u = this.otherUserMod();
+            console.log("Other", u);
+            return(u && u.spammer);
+        },
+
         nudge: function(userid) {
             var self = this;
 
@@ -362,7 +368,11 @@ define([
                     success: function (ret) {
                         self.waiting = false;
 
-                        if (ret && ret.hasOwnProperty('text')) {
+                        // We will get notified for both MT and FD chats.  But we only want to react to
+                        // the one which this client actually is.
+                        var mt = ret && ret.hasOwnProperty('modtools') ? ret.modtools : false;
+
+                        if ((MODTOOLS == mt) && ret && ret.hasOwnProperty('text')) {
                             var data = ret.text;
                             log("Received notif", ret);
 

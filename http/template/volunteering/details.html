@@ -5,6 +5,9 @@
                 <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger clickme" class="close" data-dismiss="modal" />
                 <h4 class="modal-title js-modal-title">{{title}}</h4>
                 <a href="#" class="js-url" />
+                <% if (obj.user) { %>
+                <p class="text-muted">Posted by {{user.displayname}} <span class="faded">(#{{user.id}})</span></p>
+                <% } %>
             </div>
             <div class="modal-body js-modal-body">
                 <div class="row">

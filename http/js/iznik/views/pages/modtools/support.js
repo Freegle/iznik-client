@@ -1102,9 +1102,12 @@ define([
         render: function () {
             var self = this;
 
+            var admin = Iznik.Session.isAdmin();
+            self.model.set('isadmin', admin);
+
             var p = Iznik.View.prototype.render.call(this);
             p.then(function(self) {
-                if (Iznik.Session.isAdmin()) {
+                if (admin) {
                     self.$('.js-adminonly').removeClass('hidden');
                 }
 
@@ -1399,7 +1402,7 @@ define([
         remove: function() {
             var self = this;
 
-            if (self.options.user.get('systemrole') == 'User') {
+            if (self.options.user.get('systemrole') == 'User' || Iznik.Session.isAdmin()) {
                 var v = new Iznik.Views.Confirm({
                     model: self.options.user
                 });

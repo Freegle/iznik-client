@@ -32,7 +32,7 @@ import "bootstrap-datepicker/dist/css/bootstrap-datepicker3.css";
 import "dd.css";
 import "bootstrap-fileinput/css/fileinput.css";
 
-import 'style.css';
+import 'style.less';
 import 'user.css';
 
 import 'iznik/main';

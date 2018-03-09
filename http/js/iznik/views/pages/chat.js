@@ -1029,6 +1029,11 @@ define([
                 self.photoUpload();
 
                 _.delay(_.bind(self.checkAddress, self), 1000);
+
+                if (self.model.otherUserSpammer()) {
+                    self.$('.js-notspammer').hide();
+                    self.$('.js-isspammer').show();
+                }
             });
 
             return (p);
