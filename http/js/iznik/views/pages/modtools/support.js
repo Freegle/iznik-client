@@ -16,6 +16,7 @@ define([
     'iznik/views/pages/modtools/replay',
     'iznik/models/user/alert',
     'iznik/views/user/user',
+    'iznik/models/shortlinks',
     'typeahead'
 ], function($, _, Backbone, Iznik, moment, s, Backgrid) {
     var saveAs = s.saveAs;
@@ -34,7 +35,8 @@ define([
             'click .js-getalerts': 'getAlerts',
             'click .js-addgroup': 'addGroup',
             'click .js-getlist': 'getList',
-            'click .js-exportgroups': 'exportGroups'
+            'click .js-exportgroups': 'exportGroups',
+            'click .js-getlinks': 'getLinks'
         },
 
         exportGroups: function() {
@@ -625,6 +627,67 @@ define([
                 google.charts.load('current', {packages: ['corechart', 'annotationchart']});
                 google.charts.setOnLoadCallback(apiLoaded);
 
+                self.wait.close();
+            });
+        },
+
+        getLinks: function() {
+            var self = this;
+
+            self.wait = new Iznik.Views.PleaseWait({
+                timeout: 1
+            });
+            self.wait.render();
+
+            self.allLinks = new Iznik.Collections.Shortlink();
+
+            // Create a backgrid for the groups.
+            self.columns = [{
+                name: 'id',
+                label: 'ID',
+                editable: false,
+                cell: Backgrid.IntegerCell
+            }, {
+                name: 'name',
+                label: 'Name',
+                editable: false,
+                cell: 'string'
+            }, {
+                name: 'type',
+                label: 'Type',
+                editable: false,
+                cell: 'string'
+            }, {
+                name: 'groupid',
+                label: 'Group ID',
+                editable: false,
+                cell: 'integer'
+            }, {
+                name: 'nameshort',
+                label: 'Group Name',
+                editable: false,
+                cell: 'string'
+            }, {
+                name: 'clicks',
+                label: 'Clicks',
+                editable: false,
+                cell: 'integer'
+            }, {
+                name: 'url',
+                label: 'URL',
+                editable: false,
+                cell: 'string'
+            }];
+
+            self.grid = new Backgrid.Grid({
+                columns: self.columns,
+                collection: self.allLinks
+            });
+
+            self.$(".js-shortlinkslist").html(self.grid.render().el);
+
+            self.allLinks.fetch().then(function() {
+                console.log("All links", self.allLinks);
                 self.wait.close();
             });
         },
