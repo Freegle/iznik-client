@@ -575,9 +575,10 @@ define([
             // Promise a message to someone.
             var self = this;
 
-            // Get our offers.
+            // Get our offers.  Use the AllUser collection as that also puts an age limit on and is quicker - same
+            // thing we do on My Posts.
             self.offers = new Iznik.Collections.Message(null, {
-                collection: 'Approved',
+                collection: 'AllUser',
                 modtools: false
             });
 
@@ -585,6 +586,7 @@ define([
                 data: {
                     fromuser: Iznik.Session.get('me').id,
                     types: ['Offer'],
+                    hasoutcome: false,
                     limit: 100
                 }
             }).then(function () {
