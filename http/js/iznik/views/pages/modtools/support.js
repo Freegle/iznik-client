@@ -483,6 +483,11 @@ define([
                 editable: false,
                 cell: 'date'
             }, {
+                name: 'recentautoapproves',
+                label: 'Recent auto-approves',
+                editable: false,
+                cell: 'number'
+            }, {
                 name: 'lastmodactive',
                 label: 'Last on MT',
                 editable: false,
