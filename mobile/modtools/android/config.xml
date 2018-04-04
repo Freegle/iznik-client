@@ -68,7 +68,6 @@
         <preference name="Orientation" value="all" />
         <preference name="deployment-target" value="8.0" />
     </platform>
-    <engine name="android" spec="^6.3.0" />
     <plugin name="cordova-plugin-whitelist" spec="^1.3.3" />
     <plugin name="cordova-plugin-statusbar" spec="^2.3.0" />
     <plugin name="cordova-plugin-device" spec="^1.1.7" />
@@ -88,4 +87,5 @@
         <variable name="APP_ID" value="134980666550322" />
         <variable name="APP_NAME" value="Freegle" />
     </plugin>
+    <engine name="android" spec="^6.3.0" />
 </widget>
