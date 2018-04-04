@@ -6,7 +6,6 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages'
 ], function($, _, Backbone, Iznik) {
-    console.log("Iznik is ", Iznik);
     Iznik.Views.User.Pages.Alert = {};
 
     Iznik.Views.User.Pages.Alert.Viewed = Iznik.Views.Page.extend({

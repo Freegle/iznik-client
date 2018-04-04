@@ -518,7 +518,11 @@ define([
                 });
 
                 // We need the list of ids.
-                var attids = [];
+                //
+                // Put 0 in there as a way of forcing jQuery not to strip this parameter out if we are deleting
+                // the last/only photo.  Ugly, but world peace as yet eludes us so there are more pressing matters
+                // to which we should attend.
+                var attids = [0];
                 _.each(newatts, function(att) {
                     attids.push(att.id);
                 });
@@ -528,17 +532,12 @@ define([
                     url: API + 'message',
                     type: 'PATCH',
                     data: {
-                        id: self.options.message.get('id'),
-                        attachments: attids
+                      id: self.options.message.get('id'),
+                      attachments: attids
                     },
                     success: function(ret) {
                         if (ret.ret === 0) {
-                            self.$el.fadeOut('slow', function() {
-                                if (self.collection) {
-                                    self.collection.remove(self.model);
-                                }
-                                self.destroyIt();
-                            });
+                            self.close();
                         }
                     }
                 });

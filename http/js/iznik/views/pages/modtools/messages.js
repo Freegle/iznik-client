@@ -503,12 +503,21 @@ define([
         },
 
         click: function (e) {
+            var self = this;
+
             e.preventDefault();
             e.stopPropagation();
 
-            (new Iznik.Views.User.Message.PhotoZoom({
-                model: this.model
-            })).render();
+            var v = new Iznik.Views.User.Message.PhotoZoom({
+                model: self.model,
+                message: self.options.message
+            });
+
+            self.listenToOnce(v, 'modalClosed', function() {
+                self.trigger('zoomClosed');
+            });
+
+            v.render();
         }
     });
 

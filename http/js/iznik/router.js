@@ -139,6 +139,7 @@ define([
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
             "modtools/mobiledebug": "mobiledebug",
+            "modtools/yourdata": "yourData",
             "modtools/support": "support",
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
@@ -216,6 +217,7 @@ define([
             "volunteering/:id": "userVolunteering",
             "why": "userWhy",
             "myposts": "userHome",
+            "yourdata": "yourData",
             "*path": "modtools" // CC
         },
 
@@ -1735,7 +1737,20 @@ define([
                 var page = new Iznik.Views.User.Pages.FindMyStreet();
                 self.loadRoute({page: page});
             });
-        }
+        },
+
+        yourData: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                require(["iznik/views/pages/yourdata"], function() {
+                    var page = new Iznik.Views.YourData();
+                    self.loadRoute({page: page});
+                });
+            });
+
+            Iznik.Session.forceLogin();
+        },
     });
 
     // Might need: $(document).ready(function() {

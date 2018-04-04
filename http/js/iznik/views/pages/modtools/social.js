@@ -12,6 +12,7 @@ define([
     'iznik/models/social',
     'iznik/views/pages/pages',
     'iznik/views/infinite',
+    'iznik/views/supportus',
     'iznik/views/postaladdress'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Pages.SocialActions = Iznik.Views.Infinite.extend({
@@ -26,7 +27,7 @@ define([
         },
 
         businessCards: function () {
-            var v = new Iznik.Views.ModTools.SocialAction.BusinessCards();
+            var v = new Iznik.Views.User.BusinessCards();
             v.render();
         },
 
@@ -242,95 +243,6 @@ define([
 
             self.options.hideWhenDone.fadeOut('slow');
         }
-    });
-
-    Iznik.Views.ModTools.SocialAction.BusinessCards = Iznik.Views.Modal.extend({
-        template: 'modtools_socialactions_businesscards',
-
-        tagName: 'li',
-
-        events: {
-            'click .js-submit': 'submit',
-            'click .js-justafew': 'justafew',
-            'click .js-more': 'more'
-        },
-
-        justafew: function () {
-            var self = this;
-            self.$('.js-howmany').slideUp('slow');
-            self.$('.js-more').hide();
-            self.$('.js-afew, .js-submit').fadeIn('slow');
-        },
-
-        more: function () {
-            var self = this;
-            self.$('.js-howmany').slideUp('slow');
-            self.$('.js-more').fadeIn('slow');
-            self.$('.js-afew, .js-submit').hide();
-        },
-
-        submit: function () {
-            var self = this;
-            var pafid = self.postalAddress.pafaddress();
-            var to = self.postalAddress.to();
-
-            if (pafid) {
-                $.ajax({
-                    url: API + '/address',
-                    type: 'PUT',
-                    data: {
-                        pafid: pafid
-                    },
-                    success: function (ret) {
-                        if (ret.ret === 0) {
-                            $.ajax({
-                                url: API + '/request',
-                                type: 'PUT',
-                                data: {
-                                    reqtype: 'BusinessCards',
-                                    to: to,
-                                    addressid: ret.id
-                                },
-                                success: function (ret) {
-                                    if (ret.ret === 0) {
-                                        self.close();
-                                        var v = new Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou();
-                                        v.render();
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        },
-
-        render: function () {
-            var self = this;
-            var p = Iznik.Views.Modal.prototype.render.call(self);
-            p.then(function () {
-                self.waitDOM(self, function () {
-                    var me = Iznik.Session.get('me');
-                    var settings = me.hasOwnProperty('settings') ? me.settings : null;
-                    var location = settings ? (settings.hasOwnProperty('mylocation') ? settings.mylocation : null) : null;
-                    var postcode = location ? location.name : null;
-
-                    self.postalAddress = new Iznik.Views.PostalAddress({
-                        postcode: postcode,
-                        showTo: true,
-                        to: me.displayname
-                    });
-                    self.postalAddress.render();
-                    self.$('.js-postaladdress').append(self.postalAddress.$el);
-                });
-            });
-
-            return (p);
-        }
-    });
-
-    Iznik.Views.ModTools.SocialAction.BusinessCards.Thankyou = Iznik.Views.Modal.extend({
-        template: 'modtools_socialactions_businesscardsthanks'
     });
 
     Iznik.Views.ModTools.SocialAction.Request = Iznik.View.Timeago.extend({

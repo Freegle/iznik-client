@@ -95,7 +95,8 @@ define([
                                 member.yahooDeliveryType,
                                 member.yahooPostingStatus,
                                 JSON.stringify(member.settings, null, 0),
-                                member.ourPostingStatus
+                                member.ourPostingStatus,
+                                member.bouncing
                             ]);
                         });
 
@@ -127,7 +128,7 @@ define([
                 v.template = 'modtools_members_approved_exportwait';
                 v.render().then(function(v) {
                     self.exportWait = v;
-                    self.exportList = [['Unique ID', 'Display Name', 'Yahoo ID', 'Yahoo Alias', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Yahoo Delivery Type', 'Yahoo Posting Status', 'Settings on Group']];
+                    self.exportList = [['Unique ID', 'Display Name', 'Yahoo ID', 'Yahoo Alias', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Yahoo Delivery Type', 'Yahoo Posting Status', 'Settings on Group', 'Our Posting Status', 'Bouncing']];
                     self.exportContext = null;
                     self.exportChunk();
                 });
