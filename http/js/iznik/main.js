@@ -136,6 +136,7 @@ var logtog = false;
 
 function mainOnAppStart() { // CC
     console.log("main boot");	// CC
+    alert("mainOnAppStart A");
     window.isiOS = (window.device.platform === 'iOS'); // CC
     if (!window.initialURL) {
         window.initialURL = window.location.href;
@@ -417,6 +418,7 @@ function mainOnAppStart() { // CC
         });
 
         // CC }); // CC
+  alert("mainOnAppStart Z");
 }
 
 var mobileGlobalRoot = false;   // CC
