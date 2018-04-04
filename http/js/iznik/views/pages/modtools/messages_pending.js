@@ -238,7 +238,14 @@ define([
                             self.$('.js-attlist').empty();
                             _.each(self.model.get('attachments'), function (att) {
                                 var v = new Iznik.Views.ModTools.Message.Photo({
-                                    model: new Iznik.Model(att)
+                                    model: new Iznik.Model(att),
+                                    message: self.model
+                                });
+
+                                self.listenToOnce(v, 'zoomClosed', function() {
+                                    self.model.fetch().then(function() {
+                                      self.render();
+                                    });
                                 });
 
                                 v.render();

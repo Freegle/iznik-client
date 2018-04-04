@@ -178,8 +178,6 @@ define([
                 // Now get the messages.
                 var cb = _.bind(self.fetchedMessages, self);
                 self.messages.fetch({
-                    cached: cb,
-                    cacheFetchAfter: 2,
                     data: {
                         fromuser: Iznik.Session.get('me').id,
                         types: ['Offer', 'Wanted'],

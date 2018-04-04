@@ -43,7 +43,7 @@
             </div>
             <% } else if (subtype == 'Deleted') { %>
                 <div class="nomargin alert alert-danger">
-                    Deleted #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>in {{obj.group.collection}} on {{obj.group.namedisplay}}<% } %>
+                    Deleted #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.stdmsg) { %> using <em>{{stdmsg.title}} </em><% } %><% if (obj.group) { %>from {{obj.group.namedisplay}}<% } %>
                 </div>
             <% } else if (subtype == 'Hold') { %>
                 Held #{{msgid}} <% if (obj.message) { %><em>{{message.subject}}</em> <% } %><% if (obj.group) { %>on {{obj.group.namedisplay}}<% } %>

@@ -69,11 +69,14 @@ define([
                     });
                     v.render();
 
+                    var d = new Date();
+                    var start = (d.getFullYear() - 1) + "-" + d.getMonth() + "-01";
+
                     $.ajax({
                         url: API + 'dashboard',
                         data: {
                             group: self.model.get('id'),
-                            start: '13 months ago',
+                            start: start,
                             grouptype: 'Freegle',
                             systemwide: (self.options.id || self.options.area || self.options.region) ? false : true,
                             area: self.options.area,
