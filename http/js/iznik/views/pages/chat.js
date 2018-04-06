@@ -711,8 +711,11 @@ define([
             this.$('.js-message').focus();
         },
 
-        report: function () {
-            var groups = Iznik.Session.get('groups');
+        report: function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          var groups = Iznik.Session.get('groups');
 
             if (groups.length > 0) {
                 // We only take reports from a group member, so that we have somewhere to send it.
