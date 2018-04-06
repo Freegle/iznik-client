@@ -66,8 +66,5 @@
         <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.423761283916-m1nrk78ncokk0olhouvma5akn4rntrue" />
     </plugin>
     <plugin name="cordova-plugin-x-socialsharing" spec="^5.3.2" />
-    <plugin name="phonegap-plugin-push" spec="^1.10.7">
-        <variable name="SENDER_ID" value="85075801930" />
-    </plugin>
     <engine name="android" spec="^6.3.0" />
 </widget>
