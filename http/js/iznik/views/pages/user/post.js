@@ -29,13 +29,9 @@ define([
         // It could be enabled for iOS9 using www.ispeech.org but not done
         speechItem: function() {
             var self = this;
-            console.log("new SpeechRecognition B");
             var recognition = new SpeechRecognition();
-            console.log(recognition);
             recognition.onresult = function (event) {
-              console.log(event);
               if (event.results.length > 0) {
-                console.log(event.results[0][0].transcript);
                 self.$('.js-item').val(event.results[0][0].transcript);
                 self.speechDescription();
               }
@@ -55,16 +51,13 @@ define([
 
         speechDescription: function() {
             var self = this;
-            console.log("new SpeechRecognition C");
             var recognition = new SpeechRecognition();
-            console.log(recognition);
             recognition.onresult = function (event) {
-              console.log(event);
               if (event.results.length > 0) {
                 self.$('.js-description').val(event.results[0][0].transcript);
               }
             };
-            self.$('.js-description').focus();
+            //self.$('.js-description').focus();
             recognition.start();
             /*require([ 'iznik/speech' ], function() {
                 self.$('.js-description').on('result', function(e, str) {
@@ -233,9 +226,7 @@ define([
             });
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
-                console.log("test SpeechRecognition B");
                 if (typeof SpeechRecognition === 'function') {    // CC
-                  console.log("show SpeechRecognition B");
                   self.$('.js-speechItem').show();
                 }
 

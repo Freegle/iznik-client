@@ -33,11 +33,8 @@ define([
 
         speech: function() {
             var self = this;
-            console.log("new SpeechRecognition A");
             var recognition = new SpeechRecognition();
-            console.log(recognition);
             recognition.onresult = function (event) {
-                console.log(event);
                 if (event.results.length > 0) {
                     self.$('.js-search').val(event.results[0][0].transcript);
                     self.doSearch();
@@ -149,9 +146,7 @@ define([
             p.then(function(self) {
                 self.collection = null;
 
-                console.log("test SpeechRecognition A");
                 if (typeof SpeechRecognition === 'function') {    // CC
-                    console.log("show SpeechRecognition A");
                     self.$('.js-speech').show();
                 }
 
