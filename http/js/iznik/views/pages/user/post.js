@@ -29,26 +29,50 @@ define([
         // It could be enabled for iOS9 using www.ispeech.org but not done
         speechItem: function() {
             var self = this;
-            require([ 'iznik/speech' ], function() {
-                self.$('.js-item').on('result', function(e, str) {
-                    self.$('.js-item').val(str);
-                    self.$('.js-description').focus();
-                    self.speechDescription();
-                });
+            console.log("new SpeechRecognition B");
+            var recognition = new SpeechRecognition();
+            console.log(recognition);
+            recognition.onresult = function (event) {
+              console.log(event);
+              if (event.results.length > 0) {
+                console.log(event.results[0][0].transcript);
+                self.$('.js-item').val(event.results[0][0].transcript);
+                self.speechDescription();
+              }
+            };
+            //self.$('.js-item').focus();
+            recognition.start();
+            /*require(['iznik/speech'], function () {
+              self.$('.js-item').on('result', function (e, str) {
+                self.$('.js-item').val(str);
+                self.$('.js-description').focus();
+                self.speechDescription();
+              });
 
-                // CC self.$('.js-item').speech();
-            })
+              self.$('.js-item').speech();
+            })*/
         },
 
         speechDescription: function() {
             var self = this;
-            require([ 'iznik/speech' ], function() {
+            console.log("new SpeechRecognition C");
+            var recognition = new SpeechRecognition();
+            console.log(recognition);
+            recognition.onresult = function (event) {
+              console.log(event);
+              if (event.results.length > 0) {
+                self.$('.js-description').val(event.results[0][0].transcript);
+              }
+            };
+            self.$('.js-description').focus();
+            recognition.start();
+            /*require([ 'iznik/speech' ], function() {
                 self.$('.js-description').on('result', function(e, str) {
                     self.$('.js-description').val(str);
                 });
 
                 self.$('.js-description').speech();
-            })
+            })*/
         },
 
         getItem: function () {
@@ -209,8 +233,10 @@ define([
             });
 
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
-                if (window.hasOwnProperty('webkitSpeechRecognition')) {
-                    self.$('.js-speechItem').show();
+                console.log("test SpeechRecognition B");
+                if (typeof SpeechRecognition === 'function') {    // CC
+                  console.log("show SpeechRecognition B");
+                  self.$('.js-speechItem').show();
                 }
 
                 _.delay(_.bind(self.checkNext, self), 300);
