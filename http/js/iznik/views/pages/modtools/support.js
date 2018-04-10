@@ -14,9 +14,9 @@ define([
     'iznik/views/pages/modtools/messages_approved',
     'iznik/views/pages/modtools/members_approved',
     'iznik/views/pages/modtools/replay',
+    'iznik/views/pages/modtools/shortlinks',
     'iznik/models/user/alert',
     'iznik/views/user/user',
-    'iznik/models/shortlinks',
     'typeahead'
 ], function($, _, Backbone, Iznik, moment, s, Backgrid) {
     var saveAs = s.saveAs;
@@ -35,8 +35,7 @@ define([
             'click .js-getalerts': 'getAlerts',
             'click .js-addgroup': 'addGroup',
             'click .js-getlist': 'getList',
-            'click .js-exportgroups': 'exportGroups',
-            'click .js-getlinks': 'getLinks'
+            'click .js-exportgroups': 'exportGroups'
         },
 
         exportGroups: function() {
@@ -636,67 +635,6 @@ define([
             });
         },
 
-        getLinks: function() {
-            var self = this;
-
-            self.wait = new Iznik.Views.PleaseWait({
-                timeout: 1
-            });
-            self.wait.render();
-
-            self.allLinks = new Iznik.Collections.Shortlink();
-
-            // Create a backgrid for the groups.
-            self.columns = [{
-                name: 'id',
-                label: 'ID',
-                editable: false,
-                cell: Backgrid.IntegerCell
-            }, {
-                name: 'name',
-                label: 'Name',
-                editable: false,
-                cell: 'string'
-            }, {
-                name: 'type',
-                label: 'Type',
-                editable: false,
-                cell: 'string'
-            }, {
-                name: 'groupid',
-                label: 'Group ID',
-                editable: false,
-                cell: 'integer'
-            }, {
-                name: 'nameshort',
-                label: 'Group Name',
-                editable: false,
-                cell: 'string'
-            }, {
-                name: 'clicks',
-                label: 'Clicks',
-                editable: false,
-                cell: 'integer'
-            }, {
-                name: 'url',
-                label: 'URL',
-                editable: false,
-                cell: 'string'
-            }];
-
-            self.grid = new Backgrid.Grid({
-                columns: self.columns,
-                collection: self.allLinks
-            });
-
-            self.$(".js-shortlinkslist").html(self.grid.render().el);
-
-            self.allLinks.fetch().then(function() {
-                console.log("All links", self.allLinks);
-                self.wait.close();
-            });
-        },
-
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this);
 
@@ -774,6 +712,11 @@ define([
                     elementpath: false,
                     toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright |  bullist numlist link | forecolor styleselect formatselect fontselect fontsizeselect | cut copy paste | code'
                 });
+
+                var v = new Iznik.Views.ModTools.Shortlinks.List();
+                v.render().then(function() {
+                    self.$('.js-shortlinklist').html(v.$el);
+                })
             });
 
             return(p);

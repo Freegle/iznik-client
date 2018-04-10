@@ -141,6 +141,7 @@ define([
             "modtools/mobiledebug": "mobiledebug",
             "modtools/yourdata": "yourData",
             "modtools/support": "support",
+            "modtools/shortlinks": "shortlinks",
             "modtools/sessions": "sessions",
             "modtools/replay/(:id)": "replay",
             "modtools": "modtools",
@@ -1425,6 +1426,26 @@ define([
                         Router.navigate('/', true);
                     } else {
                         var page = new Iznik.Views.ModTools.Pages.Support();
+                        this.loadRoute({page: page, modtools: true});
+                    }
+                });
+
+                Iznik.Session.forceLogin({
+                    modtools: true
+                });
+            });
+        },
+
+        shortlinks: function () {
+            var self = this;
+
+            require(["iznik/views/pages/modtools/shortlinks"], function() {
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    if (!Iznik.Session.isFreegleMod()) {
+                        // You're not supposed to be here, are you?
+                        Router.navigate('/', true);
+                    } else {
+                        var page = new Iznik.Views.ModTools.Pages.Shortlinks();
                         this.loadRoute({page: page, modtools: true});
                     }
                 });
