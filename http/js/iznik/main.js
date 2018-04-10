@@ -138,7 +138,6 @@ var logtog = false;
 function mainOnAppStart() { // CC
     console.log("main boot");	// CC
     window.isiOS = (window.device.platform === 'iOS'); // CC
-    alert("mainOnAppStart A");
     if (!window.initialURL) {
         window.initialURL = window.location.href;
     }
