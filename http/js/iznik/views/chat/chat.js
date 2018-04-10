@@ -784,7 +784,10 @@ define([
             this.trigger('minimised');
         },
 
-        report: function () {
+        report: function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
             var groups = Iznik.Session.get('groups');
 
             if (groups.length > 0) {
