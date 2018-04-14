@@ -89,6 +89,15 @@ define([
                                 self.$('.js-membershipshistory').append(v.$el);
                             });
 
+                            _.each(self.model.get('searches'), function(search) {
+                                var v = new Iznik.Views.MyData.Search({
+                                    model: new Iznik.Model(search)
+                                });
+                                v.render();
+
+                                self.$('.js-searches').append(v.$el);
+                            });
+
                             self.wait.close();
                         });
                     }
@@ -132,6 +141,22 @@ define([
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 var m = new moment(self.model.get('added'));
+                self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Search = Iznik.View.extend({
+        template: 'mydata_search',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
                 self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
