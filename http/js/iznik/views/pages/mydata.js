@@ -80,6 +80,15 @@ define([
                                 self.$('.js-memberships').append(v.$el);
                             });
 
+                            _.each(self.model.get('membershipshistory'), function(membership) {
+                                var v = new Iznik.Views.MyData.MembershipHistory({
+                                    model: new Iznik.Model(membership)
+                                });
+                                v.render();
+
+                                self.$('.js-membershipshistory').append(v.$el);
+                            });
+
                             self.wait.close();
                         });
                     }
@@ -107,9 +116,23 @@ define([
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 var freq = self.model.get('mysettings').emailfrequency;
-                console.log("Freq", freq, self.model.attributes, self.$('.js-emailfrequency').length);
                 self.$('.js-emailfrequency option[value=' + freq + ']').prop('selected', true);
-                console.log("Set to ", self.$('.js-emailfrequency').val());
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.MembershipHistory = Iznik.View.extend({
+        template: 'mydata_membershiphistory',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('added'));
+                self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
             return(p);
