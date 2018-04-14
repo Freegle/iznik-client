@@ -3,10 +3,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'moment',
     'iznik/views/pages/pages',
-], function ($, _, Backbone, Iznik) {
-    Iznik.Views.YourData = Iznik.Views.Page.extend({
-        template: 'yourdata_main',
+], function ($, _, Backbone, Iznik, moment) {
+    Iznik.Views.MyData = Iznik.Views.Page.extend({
+        template: 'mydata_main',
 
         modtools: MODTOOLS,
 
@@ -35,9 +36,19 @@ define([
 
                         p.then(function() {
                             self.$('.js-date').each((function() {
-                                var date = new Date($(this).html().trim());
-                                $(this).html(date.toLocaleString());
+                                var m = new moment($(this).html().trim());
+                                $(this).html(m.format('MMMM Do YYYY, h:mm:ss a'));
                             }));
+
+                            _.each(self.model.get('invitations'), function(invite) {
+                                var m = new moment(invite.date);
+                                invite.date = m.format('MMMM Do YYYY, h:mm:ss a');
+                                var v = new Iznik.Views.MyData.Invitation({
+                                    model: new Iznik.Model(invite)
+                                });
+                                v.render();
+                                self.$('.js-invitations').append(v.$el);
+                            });
 
                             v.close();
                         });
@@ -47,5 +58,9 @@ define([
 
             return(p);
         }
+    });
+
+    Iznik.Views.MyData.Invitation = Iznik.View.extend({
+        template: 'mydata_invitation'
     });
 });

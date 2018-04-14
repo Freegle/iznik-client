@@ -138,7 +138,7 @@ define([
             "modtools/settings/:id/map": "mapSettings",
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
-            "modtools/yourdata": "yourData",
+            "modtools/mydata": "myData",
             "modtools/support": "support",
             "modtools/shortlinks": "shortlinks",
             "modtools/sessions": "sessions",
@@ -216,7 +216,7 @@ define([
             "volunteering/:id": "userVolunteering",
             "why": "userWhy",
             "myposts": "userHome",
-            "yourdata": "yourData",
+            "mydata": "myData",
             "*path": "userDefault"
         },
 
@@ -1717,12 +1717,12 @@ define([
             });
         },
 
-        yourData: function() {
+        myData: function() {
             var self = this;
 
             self.listenToOnce(Iznik.Session, 'loggedIn', function () {
-                require(["iznik/views/pages/yourdata"], function() {
-                    var page = new Iznik.Views.YourData();
+                require(["iznik/views/pages/mydata"], function() {
+                    var page = new Iznik.Views.MyData();
                     self.loadRoute({page: page});
                 });
             });
