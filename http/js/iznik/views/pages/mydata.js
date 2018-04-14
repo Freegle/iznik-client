@@ -16,10 +16,10 @@ define([
         render: function() {
             var self = this;
 
-            var v = new Iznik.Views.PleaseWait({
+            self.wait = new Iznik.Views.PleaseWait({
                 label: 'chat openChat'
             });
-            v.render();
+            self.wait.render();
 
             $.ajax({
                 url: API + 'user',
@@ -50,7 +50,28 @@ define([
                                 self.$('.js-invitations').append(v.$el);
                             });
 
-                            v.close();
+                            _.each(self.model.get('emails'), function(email) {
+                                // No need to show emails which are our own domains.  The user didn't
+                                // provide them.
+                                if (!email.ourdomain) {
+                                    var m = new moment(email.added);
+                                    email.added = m.format('MMMM Do YYYY, h:mm:ss a');
+
+                                    if (email.validated) {
+                                        var m = new moment(email.validated);
+                                        email.validated= m.format('MMMM Do YYYY, h:mm:ss a');
+                                    }
+
+                                    var v = new Iznik.Views.MyData.Email({
+                                        model: new Iznik.Model(email)
+                                    });
+                                    v.render();
+
+                                    self.$('.js-emails').append(v.$el);
+                                }
+                            });
+
+                            self.wait.close();
                         });
                     }
                 }
@@ -62,5 +83,9 @@ define([
 
     Iznik.Views.MyData.Invitation = Iznik.View.extend({
         template: 'mydata_invitation'
+    });
+
+    Iznik.Views.MyData.Email = Iznik.View.extend({
+        template: 'mydata_email'
     });
 });
