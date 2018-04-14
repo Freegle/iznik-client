@@ -71,6 +71,15 @@ define([
                                 }
                             });
 
+                            _.each(self.model.get('memberships'), function(membership) {
+                                var v = new Iznik.Views.MyData.Membership({
+                                    model: new Iznik.Model(membership)
+                                });
+                                v.render();
+
+                                self.$('.js-memberships').append(v.$el);
+                            });
+
                             self.wait.close();
                         });
                     }
@@ -87,5 +96,23 @@ define([
 
     Iznik.Views.MyData.Email = Iznik.View.extend({
         template: 'mydata_email'
+    });
+
+    Iznik.Views.MyData.Membership = Iznik.View.extend({
+        template: 'mydata_membership',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var freq = self.model.get('mysettings').emailfrequency;
+                console.log("Freq", freq, self.model.attributes, self.$('.js-emailfrequency').length);
+                self.$('.js-emailfrequency option[value=' + freq + ']').prop('selected', true);
+                console.log("Set to ", self.$('.js-emailfrequency').val());
+            });
+
+            return(p);
+        }
     });
 });
