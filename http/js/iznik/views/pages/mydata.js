@@ -85,6 +85,7 @@ define([
                                 [ 'donations', Iznik.Views.MyData.Donation, '.js-donations' ],
                                 [ 'bans', Iznik.Views.MyData.Ban, '.js-bans' ],
                                 [ 'spammers', Iznik.Views.MyData.Spammer, '.js-spammers' ],
+                                [ 'images', Iznik.Views.MyData.Image, '.js-images' ],
                             ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({
@@ -224,5 +225,12 @@ define([
 
             return(p);
         }
+    });
+
+
+    Iznik.Views.MyData.Image = Iznik.View.extend({
+        template: 'mydata_image',
+
+        className: 'inline'
     });
 });
