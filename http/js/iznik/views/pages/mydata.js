@@ -77,40 +77,21 @@ define([
                                 }
                             });
 
-                            _.each(self.model.get('memberships'), function(membership) {
-                                var v = new Iznik.Views.MyData.Membership({
-                                    model: new Iznik.Model(membership)
-                                });
-                                v.render();
+                            _.each([
+                                [ 'memberships', Iznik.Views.MyData.Membership, '.js-memberships' ],
+                                [ 'membershipshistory', Iznik.Views.MyData.MembershipHistory, '.js-membershipshistory' ],
+                                [ 'searches', Iznik.Views.MyData.Search, '.js-searches' ],
+                                [ 'alerts', Iznik.Views.MyData.Alert, '.js-alerts' ],
+                                [ 'donations', Iznik.Views.MyData.Donation, '.js-donations' ],
+                            ], function(view) {
+                                    _.each(self.model.get(view[0]), function(mod) {
+                                        var v = new view[1]({
+                                            model: new Iznik.Model(mod)
+                                        });
+                                        v.render();
 
-                                self.$('.js-memberships').append(v.$el);
-                            });
-
-                            _.each(self.model.get('membershipshistory'), function(membership) {
-                                var v = new Iznik.Views.MyData.MembershipHistory({
-                                    model: new Iznik.Model(membership)
-                                });
-                                v.render();
-
-                                self.$('.js-membershipshistory').append(v.$el);
-                            });
-
-                            _.each(self.model.get('searches'), function(search) {
-                                var v = new Iznik.Views.MyData.Search({
-                                    model: new Iznik.Model(search)
-                                });
-                                v.render();
-
-                                self.$('.js-searches').append(v.$el);
-                            });
-
-                            _.each(self.model.get('alerts'), function(alert) {
-                                var v = new Iznik.Views.MyData.Alert({
-                                    model: new Iznik.Model(alert)
-                                });
-                                v.render();
-
-                                self.$('.js-alerts').append(v.$el);
+                                        self.$(view[2]).append(v.$el);
+                                    });
                             });
 
                             self.wait.close();
@@ -179,7 +160,6 @@ define([
         }
     });
 
-
     Iznik.Views.MyData.Alert = Iznik.View.extend({
         template: 'mydata_alert',
 
@@ -190,6 +170,22 @@ define([
             p.then(function() {
                 var m = new moment(self.model.get('responded'));
                 self.$('.js-responded').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Donation = Iznik.View.extend({
+        template: 'mydata_donation',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('timestamp'));
+                self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
             return(p);
