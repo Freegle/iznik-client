@@ -84,6 +84,7 @@ define([
                                 [ 'alerts', Iznik.Views.MyData.Alert, '.js-alerts' ],
                                 [ 'donations', Iznik.Views.MyData.Donation, '.js-donations' ],
                                 [ 'bans', Iznik.Views.MyData.Ban, '.js-bans' ],
+                                [ 'spammers', Iznik.Views.MyData.Spammer, '.js-spammers' ],
                             ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({
@@ -203,6 +204,22 @@ define([
             p.then(function() {
                 var m = new moment(self.model.get('date'));
                 self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Spammer = Iznik.View.extend({
+        template: 'mydata_spammer',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
+                self.$('.js-added').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
             return(p);
