@@ -316,6 +316,7 @@ define([
                     // Show the uploaded thumbnail and hackily remove the one provided for us.
                     self.draftPhotos.render().then(function() {
                         self.$('.js-draftphotos').html(self.draftPhotos.el);
+                        self.$('.js-draftphotos').show();
                     });
 
                     _.delay(function() {
@@ -374,6 +375,7 @@ define([
 
                                 self.draftPhotos.render().then(function() {
                                     self.$('.js-draftphotos').html(self.draftPhotos.el);
+                                    self.$('.js-draftphotos');
                                 });
                             }
                         });
@@ -382,6 +384,7 @@ define([
                         // Add the thumbnails.
                         self.draftPhotos.render().then(function() {
                             self.$('.js-draftphotos').html(self.draftPhotos.el);
+                            self.$('.js-draftphotos');
                         });
                     }
                 } catch (e) {

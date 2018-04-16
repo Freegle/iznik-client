@@ -1,0 +1,33 @@
+<div class="row">
+    <div class="col-xs-4 forcebreak">
+        {{namedisplay}}
+    </div>
+    <div class="col-xs-4">
+        <select class="form-control input-sm js-emailfrequency" disabled>
+            <option value="-1">Immediately</option>
+            <option value="0">Never</option>
+            <option value="1">Every Hour</option>
+            <option value="2">Every 2 Hours</option>
+            <option value="4">Every 4 Hours</option>
+            <option value="2">Every 8 Hours</option>
+            <option value="24">Every day</option>
+        </select>
+    </div>
+    <div class="col-xs-4">
+        <% if (mysettings.eventsallowed) { %>
+        Community Event Mails On<br />
+        <% } else { %>
+        Community Event Mails Off<br />
+        <% } %>
+        <% if (mysettings.volunteeringallowed) { %>
+        Volunteering Mails On<br />
+        <% } else { %>
+        Volunteering Mails Off<br />
+        <% } %>
+        <% if (mysettings.pushnotify) { %>
+        Push Notifications On<br />
+        <% } else { %>
+        Push Motifications Off<br />
+        <% } %>
+    </div>
+</div>
