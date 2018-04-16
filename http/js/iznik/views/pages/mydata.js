@@ -35,6 +35,12 @@ define([
                         var p = Iznik.Views.Page.prototype.render.call(self);
 
                         p.then(function() {
+                            if (Iznik.Session.isFreegleMod()) {
+                                self.$('.js-modonly').show();
+                            } else {
+                                self.$('.js-modonly').hide();
+                            }
+
                             self.$('.js-date').each((function() {
                                 var m = new moment($(this).html().trim());
                                 $(this).html(m.format('MMMM Do YYYY, h:mm:ss a'));
@@ -98,6 +104,15 @@ define([
                                 self.$('.js-searches').append(v.$el);
                             });
 
+                            _.each(self.model.get('alerts'), function(alert) {
+                                var v = new Iznik.Views.MyData.Alert({
+                                    model: new Iznik.Model(alert)
+                                });
+                                v.render();
+
+                                self.$('.js-alerts').append(v.$el);
+                            });
+
                             self.wait.close();
                         });
                     }
@@ -158,6 +173,23 @@ define([
             p.then(function() {
                 var m = new moment(self.model.get('date'));
                 self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+
+    Iznik.Views.MyData.Alert = Iznik.View.extend({
+        template: 'mydata_alert',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('responded'));
+                self.$('.js-responded').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
             return(p);
