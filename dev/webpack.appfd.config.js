@@ -100,13 +100,13 @@ module.exports = new Config().extend({
       new CopyWebpackPlugin([
           {from: 'http/xdk', to: 'xdk'}
       ]),
-    /*new webpack.optimize.UglifyJsPlugin({
+    new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       minimize: true,
       compress: {
         warnings: false
       }
-    }),*/
+    }),
 
     // split vendor js into its own file
     new webpack.optimize.CommonsChunkPlugin({

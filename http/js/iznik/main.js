@@ -311,8 +311,8 @@ function mainOnAppStart() { // CC
             }; 
 
             console.log("push init start");
-            if (!PushNotification) {
-                console.log("no push notification service");
+            if ((typeof PushNotification === 'undefined') || (!PushNotification)) {
+                console.log("NO PUSH NOTIFICATION SERVICE");
                 //alert("No PN");
             } else if (!window.mobilePushId) {
                 window.mobilePush = PushNotification.init({
