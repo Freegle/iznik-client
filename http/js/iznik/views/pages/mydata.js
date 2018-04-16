@@ -83,6 +83,7 @@ define([
                                 [ 'searches', Iznik.Views.MyData.Search, '.js-searches' ],
                                 [ 'alerts', Iznik.Views.MyData.Alert, '.js-alerts' ],
                                 [ 'donations', Iznik.Views.MyData.Donation, '.js-donations' ],
+                                [ 'bans', Iznik.Views.MyData.Ban, '.js-bans' ],
                             ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({
@@ -185,6 +186,22 @@ define([
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 var m = new moment(self.model.get('timestamp'));
+                self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Ban = Iznik.View.extend({
+        template: 'mydata_ban',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
                 self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
