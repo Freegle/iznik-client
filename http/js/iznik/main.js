@@ -304,12 +304,13 @@ function mainOnAppStart() { // CC
         };
 
         console.log("push init start");
-        if (!PushNotification) {
-            console.log("no push notification service");
+        if ((typeof PushNotification === 'undefined') || (!PushNotification)) {
+          console.log("NO PUSH NOTIFICATION SERVICE");
             //alert("No PN");
         } else if (!window.mobilePushId) {
             window.mobilePush = PushNotification.init({
                 android: {
+                    //senderID: "423761283916", // FCM: https://console.firebase.google.com/project/scenic-oxygen-849/settings/general/android:org.ilovefreegle.modtools
                     senderID: "845879623324",
                     sound: false,
                     //iconColor: "#5EcA24",

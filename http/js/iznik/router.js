@@ -1760,12 +1760,12 @@ define([
             });
         },
 
-        yourData: function() {
+        myData: function() {
             var self = this;
 
             self.listenToOnce(Iznik.Session, 'loggedIn', function () {
-                require(["iznik/views/pages/yourdata"], function() {
-                    var page = new Iznik.Views.YourData();
+                require(["iznik/views/pages/mydata"], function() {
+                    var page = new Iznik.Views.MyData();
                     self.loadRoute({page: page});
                 });
             });

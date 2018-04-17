@@ -1,0 +1,20 @@
+<div class="row">
+    <div class="col-xs-3 forcebreak">
+        {{email}}
+    </div>
+    <div class="col-xs-3">
+        added {{added}}
+    </div>
+    <div class="col-xs-3">
+        <% if (obj.validated) { %>
+        validated {{validated}}
+        <% } else { %>
+        not validated
+        <% } %>
+    </div>
+    <div class="col-xs-3">
+        <% if (obj.preferred) { %>
+        (preferred email)
+        <% } %>
+    </div>
+</div>

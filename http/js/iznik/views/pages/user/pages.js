@@ -191,8 +191,9 @@ define([
             } catch (e) {}
         },
 
-        locChange: function() {
+        locChange: function(showok) {
             var self = this;
+            var showok = showok === null ? true : showok;
 
             var loc = this.$('.js-postcode').typeahead('val');
 
@@ -213,6 +214,10 @@ define([
                             map.css('height', width);
                             var mapicon = 'https://www.ilovefreegle.org/images/mapmarker.gif';	// CC
                             map.html('<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=' + width + 'x' + width + '&zoom=12&center=' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&maptype=roadmap&markers=icon:' + mapicon + '|' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&sensor=true" />');
+                        }
+
+                        if (showok) {
+                            self.$('.js-savelocok').removeClass('hidden');
                         }
                     }
                 }
@@ -532,7 +537,7 @@ define([
                         if (mylocation) {
                             var postcode = mylocation.name;
                             self.$('.js-postcode').typeahead('val', postcode);
-                            self.locChange.call(self);
+                            self.locChange.call(self, false);
                         }
                     });
                 } catch (e) {};
