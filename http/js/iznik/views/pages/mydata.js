@@ -88,6 +88,7 @@ define([
                                 [ 'spammers', Iznik.Views.MyData.Spammer, '.js-spammers' ],
                                 [ 'images', Iznik.Views.MyData.Image, '.js-images' ],
                                 [ 'notifications', Iznik.Views.MyData.Notification, '.js-notifications' ],
+                                [ 'addresses', Iznik.Views.MyData.Address, '.js-addresses' ],
                             ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({
@@ -258,4 +259,7 @@ define([
         }
     });
 
+    Iznik.Views.MyData.Address = Iznik.View.extend({
+        template: 'mydata_address',
+    });
 });
