@@ -4,6 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'jquery-show-first',
     'iznik/views/pages/pages',
 ], function ($, _, Backbone, Iznik, moment) {
     Iznik.Views.MyData = Iznik.Views.Page.extend({
@@ -86,6 +87,7 @@ define([
                                 [ 'bans', Iznik.Views.MyData.Ban, '.js-bans' ],
                                 [ 'spammers', Iznik.Views.MyData.Spammer, '.js-spammers' ],
                                 [ 'images', Iznik.Views.MyData.Image, '.js-images' ],
+                                [ 'notifications', Iznik.Views.MyData.Notification, '.js-notifications' ],
                             ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({
@@ -95,6 +97,13 @@ define([
 
                                         self.$(view[2]).append(v.$el);
                                     });
+                            });
+
+                            self.$('.js-more').each(function() {
+                                $(this).showFirst({
+                                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                                    count: 5
+                                });
                             });
 
                             self.wait.close();
@@ -204,7 +213,7 @@ define([
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 var m = new moment(self.model.get('date'));
-                self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+                self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
             return(p);
@@ -219,7 +228,7 @@ define([
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
-                var m = new moment(self.model.get('date'));
+                var m = new moment(self.model.get('added'));
                 self.$('.js-added').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
@@ -227,10 +236,26 @@ define([
         }
     });
 
-
     Iznik.Views.MyData.Image = Iznik.View.extend({
         template: 'mydata_image',
 
         className: 'inline'
     });
+
+    Iznik.Views.MyData.Notification = Iznik.View.extend({
+        template: 'mydata_notification',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('timestamp'));
+                self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
 });
