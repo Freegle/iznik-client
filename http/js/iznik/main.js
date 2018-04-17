@@ -316,8 +316,9 @@ function mainOnAppStart() { // CC
                 //alert("No PN");
             } else if (!window.mobilePushId) {
                 window.mobilePush = PushNotification.init({
-                    android: {
-                        senderID: "845879623324",
+                  android: {
+                        //senderID: "423761283916", // https://console.firebase.google.com/project/scenic-oxygen-849/settings/general/android:org.ilovefreegle.direct
+                        senderID: "845879623324", // Old GCM way
                         sound: false,
                         //iconColor: "#5EcA24",
                         //icon: "icon",
@@ -333,6 +334,7 @@ function mainOnAppStart() { // CC
                 window.mobilePush.on('registration', function (data) {
                     window.mobilePushId = data.registrationId;
                     console.log("push registration " + window.mobilePushId);
+                    //window.mobilePushId = false;
                     //alert("registration: " + window.mobilePushId);
                 });
 
@@ -351,7 +353,6 @@ function mainOnAppStart() { // CC
                 //  it is not called if not started; the handler is called twice when app started (double event)
                 //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
                 window.mobilePush.on('notification', function (data) {
-                    //alert("push notification");
                     console.log("push notification");
                     console.log(data);
                     var foreground = data.additionalData.foreground.toString() == 'true';   // Was first called in foreground or background
