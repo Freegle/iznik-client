@@ -25,6 +25,7 @@ exports['default'] = new Config().merge({
         publicPath: '/'
     },
     resolve: {
+        extensions: ['.js', '.vue'],
         modules: [
             'node_modules',
             join(ROOT, 'http'),
@@ -37,6 +38,7 @@ exports['default'] = new Config().merge({
         alias: {
             '/template': 'template',
             '/images': 'iznik-client/images',
+            'vue': 'vue/dist/vue.runtime.common',
             ...shims.aliases
         }
     },
@@ -61,6 +63,11 @@ exports['default'] = new Config().merge({
                 test: /\.js$/,
                 exclude: /(node_modules|js(\/|\\)lib)/,
                 use: 'babel-loader'
+            },
+            {
+                test: /\.vue$/,
+                exclude: /(node_modules|js\/lib)/,
+                loader: 'vue-loader'
             },
             {
                 test: /\.(png|jpeg|jpg|gif|woff|woff2|ttf|eot|svg)$/,

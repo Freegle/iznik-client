@@ -13,6 +13,7 @@ define([
     'backbone',
     'underscore',
     'moment',
+    'vue',
     'backbone.collectionView',
     'dateshim',
     'bootstrap',
@@ -25,7 +26,7 @@ define([
     'iznik/events',
     'iznik/timeago',
     'iznik/majax'
-], function ($, Backbone, _, moment) {
+], function ($, Backbone, _, moment, Vue) {
     // Promise polyfill for older browsers or IE11 which has less excuse.
     if (typeof window.Promise !== 'function') {
         require('es6-promise').polyfill();
@@ -1002,6 +1003,36 @@ define([
             });
 
             return(p);
+        }
+    });
+
+    Iznik.VueView = Iznik.View.extend({
+        render: function(){
+            var self = this;
+            var vueEl = document.createElement('span');
+            self.$el.append(vueEl);
+            var on = _.mapObject(self.vueEvents, function(methodName){
+                return self[methodName].bind(self);
+            });
+            return Promise.resolve(self.component).then(function(Component){
+                if (Component.default) Component = Component.default;
+                new Vue({
+                    el: vueEl,
+                    data: self.model.toJSON(),
+                    created: function () {
+                        var vm = this;
+                        self.model.on('change', function() {
+                            Object.assign(vm, self.model.toJSON());
+                        });
+                    },
+                    render: function(h) {
+                        return h(Component, {
+                            props: this.$data,
+                            on: on
+                        })
+                    }
+                });
+            });
         }
     });
 
