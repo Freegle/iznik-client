@@ -93,6 +93,7 @@ define([
                                 [ 'addresses', Iznik.Views.MyData.Address, '.js-addresses' ],
                                 [ 'communityevents', Iznik.Views.MyData.CommunityEvent, '.js-communityevents' ],
                                 [ 'volunteering', Iznik.Views.MyData.Volunteering, '.js-volunteerings' ],
+                                [ 'comments', Iznik.Views.MyData.Comment, '.js-comments' ],
                             ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({
@@ -337,6 +338,22 @@ define([
             p.then(function() {
                 var m = new moment(self.model.get('added'));
                 self.$('.js-added').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Comment = Iznik.View.extend({
+        template: 'mydata_comment',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
+                self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
             return(p);
