@@ -32,7 +32,7 @@ define([
                 },
                 success: function(ret) {
                     if (ret.ret === 0 && ret.export) {
-                        var user = new Iznik.Model(ret.export.user);
+                        var user = new Iznik.Model(ret.export);
                         self.model = user;
 
                         var p = Iznik.Views.Page.prototype.render.call(self);
@@ -94,6 +94,7 @@ define([
                                 [ 'communityevents', Iznik.Views.MyData.CommunityEvent, '.js-communityevents' ],
                                 [ 'volunteering', Iznik.Views.MyData.Volunteering, '.js-volunteerings' ],
                                 [ 'comments', Iznik.Views.MyData.Comment, '.js-comments' ],
+                                [ 'locations', Iznik.Views.MyData.Location, '.js-locations' ],
                             ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({
@@ -346,6 +347,22 @@ define([
 
     Iznik.Views.MyData.Comment = Iznik.View.extend({
         template: 'mydata_comment',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
+                self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Location = Iznik.View.extend({
+        template: 'mydata_location',
 
         render: function() {
             var self = this;
