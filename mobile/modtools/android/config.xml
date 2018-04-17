@@ -75,11 +75,12 @@
     <plugin name="cordova-plugin-network-information" spec="^2.0.1" />
     <plugin name="cordova-plugin-inappbrowser" spec="^2.0.2" />
     <plugin name="cordova-plugin-geolocation" spec="^4.0.1" />
-    <plugin name="cordova-plugin-googleplus" spec="^5.2.3">
-        <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.423761283916-m1nrk78ncokk0olhouvma5akn4rntrue" />
-    </plugin>
-    <plugin name="phonegap-plugin-push" spec="^1.10.7">
+    <plugin name="phonegap-plugin-push" spec="^1.11.0">
         <variable name="SENDER_ID" value="845879623324" />
     </plugin>
+    <platform name="android">
+        <resource-file src="google-services.json" target="google-services.json" />
+    </platform>
+    <plugin name="cordova-plugin-googleplus" spec="https://github.com/EddyVerbruggen/cordova-plugin-googleplus" />
     <engine name="android" spec="^6.3.0" />
 </widget>
