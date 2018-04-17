@@ -92,6 +92,7 @@ define([
                                 [ 'notifications', Iznik.Views.MyData.Notification, '.js-notifications' ],
                                 [ 'addresses', Iznik.Views.MyData.Address, '.js-addresses' ],
                                 [ 'communityevents', Iznik.Views.MyData.CommunityEvent, '.js-communityevents' ],
+                                [ 'volunteering', Iznik.Views.MyData.Volunteering, '.js-volunteerings' ],
                             ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({
@@ -284,6 +285,44 @@ define([
 
             m.fetch().then(function() {
                 var v = new Iznik.Views.User.CommunityEvent.Details({
+                    model: self.model
+                });
+
+                v.render();
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('added'));
+                self.$('.js-added').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Volunteering = Iznik.View.extend({
+        template: 'mydata_volunteering',
+
+        events: {
+            'click .js-details': 'details'
+        },
+
+        details: function(e) {
+            var self = this;
+            e.preventDefault();
+            e.stopPropagation();
+
+            var m = new Iznik.Models.Volunteering({
+                id: this.model.get('id')
+            });
+
+            m.fetch().then(function() {
+                var v = new Iznik.Views.User.Volunteering.Details({
                     model: self.model
                 });
 
