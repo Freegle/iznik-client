@@ -52,7 +52,6 @@ const routes = [
     'stats',
     'stories',
     'story',
-    'streetwhack',
     'terms',
     'unsubscribe',
     'volunteering',
