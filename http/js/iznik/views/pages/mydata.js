@@ -88,6 +88,7 @@ define([
                                 [ 'donations', Iznik.Views.MyData.Donation, '.js-donations' ],
                                 [ 'bans', Iznik.Views.MyData.Ban, '.js-bans' ],
                                 [ 'spammers', Iznik.Views.MyData.Spammer, '.js-spammers' ],
+                                [ 'spamdomains', Iznik.Views.MyData.SpamDomain, '.js-spamdomains' ],
                                 [ 'images', Iznik.Views.MyData.Image, '.js-images' ],
                                 [ 'notifications', Iznik.Views.MyData.Notification, '.js-notifications' ],
                                 [ 'addresses', Iznik.Views.MyData.Address, '.js-addresses' ],
@@ -363,6 +364,22 @@ define([
 
     Iznik.Views.MyData.Location = Iznik.View.extend({
         template: 'mydata_location',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
+                self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.SpamDomain = Iznik.View.extend({
+        template: 'mydata_spamdomain',
 
         render: function() {
             var self = this;
