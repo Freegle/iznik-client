@@ -4,11 +4,12 @@ define([
     'backbone',
     'iznik/base',
     'moment',
+    'renderjson',
     'jquery-show-first',
     'iznik/views/pages/pages',
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
-], function ($, _, Backbone, Iznik, moment) {
+], function ($, _, Backbone, Iznik, moment, renderjson) {
     Iznik.Views.MyData = Iznik.Views.Page.extend({
         template: 'mydata_main',
 
@@ -32,6 +33,7 @@ define([
                 },
                 success: function(ret) {
                     if (ret.ret === 0 && ret.export) {
+                        console.log("Exported", ret.export);
                         var user = new Iznik.Model(ret.export);
                         self.model = user;
 
@@ -96,6 +98,7 @@ define([
                                 [ 'volunteering', Iznik.Views.MyData.Volunteering, '.js-volunteerings' ],
                                 [ 'comments', Iznik.Views.MyData.Comment, '.js-comments' ],
                                 [ 'locations', Iznik.Views.MyData.Location, '.js-locations' ],
+                                [ 'messages', Iznik.Views.MyData.Message, '.js-messages' ],
                             ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({
@@ -387,6 +390,49 @@ define([
             var p = Iznik.View.prototype.render.call(self);
             p.then(function() {
                 var m = new moment(self.model.get('date'));
+                self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Message = Iznik.View.extend({
+        template: 'mydata_message',
+
+        events: {
+            'click .js-showdetails': 'details',
+            'click .disclosure': 'disclosure'
+        },
+
+        disclosure: function(e) {
+            // These use href=# so would trigger routing.  Suppress as we expand all anyway.
+            e.preventDefault();
+            e.stopPropagation();
+        },
+
+        details: function() {
+            var self = this;
+
+            // Expand all to avoid dull stuff with href=#.
+            self.wait = new Iznik.Views.PleaseWait({
+                timeout: 1
+            });
+            self.wait.render();
+
+            _.delay(function() {
+                self.$('.js-details').html(renderjson.set_show_to_level('all')(self.model.attributes));
+                self.wait.close();
+                self.$('.js-detailsrow').show();
+            }, 10);
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('arrival'));
                 self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 

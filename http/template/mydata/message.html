@@ -1,0 +1,11 @@
+<div class="row">
+    <div class="col-sm-1">#{{id}}</div>
+    <div class="col-sm-2 js-date" />
+    <div class="col-sm-3"><%if (obj.groups && groups.length > 0) { %>{{groups[0].namedisplay}}<% } %></div>
+    <div class="col-sm-5">{{subject}}</div>
+    <div class="col-sm-1"><div class="btn btn-xs btn-white js-showdetails">Details</div></div>
+</div>
+<div class="row js-detailsrow">
+    <div class="col-xs-12 js-details">
+    </div>
+</div>
