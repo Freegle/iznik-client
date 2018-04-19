@@ -5,17 +5,30 @@ define([
     'iznik/base',
     'moment',
     'renderjson',
+    'file-saver',
     'jquery-show-first',
     'iznik/views/pages/pages',
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
-], function ($, _, Backbone, Iznik, moment, renderjson) {
+], function ($, _, Backbone, Iznik, moment, renderjson, s) {
+    var saveAs = s.saveAs;
+
     Iznik.Views.MyData = Iznik.Views.Page.extend({
         template: 'mydata_main',
 
         modtools: MODTOOLS,
 
         noGoogleAds: true,
+
+        events: {
+            'click .js-export': 'export'
+        },
+
+        export: function() {
+            var self = this;
+            var blob = new Blob([JSON.stringify(self.json)], {type: "application/json;charset=utf-8"});
+            saveAs(blob, "mydata.json");
+        },
 
         render: function() {
             var self = this;
@@ -34,6 +47,8 @@ define([
                 success: function(ret) {
                     if (ret.ret === 0 && ret.export) {
                         console.log("Exported", ret.export);
+                        self.json = ret.export;
+
                         var user = new Iznik.Model(ret.export);
                         self.model = user;
 
