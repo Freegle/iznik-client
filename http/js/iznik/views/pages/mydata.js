@@ -30,26 +30,22 @@ define([
             saveAs(blob, "mydata.json");
         },
 
-        render: function() {
+        waitExport: function() {
             var self = this;
 
-            self.wait = new Iznik.Views.PleaseWait({
-                label: 'chat openChat'
-            });
-            self.wait.render();
-
             $.ajax({
-                url: API + 'user',
+                url: API + 'export',
                 data: {
-                    id: Iznik.Session.get('me').id,
-                    export: true
+                    id: self.exportId,
+                    tag: self.exportTag
                 },
+                timeout: 0,
                 success: function(ret) {
-                    if (ret.ret === 0 && ret.export) {
+                    if (ret.ret === 0 && ret.export && ret.export.data) {
                         console.log("Exported", ret.export);
-                        self.json = ret.export;
+                        self.json = ret.export.data;
 
-                        var user = new Iznik.Model(ret.export);
+                        var user = new Iznik.Model(ret.export.data);
                         self.model = user;
 
                         var p = Iznik.Views.Page.prototype.render.call(self);
@@ -115,14 +111,14 @@ define([
                                 [ 'locations', Iznik.Views.MyData.Location, '.js-locations' ],
                                 [ 'messages', Iznik.Views.MyData.Message, '.js-messages' ],
                             ], function(view) {
-                                    _.each(self.model.get(view[0]), function(mod) {
-                                        var v = new view[1]({
-                                            model: new Iznik.Model(mod)
-                                        });
-                                        v.render();
-
-                                        self.$(view[2]).append(v.$el);
+                                _.each(self.model.get(view[0]), function(mod) {
+                                    var v = new view[1]({
+                                        model: new Iznik.Model(mod)
                                     });
+                                    v.render();
+
+                                    self.$(view[2]).append(v.$el);
+                                });
                             });
 
                             self.$('.js-more').each(function() {
@@ -134,11 +130,37 @@ define([
 
                             self.wait.close();
                         });
+                    } else {
+                        _.delay(_.bind(self.waitExport, self), 30000);
+                    }
+                }
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            self.wait = new Iznik.Views.PleaseWait({
+                label: 'chat openChat'
+            });
+            self.wait.template = 'mydata_wait';
+            self.wait.closeAfter = 600000;
+            self.wait.render();
+
+            $.ajax({
+                url: API + 'export',
+                type: 'POST',
+                success: function(ret) {
+                    if (ret.ret == 0) {
+                        self.exportId = ret.id;
+                        self.exportTag = ret.tag;
+
+                        _.delay(_.bind(self.waitExport, self), 30000);
                     }
                 }
             });
 
-            return(p);
+            return(Iznik.resolvedPromise(self));
         }
     });
 
