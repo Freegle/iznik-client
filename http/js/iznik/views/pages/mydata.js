@@ -8,6 +8,7 @@ define([
     'file-saver',
     'jquery-show-first',
     'iznik/views/pages/pages',
+    'iznik/views/chat/chat',
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
 ], function ($, _, Backbone, Iznik, moment, renderjson, s) {
@@ -110,6 +111,7 @@ define([
                                 [ 'comments', Iznik.Views.MyData.Comment, '.js-comments' ],
                                 [ 'locations', Iznik.Views.MyData.Location, '.js-locations' ],
                                 [ 'messages', Iznik.Views.MyData.Message, '.js-messages' ],
+                                [ 'chatrooms', Iznik.Views.MyData.ChatRoom, '.js-chatrooms' ],
                             ], function(view) {
                                 _.each(self.model.get(view[0]), function(mod) {
                                     var v = new view[1]({
@@ -471,6 +473,49 @@ define([
             p.then(function() {
                 var m = new moment(self.model.get('arrival'));
                 self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.ChatRoom = Iznik.View.extend({
+        template: 'mydata_chatroom',
+
+        events: {
+            'click .js-header': 'expand'
+        },
+
+        expanded: false,
+
+        expand: function() {
+            var self = this;
+
+            if (self.expanded) {
+                self.$('.js-chatmessages').slideUp('slow');
+            } else {
+                var messages = self.model.get('messages');
+                _.each(messages, function(message) {
+                    // We want to reuse the chat view so set up appropriately.
+                    message.user = Iznik.Session.get('me').attributes;
+
+                    var v = new Iznik.Views.Chat.Message({
+                        model: new Iznik.Model(message),
+                        chatModel: self.model
+                    });
+                    v.render();
+                    self.$('.js-chatmessages').append(v.$el);
+                });
+            }
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
+                self.$('.js-chatdate').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
             return(p);

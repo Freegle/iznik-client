@@ -1320,7 +1320,6 @@ define([
 
         renege: function() {
             var self = this;
-            console.log("Renege");
 
             var m = new Iznik.Models.Message(self.model.get('refmsg'));
             var other = self.options.chatModel.otherUser();
@@ -1433,7 +1432,7 @@ define([
         render: function () {
             var self = this;
             var p;
-            //console.log("Render chat message", this.model.get('id'));
+            // console.log("Render chat message", this.model.get('id'), this.model.attributes);
 
             if (this.model.get('id')) {
                 var message = this.model.get('message');
@@ -1469,7 +1468,8 @@ define([
                 // For conversations:
                 // - if we're one of the users then our messages are on the right
                 // - otherwise user1 is on the left and user2 on the right.
-                var userid = this.model.get('user').id;
+                var user = this.model.get('user');
+                var userid = user ? user.id : null;
                 var u1 = this.options.chatModel.get('user1');
                 var user1 = u1 ? u1.id : null;
                 var u2 = this.options.chatModel.get('user2');

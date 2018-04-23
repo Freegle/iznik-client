@@ -1,3 +1,6 @@
+<% if (obj.reviewedby && !obj.mine) { %>
+<p><em>You reviewed this:</em></p>
+<% } %>
 <div class="row nopad nomargin js-schedulemodal">
     <div class="<% if (obj.left) { %>col-xs-12 nopad<% } else { %>col-xs-10 col-xs-offset-2 nopad"<% } %>">
     <div class="panel <% if (obj.message) { %>panel-success<% } else { %>panel-info<% } %> padmd">
