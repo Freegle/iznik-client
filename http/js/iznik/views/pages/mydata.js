@@ -112,6 +112,7 @@ define([
                                 [ 'locations', Iznik.Views.MyData.Location, '.js-locations' ],
                                 [ 'messages', Iznik.Views.MyData.Message, '.js-messages' ],
                                 [ 'chatrooms', Iznik.Views.MyData.ChatRoom, '.js-chatrooms' ],
+                                [ 'newsfeed', Iznik.Views.MyData.Newsfeed, '.js-newsfeed' ]
                             ], function(view) {
                                 _.each(self.model.get(view[0]), function(mod) {
                                     var v = new view[1]({
@@ -524,6 +525,25 @@ define([
             p.then(function() {
                 var m = new moment(self.model.get('date'));
                 self.$('.js-chatdate').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Newsfeed = Iznik.View.extend({
+        template: 'mydata_newsfeed',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('added'));
+                self.$('.js-added').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+
+                self.$('.js-message').html(_.escape(Iznik.twem(self.model.get('message'))));
+                twemoji.parse(self.$('.js-message').get()[0]);
             });
 
             return(p);
