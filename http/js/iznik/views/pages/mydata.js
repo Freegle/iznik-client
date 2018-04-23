@@ -492,9 +492,17 @@ define([
             var self = this;
 
             if (self.expanded) {
+                self.$('.js-hidebutton').hide();
+                self.$('.js-showbutton').show();
+                self.expanded = false;
                 self.$('.js-chatmessages').slideUp('slow');
             } else {
+                self.$('.js-hidebutton').show();
+                self.$('.js-showbutton').hide();
+                self.expanded = true;
                 var messages = self.model.get('messages');
+                self.$('.js-chatmessages').empty();
+                self.$('.js-chatmessages').slideDown('slow');
                 _.each(messages, function(message) {
                     // We want to reuse the chat view so set up appropriately.
                     message.user = Iznik.Session.get('me').attributes;
