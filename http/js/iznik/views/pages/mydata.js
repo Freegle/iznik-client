@@ -112,7 +112,9 @@ define([
                                 [ 'locations', Iznik.Views.MyData.Location, '.js-locations' ],
                                 [ 'messages', Iznik.Views.MyData.Message, '.js-messages' ],
                                 [ 'chatrooms', Iznik.Views.MyData.ChatRoom, '.js-chatrooms' ],
-                                [ 'newsfeed', Iznik.Views.MyData.Newsfeed, '.js-newsfeed' ]
+                                [ 'newsfeed', Iznik.Views.MyData.Newsfeed, '.js-newsfeed' ],
+                                [ 'newsfeed_likes', Iznik.Views.MyData.NewsfeedLike, '.js-newsfeedlikes' ],
+                                [ 'newsfeed_reports', Iznik.Views.MyData.NewsfeedReport, '.js-newsfeedreports' ]
                             ], function(view) {
                                 _.each(self.model.get(view[0]), function(mod) {
                                     var v = new view[1]({
@@ -544,6 +546,38 @@ define([
 
                 self.$('.js-message').html(_.escape(Iznik.twem(self.model.get('message'))));
                 twemoji.parse(self.$('.js-message').get()[0]);
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.NewsfeedLike = Iznik.View.extend({
+        template: 'mydata_newsfeedlike',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('timestamp'));
+                self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.NewsfeedReport = Iznik.View.extend({
+        template: 'mydata_newsfeedreport',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('timestamp'));
+                self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
             });
 
             return(p);
