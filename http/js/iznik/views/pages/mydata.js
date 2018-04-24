@@ -114,7 +114,9 @@ define([
                                 [ 'chatrooms', Iznik.Views.MyData.ChatRoom, '.js-chatrooms' ],
                                 [ 'newsfeed', Iznik.Views.MyData.Newsfeed, '.js-newsfeed' ],
                                 [ 'newsfeed_likes', Iznik.Views.MyData.NewsfeedLike, '.js-newsfeedlikes' ],
-                                [ 'newsfeed_reports', Iznik.Views.MyData.NewsfeedReport, '.js-newsfeedreports' ]
+                                [ 'newsfeed_reports', Iznik.Views.MyData.NewsfeedReport, '.js-newsfeedreports' ],
+                                [ 'stories', Iznik.Views.MyData.Story, '.js-stories' ],
+                                [ 'stories_likes', Iznik.Views.MyData.StoryLike, '.js-storylikes' ]
                             ], function(view) {
                                 _.each(self.model.get(view[0]), function(mod) {
                                     var v = new view[1]({
@@ -582,5 +584,25 @@ define([
 
             return(p);
         }
+    });
+
+    Iznik.Views.MyData.Story = Iznik.View.extend({
+        template: 'mydata_story',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
+                self.$('.js-date').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.StoryLike = Iznik.View.extend({
+        template: 'mydata_storylike',
     });
 });
