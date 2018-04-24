@@ -116,7 +116,9 @@ define([
                                 [ 'newsfeed_likes', Iznik.Views.MyData.NewsfeedLike, '.js-newsfeedlikes' ],
                                 [ 'newsfeed_reports', Iznik.Views.MyData.NewsfeedReport, '.js-newsfeedreports' ],
                                 [ 'stories', Iznik.Views.MyData.Story, '.js-stories' ],
-                                [ 'stories_likes', Iznik.Views.MyData.StoryLike, '.js-storylikes' ]
+                                [ 'stories_likes', Iznik.Views.MyData.StoryLike, '.js-storylikes' ],
+                                [ 'logins', Iznik.Views.MyData.Login, '.js-logins' ],
+                                [ 'exports', Iznik.Views.MyData.Export, '.js-exports' ]
                             ], function(view) {
                                 _.each(self.model.get(view[0]), function(mod) {
                                     var v = new view[1]({
@@ -604,5 +606,43 @@ define([
 
     Iznik.Views.MyData.StoryLike = Iznik.View.extend({
         template: 'mydata_storylike',
+    });
+
+    Iznik.Views.MyData.Login = Iznik.View.extend({
+        template: 'mydata_login',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('added'));
+                self.$('.js-added').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+                var m = new moment(self.model.get('lastaccess'));
+                self.$('.js-lastaccess').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.MyData.Export = Iznik.View.extend({
+        template: 'mydata_export',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('requested'));
+                self.$('.js-requested').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+                var m = new moment(self.model.get('started'));
+                self.$('.js-started').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+                var m = new moment(self.model.get('completed'));
+                self.$('.js-completed').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
     });
 });
