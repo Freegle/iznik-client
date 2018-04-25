@@ -22,13 +22,38 @@ define([
         noGoogleAds: true,
 
         events: {
-            'click .js-export': 'export'
+            'click .js-export': 'export',
+            'click .js-showlogs': 'showLogs'
         },
 
         export: function() {
             var self = this;
             var blob = new Blob([JSON.stringify(self.json)], {type: "application/json;charset=utf-8"});
             saveAs(blob, "mydata.json");
+        },
+
+        showLogs: function() {
+            var self = this;
+            var logs = self.json.logs;
+
+            self.wait = new Iznik.Views.PleaseWait({
+                timeout: 1
+            });
+            self.wait.closeAfter = 600000;
+            self.wait.render();
+
+            _.delay(function () {
+                _.each(logs, function(log) {
+                    var v = new Iznik.Views.MyData.LogEntry({
+                        model: new Iznik.Model(log)
+                    });
+
+                    v.render();
+                    self.$('.js-logs').append(v.$el);
+                });
+
+                self.wait.close();
+            }, 1000);
         },
 
         waitExport: function() {
@@ -645,4 +670,19 @@ define([
             return(p);
         }
     });
+
+    Iznik.Views.MyData.LogEntry = Iznik.View.extend({
+        template: 'modtools_user_logentry',
+
+        render: function () {
+            var self = this
+
+            var p = Iznik.View.prototype.render.call(this)
+            p.then(function (self) {
+                var mom = new moment(self.model.get('timestamp'))
+                self.$('.js-date').html(mom.format('DD-MMM-YY HH:mm'))
+            })
+            return (p)
+        }
+    })
 });
