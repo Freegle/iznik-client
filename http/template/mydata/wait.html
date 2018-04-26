@@ -6,13 +6,29 @@
             </div>
             <div class="modal-body js-modal-body">
                 <div class="row">
-                    <div class="col-xs-12">
-                        <p class="text-center">This may take a few minutes, so please be patient...</p>
+                    <div class="col-xs-12 text-center">
+                        <div class="alert alert-info">
+                            This may take a few minutes, so please keep this tab open and be patient...
+                        </div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-2 col-md-offset-5 text-center">
                         <img alt="Loader" id="js-modalloader" style="display: none" src="/images/loadermodal.gif" />
+                    </div>
+                </div>
+                <div class="row" id="js-exportstarted" style="display: none">
+                    <div class="col-xs-12 text-center">
+                        <div class="alert alert-success topspace">
+                            Your data export has been started...
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="js-exportinfront" style="display: none">
+                    <div class="col-xs-12 text-center">
+                        <div class="alert alert-warning topspace">
+                            You're in a queue (sorry).  Data exports ahead of you: <span id="js-exportinfrontcount" />
+                        </div>
                     </div>
                 </div>
             </div>

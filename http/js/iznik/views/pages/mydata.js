@@ -67,103 +67,115 @@ define([
                 },
                 timeout: 0,
                 success: function(ret) {
-                    if (ret.ret === 0 && ret.export && ret.export.data) {
-                        console.log("Exported", ret.export);
-                        self.json = ret.export.data;
+                    if (ret.ret === 0 && ret.export) {
+                        if (ret.export.data) {
+                            console.log("Exported", ret.export);
+                            self.json = ret.export.data;
 
-                        var user = new Iznik.Model(ret.export.data);
-                        self.model = user;
+                            var user = new Iznik.Model(ret.export.data);
+                            self.model = user;
 
-                        var p = Iznik.Views.Page.prototype.render.call(self);
+                            var p = Iznik.Views.Page.prototype.render.call(self);
 
-                        p.then(function() {
-                            if (Iznik.Session.isFreegleMod()) {
-                                self.$('.js-modonly').show();
+                            p.then(function() {
+                                if (Iznik.Session.isFreegleMod()) {
+                                    self.$('.js-modonly').show();
+                                } else {
+                                    self.$('.js-modonly').hide();
+                                }
+
+                                self.$('.js-date').each((function() {
+                                    var m = new moment($(this).html().trim());
+                                    $(this).html(m.format('MMMM Do YYYY, h:mm:ss a'));
+                                }));
+
+                                _.each(self.model.get('invitations'), function(invite) {
+                                    var m = new moment(invite.date);
+                                    invite.date = m.format('MMMM Do YYYY, h:mm:ss a');
+                                    var v = new Iznik.Views.MyData.Invitation({
+                                        model: new Iznik.Model(invite)
+                                    });
+                                    v.render();
+                                    self.$('.js-invitations').append(v.$el);
+                                });
+
+                                _.each(self.model.get('emails'), function(email) {
+                                    // No need to show emails which are our own domains.  The user didn't
+                                    // provide them.
+                                    if (!email.ourdomain) {
+                                        var m = new moment(email.added);
+                                        email.added = m.format('MMMM Do YYYY, h:mm:ss a');
+
+                                        if (email.validated) {
+                                            var m = new moment(email.validated);
+                                            email.validated= m.format('MMMM Do YYYY, h:mm:ss a');
+                                        }
+
+                                        var v = new Iznik.Views.MyData.Email({
+                                            model: new Iznik.Model(email)
+                                        });
+                                        v.render();
+
+                                        self.$('.js-emails').append(v.$el);
+                                    }
+                                });
+
+                                _.each([
+                                    [ 'memberships', Iznik.Views.MyData.Membership, '.js-memberships' ],
+                                    [ 'membershipshistory', Iznik.Views.MyData.MembershipHistory, '.js-membershipshistory' ],
+                                    [ 'searches', Iznik.Views.MyData.Search, '.js-searches' ],
+                                    [ 'alerts', Iznik.Views.MyData.Alert, '.js-alerts' ],
+                                    [ 'donations', Iznik.Views.MyData.Donation, '.js-donations' ],
+                                    [ 'bans', Iznik.Views.MyData.Ban, '.js-bans' ],
+                                    [ 'spammers', Iznik.Views.MyData.Spammer, '.js-spammers' ],
+                                    [ 'spamdomains', Iznik.Views.MyData.SpamDomain, '.js-spamdomains' ],
+                                    [ 'images', Iznik.Views.MyData.Image, '.js-images' ],
+                                    [ 'notifications', Iznik.Views.MyData.Notification, '.js-notifications' ],
+                                    [ 'addresses', Iznik.Views.MyData.Address, '.js-addresses' ],
+                                    [ 'communityevents', Iznik.Views.MyData.CommunityEvent, '.js-communityevents' ],
+                                    [ 'volunteering', Iznik.Views.MyData.Volunteering, '.js-volunteerings' ],
+                                    [ 'comments', Iznik.Views.MyData.Comment, '.js-comments' ],
+                                    [ 'locations', Iznik.Views.MyData.Location, '.js-locations' ],
+                                    [ 'messages', Iznik.Views.MyData.Message, '.js-messages' ],
+                                    [ 'chatrooms', Iznik.Views.MyData.ChatRoom, '.js-chatrooms' ],
+                                    [ 'newsfeed', Iznik.Views.MyData.Newsfeed, '.js-newsfeed' ],
+                                    [ 'newsfeed_likes', Iznik.Views.MyData.NewsfeedLike, '.js-newsfeedlikes' ],
+                                    [ 'newsfeed_reports', Iznik.Views.MyData.NewsfeedReport, '.js-newsfeedreports' ],
+                                    [ 'stories', Iznik.Views.MyData.Story, '.js-stories' ],
+                                    [ 'stories_likes', Iznik.Views.MyData.StoryLike, '.js-storylikes' ],
+                                    [ 'logins', Iznik.Views.MyData.Login, '.js-logins' ],
+                                    [ 'exports', Iznik.Views.MyData.Export, '.js-exports' ]
+                                ], function(view) {
+                                    _.each(self.model.get(view[0]), function(mod) {
+                                        var v = new view[1]({
+                                            model: new Iznik.Model(mod)
+                                        });
+                                        v.render();
+
+                                        self.$(view[2]).append(v.$el);
+                                    });
+                                });
+
+                                self.$('.js-more').each(function() {
+                                    $(this).showFirst({
+                                        controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
+                                        count: 5
+                                    });
+                                });
+
+                                self.wait.close();
+                            });
+                        } else {
+                            if (ret.export.started) {
+                                $('#js-exportinfront').hide();
+                                $('#js-exportstarted').fadeIn('slow');
                             } else {
-                                self.$('.js-modonly').hide();
+                                $('#js-exportinfrontcount').html(ret.export.infront);
+                                $('#js-exportinfront').show();
                             }
 
-                            self.$('.js-date').each((function() {
-                                var m = new moment($(this).html().trim());
-                                $(this).html(m.format('MMMM Do YYYY, h:mm:ss a'));
-                            }));
-
-                            _.each(self.model.get('invitations'), function(invite) {
-                                var m = new moment(invite.date);
-                                invite.date = m.format('MMMM Do YYYY, h:mm:ss a');
-                                var v = new Iznik.Views.MyData.Invitation({
-                                    model: new Iznik.Model(invite)
-                                });
-                                v.render();
-                                self.$('.js-invitations').append(v.$el);
-                            });
-
-                            _.each(self.model.get('emails'), function(email) {
-                                // No need to show emails which are our own domains.  The user didn't
-                                // provide them.
-                                if (!email.ourdomain) {
-                                    var m = new moment(email.added);
-                                    email.added = m.format('MMMM Do YYYY, h:mm:ss a');
-
-                                    if (email.validated) {
-                                        var m = new moment(email.validated);
-                                        email.validated= m.format('MMMM Do YYYY, h:mm:ss a');
-                                    }
-
-                                    var v = new Iznik.Views.MyData.Email({
-                                        model: new Iznik.Model(email)
-                                    });
-                                    v.render();
-
-                                    self.$('.js-emails').append(v.$el);
-                                }
-                            });
-
-                            _.each([
-                                [ 'memberships', Iznik.Views.MyData.Membership, '.js-memberships' ],
-                                [ 'membershipshistory', Iznik.Views.MyData.MembershipHistory, '.js-membershipshistory' ],
-                                [ 'searches', Iznik.Views.MyData.Search, '.js-searches' ],
-                                [ 'alerts', Iznik.Views.MyData.Alert, '.js-alerts' ],
-                                [ 'donations', Iznik.Views.MyData.Donation, '.js-donations' ],
-                                [ 'bans', Iznik.Views.MyData.Ban, '.js-bans' ],
-                                [ 'spammers', Iznik.Views.MyData.Spammer, '.js-spammers' ],
-                                [ 'spamdomains', Iznik.Views.MyData.SpamDomain, '.js-spamdomains' ],
-                                [ 'images', Iznik.Views.MyData.Image, '.js-images' ],
-                                [ 'notifications', Iznik.Views.MyData.Notification, '.js-notifications' ],
-                                [ 'addresses', Iznik.Views.MyData.Address, '.js-addresses' ],
-                                [ 'communityevents', Iznik.Views.MyData.CommunityEvent, '.js-communityevents' ],
-                                [ 'volunteering', Iznik.Views.MyData.Volunteering, '.js-volunteerings' ],
-                                [ 'comments', Iznik.Views.MyData.Comment, '.js-comments' ],
-                                [ 'locations', Iznik.Views.MyData.Location, '.js-locations' ],
-                                [ 'messages', Iznik.Views.MyData.Message, '.js-messages' ],
-                                [ 'chatrooms', Iznik.Views.MyData.ChatRoom, '.js-chatrooms' ],
-                                [ 'newsfeed', Iznik.Views.MyData.Newsfeed, '.js-newsfeed' ],
-                                [ 'newsfeed_likes', Iznik.Views.MyData.NewsfeedLike, '.js-newsfeedlikes' ],
-                                [ 'newsfeed_reports', Iznik.Views.MyData.NewsfeedReport, '.js-newsfeedreports' ],
-                                [ 'stories', Iznik.Views.MyData.Story, '.js-stories' ],
-                                [ 'stories_likes', Iznik.Views.MyData.StoryLike, '.js-storylikes' ],
-                                [ 'logins', Iznik.Views.MyData.Login, '.js-logins' ],
-                                [ 'exports', Iznik.Views.MyData.Export, '.js-exports' ]
-                            ], function(view) {
-                                _.each(self.model.get(view[0]), function(mod) {
-                                    var v = new view[1]({
-                                        model: new Iznik.Model(mod)
-                                    });
-                                    v.render();
-
-                                    self.$(view[2]).append(v.$el);
-                                });
-                            });
-
-                            self.$('.js-more').each(function() {
-                                $(this).showFirst({
-                                    controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                                    count: 5
-                                });
-                            });
-
-                            self.wait.close();
-                        });
+                            _.delay(_.bind(self.waitExport, self), 30000);
+                        }
                     } else {
                         _.delay(_.bind(self.waitExport, self), 30000);
                     }
