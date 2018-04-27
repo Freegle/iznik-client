@@ -335,6 +335,7 @@ define([
             'click .js-report, touchstart .js-report': 'report',
             'click .js-enter': 'enter',
             'focus .js-message': 'messageFocused',
+            'blur .js-message': 'messageBlur',
             'click .js-promise': 'promise',
             'click .js-address': 'address',
             'click .js-nudge': 'nudge',
@@ -693,6 +694,15 @@ define([
             });
         },
 
+        messageBlur: function () {
+            var self = this;
+
+            if (Iznik.isMobile()) {
+                // Reduce the size of the typeable area which doesn't autosize on mobile.
+                self.$('.js-message').attr('rows', 2);
+            }
+        },
+
         messageFocused: function () {
             var self = this;
 
@@ -700,6 +710,11 @@ define([
             self.model.allseen();
 
             this.updateCount();
+
+            if (Iznik.isMobile()) {
+                // Increase the size of the typeable area because it doesn't autosize on mobile.
+                self.$('.js-message').attr('rows', 4);
+            }
 
             // On IOS we can't tell when the onscreen keyboard has opened, so we might lose the latest message.
             // This prevents that; it does mean that if the latest isn't the one they want, then that's unfortunate
