@@ -15,6 +15,8 @@ define([
     var saveAs = s.saveAs;
 
     Iznik.Views.MyData = Iznik.Views.Page.extend({
+        noback: true,
+
         template: 'mydata_main',
 
         modtools: MODTOOLS,
