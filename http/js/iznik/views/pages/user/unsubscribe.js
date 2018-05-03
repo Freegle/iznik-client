@@ -11,7 +11,34 @@ define([
 
         events: {
             'click .js-leave': "leave",
-            'click .js-findme': 'findme'
+            'click .js-findme': 'findme',
+            'click .js-forget': 'forget'
+        },
+
+        forget: function() {
+            var self = this;
+
+            var v = new Iznik.Views.Confirm();
+            v.template = 'user_unsubscribe_confirm';
+
+            self.listenToOnce(v, 'confirmed', function() {
+                var p = Iznik.Session.forget();
+
+                p.then(function() {
+                    (new Iznik.Views.User.Pages.Unsubscribe.Forgotten()).render();
+                });
+
+                p.catch(function(ret) {
+                    var v = new Iznik.Views.User.Pages.Unsubscribe.ForgetFail({
+                        model: new Iznik.Model({
+                            status: ret.status
+                        })
+                    });
+                    v.render();
+                });
+            });
+
+            v.render();
         },
 
         findme: function() {
@@ -114,4 +141,11 @@ define([
         }
     });
 
+    Iznik.Views.User.Pages.Unsubscribe.Forgotten = Iznik.Views.Modal.extend({
+        template: 'user_unsubscribe_forgotten'
+    });
+
+    Iznik.Views.User.Pages.Unsubscribe.ForgetFail = Iznik.Views.Modal.extend({
+        template: 'user_unsubscribe_forgetfail'
+    });
 });
