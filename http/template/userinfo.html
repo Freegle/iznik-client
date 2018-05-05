@@ -11,7 +11,14 @@
                             {{displayname}}
                             <span class="small faded pull-right padtopsm">#{{id}}</span>
                             <br />
-                            <p class="text-muted small">Freegler since <span class="js-since" />.</p>
+                            <div class="text-muted small">
+                                <span class="glyphicon glyphicon-heart" /> Freegler since <span class="js-since" />.
+                            </div>
+                            <% if (settings.showmod) { %>
+                            <div class="text-muted small">
+                                <span class="glyphicon glyphicon-leaf" /> Freegle Volunteer
+                            </div>
+                            <% } %>
                         </div>
                     </div>
                     <div class="completefull" />
