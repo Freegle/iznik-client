@@ -18,7 +18,10 @@ define([
         forget: function() {
             var self = this;
 
-            var v = new Iznik.Views.Confirm();
+            var v = new Iznik.Views.Confirm({
+                model: new Iznik.Model(Iznik.Session.get('me'))
+            });
+
             v.template = 'user_unsubscribe_confirm';
 
             self.listenToOnce(v, 'confirmed', function() {
