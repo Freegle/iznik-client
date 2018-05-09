@@ -722,20 +722,24 @@ define([
                                             var date = new Date();
                                             var firstDay = (new Date(date.getFullYear(), date.getMonth(), 1)).getTime();
                                             var firstdate = null;
+                                            var firsttime = null;
                                             var someoverlaps = false;
                                             var lastdate = null;
+                                            var lasttime = null;
 
                                             coll.each(function(g) {
                                                 var dash = g.get('dashboard');
                                                 _.each(dash.Weight, function(w) {
-                                                    if (!firstdate || (new Date(firstdate)).getTime() > (new Date(w.date)).getTime()) {
+                                                    if (!firsttime || firsttime  > (new Date(w.date)).getTime()) {
                                                         var m = new moment(w.date);
                                                         firstdate = m.format('MMM YYYY');
+                                                        firsttime = m.unix();
                                                     }
 
-                                                    if ((new Date(w.date)).getTime() < firstDay && (!lastdate || (new Date(lastdate)).getTime() < (new Date(w.date)).getTime())) {
+                                                    if ((new Date(w.date)).getTime() < firstDay && (!lasttime || lasttime < (new Date(w.date)).getTime())) {
                                                         var m = new moment(w.date);
                                                         lastdate = m.format('MMM YYYY');
+                                                        lasttime = m.unix();
                                                     }
                                                 });
                                             })
