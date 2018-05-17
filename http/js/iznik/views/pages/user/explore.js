@@ -283,7 +283,7 @@ define([
 
                         if (within > 20) {
                             // Switch to pins for large collections
-                            var icon = 'images/mapmarker.gif';	// CC
+                            var icon = 'https://www.ilovefreegle.org/images/mapmarker.gif';	// CC
                             var marker = new google.maps.Marker({
                                 position: latLng,
                                 icon: icon,
