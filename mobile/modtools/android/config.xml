@@ -62,7 +62,7 @@
     </platform>
     <platform name="android">
         <preference name="android-minSdkVersion" value="19" />
-        <preference name="android-targetSdkVersion" value="20" />
+        <preference name="android-targetSdkVersion" value="26" />
     </platform>
     <platform name="ios">
         <preference name="Orientation" value="all" />
