@@ -212,7 +212,6 @@ define([
             "stories/fornewsletter": "userNewsletterReview",
             "stories": "userStories",
             "story/:id": "userStory",
-            "streetwhack(/:id)": "findMyStreet",
             "volunteering": "userVolunteerings",
             "volunteering/group/(/:id)": "userVolunteerings",
             "volunteering/:id": "userVolunteering",
@@ -1749,15 +1748,6 @@ define([
             // Might be trailing guff in legacy routes.
             groupid = parseInt(groupid);
             this.userExploreGroup(groupid, true);
-        },
-
-        findMyStreet: function(id) {
-            var self = this;
-
-            require(["iznik/views/pages/user/findmystreet"], function() {
-                var page = new Iznik.Views.User.Pages.FindMyStreet();
-                self.loadRoute({page: page});
-            });
         },
 
         myData: function() {

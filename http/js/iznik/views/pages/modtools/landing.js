@@ -51,7 +51,8 @@ define([
                                 var pre = ret.dashboard.prerender;
                                 var age = (new Date()).getTime() - (new Date(pre)).getTime();
 
-                                if (age > 24 * 60 * 60 * 1000) {
+                                // Give a few hours grace above the max frequency of 24.
+                                if (age > 30 * 60 * 60 * 1000) {
                                     self.$('.js-prerenderwrapper').fadeIn('slow');
                                 }
                             }

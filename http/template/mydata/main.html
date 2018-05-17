@@ -1,10 +1,21 @@
 <div class="padleft">
-    <div class="alert alert-info">
-        Here's where you can see what data we hold on you, and download it.
-    </div>
-    <div class="alert alert-warning">
-        This is a work in progress - it's not complete yet.
-    </div>
+    <p>
+        You might have heard that the General Data Protection Regulation (GDPR) regulation gives you the
+        "right to access" and the "right to portability" of your data. Below is
+        the personal data you have provided to Freegle (except for some temporary logging
+        information which we keep for upto 7 days), to make accessing this easy for all freeglers.
+        You can also download all this data
+        in a commonly-used machine-readable format (<a href="https://www.json.org/" data-realurl="true">JSON</a>).
+        <div class="btn btn-white js-export">Download in machine-readable format</div>
+    </p>
+    <p>There may be a lot of information here, so if you have any questions, please
+        <a href="/help">contact us</a>.</p>
+    <p>
+        Freegle volunteers may also have some personal data, predominately in the form of email
+        correspondence about Freegle matters. If you want access to this please request this
+        formally via the <a href="mailto:DPO@ilovefreegle.org" data-realurl="true">Data Protection Officer (DPO)</a>
+        who will organise the return of this additional information.
+    </p>
     <h2>About you</h2>
     <div class="row">
         <div class="col-sm-6">
@@ -135,6 +146,11 @@
             {{Whether_we_can_scan_your_messages_to_protect_other_users}}
         </div>
     </div>
+    <h2>Your profile pictures</h2>
+    <div class="js-images" />
+    <h2>Logins</h2>
+    <p>These are the ways in which you have registered to use the site.</p>
+    <ul class="list-unstyled js-more js-logins" />
     <h2>Email addresses</h2>
     <div class="row">
         <div class="col-sm-6">
@@ -145,7 +161,9 @@
         </div>
     </div>
     <br />
-    <div class="js-emails" />
+    <div class="js-more js-emails" />
+    <h2>Your addresses</h2>
+    <div class="js-addresses" />
     <h2>Notifications</h2>
     <div class="row">
         <div class="col-sm-6">
@@ -205,13 +223,13 @@
     </div>
     <h2>Memberships</h2>
     <p>Which communities you are a member of.  You can change your settings or leave groups from <a href="/settings">here</a>.</p>
-    <div class="js-memberships" />
+    <div class="js-more js-memberships" />
     <h2>Memberships History</h2>
     <p>When you joined or rejoined communities.</p>
-    <div class="js-membershipshistory" />
+    <div class="js-more js-membershipshistory" />
     <h2>Searches</h2>
     <p>Here's what you've searched for:</p>
-    <div class="js-searches" />
+    <div class="js-more js-searches" />
     <h2>Invitations</h2>
     <div class="row">
         <div class="col-sm-6">
@@ -222,13 +240,76 @@
         </div>
     </div>
     <br />
-    <div class="js-invitations" />
+    <div class="js-more js-invitations" />
+    <h2>Posts</h2>
+    <div class="js-more js-messages" />
+    <h2>Chats</h2>
+    <p>This just shows messages you have sent, not those from other people.</p>
+    <div class="js-more js-chatrooms" />
+    <h2>Newsfeed</h2>
+    <p>This just shows what you have posted, or replies you've made.</p>
+    <ul class="js-more list-unstyled js-newsfeed" />
+    <h2>Newsfeed Loves</h2>
+    <p>These are any newsfeed posts you've loved.</p>
+    <ul class="js-more list-unstyled js-newsfeedlikes" />
+    <h2>Newsfeed Reports</h2>
+    <p>These are any newsfeed posts you've reported.</p>
+    <ul class="js-more list-unstyled js-newsfeedreports" />
+    <h2>Stories</h2>
+    <p>These are any stories you've told us.</p>
+    <ul class="js-more list-unstyled js-stories" />
+    <h2>Stories Loves</h2>
+    <p>These are any stories you've loved.</p>
+    <ul class="js-more list-unstyled js-storylikes" />
+    <h2>Community Events</h2>
+    <p>These are community events which you've created.</p>
+    <div class="js-more js-communityevents" />
+    <h2>Volunteering Opportunities</h2>
+    <p>These are volunteering opportunities which you've created.</p>
+    <div class="js-more js-volunteerings" />
     <div class="js-modonly">
         <h2>Alerts</h2>
         <p>These are messages sent to volunteers from Freegle teams.</p>
-        <div class="js-alerts" />
+        <div class="js-more js-alerts" />
     </div>
     <h2>Donations</h2>
     <p>These are any donations you have made via the site to support Freegle.</p>
-    <div class="js-donations" />
+    <div class="js-more js-donations" />
+    <div class="js-modonly">
+        <h2>Bans</h2>
+        <p>These are users you have banned (except spammers).</p>
+        <div class="js-more js-bans" />
+    </div>
+    <div class="js-modonly">
+        <h2>Spammers</h2>
+        <p>These are users you have reported as spammers.</p>
+        <div class="js-more js-spammers" />
+        <h2>Whitelisted domains</h2>
+        <p>You see chat messages to review, and some of these may contain links.  These are domains where you have
+            marked a link as not spam.</p>
+        <div class="js-more js-spamdomains" />
+    </div>
+    <div class="js-modonly">
+        <h2>Excluded locations</h2>
+        <p>These are locations that you have excluded from the group mapping.</p>
+        <div class="js-more js-locations" />
+    </div>
+    <div class="js-modonly">
+        <h2>Notes on users</h2>
+        <p>These are mod notes that you have made on users.</p>
+        <div class="js-more js-comments" />
+    </div>
+    <h2>Notifications</h2>
+    <p>These are when you've clicked on notifications for the site.</p>
+    <div class="js-more js-notifications" />
+    <h2>Logs</h2>
+    <p>
+        These are detailed internal logs relating to your activity.  There may be a very large number
+        of these, and they're not very interesting - but you can view them if you like.
+    </p>
+    <div class="btn btn-white js-showlogs">View logs</div>
+    <ul class="list-unstyled js-logs" />
+    <h2>Exports</h2>
+    <p>These are any other times you've viewed this data.</p>
+    <ul class="list-unstyled js-more js-exports" />
 </div>

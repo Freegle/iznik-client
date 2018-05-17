@@ -11,7 +11,14 @@
                             {{displayname}}
                             <span class="small faded pull-right padtopsm">#{{id}}</span>
                             <br />
-                            <p class="text-muted small">Freegler since <span class="js-since" />.</p>
+                            <div class="text-muted small">
+                                <span class="glyphicon glyphicon-heart" /> Freegler since <span class="js-since" />.
+                            </div>
+                            <% if (settings.showmod) { %>
+                            <div class="text-muted small">
+                                <span class="glyphicon glyphicon-leaf" /> Freegle Volunteer
+                            </div>
+                            <% } %>
                         </div>
                     </div>
                     <div class="completefull" />
@@ -29,7 +36,7 @@
                             <span class="glyphicons glyphicons-info-sign vcenter" />&nbsp;About this freegler
                         </div>
                         <div class="panel-body">
-                            <p><% if (info.milesaway) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %><% if (info.publiclocation.location) { %>{{info.publiclocation.location}}<% } else { %>{{info.publiclocation.groupname}}<% } %>, <% } %>{{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.</span><% } %></p>
+                            <p><% if (info.hasOwnProperty('milesaway')) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %><% if (info.publiclocation.location) { %>{{info.publiclocation.location}}, {{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.<% } else if (info.publiclocation.groupname) { %>{{info.publiclocation.groupname}} <% } else { %>Unknown<% } %><% } %></span><% } %></p>
                             <% if (info.replytime) { %>
                             <p><span class="glyphicon glyphicon-time" />&nbsp;Typically replies in <span class="js-replytime" />.</p>
                             <% } else { %>

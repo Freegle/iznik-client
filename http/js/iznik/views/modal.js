@@ -164,6 +164,7 @@ define([
         timeout: null,
         closeTimeout: null,
         isOpen : false,
+        closeAfter: 60000,
 
         render: function() {
             var self = this;
@@ -191,7 +192,7 @@ define([
                     // it stuck forever, which looks silly.
                     self.closeTimeout = setTimeout(function() {
                         self.close();
-                    }, 60000);
+                    }, self.closeAfter);
                 }
             }, self.options.timeout ? self.options.timeout : 3000);
 

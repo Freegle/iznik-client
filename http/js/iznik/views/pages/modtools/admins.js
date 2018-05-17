@@ -14,7 +14,18 @@ define([
         template: "modtools_admins_main",
 
         events: {
-            'click .js-send': 'send'
+            'click .js-send': 'send',
+            'change .js-groupselect': 'checkSend'
+        },
+
+        checkSend: function() {
+            var groupid = this.groupSelect.get();
+
+            if (groupid > 0) {
+                this.$('.js-send').removeClass('disabled');
+            } else {
+                this.$('.js-send').addClass('disabled');
+            }
         },
 
         send: function(e) {
