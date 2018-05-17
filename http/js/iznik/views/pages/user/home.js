@@ -627,7 +627,7 @@ define([
                 replies = _.sortBy(replies, function (reply) {
                     return (-reply.promised);
                 });
-                self.$('.js-user').append('<option value="-1">Please choose...</option>');
+                self.$('.js-user').append('<option value="-1">Please choose (this isn\'t public)...</option>');
                 _.each(replies, function (reply) {
                     self.$('.js-user').append('<option value="' + reply.user.id + '" />');
                     self.$('.js-user option:last').html(reply.user.displayname);

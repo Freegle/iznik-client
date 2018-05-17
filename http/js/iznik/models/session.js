@@ -845,6 +845,30 @@ define([
             var perms = this.get('me').permissions;
             // console.log("Check permission", perms, perm, this);
             return(perms && perms.indexOf(perm) !== -1);
+        },
+
+        forget: function() {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: API + 'session',
+                    type: 'POST',
+                    data: {
+                        action: 'Forget'
+                    }, success: function (ret) {
+                        if (ret.ret === 0) {
+                            resolve();
+                        } else {
+                            reject(ret);
+                        }
+                    }, error: function() {
+                        reject(null);
+                    }
+                })
+            });
+
+            return(p);
         }
     });
 });

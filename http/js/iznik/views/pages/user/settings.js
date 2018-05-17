@@ -206,7 +206,7 @@ define([
         },
 
         endSave: function(el) {
-            $(el).find('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-floppy-saved');
+            $(el).find('.glyphicon-refresh').removeClass('glyphicon-refresh rotate').addClass('glyphicon-ok');
         },
 
         nameChange: function(e) {

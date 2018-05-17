@@ -1,0 +1,18 @@
+<div class="row">
+    <div class="col-xs-2 js-added" />
+    <div class="col-xs-2">
+        <% if (type == 'Link') { %>
+        Email link
+        <% } else if (type == 'Native') { %>
+        Email/password
+        <% } else { %>
+        {{type}}
+        <% } %>
+    </div>
+    <div class="col-xs-4">
+        <% if (type == 'Yahoo' || type == 'Google' || type == 'Facebook') { %>
+        {{uid}}
+        <% } %>
+    </div>
+    <div class="col-xs-4">Last used <span class="js-lastaccess" /></div>
+</div>
