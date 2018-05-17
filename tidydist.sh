@@ -2,6 +2,7 @@ cd dist
 #rm stats.json report.html
 rm -r apple*
 rm images/streetwhack.png
+rm images/*.jpg
 mv *.png css
 mv *.woff css
 mv *.woff2 css
