@@ -356,7 +356,7 @@ define([
 
                                 self.draftPhotos.render().then(function() {
                                     self.$('.js-draftphotos').html(self.draftPhotos.el);
-                                    self.$('.js-draftphotos');
+                                    self.$('.js-draftphotos').show();
                                 });
                             }
                         });
