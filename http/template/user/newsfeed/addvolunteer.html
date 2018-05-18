@@ -2,7 +2,7 @@
     <h3 class="visible-xs visible-md">Add Volunteer Opportunity</h3>
     <form class="topspace">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="js-grouplist">
                     <div class="form-group">
                         <label for="group">For which community?</label>
@@ -20,6 +20,13 @@
                 <div class="form-group">
                     <label>Role:</label>
                     <input type="text" class="form-control js-title" name="title" placeholder="Give a short description of the role" required/>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="pull-right">
+                    <img class="img-thumbnail js-photopreview botspace" width="150" />
+                    <input class="js-photo" type="file" name="photo" multiple="">
+                    <div id="js-uploaderror" />
                 </div>
             </div>
         </div>

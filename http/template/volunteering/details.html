@@ -10,6 +10,16 @@
                 <% } %>
             </div>
             <div class="modal-body js-modal-body">
+                <% if (obj.photo) { %>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="alert alert-info">
+                            Scroll down for more information!
+                        </div>
+                        <img class="img-rounded img-responsive" src="{{photo.path}}" />
+                    </div>
+                </div>
+                <% } %>
                 <div class="row">
                     <div class="col-md-12">
                         <table class="table borderless table-condensed eventtable fullholder">
