@@ -431,8 +431,10 @@ define([
             e.stopPropagation();
 
             var v = new Iznik.Views.User.Message.PhotoZoom({
-                model: this.model
+                model: this.model,
+                message: this.options.message
             });
+            this.listenToOnce(v, 'deleted', _.bind(this.destroyIt, this));
             v.render();
         }
     });
@@ -510,6 +512,7 @@ define([
                     },
                     success: function(ret) {
                         if (ret.ret === 0) {
+                            self.trigger('deleted');
                             self.close();
                         }
                     }

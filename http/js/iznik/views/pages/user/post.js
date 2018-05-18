@@ -22,7 +22,14 @@ define([
             'change .tt-hint': 'checkNext',
             'keyup .js-description': 'checkNext',
             'change .bootstrap-tagsinput .tt-input': 'checkNext',
-            'click .js-speechItem': 'speechItem'
+            'click .js-speechItem': 'speechItem',
+            'click .js-cleardraft': 'clearDraft'
+        },
+
+        clearDraft: function() {
+            var self = this;
+            Storage.remove('draft');
+            self.render();
         },
 
         speechItem: function() {
@@ -333,6 +340,8 @@ define([
                             // clear out our local storage but still have submitted the message.  In that case
                             // we don't want to use it.
                             if (self.msgType == msg.get('type') && msg.get('isdraft')) {
+                                self.$('.js-olddraft').fadeIn('slow');
+
                                 // Parse out item from subject.
                                 var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(msg.get('subject'));
                                 if (matches && matches.length > 2 && matches[2].length > 0) {
@@ -355,8 +364,11 @@ define([
                                 });
 
                                 self.draftPhotos.render().then(function() {
-                                    self.$('.js-draftphotos').html(self.draftPhotos.el);
-                                    self.$('.js-draftphotos').show();
+                                    if (self.photos.length > 0) {
+                                        self.$('.js-draftphotos').html(self.draftPhotos.el);
+                                        self.$('.js-draftphotos').show();
+                                        self.$('.js-addprompt').hide();
+                                    }
                                 });
                             }
                         });
