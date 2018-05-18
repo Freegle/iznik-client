@@ -1151,6 +1151,7 @@ define([
                     var pos = Iznik.getInputSelection(el);
                     var val = self.$('.js-comment').val();
                     self.$('.js-comment').val(val.substring(0, pos.start) + "\n" + val.substring(pos.start));
+                    Iznik.setCaretToPos(e.target, pos.start);
                     autosize.update(self.$('.js-comment'));
                 } else  {
                     self.$('.js-comment').prop('disabled', true);
