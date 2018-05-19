@@ -224,7 +224,8 @@ define([
                     minLength: 2,
                     hint: false,
                     highlight: true,
-                    autoselect: false
+                    autoselect: false,
+                    tabAutocomplete: false,
                 }, {
                     name: 'items',
                     source: self.itemSource,
