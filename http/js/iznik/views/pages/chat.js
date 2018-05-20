@@ -796,8 +796,6 @@ define([
                 Storage.set('mystatus', status);
             } catch (e) {
             }
-
-            Iznik.Session.chats.updateRoster(status, true);
         },
 
         countHidden: true,
