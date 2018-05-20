@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title><%= SITE_NAME %></title>
+    <% if (MODTOOLS) { %>
     <script src="https://cdn.tinymce.com/4/tinymce.min.js"></script>
+    <% } %>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
     <script async src='https://www.google-analytics.com/analytics.js'></script>
     <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -12,8 +14,8 @@
 </head>
 
 <body id="thebody">
-<script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
+<script ascyn type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 <div itemscope itemtype="http://schema.org/Organization" style="display: none">
     <span itemprop="name"><%= SITE_NAME %></span>
