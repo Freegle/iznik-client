@@ -46,6 +46,16 @@ define([
                     success: function(ret) {
                         v.close();
 
+                        if (ret.emailproblems) {
+                            var doms = [];
+                            _.each(ret.emailproblems, function(dom) {
+                                doms.push(dom.domain)
+                            });
+
+                            self.$('.js-problemdomains').html(doms.join(', '));
+                            self.$('.js-emailproblems').show();
+                        }
+
                         if (ret.dashboard) {
                             if (Iznik.Session.isAdminOrSupport()) {
                                 var pre = ret.dashboard.prerender;
