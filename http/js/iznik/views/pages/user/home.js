@@ -446,6 +446,8 @@ define([
         render: function() {
             var self = this;
 
+            self.model.set('offers', self.options.offers);
+
             var p = Iznik.Views.User.Message.prototype.render.call(this);
             p.then(function() {
                 self.$('.js-outcometime').timeago();
@@ -491,6 +493,8 @@ define([
 
         render: function() {
             var self = this;
+
+            self.model.set('wanteds', self.options.wanteds);
 
             var p = Iznik.Views.User.Message.prototype.render.call(this);
             p.then(function() {

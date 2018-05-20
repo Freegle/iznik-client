@@ -260,7 +260,7 @@ define([
                     });
                     var z = new Iznik.Views.ModTools.Settings.MissingFacebookBuySell();
                     z.render().then(function() {
-                        self.$('.js-missingfacebookbuysell').html(z.el);
+                        // self.$('.js-missingfacebookbuysell').html(z.el);
                     });
                 });
 
