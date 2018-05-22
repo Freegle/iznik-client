@@ -13,6 +13,7 @@ define([
     'backbone',
     'underscore',
     'moment',
+    'lazysizes',
     'backbone.collectionView',
     'dateshim',
     'bootstrap',
@@ -844,6 +845,19 @@ define([
                 }
 
                 this.$el.html(html);
+
+                // Convert any images to be loaded using lazysizes.  This avoids loading images which aren't in
+                // the viewport.
+                this.$('img').each(function() {
+                    var $this = $(this);
+                    var src = $this.attr('src');
+
+                    if (src) {
+                        $this.attr('data-src', src);
+                        $this.prop('src', null);
+                        $this.addClass('lazyload');
+                    }
+                })
 
                 return this;
             },
