@@ -23,7 +23,12 @@ define([
             'keyup .js-description': 'checkNext',
             'change .bootstrap-tagsinput .tt-input': 'checkNext',
             'click .js-speechItem': 'speechItem',
-            'click .js-cleardraft': 'clearDraft'
+            'click .js-cleardraft': 'clearDraft',
+            'click .js-addprompt': 'forceAdd'
+        },
+
+        forceAdd: function() {
+            $('#fileupload').click();
         },
 
         clearDraft: function() {
