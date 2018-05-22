@@ -18,6 +18,7 @@ define([
     'iznik/views/postaladdress',
     'iznik/views/user/schedule',
     'iznik/views/user/message',
+    'iznik/views/promptapp',
     'jquery-resizable',
     'jquery-visibility'
 ], function ($, _, Backbone, Iznik, autosize, moment, ChatHolder) {
@@ -231,6 +232,13 @@ define([
                 var ad = new Iznik.View.GoogleAd();
                 ad.render();
                 $('#js-rightsidebar').html(ad.el);
+
+                if (!Storage.get('chatpromptapp')) {
+                    // Encourage people to install the mobile apps - this helps reduce dependency on emails, and
+                    // also results in people responding more rapidly.
+                    Storage.set('chatpromptapp', true);
+                    (new Iznik.Views.PromptApp()).render();
+                }
             });
 
             return (p);
