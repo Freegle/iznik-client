@@ -439,7 +439,7 @@ define([
                     // They've used the alt/shift trick, or we know they don't want to send.
                     var pos = Iznik.getInputSelection(e.target);
                     var val = self.$('.js-message').val();
-                    self.$('.js-message').val(val.substring(0, pos.start) + "\n" + val.substring(pos.start));
+                    // self.$('.js-message').val(val.substring(0, pos.start) + "\n" + val.substring(pos.start));
                     Iznik.setCaretToPos(e.target, pos.start);
                 } else  {
                     if (enterSend !== 0 && enterSend !== 1) {

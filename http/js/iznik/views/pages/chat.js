@@ -233,7 +233,7 @@ define([
                 ad.render();
                 $('#js-rightsidebar').html(ad.el);
 
-                if (!Storage.get('chatpromptapp')) {
+                if (!MODTOOLS && !Storage.get('chatpromptapp')) {
                     // Encourage people to install the mobile apps - this helps reduce dependency on emails, and
                     // also results in people responding more rapidly.
                     Storage.set('chatpromptapp', true);
@@ -452,7 +452,7 @@ define([
                     // They've used the alt/shift trick, or we know they don't want to send.
                     var pos = Iznik.getInputSelection(e.target);
                     var val = self.$('.js-message').val();
-                    self.$('.js-message').val(val.substring(0, pos.start) + "\n" + val.substring(pos.start));
+                    // self.$('.js-message').val(val.substring(0, pos.start) + "\n" + val.substring(pos.start));
                     Iznik.setCaretToPos(e.target, pos.start);
                 } else  {
                     if (enterSend !== 0 && enterSend !== 1) {
