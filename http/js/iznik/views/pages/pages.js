@@ -212,16 +212,27 @@ define([
                     $('#bodyContent').html(template(tpl));
 
                     if (!self.modtools) {
-                        // We might have a logo override for a specific date.
-                        $.ajax({
-                            url: API + 'logo',
-                            type: 'GET',
-                            success: function (ret) {
-                                if (ret.ret == 0 && ret.hasOwnProperty('logo')) {
-                                    $('#js-homelogo').attr('src', ret.logo.path);
-                                }
+                        // We might have a logo override for a specific date.  Load it later though as it might be
+                        // large, as animated gifs tend to be.  Only load these once you're logged in to keep
+                        // the speed as observed by Google etc faster.  Slightly artificial but also...first impressions
+                        // count.
+                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                            if (loggedIn) {
+                                _.delay(function() {
+                                    $.ajax({
+                                        url: API + 'logo',
+                                        type: 'GET',
+                                        success: function (ret) {
+                                            if (ret.ret == 0 && ret.hasOwnProperty('logo')) {
+                                                $('#js-homelogo').attr('src', ret.logo.path);
+                                            }
+                                        }
+                                    }, 5000);
+                                });
                             }
                         });
+
+                        Iznik.Session.testLoggedIn();
                     }
 
                     $('.js-pageContent').html(self.$el);
