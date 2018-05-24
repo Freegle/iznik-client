@@ -668,28 +668,17 @@ define([
 
             var other = this.model.otherUser();
 
-            // See if we have an outstanding schedule.
-
-            var m = new Iznik.Models.ModTools.User({
-                id: other
+            var v = new Iznik.Views.User.Schedule.Modal({
+                chatuserid: other,
+                mine: true,
+                help: true
             });
 
-            m.fetch().then(function() {
-                var v = new Iznik.Views.User.Schedule.Modal({
-                    model: m,
-                    id: null,
-                    schedule: null,
-                    other: false,
-                    otherid: null,
-                    slots: null
-                });
-
-                self.listenToOnce(v, 'modalClosed', function () {
-                    self.messages.fetch();
-                });
-
-                v.render();
+            self.listenToOnce(v, 'modalClosed', function () {
+                self.messages.fetch();
             });
+
+            v.render();
         },
 
         info: function () {
@@ -1035,6 +1024,7 @@ define([
                     collection: self.messages,
                     chatView: self,
                     comparator: 'id',
+                    selectable: false,
                     modelViewOptions: {
                         chatView: self,
                         chatModel: self.model

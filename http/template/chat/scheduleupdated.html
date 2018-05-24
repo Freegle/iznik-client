@@ -1,32 +1,43 @@
 <% if (obj.reviewedby && !obj.mine) { %>
 <p><em>You reviewed this:</em></p>
 <% } %>
-<div class="row nopad nomargin js-schedulemodal">
-    <div class="<% if (obj.left) { %>col-xs-12 nopad<% } else { %>col-xs-10 col-xs-offset-2 nopad"<% } %>">
-    <div class="panel <% if (obj.message) { %>panel-success<% } else { %>panel-info<% } %> padmd">
-        <div class="panel-heading">
-            <div class="row">
-                <div class="col-xs-12">
-                    <% if (obj.message) { %>
-                        <span class="glyphicon glyphicon-calendar glyphicon-larger vcenter" />&nbsp;Collection agreed: <span class="js-agreed" />
-                    <% } else { %>
-                        <% if (obj.left) { %>
-                        <span class="glyphicon glyphicon-calendar glyphicon-larger vcenter" />&nbsp;{{user.displayname}} wants has updated their collection schedule
+<div class="row nopad nomargin">
+    <div class="<% if (obj.left) { %>col-xs-12 col-sm-10 nopad<% } else { %>col-xs-10 col-xs-offset-2 nopad<% } %>">
+        <div class="panel <% if (obj.message) { %>panel-success<% } else { %>panel-info<% } %> padmd">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <% if (obj.message) { %>
+                            <span class="glyphicon glyphicon-calendar glyphicon-larger vcenter" />&nbsp;Collection agreed: <span class="js-agreed" />
                         <% } else { %>
-                        <span class="glyphicon glyphicon-calendar glyphicon-larger vcenter" />&nbsp;You updated your collection schedule.
+                            <span class="glyphicon glyphicon-calendar glyphicon-larger vcenter" />&nbsp;Current availability
                         <% } %>
-                    <% } %>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="panel-body">
-            <div class="row">
-                <div class="col-xs-12">
-                    <% if (obj.message) { %>
-                        <div class="btn btn-large btn-white">Click to view details or change</div>
-                    <% } else { %>
-                        <div class="btn btn-large btn-success">Click to view latest times</div>
-                    <% } %>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="js-nomatches" style="display: none">
+                            <p>Say when you're available and view when they are, so you can choose a collection time.</p>
+                        </div>
+                        <div class="js-matches" style="display: none">
+                            <p>Here's when you're both available.  Click one to confirm it!</p>
+                            <ul class="list-unstyled list-inline js-matchlist" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <% if (obj.message) { %>
+                            <div class="btn btn-large btn-white clickme pull-left js-theirschedule"><span class="glyphicon glyphicon-eye-open" />&nbsp;View their</div>
+                        <% } else { %>
+                            <div class="btn btn-large btn-primary clickme pull-left js-theirschedule"><span class="glyphicon glyphicon-eye-open" />&nbsp;View theirs</div>
+                        <% } %>
+                        <div class="btn btn-large btn-info clickme pull-right js-myschedule"><span class="glyphicon glyphicon-pencil" />&nbsp;Update yours</div>
+                    </div>
                 </div>
             </div>
         </div>

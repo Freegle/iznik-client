@@ -45,7 +45,8 @@ define([
                                         id: self.model.get('id'),
                                         slots: self.model.get('schedule'),
                                         other: true,
-                                        cancel: false
+                                        cancel: false,
+                                        help: true
                                     });
 
                                     self.$('.js-schedule').html(v.$el);

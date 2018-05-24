@@ -130,7 +130,6 @@ define([
 
         otherUserSpammer: function() {
             var u = this.otherUserMod();
-            console.log("Other", u);
             return(u && u.spammer);
         },
 
