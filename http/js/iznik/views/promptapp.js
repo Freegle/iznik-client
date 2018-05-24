@@ -10,7 +10,7 @@ define([
 
         events: {
             'click .js-android': 'clickAndroid',
-            'click .js-ios': 'clickAndroid',
+            'click .js-ios': 'clickIOS',
             'click .js-close': 'clickClose'
 
         },
@@ -29,12 +29,16 @@ define([
         },
 
         render: function () {
-            var p = Iznik.Views.Modal.prototype.render.call(this);
+            var p = Iznik.resolvedPromise();
 
-            p.then(function () {
-                Iznik.ABTestShown('PromptApp', 'Android');
-                Iznik.ABTestShown('PromptApp', 'IOS');
-            });
+            if (Iznik.isMobile()) {
+                p = Iznik.Views.Modal.prototype.render.call(this);
+
+                p.then(function () {
+                    Iznik.ABTestShown('PromptApp', 'Android');
+                    Iznik.ABTestShown('PromptApp', 'IOS');
+                });
+            }
 
             return (p);
         }
