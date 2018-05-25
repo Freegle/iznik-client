@@ -757,13 +757,19 @@ define([
                                     modtools: false
                                 });
                             } else {
-                                // Still can't see it logged in - need to join the group
+                                // Still can't see it logged in
                                 var groups = self.model.get('groups');
                                 _.each(groups, function(group) {
-                                    var name = group.namedisplay;
-                                    self.groupid = group.id;
-                                    self.$('.js-groupname').html(name);
-                                    self.$('.js-needtojoin').fadeIn('slow');
+                                    if (!Iznik.Session.getGroup(group.id)) {
+                                        // Need to join the group.
+                                        var name = group.namedisplay;
+                                        self.groupid = group.id;
+                                        self.$('.js-groupname').html(name);
+                                        self.$('.js-needtojoin').fadeIn('slow');
+                                    } else {
+                                        // Probably the id for a rejected message.  Can't see other people's.
+                                        self.$('.js-gone').fadeIn('slow');
+                                    }
                                 });
                             }
                         });
