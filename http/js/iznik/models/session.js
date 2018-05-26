@@ -528,6 +528,7 @@ define([
                     fblogin: true
                 },
                 success: function (response) {
+                    console.log("Facebook login response", response);
                     if (response.ret === 0) {
                         //We fire 2 separate calls, one to tell the CurrentUser that the user has just logged in.
                         //another to tell anyone listening that the user is logged in (In case we were testing).
