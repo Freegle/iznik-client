@@ -5,6 +5,9 @@
     Availability for <span class="js-name" />
     <% } %>
 </h3>
+<% if (obj.mine) { %>
+<p class="text-muted"><span class="glyphicon glyphicon-globe" />&nbsp;Other freeglers can see this information.</p>
+<% } %>
 <div class="js-help" />
 <div class="row">
     <div class="col-xs-12">
@@ -32,7 +35,6 @@
         <br class="clearfix" />
         <% if (obj.mine) { %>
         <p class="text-center">If none of these work for you, just chat to the person to agree a time.</p>
-        <p class="text-muted"><span class="glyphicon glyphicon-globe" />&nbsp;Other freeglers can see this information.</p>
         <% } %>
     </div>
 </div>

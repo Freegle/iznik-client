@@ -21,11 +21,13 @@ define([
         },
 
         cancel: function () {
+            Iznik.ABTestAction('Schedule', 'Cancel');
             this.trigger('cancelled');
         },
 
         save: function () {
             var self = this;
+            Iznik.ABTestAction('Schedule', 'Save');
 
             var myid = Iznik.Session.get('me').id;
             var slots = [];
@@ -57,11 +59,14 @@ define([
 
         render: function () {
             var self = this;
+            self.slots = [];
 
             var me = Iznik.Session.get('me');
             var myid = me ? me.id : null;
 
             self.model = new Iznik.Models.Schedule();
+            Iznik.ABTestShown('Schedule', 'Save');
+            Iznik.ABTestShown('Schedule', 'Cancel');
 
             var p = self.model.fetch({
                 data: {
