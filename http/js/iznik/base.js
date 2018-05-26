@@ -8,6 +8,17 @@ var tpl = require('iznik/templateloader');
 var template = tpl.template;
 var templateFetch = tpl.templateFetch;
 
+// Placeholder for images not found.
+(function(){
+    const NOTFOUNDSRC = '/images/placeholder.jpg';
+    document.addEventListener('error', function(e){
+        if(e.target.nodeName.toUpperCase() == 'IMG' && e.target.getAttribute('src') && e.target.getAttribute('src') != NOTFOUNDSRC){
+            console.log("replace with", NOTFOUNDSRC);
+            e.target.src = NOTFOUNDSRC;
+        }
+    }, true);
+})();
+
 define([
     'jquery',
     'backbone',
