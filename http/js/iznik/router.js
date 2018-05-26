@@ -206,7 +206,6 @@ define([
             "plugins/group/:id": "groupPlugin",
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
-            "schedule(/:id)": "userSchedule",
             "stories/fornewsletter": "userNewsletterReview",
             "stories": "userStories",
             "story/:id": "userStory",
@@ -317,23 +316,6 @@ define([
                     require(["iznik/views/pages/user/home"], function () {
                         var page = new Iznik.Views.User.Pages.MyPost({
                             id: msgid
-                        });
-                        self.loadRoute({page: page});
-                    });
-                });
-
-                Iznik.Session.forceLogin();
-            }
-        },
-
-        userSchedule: function(id) {
-            if (!MODTOOLS) {
-                var self = this;
-
-                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
-                    require(["iznik/views/pages/user/schedule"], function () {
-                        var page = new Iznik.Views.User.Pages.Schedule({
-                            id: id
                         });
                         self.loadRoute({page: page});
                     });
