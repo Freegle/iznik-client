@@ -33,13 +33,13 @@
             </tbody>
         </table>
         <br class="clearfix" />
-        <% if (obj.mine) { %>
-        <p class="text-center">If none of these work for you, just chat to the person to agree a time.</p>
-        <% } %>
     </div>
 </div>
 <div class="row">
     <div class="col-xs-12">
+        <% if (obj.mine) { %>
+        <p class="text-center">If none of these work for you, just chat to the person to agree a time.</p>
+        <% } %>
         <% if (obj.mine) { %>
         <button type="button" class="margleft pull-right btn btn-success js-confirm"><span class="glyphicon glyphicon-floppy-save" />&nbsp;Save</button>
         <button type="button" class="pull-right btn btn-white js-cancel" style="display: none"><span class="glyphicon glyphicon-remove-circle" />&nbsp;Cancel</button>
