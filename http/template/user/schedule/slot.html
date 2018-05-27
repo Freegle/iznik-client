@@ -1,11 +1,11 @@
 <% if (obj.available) { %>
-<div class="<% if (obj.mine) { %>clickme <% } %>completefull">
-    <div class="completefull text-center">
-        <div class="glyphicon glyphicon-larger glyphicon-ok success" alt="Available" title="Available" />
+<div class="<% if (obj.mine) { %>clickme <% } %>completefull text-center">
+    <div class="completefull">
+        <div class="glyphicon glyphicon-larger glyphicon-ok success <% if (obj.availableother) { %>availableother<% } %>" alt="Available" title="Available" />
     </div>
 </div>
 <% } else { %>
 <div class="<% if (obj.mine) { %>clickme <% } %>completefull text-center">
-    <div class="glyphicon glyphicon-larger glyphicon-ok faded" alt="Unavailable" title="Unavailable" />
+    <div class="glyphicon glyphicon-larger glyphicon-ok faded <% if (obj.availableother) { %>availableother<% } %>" alt="Unavailable" title="Unavailable" />
 </div>
 <% } %>

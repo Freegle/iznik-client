@@ -13,7 +13,6 @@ var templateFetch = tpl.templateFetch;
     const NOTFOUNDSRC = '/images/placeholder.jpg';
     document.addEventListener('error', function(e){
         if(e.target.nodeName.toUpperCase() == 'IMG' && e.target.getAttribute('src') && e.target.getAttribute('src') != NOTFOUNDSRC){
-            console.log("replace with", NOTFOUNDSRC);
             e.target.src = NOTFOUNDSRC;
         }
     }, true);

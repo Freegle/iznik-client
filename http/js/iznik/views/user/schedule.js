@@ -21,7 +21,29 @@ define([
         },
 
         cancel: function () {
+            var self = this;
             Iznik.ABTestAction('Schedule', 'Cancel');
+
+            var myid = Iznik.Session.get('me').id;
+            var some = false;
+
+            _.each(self.slots, function (slot) {
+                if (slot.get('available')) {
+                    some = true;
+                }
+            });
+
+            if (some) {
+                // Always save to server, which may trigger a chat message.  We need this for when someone replies
+                // and cancels out - we still want to send an availability message if they have some availability.
+                self.model.save({
+                    userid: myid,
+                    chatuserid: self.options.chatuserid
+                }).then(function () {
+                    self.trigger('saved');
+                })
+            }
+
             this.trigger('cancelled');
         },
 
@@ -44,17 +66,15 @@ define([
                 });
             });
 
-            if (self.hasChanged) {
-                self.model.set('schedule', slots);
-                self.model.save({
-                    userid: myid,
-                    chatuserid: self.options.chatuserid
-                }).then(function () {
-                    self.trigger('saved');
-                })
-            } else {
+            // Always save to server, which may trigger a chat message.  We need this for when someone replies
+            // and makes no changes to their availability.
+            self.model.set('schedule', slots);
+            self.model.save({
+                userid: myid,
+                chatuserid: self.options.chatuserid
+            }).then(function () {
                 self.trigger('saved');
-            }
+            })
         },
 
         render: function () {
@@ -64,15 +84,29 @@ define([
             var me = Iznik.Session.get('me');
             var myid = me ? me.id : null;
 
-            self.model = new Iznik.Models.Schedule();
             Iznik.ABTestShown('Schedule', 'Save');
             Iznik.ABTestShown('Schedule', 'Cancel');
 
-            var p = self.model.fetch({
+            self.model = new Iznik.Models.Schedule();
+            self.othermodel = self.options.chatuserid ? new Iznik.Models.Schedule() : null;
+
+            var promises = [];
+
+            promises.push(self.model.fetch({
                 data: {
                     userid: self.options.mine ? null : self.options.otheruser.get('id')
                 }
-            });
+            }));
+
+            if (self.options.chatuserid) {
+                promises.push(self.othermodel.fetch({
+                    data: {
+                        userid: self.options.chatuserid
+                    }
+                }));
+            }
+
+            var p = Promise.all(promises);
 
             p.then(function() {
                 self.model.set('mine', self.options.mine);
@@ -145,11 +179,27 @@ define([
                                 }
                             })
 
+                            var availableother = false;
+
+                            if (self.othermodel) {
+                                var existingslotsother = self.othermodel.get('schedule');
+
+                                _.each(existingslotsother, function(slot) {
+                                    var e = new Date(slot.date);
+                                    e.setHours(h, 0, 0, 0);
+
+                                    if (e.getTime() == d.getTime() && h == slot.hour) {
+                                        availableother |= slot.available;
+                                    }
+                                })
+                            }
+
                             var s = new Iznik.Model({
                                 id: d,
                                 hour: h,
                                 date: d,
                                 available: available,
+                                availableother: availableother,
                                 mine: self.options.mine
                             });
 
