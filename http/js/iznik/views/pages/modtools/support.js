@@ -84,7 +84,7 @@ define([
         searchUser: function () {
             var self = this;
 
-            self.$('.js-loading').addClass('hidden');
+            self.$('.js-loading').addClass('visNone');
             var v = new Iznik.Views.PleaseWait({
                 timeout: 1
             });
