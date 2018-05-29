@@ -48,7 +48,7 @@
     "backform": "^0.2.0",
     "bootstrap": "^3.3.7",
     "bootstrap-datepicker": "^1.7.1",
-    "bootstrap-fileinput": "^4.4.7",
+    "bootstrap-fileinput": "^4.4.8",
     "case-sensitive-paths-webpack-plugin": "^2.1.1",
     "chalk": "^2.3.0",
     "classnames": "^2.2.5",

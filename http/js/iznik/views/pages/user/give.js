@@ -76,28 +76,32 @@ define([
                 } catch (e) {
                 }
 
-                try {
-                    // Now ask them to tell us their schedule.
-                    var v = new Iznik.Views.User.Schedule.Modal({
-                        mine: true,
-                        help: true
-                    });
-
-                    self.listenToOnce(v, 'modalClosed modalCancelled', function() {
-                        var w = new Iznik.Views.User.Pages.Give.Share({
-                            model: new Iznik.Models.Message({
-                                id: Storage.get('lastpost')
-                            })
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
+                    try {
+                        // Now ask them to tell us their schedule.
+                        var v = new Iznik.Views.User.Schedule.Modal({
+                            mine: true,
+                            help: true
                         });
 
-                        w.model.fetch().then(function() {
-                            w.render();
-                        });
-                    })
+                        self.listenToOnce(v, 'modalClosed modalCancelled', function() {
+                            var w = new Iznik.Views.User.Pages.Give.Share({
+                                model: new Iznik.Models.Message({
+                                    id: Storage.get('lastpost')
+                                })
+                            });
 
-                    v.render();
-                } catch (e) {
-                }
+                            w.model.fetch().then(function() {
+                                w.render();
+                            });
+                        })
+
+                        v.render();
+                    } catch (e) {
+                    }
+                });
+
+                Iznik.Session.testLoggedIn();
             });
 
             return (p);

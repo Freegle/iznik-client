@@ -464,25 +464,29 @@ define([
 
             var p = Iznik.Views.User.Pages.WhatNext.prototype.render.call(this);
             p.then(function () {
-                try {
-                    var v = new Iznik.Views.User.Schedule.Modal({
-                        mine: true,
-                        help: true
-                    });
-
-                    self.listenToOnce(v, 'modalClosed modalCancelled', function() {
-                        var w = new Iznik.Views.User.Pages.Find.Share({
-                            model: new Iznik.Models.Message({
-                                id: Storage.get('lastpost')
-                            })
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
+                    try {
+                        var v = new Iznik.Views.User.Schedule.Modal({
+                            mine: true,
+                            help: true
                         });
 
-                        w.model.fetch().then(function() {
-                            w.render();
-                        });
-                    })
-                } catch (e) {
-                }
+                        self.listenToOnce(v, 'modalClosed modalCancelled', function() {
+                            var w = new Iznik.Views.User.Pages.Find.Share({
+                                model: new Iznik.Models.Message({
+                                    id: Storage.get('lastpost')
+                                })
+                            });
+
+                            w.model.fetch().then(function() {
+                                w.render();
+                            });
+                        })
+                    } catch (e) {
+                    }
+                });
+
+                Iznik.Session.testLoggedIn();
             });
 
             return (p);
