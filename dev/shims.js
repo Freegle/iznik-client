@@ -52,14 +52,14 @@ exports.rules = [
     ...convertShimsToRules(requireJs.shims)
 ]
 
-console.log("Rules", exports.rules);
-
 exports.provides = {
     // waypoints wants $ on window.jQuery
     'window.jQuery': 'jquery',
     // bootstrap wants $ global
     jQuery: 'jquery',
-    twemoji: 'twemoji'
+    twemoji: 'twemoji',
+    // fileinput wants piexif on window.piexif
+    'window.piexif': 'bootstrap-fileinput/js/plugins/piexif.min.js'
 }
 
 function convertPathsToAliases (paths) {
