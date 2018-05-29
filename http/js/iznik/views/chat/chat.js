@@ -192,10 +192,11 @@ define([
                 Storage.set("chatcount", unseen);
                 var notifcount = Storage.get("notifcount");
                 if (!notifcount) notifcount = 0;
+                notifcount = parseInt(notifcount);
                 if (isNaN(notifcount)) notifcount = 0;
                 var badgecount = notifcount + unseen;
                 window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, badgecount);
-                console.log("badge count set to : " + badgecount);
+                console.log("badge count set to: " + badgecount);
             }
         },
 
