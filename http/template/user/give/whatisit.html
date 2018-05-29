@@ -22,6 +22,21 @@
 </div>
 
 <h1 class="text-center">Ok, now tell us about your item</h1>
+<div class="alert alert-warning js-olddraft" style="display: none">
+    <div class="row">
+        <div class="col-xs-12">
+            <p>It looks like you were partway through posting - here's your old draft.  If you want to start again, you
+                can clear it: </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="btn btn-lg btn-white js-cleardraft">
+                <div class="glyphicon glyphicon-trash" />&nbspClear draft
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row-fluid">
     <div class="col-xs-12">
         <div class="alert alert-info topspace js-addprompt">
@@ -29,6 +44,8 @@
         </div>
         <ul class="list-inline list-unstyled js-draftphotos" style="display: none"/>
         <input id="fileupload" type="file" name="photo" multiple="">
+        ONE: <input type="file" accept="image/*;capture=camera">
+        TWO: <input type="file" accept="image/*" capture="capture" />
     </div>
 </div>
 <div class="clearfix" />

@@ -106,7 +106,8 @@ define([
 
             var p = Iznik.Views.ModTools.Member.prototype.render.call(self);
             p.then(function(self) {
-                self.$('.timeago').timeago();
+                var m = new moment(self.model.get('timestamp'));
+                self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
 
                 var groupid = self.model.get('message').groups[0].groupid;
                 var group = Iznik.Session.getGroup(groupid);

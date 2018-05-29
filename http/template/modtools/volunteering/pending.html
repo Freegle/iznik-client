@@ -60,12 +60,17 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-sm-12">
+                <div class="<% if (obj.photo) { %>col-sm-8<% } else { %>col-sm-12<% } %>">
                     <div class="form-group">
                         <label>Details:</label>
                         <textarea class="form-control js-description" name="description" rows="5" required></textarea>
                     </div>
                 </div>
+                <% if (obj.photo) { %>
+                <div class="col-sm-4">
+                    <img class="img-thumbnail" src="{{photo.path}}" />
+                </div>
+                <% } %>
             </div>
             <div class="row">
                 <div class="col-sm-12">

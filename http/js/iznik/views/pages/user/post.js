@@ -8,6 +8,7 @@ define([
     'iznik/models/user/message',
     'iznik/views/group/select',
     'iznik/models/user/message',
+    'iznik/views/user/schedule',
     'iznik/views/user/message'
 ], function ($, _, Backbone, Iznik) {
     Iznik.Views.User.Pages.WhatIsIt = Iznik.Views.Page.extend({
@@ -22,7 +23,19 @@ define([
             'change .tt-hint': 'checkNext',
             'keyup .js-description': 'checkNext',
             'change .bootstrap-tagsinput .tt-input': 'checkNext',
-            'click .js-speechItem': 'speechItem'
+            'click .js-speechItem': 'speechItem',
+            'click .js-cleardraft': 'clearDraft',
+            'click .js-addprompt': 'forceAdd'
+        },
+
+        forceAdd: function() {
+            $('#fileupload').click();
+        },
+
+        clearDraft: function() {
+            var self = this;
+            Storage.remove('draft');
+            self.render();
         },
 
         // Not enabled for iOS as iOS10 has speech recognition built in on any text field.
@@ -236,7 +249,8 @@ define([
                     minLength: 2,
                     hint: false,
                     highlight: true,
-                    autoselect: false
+                    autoselect: false,
+                    tabAutocomplete: false,
                 }, {
                     name: 'items',
                     source: self.itemSource,
@@ -352,6 +366,8 @@ define([
                             // clear out our local storage but still have submitted the message.  In that case
                             // we don't want to use it.
                             if (self.msgType == msg.get('type') && msg.get('isdraft')) {
+                                self.$('.js-olddraft').fadeIn('slow');
+
                                 // Parse out item from subject.
                                 var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(msg.get('subject'));
                                 if (matches && matches.length > 2 && matches[2].length > 0) {
@@ -374,8 +390,11 @@ define([
                                 });
 
                                 self.draftPhotos.render().then(function() {
-                                    self.$('.js-draftphotos').html(self.draftPhotos.el);
-                                    self.$('.js-draftphotos');
+                                    if (self.photos.length > 0) {
+                                        self.$('.js-draftphotos').html(self.draftPhotos.el);
+                                        self.$('.js-draftphotos').show();
+                                        self.$('.js-addprompt').hide();
+                                    }
                                 });
                             }
                         });

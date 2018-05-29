@@ -18,6 +18,7 @@ define([
     'iznik/views/postaladdress',
     'iznik/views/user/schedule',
     'iznik/views/user/message',
+    'iznik/views/promptapp',
     'jquery-resizable',
     'jquery-visibility'
 ], function ($, _, Backbone, Iznik, autosize, moment, ChatHolder) {
@@ -231,6 +232,13 @@ define([
                 var ad = new Iznik.View.GoogleAd();
                 ad.render();
                 $('#js-rightsidebar').html(ad.el);
+
+                /* CC if (!MODTOOLS && !Storage.get('chatpromptapp')) {
+                    // Encourage people to install the mobile apps - this helps reduce dependency on emails, and
+                    // also results in people responding more rapidly.
+                    Storage.set('chatpromptapp', true);
+                    (new Iznik.Views.PromptApp()).render();
+                } */
             });
 
             return (p);
@@ -443,7 +451,10 @@ define([
 
                 if (e.altKey || e.shiftKey || enterSend === 0) {
                     // They've used the alt/shift trick, or we know they don't want to send.
-                    self.$('.js-message').val(self.$('.js-message').val() + "\n");
+                    var pos = Iznik.getInputSelection(e.target);
+                    var val = self.$('.js-message').val();
+                    // self.$('.js-message').val(val.substring(0, pos.start) + "\n" + val.substring(pos.start));
+                    Iznik.setCaretToPos(e.target, pos.start);
                 } else  {
                     if (enterSend !== 0 && enterSend !== 1) {
                         // We don't know what they want it to do.  Ask them.
@@ -658,28 +669,17 @@ define([
 
             var other = this.model.otherUser();
 
-            // See if we have an outstanding schedule.
-
-            var m = new Iznik.Models.ModTools.User({
-                id: other
+            var v = new Iznik.Views.User.Schedule.Modal({
+                chatuserid: other,
+                mine: true,
+                help: true
             });
 
-            m.fetch().then(function() {
-                var v = new Iznik.Views.User.Schedule.Modal({
-                    model: m,
-                    id: null,
-                    schedule: null,
-                    other: false,
-                    otherid: null,
-                    slots: null
-                });
-
-                self.listenToOnce(v, 'modalClosed', function () {
-                    self.messages.fetch();
-                });
-
-                v.render();
+            self.listenToOnce(v, 'modalClosed', function () {
+                self.messages.fetch();
             });
+
+            v.render();
         },
 
         info: function () {
@@ -794,8 +794,6 @@ define([
                 Storage.set('mystatus', status);
             } catch (e) {
             }
-
-            Iznik.Session.chats.updateRoster(status, true);
         },
 
         countHidden: true,
@@ -1027,6 +1025,7 @@ define([
                     collection: self.messages,
                     chatView: self,
                     comparator: 'id',
+                    selectable: false,
                     modelViewOptions: {
                         chatView: self,
                         chatModel: self.model

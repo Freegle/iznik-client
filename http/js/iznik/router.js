@@ -168,7 +168,7 @@ define([
             "explore/:id/join": "userJoinGroup",
             "explore/:id": "userExploreGroup",
             "explore": "userExplore",
-            "livemap": "liveMap",
+            "livemap": "userLiveMap",
             "recentfreegles": "userRecentFreegles",
             "helpus/aviva2017": "userAviva",
             "aviva": "userAviva",
@@ -183,7 +183,7 @@ define([
             "communityevents(/:id)": "userCommunityEvents",
             "communityevent(/:id)": "userCommunityEvent",
             "newuser": "newUser",
-            "unsubscribe(/:id)": "unsubscribe",
+            "unsubscribe(/:id)": "userUnsubscribe",
             "chats": "userChats",
             "chat/:id/external(/:id)": "userChatExternal",
             "chat/:id": "userChat",
@@ -207,7 +207,6 @@ define([
             "plugins/group/:id": "groupPlugin",
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
-            "schedule(/:id)": "userSchedule",
             "stories/fornewsletter": "userNewsletterReview",
             "stories": "userStories",
             "story/:id": "userStory",
@@ -269,25 +268,117 @@ define([
         },
 
         userHome: function () {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            if (document.URL.indexOf('modtools') !== -1) {
-                Router.navigate('/modtools', true);
-            } else {
-                function f(loggedIn) {
-                    console.log("Logged in", loggedIn);
-                    if (Iznik.Session.maintenanceMode) {  // CC
-                        console.log("Don't load home or landing as in maintenanceMode");
-                    } else if (loggedIn || _.isUndefined(loggedIn)) {
-                        require(["iznik/views/pages/user/home"], function () {
-                            var page = new Iznik.Views.User.Pages.Home();
-                            self.loadRoute({ page: page });
+                if (document.URL.indexOf('modtools') !== -1) {
+                    Router.navigate('/modtools', true);
+                } else {
+                    function f(loggedIn) {
+                        // console.log("Logged in", loggedIn);
+                        if (Iznik.Session.maintenanceMode) {  // CC
+                            console.log("Don't load home or landing as in maintenanceMode");
+                        } else if (loggedIn || _.isUndefined(loggedIn)) {
+                            require(["iznik/views/pages/user/home"], function() {
+                                var page = new Iznik.Views.User.Pages.Home();
+                                self.loadRoute({page: page});
+                            });
+                        } else {
+                            require(["iznik/views/pages/user/landing"], function() {
+                                console.log("Load landing 1");
+                                var page = new Iznik.Views.User.Pages.Landing();
+                                self.loadRoute({page: page});
+                            });
+                        }
+                    }
+
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+                    Iznik.Session.testLoggedIn();
+                }
+            }
+        },
+
+        userMyPostAction: function(msgid, action) {
+            if (!MODTOOLS) {
+                var self = this;
+
+                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                    require(["iznik/views/pages/user/home"], function () {
+                        var page = new Iznik.Views.User.Pages.MyPost({
+                            id: msgid,
+                            action: action
                         });
+                        self.loadRoute({page: page});
+                    });
+                });
+
+                Iznik.Session.forceLogin();
+            }
+        },
+
+        userMyPost: function(msgid) {
+            if (!MODTOOLS) {
+                var self = this;
+
+                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                    require(["iznik/views/pages/user/home"], function () {
+                        var page = new Iznik.Views.User.Pages.MyPost({
+                            id: msgid
+                        });
+                        self.loadRoute({page: page});
+                    });
+                });
+
+                Iznik.Session.forceLogin();
+            }
+        },
+
+        userNewsletterReview: function() {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/stories"], function () {
+                    var page = new Iznik.Views.User.Pages.Stories({
+                        reviewnewsletter: true
+                    });
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userDefault: function() {
+            if (!MODTOOLS) {
+                var self = this;
+
+                function f (loggedIn) {
+                    // console.log("Logged in", loggedIn);
+                    if (loggedIn || _.isUndefined(loggedIn)) {
+                        // Load the last of the main pages that they had open.
+                        var page = Storage.get('lasthomepage');
+
+                        switch (page) {
+                            case 'news': {
+                                self.userNewsfeed();
+                                break;
+                            }
+                            case 'myposts': {
+                                self.userHome();
+                                break;
+                            }
+                            case 'mygroups': {
+                                self.userMyGroups();
+                                break;
+                            }
+                            default: {
+                                self.userNewsfeed();
+                                break;
+                            }
+                        }
                     } else {
-                        require(["iznik/views/pages/user/landing"], function() {
-                            console.log("Load landing 1");
+                        require(["iznik/views/pages/user/landing"], function () {
+                            console.log("Load landing 2");
                             var page = new Iznik.Views.User.Pages.Landing();
-                            self.loadRoute({ page: page });
+                            self.loadRoute({page: page});
                         });
                     }
                 }
@@ -297,706 +388,704 @@ define([
             }
         },
 
-        userMyPostAction: function(msgid, action) {
-            var self = this;
-
-            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
-                require(["iznik/views/pages/user/home"], function() {
-                    var page = new Iznik.Views.User.Pages.MyPost({
-                        id: msgid,
-                        action: action
-                    });
-                    self.loadRoute({page: page});
-                });
-            });
-
-            Iznik.Session.forceLogin();
-        },
-
-        userMyPost: function(msgid) {
-            var self = this;
-            
-            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
-                require(["iznik/views/pages/user/home"], function() {
-                    var page = new Iznik.Views.User.Pages.MyPost({
-                        id: msgid
-                    });
-                    self.loadRoute({page: page});
-                });
-            });
-
-            Iznik.Session.forceLogin();
-        },
-
-        userSchedule: function(id) {
-            var self = this;
-
-            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
-                require(["iznik/views/pages/user/schedule"], function() {
-                    var page = new Iznik.Views.User.Pages.Schedule({
-                        id: id
-                    });
-                    self.loadRoute({page: page});
-                });
-            });
-
-            Iznik.Session.forceLogin();
-        },
-
-        userNewsletterReview: function() {
-            var self = this;
-
-            require(["iznik/views/pages/user/stories"], function() {
-                var page = new Iznik.Views.User.Pages.Stories({
-                    reviewnewsletter: true
-                });
-                self.loadRoute({page: page});
-            });
-        },
-
-        userDefault: function() {
-            var self = this;
-
-            function f(loggedIn) {
-                // console.log("Logged in", loggedIn);
-                if (loggedIn || _.isUndefined(loggedIn)) {
-                    // Load the last of the main pages that they had open.
-                    var page = Storage.get('lasthomepage');
-
-                    switch (page) {
-                        case 'news': {
-                            self.userNewsfeed();
-                            break;
-                        }
-                        case 'myposts': {
-                            self.userHome();
-                            break;
-                        }
-                        case 'mygroups': {
-                            self.userMyGroups();
-                            break;
-                        }
-                        default: {
-                            self.userNewsfeed();
-                            break;
-                        }
-                    }
-                } else {
-                    require(["iznik/views/pages/user/landing"], function() {
-                        console.log("Load landing 2");
-                        var page = new Iznik.Views.User.Pages.Landing();
-                        self.loadRoute({page: page});
-                    });
-                }
-            }
-
-            self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
-            Iznik.Session.testLoggedIn();
-
-        },
-
         userStories: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/stories"], function() {
-                var page = new Iznik.Views.User.Pages.Stories();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/stories"], function () {
+                    var page = new Iznik.Views.User.Pages.Stories();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userStory: function(id) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/stories"], function() {
-                var page = new Iznik.Views.User.Pages.Stories.Single({
-                    id: id
-                });
-                self.loadRoute({page: page});
-            });
-        },
-
-        userChats: function() {
-            var self = this;
-            require(["iznik/views/pages/chat"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.Chat.Page();
-                    self.loadRoute({page: page});
-                });
-
-                Iznik.Session.forceLogin();
-            });
-        },
-
-        userChat: function(chatid) {
-            var self = this;
-            require(["iznik/views/pages/chat"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.Chat.Page({
-                        chatid: chatid
-                    });
-                    self.loadRoute({page: page});
-                });
-
-                Iznik.Session.forceLogin();
-            });
-        },
-
-        userChatExternal: function(chatid, msgid) {
-            var self = this;
-            require(["iznik/views/pages/chat"], function() {
-                var page = new Iznik.Views.Chat.External({
-                    chatid: chatid,
-                    msgid: msgid
-                });
-                self.loadRoute({page: page});
-            });
-        },
-
-        userFindWhereAmI: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/find"], function() {
-                var page = new Iznik.Views.User.Pages.Find.WhereAmI();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userSearch: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/find"], function() {
-                var page = new Iznik.Views.User.Pages.Find.Search({
-                    browse: true
-                });
-                self.loadRoute({page: page});
-            });
-        },
-
-        userSearched: function (query) {
-            var self = this;
-
-            require(["iznik/views/pages/user/find"], function() {
-                var page = new Iznik.Views.User.Pages.Find.Search({
-                    search: query
-                });
-
-                try {
-                    Storage.set('lastsearch', query);
-                } catch (e) {}
-
-                self.loadRoute({page: page});
-            });
-        },
-
-        userGiveWhereAmI: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/give"], function() {
-                var page = new Iznik.Views.User.Pages.Give.WhereAmI();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userGiveWhatIsIt: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/give"], function() {
-                var page = new Iznik.Views.User.Pages.Give.WhatIsIt();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userGiveWhoAmI: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/give"], function() {
-                var page = new Iznik.Views.User.Pages.Give.WhoAmI();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userFindWhatIsIt: function() {
-            var self = this;
-
-            require(["iznik/views/pages/user/find"], function() {
-                var page = new Iznik.Views.User.Pages.Find.WhatIsIt();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userFindWhoAmI: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/find"], function() {
-                var page = new Iznik.Views.User.Pages.Find.WhoAmI();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userGiveWhatNext: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/give"], function() {
-                var page = new Iznik.Views.User.Pages.Give.WhatNext();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userFindWhatNext: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/find"], function() {
-                var page = new Iznik.Views.User.Pages.Find.WhatNext();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userMyGroups: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/mygroups"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.User.Pages.MyGroups();
-                    self.loadRoute({page: page});
-                });
-
-                Iznik.Session.forceLogin();
-            });
-        },
-
-        userConfirmMail: function (key) {
-            var self = this;
-
-            require(["iznik/views/pages/user/settings"], function() {
-                $.ajax({
-                    type: 'PATCH',
-                    url: API + 'session',
-                    data: {
-                        key: key
-                    },
-                    success: function (ret) {
-                        var v;
-
-                        if (ret.ret == 0) {
-                            v = new Iznik.Views.User.Pages.Settings.VerifySucceeded();
-                        } else {
-                            v = new Iznik.Views.User.Pages.Settings.VerifyFailed();
-                        }
-                        self.listenToOnce(v, 'modalCancelled modalClosed', function () {
-                            // Reload to force session refresh.
-                            Router.mobileReload(); // CC
-                        });
-
-                        v.render();
-                    },
-                    error: function () {
-                        var v = new Iznik.Views.User.Pages.Settings.VerifyFailed();
-                        self.listenToOnce(v, 'modalCancelled modalClosed', function () {
-                            Router.navigate('/settings', true)
-                        });
-
-                        v.render();
-                    }
-                });
-            });
-        },
-
-        userSettings: function () {
-            var self = this;
-
-            require(["iznik/views/pages/user/settings"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.User.Pages.Settings();
-                    self.loadRoute({page: page});
-                });
-
-                Iznik.Session.forceLogin();
-            });
-        },
-
-        userJoinGroup: function(id) {
-            var self = this;
-
-            require(["iznik/views/pages/user/explore"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.User.Pages.ExploreGroup({
-                        id: id,
-                        join: true
-                    });
-                    self.loadRoute({page: page});
-                });
-
-                Iznik.Session.forceLogin();
-            });
-        },
-
-        legacyUserGroups: function(loc) {
-            var self = this;
-
-            require(["iznik/views/pages/user/explore"], function() {
-                // Legacy route.  If we have a name, we need to search.
-                if (loc) {
-                    // This is the route for /location/loc
-                    var page = new Iznik.Views.User.Pages.Explore({
-                        search: loc
-                    });
-                    self.loadRoute({page: page});
-                } else {
-                    // This is the route for /groups or /groups#loc.
-                    var hash = Backbone.history.getHash();
-
-                    if (hash) {
-                        var page = new Iznik.Views.User.Pages.Explore({
-                            search: hash
-                        });
-                        self.loadRoute({page: page});
-                    } else {
-                        Router.navigate('/explore', true);
-                    }
-                }
-            });
-        },
-
-        userInvite: function() {
-            var self = this;
-
-            require(["iznik/views/pages/user/invite"], function() {
-                var page = new Iznik.Views.User.Pages.Invite();
-                self.loadRoute({page: page});
-            });
-        },
-
-        userNewsfeed: function() {
-            var self = this;
-
-            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                require(["iznik/views/pages/user/newsfeed"], function() {
-                    var page = new Iznik.Views.User.Pages.Newsfeed();
-                    self.loadRoute({page: page});
-                });
-            });
-
-            Iznik.Session.forceLogin();
-        },
-
-        userNewsfeedSingle: function(id) {
-            var self = this;
-
-            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                require(["iznik/views/pages/user/newsfeed"], function() {
-                    var page = new Iznik.Views.User.Pages.Newsfeed.Single({
+                require(["iznik/views/pages/user/stories"], function () {
+                    var page = new Iznik.Views.User.Pages.Stories.Single({
                         id: id
                     });
                     self.loadRoute({page: page});
                 });
-            });
+            }
+        },
 
-            Iznik.Session.forceLogin();
+        userChats: function() {
+            if (!MODTOOLS) {
+                var self = this;
+                require(["iznik/views/pages/chat"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.Chat.Page();
+                        self.loadRoute({page: page});
+                    });
+
+                    Iznik.Session.forceLogin();
+                });
+            }
+        },
+
+        userChat: function(chatid) {
+            if (!MODTOOLS) {
+                var self = this;
+                require(["iznik/views/pages/chat"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.Chat.Page({
+                            chatid: chatid
+                        });
+                        self.loadRoute({page: page});
+                    });
+
+                    Iznik.Session.forceLogin();
+                });
+            }
+        },
+
+        userChatExternal: function(chatid, msgid) {
+            if (!MODTOOLS) {
+                var self = this;
+                require(["iznik/views/pages/chat"], function () {
+                    var page = new Iznik.Views.Chat.External({
+                        chatid: chatid,
+                        msgid: msgid
+                    });
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userFindWhereAmI: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/find"], function () {
+                    var page = new Iznik.Views.User.Pages.Find.WhereAmI();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userSearch: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/find"], function () {
+                    var page = new Iznik.Views.User.Pages.Find.Search({
+                        browse: true
+                    });
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userSearched: function (query) {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/find"], function () {
+                    var page = new Iznik.Views.User.Pages.Find.Search({
+                        search: query
+                    });
+
+                    try {
+                        Storage.set('lastsearch', query);
+                    } catch (e) {}
+
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userGiveWhereAmI: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/give"], function () {
+                    var page = new Iznik.Views.User.Pages.Give.WhereAmI();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userGiveWhatIsIt: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/give"], function () {
+                    var page = new Iznik.Views.User.Pages.Give.WhatIsIt();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userGiveWhoAmI: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/give"], function () {
+                    var page = new Iznik.Views.User.Pages.Give.WhoAmI();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userFindWhatIsIt: function() {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/find"], function () {
+                    var page = new Iznik.Views.User.Pages.Find.WhatIsIt();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userFindWhoAmI: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/find"], function () {
+                    var page = new Iznik.Views.User.Pages.Find.WhoAmI();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userGiveWhatNext: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/give"], function () {
+                    var page = new Iznik.Views.User.Pages.Give.WhatNext();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userFindWhatNext: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/find"], function () {
+                    var page = new Iznik.Views.User.Pages.Find.WhatNext();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userMyGroups: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/mygroups"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.User.Pages.MyGroups();
+                        self.loadRoute({page: page});
+                    });
+
+                    Iznik.Session.forceLogin();
+                });
+            }
+        },
+
+        userConfirmMail: function (key) {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/settings"], function () {
+                    $.ajax({
+                        type: 'PATCH',
+                        url: API + 'session',
+                        data: {
+                            key: key
+                        },
+                        success: function (ret) {
+                            var v;
+
+                            if (ret.ret == 0) {
+                                v = new Iznik.Views.User.Pages.Settings.VerifySucceeded();
+                            } else {
+                                v = new Iznik.Views.User.Pages.Settings.VerifyFailed();
+                            }
+                            self.listenToOnce(v, 'modalCancelled modalClosed', function () {
+                                // Reload to force session refresh.
+                                // TODO lame.
+                                //window.location = '/';
+                                Router.mobileReload(); // CC
+                            });
+
+                            v.render();
+                        },
+                        error: function () {
+                            var v = new Iznik.Views.User.Pages.Settings.VerifyFailed();
+                            self.listenToOnce(v, 'modalCancelled modalClosed', function () {
+                                Router.navigate('/settings', true)
+                            });
+
+                            v.render();
+                        }
+                    });
+                });
+            }
+        },
+
+        userSettings: function () {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/settings"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.User.Pages.Settings();
+                        self.loadRoute({page: page});
+                    });
+
+                    Iznik.Session.forceLogin();
+                });
+            }
+        },
+
+        userJoinGroup: function(id) {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/explore"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.User.Pages.ExploreGroup({
+                            id: id,
+                            join: true
+                        });
+                        self.loadRoute({page: page});
+                    });
+
+                    Iznik.Session.forceLogin();
+                });
+            }
+        },
+
+        legacyUserGroups: function(loc) {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/explore"], function () {
+                    // Legacy route.  If we have a name, we need to search.
+                    if (loc) {
+                        // This is the route for /location/loc
+                        var page = new Iznik.Views.User.Pages.Explore({
+                            search: loc
+                        });
+                        self.loadRoute({page: page});
+                    } else {
+                        // This is the route for /groups or /groups#loc.
+                        var hash = Backbone.history.getHash();
+
+                        if (hash) {
+                            var page = new Iznik.Views.User.Pages.Explore({
+                                search: hash
+                            });
+                            self.loadRoute({page: page});
+                        } else {
+                            Router.navigate('/explore', true);
+                        }
+                    }
+                });
+            }
+        },
+
+        userInvite: function() {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/user/invite"], function () {
+                    var page = new Iznik.Views.User.Pages.Invite();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userNewsfeed: function() {
+            if (!MODTOOLS) {
+                var self = this;
+
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    require(["iznik/views/pages/user/newsfeed"], function () {
+                        var page = new Iznik.Views.User.Pages.Newsfeed();
+                        self.loadRoute({page: page});
+                    });
+                });
+
+                Iznik.Session.forceLogin();
+            }
+        },
+
+        userNewsfeedSingle: function(id) {
+            if (!MODTOOLS) {
+                var self = this;
+
+                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                    require(["iznik/views/pages/user/newsfeed"], function () {
+                        var page = new Iznik.Views.User.Pages.Newsfeed.Single({
+                            id: id
+                        });
+                        self.loadRoute({page: page});
+                    });
+                });
+
+                Iznik.Session.forceLogin();
+            }
         },
 
         userInvited: function(id) {
-            // Record result of invitation.
-            var self = this;
-            $.ajax({
-                url: API + 'invitation',
-                type: 'PATCH',
-                data: {
-                    id: id,
-                    outcome: 'Accepted'
-                }, complete: function() {
-                    self.userHome();
-                }
-            })
+            if (!MODTOOLS) {
+                // Record result of invitation.
+                var self = this;
+                $.ajax({
+                    url: API + 'invitation',
+                    type: 'PATCH',
+                    data: {
+                        id: id,
+                        outcome: 'Accepted'
+                    }, complete: function () {
+                        self.userHome();
+                    }
+                })
+            }
         },
 
         userExploreGroup: function(id, naked) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/explore"], function() {
-                var page = new Iznik.Views.User.Pages.ExploreGroup({
-                    id: id,
-                    naked: naked
+                require(["iznik/views/pages/user/explore"], function () {
+                    var page = new Iznik.Views.User.Pages.ExploreGroup({
+                        id: id,
+                        naked: naked
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         userExploreRegion: function(region) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/explore"], function() {
-                var page = new Iznik.Views.User.Pages.Explore({
-                    region: region
+                require(["iznik/views/pages/user/explore"], function () {
+                    var page = new Iznik.Views.User.Pages.Explore({
+                        region: region
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         userExplore: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/explore"], function() {
-                var page = new Iznik.Views.User.Pages.Explore();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/explore"], function () {
+                    var page = new Iznik.Views.User.Pages.Explore();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
-        liveMap: function() {
-            var self = this;
+        userLiveMap: function() {
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/livemap"], function() {
-                var page = new Iznik.Views.User.Pages.LiveMap();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/livemap"], function () {
+                    var page = new Iznik.Views.User.Pages.LiveMap();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userRecentFreegles: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/recentfreegles"], function() {
-                var page = new Iznik.Views.User.Pages.RecentFreegles();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/recentfreegles"], function () {
+                    var page = new Iznik.Views.User.Pages.RecentFreegles();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userStatsHeatMap: function(area) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/stats"], function() {
-                var page = new Iznik.Views.User.Pages.Heatmap();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/stats"], function () {
+                    var page = new Iznik.Views.User.Pages.Heatmap();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userAviva: function(area) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/pages"], function() {
-                require(["iznik/views/supportus"], function() {
-                    var page = new Iznik.Views.Aviva();
-                    self.loadRoute({page: page});
+                require(["iznik/views/pages/pages"], function () {
+                    require(["iznik/views/supportus"], function () {
+                        var page = new Iznik.Views.Aviva();
+                        self.loadRoute({page: page});
+                    });
                 });
-            });
+            }
         },
 
         userStatsEbay: function(area) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/stats"], function() {
-                var page = new Iznik.Views.User.Pages.Ebay();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/stats"], function () {
+                    var page = new Iznik.Views.User.Pages.Ebay();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userStatsRegion: function(region) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/stats"], function() {
-                var page = new Iznik.Views.User.Pages.StatsGroup({
-                    region: region
+                require(["iznik/views/pages/user/stats"], function () {
+                    var page = new Iznik.Views.User.Pages.StatsGroup({
+                        region: region
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         userStatsAuthorities: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/stats"], function() {
-                var page = new Iznik.Views.User.Pages.Authorities();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/stats"], function () {
+                    var page = new Iznik.Views.User.Pages.Authorities();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userStatsAuthority: function(authorityid) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/stats"], function() {
-                var page = new Iznik.Views.User.Pages.StatsAuthority({
-                    id: authorityid
+                require(["iznik/views/pages/user/stats"], function () {
+                    var page = new Iznik.Views.User.Pages.StatsAuthority({
+                        id: authorityid
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         userStatsGroup: function(id) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/stats"], function() {
-                var page = new Iznik.Views.User.Pages.StatsGroup({
-                    id: id
+                require(["iznik/views/pages/user/stats"], function () {
+                    var page = new Iznik.Views.User.Pages.StatsGroup({
+                        id: id
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         legacyUserCommunityEvents: function(legacyid) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/models/group"], function() {
-                // Map the legacy id to a real id.
-                var group = new Iznik.Models.Group({
-                    id: legacyid
+                require(["iznik/models/group"], function () {
+                    // Map the legacy id to a real id.
+                    var group = new Iznik.Models.Group({
+                        id: legacyid
+                    });
+
+                    group.fetch().then(function () {
+                        self.userCommunityEvents(group.get('id'));
+                    })
                 });
-
-                group.fetch().then(function () {
-                    self.userCommunityEvents(group.get('id'));
-                })
-            });
+            }
         },
 
         userCommunityEvents: function(groupid, naked) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            // We might be called in the legacy case with some random guff on the end of the url.
-            if (groupid && typeof groupid == 'string') {
-                groupid = groupid.substr(0,1) == '&' ? null : parseInt(groupid);
-            }
+                // We might be called in the legacy case with some random guff on the end of the url.
+                if (groupid && typeof groupid == 'string') {
+                    groupid = groupid.substr(0, 1) == '&' ? null : parseInt(groupid);
+                }
 
-            require(["iznik/views/pages/user/communityevents"], function() {
-                var page = new Iznik.Views.User.Pages.CommunityEvents({
-                    groupid: groupid,
-                    naked: naked
-                });
-
-                if (groupid) {
-                    // We can see events for a specific group when we're logged out.
-                    self.loadRoute({page: page});
-                } else {
-                    // But for all groups, we need to log in.
-                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                        self.loadRoute({page: page});
+                require(["iznik/views/pages/user/communityevents"], function () {
+                    var page = new Iznik.Views.User.Pages.CommunityEvents({
+                        groupid: groupid,
+                        naked: naked
                     });
 
-                    Iznik.Session.forceLogin();
-                }
-            });
+                    if (groupid) {
+                        // We can see events for a specific group when we're logged out.
+                        self.loadRoute({page: page});
+                    } else {
+                        // But for all groups, we need to log in.
+                        self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                            self.loadRoute({page: page});
+                        });
+
+                        Iznik.Session.forceLogin();
+                    }
+                });
+            }
         },
 
         userCommunityEvent: function(id) {
-            var self = this;
-            require(["iznik/views/pages/user/communityevents"], function() {
-                var page = new Iznik.Views.User.Pages.CommunityEvent({
-                    id: id
+            if (!MODTOOLS) {
+                var self = this;
+                require(["iznik/views/pages/user/communityevents"], function () {
+                    var page = new Iznik.Views.User.Pages.CommunityEvent({
+                        id: id
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         userVolunteerings: function(groupid, naked) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/volunteering"], function() {
-                var page = new Iznik.Views.User.Pages.Volunteerings({
-                    groupid: groupid,
-                    naked: naked
-                });
-
-                if (groupid) {
-                    // We can see volunteer vacancies for a specific group when we're logged out.
-                    self.loadRoute({page: page});
-                } else {
-                    // But for all groups, we need to log in.
-                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                        self.loadRoute({page: page});
+                require(["iznik/views/pages/user/volunteering"], function () {
+                    var page = new Iznik.Views.User.Pages.Volunteerings({
+                        groupid: groupid,
+                        naked: naked
                     });
 
-                    Iznik.Session.forceLogin();
-                }
-            });
+                    if (groupid) {
+                        // We can see volunteer vacancies for a specific group when we're logged out.
+                        self.loadRoute({page: page});
+                    } else {
+                        // But for all groups, we need to log in.
+                        self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                            self.loadRoute({page: page});
+                        });
+
+                        Iznik.Session.forceLogin();
+                    }
+                });
+            }
         },
 
         userVolunteering: function(id) {
-            var self = this;
-            require(["iznik/views/pages/user/volunteering"], function() {
-                var page = new Iznik.Views.User.Pages.Volunteering({
-                    id: id
+            if (!MODTOOLS) {
+                var self = this;
+                require(["iznik/views/pages/user/volunteering"], function () {
+                    var page = new Iznik.Views.User.Pages.Volunteering({
+                        id: id
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         legacyUserMessage: function(groupid, messageid) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/explore"], function() {
-                var page = new Iznik.Views.User.Pages.LegacyMessage({
-                    id: messageid,
-                    groupid: groupid
+                require(["iznik/views/pages/user/explore"], function () {
+                    var page = new Iznik.Views.User.Pages.LegacyMessage({
+                        id: messageid,
+                        groupid: groupid
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         legacyUserMessage2: function(messageid, groupid) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/explore"], function() {
-                var page = new Iznik.Views.User.Pages.LegacyMessage({
-                    id: messageid,
-                    groupid: groupid
+                require(["iznik/views/pages/user/explore"], function () {
+                    var page = new Iznik.Views.User.Pages.LegacyMessage({
+                        id: messageid,
+                        groupid: groupid
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         userMessage: function(id) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/explore"], function() {
-                var page = new Iznik.Views.User.Pages.Message({
-                    id: id
+                require(["iznik/views/pages/user/explore"], function () {
+                    var page = new Iznik.Views.User.Pages.Message({
+                        id: id
+                    });
+                    self.loadRoute({page: page});
                 });
-                self.loadRoute({page: page});
-            });
+            }
         },
 
         userEdit: function(id) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            // We convert the message back into a draft, and assuming that works, navigate to the appropriate
-            // page.
-            $.ajax({
-                url: API + 'message',
-                type: 'POST',
-                data: {
-                    id: id,
-                    action: 'RejectToDraft'
-                },
-                success: function(ret) {
-                    if (ret.ret === 0) {
-                        try {
-                            Storage.set('draft', id);
+                // We convert the message back into a draft, and assuming that works, navigate to the appropriate
+                // page.
+                $.ajax({
+                    url: API + 'message',
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        action: 'RejectToDraft'
+                    },
+                    success: function (ret) {
+                        if (ret.ret === 0) {
+                            try {
+                                Storage.set('draft', id);
 
-                            if (ret.messagetype == 'Offer') {
-                                // Make them reconfirm the location
-                                Router.navigate('/give/whereami', true);
-                            } else {
-                                // TODO Should we be able to change the location?
-                                Router.navigate('/find/whatisit', true);
-                            }
-                        } catch (e) {}
+                                if (ret.messagetype == 'Offer') {
+                                    // Make them reconfirm the location
+                                    Router.navigate('/give/whereami', true);
+                                } else {
+                                    // TODO Should we be able to change the location?
+                                    Router.navigate('/find/whatisit', true);
+                                }
+                            } catch (e) {}
+                        }
                     }
-                }
-            })
+                })
+            }
         },
 
-        unsubscribe: function () {
-            var self = this;
+        userUnsubscribe: function () {
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/unsubscribe"], function() {
-                var page = new Iznik.Views.User.Pages.Unsubscribe();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/unsubscribe"], function () {
+                    var page = new Iznik.Views.User.Pages.Unsubscribe();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         newUser: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/new"], function() {
-                var page = new Iznik.Views.User.Pages.New();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/new"], function () {
+                    var page = new Iznik.Views.User.Pages.New();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         yahoologin: function (path) {
@@ -1023,480 +1112,536 @@ define([
         },
 
         modtools: function () {
-            var self = this;
-            require(['iznik/views/dashboard', "iznik/views/pages/user/settings", "iznik/views/pages/modtools/landing"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.Landing();
-                    self.loadRoute({page: page, modtools: true});
-                });
+            if (MODTOOLS) {
+                var self = this;
+                require(['iznik/views/dashboard', "iznik/views/pages/user/settings", "iznik/views/pages/modtools/landing"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.Landing();
+                        self.loadRoute({page: page, modtools: true});
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         supporters: function () {
-            var page = new Iznik.Views.ModTools.Pages.Supporters();
-            this.loadRoute({page: page});
+            if (MODTOOLS) {
+                var page = new Iznik.Views.ModTools.Pages.Supporters();
+                this.loadRoute({page: page});
+            }
         },
 
         pendingMessages: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/messages_pending"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.PendingMessages();
-                    self.loadRoute({page: page, modtools: true});
-                });
+                require(["iznik/views/pages/modtools/messages_pending"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.PendingMessages();
+                        self.loadRoute({page: page, modtools: true});
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         spamMessages: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/messages_spam"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.SpamMessages();
-                    self.loadRoute({page: page, modtools: true});
-                });
+                require(["iznik/views/pages/modtools/messages_spam"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.SpamMessages();
+                        self.loadRoute({page: page, modtools: true});
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         approvedMessagesSearchMessages: function (search) {
-            this.approvedMessages(search, null);
+            if (MODTOOLS) {
+                this.approvedMessages(search, null);
+            }
         },
 
         approvedMessagesSearchMembers: function (search) {
-            this.approvedMessages(null, search);
+            if (MODTOOLS) {
+                this.approvedMessages(null, search);
+            }
         },
 
         approvedMessages: function (searchmess, searchmemb) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/messages_approved"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.ApprovedMessages({
-                        searchmess: searchmess,
-                        searchmemb: searchmemb
+                require(["iznik/views/pages/modtools/messages_approved"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.ApprovedMessages({
+                            searchmess: searchmess,
+                            searchmemb: searchmemb
+                        });
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
                     });
-                    self.loadRoute({
-                        page: page,
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         pendingMembers: function (search) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/members_pending", "iznik/views/pages/modtools/messages_pending"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.PendingMembers({
-                        search: search
+                require(["iznik/views/pages/modtools/members_pending", "iznik/views/pages/modtools/messages_pending"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.PendingMembers({
+                            search: search
+                        });
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
                     });
-                    self.loadRoute({
-                        page: page,
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         approvedMembers: function (search) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/members_approved"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.ApprovedMembers({
-                        search: search
+                require(["iznik/views/pages/modtools/members_approved"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.ApprovedMembers({
+                            search: search
+                        });
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
                     });
-                    self.loadRoute({
-                        page: page,
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         pendingEvents: function (search) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/events_pending"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.PendingEvents();
-                    self.loadRoute({
-                        page: page,
+                require(["iznik/views/pages/modtools/events_pending"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.PendingEvents();
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
+                    });
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         pendingVolunteering: function (search) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/volunteering_pending"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.PendingVolunteering();
-                    self.loadRoute({
-                        page: page,
+                require(["iznik/views/pages/modtools/volunteering_pending"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.PendingVolunteering();
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
+                    });
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         socialActions: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/social"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.SocialActions();
-                    self.loadRoute({
-                        page: page,
+                require(["iznik/views/pages/modtools/social"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.SocialActions();
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
+                    });
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         facebookGroups: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/fbgroups"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.FacebookGroups();
-                    self.loadRoute({
-                        page: page,
+                require(["iznik/views/pages/modtools/fbgroups"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.FacebookGroups();
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
+                    });
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         admins: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/admins"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.Admins();
-                    self.loadRoute({
-                        page: page,
+                require(["iznik/views/pages/modtools/admins"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.Admins();
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
+                    });
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         chatReview: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/chat_review"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.ChatReview();
-                    self.loadRoute({
-                        page: page,
+                require(["iznik/views/pages/modtools/chat_review"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.ChatReview();
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
+                    });
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         chatReport: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/chat_report"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.ChatReport();
-                    self.loadRoute({
-                        page: page,
+                require(["iznik/views/pages/modtools/chat_report"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.ChatReport();
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
+                    });
+
+                    Iznik.Session.forceLogin({
                         modtools: true
                     });
                 });
-
-                Iznik.Session.forceLogin({
-                    modtools: true
-                });
-            });
+            }
         },
 
         spamMembers: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/members_spam"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.SpamMembers();
-                    self.loadRoute({page: page, modtools: true});
-                });
+                require(["iznik/views/pages/modtools/members_spam"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.SpamMembers();
+                        self.loadRoute({page: page, modtools: true});
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         happinessMembers: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/members_happiness"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.HappinessMembers();
-                    self.loadRoute({page: page, modtools: true});
-                });
+                require(["iznik/views/pages/modtools/members_happiness"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.HappinessMembers();
+                        self.loadRoute({page: page, modtools: true});
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         storiesMembers: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/members_stories"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.StoriesMembers();
-                    self.loadRoute({page: page, modtools: true});
-                });
+                require(["iznik/views/pages/modtools/members_stories"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.StoriesMembers();
+                        self.loadRoute({page: page, modtools: true});
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         storiesNewsletter: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/members_stories"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.StoriesMembers({
-                        newsletter: true
+                require(["iznik/views/pages/modtools/members_stories"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.StoriesMembers({
+                            newsletter: true
+                        });
+                        self.loadRoute({page: page, modtools: true});
                     });
-                    self.loadRoute({page: page, modtools: true});
-                });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         spammerListPendingAdd: function (search) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/spammerlist"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.SpammerList({
-                        search: search,
-                        urlfragment: 'pendingadd',
-                        collection: 'PendingAdd',
-                        helpTemplate: 'modtools_spammerlist_help_pendingadd'
+                require(["iznik/views/pages/modtools/spammerlist"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.SpammerList({
+                            search: search,
+                            urlfragment: 'pendingadd',
+                            collection: 'PendingAdd',
+                            helpTemplate: 'modtools_spammerlist_help_pendingadd'
+                        });
+                        self.loadRoute({page: page, modtools: true});
                     });
-                    self.loadRoute({page: page, modtools: true});
-                });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         spammerListPendingRemove: function (search) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/spammerlist"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.SpammerList({
-                        search: search,
-                        urlfragment: 'pendingremove',
-                        collection: 'PendingRemove',
-                        helpTemplate: 'modtools_spammerlist_help_pendingremove'
+                require(["iznik/views/pages/modtools/spammerlist"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.SpammerList({
+                            search: search,
+                            urlfragment: 'pendingremove',
+                            collection: 'PendingRemove',
+                            helpTemplate: 'modtools_spammerlist_help_pendingremove'
+                        });
+                        self.loadRoute({page: page, modtools: true});
                     });
-                    self.loadRoute({page: page, modtools: true});
-                });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         spammerListConfirmed: function (search) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/spammerlist"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.SpammerList({
-                        search: search,
-                        urlfragment: 'confirmed',
-                        collection: 'Spammer',
-                        helpTemplate: 'modtools_spammerlist_help_confirmed'
+                require(["iznik/views/pages/modtools/spammerlist"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.SpammerList({
+                            search: search,
+                            urlfragment: 'confirmed',
+                            collection: 'Spammer',
+                            helpTemplate: 'modtools_spammerlist_help_confirmed'
+                        });
+                        self.loadRoute({page: page, modtools: true});
                     });
-                    self.loadRoute({page: page, modtools: true});
-                });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         spammerListWhitelisted: function (search) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/spammerlist"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.SpammerList({
-                        search: search,
-                        urlfragment: 'whitelisted',
-                        collection: 'Whitelisted',
-                        helpTemplate: 'modtools_spammerlist_help_whitelisted'
+                require(["iznik/views/pages/modtools/spammerlist"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.SpammerList({
+                            search: search,
+                            urlfragment: 'whitelisted',
+                            collection: 'Whitelisted',
+                            helpTemplate: 'modtools_spammerlist_help_whitelisted'
+                        });
+                        self.loadRoute({page: page, modtools: true});
                     });
-                    self.loadRoute({page: page, modtools: true});
-                });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         support: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/support"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    if (!Iznik.Session.isAdminOrSupport()) {
-                        // You're not supposed to be here, are you?
-                        Router.navigate('/', true);
-                    } else {
-                        var page = new Iznik.Views.ModTools.Pages.Support();
-                        this.loadRoute({page: page, modtools: true});
-                    }
-                });
+                require(["iznik/views/pages/modtools/support"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        if (!Iznik.Session.isAdminOrSupport()) {
+                            // You're not supposed to be here, are you?
+                            Router.navigate('/', true);
+                        } else {
+                            var page = new Iznik.Views.ModTools.Pages.Support();
+                            this.loadRoute({page: page, modtools: true});
+                        }
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         shortlinks: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/shortlinks"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    if (!Iznik.Session.isFreegleMod()) {
-                        // You're not supposed to be here, are you?
-                        Router.navigate('/', true);
-                    } else {
-                        var page = new Iznik.Views.ModTools.Pages.Shortlinks();
-                        this.loadRoute({page: page, modtools: true});
-                    }
-                });
+                require(["iznik/views/pages/modtools/shortlinks"], function() {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        if (!Iznik.Session.isFreegleMod()) {
+                            // You're not supposed to be here, are you?
+                            Router.navigate('/', true);
+                        } else {
+                            var page = new Iznik.Views.ModTools.Pages.Shortlinks();
+                            this.loadRoute({page: page, modtools: true});
+                        }
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         confirmMail: function (key) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/settings"], function() {
-                $.ajax({
-                    type: 'PATCH',
-                    url: API + 'session',
-                    data: {
-                        key: key
-                    },
-                    success: function (ret) {
-                        var v;
+                require(["iznik/views/pages/modtools/settings"], function () {
+                    $.ajax({
+                        type: 'PATCH',
+                        url: API + 'session',
+                        data: {
+                            key: key
+                        },
+                        success: function (ret) {
+                            var v;
 
-                        if (ret.ret == 0) {
-                            v = new Iznik.Views.ModTools.Settings.VerifySucceeded();
-                        } else {
-                            v = new Iznik.Views.ModTools.Settings.VerifyFailed();
+                            if (ret.ret == 0) {
+                                v = new Iznik.Views.ModTools.Settings.VerifySucceeded();
+                            } else {
+                                v = new Iznik.Views.ModTools.Settings.VerifyFailed();
+                            }
+                            self.listenToOnce(v, 'modalCancelled modalClosed', function () {
+                                Router.navigate('/modtools/settings', true)
+                            });
+
+                            v.render();
+                        },
+                        error: function () {
+                            var v = new Iznik.Views.ModTools.Settings.VerifyFailed();
+                            self.listenToOnce(v, 'modalCancelled modalClosed', function () {
+                                Router.navigate('/modtools/settings', true)
+                            });
+
+                            v.render();
                         }
-                        self.listenToOnce(v, 'modalCancelled modalClosed', function () {
-                            Router.navigate('/modtools/settings', true)
-                        });
-
-                        v.render();
-                    },
-                    error: function () {
-                        var v = new Iznik.Views.ModTools.Settings.VerifyFailed();
-                        self.listenToOnce(v, 'modalCancelled modalClosed', function () {
-                            Router.navigate('/modtools/settings', true)
-                        });
-
-                        v.render();
-                    }
+                    });
                 });
-            });
+            }
         },
 
         settings: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/settings"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.Settings();
-                    self.loadRoute({page: page, modtools: true});
-                });
+                require(["iznik/views/pages/modtools/settings"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.Settings();
+                        self.loadRoute({page: page, modtools: true});
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         mobiledebug: function () {  // CC 
@@ -1508,209 +1653,241 @@ define([
         },
 
         alertViewed: function(alertid) {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/alerts"], function() {
-                var page = new Iznik.Views.User.Pages.Alert.Viewed({
-                    model: new Iznik.Model({
-                        id: alertid
-                    })
+                require(["iznik/views/pages/user/alerts"], function () {
+                    var page = new Iznik.Views.User.Pages.Alert.Viewed({
+                        model: new Iznik.Model({
+                            id: alertid
+                        })
+                    });
+                    self.loadRoute({page: page, modtools: false});
                 });
-                self.loadRoute({page: page, modtools: false});
-            });
+            }
         },
 
         mapSettings: function (groupid) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/settings"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.MapSettings({
-                        groupid: groupid
+                require(["iznik/views/pages/modtools/settings"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.MapSettings({
+                            groupid: groupid
+                        });
+                        self.loadRoute({page: page, modtools: true});
                     });
-                    self.loadRoute({page: page, modtools: true});
-                });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         mapAll: function () {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/modtools/settings"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.MapSettings();
-                    self.loadRoute({page: page, modtools: true});
-                });
+                require(["iznik/views/pages/modtools/settings"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.MapSettings();
+                        self.loadRoute({page: page, modtools: true});
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         sessions: function() {
-            var self = this;
-            require(["iznik/views/pages/modtools/replay"], function () {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.Sessions();
-                    self.loadRoute({page: page, modtools: true});
-                });
+            if (MODTOOLS) {
+                var self = this;
+                require(["iznik/views/pages/modtools/replay"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.Sessions();
+                        self.loadRoute({page: page, modtools: true});
+                    });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         modLogs: function(logtype) {
-            var self = this;
-            require(["iznik/views/pages/modtools/logs"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.Logs({
-                        logtype: logtype
+            if (MODTOOLS) {
+                var self = this;
+                require(["iznik/views/pages/modtools/logs"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.Logs({
+                            logtype: logtype
+                        });
+                        page.modtools = true;
+                        self.loadRoute({page: page});
                     });
-                    page.modtools = true;
-                    self.loadRoute({page: page});
-                });
 
-                Iznik.Session.forceLogin();
-            });
+                    Iznik.Session.forceLogin();
+                });
+            }
         },
 
         modChats: function() {
-            var self = this;
-            require(["iznik/views/pages/chat"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.Chat.Page();
-                    page.modtools = true;
-                    self.loadRoute({page: page});
-                });
+            if (MODTOOLS) {
+                var self = this;
+                require(["iznik/views/pages/chat"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.Chat.Page();
+                        page.modtools = true;
+                        self.loadRoute({page: page});
+                    });
 
-                Iznik.Session.forceLogin();
-            });
+                    Iznik.Session.forceLogin();
+                });
+            }
         },
 
         modChat: function(chatid) {
-            var self = this;
-            console.log("Mod Chat");
-            require(["iznik/views/pages/chat"], function() {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.Chat.Page({
-                        chatid: chatid
+            if (MODTOOLS) {
+                var self = this;
+                require(["iznik/views/pages/chat"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.Chat.Page({
+                            chatid: chatid
+                        });
+                        page.modtools = true;
+                        self.loadRoute({page: page});
                     });
-                    page.modtools = true;
-                    self.loadRoute({page: page});
-                });
 
-                Iznik.Session.forceLogin();
-            });
+                    Iznik.Session.forceLogin();
+                });
+            }
         },
 
         replay: function(sessionid) {
-            var self = this;
+            if (MODTOOLS) {
+                var self = this;
 
-            // Disable chat animation which interacts badly with replay.
-            $("<style type='text/css'> .chat-window{ animation: none !important;} </style>").appendTo("head");
-            console.log("Added CSS");
+                // Disable chat animation which interacts badly with replay.
+                $("<style type='text/css'> .chat-window{ animation: none !important;} </style>").appendTo("head");
 
-            require(["iznik/views/pages/modtools/replay"], function () {
-                self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                    var page = new Iznik.Views.ModTools.Pages.Replay({
-                        sessionid: sessionid
+                require(["iznik/views/pages/modtools/replay"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.Replay({
+                            sessionid: sessionid
+                        });
+                        self.loadRoute({page: page, modtools: true});
                     });
-                    self.loadRoute({page: page, modtools: true});
-                });
 
-                Iznik.Session.forceLogin({
-                    modtools: true
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
                 });
-            });
+            }
         },
 
         userMobile: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.Mobile();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/landing"], function () {
+                    var page = new Iznik.Views.User.Pages.Landing.Mobile();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userAbout: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/landing"], function () {
-            	var page = new Iznik.Views.User.Pages.Landing.About();
-            	self.loadRoute({ page: page });
-            });
+                require(["iznik/views/pages/user/landing"], function () {
+                    var page = new Iznik.Views.User.Pages.Landing.About();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userHandbook: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.Handbook();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/landing"], function () {
+                    var page = new Iznik.Views.User.Pages.Landing.Handbook();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userTerms: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.Terms();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/landing"], function () {
+                    var page = new Iznik.Views.User.Pages.Landing.Terms();
+                    self.loadRoute({page: page});
+                });
+            }
         },
         
         userPrivacy: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.Privacy();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/landing"], function () {
+                    var page = new Iznik.Views.User.Pages.Landing.Privacy();
+                    self.loadRoute({page: page});
+                });
+            }
         },
         
         userDisclaimer: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.Disclaimer();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/landing"], function () {
+                    var page = new Iznik.Views.User.Pages.Landing.Disclaimer();
+                    self.loadRoute({page: page});
+                });
+            }
         },
         
         userDonate: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.Donate();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/landing"], function () {
+                    var page = new Iznik.Views.User.Pages.Landing.Donate();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userWhy: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var page = new Iznik.Views.User.Pages.Landing.Why();
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/landing"], function () {
+                    var page = new Iznik.Views.User.Pages.Landing.Why();
+                    self.loadRoute({page: page});
+                });
+            }
         },
 
         userContact: function() {
-            var self = this;
+            if (!MODTOOLS) {
+                var self = this;
 
-            require(["iznik/views/pages/user/landing"], function() {
-                var mobile_version = APP_VERSION;	// CC
-                var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
-                self.loadRoute({page: page});
-            });
+                require(["iznik/views/pages/user/landing"], function () {
+                    var mobile_version = APP_VERSION;	// CC
+                    var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
+                    self.loadRoute({page: page});
+                });
+             }
         },
 
         userMaintenance: function () {  // CC
@@ -1723,13 +1900,17 @@ define([
         },
 
         communityEventsPlugin: function (groupid) {
-            this.userCommunityEvents(groupid, true);
+            if (!MODTOOLS) {
+                this.userCommunityEvents(groupid, true);
+            }
         },
 
         groupPlugin: function(groupid) {
-            // Might be trailing guff in legacy routes.
-            groupid = parseInt(groupid);
-            this.userExploreGroup(groupid, true);
+            if (!MODTOOLS) {
+                // Might be trailing guff in legacy routes.
+                groupid = parseInt(groupid);
+                this.userExploreGroup(groupid, true);
+            }
         },
 
         myData: function() {
