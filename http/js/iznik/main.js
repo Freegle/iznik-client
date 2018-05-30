@@ -320,8 +320,8 @@ function mainOnAppStart() { // CC
                         //senderID: "423761283916", // https://console.firebase.google.com/project/scenic-oxygen-849/settings/general/android:org.ilovefreegle.direct
                         senderID: "845879623324", // Old GCM way
                         sound: false,
-                        //iconColor: "#5EcA24",
-                        //icon: "icon",
+                        iconColor: "#5EcA24",
+                        icon: "icon",
                         //forceShow: true,
                     },
                     ios: {
@@ -363,12 +363,19 @@ function mainOnAppStart() { // CC
                     }
                     var doubleEvent = (msgid == lastPushMsgid);
                     lastPushMsgid = msgid;
-                    console.log("foreground " + foreground + " double " + doubleEvent + " msgid: " + msgid);
                     if (!('count' in data)) { data.count = 0; }
+                    data.count = parseInt(data.count);
+                    console.log("foreground " + foreground + " double " + doubleEvent + " msgid: " + msgid + "count: " + data.count);
                     if (data.count == 0) {
                         window.mobilePush.clearAllNotifications();   // no success and error fns given
+                        console.log("clearAllNotifications");
                     }
-                    window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+                    //window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
+                    console.log("push set badge: ", data.count, typeof (data.count));
+                    window.mobilePush.setApplicationIconBadgeNumber(
+                      function () { console.log("badge success") },
+                      function () { console.log("badge error") },
+                      data.count);
                     /*var msg = new Date();
                     msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
                     badgeconsole += msg;

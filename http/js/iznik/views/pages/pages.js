@@ -134,8 +134,13 @@ define([
                                   chatcount = parseInt(chatcount);
                                   if (isNaN(chatcount)) chatcount = 0;
                                   var badgecount = notifcount + chatcount;
-                                  window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, badgecount);
-                                  console.log("badge count set to : " + badgecount);
+                                  //window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, badgecount);
+                                  //console.log("badge count set to : " + badgecount);
+                                  window.mobilePush.setApplicationIconBadgeNumber(
+                                    function () { console.log("badge success") },
+                                    function () { console.log("badge error") },
+                                    badgecount);
+                                  console.log("badge count set to: " + badgecount, typeof (badgecount));
                                 }
 
                                 if (ret.count) {

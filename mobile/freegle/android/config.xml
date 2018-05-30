@@ -72,5 +72,6 @@
     </plugin>
     <plugin name="cordova-plugin-googleplus" spec="https://github.com/EddyVerbruggen/cordova-plugin-googleplus" />
     <plugin name="cordova-plugin-camera" spec="^4.0.3" />
+    <hook src="scripts/before_build.sh" type="before_build" />
     <engine name="android" spec="^6.3.0" />
 </widget>
