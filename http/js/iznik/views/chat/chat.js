@@ -539,6 +539,8 @@ define([
 
                 // If we've grown the textarea, shrink it.
                 self.$('textarea').css('height', '');
+
+                self.showReplyTimeInfo(true);
             }
         },
 
@@ -1103,6 +1105,41 @@ define([
                 }
 
                 _.delay(_.bind(self.adjustTimer, self), 5000);
+
+                if (self.model.get('chattype') == 'User2User') {
+                    // Get any reply time
+                    var usermod = new Iznik.Models.ModTools.User({
+                        id: self.model.otherUser()
+                    });
+
+                    usermod.fetch({
+                        data: {
+                            info: true
+                        }
+                    }).then(function() {
+                        var replytime = usermod.get('info').replytime;
+
+                        if (replytime) {
+                            self.$('.js-replytime').html(Iznik.formatDuration(replytime));
+                        }
+
+                        self.showReplyTimeInfo();
+                    });
+                }
+            }
+        },
+
+        showReplyTimeInfo: function() {
+            var self = this;
+
+            if (!self.replytimeShowing) {
+                self.replytimeShowing = true;
+                self.$('.js-replytimeinfo').slideDown('slow');
+
+                _.delay(function() {
+                    self.replytimeShowing = false;
+                    self.$('.js-replytimeinfo').slideUp('slow');
+                }, 60000);
             }
         },
 
@@ -1601,8 +1638,6 @@ define([
                 p.then(function (self) {
                     // Expand emojis.
                     twemoji.parse(self.el);
-
-                    console.log("Type ", self.model.get('type'));
 
                     if (self.model.get('type') == 'ScheduleUpdated' || self.model.get('type') == 'Schedule') {
                         // Any agreed time is held in the message.

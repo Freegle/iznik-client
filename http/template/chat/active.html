@@ -35,6 +35,14 @@
             <% } %>
         </div>
     </div>
+    <div class="js-replytimeinfo">
+        <div class="small js-replytimeholder bg-darkgreen" style="display: none">
+            <span class="padleftsm padtopsm glyphicon glyphicon-time" />&nbsp;Typically replies in <span class="js-replytime" />
+        </div>
+        <div class="small js-replytimeunknownholder bg-darkgreen" style="display: none">
+            <span class="padleftsm padtopsm glyphicon glyphicon-time" />&nbsp;Typical reply time unknown
+        </div>
+    </div>
     <% if (obj.description) { %>
     <div class="padleft text-muted">{{description}}</div>
     <hr class="nomargin" />

@@ -568,6 +568,8 @@ define([
 
                 // If we've grown the textarea, shrink it.
                 self.$('textarea').css('height', '');
+
+                self.showReplyTimeInfo();
             }
         },
 
@@ -1051,9 +1053,45 @@ define([
                     self.$('.js-notspammer').hide();
                     self.$('.js-isspammer').show();
                 }
+
+                if (self.model.get('chattype') == 'User2User') {
+                    // Get any reply time
+                    var usermod = new Iznik.Models.ModTools.User({
+                        id: self.model.otherUser()
+                    });
+
+                    usermod.fetch({
+                        data: {
+                            info: true
+                        }
+                    }).then(function() {
+                        var replytime = usermod.get('info').replytime;
+
+                        if (replytime) {
+                            self.$('.js-replytime').html(Iznik.formatDuration(replytime));
+                            self.$('.js-replytimeholder').slideDown('slow');
+                        }
+
+                        self.showReplyTimeInfo()
+                    });
+                }
             });
 
             return (p);
+        },
+
+        showReplyTimeInfo: function() {
+            var self = this;
+
+            if (!self.replytimeShowing) {
+                self.replytimeShowing = true;
+                self.$('.js-replytimeinfo').slideDown('slow');
+
+                _.delay(function() {
+                    self.replytimeShowing = false;
+                    self.$('.js-replytimeinfo').slideUp('slow');
+                }, 60000);
+            }
         }
     });
 
