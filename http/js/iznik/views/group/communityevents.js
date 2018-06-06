@@ -534,12 +534,26 @@ define([
 
         events: {
             'change .js-start': 'startChange',
+            'change .js-end': 'endChange',
             'click .js-deldate': 'del'
         },
 
         startChange: function() {
             // Set end date after start date.
             this.$('.js-end').combodate('setValue', this.$('.js-start').combodate('getValue'));
+        },
+
+        endChange: function() {
+            var start = this.$('.js-start').combodate('getValue');
+            var end = this.$('.js-end').combodate('getValue');
+
+            var ms = new moment(start);
+            var me = new moment(end);
+
+            if (me.isBefore(ms)) {
+                // Set end date after start date.
+                this.$('.js-end').combodate('setValue', this.$('.js-start').combodate('getValue'));
+            }
         },
 
         del: function(event) {
