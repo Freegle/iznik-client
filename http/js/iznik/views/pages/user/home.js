@@ -8,6 +8,7 @@ define([
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
     'iznik/views/pages/pages',
+    'iznik/views/user/schedule',
     'iznik/views/user/message',
     'iznik/views/supportus'
 ], function($, _, Backbone, Iznik) {
@@ -20,7 +21,16 @@ define([
         events: {
             'click .js-oldoffers': 'showOldOffers',
             'click .js-oldwanteds': 'showOldWanteds',
-            'click .js-punctuation': 'punc'
+            'click .js-punctuation': 'punc',
+            'click .js-updateschedule': 'updateSchedule'
+        },
+
+        updateSchedule: function() {
+            var v = new Iznik.Views.User.Schedule.Modal({
+                mine: true,
+                help: true
+            });
+            v.render();
         },
 
         punc: function() {
@@ -446,6 +456,8 @@ define([
         render: function() {
             var self = this;
 
+            self.model.set('offers', self.options.offers);
+
             var p = Iznik.Views.User.Message.prototype.render.call(this);
             p.then(function() {
                 self.$('.js-outcometime').timeago();
@@ -491,6 +503,8 @@ define([
 
         render: function() {
             var self = this;
+
+            self.model.set('wanteds', self.options.wanteds);
 
             var p = Iznik.Views.User.Message.prototype.render.call(this);
             p.then(function() {

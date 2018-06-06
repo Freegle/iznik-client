@@ -5,6 +5,8 @@ define([
     'iznik/base',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
+    'iznik/views/postaladdress',
+    'iznik/views/user/schedule',
     'iznik/views/help',
     'bootstrap-switch',
     'bootstrap-datepicker'
@@ -46,7 +48,28 @@ define([
             'click .js-savepassword': 'passwordChange',
             'click .js-showpassword': 'showPassword',
             'click .js-hidepassword': 'hidePassword',
-            'click .js-profile': 'showProfile'
+            'click .js-profile': 'showProfile',
+            'click .js-addressbook': 'addressBook',
+            'click .js-schedule': 'schedule'
+        },
+
+        addressBook: function() {
+            var self = this;
+
+            var v = new Iznik.Views.PostalAddress.Modal();
+
+            v.render();
+        },
+
+        schedule: function() {
+            var self = this;
+
+            var v = new Iznik.Views.User.Schedule.Modal({
+                mine: true,
+                help: true
+            });
+
+            v.render();
         },
 
         showProfile: function() {

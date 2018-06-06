@@ -46,6 +46,16 @@ define([
                     success: function(ret) {
                         v.close();
 
+                        if (ret.emailproblems) {
+                            var doms = [];
+                            _.each(ret.emailproblems, function(dom) {
+                                doms.push(dom.domain)
+                            });
+
+                            self.$('.js-problemdomains').html(doms.join(', '));
+                            self.$('.js-emailproblems').show();
+                        }
+
                         if (ret.dashboard) {
                             if (Iznik.Session.isAdminOrSupport()) {
                                 var pre = ret.dashboard.prerender;
@@ -273,8 +283,6 @@ define([
                     x.render().then(function() {
                         self.$('.js-missingtwitter').html(x.el);
                     });
-
-                    Iznik.Session.askSubscription();
 
                     var mobile_version = APP_VERSION;	// CC
                     self.$('#js-mobile-version').text("ModTools mobile version "+mobile_version);

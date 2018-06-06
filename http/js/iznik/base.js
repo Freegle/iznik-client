@@ -8,11 +8,22 @@ var tpl = require('iznik/templateloader');
 var template = tpl.template;
 var templateFetch = tpl.templateFetch;
 
+// Placeholder for images not found.
+(function(){
+    const NOTFOUNDSRC = iznikroot + 'images/placeholder.jpg';  // CC
+    document.addEventListener('error', function(e){
+        if(e.target.nodeName.toUpperCase() == 'IMG' && e.target.getAttribute('src') && e.target.getAttribute('src') != NOTFOUNDSRC){
+            e.target.src = NOTFOUNDSRC;
+        }
+    }, true);
+})();
+
 define([
     'jquery',
     'backbone',
     'underscore',
     'moment',
+    'lazysizes',
     'backbone.collectionView',
     'dateshim',
     'bootstrap',
@@ -533,6 +544,24 @@ define([
         };
     }
 
+    Iznik.setSelectionRange = function(input, selectionStart, selectionEnd) {
+        if (input.setSelectionRange) {
+            input.focus();
+            input.setSelectionRange(selectionStart, selectionEnd);
+        }
+        else if (input.createTextRange) {
+            var range = input.createTextRange();
+            range.collapse(true);
+            range.moveEnd('character', selectionEnd);
+            range.moveStart('character', selectionStart);
+            range.select();
+        }
+    }
+
+    Iznik.setCaretToPos = function(input, pos) {
+        Iznik.setSelectionRange(input, pos, pos);
+    }
+
     Iznik.getBoundsZoomLevel = function(bounds, mapDim) {
         var WORLD_DIM = { height: 256, width: 256 };
         var ZOOM_MAX = 21;
@@ -826,6 +855,19 @@ define([
                 }
 
                 this.$el.html(html);
+
+                // Convert any images to be loaded using lazysizes.  This avoids loading images which aren't in
+                // the viewport.
+                this.$('img').each(function() {
+                    var $this = $(this);
+                    var src = $this.attr('src');
+
+                    if (src) {
+                        $this.attr('data-src', src);
+                        $this.prop('src', null);
+                        $this.addClass('lazyload');
+                    }
+                })
 
                 return this;
             },

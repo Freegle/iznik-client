@@ -313,8 +313,8 @@ function mainOnAppStart() { // CC
                     //senderID: "423761283916", // FCM: https://console.firebase.google.com/project/scenic-oxygen-849/settings/general/android:org.ilovefreegle.modtools
                     senderID: "845879623324",
                     sound: false,
-                    //iconColor: "#5EcA24",
-                    //icon: "icon",
+                    iconColor: "#003366",
+                    icon: "icon",
                     //forceShow: true,
                 },
                 ios: {
@@ -358,6 +358,7 @@ function mainOnAppStart() { // CC
                 lastPushMsgid = msgid;
                 console.log("foreground " + foreground + " double " + doubleEvent + " msgid: " + msgid);
                 if (!('count' in data)) { data.count = 0; }
+                data.count = parseInt(data.count);
                 if (data.count == 0) {
                     window.mobilePush.clearAllNotifications();   // no success and error fns given
                 }

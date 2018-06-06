@@ -1,3 +1,4 @@
+import 'bootstrap-fileinput/js/plugins/piexif.min.js';
 import 'bootstrap-fileinput';
 
 var tpl = require('iznik/templateloader');
@@ -325,6 +326,18 @@ define([
                             }
                         });
 
+                        if (self.model.get('photo')) {
+                            self.promises.push($.ajax({
+                                url: API + 'volunteering',
+                                type: 'PATCH',
+                                data: {
+                                    id: self.model.get('id'),
+                                    action: 'SetPhoto',
+                                    photoid: self.model.get('photo')
+                                }
+                            }));
+                        }
+
                         Promise.all(self.promises).then(function() {
                             self.wait.close();
                             self.wait = null;
@@ -455,6 +468,81 @@ define([
                                 url: true
                             }
                         }
+                    });
+
+
+                    // Photo.  We ask for OCR because it is common for this to be a poster.
+                    var photo = self.model.get('photo');
+                    var url = !_.isUndefined(photo) ? photo.paththumb : "https://placehold.it/150x150";
+                    self.$('.js-photopreview').attr('src',  url);
+                    self.$('.js-photo').fileinput({
+                        uploadExtraData: {
+                            imgtype: 'Volunteering',
+                            volunteering: 1,
+                            ocr: true
+                        },
+                        showUpload: false,
+                        allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                        uploadUrl: API + 'image',
+                        resizeImage: true,
+                        maxImageWidth: 800,
+                        browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
+                        browseLabel: 'Upload photo',
+                        browseClass: 'btn btn-primary nowrap',
+                        showCaption: false,
+                        showRemove: false,
+                        showUploadedThumbs: false,
+                        dropZoneEnabled: false,
+                        buttonLabelClass: '',
+                        fileActionSettings: {
+                            showZoom: false,
+                            showRemove: false,
+                            showUpload: false
+                        },
+                        layoutTemplates: {
+                            footer: '<div class="file-thumbnail-footer">\n' +
+                            '    {actions}\n' +
+                            '</div>'
+                        },
+                        elErrorContainer: '#js-uploaderror'
+                    });
+
+                    // Upload as soon as we have it.
+                    self.$('.js-photo').on('fileimagesresized', function (event) {
+                        // Have to defer else break fileinput validation processing.
+                        _.defer(function() {
+                            self.$('.file-input').hide();
+                            self.$('.js-photopreview').hide();
+                            self.$('.js-photo').fileinput('upload');
+                        });
+                    });
+
+                    self.$('.js-photo').on('fileuploaded', function (event, data) {
+                        // Once it's uploaded, hide the controls.  This means we can't edit, but that's ok for
+                        // this.
+                        self.$('.js-photopreview').attr('src', data.response.paththumb);
+                        self.$('.js-photopreview').show();
+                        self.model.set('photo', data.response.id);
+
+                        if (data.response.ocr && data.response.ocr.length > 10) {
+                            // We got some text.  The first line is most likely to be a title.
+                            var p = data.response.ocr.indexOf("\n");
+                            var title = p !== -1 ? data.response.ocr.substring(0, p): null;
+                            var desc = p !== -1 ? data.response.ocr.substring(p + 1) : data.response.ocr;
+
+                            if (title && self.$('.js-title').val().length === 0) {
+                                self.$('.js-title').val(title);
+                            }
+
+                            // Put the rest in the description for them to sort out.
+                            if (self.$('.js-description').val().length === 0) {
+                                self.$('.js-description').val(desc);
+                            }
+                        }
+
+                        _.delay(function() {
+                            self.$('.file-preview-frame').remove();
+                        }, 500);
                     });
                 });
             });

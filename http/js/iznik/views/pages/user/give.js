@@ -76,19 +76,32 @@ define([
                 } catch (e) {
                 }
 
-                try {
-                    var v = new Iznik.Views.User.Pages.Give.Share({
-                        model: new Iznik.Models.Message({
-                            id: Storage.get('lastpost')
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
+                    try {
+                        // Now ask them to tell us their schedule.
+                        var v = new Iznik.Views.User.Schedule.Modal({
+                            mine: true,
+                            help: true
+                        });
+
+                        self.listenToOnce(v, 'modalClosed modalCancelled', function() {
+                            var w = new Iznik.Views.User.Pages.Give.Share({
+                                model: new Iznik.Models.Message({
+                                    id: Storage.get('lastpost')
+                                })
+                            });
+
+                            w.model.fetch().then(function() {
+                                w.render();
+                            });
                         })
-                    });
 
-                    v.model.fetch().then(function() {
                         v.render();
-                    });
+                    } catch (e) {
+                    }
+                });
 
-                } catch (e) {
-                }
+                Iznik.Session.testLoggedIn();
             });
 
             return (p);

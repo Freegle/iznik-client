@@ -1256,7 +1256,7 @@
                 var $selectable;
                 if ($selectable = this.menu.getActiveSelectable()) {
                     this.select($selectable) && $e.preventDefault();
-                } else if ($selectable = this.menu.getTopSelectable()) {
+                } else if (this.tabAutocomplete && ($selectable = this.menu.getTopSelectable())) {
                     this.autocomplete($selectable) && $e.preventDefault();
                 }
             },
@@ -1492,7 +1492,8 @@
                         menu: menu,
                         eventBus: eventBus,
                         minLength: o.minLength,
-                        autoselect: o.autoselect
+                        autoselect: o.autoselect,
+                        tabAutocomplete: typeof o.tabAutocomplete !== "undefined" ? !!o.tabAutocomplete : true
                     }, www);
                     $input.data(keys.www, www);
                     $input.data(keys.typeahead, typeahead);

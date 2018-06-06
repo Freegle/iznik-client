@@ -5,7 +5,8 @@ define([
     'iznik/base',
     'moment',
     'clipboard',
-    'iznik/views/infinite'
+    'iznik/views/infinite',
+    'iznik/views/user/schedule'
 ], function($, _, Backbone, Iznik, moment, Clipboard) {
     Iznik.Views.User.Message = Iznik.View.extend({
         className: "marginbotsm botspace",
@@ -458,8 +459,10 @@ define([
             e.stopPropagation();
 
             var v = new Iznik.Views.User.Message.PhotoZoom({
-                model: this.model
+                model: this.model,
+                message: this.options.message
             });
+            this.listenToOnce(v, 'deleted', _.bind(this.destroyIt, this));
             v.render();
         }
     });
@@ -537,6 +540,7 @@ define([
                     },
                     success: function(ret) {
                         if (ret.ret === 0) {
+                            self.trigger('deleted');
                             self.close();
                         }
                     }
@@ -915,6 +919,14 @@ define([
 
                                     require(['iznik/views/chat/chat'], function(ChatHolder) {
                                         ChatHolder().fetchAndRestore(chatid);
+
+                                        // And now prompt them to give us their schedule.
+                                        var v = new Iznik.Views.User.Schedule.Modal({
+                                            mine: true,
+                                            help: true,
+                                            chatuserid: self.model.get('fromuser').id
+                                        });
+                                        v.render();
                                     });
 
                                     // If we were replying, we might have forced a login and shown the message in

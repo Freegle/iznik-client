@@ -37,7 +37,7 @@ define([
                         // console.log("Infinite fetch data from saved", data);
                     }
 
-                    self.$('.js-loading').removeClass('hidden');
+                    self.$('.js-loading').removeClass('visNone');
                     self.$('.js-none').hide();
 
                     data.context = self.context;
@@ -137,7 +137,7 @@ define([
                                 self.wait = null;
                             }
 
-                            self.$('.js-loading').addClass('hidden');
+                            self.$('.js-loading').addClass('visNone');
                             self.fetching = null;
                             self.fetchPromise = null;
                             self.lastFetched = self.selected;

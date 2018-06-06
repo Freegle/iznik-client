@@ -121,7 +121,8 @@ define([
                             }),
                             collection: self.collection,
                             summary: true,
-                            bounds: null
+                            bounds: null,
+                            textlist: self.$('.js-grouptextlist')
                         });
 
                         // Add links for the different regions.
@@ -180,7 +181,8 @@ define([
                             }),
                             collection: self.collection,
                             summary: false,
-                            bounds: bounds
+                            bounds: bounds,
+                            textlist: self.$('.js-grouptextlist')
                         });
                     }
 
@@ -229,8 +231,8 @@ define([
             }
 
             // Get new markers for current map bounds.
-            var bounds = self.map.getBounds();
-            var boundsstr = bounds.toString();
+            self.bounds = self.map.getBounds();
+            var boundsstr = self.bounds.toString();
 
             if (!self.lastBounds || boundsstr != self.lastBounds) {
                 // Remove old markers
@@ -252,7 +254,7 @@ define([
                     this.groupTextViews = [];
                 }
 
-                $('.js-grouptextlist').empty();
+                self.options.textlist.empty();
 
                 if (self.options.summary) {
                     $('.js-numgroups').html(self.collection.length);
@@ -267,7 +269,7 @@ define([
                 var within = 0;
 
                 self.collection.each(function(group) {
-                    if (bounds.contains(new google.maps.LatLng(group.get('lat'), group.get('lng'))) &&
+                    if (self.bounds.contains(new google.maps.LatLng(group.get('lat'), group.get('lng'))) &&
                         group.get('onmap')) {
                         within++
                     }
@@ -276,14 +278,14 @@ define([
                 var groupsshown = 0;
 
                 self.collection.each(function(group) {
-                    if (bounds.contains(new google.maps.LatLng(group.get('lat'), group.get('lng'))) &&
+                    if (self.bounds.contains(new google.maps.LatLng(group.get('lat'), group.get('lng'))) &&
                         group.get('onmap') && group.get('publish')) {
                         groupsshown++;
                         var latLng = new google.maps.LatLng(group.get('lat'), group.get('lng'));
 
                         if (within > 20) {
                             // Switch to pins for large collections
-                            var icon = 'images/mapmarker.gif';	// CC
+                            var icon = 'https://www.ilovefreegle.org/images/mapmarker.gif';	// CC
                             var marker = new google.maps.Marker({
                                 position: latLng,
                                 icon: icon,
@@ -338,12 +340,16 @@ define([
                         // Delay adding the text ones to the list, because this fetches the group icon, and
                         // could delay fetching the map marker, which makes the map look slow.
                         _.delay(_.bind(function() {
-                            var v = new Iznik.Views.Map.GroupText({
-                                model: this
-                            });
-                            v.render().then(function() {
-                                $('.js-grouptextlist').append(v.$el);
-                            });
+                            // We might no longer be looking at the same area.
+                            console.log("Consider still present", this.get('id'), this.get('nameshort'), self.bounds.contains(new google.maps.LatLng(this.get('lat'), this.get('lng'))))
+                            if (self.bounds.contains(new google.maps.LatLng(this.get('lat'), this.get('lng')))) {
+                                var v = new Iznik.Views.Map.GroupText({
+                                    model: this
+                                });
+                                v.render().then(function() {
+                                    self.options.textlist.append(v.$el);
+                                });
+                            }
                         }, group), 5000);
                     }
                 });
@@ -391,7 +397,8 @@ define([
                 center              : new google.maps.LatLng(this.model.get('clat'), this.model.get('clng')),
                 panControl          : mapWidth > 400,
                 zoomControl         : mapWidth > 400,
-                zoom                : self.model.get('zoom')
+                zoom                : self.model.get('zoom'),
+                gestureHandling     : 'greedy'
             };
 
             self.map = new google.maps.Map(target.get()[0], mapOptions);
@@ -784,13 +791,19 @@ define([
                                     modtools: false
                                 });
                             } else {
-                                // Still can't see it logged in - need to join the group
+                                // Still can't see it logged in
                                 var groups = self.model.get('groups');
                                 _.each(groups, function(group) {
-                                    var name = group.namedisplay;
-                                    self.groupid = group.id;
-                                    self.$('.js-groupname').html(name);
-                                    self.$('.js-needtojoin').fadeIn('slow');
+                                    if (!Iznik.Session.getGroup(group.id)) {
+                                        // Need to join the group.
+                                        var name = group.namedisplay;
+                                        self.groupid = group.id;
+                                        self.$('.js-groupname').html(name);
+                                        self.$('.js-needtojoin').fadeIn('slow');
+                                    } else {
+                                        // Probably the id for a rejected message.  Can't see other people's.
+                                        self.$('.js-gone').fadeIn('slow');
+                                    }
                                 });
                             }
                         });

@@ -1,3 +1,4 @@
+import 'bootstrap-fileinput/js/plugins/piexif.min.js';
 import 'bootstrap-fileinput';
 
 var tpl = require('iznik/templateloader');
@@ -1213,7 +1214,7 @@ define([
                         },
                         {
                             name: 'settings.modnotifs',
-                            label: 'Moderation Notifications',
+                            label: 'Moderation Notifications (Active)',
                             control: 'select',
                             options: [
                                 {label: 'After 24 hours', value: 24},
@@ -1224,7 +1225,22 @@ define([
                                 {label: 'Immediately', value: 0},
                                 {label: 'Never', value: -1}
                             ],
-                            helpMessage: 'We will mail you when there is moderation work to do which has been outstanding for more than a certain time.  You can control the frequency or disable this here.  We only mail you between 8am and 10pm, for groups you\'re an active mod on, and we don\'t mail you for pending messages/members on Yahoo Groups - if you want that, you can turn on Yahoo\'s notifications.'
+                            helpMessage: 'For groups that you\'re an active mod on, we will mail you when there is moderation work to do which has been outstanding for more than a certain time.  You can control the frequency or disable this here.  We only mail you between 8am and 10pm, for groups you\'re an active mod on, and we don\'t mail you for pending messages/members on Yahoo Groups - if you want that, you can turn on Yahoo\'s notifications.'
+                        },
+                        {
+                            name: 'settings.backupmodnotifs',
+                            label: 'Moderation Notifications (Backup)',
+                            control: 'select',
+                            options: [
+                                {label: 'After 24 hours', value: 24},
+                                {label: 'After 12 hours', value: 12},
+                                {label: 'After 4 hours', value: 4},
+                                {label: 'After 2 hours', value: 2},
+                                {label: 'After 1 hour', value: 1},
+                                {label: 'Immediately', value: 0},
+                                {label: 'Never', value: -1}
+                            ],
+                            helpMessage: 'This is for groups where you\'re a backup mod.  You\'d usually set this to a higher value than the previous setting so that the active mods will get notified first.'
                         },
                         {
                             control: 'button',

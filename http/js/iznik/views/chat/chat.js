@@ -1,3 +1,4 @@
+import 'bootstrap-fileinput/js/plugins/piexif.min.js';
 import 'bootstrap-fileinput';
 
 define([
@@ -190,10 +191,6 @@ define([
 
             if (window.mobilePush) {
                 // CC Not in MT mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
-                /*var msg = new Date();
-                msg = msg.toLocaleTimeString() + " C " + unseen + "<br/>";
-                badgeconsole += msg;
-                $('#badgeconsole').html(badgeconsole);*/
             }
         },
 
@@ -450,7 +447,10 @@ define([
 
                 if (e.altKey || e.shiftKey || enterSend === 0) {
                     // They've used the alt/shift trick, or we know they don't want to send.
-                    self.$('.js-message').val(self.$('.js-message').val() + "\n");
+                    var pos = Iznik.getInputSelection(e.target);
+                    var val = self.$('.js-message').val();
+                    // self.$('.js-message').val(val.substring(0, pos.start) + "\n" + val.substring(pos.start));
+                    Iznik.setCaretToPos(e.target, pos.start);
                 } else  {
                     if (enterSend !== 0 && enterSend !== 1) {
                         // We don't know what they want it to do.  Ask them.
@@ -711,26 +711,17 @@ define([
 
             var other = this.model.otherUser();
 
-            var m = new Iznik.Models.ModTools.User({
-                id: other
+            var v = new Iznik.Views.User.Schedule.Modal({
+                mine: true,
+                help: true,
+                chatuserid: other
             });
 
-            m.fetch().then(function() {
-                var v = new Iznik.Views.User.Schedule.Modal({
-                    model: m,
-                    id: null,
-                    schedule: null,
-                    other: false,
-                    otherid: null,
-                    slots: null
-                });
-
-                self.listenToOnce(v, 'modalClosed', function () {
-                    self.messages.fetch();
-                });
-
-                v.render();
+            self.listenToOnce(v, 'modalClosed', function () {
+                self.messages.fetch();
             });
+
+            v.render();
         },
 
         info: function () {
@@ -929,6 +920,7 @@ define([
                         collection: self.messages,
                         chatView: self,
                         comparator: 'id',
+                        selectable: false,
                         modelViewOptions: {
                             chatView: self,
                             chatModel: self.model
@@ -1318,6 +1310,32 @@ define([
         }
     });
 
+    Iznik.Views.Chat.Match = Iznik.View.extend({
+        tagName: 'li',
+
+        template: 'chat_match',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+            p.then(function() {
+                var m = new moment(self.model.get('date'));
+                var d = m.format('dddd');
+                var h = '';
+                switch (self.model.get('hour')) {
+                    case 0: h = ' morning'; break;
+                    case 1: h = ' afternoon'; break;
+                    case 2: h = ' evening';
+                }
+
+                self.$('.js-thetime').html(d + h);
+            });
+
+            return(p);
+        }
+    });
+
     Iznik.Views.Chat.Message = Iznik.View.extend({
         tagName: 'li',
 
@@ -1328,7 +1346,49 @@ define([
             'click .chat-when': 'msgZoom',
             'click .js-imgzoom': 'imageZoom',
             'click .js-profile': 'showProfile',
-            'click .js-renege': 'renege'
+            'click .js-renege': 'renege',
+            'click .js-theirschedule': 'theirSchedule',
+            'click .js-myschedule': 'mySchedule'
+        },
+
+        theirSchedule: function() {
+            var self = this;
+            var other = self.options.chatModel.otherUser();
+
+            var m = new Iznik.Models.ModTools.User({
+                id: other
+            });
+
+            m.fetch().then(function() {
+                var v = new Iznik.Views.User.Schedule.Modal({
+                    otheruser: m,
+                    mine: false,
+                    help: false
+                });
+
+                self.listenToOnce(v, 'modalClosed', function () {
+                    self.model.collection.fetch();
+                });
+
+                v.render();
+            })
+        },
+
+        mySchedule: function() {
+            var self = this;
+            var other = self.options.chatModel.otherUser();
+
+            var v = new Iznik.Views.User.Schedule.Modal({
+                chatuserid: other,
+                mine: true,
+                help: true
+            });
+
+            self.listenToOnce(v, 'modalClosed', function () {
+                self.model.collection.fetch();
+            });
+
+            v.render();
         },
 
         renege: function() {
@@ -1366,6 +1426,7 @@ define([
             var self = this;
 
             var other = self.options.chatModel.otherUser();
+            var mine = self.model.get('userid') == Iznik.Session.get('me').id;
 
             var m = new Iznik.Models.ModTools.User({
                 id: other
@@ -1373,17 +1434,15 @@ define([
 
             m.fetch().then(function() {
                 var s = new Iznik.Models.Schedule({
-                    id: self.model.get('scheduleid')
+                    userid: other
                 });
 
                 s.fetch().then(function() {
                     var v = new Iznik.Views.User.Schedule.Modal({
-                        model: m,
-                        id: s.get('id'),
-                        other: true,
-                        schedule: s,
-                        otherid: self.options.chatModel.otherUser(),
-                        slots: s.get('schedule')
+                        chatuserid: other,
+                        mine: mine,
+                        help: mine,
+                        otheruser: mine ? null : m
                     });
 
                     self.listenToOnce(v, 'modalClosed', function () {
@@ -1535,7 +1594,7 @@ define([
                         tpl = 'chat_nudge';
                         break;
                     case 'Schedule':
-                        tpl = 'chat_schedule';
+                        tpl = 'chat_scheduleupdated';
                         break;
                     case 'ScheduleUpdated':
                         tpl = 'chat_scheduleupdated';
@@ -1552,10 +1611,32 @@ define([
                     // Expand emojis.
                     twemoji.parse(self.el);
 
-                    if (self.model.get('type') == 'ScheduleUpdated') {
+                    console.log("Type ", self.model.get('type'));
+
+                    if (self.model.get('type') == 'ScheduleUpdated' || self.model.get('type') == 'Schedule') {
                         // Any agreed time is held in the message.
                         var m = new moment(self.model.get('message'));
                         self.$('.js-agreed').html(m.format("dddd Do, hh:mma"));
+
+                        self.matches = self.model.get('matches');
+
+                        if (self.matches.length == 0) {
+                            self.$('.js-nomatches').show();
+                        } else {
+                            self.matchCV = new Backbone.CollectionView({
+                                el: self.$('.js-matchlist'),
+                                modelView: Iznik.Views.Chat.Match,
+                                collection: new Iznik.Collection(self.matches),
+                                modelViewOptions: {
+                                    otheruser: myid = user1 ? user2 : user1
+                                },
+                                processKeyEvents: false
+                            });
+
+                            self.matchCV.render();
+
+                            self.$('.js-matches').show();
+                        }
                     }
 
                     if (self.model.get('type') == 'ModMail' && self.model.get('refmsg')) {
@@ -1581,10 +1662,6 @@ define([
 
                     self.listenTo(self.model, 'change:seenbyall', self.render);
                     self.listenTo(self.model, 'change:mailedtoall', self.render);
-
-                    self.$('.js-schedulemodal').click(function() {
-                        self.scheduleModal();
-                    });
                 });
             } else {
                 p = Iznik.resolvedPromise(this);

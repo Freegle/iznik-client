@@ -505,7 +505,7 @@ define([
                     }
                 }
             }).then(function () {
-                self.$('.js-loading').hide()
+                self.$('.js-loading').addClass('visNone');
                 var logs = self.model.get('logs')
 
                 _.each(logs, function (log) {
