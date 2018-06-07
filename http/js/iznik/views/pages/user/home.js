@@ -239,6 +239,7 @@ define([
             });
 
             p.then(function(self) {
+                console.log("call adSense");
                 self.adSense();
 
                 // Left menu is community events

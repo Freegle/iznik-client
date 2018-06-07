@@ -932,7 +932,8 @@ define([
             },
 
             adSense: function(jq) {
-                /* CC jq = _.isUndefined(jq) ? $ : jq;
+                console.log("adSense");
+                jq = _.isUndefined(jq) ? $ : jq;
 
                 // Convert our ins into a google ad and queue it up for rendering.
                 jq('.js-googleads').each(function() {
@@ -941,7 +942,7 @@ define([
                     var v = new Iznik.View.GoogleAd();
                     v.render();
                     d.html(v.el);
-                });*/
+                });
             }
         });
 
