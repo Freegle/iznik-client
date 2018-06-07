@@ -189,6 +189,7 @@ define([
 
                     self.group.fetch().then(function() {
                         self.$('.js-modsemail').html(self.group.get('modsemail'));
+                        self.$('.js-postemail').html(self.group.get('groupemail'));
 
                         // Because we switch the form based on our group select we need to remove old events to avoid saving new
                         // changes to the previous group.
