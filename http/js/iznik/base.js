@@ -864,7 +864,8 @@ define([
 
                     if (src) {
                         $this.attr('data-src', src);
-                        $this.prop('src', null);
+                        // CC $this.prop('src', null);
+                        $this.removeProp('src');
                         $this.addClass('lazyload');
                     }
                 })
@@ -932,7 +933,8 @@ define([
             },
 
             adSense: function(jq) {
-                /* CC jq = _.isUndefined(jq) ? $ : jq;
+                console.log("adSense not shown");
+                /*jq = _.isUndefined(jq) ? $ : jq;
 
                 // Convert our ins into a google ad and queue it up for rendering.
                 jq('.js-googleads').each(function() {

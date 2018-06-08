@@ -675,6 +675,7 @@ define([
                             // Already a member.
                             self.showHideJoin();
                         } else {
+                            // TODO Member approval
                             $.ajax({
                                 url: API + 'memberships',
                                 type: 'PUT',
@@ -747,7 +748,7 @@ define([
 
         join: function() {
             var self = this;
-
+            // TODO Member approval
             $.ajax({
                 url: API + 'memberships',
                 type: 'PUT',

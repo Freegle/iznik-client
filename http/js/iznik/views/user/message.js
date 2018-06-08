@@ -998,6 +998,7 @@ define([
                         if (tojoin) {
                             // We're not a member of any groups on which this message appears.  Join one.  Doesn't much
                             // matter which.
+                            // TODO Member approval
                             $.ajax({
                                 url: API + 'memberships',
                                 type: 'PUT',

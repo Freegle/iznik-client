@@ -19,6 +19,7 @@ define([
         uploading: 0,
 
         events: {
+            'click .js-take-photo': 'addPhoto', // CC
             'click .js-next': 'next',
             'change .js-item': 'checkNext',
             'change .tt-hint': 'checkNext',
@@ -27,6 +28,80 @@ define([
             'click .js-speechItem': 'speechItem',
             'click .js-cleardraft': 'clearDraft',
             'click .js-addprompt': 'forceAdd'
+        },
+      
+        //cameraSuccess: function (imageURI, self) {  // CC
+        cameraSuccess: function (imageData, self) {  // CC
+          console.log("cameraSuccess " + imageData.length);
+
+          // https://stackoverflow.com/questions/36912819/cordova-camera-take-picture-as-blob-object
+          var contentType = 'image/jpeg';
+          var sliceSize = 512;
+
+          var byteCharacters = atob(imageData);
+          var byteArrays = [];
+
+          for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            let slice = byteCharacters.slice(offset, offset + sliceSize);
+
+            let byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+              byteNumbers[i] = slice.charCodeAt(i);
+            }
+
+            let byteArray = new Uint8Array(byteNumbers);
+
+            byteArrays.push(byteArray);
+          }
+
+          self.uploading++;
+
+          var imageBlob = new Blob(byteArrays, { type: contentType });
+          self.$('#fileupload').fileinput('addToStack', imageBlob);
+          console.log("addToStack done");
+          self.$('#fileupload').fileinput('upload');
+          console.log("upload done");
+        },
+
+        cameraError: function (msg, self) {  // CC
+          setTimeout(function () {
+            if (msg === "No Image Selected") { msg = "No photo taken or chosen"; }
+            if (msg === "Camera cancelled") { msg = "No photo taken or chosen"; }
+            console.log(msg);
+            self.$('.js-photo-msg').text(msg);
+            self.$('.js-photo-msg').show();
+          }, 0);
+        },
+
+        addPhoto: function () {  // CC
+          var self = this;
+          self.$('.js-photo-msg').hide();
+
+      		var maxDimension = 800; // Connection.UNKNOWN Connection.ETHERNET Connection.WIFI Connection.CELL_4G and Connection.NONE
+      		if ((navigator.connection.type === Connection.CELL_2G) ||
+            (navigator.connection.type === Connection.CELL_2G) ||
+            (navigator.connection.type === Connection.CELL)) {
+      		  maxDimension = 400;
+      		}
+
+      		navigator.camera.getPicture(function (imageURI) {
+      		          self.cameraSuccess(imageURI, self);
+      		        }, function (msg) {
+      		          self.cameraError(msg, self);
+      		        },
+                  { quality: 50,
+                    destinationType: Camera.DestinationType.DATA_URL,
+                    //destinationType: Camera.DestinationType.FILE_URI,
+                    sourceType: Camera.PictureSourceType.CAMERA,
+                    //allowEdit: true,	// Don't: adds unhelpful crop photo step
+                    encodingType: Camera.EncodingType.JPEG,
+                    targetWidth: maxDimension,
+                    targetHeight: maxDimension,
+                    //popoverOptions: CameraPopoverOptions,
+                    saveToPhotoAlbum: true,
+                    correctOrientation: true
+                  }
+            );
         },
 
         forceAdd: function() {
@@ -282,7 +357,7 @@ define([
                     maxImageWidth: 800,
                     browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
                     browseLabel: 'Add photos',
-                    browseClass: 'btn btn-primary nowrap',
+                    browseClass: 'btn btn-white nowrap pull-right',
                     showCaption: false,
                     showRemove: false,
                     showUploadedThumbs: false,
@@ -317,7 +392,8 @@ define([
                 });
 
                 // Watch for all uploaded
-                self.$('#fileupload').on('fileuploaded', function (event, data) {
+              self.$('#fileupload').on('fileuploaded', function (event, data) {
+                    console.log("File uploaded",data)
                     // Add the photo to our list
                     var mod = new Iznik.Models.Message.Attachment({
                         id: data.response.id,
@@ -347,6 +423,7 @@ define([
                     });
 
                     self.uploading--;
+                    console.log("File uploaded self.uploading", self.uploading)
 
                     if (self.uploading == 0) {
                         self.allUploaded();
@@ -456,6 +533,7 @@ define([
                             if (ret.newuser) {
                                 // We didn't know this email and have created a user for them.  Show them an invented
                                 // password, and allow them to change it.
+                                console.log("Got new password", ret);
                                 Iznik.Session.set('inventedpassword', ret.newpassword);
                                 Iznik.Session.set('newuser', ret.newuser);
                                 Router.navigate('/newuser', true);

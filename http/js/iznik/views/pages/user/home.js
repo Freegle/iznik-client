@@ -239,6 +239,7 @@ define([
             });
 
             p.then(function(self) {
+                console.log("call adSense");
                 self.adSense();
 
                 // Left menu is community events
@@ -290,7 +291,7 @@ define([
                     self.$('.js-bouncing').fadeIn('slow');
                 }
 
-                // (new Iznik.Views.SupportUs()).render();
+                (new Iznik.Views.SupportUs()).render();
                 // (new Iznik.Views.User.eBay()).render();
                 // (new Iznik.Views.User.BusinessCards()).render();
 

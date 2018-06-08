@@ -87,6 +87,7 @@ define([
                     Iznik.Session.trigger('loginFailed');
                 }
             });
+            return false;
         },
 
         signup: function () {
@@ -118,6 +119,7 @@ define([
                     Iznik.Session.trigger('loginFailed');
                 }
             });
+            return false;
         },
 
         fblogin: function () {

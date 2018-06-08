@@ -189,6 +189,7 @@ define([
 
                     self.group.fetch().then(function() {
                         self.$('.js-modsemail').html(self.group.get('modsemail'));
+                        self.$('.js-postemail').html(self.group.get('groupemail'));
 
                         // Because we switch the form based on our group select we need to remove old events to avoid saving new
                         // changes to the previous group.
@@ -389,6 +390,13 @@ define([
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
                                 helpMessage: 'This lets groups mods chat to each other on here.'
+                            },
+                            {
+                                name: 'approvemembers',
+                                label: '(Freegle native groups only) Group approves new members?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "Normally members can join immediately, and any posts they make will be moderated.  Some groups prefer to approve new members manually, which gives more control over the group but loses postential members."
                             },
                             {
                                 name: 'moderated',

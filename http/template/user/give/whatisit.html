@@ -43,10 +43,11 @@
             <div class="glyphicon glyphicon-camera" />&nbsp;Please add a photo - you'll get a better response.
         </div>
         <ul class="list-inline list-unstyled js-draftphotos" style="display: none"/>
-        <div class="btn btn-primary topspace btn-lg pull-right">
+        <input id="fileupload" type="file" name="photo" multiple="">
+        <div class="btn btn-primary topspace js-take-photo" style="top:-10px;">
           <div class="glyphicon glyphicon-camera" />&nbsp;Take photo
         </div>
-        <input id="fileupload" type="file" name="photo" multiple="">
+        <div class="error js-photo-msg"></div>
     </div>
 </div>
 <div class="clearfix" />

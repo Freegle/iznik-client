@@ -35,6 +35,10 @@
                                 <span class="js-ownpost js-modonly js-edit">
                                 &bull; Edit
                                 </span>
+                                <% } else { %>
+                                <span class="js-dm" style="display: none">
+                                &bull; Message
+                                </span>
                                 <% } %>
                             </small>
                             <% if (obj.preview && !preview.invalid && !preview.spam) { %>

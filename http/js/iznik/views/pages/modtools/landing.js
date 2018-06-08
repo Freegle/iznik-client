@@ -46,7 +46,7 @@ define([
                     success: function(ret) {
                         v.close();
 
-                        if (ret.emailproblems) {
+                        if (ret.emailproblems && ret.emailproblems.length) {
                             var doms = [];
                             _.each(ret.emailproblems, function(dom) {
                                 doms.push(dom.domain)

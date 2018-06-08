@@ -75,3 +75,4 @@
     <hook src="scripts/before_build.sh" type="before_build" />
     <engine name="android" spec="^6.3.0" />
 </widget>
+
