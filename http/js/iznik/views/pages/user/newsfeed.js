@@ -1465,7 +1465,28 @@ define([
         events: {
             'click .js-reply': 'reply',
             'click .js-replyprofile': 'showProfile',
-            'click .js-moremessage': 'moreMessage'
+            'click .js-moremessage': 'moreMessage',
+            'click .js-dm': 'directMessage'
+        },
+
+        directMessage: function() {
+            var self = this;
+
+            $.ajax({
+                type: 'PUT',
+                url: API + 'chat/rooms',
+                data: {
+                    userid: self.model.get('user').id
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        var chatid = ret.id;
+
+                        require(['iznik/views/chat/chat'], function(ChatHolder) {
+                            ChatHolder().fetchAndRestore(chatid);
+                        });
+                    }
+                }
+            });
         },
 
         moreMessage: function(e) {
@@ -1575,6 +1596,10 @@ define([
                         _.delay(function () {
                             self.$el.addClass('highlightout');
                         }, 5000);
+                    }
+
+                    if (self.model.get('user').id != Iznik.Session.get('me').id) {
+                        self.$('.js-dm').show();
                     }
                 });
             }
