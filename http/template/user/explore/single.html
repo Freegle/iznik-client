@@ -37,13 +37,16 @@
         <% } %>
             <h1>
                 <span class="js-pagetitle">{{namedisplay}}</span>
-                <div class="btn btn-success js-join" style="display: none;">
-                    <div class="glyphicon glyphicon-plus" /><span class="topspace">&nbsp;Join</span>
-                </div>
-                <div class="btn btn-white js-leave" style="display: none;">
-                    <div class="glyphicon glyphicon-trash" /><span class="topspace">&nbsp;Leave</span>
-                </div>
             </h1>
+            <div class="alert alert-warning js-pending" style="display: none;">
+                Your application requires approval.  We'll let you know soon.
+            </div>
+            <div class="btn btn-success js-join" style="display: none;">
+                <div class="glyphicon glyphicon-plus" /><span class="topspace">&nbsp;Join</span>
+            </div>
+            <div class="btn btn-white js-leave" style="display: none;">
+                <div class="glyphicon glyphicon-trash" /><span class="topspace">&nbsp;Leave</span>
+            </div>
             <p class="text-larger">{{obj.tagline}}</p>
             <div class="text-muted">
                 <span class="js-founded">

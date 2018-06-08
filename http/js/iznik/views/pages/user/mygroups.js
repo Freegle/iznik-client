@@ -83,6 +83,7 @@ define([
                         self.$('.js-groupinfo').empty();
 
                         if (group) {
+                            console.log("Group attr", group.attributes);
                             var w = new Iznik.Views.User.Pages.MyGroups.GroupInfo({
                                 model: new Iznik.Models.Group(group.attributes)
                             });

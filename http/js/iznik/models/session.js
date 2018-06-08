@@ -213,7 +213,7 @@ define([
             // PHP session has timed out.
             var now = (new Date()).getTime();
 
-            if (!self.lastServerHit || now - self.lastServerHit > 1000) {
+            if (!self.lastServerHit || now - self.lastServerHit > 1000 || forceserver) {
                 self.lastServerHit = now;
 
                 $.ajax({
