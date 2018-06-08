@@ -437,6 +437,7 @@ define([
                             if (ret.newuser) {
                                 // We didn't know this email and have created a user for them.  Show them an invented
                                 // password, and allow them to change it.
+                                console.log("Got new password", ret);
                                 Iznik.Session.set('inventedpassword', ret.newpassword);
                                 Iznik.Session.set('newuser', ret.newuser);
                                 Router.navigate('/newuser', true);

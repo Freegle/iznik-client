@@ -1161,6 +1161,7 @@ define([
 
                                                 if (!already) {
                                                     // Finally!  We're not a member yet, so join us up.
+                                                    // TODO Member approval
                                                     $.ajax({
                                                         url: API + 'memberships',
                                                         type: 'PUT',

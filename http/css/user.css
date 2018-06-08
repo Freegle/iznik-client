@@ -489,14 +489,11 @@ table.table-fixedheader>tbody>tr>td {
 .coverphoto {
     height: 100px !important;
     width: 100% !important;
-    margin-bottom: 40px;
 }
 
 .coverprofilecontainer {
     position: relative;
     width: 100%;
-    padding-bottom: 105px;
-    top: 45px;
 }
 
 .coverprofilecircle {
@@ -505,6 +502,7 @@ table.table-fixedheader>tbody>tr>td {
     height: 100px;
     background-color: darkgray;
     border-radius: 50%;
+    margin: 10px;
 }
 
 .coverprofileimage {
@@ -518,10 +516,12 @@ table.table-fixedheader>tbody>tr>td {
 }
 
 .covername {
-    top: 40px;
     left: 108px;
     position: absolute;
     width: calc(100% - 105px);
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 /* Change navbar breakpoint as we have a lot of stuff on the menu */

@@ -1126,6 +1126,30 @@ define([
     Iznik.Views.UserInfo = Iznik.Views.Modal.extend({
         template: 'userinfo',
 
+        events: {
+            'click .js-dm': 'directMessage'
+        },
+
+        directMessage: function() {
+            var self = this;
+
+            $.ajax({
+                type: 'PUT',
+                url: API + 'chat/rooms',
+                data: {
+                    userid: self.model.get('id')
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        var chatid = ret.id;
+
+                        require(['iznik/views/chat/chat'], function(ChatHolder) {
+                            ChatHolder().fetchAndRestore(chatid);
+                        });
+                    }
+                }
+            });
+        },
+
         render: function () {
             var self = this
             var userid = self.model.get('id')
@@ -1152,7 +1176,11 @@ define([
 
                     // Cover image
                     var cover = self.model.get('coverimage') ? self.model.get('coverimage') : '/images/wallpaper.png'
-                    self.$('.modal-header').css('background-image', 'url(' + cover + ')');
+                    self.$('.coverphoto').css('background-image', 'url(' + cover + ')');
+
+                    if (Iznik.Session.get('me').id != self.model.get('id')) {
+                        self.$('.js-dm').show();
+                    }
                 })
             });
 
