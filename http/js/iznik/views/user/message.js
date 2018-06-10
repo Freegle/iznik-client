@@ -14,7 +14,28 @@ define([
         events: {
             'click .js-caret': 'carettoggle',
             'click .js-fop': 'fop',
-            'click .js-sharefb': 'sharefb'
+            'click .js-sharefb': 'sharefb',
+            'click .js-jointoreply': 'join'
+        },
+
+        join: function() {
+            var self = this;
+
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                $.ajax({
+                    url: API + 'memberships',
+                    type: 'PUT',
+                    data: {
+                        groupid: self.forcejoin
+                    }, complete: function () {
+                        self.$('.js-replybox').hide();
+                        self.$('.js-joinpending').show();
+                        self.$('.js-replyjoin').hide();
+                    }
+                });
+            });
+
+            Iznik.Session.forceLogin();
         },
 
         sharefb: function() {
@@ -221,6 +242,9 @@ define([
                         var approved = false;
                         var rejected = false;
                         var pending = false;
+                        self.forcejoin = false;
+                        var membershippending = false;
+
                         self.$('.js-groups').empty();
 
                         _.each(groups, function(group) {
@@ -240,7 +264,33 @@ define([
                             v.render().then(function() {
                                 self.$('.js-groups').append(v.el);
                             });
+
+                            if (group.settings.approvemembers) {
+                                self.forcejoin = group.id;
+
+                                // Check if we are already pending.
+                                var g = Iznik.Session.getGroup(group.id);
+                                if (g && g.collection == 'Pending') {
+                                    membershippending = true;
+                                }
+                            }
                         });
+
+                        if (self.forcejoin) {
+                            self.$('.js-replybox').hide();
+
+                            if (membershippending) {
+                                self.$('.js-joinpending').show();
+                                self.$('.js-replyjoin').hide();
+                            } else {
+                                self.$('.js-joinpending').hide();
+                                self.$('.js-replyjoin').show();
+                            }
+                        } else {
+                            self.$('.js-replybox').show();
+                            self.$('.js-replyjoin').hide();
+                            self.$('.js-joinpending').hide();
+                        }
 
                         // Repost time.
                         var repost = self.model.get('canrepostat');
@@ -1031,6 +1081,7 @@ define([
         render: function() {
             var self = this;
             var p;
+            console.log("Render message", self.model);
 
             if (self.rendered) {
                 p = Iznik.resolvedPromise(self);

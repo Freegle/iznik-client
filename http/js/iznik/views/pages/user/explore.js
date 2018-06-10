@@ -722,7 +722,6 @@ define([
 
         join: function() {
             var self = this;
-            // TODO Member approval
             $.ajax({
                 url: API + 'memberships',
                 type: 'PUT',
