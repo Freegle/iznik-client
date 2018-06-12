@@ -864,7 +864,6 @@ define([
 
                     if (src) {
                         $this.attr('data-src', src);
-                        // CC $this.prop('src', null);
                         $this.removeProp('src');
                         $this.addClass('lazyload');
                     }

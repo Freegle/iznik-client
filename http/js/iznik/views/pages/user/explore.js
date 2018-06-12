@@ -495,9 +495,19 @@ define([
                     var group = Iznik.Session.getGroup(id);
 
                     if (!_.isUndefined(group)) {
-                        self.$('.js-join').hide();
-                        self.$('.js-leave').show();
+                        // See if we're pending.
+                        console.log("Got group", group);
+                        if (group.get('collection') == 'Pending') {
+                            self.$('.js-pending').show();
+                            self.$('.js-join').hide();
+                            self.$('.js-leave').hide();
+                        } else {
+                            self.$('.js-pending').hide();
+                            self.$('.js-join').hide();
+                            self.$('.js-leave').show();
+                        }
                     } else {
+                        self.$('.js-pending').hide();
                         self.$('.js-join').show();
                         self.$('.js-leave').hide();
                     }
@@ -507,7 +517,7 @@ define([
                 }
             });
 
-            Iznik.Session.testLoggedIn();
+            Iznik.Session.testLoggedIn(true);
         },
 
         areaMap: function() {
@@ -609,6 +619,7 @@ define([
                     polygon: true
                 }
             });
+
             p.then(function() {
                 self.title = self.model.get('namedisplay');
 
@@ -672,22 +683,19 @@ define([
                         var group = Iznik.Session.get(self.model.get('id'));
 
                         if (group) {
-                            // Already a member.
+                            // Already a member, possibly pending.
                             self.showHideJoin();
                         } else {
-                            // TODO Member approval
                             $.ajax({
                                 url: API + 'memberships',
                                 type: 'PUT',
                                 data: {
                                     groupid: self.model.get('id')
                                 }, complete: function () {
-                                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                                        self.showHideJoin();
-                                        self.refetch();
-                                    });
-
-                                    Iznik.Session.testLoggedIn(true);
+                                    // Update the page with the result - we might have joined, in which case
+                                    // we can now show messages and leave button, or we might be pending.
+                                    self.showHideJoin();
+                                    self.refetch();
                                 }
                             });
                         }
@@ -748,7 +756,6 @@ define([
 
         join: function() {
             var self = this;
-            // TODO Member approval
             $.ajax({
                 url: API + 'memberships',
                 type: 'PUT',

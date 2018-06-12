@@ -81,6 +81,45 @@
                 </p>
             </div>
         </div>
+        <% } else if (type == 'MembershipPending') { %>
+        <div class="media clickme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <span class="glyphicon glyphicon-info-sign glyphicon-larger" />
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title">Your application requires approval</span>
+                <p class="notification-desc">
+                    We'll let you know soon.
+                </p>
+            </div>
+        </div>
+        <% } else if (type == 'MembershipApproved') { %>
+        <div class="media clickme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <span class="glyphicon glyphicon-info-sign glyphicon-larger" />
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title">Your application was approved!</span>
+                <p class="notification-desc">
+                    Visit the community <a href="{{url}}">here</a>.
+                </p>
+            </div>
+        </div>
+        <% } else if (type == 'MembershipRejected') { %>
+        <div class="media clickme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <span class="glyphicon glyphicon-info-sign glyphicon-larger" />
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title">Your application was rejected</span>
+            </div>
+        </div>
         <% } %>
     </div>
 </div>

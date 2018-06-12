@@ -241,7 +241,8 @@ define([
             // We may have a persistent session from local storage which we can use to revive this session if the
             // PHP session has timed out.
             var now = (new Date()).getTime();
-            if (!self.lastServerHit || now - self.lastServerHit > 1000) {
+
+            if (!self.lastServerHit || now - self.lastServerHit > 1000 || forceserver) {
                 self.lastServerHit = now;
 
                 $.ajax({
