@@ -69,7 +69,7 @@ module.exports = new Config().extend({
     }),
     // CC new FaviconsPlugin('images/user_logo.png'),
     new webpack.DefinePlugin({
-      APP_VERSION: JSON.stringify('1.3.10, 12 June 2018'),
+      APP_VERSION: JSON.stringify('1.3.11, 13 June 2018'),
       // CC SET ABOVE: API: JSON.stringify(BASE_URL+'/api/'),
       FACEBOOK_APPID: JSON.stringify('134980666550322'),
       FACEBOOK_GRAFFITI_APPID: JSON.stringify('115376591981611'),
@@ -100,13 +100,13 @@ module.exports = new Config().extend({
       new CopyWebpackPlugin([
           {from: 'http/xdk', to: 'xdk'}
       ]),
-    new webpack.optimize.UglifyJsPlugin({
+    /*new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       minimize: true,
       compress: {
         warnings: false
       }
-    }),
+    }),*/
 
     // split vendor js into its own file
     new webpack.optimize.CommonsChunkPlugin({

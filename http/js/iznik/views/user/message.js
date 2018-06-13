@@ -551,8 +551,8 @@ define([
                     if (ret.ret === 0) {
                         // Force the image to reload.  We might not have the correct model set up, so hack it
                         // by using image directly
-                        // TODO
-                        var url = '/img_' + self.model.get('id') + '.jpg?t=' + t;
+                        // TODO 
+                        var url = 'https://www.ilovefreegle.org/img_' + self.model.get('id') + '.jpg?t=' + t; // CC
                         console.log("Rotated", url);
                         self.$('img').attr('src', url);
                     }
@@ -560,10 +560,12 @@ define([
             })
         },
 
-        deleteMe: function() {
+        deleteMe: function () {
+            console.log("deleteMe 1");
             var self = this;
 
             if (self.options.message) {
+                console.log("deleteMe 2");
                 // Get the attachments in the message and remove this one.
                 var atts = self.options.message.get('attachments');
                 var newatts = _.reject(atts, function(att) {
@@ -581,6 +583,7 @@ define([
                 });
 
                 // Make the modification.
+                console.log("deleteMe 3");
                 $.ajax({
                     url: API + 'message',
                     type: 'PATCH',
@@ -596,11 +599,13 @@ define([
                     }
                 });
             } else {
+                console.log("deleteMe 4");
                 // No server side message yet.
                 if (self.collection) {
                     self.collection.remove(self.model);
                 }
                 self.destroyIt();
+                //self.close();
             }
         },
 
