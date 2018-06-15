@@ -75,13 +75,13 @@
     <plugin name="cordova-plugin-network-information" spec="^2.0.1" />
     <plugin name="cordova-plugin-inappbrowser" spec="^2.0.2" />
     <plugin name="cordova-plugin-geolocation" spec="^4.0.1" />
-    <plugin name="phonegap-plugin-push" spec="^1.11.0">
-        <variable name="SENDER_ID" value="845879623324" />
-    </plugin>
     <platform name="android">
         <resource-file src="google-services.json" target="google-services.json" />
     </platform>
     <plugin name="cordova-plugin-googleplus" spec="https://github.com/EddyVerbruggen/cordova-plugin-googleplus" />
     <hook src="scripts/before_build.sh" type="before_build" />
+    <plugin name="phonegap-plugin-push" spec="^1.11.1">
+        <variable name="SENDER_ID" value="845879623324" />
+    </plugin>
     <engine name="android" spec="^6.3.0" />
 </widget>
