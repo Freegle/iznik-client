@@ -284,9 +284,9 @@ define([
                         self.$('.js-missingtwitter').html(x.el);
                     });
 
-                    var w = new Iznik.Views.ModTools.Settings.MissingFacebookBuySell();
-                    w.render().then(function() {
-                        // self.$('.js-missingfacebookbuysell').html(w.el);
+                    var z = new Iznik.Views.ModTools.Settings.MissingFacebookBuySell();
+                    z.render().then(function() {
+                        // self.$('.js-missingfacebookbuysell').html(z.el);
                     });
 
                     var mobile_version = APP_VERSION;	// CC
