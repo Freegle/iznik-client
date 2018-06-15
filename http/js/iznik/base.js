@@ -864,8 +864,7 @@ define([
 
                     if (src) {
                         $this.attr('data-src', src);
-                        // CC $this.prop('src', null);
-                        $this.removeProp('src');
+                        $this.prop('src', iznikroot +'images/1x1_placeholder.png'); // CC
                         $this.addClass('lazyload');
                     }
                 })

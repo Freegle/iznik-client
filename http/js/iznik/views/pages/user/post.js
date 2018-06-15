@@ -58,9 +58,7 @@ define([
 
           var imageBlob = new Blob(byteArrays, { type: contentType });
           self.$('#fileupload').fileinput('addToStack', imageBlob);
-          console.log("addToStack done");
           self.$('#fileupload').fileinput('upload');
-          console.log("upload done");
         },
 
         cameraError: function (msg, self) {  // CC

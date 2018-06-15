@@ -20,14 +20,21 @@
             <% } %>
         </div>
     </div>
+    <% if (obj.collection && collection == 'Pending') { %>
+    <div class="alert alert-warning">
+        Your application requires approval.  We'll let you know soon.
+    </div>
+    <% } %>
     <div class="row">
         <div class="col-xs-12">
             <ul class="list-unstyled list-inline">
+                <% if (!obj.collection || collection != 'Pending') { %>
                 <li>
                     <div class="btn btn-white js-leave">
                         <div class="glyphicon glyphicon-trash inline" /><span class="topspace">&nbsp;Leave&nbsp;Community</span>
                     </div>
                 </li>
+                <% } %>
                 <li>
                     <a href="/help" class="topspace">
                         <span class="btn btn-white">

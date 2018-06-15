@@ -33,7 +33,7 @@ define([
                 }
             });
 
-            if (some) {
+            if (some && self.options.mine) {
                 // Always save to server, which may trigger a chat message.  We need this for when someone replies
                 // and cancels out - we still want to send an availability message if they have some availability.
                 self.model.save({
