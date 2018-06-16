@@ -189,21 +189,18 @@ define([
 
             self.showMin();
 
-            if (window.mobilePush) {
+            /*if (window.mobilePush) {
                 Storage.set("chatcount", unseen);
+                console.log('chatcount2', unseen);
                 var notifcount = Storage.get("notifcount");
                 if (!notifcount) notifcount = 0;
                 notifcount = parseInt(notifcount);
                 if (isNaN(notifcount)) notifcount = 0;
+                console.log('notifcount2', notifcount);
                 var badgecount = notifcount + unseen;
                 window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, badgecount);
                 console.log("badge count set to : " + badgecount);
-                /*window.mobilePush.setApplicationIconBadgeNumber(
-                  function () { console.log("badge success") },
-                  function () { console.log("badge error") },
-                  badgecount);
-                console.log("badge count set to: " + badgecount, typeof (badgecount));*/
-            }
+            }*/
         },
 
         updateCountTimer: function() {

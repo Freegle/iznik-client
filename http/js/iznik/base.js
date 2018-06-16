@@ -464,6 +464,12 @@ define([
         } else {
             document.title = title;
         }
+
+        if (window.mobilePush) {  // CC
+          window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
+          console.log("badge count set to: " + unseen);
+        }
+
     }
 
     Iznik.ellipsical = function(str, len) {
