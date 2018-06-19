@@ -147,24 +147,6 @@ define([
                             if (el.html() != ret.count) {
                                 el.html(ret.count);
 
-                                if (window.mobilePush) {  // CC
-                                  var notifcount = parseInt(ret.count);
-                                  if (isNaN(notifcount)) notifcount = 0;
-                                  Storage.set("notifcount", notifcount);
-                                  var chatcount = Storage.get("chatcount");
-                                  if (!chatcount) chatcount = 0;
-                                  chatcount = parseInt(chatcount);
-                                  if (isNaN(chatcount)) chatcount = 0;
-                                  var badgecount = notifcount + chatcount;
-                                  window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, badgecount);
-                                  console.log("badge count set to : " + badgecount);
-                                  /*window.mobilePush.setApplicationIconBadgeNumber(
-                                    function () { console.log("badge success") },
-                                    function () { console.log("badge error") },
-                                    badgecount);
-                                  console.log("badge count set to: " + badgecount, typeof (badgecount));*/
-                                }
-
                                 if (ret.count) {
                                     $('.js-notifholder .js-notifcount').css('visibility', 'visible');
 

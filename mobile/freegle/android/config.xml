@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="521" id="org.ilovefreegle.direct" version="1.3.11" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="523" id="org.ilovefreegle.direct" version="1.3.12" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Freegle</name>
     <description>Offer and request free items on your local Freegle reuse group</description>
     <author />
@@ -67,11 +67,11 @@
     <platform name="android">
         <resource-file src="google-services.json" target="google-services.json" />
     </platform>
-    <plugin name="phonegap-plugin-push" spec="^1.11.0">
-        <variable name="SENDER_ID" value="85075801930" />
-    </plugin>
     <plugin name="cordova-plugin-googleplus" spec="https://github.com/EddyVerbruggen/cordova-plugin-googleplus" />
     <plugin name="cordova-plugin-camera" spec="^4.0.3" />
     <hook src="scripts/before_build.sh" type="before_build" />
+    <plugin name="phonegap-plugin-push" spec="^1.11.1">
+        <variable name="SENDER_ID" value="85075801930" />
+    </plugin>
     <engine name="android" spec="^6.3.0" />
 </widget>
