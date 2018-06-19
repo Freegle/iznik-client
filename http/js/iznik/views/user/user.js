@@ -1148,6 +1148,9 @@ define([
                     }
                 }
             });
+
+            // Need to close modal else can't do anything in the chat.
+            self.close();
         },
 
         render: function () {
