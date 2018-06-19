@@ -868,7 +868,7 @@ define([
                     var $this = $(this);
                     var src = $this.attr('src');
 
-                    if (src) {
+                    if (src && !$this.data('nolazysizes')) {
                         $this.attr('data-src', src);
                         $this.prop('src', iznikroot +'images/1x1_placeholder.png'); // CC
                         $this.addClass('lazyload');

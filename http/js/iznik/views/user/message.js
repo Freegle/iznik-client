@@ -504,7 +504,16 @@ define([
         
         template: 'user_message_photo',
 
+        refetch: function(src) {
+            var self = this;
+
+            self.$('img').attr('src', src);
+
+        },
+
         zoom: function (e) {
+            var self = this;
+
             e.preventDefault();
             e.stopPropagation();
 
@@ -512,7 +521,16 @@ define([
                 model: this.model,
                 message: this.options.message
             });
-            this.listenToOnce(v, 'deleted', _.bind(this.destroyIt, this));
+
+            this.listenToOnce(v, 'deleted', _.bind(function(id) {
+                self.trigger('deleted', id)
+                self.destroyIt();
+            }, this));
+
+            this.listenTo(v, 'rotated', _.bind(function(id, src) {
+                this.refetch(src)
+            }, this));
+
             v.render();
         }
     });
@@ -555,6 +573,7 @@ define([
                         var url = 'https://www.ilovefreegle.org/img_' + self.model.get('id') + '.jpg?t=' + t; // CC
                         console.log("Rotated", url);
                         self.$('img').attr('src', url);
+                        self.trigger('rotated', self.model.get('id'), url);
                     }
                 }
             })
@@ -593,7 +612,7 @@ define([
                     },
                     success: function(ret) {
                         if (ret.ret === 0) {
-                            self.trigger('deleted');
+                            self.trigger('deleted', self.model.get('id'));
                             self.close();
                         }
                     }
@@ -604,8 +623,8 @@ define([
                 if (self.collection) {
                     self.collection.remove(self.model);
                 }
-                self.destroyIt();
-                //self.close();
+                self.trigger('deleted', self.model.get('id'));
+                self.close();
             }
         },
 
@@ -614,6 +633,9 @@ define([
 
             console.log("Editable?", self.model.get('mine'), Iznik.Session.isFreegleMod());
             self.model.set('canedit', self.model.get('mine') || Iznik.Session.isFreegleMod());
+
+            // We want to force a fetch from the server in case the image has been rotated.
+            self.model.set('timestamp', (new Date()).getTime());
 
             var p = Iznik.Views.Modal.prototype.render.call(this);
 
@@ -668,9 +690,14 @@ define([
                         message: self.options.message,
                         collection: self.collection
                     });
+
                     v.render().then(function() {
                         self.$('.js-photos').append(v.$el);
                     });
+
+                    self.listenToOnce(v, 'deleted', _.bind(function(id) {
+                        self.collection.remove(id);
+                    }));
 
                     self.photos.push(v.$el);
 
