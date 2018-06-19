@@ -874,6 +874,10 @@ define([
         }
     });
 
+    Iznik.Views.User.Message.CheckSpam = Iznik.Views.Modal.extend({
+        template: 'user_message_checkspam'
+    });
+
     Iznik.Views.User.Message.Replyable = Iznik.Views.User.Message.extend({
         template: 'user_message_replyable',
 
@@ -977,7 +981,14 @@ define([
                                             help: true,
                                             chatuserid: self.model.get('fromuser').id
                                         });
+
                                         v.render();
+
+                                        self.listenToOnce(v, 'modalClosed, modalCancelled', function() {
+                                            _.delay(function() {
+                                                (new Iznik.Views.User.Message.CheckSpam()).render();
+                                            }, 2000);
+                                        });
                                     });
 
                                     // If we were replying, we might have forced a login and shown the message in
