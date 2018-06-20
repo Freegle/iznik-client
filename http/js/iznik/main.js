@@ -92,6 +92,7 @@ function hideHeaderWait(event) {
     }
 }
 window.mobileRefresh = function () {
+    console.log("mobileRefresh");
     showHeaderWait();
     Backbone.history.loadUrl();
     return false;
@@ -266,8 +267,8 @@ function mainOnAppStart() { // CC
                 var self = this;
                 this.errors = this.errors === undefined ? 0 : this.errors + 1;
                 var thedelay = delay(this.errors);
-                //console.log("retryIt", thedelay, this, arguments);
-                console.log("retryIt", thedelay, this.responseURL); // CC
+                console.log("retryIt", thedelay, this, arguments);
+                //console.log("retryIt", thedelay, this.responseURL); // CC
                 setTimeout(function () {
                     $.ajax(self);
                 }, thedelay);

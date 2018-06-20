@@ -584,3 +584,6 @@ table.table-fixedheader>tbody>tr>td {
     }
 }
 
+.glyphicons:before { /* Make rotate smooth CC */
+  padding: 6px 6px;
+}
