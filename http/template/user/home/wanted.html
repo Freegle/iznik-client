@@ -20,7 +20,9 @@
                         <li>
                             <span class="badge js-replycount <% if (obj.replies && obj.replies.length == 0) { %> faded<% } %>" title="The number of people who've replied.">
                                 <div class="glyphicon glyphicon-user" />
-                                {{obj.replies.length}}
+                                <% if (obj.replies && typeof(obj.replies.length)=='number') { %>
+                                  {{obj.replies.length}}
+                                <% } %>
                             </span>
                         </li>
                         <li>
