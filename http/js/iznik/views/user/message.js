@@ -1120,7 +1120,7 @@ define([
         render: function() {
             var self = this;
             var p;
-            console.log("Render message", self.model);
+            // console.log("Render message", self.model);
 
             if (self.rendered) {
                 p = Iznik.resolvedPromise(self);
