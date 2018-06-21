@@ -20,6 +20,8 @@ define([
     Iznik.Views.User.Pages.Find.Search = Iznik.Views.Infinite.extend({
         template: "user_find_search",
 
+        showChoose: false,
+
         title: "Find something",
 
         retField: 'messages',
@@ -47,6 +49,11 @@ define([
             // Search on enter.
             if (e.which == 13) {
                 this.$('#searchbutton').click();
+            }
+
+            if (!this.showChoose) {
+                this.showChoose = true;
+                this.$('.js-searchchoose').slideDown('slow');
             }
         },
 
