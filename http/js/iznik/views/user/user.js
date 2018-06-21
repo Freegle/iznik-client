@@ -106,7 +106,10 @@ define([
         whitelist: function () {
             var self = this
 
-            var v = new Iznik.Views.ModTools.EnterReason()
+            var v = new Iznik.Views.ModTools.EnterReason({
+                whitelist: true
+            });
+
             self.listenToOnce(v, 'reason', function (reason) {
                 $.ajax({
                     url: API + 'spammers',
@@ -907,8 +910,6 @@ define([
     })
 
     Iznik.Views.ModTools.EnterReason = Iznik.Views.Modal.extend({
-        template: 'modtools_members_spam_reason',
-
         events: {
             'click .js-cancel': 'close',
             'click .js-confirm': 'confirm'
@@ -927,7 +928,10 @@ define([
         },
 
         render: function () {
-            var self = this
+            var self = this;
+
+            this.template = this.options.whitelist ? 'modtools_members_spam_reasonwhitelist' : 'modtools_members_spam_reason';
+
             this.open(this.template)
 
             return (this)
