@@ -249,7 +249,7 @@ define([
                                 ctx.textAlign="center";
                                 ctx.fillStyle = '#000';
                                 var v = Math.round(i*val2);
-                                v = target > 1000 ? (v / 1000 + 'k') : v;
+                                v = v > 1000 ? (Math.round(v / 100,2)/10 + 'k') : v;
                                 ctx.fillText('£' + v, -radio*1.1 - 7, y);
                             };
 
