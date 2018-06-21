@@ -358,7 +358,13 @@ define([
             'change .js-status': 'status',
             'click .js-remove': 'removeIt',
             'click .js-block': 'blockIt',
-            'click .js-popup': 'popup'
+            'click .js-popup': 'popup',
+            'click .js-markread': 'markRead'
+        },
+
+        markRead: function() {
+            this.model.allseen();
+            this.updateCount();
         },
 
         popup: function(){
