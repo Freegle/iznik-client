@@ -314,7 +314,7 @@ define([
                 if (m.isSame(new Date(), 'day')) {
                     str += '<span class="text-muted">(Today)</span>';
                 } else {
-                    str += '&nbsp;'
+                    str += '<span class="text-muted">(' + m.format('Do') + ')</span>';
                 }
 
                 self.$('.js-datesm').html(str);
