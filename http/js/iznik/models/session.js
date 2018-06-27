@@ -759,6 +759,30 @@ define([
             });
 
             return(p);
+        },
+
+        savePhone: function(phone) {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: API + 'session',
+                    type: 'PATCH',
+                    data: {
+                        phone: phone
+                    }, success: function (ret) {
+                        if (ret.ret === 0) {
+                            resolve();
+                        } else {
+                            reject(ret);
+                        }
+                    }, error: function() {
+                        reject(null);
+                    }
+                })
+            });
+
+            return(p);
         }
     });
 });
