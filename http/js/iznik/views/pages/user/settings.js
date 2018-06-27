@@ -48,7 +48,9 @@ define([
         addressBook: function() {
             var self = this;
 
-            var v = new Iznik.Views.PostalAddress.Modal();
+            var v = new Iznik.Views.PostalAddress.Modal({
+                save: true
+            });
 
             v.render();
         },

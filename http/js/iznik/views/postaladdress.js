@@ -256,6 +256,10 @@ define([
             var p = Iznik.Views.Modal.prototype.render.call(this);
 
             p.then(function() {
+                if (self.options.save) {
+                    self.$('.js-save').show();
+                    self.$('.js-send').hide();
+                }
                 self.postaladdress = new Iznik.Views.PostalAddress();
                 self.postaladdress.render().then(function() {
                     self.$('.js-addresses').html(self.postaladdress.$el);
