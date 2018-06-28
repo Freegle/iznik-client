@@ -5,6 +5,7 @@ define([
     'iznik/base',
     'moment',
     'clipboard',
+    'iznik/views/promptphone',
     'iznik/views/infinite',
     'iznik/views/user/schedule'
 ], function($, _, Backbone, Iznik, moment, Clipboard) {
@@ -986,7 +987,11 @@ define([
 
                                         self.listenToOnce(v, 'modalClosed, modalCancelled', function() {
                                             _.delay(function() {
-                                                (new Iznik.Views.User.Message.CheckSpam()).render();
+                                                // (new Iznik.Views.User.Message.CheckSpam()).render();
+
+                                                // Encourage people to supply a phone number.  We can then let them know by SMS when they have
+                                                // a chat message
+                                                (new Iznik.Views.PromptPhone()).render();
                                             }, 2000);
                                         });
                                     });

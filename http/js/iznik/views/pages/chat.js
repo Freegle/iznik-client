@@ -20,6 +20,7 @@ define([
     'iznik/views/user/schedule',
     'iznik/views/user/message',
     'iznik/views/promptapp',
+    'iznik/views/promptphone',
     'jquery-resizable',
     'jquery-visibility'
 ], function ($, _, Backbone, Iznik, autosize, moment, ChatHolder) {
@@ -234,12 +235,16 @@ define([
                 ad.render();
                 $('#js-rightsidebar').html(ad.el);
 
-                if (!MODTOOLS && !Storage.get('chatpromptapp')) {
-                    // Encourage people to install the mobile apps - this helps reduce dependency on emails, and
-                    // also results in people responding more rapidly.
-                    Storage.set('chatpromptapp', true);
-                    (new Iznik.Views.PromptApp()).render();
-                }
+                // if (!MODTOOLS && !Storage.get('chatpromptapp')) {
+                //     // Encourage people to install the mobile apps - this helps reduce dependency on emails, and
+                //     // also results in people responding more rapidly.
+                //     Storage.set('chatpromptapp', true);
+                //     (new Iznik.Views.PromptApp()).render();
+                // }
+
+                // Encourage people to supply a phone number.  We can then let them know by SMS when they have
+                // a chat message
+                (new Iznik.Views.PromptPhone()).render();
             });
 
             return (p);

@@ -769,6 +769,7 @@ define([
                         } else {
                             reject(ret);
                         }
+
                     }, error: function() {
                         reject(null);
                     }
