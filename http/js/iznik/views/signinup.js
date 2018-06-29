@@ -42,7 +42,7 @@ define([
                         data: {
                             domain: domain
                         }, success: function(ret) {
-                            if (ret.ret == 0 && ret.hasOwnProperty('suggestions')) {
+                            if (ret.ret == 0 && ret.hasOwnProperty('suggestions') && ret.suggestions.length) {
                                 console.log("Suggestions", ret.suggestions);
                                 self.$('.js-suggestionlist').empty();
 
