@@ -5,6 +5,7 @@ define([
     'iznik/base',
     'iznik/views/chat/chat',
     'iznik/views/user/visualise',
+    'iznik/views/volunteers',
     'iznik/models/donations',
     'iznik/views/pages/pages',
     'iznik/views/group/select',

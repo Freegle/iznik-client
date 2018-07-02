@@ -137,6 +137,7 @@ define([
             "modtools/settings/:id/map": "mapSettings",
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
+            "modtools/teams": "teams",
             "modtools/mydata": "myData",
             "modtools/support": "support",
             "modtools/shortlinks": "shortlinks",
@@ -189,6 +190,7 @@ define([
             "mobile": "userMobile",
             "mobile/": "userMobile",
             "about": "userAbout",
+            "volunteers": "userVolunteers",
             "terms": "userTerms",
             "handbook": "userHandbook",
             "privacy": "userPrivacy",
@@ -1769,6 +1771,28 @@ define([
 
                 require(["iznik/views/pages/user/landing"], function () {
                     var page = new Iznik.Views.User.Pages.Landing.About();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        teams: function() {
+            if (MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/teams"], function () {
+                    var page = new Iznik.Views.ModTools.Pages.Teams();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userVolunteers: function() {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/volunteers"], function () {
+                    var page = new Iznik.Views.User.Pages.Volunteers();
                     self.loadRoute({page: page});
                 });
             }
