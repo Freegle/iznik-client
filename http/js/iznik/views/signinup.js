@@ -28,44 +28,47 @@ define([
         'checkEmail': function() {
             var self = this;
 
-            var email = self.$('.js-email').val();
+            if (!self.signInShown) {
+                // Only suggest for register, not for signin.
+                var email = self.$('.js-email').val();
 
-            if (email.length > 0) {
-                var p = email.indexOf('@');
+                if (email.length > 0) {
+                    var p = email.indexOf('@');
 
-                if (p !== -1) {
-                    var domain = email.substring(p + 1);
+                    if (p !== -1) {
+                        var domain = email.substring(p + 1);
 
-                    $.ajax({
-                        url: API + 'domains',
-                        type: 'GET',
-                        data: {
-                            domain: domain
-                        }, success: function(ret) {
-                            if (ret.ret == 0 && ret.hasOwnProperty('suggestions') && ret.suggestions.length) {
-                                console.log("Suggestions", ret.suggestions);
-                                self.$('.js-suggestionlist').empty();
+                        $.ajax({
+                            url: API + 'domains',
+                            type: 'GET',
+                            data: {
+                                domain: domain
+                            }, success: function(ret) {
+                                if (ret.ret == 0 && ret.hasOwnProperty('suggestions') && ret.suggestions.length) {
+                                    console.log("Suggestions", ret.suggestions);
+                                    self.$('.js-suggestionlist').empty();
 
-                                _.each(ret.suggestions, function(s) {
-                                    var m = new Iznik.Model({
-                                        suggestion: email.substring(0, p + 1) + s
-                                    });
+                                    _.each(ret.suggestions, function(s) {
+                                        var m = new Iznik.Model({
+                                            suggestion: email.substring(0, p + 1) + s
+                                        });
 
-                                    var v = new Iznik.Views.SignInUp.Suggestion({
-                                        model: m
-                                    });
+                                        var v = new Iznik.Views.SignInUp.Suggestion({
+                                            model: m
+                                        });
 
-                                    v.render();
-                                    self.$('.js-suggestionlist').append(v.$el);
-                                    self.listenTo(v, 'chosen', _.bind(function(email) {
-                                        this.$('.js-email').val(email);
-                                        self.$('.js-suggestions').fadeOut('slow');
-                                    }, self));
-                                })
-                                self.$('.js-suggestions').fadeIn('slow');
+                                        v.render();
+                                        self.$('.js-suggestionlist').append(v.$el);
+                                        self.listenTo(v, 'chosen', _.bind(function(email) {
+                                            this.$('.js-email').val(email);
+                                            self.$('.js-suggestions').fadeOut('slow');
+                                        }, self));
+                                    })
+                                    self.$('.js-suggestions').fadeIn('slow');
+                                }
                             }
-                        }
-                    })
+                        })
+                    }
                 }
             }
         },
