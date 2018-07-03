@@ -191,6 +191,7 @@ define([
             "mobile/": "userMobile",
             "about": "userAbout",
             "volunteers": "userVolunteers",
+            "board": "userBoard",
             "terms": "userTerms",
             "handbook": "userHandbook",
             "privacy": "userPrivacy",
@@ -1791,8 +1792,19 @@ define([
             if (!MODTOOLS) {
                 var self = this;
 
-                require(["iznik/views/volunteers"], function () {
+                require(["iznik/views/teams"], function () {
                     var page = new Iznik.Views.User.Pages.Volunteers();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userBoard: function() {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/teams"], function () {
+                    var page = new Iznik.Views.User.Pages.Board();
                     self.loadRoute({page: page});
                 });
             }

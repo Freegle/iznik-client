@@ -5,7 +5,7 @@ define([
     'iznik/base',
     'iznik/views/chat/chat',
     'iznik/views/user/visualise',
-    'iznik/views/volunteers',
+    'iznik/views/teams',
     'iznik/models/donations',
     'iznik/views/pages/pages',
     'iznik/views/group/select',
@@ -63,7 +63,20 @@ define([
     Iznik.Views.User.Pages.Landing.About = Iznik.Views.Page.extend({
         template: "user_landing_about",
         footer: true,
-        noback: true
+        noback: true,
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.Page.prototype.render.call(this);
+            p.then(function() {
+                var v = new Iznik.Views.User.Volunteers();
+                v.render();
+                self.$('.js-volunteers').html(v.$el);
+            })
+
+            return(p);
+        }
     });
 
     Iznik.Views.User.Pages.Landing.Mobile = Iznik.Views.Page.extend({

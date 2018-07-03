@@ -524,6 +524,10 @@ table.table-fixedheader>tbody>tr>td {
     padding-right: 10px;
 }
 
+.boardmember {
+    width: 100px;
+    height: 100px;
+}
 /* Change navbar breakpoint as we have a lot of stuff on the menu */
 .navsmallmenu {
     display: none;
