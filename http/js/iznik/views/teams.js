@@ -167,7 +167,11 @@ define([
                             self.showDetails(team)
                         });
 
-                        self.$('.js-teamlist').append(v.$el);
+                        if (team.get('type') == 'Team') {
+                            self.$('.js-teamlist').append(v.$el);
+                        } else {
+                            self.$('.js-rolelist').append(v.$el);
+                        }
                     });
                 });
 
