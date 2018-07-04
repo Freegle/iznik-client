@@ -103,9 +103,11 @@ define([
                             self.$('.js-groups').show();
                             self.$('.js-getemail').hide();
                             self.$('.js-nogroups').hide();
+                            self.$('.js-toomany').show();
                         } else {
                             self.$('.js-leave').hide();
                             self.$('.js-nogroups').show();
+                            self.$('.js-toomany').hide();
                         }
                     } else {
                         self.$('.js-nogroups').fadeIn('slow');
