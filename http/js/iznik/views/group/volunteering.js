@@ -382,7 +382,7 @@ define([
                     all: false,
                     mod: false,
                     choose: false,
-                    type: 'Freegle',
+                    grouptype: 'Freegle',
                     id: 'volunteeringGroupSelect-' + self.model.get('id')
                 });
 
