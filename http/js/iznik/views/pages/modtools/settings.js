@@ -45,19 +45,10 @@ define([
             'click .js-hideall': 'hideAll',
             'click .js-mapsettings': 'mapSettings',
             'click .js-editdesc': 'editDesc',
-            'click .js-facebookauthgroup': 'facebookAuthGroup'
         },
     
         addGroup: function() {
             var v = new Iznik.Views.ModTools.Settings.AddGroup();
-            v.render();
-        },
-
-        facebookAuthGroup: function() {
-            var group = Iznik.Session.getGroup(this.selected);
-            var v = new Iznik.Views.ModTools.Settings.FacebookAuthGroup({
-                model: group
-            });
             v.render();
         },
 
@@ -2526,58 +2517,6 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.Settings.MissingFacebookBuySell = Iznik.View.extend({
-        template: 'modtools_settings_missingfacebookbuysell',
-
-        render: function() {
-            var self = this;
-            var p;
-            var missingFacebook = [];
-            var groups = Iznik.Session.get('groups');
-            groups.each(function(group) {
-                var role = group.get('role');
-                if (group.get('type') == 'Freegle' && (role == 'Moderator' || role == 'Owner')) {
-                    var facebooks = group.get('facebook');
-                    var gotgroup = false;
-                    _.each(facebooks, function(facebook) {
-                        if (facebook.type == 'Group') {
-                            if (!facebook.valid) {
-                                missingFacebook.push(facebook.name + ' - token invalid');
-                            } else {
-                                gotgroup = true;
-                            }
-                        }
-                    });
-
-                    if (!gotgroup) {
-                        missingFacebook.push(group.get('namedisplay') + ' - not linked');
-                    }
-                }
-            });
-
-            if (missingFacebook.length > 0) {
-                var p = Iznik.View.prototype.render.call(this);
-                require(['jquery-show-first'], function() {
-                    p.then(function (self) {
-                        _.each(missingFacebook, function(missing) {
-                            self.$('.js-grouplist').append('<div>' + missing + '</div>');
-                        });
-                        self.$('.js-grouplist').showFirst({
-                            controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
-                            count: 5
-                        });
-
-                        self.$('.js-profile').fadeIn('slow');
-                    });
-                });
-            } else {
-                p = Iznik.resolvedPromise(this);
-            }
-
-            return(p);
-        }
-    });
-
     Iznik.Views.ModTools.Settings.GroupDescription = Iznik.Views.Modal.extend({
         template: 'modtools_settings_description',
 
@@ -2672,13 +2611,6 @@ define([
                 var facebook = self.model.attributes;
                 self.$('.js-facebookname').html(facebook.name);
                 self.$('.js-facebookurl').attr('href', 'https://facebook.com/' + facebook.id);
-                if (facebook.type == 'Page') {
-                    self.$('.js-facebookpage').show();
-                    self.$('.js-facebookgroup').hide();
-                } else {
-                    self.$('.js-facebookpage').hide();
-                    self.$('.js-facebookgroup').show();
-                }
 
                 if (!facebook.valid) {
                     self.$('.js-facebooknotlinked').show();
@@ -2688,20 +2620,6 @@ define([
                     self.$('.js-facebookvalid').show();
                 }
             });
-        }
-    });
-
-    Iznik.Views.ModTools.Settings.FacebookAuthGroup = Iznik.Views.Modal.extend({
-        template: 'modtools_settings_facebookauthgroup',
-
-        events: {
-            'click .js-add': 'add'
-        },
-
-        add: function() {
-            var self = this;
-            window.open('/facebook/facebook_request.php?groupid=' + self.model.get('id') + '&type=Group');
-            self.close();
         }
     });
 });

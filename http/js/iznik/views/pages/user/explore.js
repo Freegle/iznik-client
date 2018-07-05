@@ -341,7 +341,7 @@ define([
                         // could delay fetching the map marker, which makes the map look slow.
                         _.delay(_.bind(function() {
                             // We might no longer be looking at the same area.
-                            console.log("Consider still present", this.get('id'), this.get('nameshort'), self.bounds.contains(new google.maps.LatLng(this.get('lat'), this.get('lng'))))
+                            // console.log("Consider still present", this.get('id'), this.get('nameshort'), self.bounds.contains(new google.maps.LatLng(this.get('lat'), this.get('lng'))))
                             if (self.bounds.contains(new google.maps.LatLng(this.get('lat'), this.get('lng')))) {
                                 var v = new Iznik.Views.Map.GroupText({
                                     model: this

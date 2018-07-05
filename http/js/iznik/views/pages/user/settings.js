@@ -50,13 +50,41 @@ define([
             'click .js-hidepassword': 'hidePassword',
             'click .js-profile': 'showProfile',
             'click .js-addressbook': 'addressBook',
-            'click .js-schedule': 'schedule'
+            'click .js-schedule': 'schedule',
+            'click .js-savephone': 'savePhone',
+            'click .js-deletephone': 'deletePhone'
+        },
+
+        savePhone: function() {
+            var self = this;
+            self.$('.js-savephoneok').addClass('hidden');
+
+            Iznik.Session.savePhone(self.$('.js-phone').val()).then(function() {
+                self.$('.js-savephoneok').removeClass('hidden');
+                self.$('.js-phonedonate').fadeIn('slow');
+                self.$('.js-deletephone').fadeIn('slow');
+                Iznik.Session.testLoggedIn(true);
+            })
+        },
+
+        deletePhone: function() {
+            var self = this;
+            self.$('.js-savephoneok').addClass('hidden');
+
+            Iznik.Session.savePhone(null).then(function() {
+                self.$('.js-phone').val('');
+                self.$('.js-savephoneok').removeClass('hidden');
+                self.$('.js-deletephone').fadeOut('slow');
+                Iznik.Session.testLoggedIn(true);
+            })
         },
 
         addressBook: function() {
             var self = this;
 
-            var v = new Iznik.Views.PostalAddress.Modal();
+            var v = new Iznik.Views.PostalAddress.Modal({
+                save: true
+            });
 
             v.render();
         },
@@ -462,6 +490,12 @@ define([
                     state: notifs.hasOwnProperty('emailmine') ? notifs.emailmine : false
                 });
 
+                if (me.phone) {
+                    self.$('.js-phone').val(me.phone);
+                    self.$('.js-deletephone').show();
+                    self.$('.js-phonedonate').show();
+                }
+
                 self.showHideMine();
 
                 if (me.hasOwnProperty('notifications')) {
@@ -551,7 +585,7 @@ define([
                                 self.model.trigger('removed');
                             });
                             
-                            Iznik.Session.testLoggedIn();
+                            Iznik.Session.testLoggedIn(true);
                         }
                     }
                 });

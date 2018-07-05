@@ -12,6 +12,7 @@ const routes = [
     'about',
     'alert',
     'aviva',
+    'board',
     'chat',
     'chats',
     'communityevents',
@@ -55,6 +56,7 @@ const routes = [
     'terms',
     'unsubscribe',
     'volunteering',
+    'volunteers',
     'why',
     'yahoologin'
 ].reduce((obj, entry) => {
