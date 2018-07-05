@@ -267,12 +267,20 @@ define([
                             });
 
                             if (group.settings.approvemembers) {
-                                self.forcejoin = group.id;
-
                                 // Check if we are already pending.
                                 var g = Iznik.Session.getGroup(group.id);
-                                if (g && g.collection == 'Pending') {
-                                    membershippending = true;
+
+                                if (g) {
+                                    if (g.collection == 'Pending') {
+                                        // Not approved yet.
+                                        membershippending = true;
+                                        self.forcejoin = group.id;
+                                    } else {
+                                        // Already approved.  That's ok then.
+                                    }
+                                } else {
+                                    // We're not a member.  Force join.
+                                    self.forcejoin = group.id;
                                 }
                             }
                         });
