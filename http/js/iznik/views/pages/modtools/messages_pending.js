@@ -81,6 +81,20 @@ define([
                 // appropriately.  Re-rendering the select will trigger a selected event which will re-fetch and render.
                 self.listenTo(Iznik.Session, 'pendingcountschanged', _.bind(self.countsChanged, self));
                 self.listenTo(Iznik.Session, 'pendingcountsotherchanged', _.bind(self.countsChanged, self));
+
+                // Nag if we have Freegle groups still on Yahoo.
+                var groups = Iznik.Session.get('groups');
+                var onyahoo = [];
+                groups.each(function(group) {
+                    if (group.get('type') == 'Freegle' && group.get('onyahoo') && group.get('onmap')) {
+                        onyahoo.push(group.get('namedisplay'));
+                    }
+                });
+
+                if (onyahoo.length > 0) {
+                    self.$('.js-onyahoogroups').html(onyahoo.join(', '));
+                    self.$('.js-onyahoowarning').fadeIn('slow');
+                }
             });
 
             return(p);

@@ -20,6 +20,7 @@ define([
     'iznik/views/user/schedule',
     'iznik/views/user/message',
     'iznik/views/promptapp',
+    'iznik/views/promptphone',
     'jquery-resizable',
     'jquery-visibility'
 ], function ($, _, Backbone, Iznik, autosize, moment, ChatHolder) {
@@ -234,12 +235,16 @@ define([
                 ad.render();
                 $('#js-rightsidebar').html(ad.el);
 
-                /* CC if (!MODTOOLS && !Storage.get('chatpromptapp')) {
-                    // Encourage people to install the mobile apps - this helps reduce dependency on emails, and
-                    // also results in people responding more rapidly.
-                    Storage.set('chatpromptapp', true);
-                    (new Iznik.Views.PromptApp()).render();
-                } */
+                // if (!MODTOOLS && !Storage.get('chatpromptapp')) {
+                //     // Encourage people to install the mobile apps - this helps reduce dependency on emails, and
+                //     // also results in people responding more rapidly.
+                //     Storage.set('chatpromptapp', true);
+                //     (new Iznik.Views.PromptApp()).render();
+                // }
+
+                // Encourage people to supply a phone number.  We can then let them know by SMS when they have
+                // a chat message
+                // CC (new Iznik.Views.PromptPhone()).render();
             });
 
             return (p);
@@ -358,7 +363,13 @@ define([
             'change .js-status': 'status',
             'click .js-remove': 'removeIt',
             'click .js-block': 'blockIt',
-            'click .js-popup': 'popup'
+            'click .js-popup': 'popup',
+            'click .js-markread': 'markRead'
+        },
+
+        markRead: function() {
+            this.model.allseen();
+            this.updateCount();
         },
 
         popup: function(){
@@ -607,11 +618,13 @@ define([
                 }
             }).then(function () {
                 if (self.offers.length > 0) {
-                    // The message we want to suggest as the one to promise is any last message mentioned in this chat.
+                    // The message we want to suggest as the one to promise is any last message mentioned in this chat,
+                    // which is the most recent i.e. first in refmsgids.
                     var msgid = null;
-                    _.each(self.model.get('refmsgids'), function(m) {
-                        msgid = m;
-                    });
+                    var refmsgids = self.model.get('refmsgids');
+                    if (refmsgids && refmsgids.length) {
+                        msgid = refmsgids[0];
+                    }
 
                     var msg = null;
                     self.offers.each(function (offer) {

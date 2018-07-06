@@ -401,13 +401,6 @@ define([
                                         sound: false
                                     },
                                     {
-                                        fi: 'fbgroups',
-                                        el: '.js-fbgroupscount',
-                                        ev: 'fbgroupscountschanged',
-                                        window: false,
-                                        sound: false
-                                    },
-                                    {
                                         fi: 'spammerpendingadd',
                                         el: '.js-spammerpendingaddcount',
                                         ev: 'spammerpendingaddcountschanged',
@@ -993,6 +986,31 @@ define([
                         } else {
                             reject(ret);
                         }
+                    }, error: function() {
+                        reject(null);
+                    }
+                })
+            });
+
+            return(p);
+        },
+
+        savePhone: function(phone) {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: API + 'session',
+                    type: 'PATCH',
+                    data: {
+                        phone: phone
+                    }, success: function (ret) {
+                        if (ret.ret === 0) {
+                            resolve();
+                        } else {
+                            reject(ret);
+                        }
+
                     }, error: function() {
                         reject(null);
                     }

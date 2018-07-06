@@ -262,16 +262,16 @@ function mainOnAppStart() { // CC
             return (Math.min(Math.pow(2, errors) * 1000, 30000));
         }
 
-        function retryIt(jqXHR) {
-            var self = this;
-            this.errors = this.errors === undefined ? 0 : this.errors + 1;
-            var thedelay = delay(this.errors);
-            console.log("retryIt", thedelay, this, arguments);
-            //console.log("retryIt", thedelay, this.responseURL); // CC
-            setTimeout(function () {
-                $.ajax(self);
-            }, thedelay);
-        }
+            function retryIt(jqXHR) {
+                var self = this;
+                this.errors = this.errors === undefined ? 0 : this.errors + 1;
+                var thedelay = delay(this.errors);
+                console.log("retryIt", thedelay, this, arguments);
+                //console.log("retryIt", thedelay, this.responseURL); // CC
+                setTimeout(function () {
+                    $.ajax(self);
+                }, thedelay);
+            }
 
         function extendIt(args, options) {
             _.extend(args[0], options && typeof options === 'object' ? options : {}, {

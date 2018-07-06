@@ -346,8 +346,16 @@ define([
                     // Put self page in.  Need to know whether we're logged in first, in order to start the
                     // chats, which some pages may rely on being active.
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                        try {
+                            global.__insp.push(['tagSession', loggedIn ? 'LoggedIn' : 'LoggedOut']);
+                        } catch (e) {}
+
                         if (loggedIn) {
                             var me = Iznik.Session.get('me');
+
+                            try {
+                                global.__insp.push(['identify', Iznik.Session.get('me').id]);
+                            } catch (e) {}
 
                             if (!self.noEmailOk && !me.email) {
                                 // We have no email.  This can happen for some login types.  Force them to provide one.

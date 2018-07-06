@@ -20,6 +20,8 @@ define([
     Iznik.Views.User.Pages.Find.Search = Iznik.Views.Infinite.extend({
         template: "user_find_search",
 
+        showChoose: false,
+
         title: "Find something",
 
         retField: 'messages',
@@ -58,6 +60,11 @@ define([
             if (e.which == 13) {
                 this.$('#searchbutton').click();
             }
+
+            if (!this.showChoose) {
+                this.showChoose = true;
+                this.$('.js-searchchoose').slideDown('slow');
+            }
         },
 
         saveSearchType: function() {
@@ -70,22 +77,30 @@ define([
 
         restoreSearchType: function() {
             var self = this;
+            console.log("Restore search type");
             try {
                 var t = Storage.get('searchtype');
+                console.log("Got", t);
                 if (t) {
+                    this.$('.js-searchchoose').show();
                     self.$(".js-searchoffers").boostrapSwitch('state', t == 'Offer' );
                 }
             } catch (e) {}
         },
 
         changeSearchType: function() {
-            // If we change the type of the search when there is something in the search box, do the search again (for
-            // the new type).  This means they don't need to figure out to hit the Search button again, which wouldn't
-            // work anyway because we are already on the correct URL.
-            this.saveSearchType();
-            var term = this.$('.js-search').val();
-            if (term.length > 0) {
-                this.render();
+            var self = this;
+
+            self.saveSearchType();
+
+            if (self.options.search) {
+                // If we change the type of the search when there is something in the search box, do the search again (for
+                // the new type).  This means they don't need to figure out to hit the Search button again, which wouldn't
+                // work anyway because we are already on the correct URL.
+                self.fetchData.messagetype = Storage.get('searchtype');
+                self.collection.reset();
+                self.context = null;
+                self.fetch(self.fetchData);
             }
         },
 
@@ -144,6 +159,7 @@ define([
             });
 
             p.then(function(self) {
+                self.restoreSearchType();
                 self.collection = null;
 
                 if (typeof SpeechRecognition === 'function') {    // CC
@@ -174,7 +190,6 @@ define([
 
                 if (self.options.search) {
                     // We've searched for something - we're showing the results.
-                    self.restoreSearchType();
                     self.$('h1').hide();
                     self.$('.js-search').val(self.options.search);
 

@@ -126,7 +126,6 @@ define([
             "modtools/events/pending": "pendingEvents",
             "modtools/volunteering/pending": "pendingVolunteering",
             "modtools/publicity": "socialActions",
-            "modtools/fbgroups": "facebookGroups",
             "modtools/admins": "admins",
             "modtools/conversations/spam": "chatReview",
             "modtools/conversations/reported": "chatReport",
@@ -139,7 +138,8 @@ define([
             "modtools/settings/confirmmail/(:key)": "confirmMail",
             "modtools/settings": "settings",
             "modtools/mobiledebug": "mobiledebug",
-            "modtools/yourdata": "yourData",
+            "modtools/teams": "teams",
+            "modtools/mydata": "myData",
             "modtools/support": "support",
             "modtools/shortlinks": "shortlinks",
             "modtools/sessions": "sessions",
@@ -192,6 +192,8 @@ define([
             "mobile": "userMobile",
             "mobile/": "userMobile",
             "about": "userAbout",
+            "volunteers": "userVolunteers",
+            "board": "userBoard",
             "terms": "userTerms",
             "handbook": "userHandbook",
             "privacy": "userPrivacy",
@@ -1289,26 +1291,6 @@ define([
             }
         },
 
-        facebookGroups: function () {
-            if (MODTOOLS) {
-                var self = this;
-
-                require(["iznik/views/pages/modtools/fbgroups"], function () {
-                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                        var page = new Iznik.Views.ModTools.Pages.FacebookGroups();
-                        self.loadRoute({
-                            page: page,
-                            modtools: true
-                        });
-                    });
-
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
-                });
-            }
-        },
-
         admins: function () {
             if (MODTOOLS) {
                 var self = this;
@@ -1800,6 +1782,39 @@ define([
 
                 require(["iznik/views/pages/user/landing"], function () {
                     var page = new Iznik.Views.User.Pages.Landing.About();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        teams: function() {
+            if (MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/teams"], function () {
+                    var page = new Iznik.Views.ModTools.Pages.Teams();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userVolunteers: function() {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/teams"], function () {
+                    var page = new Iznik.Views.User.Pages.Volunteers();
+                    self.loadRoute({page: page});
+                });
+            }
+        },
+
+        userBoard: function() {
+            if (!MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/teams"], function () {
+                    var page = new Iznik.Views.User.Pages.Board();
                     self.loadRoute({page: page});
                 });
             }

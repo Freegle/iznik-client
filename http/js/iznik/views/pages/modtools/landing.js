@@ -284,11 +284,6 @@ define([
                         self.$('.js-missingtwitter').html(x.el);
                     });
 
-                    var z = new Iznik.Views.ModTools.Settings.MissingFacebookBuySell();
-                    z.render().then(function() {
-                        // self.$('.js-missingfacebookbuysell').html(z.el);
-                    });
-
                     var mobile_version = APP_VERSION;	// CC
                     self.$('#js-mobile-version').text("ModTools mobile version "+mobile_version);
                 });

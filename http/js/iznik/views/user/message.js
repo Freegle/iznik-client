@@ -5,6 +5,7 @@ define([
     'iznik/base',
     'moment',
     'clipboard',
+    'iznik/views/promptphone',
     'iznik/views/infinite',
     'iznik/views/user/schedule'
 ], function($, _, Backbone, Iznik, moment, Clipboard) {
@@ -293,12 +294,20 @@ define([
                             });
 
                             if (group.settings.approvemembers) {
-                                self.forcejoin = group.id;
-
                                 // Check if we are already pending.
                                 var g = Iznik.Session.getGroup(group.id);
-                                if (g && g.collection == 'Pending') {
-                                    membershippending = true;
+
+                                if (g) {
+                                    if (g.collection == 'Pending') {
+                                        // Not approved yet.
+                                        membershippending = true;
+                                        self.forcejoin = group.id;
+                                    } else {
+                                        // Already approved.  That's ok then.
+                                    }
+                                } else {
+                                    // We're not a member.  Force join.
+                                    self.forcejoin = group.id;
                                 }
                             }
                         });
@@ -905,6 +914,10 @@ define([
         }
     });
 
+    Iznik.Views.User.Message.CheckSpam = Iznik.Views.Modal.extend({
+        template: 'user_message_checkspam'
+    });
+
     Iznik.Views.User.Message.Replyable = Iznik.Views.User.Message.extend({
         template: 'user_message_replyable',
 
@@ -1008,7 +1021,18 @@ define([
                                             help: true,
                                             chatuserid: self.model.get('fromuser').id
                                         });
+
                                         v.render();
+
+                                        self.listenToOnce(v, 'modalClosed, modalCancelled', function() {
+                                            _.delay(function() {
+                                                // (new Iznik.Views.User.Message.CheckSpam()).render();
+
+                                                // Encourage people to supply a phone number.  We can then let them know by SMS when they have
+                                                // a chat message
+                                                (new Iznik.Views.PromptPhone()).render();
+                                            }, 2000);
+                                        });
                                     });
 
                                     // If we were replying, we might have forced a login and shown the message in
@@ -1141,7 +1165,7 @@ define([
         render: function() {
             var self = this;
             var p;
-            console.log("Render message", self.model);
+            // console.log("Render message", self.model);
 
             if (self.rendered) {
                 p = Iznik.resolvedPromise(self);
