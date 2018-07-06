@@ -175,8 +175,8 @@ define([
                         id: self.selected
                     });
 
-                    self.$('.js-twitterauth').attr('href', '/twitter/twitter_request.php?groupid=' + self.selected);
-                    self.$('.js-facebookauthpage').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected + '&type=Page');
+                    self.$('.js-twitterauth').attr('href', 'https://modtools.org/twitter/twitter_request.php?groupid=' + self.selected);  // CC
+                    self.$('.js-facebookauthpage').attr('href', 'https://modtools.org/facebook/facebook_request.php?groupid=' + self.selected + '&type=Page');  // CC
 
                     self.group.fetch().then(function() {
                         self.$('.js-modsemail').html(self.group.get('modsemail'));
