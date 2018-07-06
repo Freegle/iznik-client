@@ -473,10 +473,10 @@ define([
                                 } else {
                                     $('.js-workcount').html('').hide();
                                 }
-                                if (window.mobilePush) {
+                                /*if (window.mobilePush) {
                                     console.log("Session set badge: " + total);
                                     window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, total);
-                                } // CC
+                                } // CC */
 
                                 if (countschanged) {
                                     Iznik.Session.trigger('countschanged');
