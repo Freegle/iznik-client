@@ -3,6 +3,7 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
+    'jquery-ui',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
     'iznik/views/postaladdress',
@@ -44,7 +45,8 @@ define([
             'click .js-addressbook': 'addressBook',
             'click .js-schedule': 'schedule',
             'click .js-savephone': 'savePhone',
-            'click .js-deletephone': 'deletePhone'
+            'click .js-deletephone': 'deletePhone',
+            'click .js-saveaboutme': 'saveAboutMe',
         },
 
         savePhone: function() {
@@ -56,6 +58,15 @@ define([
                 self.$('.js-phonedonate').fadeIn('slow');
                 self.$('.js-deletephone').fadeIn('slow');
                 Iznik.Session.testLoggedIn(true);
+            })
+        },
+
+        saveAboutMe: function() {
+            var self = this;
+            self.$('.js-saveaboutmeok').addClass('hidden');
+
+            Iznik.Session.saveAboutMe(self.$('.js-aboutme').val()).then(function() {
+                self.$('.js-saveaboutmeok').removeClass('hidden');
             })
         },
 
@@ -486,6 +497,10 @@ define([
                     self.$('.js-phone').val(me.phone);
                     self.$('.js-deletephone').show();
                     self.$('.js-phonedonate').show();
+                }
+
+                if (me.aboutme) {
+                    self.$('.js-aboutme').val(me.aboutme.text);
                 }
 
                 self.showHideMine();

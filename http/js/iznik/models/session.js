@@ -777,6 +777,31 @@ define([
             });
 
             return(p);
+        },
+
+        saveAboutMe: function(aboutme) {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: API + 'session',
+                    type: 'PATCH',
+                    data: {
+                        aboutme: aboutme
+                    }, success: function (ret) {
+                        if (ret.ret === 0) {
+                            resolve();
+                        } else {
+                            reject(ret);
+                        }
+
+                    }, error: function() {
+                        reject(null);
+                    }
+                })
+            });
+
+            return(p);
         }
     });
 });

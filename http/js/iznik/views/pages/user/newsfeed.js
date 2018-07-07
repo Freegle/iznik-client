@@ -14,6 +14,7 @@ define([
     'iznik/models/newsfeed',
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
+    'iznik/views/user/user',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/post',
     'iznik/views/infinite',
@@ -331,7 +332,10 @@ define([
                     modelView: Iznik.Views.User.Feed.Item,
                     collection: self.collection,
                     visibleModelsFilter: _.bind(self.visible, self),
-                    processKeyEvents: false
+                    processKeyEvents: false,
+                    modelViewOptions: {
+                        page: self
+                    }
                 });
 
                 self.collectionView.render();
@@ -342,7 +346,8 @@ define([
                         'VolunteerOpportunity',
                         // 'CentralPublicity',
                         'Alert',
-                        'Story'
+                        'Story',
+                        'AboutMe'
                     ]
                 });
 
@@ -503,10 +508,22 @@ define([
             'click .js-attachtothread': 'attachToThread',
             'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply',
-            'click .js-edit': 'edit'
+            'click .js-edit': 'edit',
+            'click .js-aboutyourself': 'aboutYourself'
         },
 
         imageid: null,
+
+        aboutYourself: function() {
+            var self = this;
+
+            var v = new Iznik.Views.User.TellAboutMe({})
+            this.listenToOnce(v, 'modalCancelled, modalClosed', function() {
+                self.options.page.refetch();
+            })
+
+            v.render();
+        },
 
         photoZoom: function (e) {
             e.preventDefault();
@@ -1287,6 +1304,7 @@ define([
                     case 'CentralPublicity':         self.template = 'user_newsfeed_centralpublicity'; break;
                     case 'Alert':                    self.template = 'user_newsfeed_alert'; self.model.set('sitename', SITE_NAME); break;
                     case 'Story':                    self.template = 'user_newsfeed_story'; break;
+                    case 'AboutMe':                  self.template = 'user_newsfeed_aboutme'; break;
                 }
 
                 if (self.template) {

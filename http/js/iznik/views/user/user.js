@@ -1194,4 +1194,38 @@ define([
             return (p)
         }
     })
+
+    Iznik.Views.User.TellAboutMe = Iznik.Views.Modal.extend({
+        template: 'user_tellaboutme',
+
+        events: {
+            'click .js-save': 'save'
+        },
+
+        save: function() {
+            var self = this;
+
+            Iznik.Session.saveAboutMe(self.$('.js-aboutme').val()).then(function() {
+                Iznik.Session.testLoggedIn(true);
+                self.close();
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+
+            p.then(function() {
+                var aboutme = Iznik.Session.get('me').aboutme;
+
+                if (aboutme) {
+                    self.$('.js-aboutme').val(aboutme.text);
+                }
+            });
+
+            return(p);
+        }
+    });
+
 })
