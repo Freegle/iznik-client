@@ -660,9 +660,10 @@ define([
                 if (self.offers.length > 0) {
                     // The message we want to suggest as the one to promise is any last message mentioned in this chat.
                     var msgid = null;
-                    _.each(self.model.get('refmsgids'), function(m) {
-                        msgid = m;
-                    });
+                    var refmsgids = self.model.get('refmsgids');
+                    if (refmsgids && refmsgids.length) {
+                        msgid = refmsgids[0];
+                    }
 
                     var msg = null;
                     self.offers.each(function (offer) {

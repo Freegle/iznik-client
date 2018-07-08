@@ -525,6 +525,17 @@ define([
             }));
         },
 
+        approveall: function() {
+            return($.ajax({
+                url: API + 'chatmessages',
+                type: 'POST',
+                data: {
+                    id: this.get('id'),
+                    action: 'ApproveAllFuture'
+                }
+            }));
+        },
+
         reject: function() {
             return ($.ajax({
                 url: API + 'chatmessages',

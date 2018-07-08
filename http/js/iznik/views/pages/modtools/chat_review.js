@@ -88,6 +88,7 @@ define([
 
         events: {
             'click .js-approve': 'approve',
+            'click .js-approveall': 'approveall',
             'click .js-delete': 'deleteMe',
             'click .js-modnote': 'modnote',
             'click .js-viewmsgsource': 'viewMsgSource',
@@ -150,6 +151,13 @@ define([
         approve: function() {
             var self = this;
             self.model.approve().then(function() {
+                self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
+            });
+        },
+
+        approveall: function() {
+            var self = this;
+            self.model.approveall().then(function() {
                 self.$el.fadeOut('slow', _.bind(self.destroyIt, self));
             });
         },

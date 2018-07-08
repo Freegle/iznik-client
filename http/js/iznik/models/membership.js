@@ -76,22 +76,6 @@ define([
             })
         },
 
-        approve: function() {
-            var self = this;
-
-            $.ajax({
-                type: 'POST',
-                url: API + 'memberships',
-                data: {
-                    userid: self.get('userid'),
-                    groupid: self.get('groupid'),
-                    action: 'Approve'
-                }, success: function(ret) {
-                    self.trigger('approved');
-                }
-            });
-        },
-
         reject: function(subject, body, stdmsgid) {
             var self= this;
 
