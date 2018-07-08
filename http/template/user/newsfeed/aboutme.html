@@ -1,3 +1,4 @@
+<% if (obj.user) { %>
 <div class="panel fadein">
     <div class="panel-body">
         <div class="row">
@@ -11,6 +12,21 @@
                             <a href="#" class="js-report">Report this post or one of its replies</a>
                         </li>
                         <% if (obj.ismod) { %>
+                        <li>
+                            <a href="#" class="js-refertowanted">Refer to WANTED</a>
+                        </li>
+                        <li>
+                            <a href="#" class="js-refertooffer">Refer to OFFER</a>
+                        </li>
+                        <li>
+                            <a href="#" class="js-refertoreceived">Refer to RECEIVED</a>
+                        </li>
+                        <li>
+                            <a href="#" class="js-refertotaken">Refer to TAKEN</a>
+                        </li>
+                        <li>
+                            <a href="#" class="js-attachtothread">Attach to thread</a>
+                        </li>
                         <li class="js-modonly">
                             <a href="#" class="js-delete">Delete this post</a>
                         </li>
@@ -52,3 +68,4 @@
         </div>
     </div>
 </div>
+<% } %>
