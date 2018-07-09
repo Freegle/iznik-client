@@ -576,7 +576,8 @@ define([
 
                 // We have initiated the send, so set up for the next one.
                 self.$('.js-message').val('');
-                self.messageFocus();
+                // CC self.messageFocus();
+                window.focus();
 
                 // If we've grown the textarea, shrink it.
                 self.$('textarea').css('height', '');
