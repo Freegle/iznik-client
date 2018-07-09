@@ -543,8 +543,6 @@ define([
         send: function () {
             var self = this;
             var message = this.$('.js-message').val();
-            console.log("views pages chat send");
-            console.log(message);
 
             // Don't allow people to send > as it will lead to the message being stripped as a possible reply.
             // TODO Allow this by recording the origin of the message as being on the platform.
@@ -718,10 +716,12 @@ define([
 
             if (Iznik.isMobile()) {
                 // Reduce the size of the typeable area which doesn't autosize on mobile.
-                self.$('.js-message').attr('rows', 2);
+                if (!window.isiOS) {  // CC removed so iOS send event called
+                    self.$('.js-message').attr('rows', 2);
+                }
             }
-            
-            return true; // CC
+
+            return true;  // CC added so iOS app send event called
         },
 
         messageFocused: function () {
@@ -734,7 +734,9 @@ define([
 
             if (Iznik.isMobile()) {
                 // Increase the size of the typeable area because it doesn't autosize on mobile.
-                self.$('.js-message').attr('rows', 4);
+                if (!window.isiOS) {  // CC
+                    self.$('.js-message').attr('rows', 4);
+                }
             }
 
             // On IOS we can't tell when the onscreen keyboard has opened, so we might lose the latest message.

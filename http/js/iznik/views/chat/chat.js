@@ -519,8 +519,6 @@ define([
         send: function () {
             var self = this;
             var message = this.$('.js-message').val();
-            console.log("views chat chat send");
-            console.log(message);
 
             // Don't allow people to send > as it will lead to the message being stripped as a possible reply.
             // TODO Allow this by recording the origin of the message as being on the platform.
@@ -529,7 +527,6 @@ define([
             if (message.length > 0) {
                 // We get called back when the message has actually been sent to the server.
                 self.listenToOnce(this.model, 'sent', function () {
-                console.log("send callback");
                     self.getLatestMessages();
                 });
 
