@@ -543,6 +543,8 @@ define([
         send: function () {
             var self = this;
             var message = this.$('.js-message').val();
+            console.log("views pages chat send");
+            console.log(message);
 
             // Don't allow people to send > as it will lead to the message being stripped as a possible reply.
             // TODO Allow this by recording the origin of the message as being on the platform.
@@ -718,6 +720,8 @@ define([
                 // Reduce the size of the typeable area which doesn't autosize on mobile.
                 self.$('.js-message').attr('rows', 2);
             }
+            
+            return true; // CC
         },
 
         messageFocused: function () {
