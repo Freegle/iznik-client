@@ -8,10 +8,11 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
+    'iznik/views/user/user',
     'iznik/models/group',
     'iznik/events',
     'iznik/models/notification'
-], function($, _, Backbone, Iznik, ChatHolder, monitor) {
+], function($, _, Backbone, Iznik, ChatHolder) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
     var currentPage = null;
 
@@ -173,12 +174,6 @@ define([
 
         render: function (options) {
             var self = this;
-
-            // Start event tracking.  Don't do this for ModTools because it seems to kill performance on some
-            // low-end hardware, and we don't really need it.
-            if (monitor && !self.modtools) {
-                // monitor.start();
-            }
 
             if (currentPage) {
                 // We have previous rendered a page.  Kill that off, so that it is not listening for events and
@@ -773,7 +768,13 @@ define([
 
         events: {
             'mouseover': 'markSeen',
-            'click .js-top': 'goto'
+            'click .js-top': 'goto',
+            'click .js-notifaboutme': 'aboutMe'
+        },
+
+        aboutMe: function() {
+            var v = new Iznik.Views.User.TellAboutMe({})
+            v.render();
         },
 
         goto: function() {

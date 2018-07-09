@@ -319,6 +319,7 @@ define([
             self.wait = new Iznik.Views.PleaseWait({
                 timeout: 1
             });
+            self.wait.closeAfter = 600000;
             self.wait.render();
 
             self.allGroups = new Iznik.Collections.Group();

@@ -60,6 +60,9 @@
                             <p><span class="glyphicon glyphicon-warning-sign" />&nbsp;Things haven't always worked out for this freegler.  That might not be their fault, but please make very clear arrangements.</p>
                         </div>
                         <% } %>
+                        <% if (info.aboutme) { %>
+                            <blockquote class="prewrap">{{ info.aboutme.text }}</blockquote>
+                        <% } %>
                         <div class="panel panel-info topspace">
                             <div class="panel-heading">
                                 <span class="glyphicons glyphicons-info-sign vcenter" />&nbsp;About this freegler

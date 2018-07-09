@@ -187,7 +187,7 @@ define([
                 });
 
                 Iznik.Session.testLoggedIn();
-                console.log("Tested");
+                $('#js-appbuttons').fadeIn('slow');
             });
 
             return (p);

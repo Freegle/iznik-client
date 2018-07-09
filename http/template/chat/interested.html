@@ -40,6 +40,11 @@
             <div class="panel-body">
                 {{message}}
             </div>
+            <% if (user.aboutme) { %>
+            <div class="panel-footer small">
+                <p class="faded">About {{user.displayname}}:</p>
+                <b>&quot;</b><%- user.aboutme.text %><b>&quot;</b></div>
+            <% } %>
         </div>
     </div>
 </div>
