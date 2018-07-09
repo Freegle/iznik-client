@@ -18,30 +18,34 @@ define([
         forget: function() {
             var self = this;
 
-            var v = new Iznik.Views.Confirm({
-                model: new Iznik.Model(Iznik.Session.get('me'))
-            });
-
-            v.template = 'user_unsubscribe_confirm';
-
-            self.listenToOnce(v, 'confirmed', function() {
-                var p = Iznik.Session.forget();
-
-                p.then(function() {
-                    (new Iznik.Views.User.Pages.Unsubscribe.Forgotten()).render();
+            self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                var v = new Iznik.Views.Confirm({
+                    model: new Iznik.Model(Iznik.Session.get('me'))
                 });
 
-                p.catch(function(ret) {
-                    var v = new Iznik.Views.User.Pages.Unsubscribe.ForgetFail({
-                        model: new Iznik.Model({
-                            status: ret.status
-                        })
+                v.template = 'user_unsubscribe_confirm';
+
+                self.listenToOnce(v, 'confirmed', function() {
+                    var p = Iznik.Session.forget();
+
+                    p.then(function() {
+                        (new Iznik.Views.User.Pages.Unsubscribe.Forgotten()).render();
                     });
-                    v.render();
+
+                    p.catch(function(ret) {
+                        var v = new Iznik.Views.User.Pages.Unsubscribe.ForgetFail({
+                            model: new Iznik.Model({
+                                status: ret.status
+                            })
+                        });
+                        v.render();
+                    });
                 });
+
+                v.render();
             });
 
-            v.render();
+            Iznik.Session.forceLogin();
         },
 
         findme: function() {
