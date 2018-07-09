@@ -720,6 +720,8 @@ define([
                 // Reduce the size of the typeable area which doesn't autosize on mobile.
                 self.$('.js-message').attr('rows', 2);
             }
+            
+            return true; // CC
         },
 
         messageFocused: function () {
