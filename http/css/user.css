@@ -16,6 +16,14 @@
     color: #61AE24 !important;
 }
 
+.photobadge {
+    color: white;
+    background-color: blue !important;
+    position: relative;
+    top: -36px;
+    left: -12px;
+}
+
 .visbubble
 {
     position: relative;
