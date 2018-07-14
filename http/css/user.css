@@ -365,6 +365,10 @@ h1,h2,h3,h4 {
     right: 15px;
 }
 
+.notiflist {
+    overflow-x: hidden
+}
+
 #js-notifchat ul, #js-notifchat li {
     color: black;
     background-color: #edeef1;

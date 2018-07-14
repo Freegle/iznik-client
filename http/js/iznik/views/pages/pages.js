@@ -172,6 +172,32 @@ define([
             }
         },
 
+        fetchNotifications() {
+            var self = this;
+            var p;
+
+            if (!self.fetchingNotifications) {
+                var ctx = self.notifications.ret && self.notifications.ret.context ? self.notifications.ret.context : null;
+
+                p = self.notifications.fetch({
+                    remove: false,
+                    data: {
+                        context: ctx
+                    }
+                });
+
+                self.fetchingNotifications = p;
+
+                p.then(function() {
+                    self.fetchingNotifications = null;
+                });
+            } else {
+                p = self.fetchingNotifications;
+            }
+
+            return(p);
+        },
+
         render: function (options) {
             var self = this;
 
@@ -357,45 +383,43 @@ define([
 
                         if ($('.js-notiflist').length) {
                             // Notifications count and dropdown.
-                            //
-                            // Delay check by a few seconds because loading the rest of the page is more important
-                            // than this.
                             self.notifications = new Iznik.Collections.Notification();
 
-                            _.delay(_.bind(function() {
-                                this.notificationCheck();
+                            this.notificationCheck();
 
-                                self.notificationsCV1 = new Backbone.CollectionView({
-                                    el: $('.js-notiflist1'),
-                                    modelView: Iznik.Views.Notification,
-                                    collection: self.notifications,
-                                    modelViewOptions: {
-                                        page: self,
-                                        notificationCheck: self.notificationCheck
-                                    },
-                                    processKeyEvents: false
-                                });
+                            self.notificationsCV1 = new Backbone.CollectionView({
+                                el: $('.js-notiflist1'),
+                                modelView: Iznik.Views.Notification,
+                                collection: self.notifications,
+                                modelViewOptions: {
+                                    page: self,
+                                    notificationCheck: self.notificationCheck
+                                },
+                                processKeyEvents: false,
+                                detachedRendering: true
+                            });
 
-                                self.notificationsCV2 = new Backbone.CollectionView({
-                                    el: $('.js-notiflist2'),
-                                    modelView: Iznik.Views.Notification,
-                                    collection: self.notifications,
-                                    modelViewOptions: {
-                                        page: self,
-                                        notificationCheck: self.notificationCheck
-                                    },
-                                    processKeyEvents: false
-                                });
+                            self.notificationsCV2 = new Backbone.CollectionView({
+                                el: $('.js-notiflist2'),
+                                modelView: Iznik.Views.Notification,
+                                collection: self.notifications,
+                                modelViewOptions: {
+                                    page: self,
+                                    notificationCheck: self.notificationCheck
+                                },
+                                processKeyEvents: false,
+                                detachedRendering: true
+                            });
 
-                                self.notificationsCV1.render();
-                                self.notificationsCV2.render();
-                                self.notifications.fetch();
-                            }, self), 5000);
+                            self.notificationsCV1.render();
+                            self.notificationsCV2.render();
+                            self.fetchNotifications();
 
                             $(".js-notifholder").click(_.bind(function (e) {
                                 var self = this;
+                                self.notifications.ret = null;
                                 // Fetch the notifications, which the CV will then render.
-                                self.notifications.fetch().then(function() {
+                                self.fetchNotifications().then(function() {
                                     // Clear the first notification after a while, because we'll have seen it.
                                     _.delay(function() {
                                         var notif = self.notifications.first();
@@ -406,6 +430,17 @@ define([
                                     }, 5000);
                                 });
                             }, self));
+
+                            $('.js-notiflist').on('scroll', function() {
+                                var top = $(this).scrollTop();
+                                var height = $(this).innerHeight();
+                                var scroll = $(this)[0].scrollHeight;
+                                // console.log("Scroll", top, height, scroll);
+
+                                if (top + height * 2 + 50 >= scroll) {
+                                    self.fetchNotifications();
+                                }
+                            })
 
                             $(".js-markallnotifread").click(function (e) {
                                 e.preventDefault();
