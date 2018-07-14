@@ -110,6 +110,15 @@ define([
         shownFind: false,
         shownGive: false,
 
+        considerFetch: function() {
+            var self = this;
+
+            if (!self.fetchLast || (new Date()).getTime() - self.fetchLast > 0) {
+                // We last fetched a while ago - fetch again.
+                self.fetch();
+            }
+        },
+
         checkMessage: function() {
             var self = this;
 
@@ -422,6 +431,15 @@ define([
                     _.delay(function() {
                         self.$('.file-preview-frame').remove();
                     }, 500);
+                });
+
+                $(document).on('hide', function () {
+                    self.tabActive = false;
+                });
+
+                $(document).on('show', function () {
+                    self.tabActive = true;
+                    self.considerFetch();
                 });
             });
 

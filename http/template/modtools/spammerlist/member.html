@@ -21,7 +21,11 @@
             </div>
         </div>
         <% if (obj.byuser && type != 'whitelisted') { %>
+        <% if (type == 'pendingremove') { %>
+        <span class="text-muted"><small>Removal requested by {{byuser.displayname}}</small></span>
+        <% } else { %>
         <span class="text-muted"><small>Reported by {{byuser.displayname}}</small></span>
+        <% } %>
         <% } %>
     </div>
     <div class="panel-body">
