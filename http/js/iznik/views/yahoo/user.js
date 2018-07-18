@@ -4,8 +4,7 @@ define([
     'backbone',
     'moment',
     'iznik/base',
-    'bootstrap-switch',
-    'bootstrap-datepicker'
+    'bootstrap-switch'
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Yahoo.User = Iznik.View.extend({
         template: 'modtools_yahoo_user',

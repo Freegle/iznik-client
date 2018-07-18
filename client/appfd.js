@@ -27,7 +27,7 @@ import "bootstrap-select.min.css";
 import "bootstrap-switch.min.css";
 import "bootstrap-dropmenu.min.css";
 import "bootstrap-notifications.min.css";
-import "bootstrap-datepicker/dist/css/bootstrap-datepicker3.css";
+import "eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css";
 import "dd.css";
 import "bootstrap-fileinput/css/fileinput.css";
 

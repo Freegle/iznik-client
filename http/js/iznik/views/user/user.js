@@ -7,12 +7,8 @@ define([
     'backform',
     'iznik/views/modal',
     'bootstrap-switch',
-    'bootstrap-datepicker'
+    'eonasdan-bootstrap-datetimepicker'
 ], function ($, _, Backbone, moment, Iznik, Backform) {
-    // There's a conflict between jQuery UI and bootstrap datepicker.
-    var datepicker = $.fn.datepicker.noConflict()
-    $.fn.bootstrapDP = datepicker
-
     Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
 
@@ -1000,11 +996,10 @@ define([
             var self = this
 
             if (this.$('.js-holidayswitch').bootstrapSwitch('state')) {
-                till = this.$('.datepicker.js-onholidaytill').bootstrapDP('getUTCDates')
-                till = till && till.length > 0 ? (new Date(Date.parse(till)).toISOString()) : null
+                till = this.$('.datepicker.js-onholidaytill').datetimepicker('date').toISOString();
             }
 
-            this.$('.js-onholidaytill').bootstrapDP('hide')
+            this.$('.js-onholidaytill').datetimepicker('hide')
 
             $.ajax({
                 url: API + 'user',
@@ -1086,10 +1081,10 @@ define([
                     self.$('.js-emailfrequency').show()
                 }
 
-                self.$('.js-onholidaytill').bootstrapDP({
-                    format: 'D, dd MM yyyy',
-                    startDate: '0d',
-                    endDate: '+30d'
+                self.$('.js-onholidaytill').datetimepicker({
+                    format: 'ddd, DD MMMM',
+                    minDate: new moment(),
+                    maxDate: (new moment()).add(30, 'days')
                 })
             })
 
