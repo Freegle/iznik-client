@@ -464,7 +464,10 @@ define([
 
                 self.model.fetch({
                     success: function() {
-                        if (self.model.get('replyto')) {
+                        if (self.model.get('deleted')) {
+                            self.$('.js-error').fadeIn('slow');
+                            self.$('.js-back').fadeIn('slow');
+                        } else if (self.model.get('replyto')) {
                             // Notification is on a reply; render then make sure the reply is visible.
                             self.model = new Iznik.Models.Newsfeed({
                                 id: self.model.get('replyto')
@@ -472,15 +475,20 @@ define([
 
                             self.model.fetch({
                                 success: function() {
-                                    var v = new Iznik.Views.User.Feed.Item({
-                                        model: self.model,
-                                        highlight: self.options.id
-                                    });
-
-                                    v.render().then(function() {
-                                        self.$('.js-item').html(v.$el);
+                                    if (self.model.get('deleted')) {
+                                        self.$('.js-error').fadeIn('slow');
                                         self.$('.js-back').fadeIn('slow');
-                                    });
+                                    } else {
+                                        var v = new Iznik.Views.User.Feed.Item({
+                                            model: self.model,
+                                            highlight: self.options.id
+                                        });
+
+                                        v.render().then(function() {
+                                            self.$('.js-item').html(v.$el);
+                                            self.$('.js-back').fadeIn('slow');
+                                        });
+                                    }
                                 },
                                 error: function() {
                                     self.$('.js-error').fadeIn('slow');
