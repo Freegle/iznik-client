@@ -128,7 +128,11 @@ define([
 
         onholidaytill: function(e) {
             var me = Iznik.Session.get('me');
+
+            // Set the hour else midnight and under DST goes back a day.
+            e.date.hour(5);
             var till = e.date.toISOString();
+
             this.$('.js-onholidaytill').datetimepicker('hide');
 
             Iznik.Session.save({
