@@ -637,6 +637,18 @@ define([
                                         break;
                                     }
 
+                                    case 'ToGroup': {
+                                        self.collection.add(new Iznik.Models.Plugin.Work({
+                                            id: bulkop.id,
+                                            subview: new Iznik.Views.Plugin.Yahoo.ToGroup({
+                                                model: mod,
+                                                bulkop: bulkop
+                                            }),
+                                            bulk: true
+                                        }));
+                                        break;
+                                    }
+
                                     default: {
                                         console.log("Ignore bulkop");
                                     }
@@ -1680,14 +1692,92 @@ define([
             this.startBusy();
     
             if (self.options.bulkop.criterion != 'WebOnly') {
-                console.error("To Special Notices bulk op only supports WebOnly filter");
+                console.error("To Special Notices bulk op only supports WebOnly filter", self.options.bulkop.criterion);
                 self.options.bulkop.criterion = 'WebOnly';
             }
     
             this.getChunk();
         }
     });
-    
+
+    Iznik.Views.Plugin.Yahoo.ToGroup = Iznik.Views.Plugin.SubView.extend({
+        // Setting offset to 0 omits start from first one
+        offset: 0,
+        context: null,
+        members: [],
+
+        crumbLocation: "/members/all",
+
+        template: 'plugin_togroup',
+
+        changeOne: function() {
+            var self = this;
+
+            if (self.offset < self.members.length) {
+                var percent = Math.round((self.offset / self.members.length) * 100);
+                self.$('.progress-bar:last').css('width',  percent + '%').attr('aria-valuenow', percent);
+
+                var member = self.members[self.offset++];
+                console.log(member);
+                var group = Iznik.Session.getGroup(self.options.bulkop.groupid);
+                var mod = new Iznik.Models.Yahoo.User({
+                    group: group.get('nameshort'),
+                    email: member.email,
+                    userId: member.yahooUserId
+                });
+                self.listenToOnce(mod, 'completed', function() {
+                    self.changeOne();
+                });
+                mod.changeAttr('postingStatus', 'DEFAULT');
+            } else {
+                // Finished
+                console.log("Finished");
+                self.succeed();
+            }
+        },
+
+        getChunk: function() {
+            var self = this;
+            $.ajax({
+                type: 'GET',
+                url: API + 'memberships/' + self.options.bulkop.groupid,
+                context: self,
+                data: {
+                    limit: 1000,
+                    context: self.context ? self.context : null,
+                    yahooDeliveryType: 'NONE'
+                },
+                success: function(ret) {
+                    var self = this;
+                    self.context = ret.context;
+                    self.$('.js-count').html(ret.members.length);
+
+                    if (ret.members.length > 0) {
+                        // We returned some - add them to the list.
+                        _.each(ret.members, function(member) {
+                            if (member.hasOwnProperty('email') && member.email.toLowerCase().indexOf('fbuser') == -1) {
+                                // FBUser members are members on Yahoo which are allowed to be on Web Only.
+                                self.members.push(member);
+                            }
+                        });
+                        self.getChunk.call(self);
+                    } else {
+                        // We got them all.
+                        self.$('.js-download').hide();
+                        self.$('.js-progress').show();
+                        self.changeOne();
+                    }
+                }
+            })
+        },
+
+        start: function() {
+            var self = this;
+            this.startBusy();
+            this.getChunk();
+        }
+    });
+
     Iznik.Views.Plugin.Yahoo.ApprovePendingMessage = Iznik.Views.Plugin.SubView.extend({
         template: 'plugin_pending_approve',
         crumbLocation: "/management/pendingmessages",
