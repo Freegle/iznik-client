@@ -396,11 +396,17 @@ function mainOnAppStart() { // CC
                         })(10);
                       }
                     }
-                    if (foreground) {
-                      var frag = Backbone.history.getFragment();
-                      console.log("frag", frag);
+                    if (foreground) { // Reload if route matches where we are - or if on any chat screen eg /chat/123456 or /chats
+                      var frag = '/' + Backbone.history.getFragment();
                       if (data.additionalData.route) {
-                        console.log("data.additionalData.route", data.additionalData.route);
+                        if (frag == data.additionalData.route) {
+                          Backbone.history.loadUrl();
+                        }
+                        else {
+                          if ((frag.substring(0, 5) == '/chat') && (data.additionalData.route.substring(0, 5) == '/chat')) {
+                            Backbone.history.loadUrl(); // refresh rather than go to route
+                          }
+                        }
                       }
                     }
 
