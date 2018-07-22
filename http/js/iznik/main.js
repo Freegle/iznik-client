@@ -396,6 +396,13 @@ function mainOnAppStart() { // CC
                         })(10);
                       }
                     }
+                    if (foreground) {
+                      var frag = Backbone.history.getFragment();
+                      console.log("frag", frag);
+                      if (data.additionalData.route) {
+                        console.log("data.additionalData.route", data.additionalData.route);
+                      }
+                    }
 
                     /*if ((!foreground && doubleEvent) && (data.count > 0)) { // Only show chat if started/awakened ie not if in foreground
                         var chatids = data.additionalData.chatids;
