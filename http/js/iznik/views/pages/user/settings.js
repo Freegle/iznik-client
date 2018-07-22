@@ -3,15 +3,15 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'jquery-ui',
+    'moment',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/pages',
     'iznik/views/postaladdress',
     'iznik/views/user/schedule',
     'iznik/views/help',
     'bootstrap-switch',
-    'bootstrap-datepicker'
-], function($, _, Backbone, Iznik) {
+    'eonasdan-bootstrap-datetimepicker'
+], function($, _, Backbone, Iznik, moment) {
     // We extend WhereAmI to get the location-choosing code.
     Iznik.Views.User.Pages.Settings = Iznik.Views.User.Pages.WhereAmI.extend({
         template: "user_settings_main",
@@ -39,7 +39,6 @@ define([
             'switchChange.bootstrapSwitch .js-newsletter': 'newsletterSwitch',
             'switchChange.bootstrapSwitch #useprofile': 'useProfileSwitch',
             'switchChange.bootstrapSwitch .js-notificationmails': 'notificationSwitch',
-            'changeDate .js-onholidaytill': 'onholidaytill',
             'keyup .js-name': 'nameChange',
             'click .js-savename': 'nameChange',
             'click .js-savepostcode': 'locChange',
@@ -135,11 +134,14 @@ define([
             this.$('.js-showpassword').show();
         },
 
-        onholidaytill: function() {
+        onholidaytill: function(e) {
             var me = Iznik.Session.get('me');
-            var till = this.$('.js-onholidaytill').datepicker('getUTCDates');
-            till = (new Date(Date.parse(till)).toISOString());
-            this.$('.js-onholidaytill').datepicker('hide');
+
+            // Set the hour else midnight and under DST goes back a day.
+            e.date.hour(5);
+            var till = e.date.toISOString();
+
+            this.$('.js-onholidaytill').datetimepicker('hide');
 
             Iznik.Session.save({
                 id: me.id,
@@ -156,7 +158,7 @@ define([
             if (this.$('.js-holidayswitch').bootstrapSwitch('state')) {
                 this.$('.js-onholidaytill').show();
                 this.$('.js-until').show();
-                this.$('.js-onholidaytill').datepicker('update', till);
+                this.$('.js-onholidaytill').datetimepicker('date', till);
             } else {
                 this.$('.js-onholidaytill').val('1970-01-01T00:00:00Z');
                 this.$('.js-onholidaytill').hide();
@@ -376,11 +378,13 @@ define([
                 });
 
                 self.$('abbr.timeago').timeago();
-                self.$('.datepicker').datepicker({
-                    format: 'D, dd MM yyyy',
-                    startDate: '0d',
-                    endDate: '+30d'
+                self.$('.datepicker').datetimepicker({
+                    format: 'ddd, DD MMMM',
+                    minDate: new moment(),
+                    maxDate: (new moment()).add(30, 'days')
                 });
+
+                self.$('.datepicker').on("dp.change", _.bind(self.onholidaytill, self));
 
                 var me = Iznik.Session.get('me');
                 self.$('.js-name').val(me.displayname);

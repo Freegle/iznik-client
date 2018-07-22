@@ -7,12 +7,8 @@ define([
     'backform',
     'iznik/views/modal',
     'bootstrap-switch',
-    'bootstrap-datepicker'
+    'eonasdan-bootstrap-datetimepicker'
 ], function ($, _, Backbone, moment, Iznik, Backform) {
-    // There's a conflict between jQuery UI and bootstrap datepicker.
-    var datepicker = $.fn.datepicker.noConflict()
-    $.fn.bootstrapDP = datepicker
-
     Iznik.Views.ModTools.User = Iznik.View.extend({
         template: 'modtools_user_user',
 
@@ -945,8 +941,6 @@ define([
             'change .js-emailfrequency': 'changeFreq',
             'change .js-ourpostingstatus': 'changeOurPostingStatus',
             'change .js-role': 'changeRole',
-            'switchChange.bootstrapSwitch .js-onholiday': 'onholiday',
-            'changeDate .js-onholidaytill': 'saveHoliday',
         },
 
         changeFreq: function () {
@@ -995,16 +989,17 @@ define([
             })
         },
 
-        saveHoliday: function () {
+        saveHoliday: function (e) {
             var till = null
             var self = this
 
-            if (this.$('.js-holidayswitch').bootstrapSwitch('state')) {
-                till = this.$('.datepicker.js-onholidaytill').bootstrapDP('getUTCDates')
-                till = till && till.length > 0 ? (new Date(Date.parse(till)).toISOString()) : null
+            if (this.$('.js-switch').bootstrapSwitch('state')) {
+                // Set the hour else midnight and under DST goes back a day.
+                e.date.hour(5);
+                till = e.date.toISOString();
             }
 
-            this.$('.js-onholidaytill').bootstrapDP('hide')
+            this.$('.js-onholidaytill').datetimepicker('hide')
 
             $.ajax({
                 url: API + 'user',
@@ -1017,18 +1012,32 @@ define([
             })
         },
 
-        onholiday: function (obj, state) {
-            if (state) {
-                this.$('.js-onholidaytill').show()
-                this.saveHoliday()
-                _.delay(_.bind(function () {
-                    this.$('.js-onholidaytill:visible').focus()
-                }, this), 500)
-            } else {
-                this.$('.js-onholidaytill').val(null)
-                this.$('.js-onholidaytill').hide()
-                this.saveHoliday()
-            }
+        onholiday: function (e, data) {
+            console.log("On holiday toggle", this, data);
+            var self = this;
+
+            self.$('.js-onholiday').bootstrapSwitch('state', !data, true)
+            var state = self.$('.js-onholiday').bootstrapSwitch('state');
+
+            var v = new Iznik.Views.Confirm({});
+
+            self.listenToOnce(v, 'confirmed', function () {
+                self.$('.js-onholiday').bootstrapSwitch('state', data, true)
+                if (!state) {
+                    // Turn on.  Changing the date value will actually save it.
+                    this.$('.js-onholidaytill').show()
+                    _.delay(_.bind(function () {
+                        this.$('.js-onholidaytill:visible').focus()
+                    }, this), 500)
+                } else {
+                    // Turn off and reset date.
+                    this.$('.js-onholidaytill').val(null)
+                    this.$('.js-onholidaytill').hide()
+                    this.saveHoliday()
+                }
+            });
+
+            v.render();
         },
 
         render: function () {
@@ -1071,26 +1080,29 @@ define([
                     onText: 'Paused',
                     offText: 'Mail&nbsp;On',
                     state: onholiday != undefined
-                })
+                });
+
+                // We override the default click handler because we want to add a prompt.
+                self.$('.js-switch').on('switchChange.bootstrapSwitch', _.bind(self.onholiday, self));
 
                 _.defer(function () {
                     self.$('select').selectpicker()
                 })
 
+                self.$('.js-onholidaytill').datetimepicker({
+                    format: 'ddd, DD MMMM',
+                    minDate: new moment(),
+                    maxDate: (new moment()).add(30, 'days')
+                }).on('dp.change', _.bind(self.saveHoliday, self));
+
                 if (onholiday && onholiday != undefined && onholiday != '1970-01-01T00:00:00Z') {
-                    self.$('.js-onholidaytill').val((new moment(onholiday).format('MMM Do YYYY')))
                     self.$('.js-onholidaytill').show()
                     self.$('.js-emailfrequency').hide()
+                    self.$('.js-onholidaytill').datetimepicker('date', new moment(onholiday));
                 } else {
                     self.$('.js-onholidaytill').hide()
                     self.$('.js-emailfrequency').show()
                 }
-
-                self.$('.js-onholidaytill').bootstrapDP({
-                    format: 'D, dd MM yyyy',
-                    startDate: '0d',
-                    endDate: '+30d'
-                })
             })
 
             return (p)

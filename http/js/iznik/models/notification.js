@@ -60,6 +60,9 @@ define([
         parse: function(ret) {
             var self = this;
 
+            // Store for context
+            self.ret = ret;
+
             if (ret.hasOwnProperty('notifications')) {
                 return ret.notifications;
             } else {

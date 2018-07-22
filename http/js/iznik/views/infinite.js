@@ -12,11 +12,13 @@ define([
         fetching: null,
         fetchData: {},
         fetchPromise: null,
+        fetchLast: null,
         listening: false,
         wait: null,
 
         fetch: function (data) {
             var self = this;
+            self.fetchLast = (new Date()).getTime();
 
             if (self.fetchPromise && self.fetching == self.selected) {
                 // We are already fetching what we need to be.

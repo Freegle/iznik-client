@@ -110,6 +110,15 @@ define([
         shownFind: false,
         shownGive: false,
 
+        considerFetch: function() {
+            var self = this;
+
+            if (!self.fetchLast || (new Date()).getTime() - self.fetchLast > 0) {
+                // We last fetched a while ago - fetch again.
+                self.fetch();
+            }
+        },
+
         checkMessage: function() {
             var self = this;
 
@@ -423,6 +432,15 @@ define([
                         self.$('.file-preview-frame').remove();
                     }, 500);
                 });
+
+                $(document).on('hide', function () {
+                    self.tabActive = false;
+                });
+
+                $(document).on('show', function () {
+                    self.tabActive = true;
+                    self.considerFetch();
+                });
             });
 
             return(p);
@@ -446,7 +464,10 @@ define([
 
                 self.model.fetch({
                     success: function() {
-                        if (self.model.get('replyto')) {
+                        if (self.model.get('deleted')) {
+                            self.$('.js-error').fadeIn('slow');
+                            self.$('.js-back').fadeIn('slow');
+                        } else if (self.model.get('replyto')) {
                             // Notification is on a reply; render then make sure the reply is visible.
                             self.model = new Iznik.Models.Newsfeed({
                                 id: self.model.get('replyto')
@@ -454,15 +475,20 @@ define([
 
                             self.model.fetch({
                                 success: function() {
-                                    var v = new Iznik.Views.User.Feed.Item({
-                                        model: self.model,
-                                        highlight: self.options.id
-                                    });
-
-                                    v.render().then(function() {
-                                        self.$('.js-item').html(v.$el);
+                                    if (self.model.get('deleted')) {
+                                        self.$('.js-error').fadeIn('slow');
                                         self.$('.js-back').fadeIn('slow');
-                                    });
+                                    } else {
+                                        var v = new Iznik.Views.User.Feed.Item({
+                                            model: self.model,
+                                            highlight: self.options.id
+                                        });
+
+                                        v.render().then(function() {
+                                            self.$('.js-item').html(v.$el);
+                                            self.$('.js-back').fadeIn('slow');
+                                        });
+                                    }
                                 },
                                 error: function() {
                                     self.$('.js-error').fadeIn('slow');
