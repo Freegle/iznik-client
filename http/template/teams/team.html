@@ -1,5 +1,8 @@
 <h2>{{name}}</h2>
 <p>{{description}}</p>
+<% if (obj.email) { %>
+<p>Contact email: <a href="mailto:{{email}}" data-realurl="true">{{email}}</a></p>
+<% } %>
 <div class="js-teamadmin" style="display: none">
     <div class="input-group">
         <input type="number" class="js-userid form-control" aria-describedby="addbutt" placeholder="Add a member using their user id" size="30">
