@@ -5,7 +5,7 @@ Iznik is a platform for online reuse of unwanted items.  This is the client half
 The development has been funded by Freegle for use in the UK, 
 but it is an open source platform which can be used or adapted by others.
 
-This codebase supports two sites - the user site Freegle Direct (aka FD), and the moderator site ModTools (aka MT).  If you're not sure, you're probably interested in MT. 
+This codebase supports two sites - the user site Freegle Direct (aka FD), and the moderator site ModTools (aka MT).  If you're not sure, you're probably interested in FD. 
 
 We welcome potential developers with open arms.  Have  a look at the wiki section.
 

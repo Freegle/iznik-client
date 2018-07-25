@@ -16,6 +16,14 @@
     color: #61AE24 !important;
 }
 
+.photobadge {
+    color: white;
+    background-color: blue !important;
+    position: relative;
+    top: -36px;
+    left: -12px;
+}
+
 .visbubble
 {
     position: relative;
@@ -355,6 +363,10 @@ h1,h2,h3,h4 {
     position: absolute;
     top: -3px;
     right: 15px;
+}
+
+.notiflist {
+    overflow-x: hidden
 }
 
 #js-notifchat ul, #js-notifchat li {

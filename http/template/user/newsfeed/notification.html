@@ -120,6 +120,20 @@
                 <span class="notification-title">Your application was rejected</span>
             </div>
         </div>
+        <% } else if (type == 'AboutMe') { %>
+        <div class="media clickme js-notifaboutme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <span class="glyphicon glyphicon-info-sign glyphicon-larger" />
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title">Tell us about yourself!</span>
+                <p class="notification-desc">
+                    Click to introduce yourself to other freeglers by telling us a bit about you.  You'll get a better response and it makes freegling more fun.
+                </p>
+            </div>
+        </div>
         <% } %>
     </div>
 </div>

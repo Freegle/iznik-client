@@ -367,6 +367,10 @@ nav .nav-tabs>li {
     margin-bottom: 5px;
 }
 
+.margbotmd {
+    margin-bottom: 10px;
+}
+
 .margbotnone {
     margin-bottom: 0px;
 }
@@ -1928,6 +1932,42 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     padding-top: 10px;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+blockquote {
+    font-family: Georgia, serif;
+    position: relative;
+    margin: 0.5em;
+    padding: 0.5em 2em 0.5em 3em;
+    border-left: none;
+}
+/* Thanks: http://callmenick.com/post/styling-blockquotes-with-css-pseudo-classes */
+blockquote:before {
+    font-family: Georgia, serif;
+    position: absolute;
+    font-size: 6em;
+    line-height: 1;
+    top: 0;
+    left: 0;
+    content: "\201C";
+}
+blockquote:after {
+    font-family: Georgia, serif;
+    position: absolute;
+    /* display: block; don't use this, it raised the quote too high from the bottom - defeated line-height? */
+    float:right;
+    font-size:6em;
+    line-height: 1;
+    right:0;
+    bottom:-0.5em;
+    content: "\201D";
+}
+blockquote footer {
+    padding: 0 2em 0 0;
+    text-align:right;
+}
+blockquote cite:before {
+    content: "\2013";
 }
 
 /*==================================================

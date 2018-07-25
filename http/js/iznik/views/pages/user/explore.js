@@ -337,20 +337,18 @@ define([
                         marker.setDraggable(false);
                         self.addMarker(marker);
 
-                        // Delay adding the text ones to the list, because this fetches the group icon, and
-                        // could delay fetching the map marker, which makes the map look slow.
-                        _.delay(_.bind(function() {
-                            // We might no longer be looking at the same area.
-                            // console.log("Consider still present", this.get('id'), this.get('nameshort'), self.bounds.contains(new google.maps.LatLng(this.get('lat'), this.get('lng'))))
-                            if (self.bounds.contains(new google.maps.LatLng(this.get('lat'), this.get('lng')))) {
-                                var v = new Iznik.Views.Map.GroupText({
-                                    model: this
-                                });
-                                v.render().then(function() {
+                        // We might no longer be looking at the same area.
+                        // console.log("Consider still present", this.get('id'), this.get('nameshort'), self.bounds.contains(new google.maps.LatLng(this.get('lat'), this.get('lng'))))
+                        if (self.bounds.contains(new google.maps.LatLng(group.get('lat'), group.get('lng')))) {
+                            var v = new Iznik.Views.Map.GroupText({
+                                model: group
+                            });
+                            v.render().then(function() {
+                                if (self.options.textlist.find('.js-grouptext-' + self.model.get('id')).length === 0) {
                                     self.options.textlist.append(v.$el);
-                                });
-                            }
-                        }, group), 5000);
+                                }
+                            });
+                        }
                     }
                 });
 
@@ -436,7 +434,19 @@ define([
     });
 
     Iznik.Views.Map.GroupText = Iznik.View.extend({
-        template: 'user_explore_grouptext'
+        template: 'user_explore_grouptext',
+
+        render: function () {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+
+            p.then(function() {
+                self.$el.attr('id', 'js-grouptext-' + self.model.get('id'))
+            })
+
+            return(p);
+        }
     });
 
     Iznik.Views.User.Pages.ExploreGroup = Iznik.Views.User.Pages.Group.extend({

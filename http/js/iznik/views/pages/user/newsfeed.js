@@ -14,6 +14,7 @@ define([
     'iznik/models/newsfeed',
     'iznik/views/group/communityevents',
     'iznik/views/group/volunteering',
+    'iznik/views/user/user',
     'iznik/views/pages/pages',
     'iznik/views/pages/user/post',
     'iznik/views/infinite',
@@ -108,6 +109,15 @@ define([
 
         shownFind: false,
         shownGive: false,
+
+        considerFetch: function() {
+            var self = this;
+
+            if (!self.fetchLast || (new Date()).getTime() - self.fetchLast > 0) {
+                // We last fetched a while ago - fetch again.
+                self.fetch();
+            }
+        },
 
         checkMessage: function() {
             var self = this;
@@ -331,7 +341,10 @@ define([
                     modelView: Iznik.Views.User.Feed.Item,
                     collection: self.collection,
                     visibleModelsFilter: _.bind(self.visible, self),
-                    processKeyEvents: false
+                    processKeyEvents: false,
+                    modelViewOptions: {
+                        page: self
+                    }
                 });
 
                 self.collectionView.render();
@@ -342,7 +355,8 @@ define([
                         'VolunteerOpportunity',
                         // CC Remove as IFRAMEs don't work in apps 'CentralPublicity',
                         'Alert',
-                        'Story'
+                        'Story',
+                        'AboutMe'
                     ]
                 });
 
@@ -418,6 +432,15 @@ define([
                         self.$('.file-preview-frame').remove();
                     }, 500);
                 });
+
+                $(document).on('hide', function () {
+                    self.tabActive = false;
+                });
+
+                $(document).on('show', function () {
+                    self.tabActive = true;
+                    self.considerFetch();
+                });
             });
 
             return(p);
@@ -441,7 +464,10 @@ define([
 
                 self.model.fetch({
                     success: function() {
-                        if (self.model.get('replyto')) {
+                        if (self.model.get('deleted')) {
+                            self.$('.js-error').fadeIn('slow');
+                            self.$('.js-back').fadeIn('slow');
+                        } else if (self.model.get('replyto')) {
                             // Notification is on a reply; render then make sure the reply is visible.
                             self.model = new Iznik.Models.Newsfeed({
                                 id: self.model.get('replyto')
@@ -449,15 +475,20 @@ define([
 
                             self.model.fetch({
                                 success: function() {
-                                    var v = new Iznik.Views.User.Feed.Item({
-                                        model: self.model,
-                                        highlight: self.options.id
-                                    });
-
-                                    v.render().then(function() {
-                                        self.$('.js-item').html(v.$el);
+                                    if (self.model.get('deleted')) {
+                                        self.$('.js-error').fadeIn('slow');
                                         self.$('.js-back').fadeIn('slow');
-                                    });
+                                    } else {
+                                        var v = new Iznik.Views.User.Feed.Item({
+                                            model: self.model,
+                                            highlight: self.options.id
+                                        });
+
+                                        v.render().then(function() {
+                                            self.$('.js-item').html(v.$el);
+                                            self.$('.js-back').fadeIn('slow');
+                                        });
+                                    }
                                 },
                                 error: function() {
                                     self.$('.js-error').fadeIn('slow');
@@ -503,10 +534,22 @@ define([
             'click .js-attachtothread': 'attachToThread',
             'click .js-preview': 'clickPreview',
             'click .js-reply': 'reply',
-            'click .js-edit': 'edit'
+            'click .js-edit': 'edit',
+            'click .js-aboutyourself': 'aboutYourself'
         },
 
         imageid: null,
+
+        aboutYourself: function() {
+            var self = this;
+
+            var v = new Iznik.Views.User.TellAboutMe({})
+            this.listenToOnce(v, 'modalCancelled, modalClosed', function() {
+                self.options.page.refetch();
+            })
+
+            v.render();
+        },
 
         photoZoom: function (e) {
             e.preventDefault();
@@ -1315,6 +1358,7 @@ define([
                     case 'CentralPublicity':         self.template = 'user_newsfeed_centralpublicity'; break;
                     case 'Alert':                    self.template = 'user_newsfeed_alert'; self.model.set('sitename', SITE_NAME); break;
                     case 'Story':                    self.template = 'user_newsfeed_story'; break;
+                    case 'AboutMe':                  self.template = 'user_newsfeed_aboutme'; break;
                 }
 
                 if (self.template) {

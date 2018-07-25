@@ -576,7 +576,8 @@ define([
 
                 // We have initiated the send, so set up for the next one.
                 self.$('.js-message').val('');
-                self.messageFocus();
+                // CC self.messageFocus();
+                window.focus();
 
                 // If we've grown the textarea, shrink it.
                 self.$('textarea').css('height', '');
@@ -716,8 +717,12 @@ define([
 
             if (Iznik.isMobile()) {
                 // Reduce the size of the typeable area which doesn't autosize on mobile.
-                self.$('.js-message').attr('rows', 2);
+                if (!window.isiOS) {  // CC removed so iOS send event called
+                    self.$('.js-message').attr('rows', 2);
+                }
             }
+
+            return true;  // CC added so iOS app send event called
         },
 
         messageFocused: function () {
@@ -730,7 +735,9 @@ define([
 
             if (Iznik.isMobile()) {
                 // Increase the size of the typeable area because it doesn't autosize on mobile.
-                self.$('.js-message').attr('rows', 4);
+                if (!window.isiOS) {  // CC
+                    self.$('.js-message').attr('rows', 4);
+                }
             }
 
             // On IOS we can't tell when the onscreen keyboard has opened, so we might lose the latest message.

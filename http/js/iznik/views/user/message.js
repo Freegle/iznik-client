@@ -361,7 +361,7 @@ define([
 
                         var v = new Iznik.Views.User.Message.Photos({
                             collection: new Iznik.Collection(photos),
-                            message: self.model
+                            message: self.model,
                         });
                         v.render().then(function() {
                             self.$('.js-attlist').append(v.el);
@@ -523,12 +523,15 @@ define([
         zoom: function (e) {
             var self = this;
 
-            e.preventDefault();
-            e.stopPropagation();
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
 
             var v = new Iznik.Views.User.Message.PhotoZoom({
                 model: this.model,
-                message: this.options.message
+                message: this.options.message,
+                collection: this.options.collection
             });
 
             this.listenToOnce(v, 'deleted', _.bind(function(id) {
@@ -550,7 +553,9 @@ define([
         events: {
             'click .js-rotateright': 'rotateRight',
             'click .js-rotateleft': 'rotateLeft',
-            'click .js-delete': 'deleteMe'
+            'click .js-delete': 'deleteMe',
+            'click .js-photoleft': 'left',
+            'click .js-photoright': 'right'
         },
 
         rotateRight: function() {
@@ -559,6 +564,22 @@ define([
 
         rotateLeft: function() {
             this.rotate(90);
+        },
+
+        left: function() {
+            var self = this;
+
+            if (self.ind > 0) {
+                self.options.collection.trigger('moveto', self.ind - 1);
+            }
+        },
+
+        right: function() {
+            var self = this;
+
+            if (self.ind < self.options.collection.length) {
+                self.options.collection.trigger('moveto', self.ind + 1);
+            }
         },
 
         rotate: function(deg) {
@@ -580,7 +601,6 @@ define([
                         // by using image directly
                         // TODO 
                         var url = 'https://www.ilovefreegle.org/img_' + self.model.get('id') + '.jpg?t=' + t; // CC
-                        console.log("Rotated", url);
                         self.$('img').attr('src', url);
                         self.trigger('rotated', self.model.get('id'), url);
                     }
@@ -648,6 +668,28 @@ define([
 
             var p = Iznik.Views.Modal.prototype.render.call(this);
 
+            p.then(function() {
+                var atts = self.options.message.get('attachments');
+
+                if (atts.length > 1) {
+                    self.ind = self.options.collection.indexOf(self.model);
+                    self.$('.js-photocount').html(atts.length);
+                    self.$('.js-currentphoto').html(self.ind + 1);
+
+                    if (self.ind === 0) {
+                        self.$('.js-photoleft').addClass('faded');
+                        self.$('.js-photoleft').removeClass('clickme');
+                    }
+
+                    if (self.ind + 1 === atts.length) {
+                        self.$('.js-photoright').addClass('faded');
+                        self.$('.js-photoleft').removeClass('clickme');
+                    }
+
+                    self.$('.js-multiple').show();
+                }
+            })
+
             return(p);
         }
     });
@@ -657,26 +699,6 @@ define([
 
         offset: 0,
 
-        nextPhoto: function() {
-            var self = this;
-
-            if (self.inDOM()) {
-                self.currentPhoto.fadeOut('slow', function() {
-                    self.offset++;
-                    self.offset = self.offset % self.photos.length;
-                    self.currentPhoto = self.photos[self.offset];
-
-                    // Defer to get out of stack context - some browsers hit recursion loops, especially when tabs
-                    // are not visible and animations can run without delays.
-                    _.defer(function() {
-                        self.currentPhoto.fadeIn('slow', function() {
-                            _.delay(_.bind(self.nextPhoto, self), 10000);
-                        })
-                    });
-                })
-            }
-        },
-
         render: function() {
             var self = this;
             var len = self.collection.length;
@@ -684,6 +706,8 @@ define([
             // If we have multiple photos, then we cycle through each of them, fading in and out.  This reduces the
             // screen space, but still allows people to see all of them.
             var p = Iznik.View.prototype.render.call(this);
+            self.photoviews = [];
+
             p.then(function() {
                 self.photos = [];
                 self.$('.js-photos').empty();
@@ -700,6 +724,8 @@ define([
                         collection: self.collection
                     });
 
+                    self.photoviews.push(v);
+
                     v.render().then(function() {
                         self.$('.js-photos').append(v.$el);
                     });
@@ -707,6 +733,17 @@ define([
                     self.listenToOnce(v, 'deleted', _.bind(function(id) {
                         self.collection.remove(id);
                     }));
+
+                    self.listenTo(self.collection, 'moveto', function(ind) {
+                        var v = new Iznik.Views.User.Message.Photo({
+                            model: self.collection.at(ind),
+                            message: self.options.message,
+                            collection: self.collection
+                        });
+                        v.render().then(function() {
+                            v.zoom();
+                        })
+                    });
 
                     self.photos.push(v.$el);
 
@@ -719,10 +756,8 @@ define([
                     }
                 });
 
-                if (!self.options.showAll) {
-                    if (self.photos.length > 1) {
-                        _.delay(_.bind(self.nextPhoto, self), 10000);
-                    }
+                if (self.collection.length > 1) {
+                    self.$('.js-photocount').html("+" + (self.collection.length - 1) + '&nbsp; <span class="glyphicon glyphicon-camera white" />');
                 }
             });
 

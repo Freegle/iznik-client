@@ -383,6 +383,20 @@ function mainOnAppStart() { // CC
                         })(10);
                     }
                 }
+                // "modtools/messages/pending"
+                if (foreground) { // Reload if route matches where we are - or if on any chat screen eg /chat/123456 or /chats
+                  var frag = '/' + Backbone.history.getFragment();
+                  if (data.additionalData.route) {
+                    if (frag == data.additionalData.route) {
+                      Backbone.history.loadUrl();
+                    }
+                    else {
+                      if ((frag.substring(0, 5) == '/chat') && (data.additionalData.route.substring(0, 5) == '/chat')) {
+                        Backbone.history.loadUrl(); // refresh rather than go to route
+                      }
+                    }
+                  }
+                }
 
                 if (isiOS) {
                     window.mobilePush.finish(function () {

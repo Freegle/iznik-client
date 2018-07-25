@@ -145,6 +145,7 @@ define([
                                     [ 'newsfeed_reports', Iznik.Views.MyData.NewsfeedReport, '.js-newsfeedreports' ],
                                     [ 'stories', Iznik.Views.MyData.Story, '.js-stories' ],
                                     [ 'stories_likes', Iznik.Views.MyData.StoryLike, '.js-storylikes' ],
+                                    [ 'aboutme', Iznik.Views.MyData.AboutMe, '.js-aboutme' ],
                                     [ 'logins', Iznik.Views.MyData.Login, '.js-logins' ],
                                     [ 'exports', Iznik.Views.MyData.Export, '.js-exports' ]
                                 ], function(view) {
@@ -645,6 +646,22 @@ define([
 
     Iznik.Views.MyData.StoryLike = Iznik.View.extend({
         template: 'mydata_storylike',
+    });
+
+    Iznik.Views.MyData.AboutMe = Iznik.View.extend({
+        template: 'mydata_aboutme',
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(self);
+            p.then(function() {
+                var m = new moment(self.model.get('timestamp'));
+                self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
+            });
+
+            return(p);
+        }
     });
 
     Iznik.Views.MyData.Login = Iznik.View.extend({
