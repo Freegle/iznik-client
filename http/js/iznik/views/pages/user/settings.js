@@ -63,8 +63,12 @@ define([
         saveAboutMe: function() {
             var self = this;
             self.$('.js-saveaboutmeok').addClass('hidden');
+            var msg = self.$('.js-aboutme').val();
+            msg = twemoji.replace(msg, function(emoji) {
+                return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
+            });
 
-            Iznik.Session.saveAboutMe(self.$('.js-aboutme').val()).then(function() {
+            Iznik.Session.saveAboutMe(msg).then(function() {
                 self.$('.js-saveaboutmeok').removeClass('hidden');
             })
         },
@@ -504,7 +508,9 @@ define([
                 }
 
                 if (me.aboutme) {
-                    self.$('.js-aboutme').val(me.aboutme.text);
+                    var msg = me.aboutme.text;
+                    msg = Iznik.twem(msg);
+                    self.$('.js-aboutme').val(msg);
                 }
 
                 self.showHideMine();

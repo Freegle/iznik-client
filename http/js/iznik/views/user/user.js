@@ -1217,7 +1217,12 @@ define([
         save: function() {
             var self = this;
 
-            Iznik.Session.saveAboutMe(self.$('.js-aboutme').val()).then(function() {
+            var msg = self.$('.js-aboutme').val();
+            msg = twemoji.replace(msg, function(emoji) {
+                return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
+            });
+
+            Iznik.Session.saveAboutMe(msg).then(function() {
                 Iznik.Session.testLoggedIn(true);
                 self.close();
             });
@@ -1232,7 +1237,8 @@ define([
                 var aboutme = Iznik.Session.get('me').aboutme;
 
                 if (aboutme) {
-                    self.$('.js-aboutme').val(aboutme.text);
+                    var msg = Iznik.twem(aboutme.text);
+                    self.$('.js-aboutme').val(msg);
                 }
             });
 
