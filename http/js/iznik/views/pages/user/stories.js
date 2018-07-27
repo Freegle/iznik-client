@@ -41,7 +41,7 @@ define([
                     el: self.$('.js-list'),
                     modelView: Iznik.Views.User.Pages.Stories.One,
                     collection: self.collection,
-                    processKeyEvents: false
+                    processKeyEvents: false,
                 });
 
                 self.collectionView.render();
