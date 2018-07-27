@@ -121,7 +121,14 @@ define([
                     if (ret.ret == 0) {
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
-                        window.location.reload();
+                        // We're logged in.  Force a test login, which will refresh any locally cached session.
+                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
+                            // Reload this page, and now that we are logged in the route
+                            // should behave differently.
+                            window.location.reload();
+                        });
+
+                        Iznik.Session.testLoggedIn(true);
                     } else if (parseInt(ret.ret) == 2) {
                         self.$('.js-unknown').fadeIn('slow');
                     } else {
@@ -152,9 +159,14 @@ define([
                 },
                 success: function (ret) {
                     if (parseInt(ret.ret) == 0) {
-                        // We're logged in.  Reload this page, and now that we are logged in the route
-                        // should behave differently.
-                        window.location.reload();
+                        // We're logged in.  Force a test login, which will refresh any locally cached session.
+                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
+                            // Reload this page, and now that we are logged in the route
+                            // should behave differently.
+                            window.location.reload();
+                        });
+
+                        Iznik.Session.testLoggedIn(true);
                     } else {
                         self.$('.js-signuperror .js-errmsg').html(ret.status);
                         self.$('.js-signuperror').fadeIn('slow');
