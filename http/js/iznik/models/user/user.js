@@ -11,6 +11,33 @@ define([
     Iznik.Models.ModTools.User = Iznik.Model.extend({
         urlRoot: API + '/user',
 
+        rate: function(rating) {
+            var self = this;
+
+            var p = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: API + 'user',
+                    type: 'POST',
+                    data: {
+                        action: 'Rate',
+                        ratee: self.get('id'),
+                        rating: rating
+                    },
+                    success: function(ret) {
+                        if (ret.ret == 0) {
+                            resolve();
+                        } else {
+                            reject();
+                        }
+                    }, error: function() {
+                        reject();
+                    }
+                });
+            });
+
+            return(p);
+        },
+
         unbounce: function() {
             var self = this;
 

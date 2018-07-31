@@ -1085,7 +1085,14 @@ define([
                             self.$('.js-replytimeholder').slideDown('slow');
                         }
 
-                        self.showReplyTimeInfo()
+                        self.showReplyTimeInfo();
+
+                        self.ratings = new Iznik.Views.User.Ratings({
+                            model: usermod
+                        });
+
+                        self.ratings.render();
+                        self.$('.js-ratings').html(self.ratings.$el);
                     });
                 }
             });

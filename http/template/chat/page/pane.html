@@ -1,6 +1,25 @@
-<div class="row chat-page-header js-chatheader">
-    <div class="col-xs-12">
-        <div class="chat-name">
+<div class="chat-page-header js-chatheader">
+    <div class="row chat-name">
+        <div class="col-xs-6">
+            <% if (chattype == 'User2User' || chattype == 'User2Mod') { %>
+            <span class="clickme js-info">{{name}}</span>
+            <% } else { %>
+            {{name}}
+            <% } %>
+            <span class="js-ratings" />
+            <span class="js-count badge badge-unread" style="display: none;"></span>
+            &nbsp;
+            <div class="js-privacy inline">
+                <% if (chattype == 'User2User') { %>
+                <div class="glyphicon glyphicon-lock" title="This chat is private." />
+                <% } else if (chattype == 'Mod2Mod') { %>
+                <div class="glyphicon glyphicon-lock" title="This chat is restricted to moderators of {{group.namedisplay}}." />
+                <% } else if (chattype == 'User2Mod') { %>
+                <div class="glyphicon glyphicon-lock" title="This chat is private." />
+                <% } %>
+            </div>
+        </div>
+        <div class="col-xs-6">
             <div class="dropdown pull-right">
                 <div class="btn btn-xs btn-white margright inline js-markread">
                     Mark read
@@ -22,35 +41,23 @@
                 </ul>
                 <% } %>
             </div>
-            <% if (chattype == 'User2User' || chattype == 'User2Mod') { %>
-            <span class="clickme js-info">{{name}}</span>
-            <% } else { %>
-            {{name}}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="js-replytimeinfo">
+                <div class="small js-info clickme js-replytimeholder bg-darkgreen" style="display: none">
+                    <span class="padleftsm padtopsm glyphicon glyphicon-time" />&nbsp;Typically replies in <b><span class="js-replytime" /></b>.  Click for more info.
+                </div>
+                <div class="small js-info clickme js-replytimeunknownholder bg-darkgreen" style="display: none">
+                    <span class="padleftsm padtopsm glyphicon glyphicon-time" />&nbsp;Typical reply time unknown. Click for other info.
+                </div>
+            </div>
+            <% if (obj.description) { %>
+            <div class="padleft text-muted">{{description}}</div>
+            <hr class="nomargin" />
             <% } %>
-            <span class="js-count badge badge-unread" style="display: none;"></span>
-            &nbsp;
-            <div class="js-privacy inline">
-                <% if (chattype == 'User2User') { %>
-                <div class="glyphicon glyphicon-lock" title="This chat is private." />
-                <% } else if (chattype == 'Mod2Mod') { %>
-                <div class="glyphicon glyphicon-lock" title="This chat is restricted to moderators of {{group.namedisplay}}." />
-                <% } else if (chattype == 'User2Mod') { %>
-                <div class="glyphicon glyphicon-lock" title="This chat is private." />
-                <% } %>
-            </div>
         </div>
-        <div class="js-replytimeinfo">
-            <div class="small js-info clickme js-replytimeholder bg-darkgreen" style="display: none">
-                <span class="padleftsm padtopsm glyphicon glyphicon-time" />&nbsp;Typically replies in <b><span class="js-replytime" /></b>.  Click for more info.
-            </div>
-            <div class="small js-info clickme js-replytimeunknownholder bg-darkgreen" style="display: none">
-                <span class="padleftsm padtopsm glyphicon glyphicon-time" />&nbsp;Typical reply time unknown. Click for other info.
-            </div>
-        </div>
-        <% if (obj.description) { %>
-        <div class="padleft text-muted">{{description}}</div>
-        <hr class="nomargin" />
-        <% } %>
     </div>
 </div>
 <div class="row chat-page-warning js-chatwarning">

@@ -836,10 +836,19 @@ define([
                     // If the number of unseen messages in this chat changes, update this view so that the count is
                     // displayed here.
                     self.listenToOnce(self.chat, 'change:unseen', self.render);
-                    Iznik.View.Timeago.prototype.render.call(self);
+                    Iznik.View.Timeago.prototype.render.call(self).then(function() {
+                        self.ratings = new Iznik.Views.User.Ratings({
+                            model: new Iznik.Models.ModTools.User(self.model.get('user'))
+                        });
+
+                        self.ratings.render();
+                        self.$('.js-ratings').html(self.ratings.$el);
+                        console.log("Rendered", self.$('.js-ratings'), self.ratings.$el);
+                    });
 
                     // We might promise to this person from a chat.
                     self.listenTo(self.chat, 'promised', _.bind(self.chatPromised, self));
+
                 });
             }
         },

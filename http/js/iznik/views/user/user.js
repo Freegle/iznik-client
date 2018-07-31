@@ -1200,12 +1200,61 @@ define([
                     if (Iznik.Session.get('me').id != self.model.get('id')) {
                         self.$('.js-dm').show();
                     }
+
+                    self.ratings = new Iznik.Views.User.Ratings({
+                        model: self.model
+                    });
+
+                    self.ratings.render();
+                    self.$('.js-ratings').html(self.ratings.$el);
                 })
             });
 
             return (p)
         }
     })
+
+    Iznik.Views.User.Ratings = Iznik.View.extend({
+        template: 'user_ratings',
+
+        tagName: 'span',
+
+        className: 'padtopsm',
+
+        events: {
+            'click .js-up': 'up',
+            'click .js-down': 'down'
+        },
+
+        rate: function(rating) {
+            var self = this;
+
+            var m = new Iznik.Models.ModTools.User({
+                id: self.model.get('id')
+            });
+
+            self.$el.addClass('faded');
+
+            m.rate(rating).then(function() {
+                self.model.fetch({
+                    data: {
+                        info: true
+                    }
+                }).then(function () {
+                    self.render();
+                    self.$el.removeClass('faded');
+                })
+            });
+        },
+
+        up: function() {
+            this.rate('Up');
+        },
+
+        down: function() {
+            this.rate('Down');
+        }
+    });
 
     Iznik.Views.User.TellAboutMe = Iznik.Views.Modal.extend({
         template: 'user_tellaboutme',
