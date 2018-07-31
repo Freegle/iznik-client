@@ -392,7 +392,7 @@ define([
                 window.open(this.model.get('external'));
             } else if (this.model.get('onyahoo') && !this.model.get('onhere')) {
                 // Yahoo group - open new tab.
-                window.open("https://groups.yahoo.com/group/" + this.model.get('nameshort'));
+                window.open("https://groups.yahoo.com/neo/groups/" + this.model.get('nameshort'));
             } else {
                 Router.navigate('/explore/' + this.model.get('nameshort'), true);
             }
