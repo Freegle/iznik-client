@@ -1,6 +1,8 @@
 import 'bootstrap-fileinput/js/plugins/piexif.min.js';
 import 'bootstrap-fileinput';
 
+var Bloodhound = require('bloodhound-js');
+
 define([
     'jquery',
     'underscore',
@@ -169,29 +171,6 @@ define([
             }
         },
 
-        itemSource: function (query, syncResults, asyncResults) {
-            var self = this;
-
-            if (query.length >= 2) {
-                $.ajax({
-                    type: 'GET',
-                    url: API + 'item',
-                    data: {
-                        typeahead: query
-                    }, success: function (ret) {
-                        var matches = [];
-                        _.each(ret.items, function (item) {
-                            if (item.hasOwnProperty('item')) {
-                                matches.push(item.item.name);
-                            }
-                        });
-
-                        asyncResults(matches);
-                    }
-                })
-            }
-        },
-
         allUploaded: function() {
             var self = this;
 
@@ -227,27 +206,56 @@ define([
 
                 _.delay(_.bind(self.checkNext, self), 300);
 
-                self.typeahead = self.$('.js-item').typeahead({
-                    minLength: 2,
-                    hint: false,
-                    highlight: true,
-                    autoselect: false,
-                    tabAutocomplete: false,
-                }, {
-                    name: 'items',
-                    source: self.itemSource,
-                    limit: 3
+                // We use bloodhound for better typeahead function which puts less load on the server.
+                self.hound = new Bloodhound({
+                    queryTokenizer: Bloodhound.tokenizers.whitespace,
+                    datumTokenizer: Bloodhound.tokenizers.whitespace,
+                    identify: function(datum) {
+                        console.log("Identify", datum);
+                    },
+                    remote: {
+                        url: API + 'item',
+                        prepare: function(query, settings) {
+                            settings.url = settings.url + '?typeahead=' + encodeURIComponent(query);
+                            return(settings);
+                        },
+                        transform: function(ret) {
+                            if (ret.ret === 0) {
+                                var trans = [];
+                                _.each(ret.items, function(item) {
+                                    if (item.hasOwnProperty('item')) {
+                                        trans.push(item.item.name);
+                                    }
+                                })
+                                return(trans);
+                            }
+                        }
+                    },
                 });
 
-                if (self.options.item) {
-                    self.$('.js-item').typeahead('val', self.options.item);
-                }
+                self.hound.initialize().then(function() {
+                    self.typeahead = self.$('.js-item').typeahead({
+                        minLength: 2,
+                        hint: false,
+                        highlight: true,
+                        autoselect: false,
+                        tabAutocomplete: false,
+                    }, {
+                        name: 'items',
+                        source: self.hound,
+                        limit: 3
+                    });
 
-                // Close the suggestions after 30 seconds in case people are confused.
-                self.$('.js-item').bind('typeahead:open', function() {
-                    _.delay(function() {
-                        self.$('.js-item').typeahead('close');
-                    }, 30000);
+                    if (self.options.item) {
+                        self.$('.js-item').typeahead('val', self.options.item);
+                    }
+
+                    // Close the suggestions after 30 seconds in case people are confused.
+                    self.$('.js-item').bind('typeahead:open', function() {
+                        _.delay(function() {
+                            self.$('.js-item').typeahead('close');
+                        }, 30000);
+                    });
                 });
 
                 // File upload
