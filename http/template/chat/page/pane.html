@@ -6,7 +6,7 @@
             <% } else { %>
             {{name}}
             <% } %>
-            <span class="js-ratings" />
+            <span class="visible-xs-inline hidden-sm visible-md-inline hidden-lg js-ratings" />
             <span class="js-count badge badge-unread" style="display: none;"></span>
             &nbsp;
             <div class="js-privacy inline">
@@ -93,17 +93,20 @@
                             <tbody>
                             <tr>
                                 <% if (chattype == 'User2User') { %>
+                                <td class="hidden-xs visible-sm hidden-md visible-lg" id="chat-ratings-{{id}}">
+                                    <div class="js-ratings2" />
+                                </td>
                                 <td class="js-tooltip js-promise" id="chat-promise-{{id}}" data-placement="top" data-toggle="tooltip" title="Promise an item to this freegler.">
                                     <span class="clickme success glyphicons glyphicons-handshake gi-2x visible-xs" alt="Promise"/>
                                     <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-handshake vcenter" alt="Promise" />Promise</div>
                                 </td>
                                 <td class="js-tooltip js-address" id="chat-address-{{id}}" data-placement="top" data-toggle="tooltip" title="Use your address book to easily send directions.">
                                     <span class="clickme success glyphicons glyphicons-address-book gi-2x visible-xs" alt="Address" />
-                                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-address-book vcenter" alt="Address" title="Send your address" />Address&nbsp;</div>
+                                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-address-book vcenter" alt="Address" title="Send your address" /><span class="hidden-lg">Address</span><span class="visible-lg-inline">Addr</span></div></div>
                                 </td>
                                 <td class="js-tooltip js-schedule" data-placement="top" data-toggle="tooltip" title="Update your availability" >
                                 <span class="clickme success glyphicons glyphicons-calendar text-muted gi-2x visible-xs"  alt="Availability"  />
-                                <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-calendar text-muted vcenter" alt="Availability" />&nbsp;Availability</div>
+                                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-calendar text-muted vcenter" alt="Availability" />&nbsp;<span class="hidden-lg">Available</span><span class="visible-lg-inline">Avail</span></div>
                                 </td>
                                 <td class="js-tooltip js-info" data-placement="top" data-toggle="tooltip" title="Find out more about this freegler." >
                                     <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x visible-xs"  alt="Info"  />
