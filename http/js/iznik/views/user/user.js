@@ -1201,12 +1201,19 @@ define([
                         self.$('.js-dm').show();
                     }
 
-                    self.ratings = new Iznik.Views.User.Ratings({
+                    self.ratings1 = new Iznik.Views.User.Ratings({
                         model: self.model
                     });
 
-                    self.ratings.render();
-                    self.$('.js-ratings').html(self.ratings.$el);
+                    self.ratings1.render();
+                    self.$('.js-ratings1').html(self.ratings1.$el);
+
+                    self.ratings2 = new Iznik.Views.User.Ratings({
+                        model: self.model
+                    });
+
+                    self.ratings2.render();
+                    self.$('.js-ratings2').html(self.ratings2.$el);
                 })
             });
 
