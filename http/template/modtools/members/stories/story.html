@@ -35,8 +35,17 @@
     </div>
     <div class="panel-body">
         <div class="row">
-            <div class="col-xs-12 forcebreak prewrap"><h3><%-headline%></h3><%-story%></div>
+            <div class="col-xs-12">
+                <b class="prewrap forcebreak"><h3><%-headline%></h3><%-story%></b>
+            </div>
         </div>
+        <% if (obj.photo) { %>
+        <div class="row">
+            <div class="col-sm-12">
+                <img class="img-thumbnail img-responsive clickme js-photo" title="Click to zoom" src="{{photo.paththumb}}" />
+            </div>
+        </div>
+        <% } %>
     </div>
     <div class="panel-footer">
         <% if (!obj.public) { %>

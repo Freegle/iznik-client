@@ -552,11 +552,21 @@ define([
         },
 
         photoZoom: function (e) {
+            var self = this;
+
             e.preventDefault();
             e.stopPropagation();
 
+            // The image might be in this model, or hung off something underneath, like a story.
+            if (!self.model.get('image')) {
+                var story = self.model.get('story');
+                if (story.photo) {
+                    self.model.set('image', story.photo);
+                }
+            }
+
             var v = new Iznik.Views.User.Feed.PhotoZoom({
-                model: this.model
+                model: self.model
             });
 
             v.render();

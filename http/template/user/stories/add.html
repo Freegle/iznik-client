@@ -12,6 +12,15 @@
                 <h3>Your story</h3>
                 <p>Ok, now tell us why you freegle!  What have you given, what have you received, how does it feel, who have you met...</p>
                 <textarea class="form-control js-story"  spellcheck="true" rows="10" />
+                <h3>Add a photo</h3>
+                <p>If you like, you can add a photo.  It's nice to see people and what they've freegled.</p>
+                <div class="topspace js-addphotowrapper">
+                    <input class="js-addphoto" type="file" name="photo" multiple="">
+                </div>
+                <div class="js-photopreviewwrapper" style="display: none">
+                    <img class="topspace img-smallerthumbnail js-photopreview padleft" width="150" src="/images/userloader.gif" />
+                </div>
+                <div id="js-uploaderror" />
                 <h3>Can we share?</h3>
                 <p>Finally, click to let us know whether it's ok for us to share your story - on here, on social media and so on.  This helps get more people freegling.  We won't use your name or email address.</p>
                 <p>If you don't want us to do this, that's fine - we'll just show it to your local volunteers.</p>
