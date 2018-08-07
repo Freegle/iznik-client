@@ -176,10 +176,18 @@ define([
                             self.unread += thisun;
 
                             if (thisun > 0) {
-                                // This chat might indicate a new replier we've not got listed.  Get the replies
-                                // to make sure.
-                                // TODO Could make this perform better than doing a full fetch.
-                                fetch = true;
+                                // This chat might indicate a new replier we've not got listed.
+                                var foundchat = false;
+                                _.each(self.model.get('replies'), function(reply) {
+                                    if (reply.chatid == chat.get('id')) {
+                                        foundchat = true;
+                                    }
+                                })
+
+                                if (!foundchat) {
+                                    // Refetch the message to update the replies.
+                                    fetch = true;
+                                }
                             }
                         }
                     });
@@ -868,7 +876,15 @@ define([
                     // If the number of unseen messages in this chat changes, update this view so that the count is
                     // displayed here.
                     self.listenToOnce(self.chat, 'change:unseen', self.render);
-                    Iznik.View.Timeago.prototype.render.call(self);
+                    Iznik.View.Timeago.prototype.render.call(self).then(function() {
+                        self.ratings = new Iznik.Views.User.Ratings({
+                            model: new Iznik.Models.ModTools.User(self.model.get('user'))
+                        });
+
+                        self.ratings.render();
+                        self.$('.js-ratings').html(self.ratings.$el);
+                        // console.log("Rendered", self.$('.js-ratings'), self.ratings.$el);
+                    });
 
                     // We might promise to this person from a chat.
                     self.listenTo(self.chat, 'promised', _.bind(self.chatPromised, self));
@@ -876,32 +892,41 @@ define([
             }
         },
 
-        render: function () {
+        rendered: 0,
+
+        render: function() {
             var self = this;
 
-            self.model.set('me', Iznik.Session.get('me'));
-            self.model.set('message', self.options.message.toJSON2());
-
-            var chat = Iznik.Session.chats.get({
-                id: self.model.get('chatid')
-            });
+            self.rendered++;
 
             var p;
 
-            // We might not find this chat, most commonly if we've not yet fetched it from the server and it's in
-            // our cache.  If not, fetch it.
-            if (!_.isUndefined(chat)) {
-                self.chat = chat;
+            if (self.rendered > 1) {
+                console.log("Render loop"); console.trace();
                 p = Iznik.resolvedPromise(self);
             } else {
-                self.chat = new Iznik.Models.Chat.Room({
+                self.model.set('me', Iznik.Session.get('me'));
+                self.model.set('message', self.options.message.toJSON2());
+
+                var chat = Iznik.Session.chats.get({
                     id: self.model.get('chatid')
                 });
 
-                p = self.chat.fetch();
-            }
+                // We might not find this chat, most commonly if we've not yet fetched it from the server and it's in
+                // our cache.  If not, fetch it.
+                if (!_.isUndefined(chat)) {
+                    self.chat = chat;
+                    p = Iznik.resolvedPromise(self);
+                } else {
+                    self.chat = new Iznik.Models.Chat.Room({
+                        id: self.model.get('chatid')
+                    });
 
-            p.then(_.bind(self.gotChat, self));
+                    p = self.chat.fetch();
+                }
+
+                p.then(_.bind(self.gotChat, self));
+            }
 
             return(p);
         }

@@ -1200,12 +1200,68 @@ define([
                     if (Iznik.Session.get('me').id != self.model.get('id')) {
                         self.$('.js-dm').show();
                     }
+
+                    self.ratings1 = new Iznik.Views.User.Ratings({
+                        model: self.model
+                    });
+
+                    self.ratings1.render();
+                    self.$('.js-ratings1').html(self.ratings1.$el);
+
+                    self.ratings2 = new Iznik.Views.User.Ratings({
+                        model: self.model
+                    });
+
+                    self.ratings2.render();
+                    self.$('.js-ratings2').html(self.ratings2.$el);
                 })
             });
 
             return (p)
         }
     })
+
+    Iznik.Views.User.Ratings = Iznik.View.extend({
+        template: 'user_ratings',
+
+        tagName: 'span',
+
+        className: 'padtopsm',
+
+        events: {
+            'click .js-up': 'up',
+            'click .js-down': 'down'
+        },
+
+        rate: function(rating) {
+            var self = this;
+
+            var m = new Iznik.Models.ModTools.User({
+                id: self.model.get('id')
+            });
+
+            self.$el.addClass('faded');
+
+            m.rate(rating).then(function() {
+                self.model.fetch({
+                    data: {
+                        info: true
+                    }
+                }).then(function () {
+                    self.render();
+                    self.$el.removeClass('faded');
+                })
+            });
+        },
+
+        up: function() {
+            this.rate('Up');
+        },
+
+        down: function() {
+            this.rate('Down');
+        }
+    });
 
     Iznik.Views.User.TellAboutMe = Iznik.Views.Modal.extend({
         template: 'user_tellaboutme',
@@ -1217,7 +1273,12 @@ define([
         save: function() {
             var self = this;
 
-            Iznik.Session.saveAboutMe(self.$('.js-aboutme').val()).then(function() {
+            var msg = self.$('.js-aboutme').val();
+            msg = twemoji.replace(msg, function(emoji) {
+                return '\\\\u' + twemoji.convert.toCodePoint(emoji) + '\\\\u';
+            });
+
+            Iznik.Session.saveAboutMe(msg).then(function() {
                 Iznik.Session.testLoggedIn(true);
                 self.close();
             });
@@ -1232,7 +1293,8 @@ define([
                 var aboutme = Iznik.Session.get('me').aboutme;
 
                 if (aboutme) {
-                    self.$('.js-aboutme').val(aboutme.text);
+                    var msg = Iznik.twem(aboutme.text);
+                    self.$('.js-aboutme').val(msg);
                 }
             });
 

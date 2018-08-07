@@ -29,7 +29,6 @@ define([
             var p = Iznik.View.prototype.render.call(this);
 
             p.then(function() {
-                console.log()
                 if (Iznik.Session.hasPermission('Teams')) {
                     self.$('.js-teamadmin').show();
                 }
@@ -121,6 +120,7 @@ define([
             var self = this;
 
             var name = self.$('.js-teamname').val();
+            var email = self.$('.js-teamemail').val();
             var desc = self.$('.js-teamdesc').val();
             var c = new Iznik.Collections.Team();
 
@@ -128,6 +128,7 @@ define([
 
             c.create({
                 name: name,
+                email: email,
                 description: desc
             }, {
                 wait: true

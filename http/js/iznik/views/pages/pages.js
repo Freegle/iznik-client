@@ -144,29 +144,22 @@ define([
                             Iznik.setTitleCounts(null, ret.count);
                         }
                     }, complete: function() {
-                        $.ajax({
-                            url: API + 'newsfeed?count=true',
-                            type: 'GET',
-                            context: self,
-                            success: function(ret) {
-                                if (ret.ret == 0) {
-                                    var el = $('.js-unseennews');
-                                    if (el.html() != ret.unseencount) {
-                                        el.html(ret.unseencount);
+                        // We have the unseen newsfeed count in the session. That is loosely up to date, which is
+                        // fine for our purposes.  This saves getting the count on each page transition.
+                        var unseencount = Iznik.Session.get('newsfeedcount');
+                        unseencount = _.isUndefined(unseencount) ? 0 : unseencount;
 
-                                        if (ret.unseencount) {
-                                            $('.js-unseennews').show();
-                                        }
-                                        else {
-                                            $('.js-unseennews').hide();
-                                        }
-                                    }
-                                }
-                            }, complete: function() {
-                                self.notificationChecking = false;
-                                _.delay(_.bind(this.notificationCheck, this), 30000);
+                        var el = $('.js-unseennews');
+                        if (el.html() != unseencount) {
+                            el.html(unseencount);
+
+                            if (unseencount) {
+                                $('.js-unseennews').show();
                             }
-                        });
+                            else {
+                                $('.js-unseennews').hide();
+                            }
+                        }
                     }
                 });
             }

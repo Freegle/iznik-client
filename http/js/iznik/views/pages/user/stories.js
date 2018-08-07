@@ -41,7 +41,7 @@ define([
                     el: self.$('.js-list'),
                     modelView: Iznik.Views.User.Pages.Stories.One,
                     collection: self.collection,
-                    processKeyEvents: false
+                    processKeyEvents: false,
                 });
 
                 self.collectionView.render();
@@ -88,6 +88,61 @@ define([
             'click .js-add': 'addStory'
         },
 
+        imageid: null,
+
+        setupPhotoUpload: function() {
+            var self = this;
+
+            // Photo upload.
+            self.$el.find('.js-addphoto').fileinput({
+                uploadExtraData: {
+                    imgtype: 'Story',
+                    story: 1,
+                    ocr: false
+                },
+                showUpload: false,
+                allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                uploadUrl: API + 'image',
+                resizeImage: true,
+                maxImageWidth: 800,
+                browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
+                browseLabel: 'Add Photo',
+                browseClass: 'btn btn-primary btn-lg nowrap',
+                showCaption: false,
+                showRemove: false,
+                showUploadedThumbs: false,
+                dropZoneEnabled: false,
+                buttonLabelClass: '',
+                fileActionSettings: {
+                    showZoom: false,
+                    showRemove: false,
+                    showUpload: false
+                },
+                layoutTemplates: {
+                    footer: '<div class="file-thumbnail-footer">\n' +
+                    '    {actions}\n' +
+                    '</div>'
+                },
+                elErrorContainer: '#js-uploaderror'
+            });
+
+            // Upload as soon as we have it.
+            self.$el.find('.js-addphoto').on('fileimagesresized', function (event) {
+                self.$('.js-photopreviewwrapper').show();
+                self.$('.js-addphotowrapper').hide();
+                self.$('.js-addphoto').fileinput('upload');
+            });
+
+            self.$el.find('.js-addphoto').on('fileuploaded', function (event, data) {
+                self.$('.js-photopreview').attr('src', data.response.paththumb);
+                self.imageid = data.response.id;
+
+                _.delay(function() {
+                    self.$('.file-preview-frame').remove();
+                }, 500);
+            });
+        },
+
         addStory: function() {
             var self = this;
             self.$('.error').removeClass('error');
@@ -108,7 +163,8 @@ define([
                         data: {
                             headline: headline,
                             story: story,
-                            public: isPublic
+                            public: isPublic,
+                            photo: self.imageid
                         }, success: function(ret) {
                             if (ret.ret == 0) {
                                 self.close();
@@ -119,6 +175,17 @@ define([
                     })
                 }
             }
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.Views.Modal.prototype.render.call(this);
+            p.then(function() {
+                self.setupPhotoUpload();
+            });
+
+            return(p);
         }
     });
 
