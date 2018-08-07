@@ -38,7 +38,22 @@
                         {{story.headline}}
                     </div>
                     <div class="panel-body">
-                        <b class="prewrap">{{story.story}}</b>
+                        <% if (story.photo) { %>
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <b class="prewrap">{{story.story}}</b>
+                            </div>
+                            <div class="col-sm-12">
+                                <img class="img-thumbnail img-responsive clickme js-photo" title="Click to zoom" src="{{story.photo.paththumb}}" />
+                            </div>
+                        </div>
+                        <% } else { %>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <b class="prewrap">{{story.story}}</b>
+                            </div>
+                        </div>
+                        <% } %>
                     </div>
                 </div>
                 <hr class="text-muted nomargin botspace" />

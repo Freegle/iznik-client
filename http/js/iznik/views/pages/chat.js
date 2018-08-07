@@ -930,10 +930,11 @@ define([
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function (self) {
+                // Empty rather than hide because glyphicons have a display set which would mean they show anyway.
                 if (!self.options.modtools) {
-                    self.$('.js-privacy').hide();
+                    self.$('.js-privacy').empty();
                 } else {
-                    self.$('.js-promise').hide();
+                    self.$('.js-promise').empty();
                 }
 
                 self.$('.js-tooltip').tooltip();
@@ -1095,7 +1096,23 @@ define([
                             self.$('.js-replytimeholder').slideDown('slow');
                         }
 
-                        self.showReplyTimeInfo()
+                        self.showReplyTimeInfo();
+
+                        self.ratings = new Iznik.Views.User.Ratings({
+                            model: usermod
+                        });
+
+                        self.ratings.render();
+                        self.$('.js-ratings').html(self.ratings.$el);
+
+                        self.ratings2 = new Iznik.Views.User.Ratings({
+                            model: usermod
+                        });
+                        self.ratings2.template = "user_ratingschat";
+
+                        self.ratings2.render();
+                        self.$('.js-ratings2').html(self.ratings2.$el);
+
                     });
                 }
             });

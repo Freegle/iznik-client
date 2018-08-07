@@ -147,7 +147,8 @@ define([
                                     [ 'stories_likes', Iznik.Views.MyData.StoryLike, '.js-storylikes' ],
                                     [ 'aboutme', Iznik.Views.MyData.AboutMe, '.js-aboutme' ],
                                     [ 'logins', Iznik.Views.MyData.Login, '.js-logins' ],
-                                    [ 'exports', Iznik.Views.MyData.Export, '.js-exports' ]
+                                    [ 'exports', Iznik.Views.MyData.Export, '.js-exports' ],
+                                    [ 'ratings', Iznik.Views.User.Ratings, '.js-ratings' ]
                                 ], function(view) {
                                     _.each(self.model.get(view[0]), function(mod) {
                                         var v = new view[1]({

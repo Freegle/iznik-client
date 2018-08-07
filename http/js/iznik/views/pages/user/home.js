@@ -539,11 +539,36 @@ define([
 
         checkSubmit: function() {
             var cont = false;
+            var self = this;
+            var uid = this.$('.js-user').val();
 
             if (this.$('.js-outcome').val() == 'Withdrawn') {
                 cont = true;
             } else {
-                cont = this.$('.js-user').val() != -1;
+                cont = uid != -1;
+            }
+
+            self.$('.js-ratewrapper').hide();
+            self.$('.js-ratings').empty();
+
+            if (uid > 0) {
+                self.userMod = new Iznik.Models.ModTools.User({
+                    id: self.$('.js-user').val()
+                });
+
+                self.userMod.fetch({
+                    data: {
+                        info: true
+                    }
+                }).then(function() {
+                    self.rate = new Iznik.Views.User.Ratings({
+                        model: self.userMod
+                    })
+
+                    self.rate.render();
+                    self.$('.js-rating').html(self.rate.$el);
+                    self.$('.js-ratewrapper').fadeIn('slow');
+                });
             }
 
             this.$('.js-confirm').prop('disabled', !cont);
