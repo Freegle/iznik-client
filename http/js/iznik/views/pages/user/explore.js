@@ -608,6 +608,22 @@ define([
                 Iznik.Views.User.Pages.Group.prototype.render.call(self).then(function () {
                     self.adSense();
 
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                        // Left menu is community events
+                        var v = new Iznik.Views.User.CommunityEventsSidebar();
+                        v.render().then(function () {
+                            $('#js-eventcontainer').append(v.$el);
+                        });
+
+                        // Right menu is volunteer vacancies
+                        var w = new Iznik.Views.User.VolunteeringSidebar();
+                        w.render().then(function () {
+                            $('#js-volunteeringcontainer').append(w.$el);
+                        });
+                    });
+
+                    Iznik.Session.testLoggedIn(true);
+
                     self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
 
                     var founded = self.model.get('founded');
