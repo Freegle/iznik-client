@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="org.ilovefreegle.modtools" ios-CFBundleVersion="110" version="0.1.10" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="org.ilovefreegle.modtools" ios-CFBundleVersion="111" version="0.1.11" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>ModTools</name>
     <description>Tool to help moderators of Freegle and similar groups</description>
     <author email="geeks@ilovefreegle.org" href="https://ilovefreegle.org">
@@ -53,10 +53,10 @@
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
     <plugin name="cordova-plugin-whitelist" spec="^1.3.3" />
     <plugin name="cordova-plugin-ios-camera-permissions" spec="^1.2.0">
-        <variable name="CAMERA_USAGE_DESCRIPTION" value="This app needs camera access" />
-        <variable name="MICROPHONE_USAGE_DESCRIPTION" value="This app needs microphone access" />
-        <variable name="PHOTOLIBRARY_ADD_USAGE_DESCRIPTION" value="This app needs write-access to photo library" />
-        <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="This app needs read/write-access photo library access" />
+        <variable name="CAMERA_USAGE_DESCRIPTION" value="So you can take a photo in reply to a member chat" />
+        <variable name="MICROPHONE_USAGE_DESCRIPTION" value="So you can say what text to reply in a member chat" />
+        <variable name="PHOTOLIBRARY_ADD_USAGE_DESCRIPTION" value="So you can send a photo in reply to a member chat" />
+        <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="So you can save a photo when replying to a member chat" />
     </plugin>
     <plugin name="cordova-plugin-device" spec="^2.0.2" />
     <plugin name="cordova-plugin-geolocation" spec="^4.0.1" />
