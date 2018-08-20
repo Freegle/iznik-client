@@ -43,7 +43,7 @@
         </div>
     </div>
 </div>
-<% if (!obj.sameasnext) { %>
+<% if (!obj.sameasnext || obj.gap) { %>
 <div class="row fullholder nopad">
     <div class="col-sm-12 padleft">
         <% if (obj.left) { %>

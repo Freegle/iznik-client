@@ -1,7 +1,7 @@
 <% if (obj.reviewedby && !obj.mine) { %>
 <p><em>You reviewed this:</em></p>
 <% } %>
-<div class="row nopad nomargin <%if (!obj.sameasnext) { %>botspace <% } %>">
+<div class="row nopad nomargin <%if (!obj.sameasnext || obj.gap) { %>botspace <% } %>">
     <% if (obj.left) { %>
     <div class="col-xs-12 nopad">
     <% } else { %>
