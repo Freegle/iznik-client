@@ -1238,7 +1238,7 @@ define([
                             name: 'settings.modnotifnewsfeed',
                             label: 'Email me when members post in the Newsfeed? (Freegle only)',
                             control: 'radio',
-                            options: [{label: 'Mail me', value: 0 }, {label: 'Don\'t mail me', value: 1}],
+                            options: [{label: 'Mail me', value: 1 }, {label: 'Don\'t mail me', value: 0}],
                             helpMessage: 'Your members may post in the Newsfeed, perhaps to introduce themselves, or perhaps because they have problems.  Replying to these posts helps them and makes Freegle friendlier.  We only mail you about groups you are an active mod on.'
                         },
                         {
