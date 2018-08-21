@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="org.ilovefreegle.modtools" ios-CFBundleVersion="111" version="0.1.11" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="org.ilovefreegle.modtools" ios-CFBundleVersion="120" version="0.2.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>ModTools</name>
     <description>Tool to help moderators of Freegle and similar groups</description>
     <author email="geeks@ilovefreegle.org" href="https://ilovefreegle.org">
@@ -70,6 +70,9 @@
     <plugin name="phonegap-plugin-push" spec="^1.11.0">
         <variable name="SENDER_ID" value="845879623324" />
     </plugin>
+  <platform name="ios">
+    <resource-file src="GoogleService-Info.plist" />
+  </platform>
     <plugin name="cordova-plugin-facebook4" spec="^1.10.1">
         <variable name="APP_ID" value="134980666550322" />
         <variable name="APP_NAME" value="Freegle" />

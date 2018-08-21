@@ -65,7 +65,7 @@ define([
 
             console.log("askSubscription " + window.mobilePushId);
             if (window.mobilePushId) {
-                var subscription = window.isiOS ? window.mobilePushId : 'https://android.googleapis.com/gcm/send/' + mobilePushId;
+                var subscription = window.mobilePushId;
                 //alert("Subs: "+subscription);
                 var me = Iznik.Session.get('me');
                 if (me) {
@@ -73,7 +73,7 @@ define([
                         id: me.id,
                         notifications: {
                             push: {
-                                type: window.isiOS ? 'IOS' : 'Android',
+                                type: window.isiOS ? 'FCMiOS' : 'FCMAndroid',
                                 subscription: subscription
                             }
                         }

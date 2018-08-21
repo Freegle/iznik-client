@@ -402,7 +402,7 @@ define([
                 return (function (ret) {
                     //console.log("plugin typeof ret=" + typeof ret);
                     if (typeof ret == "string") {
-                        console.log("plugin ret=" + ret.substring(0,50));
+                        //console.log("plugin ret=" + ret.substring(0,50));
                     }
                     if (ret && ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('allMyGroups')) {
                         //console.log("checkResponse OK");

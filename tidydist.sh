@@ -8,7 +8,7 @@ rm images/user_ny_animated.gif
 rm images/user_ny2_animated.gif
 rm images/Firefox.png
 rm images/logos/*
-rm images/posters/*
+rm images/posters/*.pdf
 rm images/stories/*
 mv *.png css
 mv *.woff css

@@ -69,7 +69,7 @@ module.exports = new Config().extend({
     }),
     // CC new FaviconsPlugin('images/modtools_logo.png'),
     new webpack.DefinePlugin({
-      APP_VERSION: JSON.stringify('0.1.11, 12 August 2018.'),
+      APP_VERSION: JSON.stringify('0.2.0, 21 August 2018.'),
       // CC SET ABOVE: API: JSON.stringify(BASE_URL+'/api/'),
       FACEBOOK_APPID: JSON.stringify('134980666550322'),
       FACEBOOK_GRAFFITI_APPID: JSON.stringify('115376591981611'),
@@ -78,7 +78,7 @@ module.exports = new Config().extend({
       ),
       SITE_NAME: JSON.stringify('ModTools'),
       SITE_DESCRIPTION: JSON.stringify(
-        "Moderating Tools for Freegle and Yahoo Groups"
+        "Moderating Tools for Freegle Groups"
       ),
       MODTOOLS: true
     }),
