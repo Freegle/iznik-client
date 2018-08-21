@@ -389,6 +389,19 @@ function mainOnAppStart() { // CC
                             setTimeout(function () {
                               //console.log("Push go to: " + data.additionalData.route);
                               Router.navigate(data.additionalData.route, true);
+
+//if (!('chatcount' in data.additionalData)) data.additionalData.chatcount = 5;
+//if (!('notifcount' in data.additionalData)) data.additionalData.notifcount = 3;
+
+                              if (('chatcount' in data.additionalData) && ('notifcount' in data.additionalData)) {
+                                var chatcount = parseInt(data.additionalData.chatcount);
+                                var notifcount = parseInt(data.additionalData.notifcount);
+                                if (!isNaN(chatcount) && !isNaN(notifcount)) {
+                                  Iznik.setTitleCounts(chatcount, notifcount);
+                                }
+                              }
+                              
+
                             }, 500);
                           } else {
                             setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
