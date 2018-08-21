@@ -73,7 +73,7 @@ define([
                         id: me.id,
                         notifications: {
                             push: {
-                                type: window.isiOS ? 'FCMiOS' : 'FCMAndroid',
+                                type: window.isiOS ? 'FCMIOS' : 'FCMAndroid',
                                 subscription: subscription
                             }
                         }
