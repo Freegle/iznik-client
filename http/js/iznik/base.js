@@ -33,7 +33,6 @@ define([
     'text',
     'twemoji.min',
     'iznik/diff',
-    'iznik/events',
     'iznik/timeago',
     'iznik/majax'
 ], function ($, Backbone, _, moment) {
