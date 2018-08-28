@@ -384,7 +384,7 @@ define([
                             },
                             {
                                 name: 'approvemembers',
-                                label: '(Freegle native groups only) Group approves new members?',
+                                label: '(Freegle native groups only) New member approval required?',
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
                                 helpMessage: "Normally members can join immediately, and any posts they make will be moderated.  Some groups prefer to approve new members manually, which gives more control over the group but loses postential members."
