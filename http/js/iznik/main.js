@@ -357,9 +357,8 @@ function mainOnAppStart() { // CC
                     console.log("push notification");
                     console.log(data);
                     var foreground = data.additionalData.foreground.toString() == 'true';   // Was first called in foreground or background
-                    var msgid = data.additionalData['google.message_id'];
-                    if (window.isiOS) {
-                        if (!('notId' in data.additionalData)) { data.additionalData.notId = 0; }
+                    var msgid = (new Date()).getTime();
+                    if ('notId' in data.additionalData) {
                         msgid = data.additionalData.notId;
                     }
                     var doubleEvent = (msgid == lastPushMsgid);
