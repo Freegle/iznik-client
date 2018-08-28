@@ -1044,7 +1044,11 @@ define([
                                         ChatHolder().fetchAndRestore(chatid);
 
                                         // And now prompt them to give us their schedule.
-                                        if (!Storage.get('dontaskschedule')) {
+                                        var now = (new Date()).getTime();
+                                        var last = Storage.get('lastaskschedule');
+
+                                        if (!Storage.get('dontaskschedule') && (!last || (now - last > 24 * 60 * 60 * 1000))) {
+                                            Storage.set('lastaskschedule', now);
                                             var v = new Iznik.Views.User.Schedule.Modal({
                                                 mine: true,
                                                 help: true,
