@@ -365,7 +365,7 @@ function mainOnAppStart() { // CC
                     lastPushMsgid = msgid;
                     if (!('count' in data)) { data.count = 0; }
                     data.count = parseInt(data.count);
-                    console.log("foreground " + foreground + " double " + doubleEvent + " msgid: " + msgid + "count: " + data.count);
+                    console.log("foreground " + foreground + " double " + doubleEvent + " msgid: " + msgid + " count: " + data.count);
                     if (data.count == 0) {
                         window.mobilePush.clearAllNotifications();   // no success and error fns given
                         console.log("clearAllNotifications");
