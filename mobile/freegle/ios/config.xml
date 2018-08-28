@@ -108,4 +108,8 @@
     <plugin name="cordova-plugin-camera" spec="^4.0.3" />
     <plugin name="phonegap-plugin-push" spec="^2.1.3" />
     <engine name="ios" spec="^4.5.4" />
+  <platform name="ios">
+    <resource-file src="GoogleService-Info.plist" />
+  </platform>
+
 </widget>
