@@ -344,15 +344,18 @@ function mainOnAppStart() { // CC
                 // A push shows a notification immediately and sets desktop badge count (on iOS and some Android)
                 // Note: badge count also set elsewhere when unseen chats counted (and may disagree!)
                 //
-                // Some of the following description is probably not now right (yet again):
+                // Android:
+                //  In foregound:   foreground: true:   doubleEvent: false
+                //  In background:  foreground: false:  doubleEvent: false
+                //           then:  foreground: false:  doubleEvent: true
+                //  Not running:    as per background
                 //
-                // On iOS this handler is called immediately if running in foreground;
-                //  it is not called if app not started; the handler is called when app started.
-                //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
-                //
-                // On Android this handler is called immediately if running in foreground;
-                //  it is not called if not started; the handler is called twice when app started (double event)
-                //  if in background then the handler is called once immediately, and again when app shown (to cause a double event)
+                // iOS:
+                //  In foregound:   foreground: true:   doubleEvent: false
+                //  In background:  foreground: false:  doubleEvent: false
+                //           then:  foreground: false:  doubleEvent: true
+                //  Not running:    as per background?
+
                 window.mobilePush.on('notification', function (data) {
                     console.log("push notification");
                     console.log(data);
@@ -381,43 +384,41 @@ function mainOnAppStart() { // CC
                     badgeconsole += msg;
                     $('#badgeconsole').html(badgeconsole);*/
 
-                    if ((!foreground && doubleEvent) && (data.count > 0)) { // Only go to route if started/awakened ie not if in foreground
-                      if (data.additionalData.route) {
-                        (function waitUntilLoggedIn(retry) {
-                          if (Iznik.Session.loggedIn) {
-                            setTimeout(function () {
-                              console.log("Push go to: " + data.additionalData.route);
-                              Router.navigate(data.additionalData.route, true);
-
-//if (!('chatcount' in data.additionalData)) data.additionalData.chatcount = 5;
-//if (!('notifcount' in data.additionalData)) data.additionalData.notifcount = 3;
-                              console.log("Checking counts");
-
-                              if (('chatcount' in data.additionalData) && ('notifcount' in data.additionalData)) {
-                                var chatcount = parseInt(data.additionalData.chatcount);
-                                var notifcount = parseInt(data.additionalData.notifcount);
-                                if (!isNaN(chatcount) && !isNaN(notifcount)) {
-                                  console.log("Setting chatcount " + chatcount + " notifcount " + notifcount);
-                                  Iznik.setTitleCounts(chatcount, notifcount);
-                                }
-                              }
-                              
-
-                            }, 500);
-                          } else {
-                            setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
-                          }
-                        })(10);
+                    // Always try to set in-app counts
+                    if (('chatcount' in data.additionalData) && ('notifcount' in data.additionalData)) {
+                      var chatcount = parseInt(data.additionalData.chatcount);
+                      var notifcount = parseInt(data.additionalData.notifcount);
+                      console.log("Got chatcount " + chatcount + " notifcount " + notifcount);
+                      if (!isNaN(chatcount) && !isNaN(notifcount)) {
+                        console.log("Setting counts");
+                        Iznik.setTitleCounts(chatcount, notifcount);
                       }
                     }
+
+                    // If in background or now in foreground having been woken from background
+                    if (('route' in data.additionalData) && !foreground && !doubleEvent && data.count) {
+                      (function waitUntilLoggedIn(retry) {
+                        if (Iznik.Session.loggedIn) {
+                          setTimeout(function () {
+                            console.log("Push go to: " + data.additionalData.route);
+                            Router.navigate(data.additionalData.route, true);
+                          }, 500);
+                        } else {
+                          setTimeout(function () { if (--retry) { waitUntilLoggedIn(retry); } }, 1000);
+                        }
+                      })(10);
+                    }
+
                     if (foreground) { // Reload if route matches where we are - or if on any chat screen eg /chat/123456 or /chats
                       var frag = '/' + Backbone.history.getFragment();
                       if (data.additionalData.route) {
                         if (frag == data.additionalData.route) {
+                          console.log("fg: Reload as route matches");
                           Backbone.history.loadUrl();
                         }
                         else {
                           if ((frag.substring(0, 5) == '/chat') && (data.additionalData.route.substring(0, 5) == '/chat')) {
+                            console.log("fg: Reload as route is on chat");
                             Backbone.history.loadUrl(); // refresh rather than go to route
                           }
                         }
