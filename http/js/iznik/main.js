@@ -391,7 +391,7 @@ function mainOnAppStart() { // CC
                       console.log("Got chatcount " + chatcount + " notifcount " + notifcount);
                       if (!isNaN(chatcount) && !isNaN(notifcount)) {
                         console.log("Setting counts");
-                        Iznik.setTitleCounts(chatcount, notifcount);
+                        Iznik.setHeaderCounts(chatcount, notifcount);
                       }
                     }
 

@@ -442,6 +442,30 @@ define([
     var chatTitleCount = 0;
     var newsfeedTitleCount = 0;
 
+    Iznik.setHeaderCounts = function (chatcount, notifcount) {
+      // This if test improves browser performance by avoiding unnecessary show/hides.
+      $('.js-chattotalcount').each(function () {
+        if ($(this).html() != chatcount) {
+          if (chatcount > 0) {
+            $(this).html(chatcount).show();
+          } else {
+            $(this).empty().hide();
+          }
+        }
+      });
+      $('.js-notifholder .js-notifcount').each(function () {
+        if ($(this).html() != notifcount) {
+          if (notifcount > 0) {
+            $(this).html(notifcount);
+            $(this).css('visibility', 'visible');
+          } else {
+            $(this).empty();
+            $(this).css('visibility', 'hidden');
+          }
+        }
+      });
+    }
+
     Iznik.setTitleCounts = function(chat, newsfeed) {
         if (chat !== null) {
             chatTitleCount = chat;
