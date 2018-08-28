@@ -33,14 +33,14 @@ define([
                         }
                     }).then(function() {
                         // We've sent it successfully.
-                        trigger.trigger('sent', msg);
-
                         Storage.set('chatqueue', JSON.stringify(sending));
 
                         if (sending.length > 0) {
                             // We have another message to send.
                             _.delay(_.bind(sendQueue, self), 100);
                         }
+
+                        trigger.trigger('sent', msg);
                     });
                 }
             } catch (e) {
