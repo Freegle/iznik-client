@@ -386,16 +386,18 @@ function mainOnAppStart() { // CC
                         (function waitUntilLoggedIn(retry) {
                           if (Iznik.Session.loggedIn) {
                             setTimeout(function () {
-                              //console.log("Push go to: " + data.additionalData.route);
+                              console.log("Push go to: " + data.additionalData.route);
                               Router.navigate(data.additionalData.route, true);
 
 //if (!('chatcount' in data.additionalData)) data.additionalData.chatcount = 5;
 //if (!('notifcount' in data.additionalData)) data.additionalData.notifcount = 3;
+                              console.log("Checking counts");
 
                               if (('chatcount' in data.additionalData) && ('notifcount' in data.additionalData)) {
                                 var chatcount = parseInt(data.additionalData.chatcount);
                                 var notifcount = parseInt(data.additionalData.notifcount);
                                 if (!isNaN(chatcount) && !isNaN(notifcount)) {
+                                  console.log("Setting chatcount " + chatcount + " notifcount " + notifcount);
                                   Iznik.setTitleCounts(chatcount, notifcount);
                                 }
                               }
