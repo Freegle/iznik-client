@@ -10,7 +10,6 @@ define([
     'iznik/views/chat/chat',
     'iznik/views/user/user',
     'iznik/models/group',
-    'iznik/events',
     'iznik/models/notification'
 ], function($, _, Backbone, Iznik, ChatHolder) {
     // We have a view for everything that is common across all pages, e.g. sidebars.
@@ -651,9 +650,6 @@ define([
                 if (Iznik.Session.hasPermission('Newsletter')) {
                     self.$('.js-newsletter').removeClass('hidden');
                 }
-
-                // Events site is special.
-                self.$('.js-recentsessions').attr('href', 'https://' + EVENT_HOST + '/modtools/sessions');
             });
 
             return p;

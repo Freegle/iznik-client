@@ -46,7 +46,6 @@ const routes = [
     'plugins',
     'post',
     'privacy',
-    'replay',
     'recentfreegles',
     'schedule',
     'settings',
