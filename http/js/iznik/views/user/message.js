@@ -1076,13 +1076,15 @@ define([
                                         ChatHolder().fetchAndRestore(chatid);
 
                                         // And now prompt them to give us their schedule.
-                                        var v = new Iznik.Views.User.Schedule.Modal({
-                                            mine: true,
-                                            help: true,
-                                            chatuserid: self.model.get('fromuser').id
-                                        });
+                                        if (!Storage.get('dontaskschedule')) {
+                                            var v = new Iznik.Views.User.Schedule.Modal({
+                                                mine: true,
+                                                help: true,
+                                                chatuserid: self.model.get('fromuser').id
+                                            });
 
-                                        v.render();
+                                            v.render();
+                                        }
 
                                         self.listenToOnce(v, 'modalClosed, modalCancelled', function() {
                                             _.delay(function() {

@@ -6,12 +6,11 @@ define([
     'underscore',
     'backbone',
     'iznik/base',
-    'iznik/events',
     'iznik/models/session',
     'iznik/views/modal',
     'iznik/views/help',
     'iznik/views/signinup'
-], function($, _, Backbone, Iznik, monitor) {
+], function($, _, Backbone, Iznik) {
     Iznik.Session = new Iznik.Models.Session();
 
     Iznik.Session.askedPush = false;
@@ -70,7 +69,6 @@ define([
                 });
 
                 var timestamp = (new Date()).getTime();
-                monitor.trackEvent('route', url, null, null, null, timestamp);
             } catch (e) {
                 console.log("Google exception - privacy blocker?", e);
             }*/
@@ -141,10 +139,7 @@ define([
             "modtools/mydata": "myData",
             "modtools/support": "support",
             "modtools/shortlinks": "shortlinks",
-            "modtools/sessions": "sessions",
-            "modtools/replay/(:id)": "replay",
             "modtools": "modtools",
-            "replay/(:id)": "replay",
             "mobiledebug": "mobiledebug",
             "find": "userFindWhereAmI",
             "find/whereami": "userFindWhereAmI",
@@ -1685,22 +1680,6 @@ define([
             }
         },
 
-        sessions: function() {
-            if (MODTOOLS) {
-                var self = this;
-                require(["iznik/views/pages/modtools/replay"], function () {
-                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                        var page = new Iznik.Views.ModTools.Pages.Sessions();
-                        self.loadRoute({page: page, modtools: true});
-                    });
-
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
-                });
-            }
-        },
-
         modLogs: function(logtype) {
             if (MODTOOLS) {
                 var self = this;
@@ -1746,28 +1725,6 @@ define([
                     });
 
                     Iznik.Session.forceLogin();
-                });
-            }
-        },
-
-        replay: function(sessionid) {
-            if (MODTOOLS) {
-                var self = this;
-
-                // Disable chat animation which interacts badly with replay.
-                $("<style type='text/css'> .chat-window{ animation: none !important;} </style>").appendTo("head");
-
-                require(["iznik/views/pages/modtools/replay"], function () {
-                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                        var page = new Iznik.Views.ModTools.Pages.Replay({
-                            sessionid: sessionid
-                        });
-                        self.loadRoute({page: page, modtools: true});
-                    });
-
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
                 });
             }
         },

@@ -13,7 +13,6 @@ define([
     'iznik/views/pages/pages',
     'iznik/views/pages/modtools/messages_approved',
     'iznik/views/pages/modtools/members_approved',
-    'iznik/views/pages/modtools/replay',
     'iznik/views/pages/modtools/shortlinks',
     'iznik/models/user/alert',
     'iznik/views/user/user',
@@ -1194,25 +1193,6 @@ define([
                     });
                 });
 
-                // Add any sessions.
-                var sessions = self.model.get('sessions');
-                self.sessionCollection = new Iznik.Collection(sessions);
-
-                if (self.sessionCollection.length == 0) {
-                    self.$('.js-sessionsnone').show();
-                } else {
-                    self.$('.js-sessionsnone').hide();
-                }
-
-                self.sessionCollectionView = new Backbone.CollectionView({
-                    el: self.$('.js-sessions'),
-                    modelView: Iznik.Views.ModTools.Pages.Replay.Session,
-                    collection: self.sessionCollection,
-                    processKeyEvents: false
-                });
-
-                self.sessionCollectionView.render();
-                
                 // Add any chats
                 self.chatCollection = new Iznik.Collection(self.model.get('chatrooms'));
                 self.chatCollection.each(function(chat) {
@@ -1521,20 +1501,6 @@ define([
     });
 
     Iznik.Views.ModTools.Message.SupportSearchResult = Iznik.Views.ModTools.Message.Approved.extend({
-    });
-
-    Iznik.Views.ModTools.Member.Session = Iznik.View.Timeago.extend({
-        template: 'modtools_support_session',
-        
-        events: {
-            'click .js-play': 'play'
-        },
-        
-        play: function() {
-            var width = window.innerWidth * 0.66 ;
-            var height = width * window.innerHeight / window.innerWidth ;
-            window.open('/modtools/replay/' + this.model.get('sessionid'), 'Session Replay', 'width=' + width + ', height=' + height + ', top=' + ((window.innerHeight - height) / 2) + ', left=' + ((window.innerWidth - width) / 2));
-        }
     });
 
     Iznik.Views.ModTools.Pages.Support.GroupAdded = Iznik.Views.Modal.extend({

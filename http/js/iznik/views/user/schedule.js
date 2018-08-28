@@ -17,7 +17,13 @@ define([
         events: {
             'click .js-confirm': 'save',
             'click .js-cancel': 'cancel',
+            'click .js-neveragain': 'neverAgain',
             'click .js-slots': 'changed'
+        },
+
+        neverAgain: function() {
+            Storage.set('dontaskschedule', true);
+            this.cancel();
         },
 
         cancel: function () {
@@ -114,6 +120,7 @@ define([
                 Iznik.View.prototype.render.call(self).then(function () {
                     if (self.options.cancel) {
                         self.$('.js-cancel').show();
+                        self.$('.js-neveragain').show();
                     }
 
                     if (self.options.help) {

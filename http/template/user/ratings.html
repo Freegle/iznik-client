@@ -1,6 +1,6 @@
-<div class="btn <% if (info.ratings.Mine == 'Up') { %>btn-primary<% } else { %>btn-white<% } %> btn-xs padright inline margrightsm js-up" title="{{info.ratings.Up}} freegler<% if (info.ratings.Up != 1) { %>s<% } %> gave them a thumbs up.  Click to rate.">
+<div class="btn <% if (info.ratings.Mine == 'Up') { %>btn-primary<% } else if (info.ratings.Up > 0) { %>btn-success<% } else { %>btn-white<% } %> btn-xs padright inline margrightsm js-up" title="{{info.ratings.Up}} freegler<% if (info.ratings.Up != 1) { %>s<% } %> gave them a thumbs up.  Click to rate.">
     <span class="glyphicon glyphicon-thumbs-up" />&nbsp;{{info.ratings.Up}}
 </div>
-<div class="btn <% if (info.ratings.Mine == 'Down') { %>btn-primary<% } else { %>btn-white<% } %> btn-xs padright inline js-down" title="{{info.ratings.Down}} freegler<% if (info.ratings.Up != 1) { %>s<% } %> gave them a thumbs down.  Click to rate.">
+<div class="btn <% if (info.ratings.Mine == 'Down') { %>btn-primary<% } else if (info.ratings.Down > 0) { %>btn-warning <% } else { %>btn-white<% } %> btn-xs padright inline js-down" title="{{info.ratings.Down}} freegler<% if (info.ratings.Up != 1) { %>s<% } %> gave them a thumbs down.  Click to rate.">
     <span class="glyphicon glyphicon-thumbs-down" />&nbsp;{{info.ratings.Down}}
 </div>

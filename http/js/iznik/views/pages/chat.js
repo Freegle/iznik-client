@@ -343,8 +343,6 @@ define([
 
         className: 'chat-page-pane bordleft bordright col-xs-12 col-sm-12 col-md-6 nopad',
 
-        shownAddress: false,
-
         events: {
             'click .js-report, touchstart .js-report': 'report',
             'click .js-enter': 'enter',
@@ -494,12 +492,12 @@ define([
         checkAddress: function() {
             var self = this;
 
-            if (!self.shownAddress && self.inDOM()) {
+            if (!Storage.get('shownAddress') && self.inDOM()) {
                 var msg = self.$('.js-message').val();
 
                 if (msg.indexOf('address') !== -1) {
                     self.$('.js-address').tooltip('show');
-                    self.shownAddress = true;
+                    Storage.set('shownAddress', true);
                     _.delay(_.bind(function() {
                         this.$('.js-address').tooltip('hide');
                     }, self), 10000);
@@ -768,6 +766,15 @@ define([
         scrollTimer: null,
         scrollTo: 0,
         scrolledToBottomOnce: false,
+        scrollAbort : false,
+        scrollAbortRunning: false,
+
+        abortHandler: function() {
+            var self = this;
+            self.scrollAbort = true;
+            self.scrollAbortRunning = false;
+            $(window).off('mousewheel DOMMouseScroll, keyup', self.scrollfn);
+        },
 
         scrollBottom: function () {
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
@@ -776,7 +783,16 @@ define([
             if (self.inDOM()) {
                 var scroll = self.$('.js-scroll');
 
-                if (scroll.length > 0) {
+                if (scroll.length > 0 && !self.scrollAbort) {
+                    if (!self.scrollAbortRunning) {
+                        // Detect keyboard and mouse events; if we get one then abort the scroll.  This handles the case
+                        // where the user starts scrolling before our scroll has finished.
+                        self.scrollAbortRunning = true;
+                        self.scrollAbort = false;
+                        self.scrollfn = _.bind(self.abortHandler, self);
+                        $(window).bind('mousewheel DOMMouseScroll, keyup', self.scrollfn);
+                    }
+
                     var height = scroll[0].scrollHeight;
                     // console.log("Scroll", height, scroll.scrollTop(), scroll);
 

@@ -1175,13 +1175,31 @@ define([
         scrollTimer: null,
         scrollTo: 0,
         scrolledToBottomOnce: false,
+        scrollAbort : false,
+        scrollAbortRunning: false,
+
+        abortHandler: function() {
+            var self = this;
+            self.scrollAbort = true;
+            self.scrollAbortRunning = false;
+            $(window).off('mousewheel DOMMouseScroll, keyup', self.scrollfn);
+        },
 
         scrollBottom: function () {
             // Tried using .animate(), but it seems to be too expensive for the browser, so leave that for now.
             var self = this;
             var msglist = self.$('.js-messages');
 
-            if (msglist.length > 0) {
+            if (msglist.length > 0 && !self.scrollAbort) {
+                if (!self.scrollAbortRunning) {
+                    // Detect keyboard and mouse events; if we get one then abort the scroll.  This handles the case
+                    // where the user starts scrolling before our scroll has finished.
+                    self.scrollAbortRunning = true;
+                    self.scrollAbort = false;
+                    self.scrollfn = _.bind(self.abortHandler, self);
+                    $(window).bind('mousewheel DOMMouseScroll, keyup', self.scrollfn);
+                }
+
                 var height = msglist[0].scrollHeight;
 
                 if (self.scrollTimer && self.scrollTo < height) {
@@ -1395,7 +1413,8 @@ define([
             'click .js-profile': 'showProfile',
             'click .js-renege': 'renege',
             'click .js-theirschedule': 'theirSchedule',
-            'click .js-myschedule': 'mySchedule'
+            'click .js-myschedule': 'mySchedule',
+            'click .js-predictinfo': 'predictInfo'
         },
 
         theirSchedule: function() {
@@ -1543,6 +1562,17 @@ define([
         msgZoom: function() {
             var self = this;
             var v = new Iznik.Views.Chat.Message.Zoom({
+                model: self.model
+            });
+            v.render();
+        },
+
+        predictInfo: function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            var self = this;
+            var v = new Iznik.Views.Chat.PredictInfo({
                 model: self.model
             });
             v.render();
@@ -1729,6 +1759,10 @@ define([
 
             return (p);
         }
+    });
+
+    Iznik.Views.Chat.PredictInfo = Iznik.Views.Modal.extend({
+        template: 'chat_predictinfo'
     });
 
     Iznik.Views.Chat.Message.PhotoZoom = Iznik.Views.Modal.extend({

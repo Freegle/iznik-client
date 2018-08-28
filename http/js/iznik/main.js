@@ -318,8 +318,8 @@ function mainOnAppStart() { // CC
             } else if (!window.mobilePushId) {
                 window.mobilePush = PushNotification.init({
                   android: {
-                        //senderID: "423761283916", // https://console.firebase.google.com/project/scenic-oxygen-849/settings/general/android:org.ilovefreegle.direct
-                        senderID: "845879623324", // Old GCM way
+                        senderID: "423761283916", // FCM: https://console.firebase.google.com/project/scenic-oxygen-849/settings/general/android:org.ilovefreegle.direct
+                        //senderID: "845879623324", // Old GCM way
                         sound: false,
                         iconColor: "#5EcA24",
                         icon: "icon",

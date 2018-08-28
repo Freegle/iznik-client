@@ -40,10 +40,23 @@
             <div class="panel-body">
                 {{message}}
             </div>
-            <% if (user.aboutme) { %>
-            <div class="panel-footer small">
-                <p class="faded">About {{user.displayname}}:</p>
-                <b>&quot;</b><%- user.aboutme.text %><b>&quot;</b></div>
+            <% if (user.aboutme || user.prediction != 'Unknown') { %>
+            <div class="panel-footer ">
+                <% if (user.aboutme) { %>
+                <p class="faded small">About {{user.displayname}}:</p>
+                <b>&quot;</b><span class="small"><%- user.aboutme.text %></span><b>&quot;</b>
+                <% } %>
+                <!--<% if (user.prediction == 'Up') { %>-->
+                <!--<div>-->
+                    <!--<span class="glyphicon glyphicon-info-sign success glyphicon-larger vcenter" />&nbsp;Replies like this usually work out ok.  <a class="clickme js-predictinfo">Read more...</a>-->
+                <!--</div>-->
+                <!--<% } else if (user.prediction == 'Down') { %>-->
+                <!--<div>-->
+                    <!--<span class="glyphicon glyphicon-warning-sign warning glyphicon-larger vcenter" />Replies like this sometimes don't work out.-->
+                    <!--Please make very clear arrangements or consider choosing another freegler.  <a class="clickme js-predictinfo">Read more...</a>-->
+                <!--</div>-->
+                <!--<% } %>-->
+            </div>
             <% } %>
         </div>
     </div>
