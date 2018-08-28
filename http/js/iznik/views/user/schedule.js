@@ -239,28 +239,35 @@ define([
         render: function () {
             var self = this;
 
-            var p = Iznik.Views.Modal.prototype.render.call(this);
+            self.wait = new Iznik.Views.PleaseWait();
+            self.wait.render();
 
-            p.then(function () {
-                var v = new Iznik.Views.User.Schedule({
-                    chatuserid: self.options.chatuserid,
-                    schedule: self.options.schedule,
-                    mine: self.options.mine,
-                    help: self.options.help,
-                    otheruser: self.options.otheruser,
-                    cancel: true
+            // The schedule involves a server fetch; render it before opening the modal to avoid ugly empty
+            // modal.
+            var v = new Iznik.Views.User.Schedule({
+                chatuserid: self.options.chatuserid,
+                schedule: self.options.schedule,
+                mine: self.options.mine,
+                help: self.options.help,
+                otheruser: self.options.otheruser,
+                cancel: true
+            });
+
+            self.listenToOnce(v, 'saved', function () {
+                self.close();
+            });
+
+            self.listenToOnce(v, 'cancelled', function () {
+                self.close();
+            });
+
+            var p = v.render();
+
+            p.then(function() {
+                self.wait.close();
+                Iznik.Views.Modal.prototype.render.call(self).then(function() {
+                    self.$('.js-schedule').append(v.$el);
                 });
-
-                self.listenToOnce(v, 'saved', function () {
-                    self.close();
-                });
-
-                self.listenToOnce(v, 'cancelled', function () {
-                    self.close();
-                });
-
-                v.render();
-                self.$('.js-schedule').append(v.$el);
             });
 
             return (p);
