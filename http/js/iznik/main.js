@@ -390,8 +390,8 @@ function mainOnAppStart() { // CC
                       var notifcount = parseInt(data.additionalData.notifcount);
                       console.log("Got chatcount " + chatcount + " notifcount " + notifcount);
                       if (!isNaN(chatcount) && !isNaN(notifcount)) {
-                        console.log("Setting counts");
                         Iznik.setHeaderCounts(chatcount, notifcount);
+                        Iznik.Session.chats.fetch();
                       }
                     }
 

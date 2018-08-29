@@ -269,7 +269,7 @@ define([
 
             if (Iznik.Session) {
                 // Start our poll for new info.
-                self.wait();
+                // DON'T POLL ON MOBILE APP: self.wait();
 
                 // Start our fallback fetch for new info in case the poll doesn't tell us.
                 _.delay(_.bind(self.fallback, self), self.fallbackInterval);

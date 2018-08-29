@@ -448,6 +448,7 @@ define([
         if ($(this).html() != chatcount) {
           if (chatcount > 0) {
             $(this).html(chatcount).show();
+            console.log("chatcount set to: " + chatcount);
           } else {
             $(this).empty().hide();
           }
@@ -457,6 +458,7 @@ define([
         if ($(this).html() != notifcount) {
           if (notifcount > 0) {
             $(this).html(notifcount);
+            console.log("notifcount set to: " + notifcount);
             $(this).css('visibility', 'visible');
           } else {
             $(this).empty();
