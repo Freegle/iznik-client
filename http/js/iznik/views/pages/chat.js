@@ -406,7 +406,11 @@ define([
 
                 self.model.close().then(function() {
                     // Reload.  Bit clunky but it'll do.
-                    Iznik.Session.chats.fetch().then(function() {
+                    Iznik.Session.chats.fetch({
+                        data: {
+                            summary: true
+                        }
+                    }).then(function() {
                         window.location.reload();
                     });
                 });
@@ -434,7 +438,11 @@ define([
 
                 self.model.block().then(function() {
                     // Reload.  Bit clunky but it'll do.
-                    Iznik.Session.chats.fetch().then(function() {
+                    Iznik.Session.chats.fetch({
+                        data: {
+                            summary: true
+                        }
+                    }).then(function() {
                         window.location.reload();
                     });
                 });
