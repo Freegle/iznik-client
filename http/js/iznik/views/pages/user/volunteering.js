@@ -83,9 +83,7 @@ define([
             var self = this;
 
             self.model.renew().then(function() {
-                self.model.fetch().then(function() {
-                    self.render();
-                })
+                self.$('.js-warn').fadeOut('slow');
             });
         },
 
