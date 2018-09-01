@@ -159,6 +159,8 @@ define([
                                 $('.js-unseennews').hide();
                             }
                         }
+
+                        self.notificationChecking = false;
                     }
                 });
             }
@@ -385,7 +387,7 @@ define([
                                 collection: self.notifications,
                                 modelViewOptions: {
                                     page: self,
-                                    notificationCheck: self.notificationCheck
+                                    notificationCheck: _.bind(self.notificationCheck, self)
                                 },
                                 processKeyEvents: false,
                                 detachedRendering: true
@@ -397,7 +399,7 @@ define([
                                 collection: self.notifications,
                                 modelViewOptions: {
                                     page: self,
-                                    notificationCheck: self.notificationCheck
+                                    notificationCheck: _.bind(self.notificationCheck, self)
                                 },
                                 processKeyEvents: false,
                                 detachedRendering: true
