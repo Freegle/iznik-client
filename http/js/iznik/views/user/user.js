@@ -1214,6 +1214,8 @@ define([
 
                     self.ratings2.render();
                     self.$('.js-ratings2').html(self.ratings2.$el);
+
+                    self.$('.js-abouttext').html(Iznik.twem(self.$('.js-abouttext').html()));
                 })
             });
 
