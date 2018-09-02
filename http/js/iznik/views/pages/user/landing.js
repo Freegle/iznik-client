@@ -24,9 +24,10 @@ define([
 
             p.then(function(self) {
                 // Add map.
-                var v = new Iznik.Views.Visualise.Map();
-                v.render();
-                self.$('.js-visualise').html(v.$el);
+                // TODO MAPS
+                // var v = new Iznik.Views.Visualise.Map();
+                // v.render();
+                // self.$('.js-visualise').html(v.$el);
 
                 // Add stories
                 require(['iznik/models/membership'], function () {

@@ -313,7 +313,6 @@ define([
 
                 self.map = new google.maps.Map(self.$('.js-usermap').get()[0], mapOptions);
 
-
                 // Searchbox
                 var input = document.getElementById('pac-input');
                 self.searchBox = new google.maps.places.SearchBox(input);
