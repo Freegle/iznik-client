@@ -222,111 +222,128 @@ define([
         save: function() {
             var self = this;
 
-            if (!self.wait && self.dates.length > 0) {
-                self.promises = [];
+            // Check all datas are in the future
+            var datesvalid = true;
+            var today = new moment();
+            self.$('.js-datesinvalid').hide();
+            self.datesCV.viewManager.each(function(date) {
+                var start = new moment(date.getStart());
+                var end = new moment(date.getEnd());
 
-                if (self.$('form').valid()) {
-                    self.wait = new Iznik.Views.PleaseWait({
-                        timeout: 1
-                    });
-                    self.wait.render();
+                if (start.diff(today) < 0 || end.diff(today) < 0) {
+                    datesvalid = false;
+                }
+            });
 
-                    self.$('input,textarea').each(function () {
-                        var name = $(this).prop('name');
-                        if (name.length > 0 && name != 'photo') {
-                            self.model.set(name, $(this).val());
-                        }
-                    });
+            if (!datesvalid) {
+                self.$('.js-datesinvalid').fadeIn('slow');
+            } else {
+                if (!self.wait && self.dates.length > 0) {
+                    self.promises = [];
 
-                    var p = self.model.save({}, {
-                        success: function(model, response, options) {
-                            if (response.id) {
-                                self.model.set('id', response.id);
+                    if (self.$('form').valid()) {
+                        self.wait = new Iznik.Views.PleaseWait({
+                            timeout: 1
+                        });
+                        self.wait.render();
+
+                        self.$('input,textarea').each(function () {
+                            var name = $(this).prop('name');
+                            if (name.length > 0 && name != 'photo') {
+                                self.model.set(name, $(this).val());
                             }
-                        }
-                    }).then(function() {
-                        // Add the group and dates.
-                        var groups = self.model.get('groups');
-                        if (_.isUndefined(groups) || self.groupSelect.get() != groups[0]['id']) {
-                            self.promises.push($.ajax({
-                                url: API + 'communityevent',
-                                type: 'PATCH',
-                                data: {
-                                    id: self.model.get('id'),
-                                    action: 'AddGroup',
-                                    groupid: self.groupSelect.get()
-                                },
-                                success: function (ret) {
-                                    if (!_.isUndefined(groups)) {
-                                        self.promises.push($.ajax({
-                                            url: API + 'communityevent',
-                                            type: 'PATCH',
-                                            data: {
-                                                id: self.model.get('id'),
-                                                action: 'RemoveGroup',
-                                                groupid: groups[0]['id']
-                                            }
-                                        }));
+                        });
+
+                        var p = self.model.save({}, {
+                            success: function(model, response, options) {
+                                if (response.id) {
+                                    self.model.set('id', response.id);
+                                }
+                            }
+                        }).then(function() {
+                            // Add the group and dates.
+                            var groups = self.model.get('groups');
+                            if (_.isUndefined(groups) || self.groupSelect.get() != groups[0]['id']) {
+                                self.promises.push($.ajax({
+                                    url: API + 'communityevent',
+                                    type: 'PATCH',
+                                    data: {
+                                        id: self.model.get('id'),
+                                        action: 'AddGroup',
+                                        groupid: self.groupSelect.get()
+                                    },
+                                    success: function (ret) {
+                                        if (!_.isUndefined(groups)) {
+                                            self.promises.push($.ajax({
+                                                url: API + 'communityevent',
+                                                type: 'PATCH',
+                                                data: {
+                                                    id: self.model.get('id'),
+                                                    action: 'RemoveGroup',
+                                                    groupid: groups[0]['id']
+                                                }
+                                            }));
+                                        }
                                     }
-                                }
-                            }));
-                        }
-
-                        // Delete any old dates.
-                        var olddates = self.model.get('dates');
-                        _.each(olddates, function(adate) {
-                            self.promises.push($.ajax({
-                                url: API + 'communityevent',
-                                type: 'PATCH',
-                                data: {
-                                    id: self.model.get('id'),
-                                    action: 'RemoveDate',
-                                    dateid: adate.id
-                                }
-                            }));
-                        });
-
-                        // Add new dates.
-                        self.datesCV.viewManager.each(function(date) {
-                            var start = date.getStart();
-                            var end = date.getEnd();
-
-                            self.promises.push($.ajax({
-                                url: API + 'communityevent',
-                                type: 'PATCH',
-                                data: {
-                                    id: self.model.get('id'),
-                                    action: 'AddDate',
-                                    start: start,
-                                    end: end
-                                }
-                            }));
-                        });
-
-                        if (self.model.get('photo')) {
-                            self.promises.push($.ajax({
-                                url: API + 'communityevent',
-                                type: 'PATCH',
-                                data: {
-                                    id: self.model.get('id'),
-                                    action: 'SetPhoto',
-                                    photoid: self.model.get('photo')
-                                }
-                            }));
-                        }
-
-                        Promise.all(self.promises).then(function() {
-                            self.wait.close();
-                            self.wait = null;
-                            self.trigger('saved');
-                            self.model.trigger('edited');
-
-                            if (self.closeAfterSave) {
-                                self.close();
-                                (new Iznik.Views.User.CommunityEvent.Confirm()).render();
+                                }));
                             }
+
+                            // Delete any old dates.
+                            var olddates = self.model.get('dates');
+                            _.each(olddates, function(adate) {
+                                self.promises.push($.ajax({
+                                    url: API + 'communityevent',
+                                    type: 'PATCH',
+                                    data: {
+                                        id: self.model.get('id'),
+                                        action: 'RemoveDate',
+                                        dateid: adate.id
+                                    }
+                                }));
+                            });
+
+                            // Add new dates.
+                            self.datesCV.viewManager.each(function(date) {
+                                var start = date.getStart();
+                                var end = date.getEnd();
+
+                                self.promises.push($.ajax({
+                                    url: API + 'communityevent',
+                                    type: 'PATCH',
+                                    data: {
+                                        id: self.model.get('id'),
+                                        action: 'AddDate',
+                                        start: start,
+                                        end: end
+                                    }
+                                }));
+                            });
+
+                            if (self.model.get('photo')) {
+                                self.promises.push($.ajax({
+                                    url: API + 'communityevent',
+                                    type: 'PATCH',
+                                    data: {
+                                        id: self.model.get('id'),
+                                        action: 'SetPhoto',
+                                        photoid: self.model.get('photo')
+                                    }
+                                }));
+                            }
+
+                            Promise.all(self.promises).then(function() {
+                                self.wait.close();
+                                self.wait = null;
+                                self.trigger('saved');
+                                self.model.trigger('edited');
+
+                                if (self.closeAfterSave) {
+                                    self.close();
+                                    (new Iznik.Views.User.CommunityEvent.Confirm()).render();
+                                }
+                            });
                         });
-                    });
+                    }
                 }
             }
         },
