@@ -115,8 +115,8 @@ define([
             } else {
                 this.$('.js-snippet').slideUp();
             }
-            this.caretshow();
             this.expanded = !this.expanded;
+            this.caretshow();
         },
 
         fop: function() {
