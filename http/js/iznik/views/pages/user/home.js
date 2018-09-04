@@ -281,14 +281,10 @@ define([
                     cached: cb
                 }).then(cb);
 
-                // We need the chats, as they are used when displaying messages.  We only fetch the summary version,
-                // for performance.
+                // We need the chats, as they are used when displaying messages.  We fetch the full info
+                // as we need the user profiles.
                 var cb = _.bind(self.fetchedChats, self);
-                Iznik.Session.chats.fetch({
-                    data: {
-                        summary: true
-                    }
-                }).then(cb);
+                Iznik.Session.chats.fetch().then(cb);
 
                 if (Iznik.Session.get('me').bouncing) {
                     self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email);
@@ -416,14 +412,10 @@ define([
                     $('#js-eventcontainer').append(v.$el);
                 });
 
-                // We need the chats, as they are used when displaying messages.  We only fetch the summary
-                // version, for performance.
+                // We need the chats, as they are used when displaying messages.  We fetch the full version
+                // as we need it for profile.
                 var cb = _.bind(self.fetchedChats, self);
-                Iznik.Session.chats.fetch({
-                    data: {
-                        summary: true
-                    }
-                }).then(cb);
+                Iznik.Session.chats.fetch().then(cb);
             });
 
             return(p);
