@@ -131,20 +131,23 @@ define([
         },
 
         onholidaytill: function(e) {
+            var self = this;
             var me = Iznik.Session.get('me');
 
-            // Set the hour else midnight and under DST goes back a day.
-            e.date.hour(5);
-            var till = e.date.toISOString();
+            if (!_.isUndefined(e.data)) {
+                // Set the hour else midnight and under DST goes back a day.
+                e.date.hour(5);
+                var till = e.date.toISOString();
 
-            this.$('.js-onholidaytill').datetimepicker('hide');
+                self.$('.js-onholidaytill').datetimepicker('hide');
 
-            Iznik.Session.save({
-                id: me.id,
-                onholidaytill: till
-            }, {
-                patch: true
-            });
+                Iznik.Session.save({
+                    id: me.id,
+                    onholidaytill: till
+                }, {
+                    patch: true
+                });
+            }
         },
 
         onholiday: function() {
@@ -377,7 +380,8 @@ define([
                 self.$('.datepicker').datetimepicker({
                     format: 'ddd, DD MMMM',
                     minDate: new moment(),
-                    maxDate: (new moment()).add(30, 'days')
+                    maxDate: (new moment()).add(30, 'days'),
+                    keyBinds: { 'delete':null }
                 });
 
                 self.$('.datepicker').on("dp.change", _.bind(self.onholidaytill, self));
