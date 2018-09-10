@@ -114,7 +114,7 @@ define([
 
         getLocation: function () {
             var self = this;
-            showHeaderWait();
+            window.showHeaderWait();
             self.$('.js-getloc').tooltip('destroy');
             self.$('.js-getloc').tooltip({
                 'placement': 'bottom',
@@ -405,7 +405,7 @@ define([
         
         errorLocation: function (position) { // CC
             console.log("errorLocation");
-            hideHeaderWait();
+            window.hideHeaderWait();
             var self = this;
             self.$('.js-getloc').tooltip('destroy');
             _.delay(function () {
@@ -422,7 +422,7 @@ define([
 
         gotLocation: function(position) {
             console.log("gotLocation");
-            hideHeaderWait();
+            window.hideHeaderWait();
             var self = this;
             self.$('.js-getloc').tooltip('destroy');
 

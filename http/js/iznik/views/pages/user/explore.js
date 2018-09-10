@@ -40,13 +40,13 @@ define([
 
         getLocation: function () {
             function geoError(error) {
-                hideHeaderWait();
+                window.hideHeaderWait();
                 alert('code: ' + error.code + '\n' +
                       'message: ' + error.message + '\n');
             }
 
             var self = this;
-            showHeaderWait();
+            window.showHeaderWait();
             self.$('.js-getloc').tooltip('destroy');
             self.$('.js-getloc').tooltip({
                 'placement': 'bottom',
@@ -58,7 +58,7 @@ define([
 
         errorLocation: function (position) { // CC
             console.log("errorLocation");
-            hideHeaderWait();
+            window.hideHeaderWait();
             var self = this;
             self.$('.js-getloc').tooltip('destroy');
             _.delay(function () {
@@ -74,7 +74,7 @@ define([
         },
 
         gotLocation: function (position) {
-            hideHeaderWait();
+            window.hideHeaderWait();
             var self = this;
             self.$('.js-getloc').tooltip('destroy');
             this.map.moveTo(position.coords.latitude, position.coords.longitude);

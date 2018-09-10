@@ -18,7 +18,7 @@ define([
         
         getLocation: function() {
             var self = this;
-            showHeaderWait();
+            window.showHeaderWait();
             self.$('.js-getloc').tooltip('destroy');
             self.$('.js-getloc').tooltip({
                 'placement': 'bottom',
