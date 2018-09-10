@@ -141,8 +141,8 @@ define([
             } else {
                 this.$('.js-snippet').slideUp();
             }
-            this.caretshow();
             this.expanded = !this.expanded;
+            this.caretshow();
         },
 
         fop: function() {
@@ -1009,19 +1009,21 @@ define([
         },
 
         showMap: function() {
-            var self = this;
-            var loc = null;
-
-            if (self.model.get('location')) {
-                loc = self.model.get('location');
-            } else if (self.model.get('area')) {
-                loc = self.model.get('area');
-            }
-
-            if (loc) {
-                self.$('.js-mapzoom .js-map').attr('src', "https://maps.google.com/maps/api/staticmap?size=110x110&zoom=" + self.model.get('mapzoom') + "&center=" + loc.lat + "," + loc.lng + "&maptype=roadmap&markers=icon:" + self.model.get('mapicon') + "|" + loc.lat + "," + loc.lng + "&sensor=false&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg");
-                self.$('.js-mapzoom').show();
-            }
+            // TODO MAPS
+            return;
+            // var self = this;
+            // var loc = null;
+            //
+            // if (self.model.get('location')) {
+            //     loc = self.model.get('location');
+            // } else if (self.model.get('area')) {
+            //     loc = self.model.get('area');
+            // }
+            //
+            // if (loc) {
+            //     self.$('.js-mapzoom .js-map').attr('src', "https://maps.google.com/maps/api/staticmap?size=110x110&zoom=" + self.model.get('mapzoom') + "&center=" + loc.lat + "," + loc.lng + "&maptype=roadmap&markers=icon:" + self.model.get('mapicon') + "|" + loc.lat + "," + loc.lng + "&sensor=false&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg");
+            //     self.$('.js-mapzoom').show();
+            // }
         },
 
         mapZoom: function(e) {
@@ -1076,7 +1078,11 @@ define([
                                         ChatHolder().fetchAndRestore(chatid);
 
                                         // And now prompt them to give us their schedule.
-                                        if (!Storage.get('dontaskschedule')) {
+                                        var now = (new Date()).getTime();
+                                        var last = Storage.get('lastaskschedule');
+
+                                        if (!Storage.get('dontaskschedule') && (!last || (now - last > 24 * 60 * 60 * 1000))) {
+                                            Storage.set('lastaskschedule', now);
                                             var v = new Iznik.Views.User.Schedule.Modal({
                                                 mine: true,
                                                 help: true,
@@ -1319,54 +1325,56 @@ define([
         template: 'user_message_mapzoom',
 
         render: function() {
-            var self = this;
-
-            var p = Iznik.Views.Modal.prototype.render.call(self);
-            p.then(function() {
-                self.waitDOM(self, function(self) {
-                    // Set map to be square - will have height 0 when we open.
-                    var map = self.$('.js-map');
-                    var mapWidth = map.width();
-                    map.height(mapWidth);
-
-                    var location = self.model.get('location');
-                    var area = self.model.get('area');
-                    var centre = null;
-
-                    if (location) {
-                        centre = new google.maps.LatLng(location.lat, location.lng);
-                    } else if (area) {
-                        centre = new google.maps.LatLng(area.lat, area.lng);
-                        self.$('.js-vague').show();
-                    }
-
-                    var mapOptions = {
-                        mapTypeControl      : false,
-                        streetViewControl   : false,
-                        center              : centre,
-                        panControl          : mapWidth > 400,
-                        zoomControl         : mapWidth > 400,
-                        zoom                : self.model.get('zoom') ? self.model.get('zoom') : 16
-                    };
-
-                    self.map = new google.maps.Map(map.get()[0], mapOptions);
-
-                    var icon = {
-                        url: iznikroot + 'images/user_logo.png',    // CC
-                        scaledSize: new google.maps.Size(50, 50),
-                        origin: new google.maps.Point(0,0),
-                        anchor: new google.maps.Point(0, 0)
-                    };
-
-                    var marker = new google.maps.Marker({
-                        position: centre,
-                        icon: icon,
-                        map: self.map
-                    });
-                });
-            });
-
-            return(p);
+            // TODO MAPS
+            return Iznik.resolvedPromise(this);
+            // var self = this;
+            //
+            // var p = Iznik.Views.Modal.prototype.render.call(self);
+            // p.then(function() {
+            //     self.waitDOM(self, function(self) {
+            //         // Set map to be square - will have height 0 when we open.
+            //         var map = self.$('.js-map');
+            //         var mapWidth = map.width();
+            //         map.height(mapWidth);
+            //
+            //         var location = self.model.get('location');
+            //         var area = self.model.get('area');
+            //         var centre = null;
+            //
+            //         if (location) {
+            //             centre = new google.maps.LatLng(location.lat, location.lng);
+            //         } else if (area) {
+            //             centre = new google.maps.LatLng(area.lat, area.lng);
+            //             self.$('.js-vague').show();
+            //         }
+            //
+            //         var mapOptions = {
+            //             mapTypeControl      : false,
+            //             streetViewControl   : false,
+            //             center              : centre,
+            //             panControl          : mapWidth > 400,
+            //             zoomControl         : mapWidth > 400,
+            //             zoom                : self.model.get('zoom') ? self.model.get('zoom') : 16
+            //         };
+            //
+            //         self.map = new google.maps.Map(map.get()[0], mapOptions);
+            //
+            //         var icon = {
+            //             url: '/images/user_logo.png',
+            //             scaledSize: new google.maps.Size(50, 50),
+            //             origin: new google.maps.Point(0,0),
+            //             anchor: new google.maps.Point(0, 0)
+            //         };
+            //
+            //         var marker = new google.maps.Marker({
+            //             position: centre,
+            //             icon: icon,
+            //             map: self.map
+            //         });
+            //     });
+            // });
+            //
+            // return(p);
         }
     });
 });

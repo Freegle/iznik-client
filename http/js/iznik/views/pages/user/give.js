@@ -76,7 +76,11 @@ define([
                 } catch (e) {
                 }
 
-                if (!Storage.get('dontaskschedule')) {
+              var now = (new Date()).getTime();
+              var last = Storage.get('lastaskschedule');
+
+              if (!Storage.get('dontaskschedule') && (!last || (now - last > 24 * 60 * 60 * 1000))) {
+                    Storage.set('lastaskschedule', now);
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function () {
                         try {
                             // Now ask them to tell us their schedule.

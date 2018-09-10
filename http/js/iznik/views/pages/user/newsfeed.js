@@ -129,6 +129,8 @@ define([
                     var checks = {
                         'find': [
                             'wanted',
+                            'wanting',
+                            'requesting',
                             'looking for',
                             'has anybody got',
                             'has anyone got',

@@ -36,7 +36,7 @@
                     </ul>
                 </div>
                 <div class="col-xs-2 col-sm-1 col-md-2">
-                    <% if (wanteds.length >= 5) { %>
+                    <% if (obj.wanteds && wanteds.length >= 5) { %>
                     <button class="btn btn-white pull-right">
                         <span class="js-caretdown caret"></span>
                         <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
@@ -46,7 +46,7 @@
             </div>
         </div>
     </a>
-    <div id="wanted-{{id}}" class="panel-collapse collapse <% if (wanteds.length < 5) { %>show<% } %>">
+    <div id="wanted-{{id}}" class="panel-collapse collapse <% if (obj.wanteds && wanteds.length < 5) { %>show<% } %>">
         <div class="panel-body nopad">
             <div class="row topspace">
                 <div class="col-xs-10">

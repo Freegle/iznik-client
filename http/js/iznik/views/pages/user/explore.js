@@ -676,7 +676,8 @@ define([
                     self.$('.js-description a').attr('data-realurl', true);
 
                     // Add the area map.
-                    self.areaMap();
+                    // TODO MAPS
+                    // self.areaMap();
 
                     self.collection = new Iznik.Collections.Message(null, {
                         modtools: false,

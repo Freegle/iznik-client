@@ -479,7 +479,11 @@ define([
 
             var p = Iznik.Views.User.Pages.WhatNext.prototype.render.call(this);
             p.then(function () {
-                if (!Storage.get('dontaskschedule')) {
+                var now = (new Date()).getTime();
+                var last = Storage.get('lastaskschedule');
+
+                if (!Storage.get('dontaskschedule') && (!last || (now - last > 24 * 60 * 60 * 1000))) {
+                    Storage.set('lastaskschedule', now);
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function () {
                         try {
                             var v = new Iznik.Views.User.Schedule.Modal({
