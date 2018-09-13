@@ -100,7 +100,7 @@ define([
                     var lastask = Storage.get('lastyahoowarningalert');
                     var now = (new Date()).getTime();
 
-                    if (now - lastask > 7 * 24 * 60 * 60 * 1000) {
+                    if (now - lastask > 1 * 24 * 60 * 60 * 1000) {
                         Storage.set('lastyahoowarningalert', now);
 
                         (new Iznik.Views.ModTools.Message.YahooWarning({
