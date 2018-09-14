@@ -168,6 +168,12 @@ define([
     
         settingsGroup: function() {
             var self = this;
+            console.log("Settings groups");
+
+            self.wait = new Iznik.Views.PleaseWait({
+                timeout: 1
+            });
+            self.wait.render();
 
             self.waitDOM(self, function() {
                 if (self.selected > 0) {
@@ -742,7 +748,12 @@ define([
                         } else {
                             self.$('.js-freegleonly').hide();
                         }
+
+                        self.wait.close();
                     });
+                }
+                else {
+                    self.wait.close();
                 }
             });
         },
