@@ -282,7 +282,8 @@ define([
                     cached: cb
                 }).then(cb);
 
-                // We need the chats, as they are used when displaying messages.
+                // We need the chats, as they are used when displaying messages.  We fetch the full info
+                // as we need the user profiles.
                 var cb = _.bind(self.fetchedChats, self);
                 Iznik.Session.chats.fetch().then(cb);
 
@@ -412,7 +413,8 @@ define([
                     $('#js-eventcontainer').append(v.$el);
                 });
 
-                // We need the chats, as they are used when displaying messages.
+                // We need the chats, as they are used when displaying messages.  We fetch the full version
+                // as we need it for profile.
                 var cb = _.bind(self.fetchedChats, self);
                 Iznik.Session.chats.fetch().then(cb);
             });

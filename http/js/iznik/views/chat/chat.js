@@ -357,7 +357,12 @@ define([
 
                     var cb = _.bind(self.fetchedChats, self);
 
-                    Iznik.Session.chats.fetch().then(cb);
+                    // We only fetch the summary information, for performance.
+                    Iznik.Session.chats.fetch({
+                        data: {
+                            summary: true
+                        }
+                    }).then(cb);
                 });
 
                 $(document).on('hide', function () {
@@ -577,7 +582,11 @@ define([
 
                     self.model.close().then(function() {
                         // Also refetch the chats, so that our cached copy gets updated.
-                        Iznik.Session.chats.fetch();
+                        Iznik.Session.chats.fetch({
+                            data: {
+                                summary: true
+                            }
+                        });
                     })
                 } catch (e) {
                     console.error(e.message)
@@ -609,7 +618,11 @@ define([
 
                     self.model.block().then(function() {
                         // Also refetch the chats, so that our cached copy gets updated.
-                        Iznik.Session.chats.fetch();
+                        Iznik.Session.chats.fetch({
+                            data: {
+                                summary: true
+                            }
+                        });
                     })
                 } catch (e) {
                     console.error(e.message)

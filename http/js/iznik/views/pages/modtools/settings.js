@@ -168,6 +168,12 @@ define([
     
         settingsGroup: function() {
             var self = this;
+            console.log("Settings groups");
+
+            self.wait = new Iznik.Views.PleaseWait({
+                timeout: 1
+            });
+            self.wait.render();
 
             self.waitDOM(self, function() {
                 if (self.selected > 0) {
@@ -384,7 +390,7 @@ define([
                             },
                             {
                                 name: 'approvemembers',
-                                label: '(Freegle native groups only) Group approves new members?',
+                                label: '(Freegle native groups only) New member approval required?',
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
                                 helpMessage: "Normally members can join immediately, and any posts they make will be moderated.  Some groups prefer to approve new members manually, which gives more control over the group but loses postential members."
@@ -742,7 +748,12 @@ define([
                         } else {
                             self.$('.js-freegleonly').hide();
                         }
+
+                        self.wait.close();
                     });
+                }
+                else {
+                    self.wait.close();
                 }
             });
         },

@@ -72,29 +72,30 @@ requirejs.onError = function (err) {
 	});
 };*/
 
-function showHeaderWait() {
-    if (window.useSwipeRefresh) {
-        var refreshicon = jQuery('#refreshicon');
-        refreshicon.show();
-    } else {
-        jQuery('#refreshbutton span').addClass("rotate");
-    }
-}
+window.showHeaderWait = function () {
+  if (window.useSwipeRefresh) {
+    var refreshicon = jQuery('#refreshicon');
+    refreshicon.show();
+  } else {
+    jQuery('#refreshbutton span').addClass("rotate");
+  }
+};
 
-function hideHeaderWait(event) {
-    if (event) {    // If called as geolocationError
-        console.log(event);
-    }
-    if (window.useSwipeRefresh) {
-        var refreshicon = jQuery('#refreshicon');
-        refreshicon.hide();
-    } else {
-        jQuery('#refreshbutton span').removeClass("rotate");
-    }
-}
+window.hideHeaderWait = function (event) {
+  if (event) {    // If called as geolocationError
+    console.log(event);
+  }
+  if (window.useSwipeRefresh) {
+    var refreshicon = jQuery('#refreshicon');
+    refreshicon.hide();
+  } else {
+    jQuery('#refreshbutton span').removeClass("rotate");
+  }
+};
+
 window.mobileRefresh = function () {
     console.log("mobileRefresh");
-    showHeaderWait();
+    window.showHeaderWait();
     Backbone.history.loadUrl();
     return false;
 }
@@ -241,12 +242,12 @@ function mainOnAppStart() { // CC
             $('#spinner').hide();
             // We might have added a class to indicate that we were waiting for an AJAX call to complete.
             $('.showclicked').removeClass('showclicked');
-            hideHeaderWait();
+            window.hideHeaderWait();
         });
 
         $(document).ajaxStart(function () {
             $('#spinner').show();
-            showHeaderWait();
+            window.showHeaderWait();
         });
 
         // We want to retry AJAX requests automatically, because we might have a flaky network.  This also covers us for
@@ -351,12 +352,18 @@ function mainOnAppStart() { // CC
                 console.log("push notification");
                 console.log(data);
                 var foreground = data.additionalData.foreground.toString() == 'true';   // Was first called in foreground or background
-                var msgid = data.additionalData['google.message_id'];
-                if (isiOS) {
-                    if (!('notId' in data.additionalData)) { data.additionalData.notId = 0; }
-                    msgid = data.additionalData.notId;
-                }
+                if (!('notId' in data.additionalData)) { data.additionalData.notId = 0; }
+                var msgid = data.additionalData.notId;
                 var doubleEvent = (msgid == lastPushMsgid);
+                if (!doubleEvent && lastPushMsgid) {
+                  console.log("Clearing: "+lastPushMsgid);
+                  window.mobilePush.clearNotification(() => {
+                    console.log('clearNotification success');
+                  }, () => {
+                    console.log('clearNotification error');
+                  },
+                    lastPushMsgid);
+                }
                 lastPushMsgid = msgid;
                 console.log("foreground " + foreground + " double " + doubleEvent + " msgid: " + msgid);
                 if (!('count' in data)) { data.count = 0; }
