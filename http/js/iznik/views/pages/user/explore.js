@@ -9,6 +9,8 @@ define([
     'iznik/views/pages/user/pages',
     'iznik/views/pages/user/group',
     'iznik/views/user/message',
+    'iznik/views/group/communityevents',
+    'iznik/views/group/volunteering',
     'iznik/models/group',
     'geocomplete'
 ], function ($, _, Backbone, Iznik, moment,r) {
