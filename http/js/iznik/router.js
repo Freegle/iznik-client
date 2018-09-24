@@ -116,6 +116,7 @@ define([
             "modtools/messages/approved": "approvedMessages",
             "modtools/messages/spam": "spamMessages",
             "modtools/members/pending(/:search)": "pendingMembers",
+            "modtools/members/approved/member/:groupid/:userid": "approvedMember",
             "modtools/members/approved(/:search)": "approvedMembers",
             "modtools/members/spam": "spamMembers",
             "modtools/members/happiness": "happinessMembers",
@@ -1221,6 +1222,29 @@ define([
                     self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                         var page = new Iznik.Views.ModTools.Pages.ApprovedMembers({
                             search: search
+                        });
+                        self.loadRoute({
+                            page: page,
+                            modtools: true
+                        });
+                    });
+
+                    Iznik.Session.forceLogin({
+                        modtools: true
+                    });
+                });
+            }
+        },
+
+        approvedMember: function (groupid, userid) {
+            if (MODTOOLS) {
+                var self = this;
+
+                require(["iznik/views/pages/modtools/members_approved"], function () {
+                    self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                        var page = new Iznik.Views.ModTools.Pages.ApprovedMembers({
+                            search: userid,
+                            groupid: groupid,
                         });
                         self.loadRoute({
                             page: page,
