@@ -54,7 +54,8 @@ define([
                 self.searchTimer = setTimeout(function() {
                     self.chats.fetch({
                         data: {
-                            search: self.filter
+                            search: self.filter,
+                            summary: true
                         }
                     }).then(function() {
                         self.chatsCV1.reapplyFilter('visibleModels');
@@ -224,7 +225,11 @@ define([
                     }
 
                     self.selectedFirst = false;
-                    self.chats.fetch().then(_.bind(self.fetchedChats, self));
+                    self.chats.fetch({
+                        data: {
+                            summary: true
+                        }
+                    }).then(_.bind(self.fetchedChats, self));
 
                     $('.js-search').on('keyup', _.bind(self.searchKey, self));
                     $('.js-allseen').on('click', _.bind(self.allseen, self));
