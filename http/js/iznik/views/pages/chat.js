@@ -953,195 +953,199 @@ define([
         render: function () {
             var self = this;
 
-            self.model.set('modtools', MODTOOLS);
-
             var p = Iznik.View.prototype.render.call(self);
+
             p.then(function (self) {
-                // Empty rather than hide because glyphicons have a display set which would mean they show anyway.
-                if (!self.options.modtools) {
-                    self.$('.js-privacy').empty();
-                } else {
-                    self.$('.js-promise').empty();
-                }
+                // Do this now as we're about to do a fetch so it would look naked for a while if we didn't.
+                self.photoUpload();
 
-                self.$('.js-tooltip').tooltip();
-
-                self.messages = new Iznik.Collections.Chat.Messages({
-                    roomid: self.model.get('id')
-                });
-
-                var v = new Iznik.Views.PleaseWait({
-                    label: 'chat restore'
-                });
-                v.render();
-
-                self.messages.fetch({
-                    remove: true
-                }).then(function () {
-                    // If the last message was a while ago, remind them about nudging.
-                    var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
-
-                    if (age > 24 && !Storage.get('shownNudge')) {
-                        self.$('.js-nudge').tooltip('show');
-
-                        // Only once though else it will get old.
-                        Storage.set('shownNudge', true);
-
-                        _.delay(_.bind(function() {
-                            this.$('.js-nudge').tooltip('hide');
-                        }, self), 10000);
+                // Need to fetch the model again because the summary version won't have info for last message read etc.
+                self.model.fetch().then(function() {
+                    self.model.set('modtools', MODTOOLS);
+                    // Empty rather than hide because glyphicons have a display set which would mean they show anyway.
+                    if (!self.options.modtools) {
+                        self.$('.js-privacy').empty();
                     } else {
-                        // Encourage people to use the info button.
-                        if (!Storage.get('shownInfo')) {
-                            self.$('.js-tooltip.js-info').tooltip('show');
+                        self.$('.js-promise').empty();
+                    }
 
-                            // Likewise only once.
-                            Storage.set('shownInfo', true);
+                    self.$('.js-tooltip').tooltip();
 
-                            _.delay(_.bind(function () {
-                                this.$('.js-tooltip.js-info').tooltip('hide');
+                    self.messages = new Iznik.Collections.Chat.Messages({
+                        roomid: self.model.get('id')
+                    });
+
+                    var v = new Iznik.Views.PleaseWait({
+                        label: 'chat restore'
+                    });
+                    v.render();
+
+                    self.messages.fetch({
+                        remove: true
+                    }).then(function () {
+                        // If the last message was a while ago, remind them about nudging.
+                        var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);
+
+                        if (age > 24 && !Storage.get('shownNudge')) {
+                            self.$('.js-nudge').tooltip('show');
+
+                            // Only once though else it will get old.
+                            Storage.set('shownNudge', true);
+
+                            _.delay(_.bind(function() {
+                                this.$('.js-nudge').tooltip('hide');
                             }, self), 10000);
                         } else {
-                            if (!Storage.get('shownPromise')) {
-                                // Tell them about the Promise button.
-                                self.$('.js-tooltip.js-promise').tooltip('show');
+                            // Encourage people to use the info button.
+                            if (!Storage.get('shownInfo')) {
+                                self.$('.js-tooltip.js-info').tooltip('show');
 
                                 // Likewise only once.
-                                Storage.set('shownPromise', true);
+                                Storage.set('shownInfo', true);
 
                                 _.delay(_.bind(function () {
-                                    this.$('.js-tooltip.js-promise').tooltip('hide');
+                                    this.$('.js-tooltip.js-info').tooltip('hide');
                                 }, self), 10000);
                             } else {
-                                if (!Storage.get('shownAddress')) {
-                                    // Tell them about the Address book.
-                                    self.$('.js-tooltip.js-address').tooltip('show');
+                                if (!Storage.get('shownPromise')) {
+                                    // Tell them about the Promise button.
+                                    self.$('.js-tooltip.js-promise').tooltip('show');
 
                                     // Likewise only once.
-                                    Storage.set('shownAddress', true);
+                                    Storage.set('shownPromise', true);
 
                                     _.delay(_.bind(function () {
-                                        this.$('.js-tooltip.js-address').tooltip('hide');
+                                        this.$('.js-tooltip.js-promise').tooltip('hide');
                                     }, self), 10000);
+                                } else {
+                                    if (!Storage.get('shownAddress')) {
+                                        // Tell them about the Address book.
+                                        self.$('.js-tooltip.js-address').tooltip('show');
+
+                                        // Likewise only once.
+                                        Storage.set('shownAddress', true);
+
+                                        _.delay(_.bind(function () {
+                                            this.$('.js-tooltip.js-address').tooltip('hide');
+                                        }, self), 10000);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    v.close();
-                    self.scrollBottom();
-
-                    // Try to ensure that the viewport units all work ok.
-                    viewportUnitsBuggyfill.init({force: true});
-                });
-
-                // Show any warning for a while.
-                self.$('.js-chatwarning').show();
-                window.setTimeout(_.bind(function () {
-                    self.$('.js-chatwarning').slideUp('slow');
-                }, self), 30000);
-
-                // Set any roster status.
-                try {
-                    var status = Storage.get('mystatus');
-
-                    if (status) {
-                        self.$('.js-status').val(status);
-                    }
-                } catch (e) {
-                }
-
-                self.updateCount();
-
-                if (!self.rendered) {
-                    self.rendered = true;
-
-                    if (!Iznik.isMobile()) {
-                        // Input text autosize.  We don't do this on mobile because it breaks function where the
-                        // soft keyboard pops up and tends to hide the input.  See
-                        // https://github.com/jackmoore/autosize/issues/343
-                        autosize(self.$('textarea'));
-
-                        // If the text area grows, make sure we're scrolled to the bottom
-                        self.$('textarea').get(0).addEventListener('autosize:resized', _.bind(self.scrollBottom, self));
-                    }
-
-                    self.listenTo(self.model, 'change:unseen', self.updateCount);
-
-                    // If the snippet changes, we have new messages to pick up.
-                    self.listenTo(self.model, 'change:snippet', self.getLatestMessages);
-                }
-
-                self.messageViews = new Backbone.CollectionView({
-                    el: self.$('.js-messages'),
-                    modelView: Iznik.Views.Chat.Message,
-                    collection: self.messages,
-                    chatView: self,
-                    comparator: 'id',
-                    selectable: false,
-                    modelViewOptions: {
-                        chatView: self,
-                        chatModel: self.model
-                    },
-                    processKeyEvents: false
-                });
-
-                // As new messages are added, we want to show them.  This also means when we first render, we'll
-                // scroll down to the latest messages.
-                self.listenTo(self.messageViews, 'add', function (modelView) {
-                    self.listenToOnce(modelView, 'rendered', function () {
+                        v.close();
                         self.scrollBottom();
-                    });
-                });
 
-                self.messageViews.render();
-
-                self.photoUpload();
-
-                _.delay(_.bind(self.checkAddress, self), 1000);
-
-                if (self.model.otherUserSpammer()) {
-                    self.$('.js-notspammer').hide();
-                    self.$('.js-isspammer').show();
-                }
-
-                if (self.model.get('chattype') == 'User2User') {
-                    // Get any reply time
-                    var usermod = new Iznik.Models.ModTools.User({
-                        id: self.model.otherUser()
+                        // Try to ensure that the viewport units all work ok.
+                        viewportUnitsBuggyfill.init({force: true});
                     });
 
-                    usermod.fetch({
-                        data: {
-                            info: true
+                    // Show any warning for a while.
+                    self.$('.js-chatwarning').show();
+                    window.setTimeout(_.bind(function () {
+                        self.$('.js-chatwarning').slideUp('slow');
+                    }, self), 30000);
+
+                    // Set any roster status.
+                    try {
+                        var status = Storage.get('mystatus');
+
+                        if (status) {
+                            self.$('.js-status').val(status);
                         }
-                    }).then(function() {
-                        var replytime = usermod.get('info').replytime;
+                    } catch (e) {
+                    }
 
-                        if (replytime) {
-                            self.$('.js-replytime').html(Iznik.formatDuration(replytime));
-                            self.$('.js-replytimeholder').slideDown('slow');
+                    self.updateCount();
+
+                    if (!self.rendered) {
+                        self.rendered = true;
+
+                        if (!Iznik.isMobile()) {
+                            // Input text autosize.  We don't do this on mobile because it breaks function where the
+                            // soft keyboard pops up and tends to hide the input.  See
+                            // https://github.com/jackmoore/autosize/issues/343
+                            autosize(self.$('textarea'));
+
+                            // If the text area grows, make sure we're scrolled to the bottom
+                            self.$('textarea').get(0).addEventListener('autosize:resized', _.bind(self.scrollBottom, self));
                         }
 
-                        self.showReplyTimeInfo();
+                        self.listenTo(self.model, 'change:unseen', self.updateCount);
 
-                        self.ratings = new Iznik.Views.User.Ratings({
-                            model: usermod
+                        // If the snippet changes, we have new messages to pick up.
+                        self.listenTo(self.model, 'change:snippet', self.getLatestMessages);
+                    }
+
+                    self.messageViews = new Backbone.CollectionView({
+                        el: self.$('.js-messages'),
+                        modelView: Iznik.Views.Chat.Message,
+                        collection: self.messages,
+                        chatView: self,
+                        comparator: 'id',
+                        selectable: false,
+                        modelViewOptions: {
+                            chatView: self,
+                            chatModel: self.model
+                        },
+                        processKeyEvents: false
+                    });
+
+                    // As new messages are added, we want to show them.  This also means when we first render, we'll
+                    // scroll down to the latest messages.
+                    self.listenTo(self.messageViews, 'add', function (modelView) {
+                        self.listenToOnce(modelView, 'rendered', function () {
+                            self.scrollBottom();
+                        });
+                    });
+
+                    self.messageViews.render();
+
+                    _.delay(_.bind(self.checkAddress, self), 1000);
+
+                    if (self.model.otherUserSpammer()) {
+                        self.$('.js-notspammer').hide();
+                        self.$('.js-isspammer').show();
+                    }
+
+                    if (self.model.get('chattype') == 'User2User') {
+                        // Get any reply time
+                        var usermod = new Iznik.Models.ModTools.User({
+                            id: self.model.otherUser()
                         });
 
-                        self.ratings.render();
-                        self.$('.js-ratings').html(self.ratings.$el);
+                        usermod.fetch({
+                            data: {
+                                info: true
+                            }
+                        }).then(function() {
+                            var replytime = usermod.get('info').replytime;
 
-                        self.ratings2 = new Iznik.Views.User.Ratings({
-                            model: usermod
+                            if (replytime) {
+                                self.$('.js-replytime').html(Iznik.formatDuration(replytime));
+                                self.$('.js-replytimeholder').slideDown('slow');
+                            }
+
+                            self.showReplyTimeInfo();
+
+                            self.ratings = new Iznik.Views.User.Ratings({
+                                model: usermod
+                            });
+
+                            self.ratings.render();
+                            self.$('.js-ratings').html(self.ratings.$el);
+
+                            self.ratings2 = new Iznik.Views.User.Ratings({
+                                model: usermod
+                            });
+                            self.ratings2.template = "user_ratingschat";
+
+                            self.ratings2.render();
+                            self.$('.js-ratings2').html(self.ratings2.$el);
+
                         });
-                        self.ratings2.template = "user_ratingschat";
-
-                        self.ratings2.render();
-                        self.$('.js-ratings2').html(self.ratings2.$el);
-
-                    });
-                }
+                    }
+                })
             });
 
             return (p);
