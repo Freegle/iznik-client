@@ -23,12 +23,18 @@ define([
         events: {
             'click .js-next': 'next',
             'change .js-item': 'checkNext',
+            'focus .js-item': 'focusItem',
             'change .tt-hint': 'checkNext',
             'keyup .js-description': 'checkNext',
             'change .bootstrap-tagsinput .tt-input': 'checkNext',
             'click .js-speechItem': 'speechItem',
             'click .js-cleardraft': 'clearDraft',
             'click .js-addprompt': 'forceAdd'
+        },
+
+        focusItem: function() {
+            // Scroll to bottom so that any suggestions don't hide the description box.
+            $("html, body").animate({ scrollTop: $(document).height() }, "slow");
         },
 
         forceAdd: function() {
