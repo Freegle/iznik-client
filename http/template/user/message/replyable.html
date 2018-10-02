@@ -20,7 +20,7 @@
         <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
             <div class="col-sm-11 padmd">
             <% if (attachments.length>0) { %>
-              <div class="pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
+              <div class="hidden-xs pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
             <% } %>
             <div class="msgsubj panel-title">
                   <span class="js-subject">
@@ -32,6 +32,7 @@
                       <% } else { %>
                         <span class="subject">{{subject}}</span>
                       <% } %>
+                      <span class="pull-right margtopsm caret visible-xs" />
                       <br />
                   </span>
               <div class="hidden-xs js-groups" />
@@ -57,6 +58,11 @@
             </button>
         </div>
         </a>
+        <% if (attachments.length>0) { %>
+            <a class="visible-xs nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
+                <div class="col-xs-12 js-attlist" />
+            </a>
+        <% } %>
         <% if (obj.snippet) { %>
         <div class="row hidden-xs hidden-sm hidden-md hidden-lg js-snippet">
             <div class="col-xs-12">
