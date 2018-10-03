@@ -2296,10 +2296,15 @@ define([
 
                                     if (poly || lat || lng) {
                                         if (poly) {
-                                            self.mapWKT(poly, area);
+                                            if (poly.indexOf('MULTIPOLYGON') !== -1) {
+                                                // These break WKT.
+                                                console.log("Skip MULTIPOLYGON", area.get('name'));
+                                            } else {
+                                                self.mapWKT(poly, area);
+                                            }
                                         } else {
                                             var wkt = 'POINT(' + lng + ' ' + lat + ')';
-                                            self.mapWKT(poly, area);
+                                            self.mapWKT(wkt, area);
                                         }
                                     }
                                 });

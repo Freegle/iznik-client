@@ -142,7 +142,7 @@ define([
             var self = this;
             var me = Iznik.Session.get('me');
 
-            if (!_.isUndefined(e.data)) {
+            if (!_.isUndefined(e.date)) {
                 // Set the hour else midnight and under DST goes back a day.
                 e.date.hour(5);
                 var till = e.date.toISOString();

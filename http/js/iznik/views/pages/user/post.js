@@ -24,6 +24,7 @@ define([
             'click .js-take-photo': 'addPhoto', // CC
             'click .js-next': 'next',
             'change .js-item': 'checkNext',
+            'focus .js-item': 'focusItem',
             'change .tt-hint': 'checkNext',
             'keyup .js-description': 'checkNext',
             'change .bootstrap-tagsinput .tt-input': 'checkNext',
@@ -102,6 +103,11 @@ define([
                     correctOrientation: true
                   }
             );
+        },
+
+        focusItem: function() {
+            // Scroll to bottom so that any suggestions don't hide the description box.
+            $("html, body").animate({ scrollTop: $(document).height() }, "slow");
         },
 
         forceAdd: function() {
