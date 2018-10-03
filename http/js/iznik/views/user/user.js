@@ -1012,6 +1012,70 @@ define([
             })
         },
 
+        eventsallowed: function (e, data) {
+            console.log("Events toggle", this, data);
+            var self = this;
+
+            self.$('.js-eventmails').bootstrapSwitch('state', !data, true)
+            var state = self.$('.js-eventmails').bootstrapSwitch('state');
+
+            var v = new Iznik.Views.Confirm({});
+
+            self.listenToOnce(v, 'confirmed', function () {
+                self.$('.js-eventmails').bootstrapSwitch('toggleState', true)
+                var data = {
+                    userid: self.model.get('userid'),
+                    groupid: self.model.get('groupid'),
+                    eventsallowed: state ? 0 : 1
+                };
+
+                $.ajax({
+                    url: API + 'memberships',
+                    type: 'PATCH',
+                    data: data,
+                    success: function(ret) {
+                        if (ret.ret === 0) {
+                            self.$('.js-ok').removeClass('hidden');
+                        }
+                    }
+                });
+            });
+
+            v.render();
+        },
+
+        volunteeringallowed: function (e, data) {
+            console.log("Volunteering toggle", this, data);
+            var self = this;
+
+            self.$('.js-volunteermails').bootstrapSwitch('toggleState', true);
+            var state = self.$('.js-volunteermails').bootstrapSwitch('state');
+
+            var v = new Iznik.Views.Confirm({});
+
+            self.listenToOnce(v, 'confirmed', function () {
+                self.$('.js-volunteermails').bootstrapSwitch('toggleState', true)
+                var data = {
+                    userid: self.model.get('userid'),
+                    groupid: self.model.get('groupid'),
+                    volunteeringallowed: state ? 0 : 1
+                };
+
+                $.ajax({
+                    url: API + 'memberships',
+                    type: 'PATCH',
+                    data: data,
+                    success: function(ret) {
+                        if (ret.ret === 0) {
+                            self.$('.js-ok').removeClass('hidden');
+                        }
+                    }
+                });
+            });
+
+            v.render();
+        },
+
         onholiday: function (e, data) {
             console.log("On holiday toggle", this, data);
             var self = this;
@@ -1103,6 +1167,22 @@ define([
                     self.$('.js-onholidaytill').hide()
                     self.$('.js-emailfrequency').show()
                 }
+
+                self.$('.js-eventmails').bootstrapSwitch({
+                    onText: 'Events&nbsp;On',
+                    offText: 'Events&nbsp;Off',
+                    state: self.model.get('eventsallowed')
+                });
+
+                self.$('.js-eventmails').on('switchChange.bootstrapSwitch', _.bind(self.eventsallowed, self));
+
+                self.$('.js-volunteermails').bootstrapSwitch({
+                    onText: 'Volunteer&nbsp;On',
+                    offText: 'Volunteer&nbsp;Off',
+                    state: self.model.get('volunteeringallowed')
+                });
+
+                self.$('.js-volunteermails').on('switchChange.bootstrapSwitch', _.bind(self.volunteeringallowed, self));
             })
 
             return (p)

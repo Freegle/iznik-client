@@ -1,7 +1,9 @@
 <div class="chat-page-header js-chatheader">
     <div class="row chat-name">
         <div class="col-xs-6">
-            <% if (chattype == 'User2User' || chattype == 'User2Mod') { %>
+            <% if (chattype == 'User2Mod' && obj.modtools) { %>
+            <span class="clickme js-gotomember" title="Go to member in membership list">{{name}}</span>
+            <% } else if (chattype == 'User2User' || chattype == 'User2Mod') { %>
             <span class="clickme js-info">{{name}}</span>
             <% } else { %>
             {{name}}

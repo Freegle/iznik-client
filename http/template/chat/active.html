@@ -29,7 +29,7 @@
             <% if (chattype == 'User2User') { %>
             <div class="glyphicon glyphicon-lock" title="This chat is private." />
             <% } else if (chattype == 'Mod2Mod') { %>
-            <div class="glyphicon glyphicon-lock" title="This chat is restricted to moderators of {{group.namedisplay}}." />
+            <div class="glyphicon glyphicon-lock" title="This chat is restricted to moderators <% if (obj.group) { %>of {{group.namedisplay}}.<% } %>" />
             <% } else if (chattype == 'User2Mod') { %>
             <div class="glyphicon glyphicon-lock" title="This chat is private." />
             <% } %>

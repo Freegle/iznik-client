@@ -54,7 +54,8 @@ define([
                 self.searchTimer = setTimeout(function() {
                     self.chats.fetch({
                         data: {
-                            search: self.filter
+                            search: self.filter,
+                            summary: true
                         }
                     }).then(function() {
                         self.chatsCV1.reapplyFilter('visibleModels');
@@ -224,7 +225,11 @@ define([
                     }
 
                     self.selectedFirst = false;
-                    self.chats.fetch().then(_.bind(self.fetchedChats, self));
+                    self.chats.fetch({
+                        data: {
+                            summary: true
+                        }
+                    }).then(_.bind(self.fetchedChats, self));
 
                     $('.js-search').on('keyup', _.bind(self.searchKey, self));
                     $('.js-allseen').on('click', _.bind(self.allseen, self));
@@ -353,6 +358,7 @@ define([
             'click .js-nudge': 'nudge',
             'click .js-schedule': 'schedule',
             'click .js-info': 'info',
+            'click .js-gotomember': 'goToMember',
             'click .js-photo': 'photo',
             'click .js-send': 'send',
             'click .js-large': 'large',
@@ -718,6 +724,11 @@ define([
             });
         },
 
+        goToMember: function () {
+            var self = this;
+            Router.navigate('/modtools/members/approved/member/' + self.model.get('groupid') + '/' + self.model.get('user1').id, true);
+        },
+
         messageBlur: function () {
             var self = this;
 
@@ -951,6 +962,8 @@ define([
 
         render: function () {
             var self = this;
+
+            self.model.set('modtools', MODTOOLS);
 
             var p = Iznik.View.prototype.render.call(self);
             p.then(function (self) {

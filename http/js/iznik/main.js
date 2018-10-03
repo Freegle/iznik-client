@@ -444,6 +444,15 @@ function mainOnAppStart() { // CC
     });
 
         // CC }); // CC
+
+  console.log("AppRate 1");
+  AppRate.preferences.storeAppURL = {
+    ios: '1188375682',
+    android: 'market://details?id=org.ilovefreegle.modtools'
+  };
+  console.log("AppRate 2");
+  AppRate.promptForRating(false); // Prompt every time
+  console.log("AppRate 3");
 }
 
 var mobileGlobalRoot = false;   // CC

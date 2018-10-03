@@ -1604,7 +1604,8 @@ define([
                     this.model.set('message', message);
                 }
 
-                var group = this.options.chatModel.get('group');
+                var groupid = this.options.chatModel.get('groupid');
+                var group = groupid ? Iznik.Session.getGroup(groupid) : null;
                 var myid = Iznik.Session.get('me').id;
                 this.model.set('group', group);
                 this.model.set('myid', myid);

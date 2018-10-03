@@ -227,7 +227,8 @@ define([
                     all: false,
                     mod: true,
                     counts: ['approvedmembers', 'approvedmembersother'],
-                    id: 'approvedGroupSelect'
+                    id: 'approvedGroupSelect',
+                    selected: self.options.hasOwnProperty('groupid') ? self.options.groupid: null
                 });
 
                 self.listenTo(self.groupSelect, 'selected', function (selected) {
@@ -237,20 +238,6 @@ define([
                     // We haven't fetched anything for this group yet.
                     self.lastFetched = null;
                     self.context = null;
-
-                    // CollectionView handles adding/removing/sorting for us.
-                    self.collectionView = new Backbone.CollectionView({
-                        el: self.$('.js-list'),
-                        modelView: Iznik.Views.ModTools.Member.Approved,
-                        modelViewOptions: {
-                            collection: self.collection,
-                            page: self
-                        },
-                        collection: self.collection,
-                        processKeyEvents: false
-                    });
-
-                    self.collectionView.render();
 
                     var group = Iznik.Session.get('groups').get(self.selected);
 
