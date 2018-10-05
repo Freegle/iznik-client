@@ -441,18 +441,9 @@ function mainOnAppStart() { // CC
 
         // Bootstrap adds body padding which we don't want.
         $('body').css('padding-right', '');
+
     });
-
-        // CC }); // CC
-
-  console.log("AppRate 1");
-  AppRate.preferences.storeAppURL = {
-    ios: '1188375682',
-    android: 'market://details?id=org.ilovefreegle.modtools'
-  };
-  console.log("AppRate 2");
-  AppRate.promptForRating(false); // Prompt every time
-  console.log("AppRate 3");
+    // CC }); // CC
 }
 
 var mobileGlobalRoot = false;   // CC
@@ -469,8 +460,20 @@ window.mobile_pathname = function () { // CC
         pathname = pathname.substr(0, pathname.length - initialHome.length);
     }
     if (!mobileGlobalRoot) {
-        mobileGlobalRoot = pathname.substr(0, pathname.length - 1);
-        console.log("mobileGlobalRoot=" + mobileGlobalRoot);
+      mobileGlobalRoot = pathname.substr(0, pathname.length - 1);
+      console.log("mobileGlobalRoot=" + mobileGlobalRoot);
+
+      /*cordova-plugin-apprate
+      console.log("AppRate 1");
+      AppRate.preferences.storeAppURL = {
+        ios: '1188375682',
+        android: 'market://details?id=org.ilovefreegle.modtools'
+      };
+      console.log("AppRate 2");
+      AppRate.promptForRating(false); // Prompt every time
+      console.log("AppRate 3");
+      */
+
     }
     pathname = pathname.substr(mobileGlobalRoot.length);
     if (pathname == "") {
