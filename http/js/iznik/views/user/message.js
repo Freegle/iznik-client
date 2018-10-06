@@ -337,15 +337,19 @@ define([
                             self.$('.js-rejected').show();
                         }
 
-                        self.$('.js-attlist').empty();
-                        var photos = self.model.get('attachments');
+                        self.$('.js-attlist').each(function() {
+                            var attlist = $(this);
+                            attlist.empty();
 
-                        var v = new Iznik.Views.User.Message.Photos({
-                            collection: new Iznik.Collection(photos),
-                            message: self.model,
-                        });
-                        v.render().then(function() {
-                            self.$('.js-attlist').append(v.el);
+                            var photos = self.model.get('attachments');
+
+                            var v = new Iznik.Views.User.Message.Photos({
+                                collection: new Iznik.Collection(photos),
+                                message: self.model,
+                            });
+                            v.render().then(function() {
+                                attlist.append(v.el);
+                            });
                         });
 
                         if (self.$('.js-replies').length > 0) {
@@ -487,6 +491,8 @@ define([
 
     Iznik.Views.User.Message.Photo = Iznik.View.extend({
         tagName: 'li',
+
+        className: 'completefull nopad',
 
         events: {
             'click img': 'zoom'
@@ -679,14 +685,14 @@ define([
             var self = this;
             var len = self.collection.length;
 
-            // If we have multiple photos, then we cycle through each of them, fading in and out.  This reduces the
-            // screen space, but still allows people to see all of them.
             var p = Iznik.View.prototype.render.call(this);
-            self.photoviews = [];
 
             p.then(function() {
                 self.photos = [];
-                self.$('.js-photos').empty();
+                self.$('.js-photos').each(function() {
+                    $(this).empty();
+                });
+
                 self.collection.each(function(att) {
                     if (self.options.message) {
                         // We might not have one, e.g. when posting.
@@ -694,46 +700,53 @@ define([
                         att.set('mine', self.options.message.get('mine'));
                     }
 
-                    var v = new Iznik.Views.User.Message.Photo({
-                        model: att,
-                        message: self.options.message,
-                        collection: self.collection
-                    });
+                    // We have two copies of the photos in different positions, for mobile vs larger views,
+                    // so we need to append to each.
+                    self.$('.js-photos').each(function() {
+                        var photosel = $(this);
 
-                    self.photoviews.push(v);
-
-                    v.render().then(function() {
-                        self.$('.js-photos').append(v.$el);
-                    });
-
-                    self.listenToOnce(v, 'deleted', _.bind(function(id) {
-                        self.collection.remove(id);
-                    }));
-
-                    self.listenTo(self.collection, 'moveto', function(ind) {
                         var v = new Iznik.Views.User.Message.Photo({
-                            model: self.collection.at(ind),
+                            model: att,
                             message: self.options.message,
                             collection: self.collection
                         });
+
                         v.render().then(function() {
-                            v.zoom();
-                        })
-                    });
+                            photosel.append(v.$el);
+                        });
 
-                    self.photos.push(v.$el);
+                        self.listenToOnce(v, 'deleted', _.bind(function(id) {
+                            self.collection.remove(id);
+                        }));
 
-                    if (!self.options.showAll) {
-                        if (self.photos.length > 1) {
-                            v.$el.hide();
-                        } else {
-                            self.currentPhoto = v.$el;
+                        self.listenTo(self.collection, 'moveto', function(ind) {
+                            var v = new Iznik.Views.User.Message.Photo({
+                                model: self.collection.at(ind),
+                                message: self.options.message,
+                                collection: self.collection
+                            });
+                            v.render().then(function() {
+                                v.zoom();
+                            })
+                        });
+
+                        self.photos.push(v.$el);
+
+                        if (!self.options.showAll) {
+                            if (self.photos.length > 1) {
+                                v.$el.hide();
+                            } else {
+                                self.currentPhoto = v.$el;
+                            }
                         }
-                    }
+                    });
                 });
 
                 if (self.collection.length > 1) {
                     self.$('.js-photocount').html("+" + (self.collection.length - 1) + '&nbsp; <span class="glyphicon glyphicon-camera white" />');
+                } else {
+                    // Have to override visible-xs-inline
+                    self.$('.js-photocountcontainer').hide();
                 }
             });
 
