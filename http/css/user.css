@@ -20,8 +20,16 @@
     color: white;
     background-color: blue !important;
     position: relative;
-    top: -36px;
+    top: -37px;
     left: -12px;
+}
+
+.photobadgexs {
+    color: white;
+    background-color: blue !important;
+    position: relative;
+    top: -37px;
+    right: -12px;
 }
 
 .visbubble

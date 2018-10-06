@@ -60,14 +60,19 @@ define([
             var self = this;
 
             self.listenTo(self, 'change:lastmsgseen', function (model, value, options) {
-                $.ajax({
-                    url: API + 'chatrooms',
-                    type: 'POST',
-                    data: {
-                        id: self.get('id'),
-                        'lastmsgseen': value
-                    }
-                });
+                if (self._previousAttributes.hasOwnProperty('lastmsgseen')) {
+                    // We get called during the initial fetch when we're setting the attribute for the first
+                    // time - we don't want to hit the server in that case.
+                    console.log("Change lastmsgseen", value, self._previousAttributes);
+                    $.ajax({
+                        url: API + 'chatrooms',
+                        type: 'POST',
+                        data: {
+                            id: self.get('id'),
+                            'lastmsgseen': value
+                        }
+                    });
+                }
             });
 
             self.listenTo(trigger, 'sent', function(msg) {
