@@ -4,6 +4,9 @@
             <div class="row">
                 <div class="col-xs-8 col-sm-10 col-md-9">
                     <div class="js-rejected glyphicon glyphicon-warning-sign glyphicon-larger error" style="display: none" title="This message has been sent back to you by the volunteers." />
+                    <% if (obj.isdraft) { %>
+                    <span class="error">Draft</span>
+                    <% } %>
                     <span class="hidden-xs">
                         {{subject}}
                     </span>
@@ -91,6 +94,7 @@
         <div class="row">
             <div class="col-xs-12 topspace">
                 <% if (obj.outcomes.length == 0) { %>
+                    <% if (!obj.isdraft) { %>
                     <button class="btn btn-success inline js-taken" style="display: none">
                         <div class="glyphicon glyphicon-ok"></div>
                         Mark this TAKEN
@@ -101,15 +105,24 @@
                             Edit and Resend
                         </button>
                     </a>
+                    <% } %>
                     <button class="btn btn-white js-withdraw">
                         <div class="glyphicon glyphicon-trash"></div>
+                        <% if (obj.isdraft) { %>
+                        Delete
+                        <% } else { %>
                         Withdraw
+                        <% } %>
                     </button>
                     <% if (obj.canrepost || obj.isdraft) { %>
                     <a href="/edit/{{id}}">
                         <button class="btn btn-white inline js-repost">
                             <div class="glyphicon glyphicon-refresh"></div>
+                            <% if (obj.isdraft) { %>
+                            Resume
+                            <% } else { %>
                             Post again
+                            <% } %>
                         </button>
                     </a>
                     <% } else if (obj.willautorepost) { %>
@@ -131,9 +144,11 @@
                     </button>
                 </a>
                 <% } %>
+                <% if (!obj.isdraft) { %>
                 <div class="btn btn-success fbshare js-sharefb" style="display: none">
                     <div class="glyphicon glyphicon-share-alt" />&nbsp;Share on Facebook
                 </div>
+                <% } %>
                 <div class="pull-right text-muted">#{{id}}</div>
             </div>
         </div>
