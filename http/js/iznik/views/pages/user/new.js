@@ -19,7 +19,10 @@ define([
             // We grab the new user id from where we saved it in post.js.
             $.ajax({
                 url: API + 'session',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: {
                     id: Iznik.Session.get('newuser'),
                     password: this.$('.js-pass').val()

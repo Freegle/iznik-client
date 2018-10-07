@@ -25,7 +25,10 @@ define([
             self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                 $.ajax({
                     url: API + 'memberships',
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     data: {
                         groupid: self.forcejoin
                     }, complete: function () {
@@ -617,7 +620,10 @@ define([
                 // Make the modification.
                 $.ajax({
                     url: API + 'message',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     data: {
                       id: self.options.message.get('id'),
                       attachments: attids
@@ -1036,7 +1042,10 @@ define([
             // Get the message again as we might not have the fromuser if we fetched before login.
             self.model.fetch().then(function() {
                 $.ajax({
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     url: API + 'chat/rooms',
                     data: {
                         userid: self.model.get('fromuser').id
@@ -1156,7 +1165,10 @@ define([
                             // TODO Member approval
                             $.ajax({
                                 url: API + 'memberships',
-                                type: 'PUT',
+                                type: 'POST',
+                                headers: {
+                                    'X-HTTP-Method-Override': 'PUT'
+                                },
                                 data: {
                                     groupid: tojoin
                                 }, success: function (ret) {

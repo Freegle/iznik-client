@@ -167,7 +167,10 @@ define([
             self.listenToOnce(v, 'confirmed', function () {
                 $.ajax({
                     url: API + 'memberships',
-                    type: 'DELETE',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'DELETE'
+                    },
                     data: {
                         userid: self.model.get('id'),
                         groupid: self.model.get('groupid')
@@ -195,7 +198,10 @@ define([
             self.listenToOnce(v, 'confirmed', function () {
                 $.ajax({
                     url: API + 'memberships',
-                    type: 'DELETE',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'DELETE'
+                    },
                     data: {
                         userid: self.model.get('id'),
                         groupid: self.model.get('groupid'),
@@ -222,7 +228,10 @@ define([
             self.listenToOnce(v, 'confirmed', function () {
                 $.ajax({
                     url: API + 'user',
-                    type: 'DELETE',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'DELETE'
+                    },
                     data: {
                         id: self.model.get('userid')
                     }, success: function (ret) {
@@ -702,7 +711,10 @@ define([
                 self.listenToOnce(v, 'confirmed', function () {
                     $.ajax({
                         url: API + 'memberships',
-                        type: 'DELETE',
+                        type: 'POST',
+                        headers: {
+                            'X-HTTP-Method-Override': 'DELETE'
+                        },
                         data: {
                             userid: self.options.user.get('userid'),
                             groupid: self.options.user.get('groupid')
@@ -954,7 +966,10 @@ define([
 
             $.ajax({
                 url: API + 'memberships',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: data
             })
         },
@@ -969,7 +984,10 @@ define([
 
             $.ajax({
                 url: API + 'memberships',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: data
             })
         },
@@ -984,7 +1002,10 @@ define([
 
             $.ajax({
                 url: API + 'memberships',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: data
             })
         },
@@ -1003,7 +1024,10 @@ define([
 
             $.ajax({
                 url: API + 'user',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: {
                     id: self.model.get('userid'),
                     groupid: self.model.get('groupid'),
@@ -1031,7 +1055,10 @@ define([
 
                 $.ajax({
                     url: API + 'memberships',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     data: data,
                     success: function(ret) {
                         if (ret.ret === 0) {
@@ -1063,7 +1090,10 @@ define([
 
                 $.ajax({
                     url: API + 'memberships',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     data: data,
                     success: function(ret) {
                         if (ret.ret === 0) {
@@ -1230,7 +1260,10 @@ define([
             var self = this;
 
             $.ajax({
-                type: 'PUT',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PUT'
+                },
                 url: API + 'chat/rooms',
                 data: {
                     userid: self.model.get('id')

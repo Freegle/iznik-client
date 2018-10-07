@@ -167,7 +167,10 @@ define([
             var self = this;
 
             $.ajax({
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 url: API + 'message',
                 data: {
                     id: self.get('id'),
@@ -197,7 +200,10 @@ define([
             var self = this;
 
             $.ajax({
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 url: API + 'message',
                 data: {
                     id: self.get('id'),

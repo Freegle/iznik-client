@@ -594,7 +594,10 @@ define([
             self.listenToOnce(v, 'confirmed', function() {
                 $.ajax({
                     url: API + 'memberships',
-                    type: 'DELETE',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'DELETE'
+                    },
                     data: {
                         userid: Iznik.Session.get('me').id,
                         groupid: self.model.get('id')
@@ -626,7 +629,10 @@ define([
 
             $.ajax({
                 url: API + 'memberships',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: data,
                 success: function(ret) {
                     if (ret.ret === 0) {
@@ -647,7 +653,10 @@ define([
 
             $.ajax({
                 url: API + 'memberships',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: data,
                 success: function(ret) {
                     if (ret.ret === 0) {
@@ -668,7 +677,10 @@ define([
 
             $.ajax({
                 url: API + 'memberships',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: data,
                 success: function(ret) {
                     if (ret.ret === 0) {

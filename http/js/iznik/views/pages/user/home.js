@@ -700,7 +700,10 @@ define([
             var self = this;
             $.ajax({
                 url: API + 'usersearch',
-                type: 'DELETE',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'DELETE'
+                },
                 data: {
                     id: self.model.get('id')
                 },
@@ -729,7 +732,10 @@ define([
             if (weight > 0) {
                 $.ajax({
                     url: API + 'item',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     context: this,
                     data: {
                         id: self.id,

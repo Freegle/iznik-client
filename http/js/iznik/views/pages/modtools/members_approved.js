@@ -486,7 +486,10 @@ define([
                     // it will fail.  Either way the user should then exist.
                     $.ajax({
                         url: API + 'user',
-                        type: 'PUT',
+                        type: 'POST',
+                        headers: {
+                            'X-HTTP-Method-Override': 'PUT'
+                        },
                         data: {
                             email: email
                         }, success: function(ret) {
@@ -496,7 +499,10 @@ define([
 
                                 $.ajax({
                                     url: API + 'memberships',
-                                    type: 'PUT',
+                                    type: 'POST',
+                                    headers: {
+                                        'X-HTTP-Method-Override': 'PUT'
+                                    },
                                     data: {
                                         userid: userid,
                                         groupid: self.model.get('id'),

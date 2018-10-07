@@ -23,7 +23,10 @@ define([
             if (Iznik.isValidEmailAddress(email)) {
                 $.ajax({
                     url: API + 'invitation',
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     data: {
                         email: email
                     },

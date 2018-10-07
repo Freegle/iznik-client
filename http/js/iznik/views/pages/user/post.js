@@ -142,7 +142,10 @@ define([
                 };
 
                 $.ajax({
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     url: API + 'message',
                     data: data,
                     success: function (ret) {

@@ -74,6 +74,7 @@
     "marker-animate-unobtrusive": "^0.2.8",
     "module": "^1.2.5",
     "moment": "^2.20.1",
+    "nchan": "^1.0.10",
     "net": "^1.0.2",
     "object-assign": "4.1.1",
     "persist-js": "^0.3.1",
