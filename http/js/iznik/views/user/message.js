@@ -277,10 +277,11 @@ define([
                                 self.$('.js-groups').append(v.el);
                             });
 
-                            if (group.settings.approvemembers) {
-                                // Check if we are already pending.
-                                var g = Iznik.Session.getGroup(group.id);
+                            var g = Iznik.Session.getGroup(group.id);
 
+                            if (g && g.get('settings').approvemembers) {
+                                // It's a group we have an interest in which approves members.  Check if we are
+                                // already pending.
                                 if (g) {
                                     if (g.collection == 'Pending') {
                                         // Not approved yet.
@@ -1249,7 +1250,7 @@ define([
                 // Get a zoom level for the map.
                 var zoom = 12;
                 _.each(self.model.get('groups'), function (group) {
-                    zoom = group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12;
+                    zoom = group.hasOwnProperty('settings') && group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12;
                 });
 
                 self.model.set('mapzoom', zoom);
