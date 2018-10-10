@@ -21,11 +21,9 @@
                 <div class="col-xs-2 col-sm-1 col-md-1 nopad">
                     <ul class="list-unstyled list-inline">
                         <li>
-                            <span class="badge js-replycount <% if (obj.replies && obj.replies.length == 0) { %> faded<% } %>" title="The number of people who've replied.">
+                            <span class="badge js-replycount <% if (obj.replycount== 0) { %> faded<% } %>" title="The number of people who've replied.">
                                 <div class="glyphicon glyphicon-user" />
-                                <% if (obj.replies && typeof(obj.replies.length)=='number') { %>
-                                  {{obj.replies.length}}
-                                <% } %>
+                                {{obj.replycount}}
                             </span>
                         </li>
                         <li>
@@ -58,13 +56,7 @@
         <div class="panel-body nopad">
             <div class="row topspace">
                 <div class="col-xs-10">
-                    <div class="prewrap">
-                        <% if (textbody.length == 0) { %>
-<em>There's no description.</em>
-                        <% } else { %>
-{{textbody}}
-                        <% } %>
-                    </div>
+                    <div class="prewrap"><% if (!obj.hasOwnProperty('textbody')) { %><a class="fullholder text-center thumbnail"><img alt="Loader" src="/images/userloader.gif" /></a><% } else if (textbody.length == 0) { %><em>There's no description.</em><% } else { %>{{textbody}}<% } %></div>
                 </div>
                 <div class="nopad col-xs-2">
                     <ul class="list-inline list-unstyled js-attlist" />

@@ -206,7 +206,7 @@ define([
         render: function() {
             var self = this;
 
-            // console.log("Render message", self.model.get('id'), self.rendering, self.model);
+            console.log("Render message", self.model.get('id'), self.rendering, self.model);
 
             if (!self.rendering) {
                 var replies = self.model.get('replies');
@@ -1306,6 +1306,21 @@ define([
 
                     self.clipboard.on('success', function(e) {
                         Iznik.ABTestAction('messagebutton', 'Copy Link');
+                    });
+
+                    self.$('.panel-collapse').on('show.bs.collapse', function () {
+                        if (!self.model.get('source')) {
+                            // We don't have the full model, because we only fetched a summary.  Get the full
+                            // version and re-render.
+                            self.expanded = true;
+                            self.model.fetch().then(_.bind(function() {
+                                self.rendered = false;
+                                self.render();
+                            }, self));
+
+                            // Abort the panel toggle - will happen once next render fires.
+                            return(false);
+                        }
                     });
                 })
             }

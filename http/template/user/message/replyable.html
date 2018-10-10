@@ -84,7 +84,7 @@
             <% } %>
             <div class="row">
                 <div class="col-sm-9 col-md-10">
-                    <div class="lead prewrap forcebreak js-textbody"><% if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
+                    <div class="lead prewrap forcebreak js-textbody"><% if (!obj.hasOwnProperty('textbody')) { %><a class="fullholder text-center thumbnail"><img alt="Loader" src="/images/userloader.gif" /></a><% } else if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
                     <% if (obj.fromuser && obj.fromuser.profile) { %>
                     <span class="text-muted">
                         <img src="{{fromuser.profile.turl}}" class="img-circle img-smallerthumbnail clickme visible-xs js-profile" />

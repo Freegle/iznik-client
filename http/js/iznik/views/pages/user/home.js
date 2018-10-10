@@ -34,7 +34,6 @@ define([
         },
 
         punc: function() {
-            console.log("Punc");
             (new Iznik.Views.User.Punctuation()).render();
         },
 
@@ -463,6 +462,18 @@ define([
             var p = Iznik.Views.User.Message.prototype.render.call(this);
             p.then(function() {
                 self.$('.js-outcometime').timeago();
+
+                self.$('.panel-collapse').on('show.bs.collapse', function () {
+                    if (!self.model.get('source')) {
+                        // We don't have the full model, because we only fetched a summary.  Get the full
+                        // version and re-render.
+                        self.expanded = true;
+                        self.model.fetch().then(self.render);
+
+                        // Abort the panel toggle - will happen once next render fires.
+                        return(false);
+                    }
+                });
             });
 
 
@@ -511,6 +522,18 @@ define([
             var p = Iznik.Views.User.Message.prototype.render.call(this);
             p.then(function() {
                 self.$('.js-outcometime').timeago();
+
+                self.$('.panel-collapse').on('show.bs.collapse', function () {
+                    if (!self.model.get('source')) {
+                        // We don't have the full model, because we only fetched a summary.  Get the full
+                        // version and re-render.
+                        self.expanded = true;
+                        self.model.fetch().then(self.render);
+
+                        // Abort the panel toggle - will happen once next render fires.
+                        return(false);
+                    }
+                });
             });
 
             return(p);
