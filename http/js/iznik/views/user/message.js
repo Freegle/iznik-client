@@ -206,7 +206,7 @@ define([
         render: function() {
             var self = this;
 
-            console.log("Render message", self.model.get('id'), self.rendering, self.model);
+            // console.log("Render message", self.model.get('id'), self.rendering, self.model);
 
             if (!self.rendering) {
                 var replies = self.model.get('replies');

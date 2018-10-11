@@ -456,26 +456,33 @@ define([
 
         render: function() {
             var self = this;
+            var p;
 
             self.model.set('offers', self.options.offers);
 
-            var p = Iznik.Views.User.Message.prototype.render.call(this);
-            p.then(function() {
-                self.$('.js-outcometime').timeago();
+            if (self.options.offers.length < 5 && !self.model.get('source')) {
+                // Matches template.  We have few messages so will so this expanded, therefore we need to fetch the
+                // full model.
+                p = self.model.fetch();
+                p.then(_.bind(self.render, self));
+            } else {
+                p = Iznik.Views.User.Message.prototype.render.call(this);
+                p.then(function () {
+                    self.$('.js-outcometime').timeago();
 
-                self.$('.panel-collapse').on('show.bs.collapse', function () {
-                    if (!self.model.get('source')) {
-                        // We don't have the full model, because we only fetched a summary.  Get the full
-                        // version and re-render.
-                        self.expanded = true;
-                        self.model.fetch().then(self.render);
+                    self.$('.panel-collapse').on('show.bs.collapse', function () {
+                        if (!self.model.get('source')) {
+                            // We don't have the full model, because we only fetched a summary.  Get the full
+                            // version and re-render.
+                            self.expanded = true;
+                            self.model.fetch().then(self.render);
 
-                        // Abort the panel toggle - will happen once next render fires.
-                        return(false);
-                    }
+                            // Abort the panel toggle - will happen once next render fires.
+                            return (false);
+                        }
+                    });
                 });
-            });
-
+            }
 
             return(p);
         }
@@ -516,25 +523,33 @@ define([
 
         render: function() {
             var self = this;
+            var p;
 
             self.model.set('wanteds', self.options.wanteds);
 
-            var p = Iznik.Views.User.Message.prototype.render.call(this);
-            p.then(function() {
-                self.$('.js-outcometime').timeago();
+            if (self.options.wanteds.length < 5 && !self.model.get('source')) {
+                // Matches template.  We have few messages so will so this expanded, therefore we need to fetch the
+                // full model.
+                p = self.model.fetch();
+                p.then(_.bind(self.render, self));
+            } else {
+                p = Iznik.Views.User.Message.prototype.render.call(this);
+                p.then(function() {
+                    self.$('.js-outcometime').timeago();
 
-                self.$('.panel-collapse').on('show.bs.collapse', function () {
-                    if (!self.model.get('source')) {
-                        // We don't have the full model, because we only fetched a summary.  Get the full
-                        // version and re-render.
-                        self.expanded = true;
-                        self.model.fetch().then(self.render);
+                    self.$('.panel-collapse').on('show.bs.collapse', function () {
+                        if (!self.model.get('source')) {
+                            // We don't have the full model, because we only fetched a summary.  Get the full
+                            // version and re-render.
+                            self.expanded = true;
+                            self.model.fetch().then(self.render);
 
-                        // Abort the panel toggle - will happen once next render fires.
-                        return(false);
-                    }
+                            // Abort the panel toggle - will happen once next render fires.
+                            return(false);
+                        }
+                    });
                 });
-            });
+            }
 
             return(p);
         }
