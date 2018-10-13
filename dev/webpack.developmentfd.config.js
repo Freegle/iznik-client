@@ -8,6 +8,7 @@ const {join} = require('path')
 const ROOT = join(__dirname, '..')
 
 module.exports = new Config().extend('dev/webpack.base.config.js').merge({
+    mode: 'development',
     entry: [
         join(ROOT, 'client/appfd.js'),
         'eventsource-polyfill',

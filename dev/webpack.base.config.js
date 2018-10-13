@@ -126,12 +126,12 @@ exports['default'] = new Config().merge({
             generateStatsFile: true,
             openAnalyzer: false
         }),
-
-        new webpack.optimize.CommonsChunkPlugin({
-            children: true,
-            minChunks: 6
-        })
     ],
+    optimization: {
+        splitChunks: {
+            chunks: 'all'
+        }
+    },
     node: {
         fs: 'empty'
     }
