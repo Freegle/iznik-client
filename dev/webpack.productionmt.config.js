@@ -48,7 +48,9 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
             statsOptions: null,
             logLevel: 'info'
         }),
-        new new MiniCssExtractPlugin(),
+        new MiniCssExtractPlugin({
+            filename: "[name].[chunkhash].css"
+        }),
         new FaviconsPlugin('images/modtools_logo.png'),
         new webpack.DefinePlugin({
             FACEBOOK_APPID: JSON.stringify('134980666550322'),
@@ -76,44 +78,6 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
             },
             // necessary to consistently work with multiple chunks via CommonsChunkPlugin
             chunksSortMode: 'dependency'
-        }),
-
-        new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true,
-            minimize: true,
-            compress: {
-                warnings: false
-            }
-        }),
-
-        // split vendor js into its own file
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'vendor',
-            minChunks: function (module, count) {
-                // any required modules inside node_modules are extracted to vendor
-                return (
-                    module.resource &&
-                    /\.js$/.test(module.resource) &&
-                    (module.resource.indexOf('quasar') > -1 ||
-                        module.resource.indexOf(join(__dirname, '../node_modules')) === 0)
-                )
-            }
-        }),
-
-        // Do some cool async chunk loading, see:
-        //   https://webpack.js.org/plugins/commons-chunk-plugin/#extra-async-commons-chunk
-        //   https://medium.com/webpack/webpack-bits-getting-the-most-out-of-the-commonschunkplugin-ab389e5f318
-        new webpack.optimize.CommonsChunkPlugin({
-            children: true,
-            async: true,
-            minChunks: 3
-        }),
-
-        // extract webpack runtime and module manifest to its own file in order to
-        // prevent vendor hash from being updated whenever app bundle is updated
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'manifest',
-            chunks: ['vendor']
         }),
 
         // do scope hoisting: https://webpack.js.org/plugins/module-concatenation-plugin
