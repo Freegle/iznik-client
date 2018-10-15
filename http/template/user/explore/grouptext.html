@@ -1,12 +1,12 @@
-<div class="row">
-    <div class="col-xs-2 img-smallerthumbnail nopad margleft">
+<div class="row hidden-xs">
+    <div class="col-sm-2 img-smallerthumbnail nopad margleft">
         <% if (obj.profile) { %>
             <img alt="Community profile picture" class="img-thumbnail img-rounded" src="{{profile}}" alt="{{namedisplay}}" />
         <% } else { %>
             <img alt="Community profile picture" class="img-thumbnail img-rounded faded" src="/images/user_logo.png" alt="{{namedisplay}}" />
         <% } %>
     </div>
-    <div class="col-xs-4">
+    <div class="col-sm-6">
         <% if (obj.external) { %>
         <a href="{{external}}">{{namedisplay}}</a><br>
         <% } else if (obj.onhere) { %>
@@ -16,29 +16,65 @@
         <% } %>
         {{obj.tagline}}
     </div>
-    <div class="col-xs-3">
+    <div class="col-sm-3">
         <% if (obj.external) { %>
         <a href="{{external}}" data-realurl="true" class="pull-right">
-            <span class="btn btn-white">
-                <img alt="" src='/images/heart_empty.png' class='smallicon' />&nbsp;Visit site
+            <span class="btn btn-success">
+                Visit site
             </span>
         </a>
         <% } else if (obj.onhere) { %>
         <a href="/explore/{{nameshort}}" class="pull-right">
-            <span class="btn btn-white">
-                <img alt="" src='/images/heart_empty.png' class='smallicon' />&nbsp;Explore
+            <span class="btn btn-success">
+                Explore
             </span>
         </a>
         <% } %>
     </div>
-    <div class="col-xs-3">
-        <% if (obj.onyahoo && obj.showonyahoo) { %>
-        <a data-realurl="true" target="_blank" rel="noopener" href="https://groups.yahoo.com/neo/groups/{{nameshort}}">
-            <span class="btn btn-white">
-                <img alt="" src='/images/yahoo.png' class='smallicon' />&nbsp;Explore on Yahoo
-            </span>
-        </a>
-        <% } %>
+    <div class="col-sm-1">
         <a class="pull-right" data-realurl="true" target="_blank" rel="noopener" href="mailto:{{modsmail}}" alt="Email volunteers" title="Email community volunteers"><span class="glyphicons glyphicons-envelope faded" /></a>
     </div>
 </div>
+<div class="row visible-xs">
+    <div class="col-xs-3 img-smallerthumbnail nopad margleft">
+        <% if (obj.profile) { %>
+        <img alt="Community profile picture" class="img-responsive img-rounded" src="{{profile}}" alt="{{namedisplay}}" />
+        <% } else { %>
+        <img alt="Community profile picture" class="img-responsive img-rounded faded" src="/images/user_logo.png" alt="{{namedisplay}}" />
+        <% } %>
+    </div>
+    <div class="col-xs-9">
+        <% if (obj.external) { %>
+        <span class="success">{{namedisplay}}</span><br>
+        <% } else if (obj.onhere) { %>
+        <span class="success">{{namedisplay}}</span><br>
+        <% } %>
+        <div class="row visible-xs">
+            <div class="col-xs-9">
+                <% if (obj.external) { %>
+                <a href="{{external}}" data-realurl="true" class="pull-left">
+            <span class="btn btn-success btn-sm">
+                Visit site
+            </span>
+                </a>
+                <% } else if (obj.onhere) { %>
+                <a href="/explore/{{nameshort}}" class="pull-left">
+            <span class="btn btn-success btn-sm">
+                Explore
+            </span>
+                </a>
+                <% } %>
+            </div>
+            <div class="col-xs-3">
+                <a class="pull-right" data-realurl="true" target="_blank" rel="noopener" href="mailto:{{modsmail}}" alt="Email volunteers" title="Email community volunteers"><span class="glyphicons glyphicons-envelope faded" /></a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <span class="visible-xs">{{obj.tagline}}</span>
+        <hr class="marginmd" />
+    </div>
+</div>
+
