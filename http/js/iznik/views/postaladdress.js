@@ -213,7 +213,10 @@ define([
                 // Newly added address; store and use it.
                 $.ajax({
                     url: API + '/address',
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     data: {
                         pafid: pafid,
                         instructions: instr

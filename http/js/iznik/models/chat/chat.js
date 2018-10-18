@@ -1,3 +1,5 @@
+let NchanSubscriber = require("nchan");
+
 define([
     'jquery',
     'underscore',
@@ -347,12 +349,14 @@ define([
             });
         },
 
+        nchan: null,
+
         wait: function () {
-            // We have a long poll open to the server, which when it completes may prompt us to do some work on a
-            // chat.  That way we get zippy messaging.
+            // We get notifications from the server (via websockets or long poll), which may prompt us to do some work
+            // on a chat.  That way we get zippy messaging.
             //
-            // TODO use a separate domain name to get round client-side limits on the max number of HTTP connections
-            // to a single host.  We use a single connection rather than a per chat one for the same reason.
+            // We use a single connection rather than a per-chat one to avoid using too many client resources
+            // (e.g. in the case of long polls).
             var self = this;
 
             var me = Iznik.Session.get('me');
@@ -365,12 +369,19 @@ define([
                 // We only want one outstanding poll for this instance.
                 self.waiting = true;
 
-                $.ajax({
-                    url: CHAT_HOST + '/subscribe/' + myid,
-                    context: self, // Don't retry, otherwise page transition would cause abort/retry/new wait
-                    global: false, // don't trigger ajaxStart to avoid showing a busy icon all the time
-                    success: function (ret) {
-                        self.waiting = false;
+                self.nchan = new NchanSubscriber(CHAT_HOST + '/subscribe?id=' + myid, {
+                    subscriber: [ 'websocket', 'eventsource', 'longpoll '],
+                });
+
+                self.nchan.start();
+
+                console.log("NCHAN started");
+
+                self.nchan.on('message', function(ret, message_metadata) {
+                    console.log("NCHAN", ret, message_metadata);
+
+                    if (ret) {
+                        ret = JSON.parse(ret);
 
                         // We will get notified for both MT and FD chats.  But we only want to react to
                         // the one which this client actually is.
@@ -399,6 +410,7 @@ define([
                                     // Make sure we have this chat in our collection - might not have picked
                                     // it up yet - timing windows.
                                     var chat = self.get(data.roomid);
+                                    console.log("Activity on ", data.roomid, chat);
                                     if (!chat) {
                                         // We don't have it - get and add.
                                         chat = new Iznik.Models.Chat.Room({
@@ -420,11 +432,7 @@ define([
                                 }
                             }
                         }
-
-                        if (!self.waiting) {
-                            self.wait();
-                        }
-                    }, error: _.bind(self.waitError, self)
+                    }
                 });
             }
         },
@@ -488,7 +496,10 @@ define([
 
             var p = new Promise(function(resolve, reject) {
                 $.ajax({
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     url: API + 'chat/rooms',
                     data: {
                         chattype: 'User2Mod',

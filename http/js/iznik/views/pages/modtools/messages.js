@@ -160,7 +160,10 @@ define([
             var fop = self.$('.js-fop').is(':checked') ? 1 : 0;
 
             $.ajax({
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 url: API + 'message',
                 data: {
                     id: self.model.get('id'),

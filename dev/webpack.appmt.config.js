@@ -1,6 +1,7 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 // CC const FaviconsPlugin = require('favicons-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+//const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 // CC const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const webpack = require('webpack');
 const { Config } = require('webpack-config');
@@ -35,24 +36,25 @@ module.exports = new Config().extend({
         return config;
     }
   }).merge({
+  mode: 'production',
   // CC devtool: 'source-map',
   entry: [join(ROOT, 'client/appmt.js')],
-  module: {
-    rules: [
-      {
-        test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: {
-            loader: 'css-loader',
-            options: {
-              root: '../'
+    module: {
+      rules: [
+        {
+          test: /\.css$/,
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: {
+                root: '../'
+              }
             }
-          }
-        })
-      }
-    ]
-  },
+          ]
+        }
+      ]
+    },
   plugins: [
     /* // CC new BundleAnalyzerPlugin({
       analyzerMode: 'static',
@@ -64,8 +66,8 @@ module.exports = new Config().extend({
       statsOptions: null,
       logLevel: 'info'
     }),*/
-    new ExtractTextPlugin({
-      filename: 'css/[name].[contenthash].css'
+    new MiniCssExtractPlugin({
+      filename: "[name].[chunkhash].css"
     }),
     // CC new FaviconsPlugin('images/user_logo.png'),
     new webpack.DefinePlugin({
@@ -109,7 +111,7 @@ module.exports = new Config().extend({
     }),*/
 
     // split vendor js into its own file
-    new webpack.optimize.CommonsChunkPlugin({
+    /*new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
       minChunks: function(module, count) {
         // any required modules inside node_modules are extracted to vendor
@@ -136,7 +138,7 @@ module.exports = new Config().extend({
     new webpack.optimize.CommonsChunkPlugin({
       name: 'manifest',
       chunks: ['vendor']
-    }),
+    }),*/
 
     // do scope hoisting: https://webpack.js.org/plugins/module-concatenation-plugin
     // should reduce scripting time and bundle size

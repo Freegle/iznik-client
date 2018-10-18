@@ -69,7 +69,10 @@ define([
             self.listenToOnce(v, 'confirmed', function() {
                 $.ajax({
                     url: API + 'memberships',
-                    type: 'DELETE',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'DELETE'
+                    },
                     data: {
                         email: self.email,
                         groupid: groupid

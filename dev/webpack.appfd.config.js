@@ -1,6 +1,7 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 // CC const FaviconsPlugin = require('favicons-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+//const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 // CC const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const webpack = require('webpack');
 const { Config } = require('webpack-config');
@@ -35,21 +36,23 @@ module.exports = new Config().extend({
         return config;
     }
   }).merge({
+  mode: 'development',
+  //mode: 'production',
   // CC devtool: 'source-map',
   entry: [join(ROOT, 'client/appfd.js')],
   module: {
     rules: [
       {
         test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: {
+        use: [
+          'style-loader',
+          {
             loader: 'css-loader',
             options: {
               root: '../'
             }
           }
-        })
+        ]
       }
     ]
   },
@@ -64,8 +67,8 @@ module.exports = new Config().extend({
       statsOptions: null,
       logLevel: 'info'
     }),*/
-    new ExtractTextPlugin({
-      filename: 'css/[name].[contenthash].css'
+    new MiniCssExtractPlugin({
+      filename: "[name].[chunkhash].css"
     }),
     // CC new FaviconsPlugin('images/user_logo.png'),
     new webpack.DefinePlugin({
@@ -100,16 +103,16 @@ module.exports = new Config().extend({
       new CopyWebpackPlugin([
           {from: 'http/xdk', to: 'xdk'}
       ]),
-    new webpack.optimize.UglifyJsPlugin({
+    /*new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       minimize: true,
       compress: {
         warnings: false
       }
-    }),
+    }),*/
 
     // split vendor js into its own file
-    new webpack.optimize.CommonsChunkPlugin({
+    /*new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
       minChunks: function(module, count) {
         // any required modules inside node_modules are extracted to vendor
@@ -136,7 +139,7 @@ module.exports = new Config().extend({
     new webpack.optimize.CommonsChunkPlugin({
       name: 'manifest',
       chunks: ['vendor']
-    }),
+    }),*/
 
     // do scope hoisting: https://webpack.js.org/plugins/module-concatenation-plugin
     // should reduce scripting time and bundle size

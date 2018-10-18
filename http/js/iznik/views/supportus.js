@@ -27,7 +27,10 @@ define([
             if (Iznik.isValidEmailAddress(email)) {
                 $.ajax({
                     url: API + 'invitation',
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     data: {
                         email: email
                     },
@@ -330,7 +333,10 @@ define([
             if (pafid) {
                 $.ajax({
                     url: API + '/address',
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     data: {
                         pafid: pafid
                     },
@@ -338,7 +344,10 @@ define([
                         if (ret.ret === 0) {
                             $.ajax({
                                 url: API + '/request',
-                                type: 'PUT',
+                                type: 'POST',
+                                headers: {
+                                    'X-HTTP-Method-Override': 'PUT'
+                                },
                                 data: {
                                     reqtype: 'BusinessCards',
                                     to: to,

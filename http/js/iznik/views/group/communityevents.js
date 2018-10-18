@@ -266,7 +266,10 @@ define([
                             if (_.isUndefined(groups) || self.groupSelect.get() != groups[0]['id']) {
                                 self.promises.push($.ajax({
                                     url: API + 'communityevent',
-                                    type: 'PATCH',
+                                    type: 'POST',
+                                    headers: {
+                                        'X-HTTP-Method-Override': 'PATCH'
+                                    },
                                     data: {
                                         id: self.model.get('id'),
                                         action: 'AddGroup',
@@ -276,7 +279,10 @@ define([
                                         if (!_.isUndefined(groups)) {
                                             self.promises.push($.ajax({
                                                 url: API + 'communityevent',
-                                                type: 'PATCH',
+                                                type: 'POST',
+                                                headers: {
+                                                    'X-HTTP-Method-Override': 'PATCH'
+                                                },
                                                 data: {
                                                     id: self.model.get('id'),
                                                     action: 'RemoveGroup',
@@ -293,7 +299,10 @@ define([
                             _.each(olddates, function(adate) {
                                 self.promises.push($.ajax({
                                     url: API + 'communityevent',
-                                    type: 'PATCH',
+                                    type: 'POST',
+                                    headers: {
+                                        'X-HTTP-Method-Override': 'PATCH'
+                                    },
                                     data: {
                                         id: self.model.get('id'),
                                         action: 'RemoveDate',
@@ -309,7 +318,10 @@ define([
 
                                 self.promises.push($.ajax({
                                     url: API + 'communityevent',
-                                    type: 'PATCH',
+                                    type: 'POST',
+                                    headers: {
+                                        'X-HTTP-Method-Override': 'PATCH'
+                                    },
                                     data: {
                                         id: self.model.get('id'),
                                         action: 'AddDate',
@@ -322,7 +334,10 @@ define([
                             if (self.model.get('photo')) {
                                 self.promises.push($.ajax({
                                     url: API + 'communityevent',
-                                    type: 'PATCH',
+                                    type: 'POST',
+                                    headers: {
+                                        'X-HTTP-Method-Override': 'PATCH'
+                                    },
                                     data: {
                                         id: self.model.get('id'),
                                         action: 'SetPhoto',

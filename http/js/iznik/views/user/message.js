@@ -25,7 +25,10 @@ define([
             self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
                 $.ajax({
                     url: API + 'memberships',
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     data: {
                         groupid: self.forcejoin
                     }, complete: function () {
@@ -301,10 +304,11 @@ define([
                                 self.$('.js-groups').append(v.el);
                             });
 
-                            if (group.settings.approvemembers) {
-                                // Check if we are already pending.
-                                var g = Iznik.Session.getGroup(group.id);
+                            var g = Iznik.Session.getGroup(group.id);
 
+                            if (g && g.get('settings').approvemembers) {
+                                // It's a group we have an interest in which approves members.  Check if we are
+                                // already pending.
                                 if (g) {
                                     if (g.collection == 'Pending') {
                                         // Not approved yet.
@@ -648,7 +652,10 @@ define([
                 console.log("deleteMe 3");
                 $.ajax({
                     url: API + 'message',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     data: {
                       id: self.options.message.get('id'),
                       attachments: attids
@@ -1068,7 +1075,10 @@ define([
             // Get the message again as we might not have the fromuser if we fetched before login.
             self.model.fetch().then(function() {
                 $.ajax({
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     url: API + 'chat/rooms',
                     data: {
                         userid: self.model.get('fromuser').id
@@ -1188,7 +1198,10 @@ define([
                             // TODO Member approval
                             $.ajax({
                                 url: API + 'memberships',
-                                type: 'PUT',
+                                type: 'POST',
+                                headers: {
+                                    'X-HTTP-Method-Override': 'PUT'
+                                },
                                 data: {
                                     groupid: tojoin
                                 }, success: function (ret) {
@@ -1270,7 +1283,7 @@ define([
                 // Get a zoom level for the map.
                 var zoom = 12;
                 _.each(self.model.get('groups'), function (group) {
-                    zoom = group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12;
+                    zoom = group.hasOwnProperty('settings') && group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12;
                 });
 
                 self.model.set('mapzoom', zoom);
@@ -1326,6 +1339,21 @@ define([
 
                     self.clipboard.on('success', function(e) {
                         Iznik.ABTestAction('messagebutton', 'Copy Link');
+                    });
+
+                    self.$('.panel-collapse').on('show.bs.collapse', function () {
+                        if (!self.model.get('source')) {
+                            // We don't have the full model, because we only fetched a summary.  Get the full
+                            // version and re-render.
+                            self.expanded = true;
+                            self.model.fetch().then(_.bind(function() {
+                                self.rendered = false;
+                                self.render();
+                            }, self));
+
+                            // Abort the panel toggle - will happen once next render fires.
+                            return(false);
+                        }
                     });
                 })
             }

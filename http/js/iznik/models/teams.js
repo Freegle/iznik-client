@@ -12,7 +12,10 @@ define([
             var p = new Promise(function(resolve, reject) {
                 $.ajax({
                     url: API + 'team',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     data: {
                         id: self.get('id'),
                         action: 'Add',
@@ -37,7 +40,10 @@ define([
             var p = new Promise(function(resolve, reject) {
                 $.ajax({
                     url: API + 'team',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     data: {
                         id: self.get('id'),
                         userid: userid,

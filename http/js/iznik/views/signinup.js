@@ -150,7 +150,10 @@ define([
             var self = this;
             self.$('.js-signinerror').hide();
             $.ajax({
-                type: "PUT",
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PUT'
+                },
                 url: API + "user",
                 data: {
                     'firstname': self.$('.js-firstname').val(),

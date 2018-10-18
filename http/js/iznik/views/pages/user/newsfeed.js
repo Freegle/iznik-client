@@ -1529,7 +1529,10 @@ define([
             var self = this;
 
             $.ajax({
-                type: 'PUT',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PUT'
+                },
                 url: API + 'chat/rooms',
                 data: {
                     userid: self.model.get('user').id
@@ -1936,7 +1939,10 @@ define([
                             };
 
                             $.ajax({
-                                type: 'PUT',
+                                type: 'POST',
+                                headers: {
+                                    'X-HTTP-Method-Override': 'PUT'
+                                },
                                 url: API + 'message',
                                 data: data,
                                 success: function (ret) {

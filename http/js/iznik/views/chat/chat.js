@@ -214,7 +214,10 @@ define([
             var self = this;
 
             $.ajax({
-                type: 'PUT',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PUT'
+                },
                 url: API + 'chat/rooms',
                 data: {
                     chattype: 'User2Mod',
@@ -255,7 +258,10 @@ define([
 
                 if (!found) {
                     $.ajax({
-                        type: 'PUT',
+                        type: 'POST',
+                        headers: {
+                            'X-HTTP-Method-Override': 'PUT'
+                        },
                         url: API + 'chat/rooms',
                         data: {
                             userid: userid
@@ -1800,7 +1806,10 @@ define([
             if (self.model.get('id') != Iznik.Session.get('me').id) {
                 // We want to open a direct message conversation with this user.
                 $.ajax({
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     url: API + 'chat/rooms',
                     data: {
                         userid: self.model.get('userid')

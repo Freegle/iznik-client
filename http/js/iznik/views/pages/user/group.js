@@ -66,7 +66,7 @@ define([
                     // Get the zoom level for maps and put it somewhere easier.
                     var zoom = 8;
                     var groups = msg.get('groups');
-                    if (groups.length > 0 && groups[0].settings.map.hasOwnProperty('zoom')) {
+                    if (groups.length > 0 && groups[0].hasOwnProperty('settings') && groups[0].settings.map.hasOwnProperty('zoom')) {
                         zoom = groups[0].settings.map.zoom;
                     }
                     msg.set('zoom', zoom);
