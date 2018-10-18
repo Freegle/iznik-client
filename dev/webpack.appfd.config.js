@@ -1,6 +1,7 @@
+//  mode: 'development', rather than 'production' to not minify
+
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 // CC const FaviconsPlugin = require('favicons-webpack-plugin');
-//const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 // CC const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const webpack = require('webpack');
@@ -36,8 +37,8 @@ module.exports = new Config().extend({
         return config;
     }
   }).merge({
-  mode: 'development',
-  //mode: 'production',
+  //mode: 'development',
+  mode: 'production',
   // CC devtool: 'source-map',
   entry: [join(ROOT, 'client/appfd.js')],
   module: {
