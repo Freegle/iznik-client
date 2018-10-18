@@ -177,7 +177,10 @@ define([
             text = text ? text : 'Please see the HTML version of this mail';
 
             $.ajax({
-                type: 'PUT',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PUT'
+                },
                 url: API + 'alert',
                 data: {
                     groupid: self.$('.js-grouplist').val(),
@@ -288,7 +291,10 @@ define([
                                     // that's allowed if there are currently no mods.
                                     $.ajax({
                                         url: API + 'memberships',
-                                        type: 'PUT',
+                                        type: 'POST',
+                                        headers: {
+                                            'X-HTTP-Method-Override': 'PUT'
+                                        },
                                         data: {
                                             groupid: ret.id,
                                             userid: Iznik.Session.get('me').id,
@@ -741,7 +747,10 @@ define([
 
             $.ajax({
                 url: API + 'memberships',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: data
             });
         },
@@ -1060,7 +1069,10 @@ define([
             self.listenToOnce(v, 'confirmed', function() {
                 $.ajax({
                     url: API + 'user',
-                    type: 'DELETE',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'DELETE'
+                    },
                     data: {
                         id: self.model.get('id')
                     }, success: function(ret) {
@@ -1403,7 +1415,10 @@ define([
                 self.listenToOnce(v, 'confirmed', function() {
                     $.ajax({
                         url: API + 'memberships',
-                        type: 'DELETE',
+                        type: 'POST',
+                        headers: {
+                            'X-HTTP-Method-Override': 'DELETE'
+                        },
                         data: {
                             userid: self.options.user.get('id'),
                             groupid: self.model.get('id')
@@ -1486,7 +1501,10 @@ define([
             var pw = self.$('.js-pw').val();
             $.ajax({
                 url: API + 'user',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: {
                     id: self.model.get('userid'),
                     password: pw

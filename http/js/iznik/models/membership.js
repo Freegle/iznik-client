@@ -228,7 +228,10 @@ define([
             // By marking it reviewed and not public, it will not be visible.
             var p = $.ajax({
                 url: API + 'stories',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: {
                     id: this.get('id'),
                     reviewed: 1,
@@ -243,7 +246,10 @@ define([
             // By marking it public (if it was) and reviewed, it becomes visible.
             var p = $.ajax({
                 url: API + 'stories',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: {
                     id: this.get('id'),
                     reviewed: 1,
@@ -257,7 +263,10 @@ define([
         dontUseForNewsletter: function() {
             var p = $.ajax({
                 url: API + 'stories',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: {
                     id: this.get('id'),
                     newsletterreviewed: 1,
@@ -271,7 +280,10 @@ define([
         useForNewsletter: function() {
             var p = $.ajax({
                 url: API + 'stories',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: {
                     id: this.get('id'),
                     newsletterreviewed: 1,

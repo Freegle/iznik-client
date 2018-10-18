@@ -1001,7 +1001,10 @@ define([
             var p = new Promise(function(resolve, reject) {
                 $.ajax({
                     url: API + 'session',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     data: {
                         phone: phone
                     }, success: function (ret) {
@@ -1026,7 +1029,10 @@ define([
             var p = new Promise(function(resolve, reject) {
                 $.ajax({
                     url: API + 'session',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     data: {
                         aboutme: aboutme
                     }, success: function (ret) {

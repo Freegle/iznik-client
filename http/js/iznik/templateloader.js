@@ -95,7 +95,7 @@ module.exports = {
                     /* webpackMode: "lazy-once" */
                     '/template/' + templatePath
                 ).then(function(html) {
-                    templateStore(tpl, html);
+                    templateStore(tpl, html.default);
                     resolve(tpl);
                 }).catch(function(err) {
                     console.error("Template fetch failed", tpl, err);

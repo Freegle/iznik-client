@@ -4,6 +4,9 @@
             <div class="row">
                 <div class="col-xs-8 col-sm-10 col-md-9">
                     <div class="js-rejected glyphicon glyphicon-warning-sign glyphicon-larger error" style="display: none" title="This message has been sent back to you by the volunteers." />
+                    <% if (obj.isdraft) { %>
+                    <span class="error">Draft</span>
+                    <% } %>
                     <span class="hidden-xs">
                         {{subject}}
                     </span>
@@ -18,11 +21,9 @@
                 <div class="col-xs-2 col-sm-1 col-md-1 nopad">
                     <ul class="list-unstyled list-inline">
                         <li>
-                            <span class="badge js-replycount <% if (obj.replies && obj.replies.length == 0) { %> faded<% } %>" title="The number of people who've replied.">
+                            <span class="badge js-replycount <% if (obj.replycount== 0) { %> faded<% } %>" title="The number of people who've replied.">
                                 <div class="glyphicon glyphicon-user" />
-                                <% if (obj.replies && typeof(obj.replies.length)=='number') { %>
-                                  {{obj.replies.length}}
-                                <% } %>
+                                {{obj.replycount}}
                             </span>
                         </li>
                         <li>
@@ -55,13 +56,7 @@
         <div class="panel-body nopad">
             <div class="row topspace">
                 <div class="col-xs-10">
-                    <div class="prewrap">
-                        <% if (textbody.length == 0) { %>
-<em>There's no description.</em>
-                        <% } else { %>
-{{textbody}}
-                        <% } %>
-                    </div>
+                    <div class="prewrap"><% if (!obj.hasOwnProperty('textbody')) { %><a class="fullholder text-center thumbnail"><img alt="Loader" src="/images/userloader.gif" /></a><% } else if (textbody.length == 0) { %><em>There's no description.</em><% } else { %>{{textbody}}<% } %></div>
                 </div>
                 <div class="nopad col-xs-2">
                     <ul class="list-inline list-unstyled js-attlist" />
@@ -91,6 +86,7 @@
         <div class="row">
             <div class="col-xs-12 topspace">
                 <% if (obj.outcomes.length == 0) { %>
+                    <% if (!obj.isdraft) { %>
                     <button class="btn btn-success inline js-taken" style="display: none">
                         <div class="glyphicon glyphicon-ok"></div>
                         Mark this TAKEN
@@ -101,15 +97,24 @@
                             Edit and Resend
                         </button>
                     </a>
+                    <% } %>
                     <button class="btn btn-white js-withdraw">
                         <div class="glyphicon glyphicon-trash"></div>
+                        <% if (obj.isdraft) { %>
+                        Delete
+                        <% } else { %>
                         Withdraw
+                        <% } %>
                     </button>
                     <% if (obj.canrepost || obj.isdraft) { %>
                     <a href="/edit/{{id}}">
                         <button class="btn btn-white inline js-repost">
                             <div class="glyphicon glyphicon-refresh"></div>
+                            <% if (obj.isdraft) { %>
+                            Resume
+                            <% } else { %>
                             Post again
+                            <% } %>
                         </button>
                     </a>
                     <% } else if (obj.willautorepost) { %>
@@ -131,9 +136,11 @@
                     </button>
                 </a>
                 <% } %>
+                <% if (!obj.isdraft) { %>
                 <div class="btn btn-success fbshare js-sharefb" style="display: none">
                     <div class="glyphicon glyphicon-share-alt" />&nbsp;Share
                 </div>
+                <% } %>
                 <div class="pull-right text-muted">#{{id}}</div>
             </div>
         </div>

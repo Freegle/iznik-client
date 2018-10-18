@@ -572,7 +572,7 @@ define([
                             _.each(ids, function(id) {
                                 var group = groups.get(id);
 
-                                if (group.get('type') == 'Freegle' && (group.get('role') == 'Owner' || group.get('role') == 'Moderator')) {
+                                if (group.get('type') == 'Freegle' && (group.get('role') == 'Owner' || group.get('role') == 'Moderator') && group.get('publish')) {
                                     var affiliated = group.get('affiliationconfirmed');
                                     var age = ((new Date()).getTime() - (new Date(affiliated)).getTime()) / (60 * 60 * 24 * 1000);
 

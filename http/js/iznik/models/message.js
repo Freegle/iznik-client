@@ -167,7 +167,10 @@ define([
             var self = this;
 
             $.ajax({
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 url: API + 'message',
                 data: {
                     id: self.get('id'),
@@ -197,7 +200,10 @@ define([
             var self = this;
 
             $.ajax({
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 url: API + 'message',
                 data: {
                     id: self.get('id'),
@@ -503,10 +509,14 @@ define([
             //
             // If we are in the user interface we only ever want OFFERs/WANTEDs.  The TAKEN/RECEIVED messages
             // are returned attached to those, so we don't need to see them separately.
+            //
+            // Also in the user interface only, we ask for summary information because this is quicker.  We
+            // will fetch the full message information when the message is opened.
             var url = API + 'messages?' +
                 (this.options.groupid > 0 ? ("groupid=" + this.options.groupid + "&") : '') +
                 'collection=' + this.options.collection +
                 '&modtools=' + this.options.modtools +
+                '&summary=' + !this.options.modtools +
                 (this.options.modtools ? '' : '&types[]=Offer&types[]=Wanted') +
                 (this.options.type ? ('&grouptype=' + this.options.type) : '');
             // console.log("Collection url", url);

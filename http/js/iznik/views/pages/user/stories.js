@@ -159,7 +159,10 @@ define([
 
                     $.ajax({
                         url: API + 'stories',
-                        type: 'PUT',
+                        type: 'POST',
+                        headers: {
+                            'X-HTTP-Method-Override': 'PUT'
+                        },
                         data: {
                             headline: headline,
                             story: story,

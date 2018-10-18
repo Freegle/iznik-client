@@ -139,7 +139,10 @@ define([
 
             $.ajax({
                 url: API + 'memberships',
-                type: 'DELETE',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'DELETE'
+                },
                 data: {
                     groupid: self.model.get('id'),
                     userid: Iznik.Session.get('me').id

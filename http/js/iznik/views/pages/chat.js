@@ -162,6 +162,7 @@ define([
                 // collection view, resulting in unread messages being at the top.
                 self.listenTo(self.chats, 'somethinghappened', function(chatid) {
                     // Only sort if this chat is not already at the top or open in a popup window.
+                    console.log("Something happened.");
                     var first = self.chats.first();
                     var mod = self.chats.get(chatid);
                     var view = self.chatsCV1.viewManager.findByModel(mod);
@@ -1245,7 +1246,10 @@ define([
                                                     // TODO Member approval
                                                     $.ajax({
                                                         url: API + 'memberships',
-                                                        type: 'PUT',
+                                                        type: 'POST',
+                                                        headers: {
+                                                            'X-HTTP-Method-Override': 'PUT'
+                                                        },
                                                         data: {
                                                             groupid: groupid
                                                         }, complete: function () {

@@ -1946,7 +1946,10 @@ define([
                 // New location - create it.
                 $.ajax({
                     url: API + 'locations',
-                    type: 'PUT',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
                     data: {
                         name: name,
                         polygon: wkt
@@ -2546,7 +2549,10 @@ define([
 
             $.ajax({
                 url: API + 'group',
-                type: 'PATCH',
+                type: 'POST',
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 data: {
                     id: self.model.get('id'),
                     description: desc

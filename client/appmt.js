@@ -7,21 +7,21 @@ try {
     console.log("Storage exception", e);
 }
 
-import "smart-app-banner.css?a=1";
-import "bootstrap.min.css";
-import "bootstrap-theme.min.css";
-import "glyphicons.css";
-import "glyphicons-social.css";
-import "bootstrap-select.min.css";
-import "bootstrap-switch.min.css";
-import "bootstrap-dropmenu.min.css";
-import "bootstrap-notifications.min.css";
-import "eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css";
-import "dd.css";
-import "bootstrap-fileinput/css/fileinput.css";
+require("smart-app-banner.css?a=1");
+require("bootstrap.min.css");
+require("bootstrap-theme.min.css");
+require("glyphicons.css");
+require("glyphicons-social.css");
+require("bootstrap-select.min.css");
+require("bootstrap-switch.min.css");
+require("bootstrap-dropmenu.min.css");
+require("bootstrap-notifications.min.css");
+require("eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css");
+require("dd.css");
+require("bootstrap-fileinput/css/fileinput.css");
 
-import 'style.less';
-import 'modtools.css';
+require("style.less");
+require("modtools.css");
 
 import 'iznik/main';
 

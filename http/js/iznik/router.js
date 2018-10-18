@@ -15,6 +15,9 @@ define([
 
     Iznik.Session.askedPush = false;
 
+    // We have issues with PATCH and PUT.
+    Backbone.emulateHTTP = true;
+
     var IznikRouter = Backbone.Router.extend({
         initialize: function () {
             var self = this;
@@ -575,7 +578,10 @@ define([
 
                 require(["iznik/views/pages/user/settings"], function () {
                     $.ajax({
-                        type: 'PATCH',
+                        type: 'POST',
+                        headers: {
+                            'X-HTTP-Method-Override': 'PATCH'
+                        },
                         url: API + 'session',
                         data: {
                             key: key
@@ -721,7 +727,10 @@ define([
                 var self = this;
                 $.ajax({
                     url: API + 'invitation',
-                    type: 'PATCH',
+                    type: 'POST',
+                    headers: {
+                        'X-HTTP-Method-Override': 'PATCH'
+                    },
                     data: {
                         id: id,
                         outcome: 'Accepted'
@@ -1578,7 +1587,10 @@ define([
 
                 require(["iznik/views/pages/modtools/settings"], function () {
                     $.ajax({
-                        type: 'PATCH',
+                        type: 'POST',
+                        headers: {
+                            'X-HTTP-Method-Override': 'PATCH'
+                        },
                         url: API + 'session',
                         data: {
                             key: key

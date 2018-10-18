@@ -3,15 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title><%= SITE_NAME %></title>
+    <% if (MODTOOLS) { %>
     <script src="https://cdn.tinymce.com/4/tinymce.min.js"></script>
+    <% } %>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/jekkhomlnoblcnangfcdohhaipmmaddc">
+    <meta name="google-site-verification" content="<%= GOOGLE_SITE_VERIFICATION %>" />
+    <link rel="preconnect" href="https://www.youtube.com">
+    <link rel="preconnect" href="https://www.google-analytics.com">
+    <link rel="preconnect" href="https://apis.google.com">
+    <link rel="preconnect" href="https://adservice.google.com">
+    <link rel="preconnect" href="https://adservice.google.co.uk">
+    <link rel="preconnect" href="https://maps.googleapis.com">
+    <link rel="preconnect" href="https://apis.google.com">
+    <link rel="dns-prefetch" href="https://www.youtube.com">
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
+    <link rel="dns-prefetch" href="https://apis.google.com">
+    <link rel="dns-prefetch" href="https://adservice.google.com">
+    <link rel="dns-prefetch" href="https://adservice.google.co.uk">
+    <link rel="dns-prefetch" href="https://maps.googleapis.com">
+    <link rel="dns-prefetch" href="https://apis.google.com">
 	<script src="cordova.js"></script>          <!-- CC phantom library, needed for Cordova api calls, added during build -->	
   <script src="xdk/init-dev.js"></script>     <!-- CC normalizes device and document ready events, see README for details -->
 </head>
 
 <body id="thebody">
-<script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyCdTSJKGWJUOx2pq1Y0f5in5g4kKAO5dgg&libraries=geometry,places,drawing,visualization"></script>
+<script ascyn type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 <div itemscope itemtype="http://schema.org/Organization" style="display: none">
     <span itemprop="name"><%= SITE_NAME %></span>
@@ -30,9 +49,20 @@
 
 <script src="https://apis.google.com/js/client:plusone.js"></script>
 <script>
+
     // TODO This is an ignorant and outrageous hack, to get the gapi var to google.js.
-    var env = document.getElementById('thebody');
-    env.gapi = gapi;
+    function setGapi() {
+        var env = document.getElementById('thebody');
+
+        if (env) {
+            env.gapi = gapi;
+        } else {
+            console.log("Waiting for gapi");
+            window.setTimeout(setGapi, 100);
+        }
+    }
+
+    setGapi();
 </script>
 
 <script>
