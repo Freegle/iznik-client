@@ -119,7 +119,7 @@ define([
                     self.onSignInCallback(authResult);
                 },
                 function (msg) {    // ERROR
-                    alert('error: ' + msg);
+                    //alert('error: ' + msg);
                     self.tryingGoogleLogin = false;
                     $('.js-signin-msg').text("Google error:" + msg);
                     $('.js-signin-msg').show();
