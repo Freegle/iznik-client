@@ -232,8 +232,8 @@ function mainOnAppStart() { // CC
             } catch (e) { }
         });
 
-        document.addEventListener("offline", function () { isOnline = false; showNetworkStatus() }, false);
-        document.addEventListener("online", function () { isOnline = true; showNetworkStatus() }, false);
+        document.addEventListener("offline", function () { isOnline = false; console.log("offline"); window.showNetworkStatus() }, false);
+        document.addEventListener("online", function () { isOnline = true; console.log("online"); window.showNetworkStatus() }, false);
 
         Backbone.emulateJSON = true;
 
