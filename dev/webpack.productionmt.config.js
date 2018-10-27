@@ -17,21 +17,12 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
             {
                 test: /\.css$/,
                 use: [
-                    {
-                        loader: MiniCssExtractPlugin.loader
-                    },
-
+                    'style-loader',
                     {
                         loader: 'css-loader',
                         options: {
-                            sourceMap: true,
-                            modules: true,
-                            localIdentName: '[local]___[hash:base64:5]'
+                            root: '../'
                         }
-                    },
-
-                    {
-                        loader: 'postcss-loader'
                     }
                 ]
             }
