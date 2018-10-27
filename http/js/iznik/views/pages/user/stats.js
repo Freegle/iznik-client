@@ -617,8 +617,6 @@ define([
                 });
             })
 
-            console.log("Got times", firstdate, lastdate);
-
             var totalweight = 0;
             var totalmembers = 0;
             var totaloutcomes = 0;
