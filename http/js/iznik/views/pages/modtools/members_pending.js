@@ -281,7 +281,7 @@ define([
                                     self.$('.js-stdmsgs').append(v.el);
                                 });
 
-                                if (config && !self.model.get('heldby')) {
+                                if (config) {
                                     // Add the other standard messages, in the order requested.
                                     var sortmsgs = Iznik.orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
                                     var anyrare = false;
