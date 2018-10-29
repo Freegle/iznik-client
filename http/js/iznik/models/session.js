@@ -164,7 +164,7 @@ define([
             }
         },
 
-        testLoggedIn: function (forceserver) {
+        testLoggedIn: function (forceserver, allconfigs) {
             var self = this;
 
             // The mainline case is that we have our session cached in local storage, which allows us to get on
@@ -220,7 +220,8 @@ define([
                     url: API + 'session',
                     type: 'GET',
                     data: {
-                        persistent: sess ? parsed.persistent : null
+                        persistent: sess ? parsed.persistent : null,
+                        allconfigs: allconfigs
                     },
                     success: function (ret) {
                         if (ret.ret == 111) {
