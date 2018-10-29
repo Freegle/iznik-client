@@ -280,7 +280,7 @@ define([
                     maxImageWidth: 800,
                     browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
                     browseLabel: 'Add photos',
-                    browseClass: 'btn btn-primary nowrap',
+                    browseClass: 'btn btn-success btn-lg nowrap',
                     showCaption: false,
                     showRemove: false,
                     showUploadedThumbs: false,
