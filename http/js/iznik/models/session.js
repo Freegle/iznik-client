@@ -164,8 +164,15 @@ define([
             }
         },
 
-        testLoggedIn: function (forceserver, allconfigs) {
+        checkWork: function() {
+            this.testLoggedIn(true, false, [
+                'work'
+            ]);
+        },
+
+        testLoggedIn: function (forceserver, allconfigs, components) {
             var self = this;
+            components = components ? components : null;
 
             // The mainline case is that we have our session cached in local storage, which allows us to get on
             // with things rapidly - in conjunction with use of the appcache it means that we don't need any server
@@ -221,44 +228,50 @@ define([
                     type: 'GET',
                     data: {
                         persistent: sess ? parsed.persistent : null,
-                        allconfigs: allconfigs
+                        allconfigs: allconfigs,
+                        components: components
                     },
                     success: function (ret) {
                         if (ret.ret == 111) {
                             // Down for maintenance.
                             window.location = '/maintenance.html';
                         } else if ((ret.ret == 0)) {
-                            // Save off the returned session information into local storage.
-                            var now = (new Date()).getTime();
-                            try {
-                                Storage.set('session', JSON.stringify(ret));
-                                var lastloggedinas = Storage.get('lastloggedinas');
-                                Storage.set('lastloggedinas', ret.me.id);
-                                Storage.set('myemail', ret.me.email);
+                            if (!components) {
+                                // We got a full session.  Save off the returned session information into local
+                                // storage.
+                                var now = (new Date()).getTime();
+                                try {
+                                    Storage.set('session', JSON.stringify(ret));
+                                    var lastloggedinas = Storage.get('lastloggedinas');
+                                    Storage.set('lastloggedinas', ret.me.id);
+                                    Storage.set('myemail', ret.me.email);
 
-                                if (lastloggedinas && ret.me.id && ret.me.id != lastloggedinas) {
-                                    // We have logged in as someone else.  Zap our fetch cache.
-                                    Storage.iterate(function(key,value) {
-                                        if (key.indexOf('cache.') === 0) {
-                                            Storage.remove(key);
-                                        }
-                                    });
+                                    if (lastloggedinas && ret.me.id && ret.me.id != lastloggedinas) {
+                                        // We have logged in as someone else.  Zap our fetch cache.
+                                        Storage.iterate(function(key,value) {
+                                            if (key.indexOf('cache.') === 0) {
+                                                Storage.remove(key);
+                                            }
+                                        });
 
-                                    window.location.reload(true);
+                                        window.location.reload(true);
+                                    }
+
+                                    // We use this to decide whether to show sign up or sign in.
+                                    Storage.set('signedinever', true);
+                                } catch (e) {
                                 }
 
-                                // We use this to decide whether to show sign up or sign in.
-                                Storage.set('signedinever', true);
-                            } catch (e) {
+                                self.set(ret);
                             }
 
-                            self.set(ret);
+                            if (ret.hasOwnProperty('groups')) {
+                                // We get an array of groups back - we want it to be a collection.
+                                self.set('groups', new Iznik.Collection(ret.groups));
+                            }
 
-                            // We get an array of groups back - we want it to be a collection.
-                            self.set('groups', new Iznik.Collection(ret.groups));
-
-                            // We may also get an array of modconfigs.
-                            if (ret.configs) {
+                            if (ret.hasOwnProperty('configs')) {
+                                // We may also get an array of modconfigs.
                                 self.set('configs', new Iznik.Collection(ret.configs));
                             }
 

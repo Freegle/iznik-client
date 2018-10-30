@@ -694,7 +694,7 @@ define([
                         self.checkWork();
                     }
 
-                    // Get our session, both to keep it alive and update any counts.
+                    // Get our work, both to keep the session alive and update any counts.
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                         var first = self.collection.at(0);
                         //console.log("checkPluginStatus, first", first);
@@ -717,7 +717,7 @@ define([
                         }
                     });
 
-                    Iznik.Session.testLoggedIn();
+                    Iznik.Session.checkWork();
                 }
             })
         },
