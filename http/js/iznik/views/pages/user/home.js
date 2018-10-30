@@ -460,7 +460,7 @@ define([
 
             self.model.set('offers', self.options.offers);
 
-            if (self.options.offers.length < 5 && !self.model.get('source')) {
+            if (self.options.offers && self.options.offers.length < 5 && !self.model.get('source')) {
                 // Matches template.  We have few messages so will so this expanded, therefore we need to fetch the
                 // full model.
                 p = self.model.fetch();
@@ -527,7 +527,7 @@ define([
 
             self.model.set('wanteds', self.options.wanteds);
 
-            if (self.options.wanteds.length < 5 && !self.model.get('source')) {
+            if (self.options.wanteds && self.options.wanteds.length < 5 && !self.model.get('source')) {
                 // Matches template.  We have few messages so will so this expanded, therefore we need to fetch the
                 // full model.
                 p = self.model.fetch();
