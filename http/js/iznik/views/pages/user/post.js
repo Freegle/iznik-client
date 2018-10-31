@@ -508,7 +508,8 @@ define([
                 });
 
                 Iznik.Session.testLoggedIn([
-                    'me'
+                    'me',
+                    'emails'
                 ]);
             });
 
