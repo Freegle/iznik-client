@@ -499,7 +499,10 @@ define([
                         }
                     });
 
-                    Iznik.Session.testLoggedIn();
+                    Iznik.Session.testLoggedIn([
+                        'me',
+                        'groups'
+                    ]);
                 }
             });
 

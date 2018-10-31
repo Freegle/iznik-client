@@ -36,7 +36,10 @@ define([
                 v.render();
             });
 
-            Iznik.Session.forceLogin();
+            Iznik.Session.forceLogin([
+                'me',
+                'groups'
+            ]);
         },
 
         containerHeight: function() {

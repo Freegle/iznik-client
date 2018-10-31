@@ -21,7 +21,10 @@ define([
                 v.render();
             });
 
-            Iznik.Session.forceLogin();
+            Iznik.Session.forceLogin([
+                'me',
+                'groupis'
+            ]);
         },
 
         render: function () {
@@ -222,7 +225,9 @@ define([
                 });
             });
 
-            Iznik.Session.forceLogin();
+            Iznik.Session.forceLogin([
+                'me'
+            ]);
         }
     });
 });

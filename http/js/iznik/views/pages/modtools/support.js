@@ -306,7 +306,7 @@ define([
                                                 })).render();
 
                                                 // Pick up new groups.
-                                                Iznik.Session.testLoggedIn(true);
+                                                Iznik.Session.testLoggedIn();
                                             }
                                         }
                                     })

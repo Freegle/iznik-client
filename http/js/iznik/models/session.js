@@ -17,8 +17,6 @@ define([
 
         notificationsSetup: false,
 
-        lastServerHit: null,
-
         initialize: function () {
             var self = this;
 
@@ -35,7 +33,7 @@ define([
                 // Check if we're still logged in - this tab might have been hidden for a while.  If we were logged
                 // in and we no longer are, this will trigger a reload, so we don't look as though we're logged in
                 // when we're not.
-                self.testLoggedIn();
+                self.testLoggedIn([]);
             });
 
             // Make sure that the chats are set up, even if not yet fetched - used all over.
@@ -50,7 +48,9 @@ define([
         },
 
         updateCounts: function () {
-            this.testLoggedIn();
+            this.testLoggedIn([
+                'work'
+            ]);
         },
 
         askSubscription: function() {
@@ -165,19 +165,18 @@ define([
         },
 
         checkWork: function() {
-            this.testLoggedIn(true, false, [
+            this.testLoggedIn([
                 'work'
             ]);
         },
 
-        testLoggedIn: function (forceserver, allconfigs, components) {
+        testLoggedIn: function (components) {
             var self = this;
+            self.testing = true;
             components = components ? components : null;
 
-            // The mainline case is that we have our session cached in local storage, which allows us to get on
-            // with things rapidly - in conjunction with use of the appcache it means that we don't need any server
-            // interactions before we can start rendering the page.
-            self.testing = true;
+            // We may have a persistent session from local storage which we can use to revive this session if the
+            // PHP session has timed out.
             var sess = null;
             var parsed = null;
 
@@ -190,324 +189,286 @@ define([
                 console.error("testLoggedIn exception", e.message);
             }
 
-            if (!forceserver) {
-                if (sess) {
-                    self.testing = false;
-                    self.set(parsed);
+            $.ajax({
+                url: API + 'session',
+                type: 'GET',
+                data: {
+                    persistent: sess ? parsed.persistent : null,
+                    components: components
+                },
+                success: function (ret) {
+                    if (ret.ret == 111) {
+                        // Down for maintenance.
+                        window.location = '/maintenance.html';
+                    } else if ((ret.ret == 0)) {
+                        var now = (new Date()).getTime();
 
-                    // We get an array of groups back - we want it to be a collection.
-                    self.set('groups', new Iznik.Collection(parsed.groups));
+                        try {
+                            // Save off the persistent session.
+                            Storage.set('session', JSON.stringify({
+                                persistent: ret.persistent
+                            }));
 
-                    // We may also get an array of modconfigs.
-                    if (parsed.configs) {
-                        self.set('configs', new Iznik.Collection(parsed.configs));
-                    }
+                            var lastloggedinas = Storage.get('lastloggedinas');
+                            Storage.set('lastloggedinas', ret.me.id);
+                            Storage.set('myemail', ret.me.email);
 
-                    Raven.setUserContext({
-                        user: self.get('me')
-                    });
-
-                    self.loggedIn = true;
-                    self.trigger('isLoggedIn', true);
-                }
-            }
-
-            // Now we may or may not have already triggered, but we still want to refresh our data from the server
-            // regularly.  This means we are loosely up to date.  It also means that if we have been logged out on
-            // the server side, we'll find out.
-            //
-            // We may have a persistent session from local storage which we can use to revive this session if the
-            // PHP session has timed out.
-            var now = (new Date()).getTime();
-
-            if (!self.lastServerHit || now - self.lastServerHit > 1000 || forceserver) {
-                self.lastServerHit = now;
-
-                $.ajax({
-                    url: API + 'session',
-                    type: 'GET',
-                    data: {
-                        persistent: sess ? parsed.persistent : null,
-                        allconfigs: allconfigs,
-                        components: components
-                    },
-                    success: function (ret) {
-                        if (ret.ret == 111) {
-                            // Down for maintenance.
-                            window.location = '/maintenance.html';
-                        } else if ((ret.ret == 0)) {
-                            if (!components) {
-                                // We got a full session.  Save off the returned session information into local
-                                // storage.
-                                var now = (new Date()).getTime();
-                                try {
-                                    Storage.set('session', JSON.stringify(ret));
-                                    var lastloggedinas = Storage.get('lastloggedinas');
-                                    Storage.set('lastloggedinas', ret.me.id);
-                                    Storage.set('myemail', ret.me.email);
-
-                                    if (lastloggedinas && ret.me.id && ret.me.id != lastloggedinas) {
-                                        // We have logged in as someone else.  Zap our fetch cache.
-                                        Storage.iterate(function(key,value) {
-                                            if (key.indexOf('cache.') === 0) {
-                                                Storage.remove(key);
-                                            }
-                                        });
-
-                                        window.location.reload(true);
+                            if (lastloggedinas && ret.me.id && ret.me.id != lastloggedinas) {
+                                // We have logged in as someone else.  Zap our fetch cache.
+                                // TODO Remove this cache.
+                                Storage.iterate(function(key,value) {
+                                    if (key.indexOf('cache.') === 0) {
+                                        Storage.remove(key);
                                     }
+                                });
 
-                                    // We use this to decide whether to show sign up or sign in.
-                                    Storage.set('signedinever', true);
-                                } catch (e) {
-                                }
-
-                                self.set(ret);
+                                window.location.reload(true);
                             }
 
-                            if (ret.hasOwnProperty('groups')) {
-                                // We get an array of groups back - we want it to be a collection.
-                                self.set('groups', new Iznik.Collection(ret.groups));
-                            }
-
-                            if (ret.hasOwnProperty('configs')) {
-                                // We may also get an array of modconfigs.
-                                self.set('configs', new Iznik.Collection(ret.configs));
-                            }
-
-                            self.loggedIn = true;
-
-                            Raven.setUserContext({
-                                user: self.get('me')
-                            });
-
-                            if (self.testing) {
-                                self.testing = false;
-                                self.trigger('isLoggedIn', true);
-                            }
-
-                            if (Iznik.Session.get('modtools')) {
-                                var admin = Iznik.Session.isAdmin();
-                                var support = Iznik.Session.isAdminOrSupport();
-
-                                // Update our various counts.
-                                var counts = [
-                                    {
-                                        fi: 'pending',
-                                        el: '.js-pendingcount',
-                                        ev: 'pendingcountschanged',
-                                        window: true,
-                                        sound: true
-                                    },
-                                    {
-                                        fi: 'spam',
-                                        el: '.js-spamcount',
-                                        ev: 'spamcountschanged',
-                                        window: true,
-                                        sound: true
-                                    },
-                                    {
-                                        fi: 'pendingother',
-                                        el: '.js-pendingcountother',
-                                        ev: 'pendingcountsotherchanged',
-                                        window: false,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'spammembers',
-                                        el: '.js-spammemberscount',
-                                        ev: 'spammembercountschanged',
-                                        window: false,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'pendingmembers',
-                                        el: '.js-pendingmemberscount',
-                                        ev: 'pendingmemberscountschanged',
-                                        window: true,
-                                        sound: true
-                                    },
-                                    {
-                                        fi: 'pendingmembersother',
-                                        el: '.js-pendingmemberscountother',
-                                        ev: 'pendingmemberscountsotherchanged',
-                                        window: false,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'pendingevents',
-                                        el: '.js-pendingeventscount',
-                                        ev: 'pendingeventscountschanged',
-                                        window: false,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'pendingvolunteering',
-                                        el: '.js-pendingvolunteeringcount',
-                                        ev: 'pendingvolunteeringcountschanged',
-                                        window: false,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'chatreview',
-                                        el: '.js-repliescount',
-                                        ev: 'repliescountschanged',
-                                        window: true,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'chatreviewother',
-                                        el: '.js-repliescountother',
-                                        ev: 'repliescountsotherchanged',
-                                        window: false,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'socialactions',
-                                        el: '.js-socialactionscount',
-                                        ev: 'socialactionscountschanged',
-                                        window: false,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'spammerpendingadd',
-                                        el: '.js-spammerpendingaddcount',
-                                        ev: 'spammerpendingaddcountschanged',
-                                        window: support,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'spammerpendingremove',
-                                        el: '.js-spammerpendingremovecount',
-                                        ev: 'spammerpendingremovecountschanged',
-                                        window: admin,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'stories',
-                                        el: '.js-storiescount',
-                                        ev: 'storiescountchanged',
-                                        window: false,
-                                        sound: false
-                                    },
-                                    {
-                                        fi: 'newsletterstories',
-                                        el: '.js-newsletterstoriescount',
-                                        ev: 'newsletterstoriescountchanged',
-                                        window: false,
-                                        sound: false
-                                    }
-                                ];
-
-                                var total = 0;
-                                var countschanged = false;
-
-                                _.each(counts, function (count) {
-                                    var countel = $(count.el);
-                                    var currcount = countel.html();
-                                    if (ret.work && ret.work[count.fi] != currcount) {
-                                        countschanged = true;
-                                    }
-
-                                    if (ret.work && ret.work[count.fi]) {
-                                        if (count.window) {
-                                            total += ret.work[count.fi];
-                                        }
-
-                                        countel.html(ret.work[count.fi]);
-                                        //console.log("Sound", ret.work[count.fi], currcount, self.playBeep, count.sound);
-
-                                        if (ret.work[count.fi] > currcount || currcount == 0) {
-                                            // Only trigger this when the counts increase.  This will pick up new messages
-                                            // without screen flicker due to re-rendering when we're processing messages and
-                                            // deleting them.  There's a minor timing window where a message could arrive as
-                                            // one is deleted, leaving the counts the same, but this will resolve itself when
-                                            // our current count drops to zero, or worst case when we refresh.
-                                            Iznik.Session.trigger(count.ev);
-
-                                            if (ret.work[count.fi] > 0 && count.sound) {
-                                                var settings = Iznik.Session.get('me').settings;
-
-                                                if (Iznik.presdef('playbeep', settings, 1) && self.playBeep) {
-                                                    var sound = new Audio("/sounds/alert.wav");
-                                                    try {
-                                                        // Some browsers prevent us using play unless in response to a
-                                                        // user gesture, so catch any exception.
-                                                        sound.play();
-                                                    } catch (e) {
-                                                        console.log("Failed to play beep", e.message);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        $(count.el).empty();
-                                    }
-                                })
-
-                                document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
-
-                                if (total) {
-                                    $('.js-workcount').html(total).show();
-                                } else {
-                                    $('.js-workcount').html('').hide();
-                                }
-
-                                if (countschanged) {
-                                    Iznik.Session.trigger('countschanged');
-                                }
-                            }
-                        } else {
-                            try {
-                                var sess = Storage.get('session');
-
-                                if (sess && ret.ret == 1) {
-                                    // We thought we were logged in but we're not.  If the persistent session
-                                    // (which should help us deal with PHP session expiry) wasn't valid, then we
-                                    // must be supposed to be logged out.  Clear our local storage and reload.
-                                    //
-                                    // This will look slightly odd but means that the mainline case of still being logged
-                                    // in is handled more quickly.
-                                    try {
-                                        console.error("Not logged in after all", sess, parsed, ret);
-                                        Storage.remove('session');
-                                    } catch (e) {
-                                    }
-                                    window.location.reload();
-                                } else {
-                                    // We're not logged in.
-                                    self.loggedIn = false;
-
-                                    if (self.testing) {
-                                        self.testing = false;
-                                        self.trigger('isLoggedIn', false);
-                                    }
-                                }
-                            } catch (e) {
-                            }
-
-                            // We're not logged in
+                            // We use this to decide whether to show sign up or sign in.
+                            Storage.set('signedinever', true);
+                        } catch (e) {
                         }
-                    },
-                    error: function () {
-                        console.log("Get settings failed");
-                        self.loggedIn = false;
+
+                        self.set(ret);
+
+                        if (ret.hasOwnProperty('groups')) {
+                            // We get an array of groups back - we want it to be a collection.
+                            self.set('groups', new Iznik.Collection(ret.groups));
+                        }
+
+                        if (ret.hasOwnProperty('configs')) {
+                            // We may also get an array of modconfigs.
+                            self.set('configs', new Iznik.Collection(ret.configs));
+                        }
+
+                        self.loggedIn = true;
+
+                        Raven.setUserContext({
+                            user: self.get('me')
+                        });
 
                         if (self.testing) {
                             self.testing = false;
-                            self.trigger('isLoggedIn', false);
+                            self.trigger('isLoggedIn', true);
                         }
+
+                        if (Iznik.Session.get('modtools')) {
+                            var admin = Iznik.Session.isAdmin();
+                            var support = Iznik.Session.isAdminOrSupport();
+
+                            // Update our various counts.
+                            var counts = [
+                                {
+                                    fi: 'pending',
+                                    el: '.js-pendingcount',
+                                    ev: 'pendingcountschanged',
+                                    window: true,
+                                    sound: true
+                                },
+                                {
+                                    fi: 'spam',
+                                    el: '.js-spamcount',
+                                    ev: 'spamcountschanged',
+                                    window: true,
+                                    sound: true
+                                },
+                                {
+                                    fi: 'pendingother',
+                                    el: '.js-pendingcountother',
+                                    ev: 'pendingcountsotherchanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'spammembers',
+                                    el: '.js-spammemberscount',
+                                    ev: 'spammembercountschanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'pendingmembers',
+                                    el: '.js-pendingmemberscount',
+                                    ev: 'pendingmemberscountschanged',
+                                    window: true,
+                                    sound: true
+                                },
+                                {
+                                    fi: 'pendingmembersother',
+                                    el: '.js-pendingmemberscountother',
+                                    ev: 'pendingmemberscountsotherchanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'pendingevents',
+                                    el: '.js-pendingeventscount',
+                                    ev: 'pendingeventscountschanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'pendingvolunteering',
+                                    el: '.js-pendingvolunteeringcount',
+                                    ev: 'pendingvolunteeringcountschanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'chatreview',
+                                    el: '.js-repliescount',
+                                    ev: 'repliescountschanged',
+                                    window: true,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'chatreviewother',
+                                    el: '.js-repliescountother',
+                                    ev: 'repliescountsotherchanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'socialactions',
+                                    el: '.js-socialactionscount',
+                                    ev: 'socialactionscountschanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'spammerpendingadd',
+                                    el: '.js-spammerpendingaddcount',
+                                    ev: 'spammerpendingaddcountschanged',
+                                    window: support,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'spammerpendingremove',
+                                    el: '.js-spammerpendingremovecount',
+                                    ev: 'spammerpendingremovecountschanged',
+                                    window: admin,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'stories',
+                                    el: '.js-storiescount',
+                                    ev: 'storiescountchanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
+                                    fi: 'newsletterstories',
+                                    el: '.js-newsletterstoriescount',
+                                    ev: 'newsletterstoriescountchanged',
+                                    window: false,
+                                    sound: false
+                                }
+                            ];
+
+                            var total = 0;
+                            var countschanged = false;
+
+                            _.each(counts, function (count) {
+                                var countel = $(count.el);
+                                var currcount = countel.html();
+                                if (ret.work && ret.work[count.fi] != currcount) {
+                                    countschanged = true;
+                                }
+
+                                if (ret.work && ret.work[count.fi]) {
+                                    if (count.window) {
+                                        total += ret.work[count.fi];
+                                    }
+
+                                    countel.html(ret.work[count.fi]);
+                                    //console.log("Sound", ret.work[count.fi], currcount, self.playBeep, count.sound);
+
+                                    if (ret.work[count.fi] > currcount || currcount == 0) {
+                                        // Only trigger this when the counts increase.  This will pick up new messages
+                                        // without screen flicker due to re-rendering when we're processing messages and
+                                        // deleting them.  There's a minor timing window where a message could arrive as
+                                        // one is deleted, leaving the counts the same, but this will resolve itself when
+                                        // our current count drops to zero, or worst case when we refresh.
+                                        Iznik.Session.trigger(count.ev);
+
+                                        if (ret.work[count.fi] > 0 && count.sound) {
+                                            var settings = Iznik.Session.get('me').settings;
+
+                                            if (Iznik.presdef('playbeep', settings, 1) && self.playBeep) {
+                                                var sound = new Audio("/sounds/alert.wav");
+                                                try {
+                                                    // Some browsers prevent us using play unless in response to a
+                                                    // user gesture, so catch any exception.
+                                                    sound.play();
+                                                } catch (e) {
+                                                    console.log("Failed to play beep", e.message);
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    $(count.el).empty();
+                                }
+                            })
+
+                            document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
+
+                            if (total) {
+                                $('.js-workcount').html(total).show();
+                            } else {
+                                $('.js-workcount').html('').hide();
+                            }
+
+                            if (countschanged) {
+                                Iznik.Session.trigger('countschanged');
+                            }
+                        }
+                    } else {
+                        try {
+                            var sess = Storage.get('session');
+
+                            if (sess && ret.ret == 1) {
+                                // We thought we were logged in but we're not.  If the persistent session
+                                // (which should help us deal with PHP session expiry) wasn't valid, then we
+                                // must be supposed to be logged out.  Clear our local storage and reload.
+                                //
+                                // This will look slightly odd but means that the mainline case of still being logged
+                                // in is handled more quickly.
+                                try {
+                                    console.error("Not logged in after all", sess, parsed, ret);
+                                    Storage.remove('session');
+                                } catch (e) {
+                                }
+                                window.location.reload();
+                            } else {
+                                // We're not logged in.
+                                self.loggedIn = false;
+
+                                if (self.testing) {
+                                    self.testing = false;
+                                    self.trigger('isLoggedIn', false);
+                                }
+                            }
+                        } catch (e) {
+                        }
+
+                        // We're not logged in
                     }
-                });
-            } else {
-                if (self.testing) {
-                    self.testing = false;
-                    self.trigger('isLoggedIn', self.loggedIn);
+                },
+                error: function () {
+                    console.log("Get settings failed");
+                    self.loggedIn = false;
+
+                    if (self.testing) {
+                        self.testing = false;
+                        self.trigger('isLoggedIn', false);
+                    }
                 }
-            }
+            });
         },
 
-        forceLogin: function (options) {
+        forceLogin: function (components) {
             var self = this;
 
             self.listenToOnce(self, 'isLoggedIn', function (loggedin) {
@@ -522,7 +483,7 @@ define([
                 }
             });
 
-            self.testLoggedIn();
+            self.testLoggedIn(components);
         },
 
         facebookLogin: function () {

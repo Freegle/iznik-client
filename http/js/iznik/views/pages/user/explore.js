@@ -450,7 +450,10 @@ define([
                             Router.navigate('/explore/' + self.model.get('nameshort'), true);
                         });
 
-                        Iznik.Session.testLoggedIn(true);
+                        Iznik.Session.testLoggedIn([
+                            'me',
+                            'groups'
+                        ]);
                     }
                 }
             })    ;
@@ -498,7 +501,10 @@ define([
                 }
             });
 
-            Iznik.Session.testLoggedIn(true);
+            Iznik.Session.testLoggedIn([
+                'me',
+                'groups'
+            ]);
         },
 
         areaMap: function() {
@@ -627,7 +633,10 @@ define([
                         });
                     });
 
-                    Iznik.Session.testLoggedIn(true);
+                    Iznik.Session.testLoggedIn([
+                        'me',
+                        'groups'
+                    ]);
 
                     self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
 
@@ -771,7 +780,10 @@ define([
                         self.render();
                     });
 
-                    Iznik.Session.testLoggedIn(true);
+                    Iznik.Session.testLoggedIn([
+                        'me',
+                        'groups'
+                    ]);
                 }
             });
         },
@@ -799,9 +811,7 @@ define([
                                     self.render();
                                 });
 
-                                Iznik.Session.forceLogin({
-                                    modtools: false
-                                });
+                                Iznik.Session.forceLogin();
                             } else {
                                 // Still can't see it logged in
                                 var groups = self.model.get('groups');
@@ -820,7 +830,10 @@ define([
                             }
                         });
 
-                        Iznik.Session.testLoggedIn();
+                        Iznik.Session.testLoggedIn([
+                            'me',
+                            'groups'
+                        ]);
                     } else if (self.model.get('subject') &&
                         !self.model.get('deleted') &&
                         (!self.model.get('outcomes') || self.model.get('outcomes').length == 0) &&

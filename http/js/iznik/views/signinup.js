@@ -121,14 +121,14 @@ define([
                     if (ret.ret == 0) {
                         // We're logged in.  Reload this page, and now that we are logged in the route
                         // should behave differently.
-                        // We're logged in.  Force a test login, which will refresh any locally cached session.
+                        // We're logged in.  Force a test login to get our info.
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
                             // Reload this page, and now that we are logged in the route
                             // should behave differently.
                             window.location.reload();
                         });
 
-                        Iznik.Session.testLoggedIn(true);
+                        Iznik.Session.testLoggedIn();
                     } else if (parseInt(ret.ret) == 2) {
                         self.$('.js-unknown').fadeIn('slow');
                     } else {

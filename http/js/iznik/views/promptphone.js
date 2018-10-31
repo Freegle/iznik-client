@@ -18,7 +18,10 @@ define([
 
             Iznik.ABTestAction('PromptPhone', 'Save');
             Iznik.Session.savePhone(self.$('.js-phone').val()).then(function() {
-                Iznik.Session.testLoggedIn(true);
+                Iznik.Session.testLoggedIn([
+                    'me',
+                    'phone'
+                ]);
                 self.close();
             });
         },
