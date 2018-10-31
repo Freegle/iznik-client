@@ -286,7 +286,7 @@ define([
                     }
 
                     self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
-                    Iznik.Session.testLoggedIn();
+                    Iznik.Session.testLoggedIn(['all']);
                 }
             }
         },

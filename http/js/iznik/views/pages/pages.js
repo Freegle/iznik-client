@@ -247,7 +247,7 @@ define([
                             }
                         });
 
-                        Iznik.Session.testLoggedIn([]);
+                        Iznik.Session.testLoggedIn(['none']);
                     }
 
                     $('.js-pageContent').html(self.$el);
@@ -567,7 +567,7 @@ define([
                         }
                     });
 
-                    Iznik.Session.testLoggedIn([]);
+                    Iznik.Session.testLoggedIn(['none']);
                 });
             });
 

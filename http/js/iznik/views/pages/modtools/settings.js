@@ -135,7 +135,7 @@ define([
                 }
             });
 
-            Iznik.Session.testLoggedIn();
+            Iznik.Session.testLoggedIn(['all']);
         },
 
         copyConfig: function() {
@@ -1293,7 +1293,7 @@ define([
                     self.configSelect();
                 });
 
-                Iznik.Session.testLoggedIn();
+                Iznik.Session.testLoggedIn(['all']);
             });
 
             return(p);

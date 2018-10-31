@@ -173,7 +173,6 @@ define([
         testLoggedIn: function (components) {
             var self = this;
             self.testing = true;
-            components = components ? components : null;
 
             // We may have a persistent session from local storage which we can use to revive this session if the
             // PHP session has timed out.

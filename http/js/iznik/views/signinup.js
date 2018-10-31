@@ -128,7 +128,7 @@ define([
                             window.location.reload();
                         });
 
-                        Iznik.Session.testLoggedIn();
+                        Iznik.Session.testLoggedIn(['all']);
                     } else if (parseInt(ret.ret) == 2) {
                         self.$('.js-unknown').fadeIn('slow');
                     } else {
