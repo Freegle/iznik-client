@@ -25,7 +25,7 @@ define([
             'keyup .js-signinform': 'enterSubmit'
         },
 
-        'checkEmail': function() {
+        checkEmail: function() {
             var self = this;
 
             if (!self.signInShown) {
@@ -73,7 +73,7 @@ define([
             }
         },
 
-        'enterSubmit': function (e) {
+        enterSubmit: function (e) {
             switch (e.keyCode) {
                 case 13: //enter
                     if (this.signInShown) {
@@ -245,7 +245,7 @@ define([
 
         render: function () {
             var self = this;
-            this.template = this.options.modtools ? "signinup_modtools" : "signinup_user";
+            this.template = MODTOOLS ? "signinup_modtools" : "signinup_user";
             var p = this.open(this.template, null);
             p.then(function() {
                 self.$('.js-native').hide();

@@ -477,7 +477,7 @@ define([
                     Iznik.Session.trigger('loggedIn');
                 } else {
                     // We're not logged in - make it happen.
-                    var sign = new Iznik.Views.SignInUp(options);
+                    var sign = new Iznik.Views.SignInUp();
                     sign.render();
                 }
             });
