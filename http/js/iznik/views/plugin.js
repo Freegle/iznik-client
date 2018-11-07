@@ -705,7 +705,7 @@ define([
                         } else {
                             // Check if we are connected to Yahoo by issuing an API call.
                             //console.log("Not running item - query Yahoo");
-                            new majax({
+                            $.ajax({
                                 type: 'GET',
                                 url: 'https://groups.yahoo.com/api/v1/user/groups/all',
                                 success: checkResponse(self),
