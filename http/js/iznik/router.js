@@ -733,6 +733,7 @@ define([
 
                 Iznik.Session.forceLogin([
                     'me',
+                    'groups',
                     'newsfeed'
                 ]);
             }
@@ -753,6 +754,7 @@ define([
 
                 Iznik.Session.forceLogin([
                     'me',
+                    'groups',
                     'newsfeed'
                 ]);
             }
