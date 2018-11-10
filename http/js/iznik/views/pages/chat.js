@@ -273,8 +273,11 @@ define([
                     roomid: self.model.get('id')
                 });
                 self.messages.fetch({
-                    remove: true
-                }).then(function () {
+                      data : {
+                        remove: true,
+                        refmsgsummary: true
+                      }
+                  }).then(function () {
                     if (self.messages.length > 0) {
                         var lastmsgseen = self.messages.at(self.messages.length - 1).get('id');
                         $.ajax({
@@ -532,8 +535,11 @@ define([
                 // messages added, and also ensure we don't miss any that arrived while we
                 // were sending ours.
                 self.messages.fetch({
-                    remove: true
-                }).then(function () {
+                      data : {
+                        remove: true,
+                        refmsgsummary: true
+                      }
+                  }).then(function () {
                     self.fetching = false;
                     if (self.fetchAgain) {
                         // console.log("Fetch messages again");
@@ -656,7 +662,10 @@ define([
 
                     self.listenToOnce(v, 'promised', function () {
                         self.model.trigger('promised');
-                        self.messages.fetch();
+                        self.messages.fetch({
+                            remove: true,
+                            refmsgsummary: true
+                        });
                     });
 
                     v.render();
@@ -677,7 +686,10 @@ define([
 
                 tempmod.save().then(function() {
                     // Fetch the messages again to pick up this new one.
-                    self.messages.fetch();
+                    self.messages.fetch({
+                        remove: true,
+                        refmsgsummary: true
+                    });
                 });
             });
 
@@ -688,7 +700,12 @@ define([
             var self = this;
 
             self.model.nudge().then(function() {
-                self.messages.fetch();
+                self.messages.fetch({
+                      data : {
+                        remove: true,
+                        refmsgsummary: true
+                      }
+                  });
             });
         },
 
@@ -704,7 +721,12 @@ define([
             });
 
             self.listenToOnce(v, 'modalClosed', function () {
-                self.messages.fetch();
+                self.messages.fetch({
+                      data : {
+                        remove: true,
+                        refmsgsummary: true
+                      }
+                  });
             });
 
             v.render();
@@ -861,7 +883,8 @@ define([
 
                     if (self.messages) {
                         self.messages.fetch({
-                            remove: true
+                            remove: true,
+                            refmsgsummary: true
                         });
                     }
                 } else if (!self.countHidden) {
@@ -944,7 +967,10 @@ define([
 
                 tempmod.save().then(function() {
                     // Fetch the messages again to pick up this new one.
-                    self.messages.fetch();
+                    self.messages.fetch({
+                        remove: true,
+                        refmsgsummary: true
+                    });
                 });
             });
         },
@@ -961,7 +987,12 @@ define([
                 self.photoUpload();
 
                 // Need to fetch the model again because the summary version won't have info for last message read etc.
-                self.model.fetch().then(function() {
+                self.model.fetch({
+                    data : {
+                        remove: true,
+                        refmsgsummary: true
+                    }
+                }).then(function() {
                     self.model.set('modtools', MODTOOLS);
                     // Empty rather than hide because glyphicons have a display set which would mean they show anyway.
                     if (!self.options.modtools) {
@@ -982,7 +1013,8 @@ define([
                     v.render();
 
                     self.messages.fetch({
-                        remove: true
+                        remove: true,
+                        refmsgsummary: true
                     }).then(function () {
                         // If the last message was a while ago, remind them about nudging.
                         var age = ((new Date()).getTime() - (new Date(self.model.get('lastdate')).getTime())) / (1000 * 60 * 60);

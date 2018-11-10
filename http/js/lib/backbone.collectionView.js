@@ -359,14 +359,12 @@
             if( this.detachedRendering )
                 this.fragmentContainer = document.createDocumentFragment();
 
-            console.log("Render length", this.collection.length);
-
             // If we have a very large collection, then this render can block the browser thread.  So chunk it.
             this.renderIndex = 0;
             this.renderCollection();
 
             if( this.detachedRendering )
-                modelViewContainerEl.append( fragmentContainer );
+                modelViewContainerEl.append( this.fragmentContainer );
 
             if( this.sortable ) this._setupSortable();
 
