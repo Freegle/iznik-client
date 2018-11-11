@@ -30,7 +30,8 @@ define([
             'publish',
             'onyahoo',
             'welcomemail',
-            'region'
+            'region',
+            'mentored'
         ],
     
         events: {
@@ -359,6 +360,14 @@ define([
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
                                 helpMessage: '(Freegle only) If Yes, this group exists on Yahoo Groups too.  If No, this group is only hosted here.',
                                 disabled: role != 'Owner' && !Iznik.Session.isAdminOrSupport()
+                            },
+                            {
+                                name: 'mentored',
+                                label: 'Mentored?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: '(Freegle only) If Yes, this group is being run by Mentors until a local owner can be found.',
+                                disabled: !Iznik.Session.isAdminOrSupport()
                             },
                             {
                                 name: 'communityevents',
