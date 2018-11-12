@@ -34,31 +34,45 @@ define([
             return(name);
         },
 
-        updateCounts: function() {
+        countIndex: 0,
+
+        doUpdateCounts: function() {
             var self = this;
 
-            if (self.$el.closest('body').length > 0) {
-                // Still in DOM
-                self.$('option').each(function() {
-                    var group = Iznik.Session.getGroup($(this).val());
-                    if (group) {
-                        var name = self.getName(group);
-                        var seek = group.get('namedisplay');
+            if (self.countIndex < self.countOptions.length) {
+                var val = self.countOptions[self.countIndex].val();
 
-                        if ($(this).text() != name) {
-                            $(this).text(name);
-                        }
+                var group = Iznik.Session.getGroup(val);
+                if (group) {
+                    var name = self.getName(group);
+                    var seek = group.get('namedisplay');
 
-                        $('li._msddli_[title="' + seek + '"]').each(function() {
-                            var el = $(this).find('span');
-                            if (el.html() != name) {
-                                el.html(name);
-                            }
-                        })
+                    if ($(this).text() != name) {
+                        $(this).text(name);
                     }
-                });
 
+                    $('li._msddli_[title="' + seek + '"]').each(function() {
+                        var el = $(this).find('span');
+                        if (el.html() != name) {
+                            el.html(name);
+                        }
+                    })
+                }
+
+                self.countIndex++;
+                _.delay(_.bind(self.doUpdateCounts, self), 50);
+            } else {
                 self.listenToOnce(Iznik.Session, 'countschanged', self.updateCounts);
+            }
+        },
+
+        updateCounts: function() {
+            if (this.$el.closest('body').length > 0) {
+                // Still in DOM
+                // We can't update the counts synchronously because with many groups that blocks the browser thread.
+                this.countIndex = 0;
+                this.countOptions = self.$('option');
+                this.doUpdateCounts();
             }
         },
 
