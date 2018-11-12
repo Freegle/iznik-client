@@ -1862,10 +1862,16 @@ define([
             if (MODTOOLS) {
                 var self = this;
 
-                require(["iznik/views/teams"], function () {
-                    var page = new Iznik.Views.ModTools.Pages.Teams();
-                    self.loadRoute({page: page});
+                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                    require(["iznik/views/teams"], function () {
+                        var page = new Iznik.Views.ModTools.Pages.Teams();
+                        self.loadRoute({page: page});
+                    });
                 });
+
+                Iznik.Session.forceLogin([
+                    'me'
+                ]);
             }
         },
 
@@ -1873,10 +1879,16 @@ define([
             if (!MODTOOLS) {
                 var self = this;
 
-                require(["iznik/views/teams"], function () {
-                    var page = new Iznik.Views.User.Pages.Volunteers();
-                    self.loadRoute({page: page});
+                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                    require(["iznik/views/teams"], function () {
+                        var page = new Iznik.Views.ModTools.Pages.Teams();
+                        self.loadRoute({page: page});
+                    });
                 });
+
+                Iznik.Session.forceLogin([
+                    'me'
+                ]);
             }
         },
 
@@ -1884,10 +1896,16 @@ define([
             if (!MODTOOLS) {
                 var self = this;
 
-                require(["iznik/views/teams"], function () {
-                    var page = new Iznik.Views.User.Pages.Board();
-                    self.loadRoute({page: page});
+                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                    require(["iznik/views/teams"], function () {
+                        var page = new Iznik.Views.ModTools.Pages.Teams();
+                        self.loadRoute({page: page});
+                    });
                 });
+
+                Iznik.Session.forceLogin([
+                    'me'
+                ]);
             }
         },
 
