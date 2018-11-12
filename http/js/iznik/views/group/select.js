@@ -46,10 +46,17 @@ define([
                     if (group) {
                         var name = self.getName(group);
                         var seek = group.get('namedisplay');
-                        $(this).text(name);
+
+                        if ($(this).text() != name) {
+                            $(this).text(name);
+                        }
+
                         $('li._msddli_').each(function() {
                             if ($(this).prop('title') == seek) {
-                                $(this).find('span').html(name);
+                                var el = $(this).find('span');
+                                if (el.html() != name) {
+                                    el.html(name);
+                                }
                             }
                         })
                     }
