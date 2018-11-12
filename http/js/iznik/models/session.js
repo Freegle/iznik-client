@@ -702,7 +702,7 @@ define([
         },
 
         hasPermission: function(perm) {
-            var perms = this.get('me').permissions;
+            var perms = this.get('me') ? this.get('me').permissions : null;
             // console.log("Check permission", perms, perm, this);
             return(perms && perms.indexOf(perm) !== -1);
         },
