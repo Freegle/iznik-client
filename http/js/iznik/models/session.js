@@ -203,10 +203,13 @@ define([
                         var now = (new Date()).getTime();
 
                         try {
-                            // Save off the persistent session.
-                            Storage.set('session', JSON.stringify({
-                                persistent: ret.persistent
-                            }));
+                            if (ret.hasOwnProperty('persistent')) {
+                                // Save off the persistent session.  This allows us to log back in if the PHP
+                                // session expires.
+                                Storage.set('session', JSON.stringify({
+                                    persistent: ret.persistent
+                                }));
+                            }
 
                             var lastloggedinas = Storage.get('lastloggedinas');
                             Storage.set('lastloggedinas', ret.me.id);
