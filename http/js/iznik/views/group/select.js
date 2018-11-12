@@ -35,8 +35,6 @@ define([
         },
 
         updateCounts: function() {
-            // TODO This code is hacky - it scans the whole DOM, and surely there's either a method inside the select
-            // we could use, or we should be using a different select.
             var self = this;
 
             if (self.$el.closest('body').length > 0) {
@@ -51,12 +49,10 @@ define([
                             $(this).text(name);
                         }
 
-                        $('li._msddli_').each(function() {
-                            if ($(this).prop('title') == seek) {
-                                var el = $(this).find('span');
-                                if (el.html() != name) {
-                                    el.html(name);
-                                }
+                        $('li._msddli_[title="' + seek + '"]').each(function() {
+                            var el = $(this).find('span');
+                            if (el.html() != name) {
+                                el.html(name);
                             }
                         })
                     }
