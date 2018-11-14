@@ -71,7 +71,7 @@ define([
                 // Still in DOM
                 // We can't update the counts synchronously because with many groups that blocks the browser thread.
                 this.countIndex = 0;
-                this.countOptions = self.$('option');
+                this.countOptions = this.$('option');
                 this.doUpdateCounts();
             }
         },
