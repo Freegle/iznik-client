@@ -203,7 +203,7 @@ define([
                         var now = (new Date()).getTime();
 
                         try {
-                            if (ret.hasOwnProperty('persistent')) {
+                            if (ret.hasOwnProperty('persistent') && ret.persistent) {
                                 // Save off the persistent session.  This allows us to log back in if the PHP
                                 // session expires.
                                 Storage.set('session', JSON.stringify({
@@ -215,7 +215,7 @@ define([
                             Storage.set('lastloggedinas', ret.me.id);
                             Storage.set('myemail', ret.me.email);
 
-                            if (lastloggedinas && ret.me.id && ret.me.id != lastloggedinas) {
+                            if (lastloggedinas && ret.me && ret.me.id && ret.me.id != lastloggedinas) {
                                 // We have logged in as someone else.  Zap our fetch cache.
                                 // TODO Remove this cache.
                                 Storage.iterate(function(key,value) {
