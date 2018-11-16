@@ -83,7 +83,6 @@ define([
                         self.$('.js-groupinfo').empty();
 
                         if (group) {
-                            console.log("Group attr", group.attributes);
                             var w = new Iznik.Views.User.Pages.MyGroups.GroupInfo({
                                 model: new Iznik.Models.Group(group.attributes)
                             });
@@ -105,7 +104,7 @@ define([
                             groupid: selected == -1 ? null : selected
                         });
                         x.render().then(function () {
-                            $('#js-volunteeringcontainer').append(x.$el);
+                            $('#js-volunteeringcontainer').html(x.$el);
                         });
                     });
 
