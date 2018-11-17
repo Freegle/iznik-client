@@ -89,7 +89,6 @@ define([
 
                 var cb = _.bind(self.volunteeringFetched, self);
                 self.volunteering.fetch({
-                    cached: cb,
                     data: {
                         groupid: self.options.groupid
                     }

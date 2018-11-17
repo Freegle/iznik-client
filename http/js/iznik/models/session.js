@@ -212,19 +212,18 @@ define([
                             }
 
                             var lastloggedinas = Storage.get('lastloggedinas');
-                            Storage.set('lastloggedinas', ret.me.id);
-                            Storage.set('myemail', ret.me.email);
 
-                            if (lastloggedinas && ret.me && ret.me.id && ret.me.id != lastloggedinas) {
-                                // We have logged in as someone else.  Zap our fetch cache.
-                                // TODO Remove this cache.
-                                Storage.iterate(function(key,value) {
-                                    if (key.indexOf('cache.') === 0) {
-                                        Storage.remove(key);
-                                    }
-                                });
+                            if (ret.hasOwnProperty('myid') && ret.myid) {
+                                Storage.set('lastloggedinas', ret.myid);
 
-                                window.location.reload(true);
+                                if (ret.hasOwnProperty('me') && ret.me.hasOwnProperty('email')) {
+                                    Storage.set('myemail', ret.me.email);
+                                }
+
+                                if (lastloggedinas && ret.myid != lastloggedinas) {
+                                    // We have logged in as someone else.  Make sure nothing odd is cached.
+                                    window.location.reload(true);
+                                }
                             }
 
                             // We use this to decide whether to show sign up or sign in.

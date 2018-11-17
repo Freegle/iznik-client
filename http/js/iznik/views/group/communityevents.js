@@ -84,7 +84,6 @@ define([
 
                 var cb = _.bind(self.eventsFetched, self);
                 self.events.fetch({
-                    cached: cb,
                     data: {
                         groupid: self.options.groupid
                     }

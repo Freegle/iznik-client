@@ -276,9 +276,7 @@ define([
                     }
                 }, self);
 
-                self.searches.fetch({
-                    cached: cb
-                }).then(cb);
+                self.searches.fetch().then(cb);
 
                 // We need the chats, as they are used when displaying messages.  We fetch the full info
                 // as we need the user profiles.
@@ -747,10 +745,8 @@ define([
                 },
                 success: function(ret) {
                     if (ret.ret == 0) {
-                        // Fetch to update our view and cache.
-                        self.options.collection.fetch({
-                            cached: function() {}
-                        });
+                        // Fetch to update our view.
+                        self.options.collection.fetch();
                     }
                 }
             });
