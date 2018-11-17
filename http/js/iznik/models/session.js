@@ -289,6 +289,13 @@ define([
                                     sound: false
                                 },
                                 {
+                                    fi: 'spammembersother',
+                                    el: '.js-spammemberscountother',
+                                    ev: 'spammembercountsotherchanged',
+                                    window: false,
+                                    sound: false
+                                },
+                                {
                                     fi: 'pendingmembers',
                                     el: '.js-pendingmemberscount',
                                     ev: 'pendingmemberscountschanged',
