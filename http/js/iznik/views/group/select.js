@@ -40,27 +40,31 @@ define([
             var self = this;
 
             if (self.countIndex < self.countOptions.length) {
-                var val = self.countOptions[self.countIndex].val();
+                if (typeof self.countOptions[self.countIndex].val === 'function') {
+                    var val = self.countOptions[self.countIndex].val();
 
-                var group = Iznik.Session.getGroup(val);
-                if (group) {
-                    var name = self.getName(group);
-                    var seek = group.get('namedisplay');
+                    var group = Iznik.Session.getGroup(val);
+                    if (group) {
+                        var name = self.getName(group);
+                        var seek = group.get('namedisplay');
 
-                    if ($(this).text() != name) {
-                        $(this).text(name);
+                        if ($(this).text() != name) {
+                            $(this).text(name);
+                        }
+
+                        $('li._msddli_[title="' + seek + '"]').each(function() {
+                            var el = $(this).find('span');
+                            if (el.html() != name) {
+                                el.html(name);
+                            }
+                        })
                     }
 
-                    $('li._msddli_[title="' + seek + '"]').each(function() {
-                        var el = $(this).find('span');
-                        if (el.html() != name) {
-                            el.html(name);
-                        }
-                    })
+                    self.countIndex++;
+                    _.delay(_.bind(self.doUpdateCounts, self), 50);
+                } else {
+                    console.error("Weird option", self.countIndex, self.countOptions);
                 }
-
-                self.countIndex++;
-                _.delay(_.bind(self.doUpdateCounts, self), 50);
             } else {
                 self.listenToOnce(Iznik.Session, 'countschanged', self.updateCounts);
             }
