@@ -1563,29 +1563,33 @@ define([
         add: function() {
             var self = this;
 
-            $.ajax({
-                type: 'POST',
-                url: API + 'group',
-                data: {
-                    action: 'Create',
-                    name: self.diff[self.$('.js-grouplist').val()],
-                    grouptype: self.$('.js-type').val(),
-                    lat: self.$('.js-addlat').val(),
-                    lng: self.$('.js-addlng').val(),
-                    corearea: self.$('.js-addcore').val(),
-                    catchmentarea: self.$('.js-addcatchment').val()
-                }, success: function(ret) {
-                    if (ret.ret == 0) {
-                        var v = new Iznik.Views.ModTools.Settings.CreateSucceeded();
-                        v.render();
+            var data = {
+                action: 'Create',
+                name: self.diff[self.$('.js-grouplist').val()],
+                grouptype: self.$('.js-type').val(),
+                lat: self.$('.js-addlat').val(),
+                lng: self.$('.js-addlng').val(),
+                corearea: self.$('.js-addcore').val(),
+                catchmentarea: self.$('.js-addcatchment').val()
+            };
 
-                        // Trigger another list to force the invite and hence the add.
-                        IznikPlugin.listYahooGroups();
-                    } else {
-                        self.createFailed();
-                    }
-                }, error: self.createFailed
-            });
+            if (data.name && data.grouptype && data.lat && data.lng && data.corearea) {
+                $.ajax({
+                    type: 'POST',
+                    url: API + 'group',
+                    data: data, success: function(ret) {
+                        if (ret.ret == 0) {
+                            var v = new Iznik.Views.ModTools.Settings.CreateSucceeded();
+                            v.render();
+
+                            // Trigger another list to force the invite and hence the add.
+                            IznikPlugin.listYahooGroups();
+                        } else {
+                            self.createFailed();
+                        }
+                    }, error: self.createFailed
+                });
+            }
         },
 
         render: function() {
