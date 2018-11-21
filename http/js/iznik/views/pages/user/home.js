@@ -12,6 +12,8 @@ define([
     'iznik/views/user/message',
     'iznik/views/supportus'
 ], function($, _, Backbone, Iznik) {
+    const expandThreshold = 50;
+    
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
 
@@ -458,9 +460,10 @@ define([
 
             self.model.set('offers', self.options.offers);
 
-            if (self.options.offers && self.options.offers.length < 5 && !self.model.get('source')) {
-                // Matches template.  We have few messages so will so this expanded, therefore we need to fetch the
+            if (self.options.offers && self.options.offers.length < expandThreshold && !self.model.get('source')) {
+                // Matches template.  We have few messages so will show this expanded, therefore we need to fetch the
                 // full model.
+                self.expanded = true;
                 p = self.model.fetch();
                 p.then(_.bind(self.render, self));
             } else {
@@ -525,9 +528,10 @@ define([
 
             self.model.set('wanteds', self.options.wanteds);
 
-            if (self.options.wanteds && self.options.wanteds.length < 5 && !self.model.get('source')) {
+            if (self.options.wanteds && self.options.wanteds.length < expandThreshold && !self.model.get('source')) {
                 // Matches template.  We have few messages so will so this expanded, therefore we need to fetch the
                 // full model.
+                self.expanded = true;
                 p = self.model.fetch();
                 p.then(_.bind(self.render, self));
             } else {
