@@ -12,7 +12,7 @@ define([
     'iznik/views/user/message',
     'iznik/views/supportus'
 ], function($, _, Backbone, Iznik) {
-    const expandThreshold = 50;
+    const expandThreshold = 5;
     
     Iznik.Views.User.Pages.Home = Iznik.Views.Page.extend({
         template: "user_home_main",
