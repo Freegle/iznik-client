@@ -1394,7 +1394,10 @@ define([
             });
 
             Iznik.Session.saveAboutMe(msg).then(function() {
-                Iznik.Session.testLoggedIn(true);
+                Iznik.Session.testLoggedIn([
+                    'me',
+                    'aboutme'
+                ]);
                 self.close();
             });
         },
@@ -1402,15 +1405,26 @@ define([
         render: function() {
             var self = this;
 
-            var p = Iznik.Views.Modal.prototype.render.call(this);
+            var p = new Promise(function(resolve, reject) {
+                self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                    var p = Iznik.Views.Modal.prototype.render.call(this);
 
-            p.then(function() {
-                var aboutme = Iznik.Session.get('me').aboutme;
+                    p.then(function() {
+                        var aboutme = Iznik.Session.get('me').aboutme;
 
-                if (aboutme) {
-                    var msg = Iznik.twem(aboutme.text);
-                    self.$('.js-aboutme').val(msg);
-                }
+                        if (aboutme) {
+                            var msg = Iznik.twem(aboutme.text);
+                            self.$('.js-aboutme').val(msg);
+                        }
+
+                        resolve(self);
+                    });
+                });
+
+                Iznik.Session.testLoggedIn([
+                    'me',
+                    'aboutme'
+                ]);
             });
 
             return(p);

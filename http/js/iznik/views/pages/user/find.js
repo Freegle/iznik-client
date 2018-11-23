@@ -316,9 +316,12 @@ define([
 
                         self.collection.each(function(msg) {
                             // Get the zoom level for maps and put it somewhere easier.
+                            // TODO Maps
                             var zoom = 8;
                             var groups = msg.get('groups');
-                            if (groups.length > 0 && groups[0].settings.hasOwnProperty('map')) {
+                            if (groups.length > 0 &&
+                                groups[0].hasOwnProperty('settings') &&
+                                groups[0].settings.hasOwnProperty('map')) {
                                 zoom = groups[0].settings.map.zoom;
                             }
                             msg.set('zoom', zoom);
@@ -506,7 +509,10 @@ define([
                         }
                     });
 
-                    Iznik.Session.testLoggedIn();
+                    Iznik.Session.testLoggedIn([
+                        'me',
+                        'groups'
+                    ]);
                 }
             });
 

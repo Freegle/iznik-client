@@ -134,11 +134,6 @@ define([
                             }
 
                             // console.log("Fetched");
-                            if (self.wait) {
-                                self.wait.close();
-                                self.wait = null;
-                            }
-
                             self.$('.js-loading').addClass('visNone');
                             self.fetching = null;
                             self.fetchPromise = null;
@@ -159,6 +154,11 @@ define([
                             console.log("Fetch error");
                             self.fetchPromise = null;
                             reject();
+                        }, complete: function() {
+                            if (self.wait) {
+                                self.wait.close();
+                                self.wait = null;
+                            }
                         }
                     });
                 });

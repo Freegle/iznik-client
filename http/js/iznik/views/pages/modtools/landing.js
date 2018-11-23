@@ -209,7 +209,7 @@ define([
                     // });
                     //
                     // Get Yahoo login info
-                    new majax({
+                    $.ajax({
                         type: "GET",
                         url: "https://groups.yahoo.com/neo",
                         success: function (ret) {

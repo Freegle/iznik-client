@@ -6,7 +6,7 @@
         <% if (obj.user && obj.user.id) { %>
         {{user.displayname}}<% if (user.email) { %> &lt;{{user.email}}&gt;<% } %> <span class="faded">#{{user.id}}</span>
         <% } else { %>
-        Purged User #{obj.user.id}
+        Purged User #{{obj.user.id}}
         <% } %>
     </div>
     <div class="fixedfont col-sm-6">

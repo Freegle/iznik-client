@@ -21,7 +21,7 @@ require("dd.css");
 require("bootstrap-fileinput/css/fileinput.css");
 
 require("style.less");
-require("user.css");
+require("modtools.css");
 
 import 'iznik/main';
 

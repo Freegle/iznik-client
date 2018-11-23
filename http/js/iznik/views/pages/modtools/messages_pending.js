@@ -371,36 +371,34 @@ define([
                                 self.checkMessage(config);
                                 self.showRelated();
 
-                                if (!self.model.get('heldby')) {
-                                    // Add the other standard messages, in the order requested.
-                                    var sortmsgs = Iznik.orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
-                                    var anyrare = false;
+                                // Add the other standard messages, in the order requested.
+                                var sortmsgs = Iznik.orderedMessages(config.get('stdmsgs'), config.get('messageorder'));
+                                var anyrare = false;
 
-                                    _.each(sortmsgs, function (stdmsg) {
-                                        if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
-                                            stdmsg.message = self.model;
-                                            var v = new Iznik.Views.ModTools.StdMessage.Button({
-                                                model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
-                                                config: config
-                                            });
+                                _.each(sortmsgs, function (stdmsg) {
+                                    if (_.contains(['Approve', 'Reject', 'Delete', 'Leave', 'Edit'], stdmsg.action)) {
+                                        stdmsg.message = self.model;
+                                        var v = new Iznik.Views.ModTools.StdMessage.Button({
+                                            model: new Iznik.Models.ModConfig.StdMessage(stdmsg),
+                                            config: config
+                                        });
+
+                                        if (stdmsg.rarelyused) {
+                                            anyrare = true;
+                                        }
+
+                                        v.render().then(function (v) {
+                                            self.$('.js-stdmsgs').append(v.el);
 
                                             if (stdmsg.rarelyused) {
-                                                anyrare = true;
+                                                $(v.el).hide();
                                             }
-
-                                            v.render().then(function (v) {
-                                                self.$('.js-stdmsgs').append(v.el);
-
-                                                if (stdmsg.rarelyused) {
-                                                    $(v.el).hide();
-                                                }
-                                            });
-                                        }
-                                    });
-
-                                    if (!anyrare) {
-                                        self.$('.js-rarelyholder').hide();
+                                        });
                                     }
+                                });
+
+                                if (!anyrare) {
+                                    self.$('.js-rarelyholder').hide();
                                 }
                             }
 

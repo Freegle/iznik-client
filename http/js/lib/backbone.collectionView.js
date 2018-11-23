@@ -3,6 +3,7 @@
  * Copyright (c)2013 Rotunda Software, LLC.
  * Distributed under MIT license
  * https://github.com/rotundasoftware/backbone.collectionView
+ * Modified by EH subsequently - so don't just update!
  */
 
 ( function( root, factory ) {
@@ -300,6 +301,31 @@
                 this.setSelectedModels( [ newSelectedItem ], options );
         },
 
+        renderCollection: function() {
+            var chunkSize = 20;
+            var oldViewManager = this.viewManager;
+            var modelViewContainerEl = this._getContainerEl();
+
+            while (chunkSize > 0 && this.renderIndex < this.collection.length) {
+                var thisModel = this.collection.at(this.renderIndex++);
+                var thisModelView = oldViewManager.findByModelCid( thisModel.cid );
+                if( ! this.reuseModelViews || _.isUndefined( thisModelView ) ) {
+                    // if the model view has not already been created on a
+                    // previous render then create and initialize it now.
+                    thisModelView = this._createNewModelView( thisModel, this._getModelViewOptions( thisModel ) );
+                }
+
+                this._insertAndRenderModelView( thisModelView, this.fragmentContainer || modelViewContainerEl );
+                chunkSize--;
+            }
+
+            if (this.renderIndex < this.collection.length) {
+                // More to render; but delay a little to allow the browser a look-in.  Otherwise rendering
+                // large collections hangs the browser.
+                _.delay(_.bind(this.renderCollection, this), 100);
+            }
+        },
+
         render : function() {
             var _this = this;
 
@@ -329,24 +355,16 @@
             }, this );
 
             modelViewContainerEl.empty();
-            var fragmentContainer;
 
             if( this.detachedRendering )
-                fragmentContainer = document.createDocumentFragment();
+                this.fragmentContainer = document.createDocumentFragment();
 
-            this.collection.each( function( thisModel ) {
-                var thisModelView = oldViewManager.findByModelCid( thisModel.cid );
-                if( ! this.reuseModelViews || _.isUndefined( thisModelView ) ) {
-                    // if the model view has not already been created on a
-                    // previous render then create and initialize it now.
-                    thisModelView = this._createNewModelView( thisModel, this._getModelViewOptions( thisModel ) );
-                }
-
-                this._insertAndRenderModelView( thisModelView, fragmentContainer || modelViewContainerEl );
-            }, this );
+            // If we have a very large collection, then this render can block the browser thread.  So chunk it.
+            this.renderIndex = 0;
+            this.renderCollection();
 
             if( this.detachedRendering )
-                modelViewContainerEl.append( fragmentContainer );
+                modelViewContainerEl.append( this.fragmentContainer );
 
             if( this.sortable ) this._setupSortable();
 

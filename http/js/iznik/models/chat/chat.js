@@ -597,8 +597,18 @@ define([
     });
 
     Iznik.Collections.Chat.Messages = Iznik.Collection.extend({
+        fetchParams: null,
+
         url: function() {
-            return(API + 'chat/rooms/' + this.options.roomid + '/messages')
+            var url = API + 'chat/rooms/' + this.options.roomid + '/messages?';
+
+            if (this.fetchParams) {
+                _.each(this.fetchParams, function(value, key) {
+                    url += "&" + key + "=" + encodeURIComponent(value);
+                });
+            }
+
+            return(url);
         },
 
         model: Iznik.Models.Chat.Message,
@@ -615,6 +625,11 @@ define([
             });
 
             return(msgs);
+        },
+
+        fetch: function(params) {
+            this.fetchParams = params;
+            return(Iznik.Collection.prototype.fetch.call(this, params));
         }
     });
 

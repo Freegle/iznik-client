@@ -64,7 +64,10 @@ define([
                 self.$('.js-savephoneok').removeClass('hidden');
                 self.$('.js-phonedonate').fadeIn('slow');
                 self.$('.js-deletephone').fadeIn('slow');
-                Iznik.Session.testLoggedIn(true);
+                Iznik.Session.testLoggedIn([
+                    'me',
+                    'phone'
+                ]);
             })
         },
 
@@ -89,7 +92,10 @@ define([
                 self.$('.js-phone').val('');
                 self.$('.js-savephoneok').removeClass('hidden');
                 self.$('.js-deletephone').fadeOut('slow');
-                Iznik.Session.testLoggedIn(true);
+                Iznik.Session.testLoggedIn([
+                    'me',
+                    'phone'
+                ]);
             })
         },
 
@@ -617,7 +623,10 @@ define([
                                 self.model.trigger('removed');
                             });
                             
-                            Iznik.Session.testLoggedIn(true);
+                            Iznik.Session.testLoggedIn([
+                                'me',
+                                'groups'
+                            ]);
                         }
                     }
                 });
