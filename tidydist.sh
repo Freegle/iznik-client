@@ -1,6 +1,7 @@
 cd dist
 #rm stats.json report.html
 rm -r apple*
+rm sounds/Freegle_Song.mp3
 rm images/streetwhack.png
 rm images/snowman.jpg
 rm images/IOSLS.png
