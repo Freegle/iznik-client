@@ -258,7 +258,6 @@ define([
             self.$('.js-next').hide();
             self.$('.js-external').hide();
 
-            console.log("changeGroup", first);
             if (first) {
                 self.$('.js-closestgroupname').html(first.namedisplay);
 
@@ -319,74 +318,86 @@ define([
                 if (groups.length > 0) {
                     // We have a group select dropdown on the page.
                     if (self.groupsnear) {
-                        // We have some groups near their chosen location.
-                        var homegroup = null;
-                        var homegrouptime = null;
-                        var homegroupfound = false;
-                        var firstonhere = null;
+                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                            // We have some groups near their chosen location.
+                            var mygroups = Iznik.Session.get('groups');
+                            mygroups.each(function(group) {
+                                if (group.get('type') == 'Freegle' &&
+                                    group.get('privategroup')) {
+                                    // We are a member of a private group.  That should appear at the top.
+                                    groups.append('<option value="' + group.get('id') + '" />');
+                                    groups.find('option:last').text(group.get('namedisplay'));
+                                }
+                            });
 
-                        try {
-                            homegroup = Storage.get('myhomegroup');
-                            homegrouptime = Storage.get('myhomegrouptime');
-                        } catch (e) {};
+                            var homegroup = null;
+                            var homegrouptime = null;
+                            var homegroupfound = false;
+                            var firstonhere = null;
 
-                        // If the first group has been founded since the home group was set up, then we want to
-                        // use that rather than a previous preference.  Otherwise new groups don't get existing
-                        // members from their area.
-                        if (self.groupsnear.length > 0) {
-                            var g = self.groupsnear[0];
-                            if (g) {
-                                var founded = (new Date(g.founded)).getTime();
-                                if (!homegrouptime || homegrouptime < founded) {
-                                    homegroup = g.id;
-                                    try {
-                                        Storage.set('myhomegroup', homegroup);
-                                        Storage.set('myhomegrouptime', (new Date()).getTime());
-                                    } catch (e) {};
+                            try {
+                                homegroup = Storage.get('myhomegroup');
+                                homegrouptime = Storage.get('myhomegrouptime');
+                            } catch (e) {};
+
+                            // If the first group has been founded since the home group was set up, then we want to
+                            // use that rather than a previous preference.  Otherwise new groups don't get existing
+                            // members from their area.
+                            if (self.groupsnear.length > 0) {
+                                var g = self.groupsnear[0];
+                                if (g) {
+                                    var founded = (new Date(g.founded)).getTime();
+                                    if (!homegrouptime || homegrouptime < founded) {
+                                        homegroup = g.id;
+                                        try {
+                                            Storage.set('myhomegroup', homegroup);
+                                            Storage.set('myhomegrouptime', (new Date()).getTime());
+                                        } catch (e) {};
+                                    }
                                 }
                             }
-                        }
 
-                        // Show home group if it's present.
-                        var addedGroups = [];
-                        groups.empty();
-                        _.each(self.groupsnear, function(groupnear) {
-                            if (homegroup == groupnear.id) {
-                                homegroupfound = true;
-                            }
+                            // Show home group if it's present.
+                            var addedGroups = [];
+                            groups.empty();
+                            _.each(self.groupsnear, function(groupnear) {
+                                if (homegroup == groupnear.id) {
+                                    homegroupfound = true;
+                                }
 
-                            if (!firstonhere && groupnear.onhere) {
-                                firstonhere = groupnear.id;
-                            }
-                            groups.append('<option value="' + groupnear.id + '" />');
-                            groups.find('option:last').text(groupnear.namedisplay);
-                            addedGroups.push(groupnear.id);
-                        });
+                                if (!firstonhere && groupnear.onhere) {
+                                    firstonhere = groupnear.id;
+                                }
+                                groups.append('<option value="' + groupnear.id + '" />');
+                                groups.find('option:last').text(groupnear.namedisplay);
+                                addedGroups.push(groupnear.id);
+                            });
 
-                        // Add remaining Freegle groups we're a member of - maybe we have a reason to post on them.
-                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
+                            // Add remaining Freegle groups we're a member of - maybe we have a reason to post on them.
                             if (loggedIn) {
                                 var mygroups = Iznik.Session.get('groups');
                                 mygroups.each(function(group) {
-                                    if (group.get('type') == 'Freegle' && addedGroups.indexOf(group.get('id'))) {
+                                    if (group.get('type') == 'Freegle' &&
+                                        !group.get('privategroup') &&
+                                        addedGroups.indexOf(group.get('id'))) {
                                         groups.append('<option value="' + group.get('id') + '" />');
                                         groups.find('option:last').text(group.get('namedisplay'));
                                     }
                                 });
                             }
+
+                            if (homegroupfound) {
+                                groups.val(homegroup);
+                            }
+
+                            self.changeGroup();
+                            groups.on('change', _.bind(self.changeGroup, self));
                         });
 
                         Iznik.Session.testLoggedIn([
                             'me',
                             'groups'
                         ]);
-
-                        if (homegroupfound) {
-                            groups.val(homegroup);
-                        }
-
-                        self.changeGroup();
-                        groups.on('change', _.bind(self.changeGroup, self));
                     }
                 } else {
                     // We don't have a groups drop down.  Hide that section, but still check for whether we need to
