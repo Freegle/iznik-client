@@ -181,7 +181,6 @@ define([
             }
 
             try {
-                console.log("Save home group", val);
                 Storage.set('myhomegroup', val);
                 Storage.set('myhomegrouptime', (new Date()).getTime());
             } catch (e) {}
