@@ -456,7 +456,6 @@ define([
 
         render: function() {
             var self = this;
-            console.log("Render offer", self);
             var p;
 
             self.model.set('offers', self.options.offers);

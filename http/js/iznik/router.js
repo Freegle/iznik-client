@@ -1087,6 +1087,7 @@ define([
                         if (ret.ret === 0) {
                             try {
                                 Storage.set('draft', id);
+                                Storage.set('draftrepost', id);
 
                                 if (ret.messagetype == 'Offer') {
                                     // Make them reconfirm the location
