@@ -456,6 +456,7 @@ define([
 
         render: function() {
             var self = this;
+            console.log("Render offer", self);
             var p;
 
             self.model.set('offers', self.options.offers);
@@ -476,7 +477,7 @@ define([
                             // We don't have the full model, because we only fetched a summary.  Get the full
                             // version and re-render.
                             self.expanded = true;
-                            self.model.fetch().then(self.render);
+                            self.model.fetch().then(_.bind(self.render, self));
 
                             // Abort the panel toggle - will happen once next render fires.
                             return (false);
@@ -544,7 +545,7 @@ define([
                             // We don't have the full model, because we only fetched a summary.  Get the full
                             // version and re-render.
                             self.expanded = true;
-                            self.model.fetch().then(self.render);
+                            self.model.fetch().then(_.bind(self.render, self));
 
                             // Abort the panel toggle - will happen once next render fires.
                             return(false);

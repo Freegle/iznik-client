@@ -779,7 +779,8 @@ define([
         events: {
             'mouseover': 'markSeen',
             'click .js-top': 'goto',
-            'click .js-notifaboutme': 'aboutMe'
+            'click .js-notifaboutme': 'aboutMe',
+            'change seen': 'render'
         },
 
         aboutMe: function() {
