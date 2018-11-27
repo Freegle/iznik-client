@@ -51,7 +51,8 @@ define([
 
                 self.collection.fetch({
                     data: {
-                        reviewnewsletter: self.options.reviewnewsletter
+                        reviewnewsletter: self.options.reviewnewsletter,
+                        groupid: self.options.groupid
                     }
                 });
             });
