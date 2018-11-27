@@ -217,7 +217,8 @@ define([
             "volunteering/:id": "userVolunteering",
             "why": "userWhy",
             "myposts": "userHome",
-            "yourdata": "yourData",
+            "mydata": "myData",
+            "maintenance": "userMaintenance",
             "*path": "modtools" // CC
         },
 
@@ -295,7 +296,11 @@ define([
                     });
                 });
 
-                Iznik.Session.forceLogin();
+
+                Iznik.Session.forceLogin([
+                    'me',
+                    'groups'
+                ]);
             }
         },
 
@@ -312,7 +317,10 @@ define([
                     });
                 });
 
-                Iznik.Session.forceLogin();
+                Iznik.Session.forceLogin([
+                    'me',
+                    'groups'
+                ]);
             }
         },
 
@@ -358,6 +366,10 @@ define([
                             }
                         }
                     } else {
+                        if (Iznik.Session.maintenanceMode) {  // CC
+                          self.userMaintenance();
+                          return false;
+                        }
                         require(["iznik/views/pages/user/landing"], function () {
                             console.log("Load landing 2");
                             var page = new Iznik.Views.User.Pages.Landing();
@@ -367,7 +379,9 @@ define([
                 }
 
                 self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
-                Iznik.Session.testLoggedIn();
+                Iznik.Session.testLoggedIn([
+                    'me'
+                ]);
             }
         },
 
@@ -404,7 +418,10 @@ define([
                         self.loadRoute({page: page});
                     });
 
-                    Iznik.Session.forceLogin();
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups'
+                    ]);
                 });
             }
         },
@@ -420,7 +437,10 @@ define([
                         self.loadRoute({page: page});
                     });
 
-                    Iznik.Session.forceLogin();
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups'
+                    ]);
                 });
             }
         },
@@ -567,7 +587,11 @@ define([
                         self.loadRoute({page: page});
                     });
 
-                    Iznik.Session.forceLogin();
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'newsfeed'
+                    ]);
                 });
             }
         },
@@ -644,7 +668,10 @@ define([
                         self.loadRoute({page: page});
                     });
 
-                    Iznik.Session.forceLogin();
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups'
+                    ]);
                 });
             }
         },
@@ -700,7 +727,11 @@ define([
                     });
                 });
 
-                Iznik.Session.forceLogin();
+                Iznik.Session.forceLogin([
+                    'me',
+                    'groups',
+                    'newsfeed'
+                ]);
             }
         },
 
@@ -717,7 +748,11 @@ define([
                     });
                 });
 
-                Iznik.Session.forceLogin();
+                Iznik.Session.forceLogin([
+                    'me',
+                    'groups',
+                    'newsfeed'
+                ]);
             }
         },
 
@@ -927,7 +962,11 @@ define([
                             self.loadRoute({page: page});
                         });
 
-                        Iznik.Session.forceLogin();
+                        Iznik.Session.forceLogin([
+                            'me',
+                            'groups',
+                            'newsfeed'
+                        ]);
                     }
                 });
             }
@@ -964,7 +1003,11 @@ define([
                             self.loadRoute({page: page});
                         });
 
-                        Iznik.Session.forceLogin();
+                        Iznik.Session.forceLogin([
+                            'me',
+                            'groups',
+                            'newsfeed'
+                        ]);
                     }
                 });
             }
@@ -1111,9 +1154,10 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups'
+                    ]);
                 });
             }
         },
@@ -1133,9 +1177,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1150,9 +1196,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1185,9 +1233,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1207,9 +1257,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1229,9 +1281,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1252,9 +1306,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1272,9 +1328,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1292,9 +1350,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1312,9 +1372,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1332,9 +1394,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1352,9 +1416,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1372,9 +1438,11 @@ define([
                         });
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1389,9 +1457,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1406,9 +1476,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1423,9 +1495,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1442,9 +1516,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1464,9 +1540,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1486,9 +1564,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1508,9 +1588,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1530,9 +1612,11 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups',
+                        'configs'
+                    ]);
                 });
             }
         },
@@ -1552,9 +1636,9 @@ define([
                         }
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me'
+                    ]);
                 });
             }
         },
@@ -1574,9 +1658,9 @@ define([
                         }
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me'
+                    ]);
                 });
             }
         },
@@ -1632,9 +1716,7 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin();
                 });
             }
         },
@@ -1685,9 +1767,10 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups'
+                    ]);
                 });
             }
         },
@@ -1702,9 +1785,10 @@ define([
                         self.loadRoute({page: page, modtools: true});
                     });
 
-                    Iznik.Session.forceLogin({
-                        modtools: true
-                    });
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups'
+                    ]);
                 });
             }
         },
@@ -1721,7 +1805,10 @@ define([
                         self.loadRoute({page: page});
                     });
 
-                    Iznik.Session.forceLogin();
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups'
+                    ]);
                 });
             }
         },
@@ -1736,7 +1823,10 @@ define([
                         self.loadRoute({page: page});
                     });
 
-                    Iznik.Session.forceLogin();
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups'
+                    ]);
                 });
             }
         },
@@ -1753,7 +1843,10 @@ define([
                         self.loadRoute({page: page});
                     });
 
-                    Iznik.Session.forceLogin();
+                    Iznik.Session.forceLogin([
+                        'me',
+                        'groups'
+                    ]);
                 });
             }
         },
@@ -1784,10 +1877,16 @@ define([
             if (MODTOOLS) {
                 var self = this;
 
-                require(["iznik/views/teams"], function () {
-                    var page = new Iznik.Views.ModTools.Pages.Teams();
-                    self.loadRoute({page: page});
+                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                    require(["iznik/views/teams"], function () {
+                        var page = new Iznik.Views.ModTools.Pages.Teams();
+                        self.loadRoute({page: page});
+                    });
                 });
+
+                Iznik.Session.forceLogin([
+                    'me'
+                ]);
             }
         },
 
@@ -1795,10 +1894,16 @@ define([
             if (!MODTOOLS) {
                 var self = this;
 
-                require(["iznik/views/teams"], function () {
-                    var page = new Iznik.Views.User.Pages.Volunteers();
-                    self.loadRoute({page: page});
+                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                    require(["iznik/views/teams"], function () {
+                        var page = new Iznik.Views.ModTools.Pages.Teams();
+                        self.loadRoute({page: page});
+                    });
                 });
+
+                Iznik.Session.forceLogin([
+                    'me'
+                ]);
             }
         },
 
@@ -1806,10 +1911,16 @@ define([
             if (!MODTOOLS) {
                 var self = this;
 
-                require(["iznik/views/teams"], function () {
-                    var page = new Iznik.Views.User.Pages.Board();
-                    self.loadRoute({page: page});
+                self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+                    require(["iznik/views/teams"], function () {
+                        var page = new Iznik.Views.ModTools.Pages.Teams();
+                        self.loadRoute({page: page});
+                    });
                 });
+
+                Iznik.Session.forceLogin([
+                    'me'
+                ]);
             }
         },
 
@@ -1893,7 +2004,7 @@ define([
 
         userMaintenance: function () {  // CC
           var self = this;
-
+          console.log("userMaintenance");
           require(["iznik/views/pages/user/landing"], function () {
             var page = new Iznik.Views.User.Pages.Landing.Maintenance();
             self.loadRoute({ page: page });

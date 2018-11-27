@@ -249,30 +249,6 @@ define([
                 templateFetch(self.modtools ? 'modtools_layout_layout' : 'user_layout_layout').then(function(tpl) {
                     $('#bodyContent').html(template(tpl));
 
-                    if (!self.modtools) {
-                        // We might have a logo override for a specific date.  Load it later though as it might be
-                        // large, as animated gifs tend to be.  Only load these once you're logged in to keep
-                        // the speed as observed by Google etc faster.  Slightly artificial but also...first impressions
-                        // count.
-                        self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
-                            if (loggedIn) {
-                                _.delay(function() {
-                                    $.ajax({
-                                        url: API + 'logo',
-                                        type: 'GET',
-                                        success: function (ret) {
-                                            if (ret.ret == 0 && ret.hasOwnProperty('logo')) {
-                                                $('#js-homelogo').attr('src', ret.logo.path);
-                                            }
-                                        }
-                                    }, 5000);
-                                });
-                            }
-                        });
-
-                        Iznik.Session.testLoggedIn();
-                    }
-
                     $('.js-pageContent').html(self.$el);
 
                     if (!window.useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
@@ -371,6 +347,24 @@ define([
                             try {
                                 global.__insp.push(['identify', Iznik.Session.get('me').id]);
                             } catch (e) {}
+
+                            // We might have a logo override for a specific date.  Load it later though as it might be
+                            // large, as animated gifs tend to be.  Only load these once you're logged in to keep
+                            // the speed as observed by Google etc faster.  Slightly artificial but also...first impressions
+                            // count.
+                            if (!self.modtools) {
+                                _.delay(function() {
+                                    $.ajax({
+                                        url: API + 'logo',
+                                        type: 'GET',
+                                        success: function (ret) {
+                                            if (ret.ret == 0 && ret.hasOwnProperty('logo')) {
+                                                $('#js-homelogo').attr('src', ret.logo.path);
+                                            }
+                                        }
+                                    }, 5000);
+                                });
+                            }
 
                             if (!self.noEmailOk && !me.email) {
                                 // We have no email.  This can happen for some login types.  Force them to provide one.
@@ -593,7 +587,7 @@ define([
                         }
                     });
 
-                    Iznik.Session.testLoggedIn();
+                    Iznik.Session.testLoggedIn(['me']);
                 });
             });
 

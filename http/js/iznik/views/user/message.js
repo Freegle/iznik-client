@@ -39,7 +39,10 @@ define([
                 });
             });
 
-            Iznik.Session.forceLogin();
+            Iznik.Session.forceLogin([
+                'me',
+                'groups'
+            ]);
         },
 
         sharefb: function() {
@@ -132,7 +135,10 @@ define([
                             self.$('.js-send').click();
                         });
 
-                        Iznik.Session.forceLogin();
+                        Iznik.Session.forceLogin([
+                            'me',
+                            'groups'
+                        ]);
                     }
                 }
             );
@@ -432,17 +438,6 @@ define([
                         // If the number of promises changes, then we want to update what we display.
                         self.listenTo(self.model, 'change:promisecount', self.render);
 
-                        // People don't seem to click these buttons - we ran with them for several
-                        // months and only got 250 clicks.  So don't show them, as they're just
-                        // screen clutter.
-                        // self.laughsAndLikes = new Iznik.Views.User.Message.LaughsAndLikes({
-                        //     model: self.model
-                        // });
-                        //
-                        // self.laughsAndLikes.render().then(function() {
-                        //     self.$('.js-laughsandlikes').html(self.laughsAndLikes.el)
-                        // });
-
                         // By adding this at the end we avoid border flicker.
                         self.$el.addClass('panel panel-info');
                         
@@ -460,59 +455,6 @@ define([
             }
 
             return(self.rendering);
-        }
-    });
-
-    Iznik.Views.User.Message.LaughsAndLikes = Iznik.View.extend({
-        template: 'user_message_laughsandlikes',
-
-        className: 'inline',
-
-        events: {
-            'click .js-love': 'love',
-            'click .js-unlove': 'unlove',
-            'click .js-laugh': 'laugh',
-            'click .js-unlaugh': 'unlaugh'
-        },
-
-        love: function() {
-            var self = this;
-
-            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                self.model.love().then(_.bind(self.render, self));
-            });
-
-            Iznik.Session.forceLogin();
-        },
-
-        unlove: function() {
-            var self = this;
-
-            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                self.model.unlove().then(_.bind(self.render, self));
-            });
-
-            Iznik.Session.forceLogin();
-        },
-
-        laugh: function() {
-            var self = this;
-
-            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                self.model.laugh().then(_.bind(self.render, self));
-            });
-
-            Iznik.Session.forceLogin();
-        },
-
-        unlaugh: function() {
-            var self = this;
-
-            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-                self.model.unlaugh().then(_.bind(self.render, self));
-            });
-
-            Iznik.Session.forceLogin();
         }
     });
 
@@ -1250,9 +1192,10 @@ define([
                     }
                 });
 
-                Iznik.Session.testLoggedIn({
-                    modtools: false
-                });
+                Iznik.Session.testLoggedIn([
+                    'me',
+                    'groups'
+                ]);
             }
         },
 

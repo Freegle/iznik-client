@@ -35,7 +35,10 @@ define([
                 v.render();
             });
 
-            Iznik.Session.forceLogin();
+            Iznik.Session.forceLogin([
+                'me',
+                'groups'
+            ]);
         },
 
         containerHeight: function() {
@@ -86,7 +89,6 @@ define([
 
                 var cb = _.bind(self.volunteeringFetched, self);
                 self.volunteering.fetch({
-                    cached: cb,
                     data: {
                         groupid: self.options.groupid
                     }

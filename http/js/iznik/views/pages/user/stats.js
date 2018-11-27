@@ -617,8 +617,6 @@ define([
                 });
             })
 
-            console.log("Got times", firstdate, lastdate);
-
             var totalweight = 0;
             var totalmembers = 0;
             var totaloutcomes = 0;
@@ -693,12 +691,14 @@ define([
 
                 var overlapstr = '';
 
-                if (overlap < 1) {
-                    overlapstr = " *";
-                    someoverlaps = true;
-                    self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + ' *</td><td>' + maxmembers.toLocaleString() + ' <span class="text-muted">(of ' + maxunweighted.toLocaleString() + ')</span></td><td>' + avgweight.toLocaleString() + ' <span class="text-muted">(of ' + avgunweighted.toLocaleString() + ')</span></td></tr>');
-                } else {
-                    self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + '</td><td>' + maxmembers.toLocaleString() + '</td><td>' + avgweight.toLocaleString() + '</td></tr>');
+                if (avgweight > 0) {
+                    if (overlap < 1) {
+                        overlapstr = " *";
+                        someoverlaps = true;
+                        self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + ' *</td><td>' + maxmembers.toLocaleString() + ' <span class="text-muted">(of ' + maxunweighted.toLocaleString() + ')</span></td><td>' + avgweight.toLocaleString() + ' <span class="text-muted">(of ' + avgunweighted.toLocaleString() + ')</span></td></tr>');
+                    } else {
+                        self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + '</td><td>' + maxmembers.toLocaleString() + '</td><td>' + avgweight.toLocaleString() + '</td></tr>');
+                    }
                 }
             });
 

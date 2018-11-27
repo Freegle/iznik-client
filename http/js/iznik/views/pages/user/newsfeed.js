@@ -244,17 +244,19 @@ define([
         sidebars: function() {
             var self = this;
 
-            // Left menu is community events
-            var v = new Iznik.Views.User.CommunityEventsSidebar();
-            v.render().then(function () {
-                $('#js-eventcontainer').append(v.$el);
-            });
+            if (self.inDOM()) {
+                // Left menu is community events
+                var v = new Iznik.Views.User.CommunityEventsSidebar();
+                v.render().then(function () {
+                    $('#js-eventcontainer').append(v.$el);
+                });
 
-            // Right menu is volunteer vacancies
-            var w = new Iznik.Views.User.VolunteeringSidebar();
-            w.render().then(function () {
-                $('#js-volunteeringcontainer').append(w.$el);
-            });
+                // Right menu is volunteer vacancies
+                var w = new Iznik.Views.User.VolunteeringSidebar();
+                w.render().then(function () {
+                    $('#js-volunteeringcontainer').append(w.$el);
+                });
+            }
         },
 
         visible: function(model) {

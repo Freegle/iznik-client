@@ -372,7 +372,7 @@ define([
                     maxImageWidth: 800,
                     browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
                     browseLabel: 'Add photos',
-                    browseClass: 'btn btn-white nowrap pull-right',
+                    browseClass: 'btn btn-success btn-lg nowrap pull-right',
                     showCaption: false,
                     showRemove: false,
                     showUploadedThumbs: false,
@@ -601,7 +601,10 @@ define([
                     }
                 });
 
-                Iznik.Session.testLoggedIn();
+                Iznik.Session.testLoggedIn([
+                    'me',
+                    'emails'
+                ]);
             });
 
             return(p);

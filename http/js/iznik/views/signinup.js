@@ -25,7 +25,7 @@ define([
             'keyup .js-signinform': 'enterSubmit'
         },
 
-        'checkEmail': function() {
+        checkEmail: function() {
             var self = this;
 
             if (!self.signInShown) {
@@ -73,7 +73,7 @@ define([
             }
         },
 
-        'enterSubmit': function (e) {
+        enterSubmit: function (e) {
             switch (e.keyCode) {
                 case 13: //enter
                     if (this.signInShown) {
@@ -119,7 +119,9 @@ define([
                 },
                 success: function (ret) {
                     if (ret.ret == 0) {
-                        // We're logged in.  Force a test login, which will refresh any locally cached session.
+                        // We're logged in.  Reload this page, and now that we are logged in the route
+                        // should behave differently.
+                        // We're logged in.  Force a test login to get our info.
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
                             // Reload this page, and now that we are logged in the route
                             // should behave differently.
@@ -127,7 +129,7 @@ define([
                             // CC window.location.reload();
                         });
 
-                        Iznik.Session.testLoggedIn(true);
+                        Iznik.Session.testLoggedIn(['all']);
                     } else if (parseInt(ret.ret) == 2) {
                         self.$('.js-unknown').fadeIn('slow');
                     } else {
@@ -231,7 +233,7 @@ define([
 
         render: function () {
             var self = this;
-            this.template = this.options.modtools ? "signinup_modtools" : "signinup_user";
+            this.template = MODTOOLS ? "signinup_modtools" : "signinup_user";
             var p = this.open(this.template, null);
             p.then(function () {
                 self.$('.js-native').hide();

@@ -95,7 +95,7 @@ define([
                                 member.yahooDeliveryType,
                                 member.yahooPostingStatus,
                                 JSON.stringify(member.settings, null, 0),
-                                member.ourPostingStatus,
+                                member.ourpostingstatus,
                                 member.bouncing
                             ]);
                         });

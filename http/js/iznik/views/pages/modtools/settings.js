@@ -30,7 +30,8 @@ define([
             'publish',
             'onyahoo',
             'welcomemail',
-            'region'
+            'region',
+            'mentored'
         ],
     
         events: {
@@ -135,7 +136,7 @@ define([
                 }
             });
 
-            Iznik.Session.testLoggedIn(true);
+            Iznik.Session.testLoggedIn(['all']);
         },
 
         copyConfig: function() {
@@ -359,6 +360,14 @@ define([
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
                                 helpMessage: '(Freegle only) If Yes, this group exists on Yahoo Groups too.  If No, this group is only hosted here.',
                                 disabled: role != 'Owner' && !Iznik.Session.isAdminOrSupport()
+                            },
+                            {
+                                name: 'mentored',
+                                label: 'Mentored?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: '(Freegle only) If Yes, this group is being run by Mentors until a local owner can be found.',
+                                disabled: !Iznik.Session.isAdminOrSupport()
                             },
                             {
                                 name: 'communityevents',
@@ -900,26 +909,20 @@ define([
                         }
                     });
     
-                    // The visibility is not returned in the fetch, only in the session.
-                    var configs = Iznik.Session.get('configs');
                     var cansee = 'of magic pixies.';
-                    configs.each(function(thisone) {
-                        if (thisone.get('id') == selected) {
-                            switch (thisone.get('cansee')) {
-                                case 'Created':
-                                    cansee = "you created it.";
-                                    break;
-                                case 'Default':
-                                    cansee = "it's a global default configuration.";
-                                    break;
-                                case 'Shared':
-                                    cansee = "it's used by " + thisone.get('sharedby').displayname + " on " +
-                                        thisone.get('sharedon').namedisplay + ', where you are also a moderator.';
-                                    break;
-                            }
-                        }
-                    });
-    
+                    switch (self.modConfigModel.get('cansee')) {
+                        case 'Created':
+                            cansee = "you created it.";
+                            break;
+                        case 'Default':
+                            cansee = "it's a global default configuration.";
+                            break;
+                        case 'Shared':
+                            cansee = "it's used by " + self.modConfigModel.get('sharedby').displayname + " on " +
+                                self.modConfigModel.get('sharedon').namedisplay + ', where you are also a moderator.';
+                            break;
+                    }
+
                     self.modConfigFormGeneral.render();
                     self.$('.js-cansee').html("You can see this ModConfig because " + cansee);
     
@@ -1292,6 +1295,8 @@ define([
 
                     self.configSelect();
                 });
+
+                Iznik.Session.testLoggedIn(['all']);
             });
 
             return(p);
@@ -1558,29 +1563,33 @@ define([
         add: function() {
             var self = this;
 
-            $.ajax({
-                type: 'POST',
-                url: API + 'group',
-                data: {
-                    action: 'Create',
-                    name: self.diff[self.$('.js-grouplist').val()],
-                    grouptype: self.$('.js-type').val(),
-                    lat: self.$('.js-addlat').val(),
-                    lng: self.$('.js-addlng').val(),
-                    corearea: self.$('.js-addcore').val(),
-                    catchmentarea: self.$('.js-addcatchment').val()
-                }, success: function(ret) {
-                    if (ret.ret == 0) {
-                        var v = new Iznik.Views.ModTools.Settings.CreateSucceeded();
-                        v.render();
+            var data = {
+                action: 'Create',
+                name: self.diff[self.$('.js-grouplist').val()],
+                grouptype: self.$('.js-type').val(),
+                lat: self.$('.js-addlat').val(),
+                lng: self.$('.js-addlng').val(),
+                corearea: self.$('.js-addcore').val(),
+                catchmentarea: self.$('.js-addcatchment').val()
+            };
 
-                        // Trigger another list to force the invite and hence the add.
-                        IznikPlugin.listYahooGroups();
-                    } else {
-                        self.createFailed();
-                    }
-                }, error: self.createFailed
-            });
+            if (data.name && data.grouptype && data.lat && data.lng && data.corearea) {
+                $.ajax({
+                    type: 'POST',
+                    url: API + 'group',
+                    data: data, success: function(ret) {
+                        if (ret.ret == 0) {
+                            var v = new Iznik.Views.ModTools.Settings.CreateSucceeded();
+                            v.render();
+
+                            // Trigger another list to force the invite and hence the add.
+                            IznikPlugin.listYahooGroups();
+                        } else {
+                            self.createFailed();
+                        }
+                    }, error: self.createFailed
+                });
+            }
         },
 
         render: function() {

@@ -34,28 +34,49 @@ define([
             return(name);
         },
 
-        updateCounts: function() {
-            // TODO This code is hacky - it scans the whole DOM, and surely there's either a method inside the select
-            // we could use, or we should be using a different select.
+        countIndex: 0,
+
+        doUpdateCounts: function() {
             var self = this;
 
-            if (self.$el.closest('body').length > 0) {
-                // Still in DOM
-                self.$('option').each(function() {
-                    var group = Iznik.Session.getGroup($(this).val());
+            if (self.countIndex < self.countOptions.length) {
+                if (typeof self.countOptions[self.countIndex].val === 'function') {
+                    var val = self.countOptions[self.countIndex].val();
+
+                    var group = Iznik.Session.getGroup(val);
                     if (group) {
                         var name = self.getName(group);
                         var seek = group.get('namedisplay');
-                        $(this).text(name);
-                        $('li._msddli_').each(function() {
-                            if ($(this).prop('title') == seek) {
-                                $(this).find('span').html(name);
+
+                        if ($(this).text() != name) {
+                            $(this).text(name);
+                        }
+
+                        $('li._msddli_[title="' + seek + '"]').each(function() {
+                            var el = $(this).find('span');
+                            if (el.html() != name) {
+                                el.html(name);
                             }
                         })
                     }
-                });
 
+                    self.countIndex++;
+                    _.delay(_.bind(self.doUpdateCounts, self), 50);
+                } else {
+                    console.error("Weird option", self.countIndex, self.countOptions);
+                }
+            } else {
                 self.listenToOnce(Iznik.Session, 'countschanged', self.updateCounts);
+            }
+        },
+
+        updateCounts: function() {
+            if (this.$el.closest('body').length > 0) {
+                // Still in DOM
+                // We can't update the counts synchronously because with many groups that blocks the browser thread.
+                this.countIndex = 0;
+                this.countOptions = this.$('option');
+                this.doUpdateCounts();
             }
         },
 

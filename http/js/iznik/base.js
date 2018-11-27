@@ -652,12 +652,6 @@ define([
         $('meta[property="og:image"]').attr('content', image);
     }
 
-    function cacheKey(url, data) {
-        // Get a unique key for this URL and data.  The data is important because it is passed to the AJAX call and
-        // can therefore return different data.
-        return("cache." + encodeURIComponent(url) + "." + encodeURIComponent(JSON.stringify(data)));
-    }
-
     Iznik.Model = Backbone.Model.extend({
         toJSON2: function () {
             var json;
@@ -671,28 +665,8 @@ define([
 
             return (json);
         }
-        // , fetch: function (options) {
-        //     var self = this;
-        //     console.log("Fetch model ", self.get('id')); console.trace();
-        //     return Backbone.Model.prototype.fetch.call(self);
-        // }
     });
 
-    // We have the ability to cache in storage.  This is controlled by several optional parameters.
-    //
-    // For now we only cache collection fetches because model fetches are unlikely to be on page load, which is
-    // what we're interested in optimising.
-    //
-    // cached is a callback which will be invoked if we can satisfy a request from cache.  Default to no caching.
-    // cacheExpiry is the lifetime in seconds of the cache entry corresponding to this fetch.  Default 48 hours.  We
-    //   always call cached with expired data because it looks better for the user to see the screen populate and then
-    //   update than it does to see a blank screen.
-    // cacheOnly indicates whether to bother doing a fetch at all if we managed to use a cached version.  Default false.
-    // cacheFetchAfter is a delay in seconds before issuing any fetch after successfully finding it in the cache.
-    //   This can be useful for page load - if we manage to populate the page with cached data then we can refresh
-    //   it later when things have quietened down, which makes the page feel more responsive to users while keeping
-    //   the data roughly up to date.  Default to 3-10 seconds with some randomness, which means it will usually
-    //   happen after the page has rendered.
     Iznik.Collection = Backbone.Collection.extend({
         model: Iznik.Model,
 
@@ -701,130 +675,6 @@ define([
         constructor: function (options) {
             this.options = options || {};
             Backbone.Collection.apply(this, arguments);
-        }, fetch: function(options) {
-            var self = this;
-            var issueFetch = true;
-            var fetchDelay = 0;
-            var url = typeof self.url == 'string' ? self.url : self.url();
-
-            if (options && options.cached) {
-                // We would like a cached fetch.
-                var key = cacheKey(url, options.data);
-                // console.log("Fetch key", url, key);
-
-                try {
-                    var cached = Storage.get(key);
-                    // console.log("Cache get returned", cached ? cached.length : null);
-                    var expires = Storage.get(key + '.time');
-                    // console.log("Expires", expires);
-
-                    if (cached && expires) {
-                        // We have some cached data.  Put it into the collection.
-                        // console.log("Got cached data");
-                        var data = JSON.parse(cached);
-                        self.set(data);
-                        // console.log("Collection after set", self);
-
-                        // Now invoke our callback to show we've completed.
-                        options.cached();
-
-                        var now = (new Date()).getTime();
-                        var age = now - expires;
-                        var expiry = options.hasOwnProperty('cacheExpiry') ? options.cacheExpiry : 60 * 60 * 48;
-                        // console.log("Compare expire", age, expiry);
-
-                        // We want to fetch if our cache has expired, or if it is valid but we don't just want the
-                        // cached value.
-                        issueFetch = age >= expiry || !options.cacheOnly;
-
-                        if (issueFetch && age >= expiry) {
-                            // Our entry has expired and we are going to get a new one.  It's possible that this
-                            // might fail due to quota issues.  Zap our old one to avoid always showing data
-                            // that is too old.
-                            try {
-                                Storage.remove(key);
-                                Storage.remove(key + '.time');
-                            } catch (e) {}
-                        }
-
-                        // We might want to delay it.
-                        fetchDelay = options.hasOwnProperty('cacheFetchAfter') ? (options.cacheFetchAfter * 1000) :
-                            (3000 + Math.floor(Math.random() * 7000));
-                    }
-                } catch (e) {console.error(e.message);}
-
-                // console.log("Cached collection fetch", url, issueFetch, fetchDelay); console.trace();
-            }
-
-            if (issueFetch) {
-                // Use our own promise so that we can get the data if we need to.
-                self.promise = new Promise(function(resolve, reject) {
-                    // We don't have a cached value.  Fetch it.
-                    function issueFetch() {
-                        // console.log("Issue fetch", options);
-                        Backbone.Collection.prototype.fetch.call(self, options).then(function() {
-                            // TODO Error handling?
-                            if (options && options.cached) {
-                                // We have fetched it - save it in our cache (before the caller can mess with it).
-                                // console.log("Fetched, save it", url);
-                                try {
-                                    var key = cacheKey(url, options.data);
-                                    var data = JSON.stringify(self.toJSON());
-
-                                    // CC   if (Persist.size == -1 || data.length < Persist.size) { // CC
-                                        // Don't cache stuff that's too big.
-                                        try {
-                                            Storage.set(key, data);
-                                            Storage.set(key + '.time', (new Date()).getTime());
-                                            // console.log("Stored length", key, Storage.get(key).length);
-                                        } catch (e) {
-                                            // Failed.  Most likely quota - tidy some stuff up, including
-                                            // this value so that it doesn't stay out of date.
-                                            Storage.remove(key);
-                                            Storage.remove(key + '.time');
-
-                                            console.log("Failed to set", e.message);
-                                            Storage.iterate(function(k,v) {
-                                                console.log("Consider prune ", k);
-                                                if (k.indexOf('cache.') === 0 ||
-                                                    (k.indexOf('chat-') !== -1 &&
-                                                    (k.indexOf('-width') !== -1 || k.indexOf('-height') !== -1 || k.indexOf("-lp") !== -1))) {
-                                                    console.log("Remove", k, v.length);
-                                                    Storage.remove(k);
-                                                }
-                                            });
-                                        }
-                                    /* CC } else {
-                                        // We can't cache this, as it's too big.  Remove any previously cached data
-                                        // which might be below this limit, as otherwise it will persist forever and
-                                        // become increasingly misleading.
-                                        console.log("Don't cache too long", key, data.length);
-                                        Storage.remove(key);
-                                        Storage.remove(key + '.time');
-                                    } */
-                                } catch (e) {console.log("Exception", e); console.error(e.message);}
-                            }
-
-                            // Now tell the caller the fetch has completed.
-                            // console.log("Resolve fetch");
-                            resolve();
-                        });
-                    }
-
-                    // Now fetch - immediately or after a delay.
-                    if (fetchDelay > 0) {
-                        // console.log("Delay fetch for", fetchDelay);
-                        setTimeout(issueFetch, fetchDelay);
-                    } else {
-                        // console.log("Immediate fetch");
-                        issueFetch();
-                    }
-                });
-            } else {
-                self.promise = Iznik.resolvedPromise();
-            }
-
-            return(self.promise);
         }
     });
 

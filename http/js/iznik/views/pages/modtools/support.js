@@ -306,7 +306,7 @@ define([
                                                 })).render();
 
                                                 // Pick up new groups.
-                                                Iznik.Session.testLoggedIn(true);
+                                                Iznik.Session.testLoggedIn(['all']);
                                             }
                                         }
                                     })
@@ -315,6 +315,16 @@ define([
                         }
                     }
                 });
+            }
+        },
+
+        addToGrid: function() {
+            // Add them gradually so that we don't lock the browser.
+            var self = this;
+
+            if (self.addToGridIndex < self.allGroups.length) {
+                self.gridGroups.add(self.allGroups.at(self.addToGridIndex++));
+                _.delay(_.bind(self.addToGrid, self), 10);
             }
         },
 
@@ -328,6 +338,7 @@ define([
             self.wait.render();
 
             self.allGroups = new Iznik.Collections.Group();
+            self.gridGroups = new Iznik.Collections.Group();
 
             // Checkbox cell doesn't seem to work well.
             var OurCheck = Backgrid.Cell.extend({
@@ -532,7 +543,7 @@ define([
 
             self.grid = new Backgrid.Grid({
                 columns: self.columns,
-                collection: self.allGroups,
+                collection: self.gridGroups,
                 row: OurRow
             });
 
@@ -543,6 +554,9 @@ define([
                     support: true
                 }
             }).then(function() {
+                self.addToGridIndex = 0;
+                self.addToGrid();
+
                 self.allGroups.each(function(group) {
                     var m = group.get('activemodcount') ? parseInt(group.get('activemodcount')) : 0;
                     var n = group.get('backupownersactive') ? parseInt(group.get('backupownersactive')) : 0;
