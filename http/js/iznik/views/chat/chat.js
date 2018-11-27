@@ -163,10 +163,16 @@ define([
         updateCounts: function () {
             var self = this;
             var unseen = 0;
+            var titleunseen = 0;
             // console.log("update Chat counts");
 
             Iznik.Session.chats.each(function (chat) {
+                var chattype = chat.get('chattype');
                 unseen += chat.get('unseen');
+
+                if (chattype === 'User2User' || chattype === 'User2Mod') {
+                    titleunseen += chat.get('unseen');
+                }
             });
 
             // This if test improves browser performance by avoiding unnecessary show/hides.
@@ -178,7 +184,7 @@ define([
                         $(this).empty().hide();
                     }
 
-                    Iznik.setTitleCounts(unseen, null);
+                    Iznik.setTitleCounts(titleunseen, null);
                 }
             });
 
