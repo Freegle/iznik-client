@@ -117,6 +117,7 @@ define([
         clearDraft: function() {
             var self = this;
             Storage.remove('draft');
+            Storage.remove('draftrepost');
             self.render();
         },
 
@@ -200,7 +201,7 @@ define([
         },
 
         save: function () {
-            // Save the current message as a draft.
+            // Save the current message as a draft.  It may already be one.
             var self = this;
 
             var item = this.getItem();
@@ -224,6 +225,7 @@ define([
                 });
 
                 var data = {
+                    id: Storage.get('draft') ? Storage.get('draft') : null,
                     collection: 'Draft',
                     locationid: locationid,
                     messagetype: self.msgType,
@@ -459,7 +461,10 @@ define([
                             // clear out our local storage but still have submitted the message.  In that case
                             // we don't want to use it.
                             if (self.msgType == msg.get('type') && msg.get('isdraft')) {
-                                self.$('.js-olddraft').fadeIn('slow');
+                                if (id !== Storage.get('draftrepost')) {
+                                    // And we're not reposting it.
+                                    self.$('.js-olddraft').fadeIn('slow');
+                                }
 
                                 // Parse out item from subject.
                                 var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(msg.get('subject'));
@@ -543,6 +548,7 @@ define([
                                 // The draft has now been sent.
                                 Storage.set('lastpost', id);
                                 Storage.remove('draft');
+                                Storage.remove('draftrepost');
                             } catch (e) {}
 
                             if (ret.newuser) {

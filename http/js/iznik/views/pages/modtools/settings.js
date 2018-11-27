@@ -363,10 +363,10 @@ define([
                             },
                             {
                                 name: 'mentored',
-                                label: 'Mentored?',
+                                label: 'Mentor Caretakers?',
                                 control: 'radio',
                                 options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
-                                helpMessage: '(Freegle only) If Yes, this group is being run by Mentors until a local owner can be found.',
+                                helpMessage: '(Freegle only) If Yes, this group is being run by Mentor Caretakers.',
                                 disabled: !Iznik.Session.isAdminOrSupport()
                             },
                             {

@@ -437,9 +437,18 @@ define([
                                 e.preventDefault();
                                 e.stopPropagation();
 
-                                self.notifications.allSeen().then(function() {
-                                    $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
-                                });
+                                // Make the count go away.
+                                $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
+
+                                // Fake a click on the notifications to close it.  This also means that when
+                                // we reopen it we will refetch it, and then the backgrounds on each notification
+                                // will be correct.
+                                if ($('.dropdown').find('.dropdown-menu').is(":hidden")){
+                                    $('.dropdown-toggle').dropdown('toggle');
+                                }
+
+                                // Update the server in the background.
+                                self.notifications.allSeen();
                             });
                         }
 
@@ -830,6 +839,7 @@ define([
 
         render: function() {
             var self = this;
+
             var p = Iznik.resolvedPromise(self);
 
             if (!self.rendered) {

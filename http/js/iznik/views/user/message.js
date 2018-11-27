@@ -9,6 +9,30 @@ define([
     'iznik/views/infinite',
     'iznik/views/user/schedule'
 ], function($, _, Backbone, Iznik, moment, Clipboard) {
+    // jQuery equivalent to Prototype's positionedOffset
+    (function($) {
+        $.fn.positionedOffset = function() {
+            // get viewport offset for our main element
+            var coords = $(this).offset();
+
+            // get parent and parent viewport offset
+            var parent = $(this).offsetParent();
+            var parentCoords = $(parent).offset();
+
+            // do some math to calculate relative offset
+            var diff_left = coords.left - parentCoords.left;
+            var diff_top = coords.top - parentCoords.top;
+
+            // return values
+            var offsetCoords = {
+                left: diff_left,
+                top: diff_top
+            }
+
+            return offsetCoords;
+        };
+    })($);
+
     Iznik.Views.User.Message = Iznik.View.extend({
         className: "marginbotsm botspace",
 
@@ -145,6 +169,7 @@ define([
         },
 
         carettoggle: function() {
+            var self = this;
             if (this.expanded) {
                 this.$('.js-snippet').slideDown();
             } else {
@@ -152,6 +177,24 @@ define([
             }
             this.expanded = !this.expanded;
             this.caretshow();
+
+            if (this.expanded) {
+                if (Iznik.isShort()) {
+                    // On mobile, the expand may happen below the bottom of the screen, in which case we're not
+                    // really aware that anything has happened.  Scroll so that the end of this message is
+                    // at the bottom of the screen.
+                    self.$el.one('shown.bs.collapse', function() {
+                        var li = self.$el.closest('li').get(0);
+
+                        if (li && li.nextSibling) {
+                            li.scrollIntoView({
+                                behaviour: 'smooth',
+                                block: 'end'
+                            });
+                        }
+                    });
+                }
+            }
         },
 
         fop: function() {
