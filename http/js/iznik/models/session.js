@@ -225,6 +225,7 @@ define([
                     components: components
                 },
                 success: function (ret) {
+                  //ret.ret = 111;
                     if (ret.ret == 111) {
                         // Down for maintenance
                         self.testing = false; // CC

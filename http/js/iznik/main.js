@@ -33,7 +33,7 @@ function panicReload() {
 
     window.setTimeout(function() {
         window.location.reload();
-    }, 1000);*/
+    }, 1000); */
 }
 
 requirejs.onError = function (err) {

@@ -217,6 +217,7 @@ define([
             "why": "userWhy",
             "myposts": "userHome",
             "mydata": "myData",
+            "maintenance": "userMaintenance",
             "*path": "userDefault"
         },
 
@@ -275,6 +276,9 @@ define([
                 if (document.URL.indexOf('modtools') !== -1) {
                     Router.navigate('/modtools', true);
                 } else {
+                    if (Iznik.Session.maintenanceMode) {  // CC
+                      console.log("userHome in maintenanceMode");
+                    }
                     function f(loggedIn) {
                         // console.log("Logged in", loggedIn);
                         if (Iznik.Session.maintenanceMode) {  // CC
@@ -383,6 +387,10 @@ define([
                             }
                         }
                     } else {
+                        if (Iznik.Session.maintenanceMode) {  // CC
+                          self.userMaintenance();
+                          return false;
+                        }
                         require(["iznik/views/pages/user/landing"], function () {
                             console.log("Load landing 2");
                             var page = new Iznik.Views.User.Pages.Landing();
@@ -2006,7 +2014,7 @@ define([
 
         userMaintenance: function () {  // CC
           var self = this;
-
+          console.log("userMaintenance");
           require(["iznik/views/pages/user/landing"], function () {
             var page = new Iznik.Views.User.Pages.Landing.Maintenance();
             self.loadRoute({ page: page });

@@ -164,21 +164,21 @@ define([
         timeout: null,
         closeTimeout: null,
         isOpen : false,
-        closeAfter: 60000,
+        closeAfter: 20000,  // 60000,
 
         render: function() {
             var self = this;
             waitCount++;
 
             self.options.label = self.options.label ? self.options.label : 'unknown caller';
-            // console.log("Start wait", self.options.label, waitCount); console.trace();
+            console.log("Start pleasewait", self.options.label, waitCount); // console.trace();
 
             this.timeout = setTimeout(function() {
                 self.timeout = null;
 
                 if (!waitOpen) {
                     // We don't have a modal open.  Open ours.
-                    // console.log("Open wait", self.options.label);
+                    console.log("Open pleasewait", self.options.label);
                     waitOpen = self;
                     waitPromise = self.open(self.template);
 
@@ -191,10 +191,13 @@ define([
                     // Start backstop timeout to close the modal - there are various error cases which could leave
                     // it stuck forever, which looks silly.
                     self.closeTimeout = setTimeout(function() {
+                        console.log("Closed wait backstop", self.closeAfter);
                         self.close();
                     }, self.closeAfter);
                 }
             }, self.options.timeout ? self.options.timeout : 3000);
+
+            console.log("this.timeout", this.timeout);
 
             return(Iznik.resolvedPromise(this));
         },
@@ -203,22 +206,23 @@ define([
             var self = this;
 
             if (this.timeout) {
-                // console.log("Close, still timer", self.options.label);
+                console.log("Clear show timer", self.options.label, this.timeout);
                 clearTimeout(this.timeout);
             }
 
             if (this.closeTimeout) {
+                console.log("Clear backstop timer", self.options.label, this.closeTimeout);
                 clearTimeout(this.closeTimeout);
             }
 
             waitCount--;
-            // console.log("Waits open", self.options.label, waitCount); console.trace();
+            console.log("Close pleasewait: waits open", self.options.label, waitCount); //console.trace();
 
             if (waitCount === 0 && waitOpen) {
                 // We don't need any more open.  But this one might not quite have rendered yet, so we need to wait.
-                // console.log("Close open one", self.options.label, waitOpen);
+                console.log("Close wait open one", self.options.label, waitOpen);
                 waitPromise.then(function() {
-                    // console.log("Open rendered", self.options.label);
+                    console.log("Close wait after open rendered", self.options.label);
                     Iznik.Views.Modal.prototype.close.call(waitOpen);
                     waitOpen = null;
                 });
