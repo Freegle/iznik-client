@@ -160,18 +160,51 @@ define([
             // console.log("Organised", (new Date()).getMilliseconds() - start);
         },
 
+        updating: false,
+
         updateCounts: function () {
+            var self = this;
+
+            if (!self.updating) {
+                self.updating = true;
+
+                Iznik.Session.chats.fetch({
+                    data: {
+                        summary: true
+                    }
+                }).then(function () {
+                    self.processCounts()
+                    self.updating = false;
+                });
+            }
+        },
+
+        processCounts: function() {
             var self = this;
             var unseen = 0;
             var titleunseen = 0;
-            // console.log("update Chat counts");
 
             Iznik.Session.chats.each(function (chat) {
                 var chattype = chat.get('chattype');
-                unseen += chat.get('unseen');
+                var thisunseen = chat.get('unseen');
 
-                if (chattype === 'User2User' || chattype === 'User2Mod') {
-                    titleunseen += chat.get('unseen');
+                if (chattype === 'User2User') {
+                    // This goes in both the chat count and the window title (and app notification count)
+                    unseen += thisunseen;
+                    titleunseen += thisunseen;
+                } else if (chattype === 'Group') {
+                    // This just goes in the chat count - not worth notifying people for.
+                    unseen += thisunseen;
+                } else if (chattype === 'User2Mod' || chattype === 'Mod2Mod') {
+                    if (thisunseen) {
+                        var group = Iznik.Session.getGroup(chat.get('groupid'));
+
+                        if (group && group.get('mysettings') && group.get('mysettings').active) {
+                            // This goes in both the chat count and the window title (and app notification count)
+                            unseen += thisunseen;
+                            titleunseen += thisunseen;
+                        }
+                    }
                 }
             });
             /* CC Iznik.Session.chats.each(function (chat) {
@@ -181,14 +214,16 @@ define([
             });*/
 
             // This if test improves browser performance by avoiding unnecessary show/hides.
-            $('.js-chattotalcount').each(function() {
+            $('.js-chattotalcount').each(function () {
                 if ($(this).html() != unseen) {
                     if (unseen > 0) {
                         $(this).html(unseen).show();
                     } else {
                         $(this).empty().hide();
                     }
+                }
 
+                if (titleunseen) {
                     Iznik.setTitleCounts(titleunseen, null);
                 }
             });
@@ -351,6 +386,7 @@ define([
                 });
 
                 Iznik.openChats.render();
+                self.processCounts();
 
                 self.waitDOM(self, function () {
                     self.organise();
@@ -358,7 +394,6 @@ define([
                 });
 
                 self.organise();
-                self.updateCounts();
             }
         },
 
@@ -397,7 +432,6 @@ define([
                     self.tabActive = true;
                 });
             } else {
-                self.updateCounts();
                 p = Iznik.resolvedPromise(self);
             }
 
@@ -520,7 +554,6 @@ define([
                         self.getLatestMessages();
                     } else {
                         // console.log("Fetched and no more");
-                        self.options.updateCounts();
                         self.scrollBottom();
                     }
                 });
@@ -796,8 +829,6 @@ define([
             if (!quick) {
                 this.waitDOM(self, self.options.organise);
             }
-
-            this.options.updateCounts();
 
             try {
                 // Remove the local storage, otherwise it will clog up with info for chats we don't look at.
@@ -1085,7 +1116,6 @@ define([
                 // Restore the window first, so it feels zippier.
                 self.setSize();
                 self.waitDOM(self, self.options.organise);
-                self.options.updateCounts();
 
                 _.defer(function () {
                     self.$el.css('visibility', 'visible');
