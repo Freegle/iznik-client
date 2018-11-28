@@ -183,7 +183,6 @@ define([
             var self = this;
             var unseen = 0;
             var titleunseen = 0;
-            // console.log("update Chat counts");
 
             Iznik.Session.chats.each(function (chat) {
                 var chattype = chat.get('chattype');
@@ -198,7 +197,7 @@ define([
                     unseen += thisunseen;
                 } else if (chattype === 'User2Mod' || chattype === 'Mod2Mod') {
                     if (thisunseen) {
-                        var group = Iznik.Session.getGroup(chat.get('group').id);
+                        var group = Iznik.Session.getGroup(chat.get('groupid'));
 
                         if (group && group.get('mysettings') && group.get('mysettings').active) {
                             // This goes in both the chat count and the window title (and app notification count)
