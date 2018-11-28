@@ -218,9 +218,7 @@ define([
                     }
                 }
 
-                if (titleunseen) {
-                    Iznik.setTitleCounts(titleunseen, null);
-                }
+                Iznik.setTitleCounts(titleunseen, null);
             });
 
             self.showMin();
