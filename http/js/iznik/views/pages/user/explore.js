@@ -456,7 +456,9 @@ define([
 
         events: {
             'click .js-join': 'join',
-            'click .js-leave': 'leave'
+            'click .js-leave': 'leave',
+            'click .js-locgive': 'locGive',
+            'click .js-locfind': 'locFind'
         },
 
         join: function() {
@@ -491,6 +493,24 @@ define([
                     }
                 }
             })    ;
+        },
+
+        locGive: function() {
+            // This group has a default location.  Set it as our location and skip the "where am I" page.
+            var self = this;
+            Storage.set('myhomegroup', self.model.get('id'));
+            Storage.set('myhomegrouptime', (new Date()).getTime());
+            Storage.set('mylocation', JSON.stringify(self.model.get('defaultlocation')))
+            Router.navigate('/give/whatisit', true);
+        },
+
+        locFind: function() {
+            // This group has a default location.  Set it as our location and skip straight to post a wanted
+            var self = this;
+            Storage.set('myhomegroup', self.model.get('id'));
+            Storage.set('myhomegrouptime', (new Date()).getTime());
+            Storage.set('mylocation', JSON.stringify(self.model.get('defaultlocation')))
+            Router.navigate('/find/whatisit', true);
         },
 
         filter: function(model) {

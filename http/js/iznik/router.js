@@ -210,7 +210,7 @@ define([
             "mypost/:id/:id": "userMyPostAction",
             "mypost/:id": "userMyPost",
             "stories/fornewsletter": "userNewsletterReview",
-            "stories": "userStories",
+            "stories(/:id)": "userStories",
             "story/:id": "userStory",
             "volunteering": "userVolunteerings",
             "volunteering/group/(/:id)": "userVolunteerings",
@@ -385,12 +385,14 @@ define([
             }
         },
 
-        userStories: function() {
+        userStories: function(groupid) {
             if (!MODTOOLS) {
                 var self = this;
 
                 require(["iznik/views/pages/user/stories"], function () {
-                    var page = new Iznik.Views.User.Pages.Stories();
+                    var page = new Iznik.Views.User.Pages.Stories({
+                        groupid: groupid
+                    });
                     self.loadRoute({page: page});
                 });
             }
@@ -1083,6 +1085,7 @@ define([
                         if (ret.ret === 0) {
                             try {
                                 Storage.set('draft', id);
+                                Storage.set('draftrepost', id);
 
                                 if (ret.messagetype == 'Offer') {
                                     // Make them reconfirm the location
