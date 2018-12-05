@@ -246,7 +246,7 @@ define([
                         _.each(fromuser.messagehistory, function (message) {
                             message.dupage = dupage;
 
-                            // console.log("Check message", message.id, id, message.daysago, Iznik.canonSubj(message.subject), subj);
+                            console.log("Check message", message.id, id, message.daysago, Iznik.canonSubj(message.subject), subj);
                             // The id of the message might have been manipulated in user.js to make sure it's unique per
                             // posting.
 
