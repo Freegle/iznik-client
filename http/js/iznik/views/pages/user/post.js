@@ -184,16 +184,25 @@ define([
                 self.$('.js-item').removeClass('error-border');
                 self.$('.js-description').removeClass('error-border');
 
-                // We accept either a photo or a description.
-                if (self.uploading || item.length == 0) {
-                    self.$('.js-item').addClass('error-border');
-                    self.$('.js-next').fadeOut('slow');
-                    self.$('.js-ok').fadeOut('slow');
-                } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
-                    self.$('.js-next').fadeIn('slow');
-                    self.$('.js-ok').fadeIn('slow');
-                } else if (self.$('.js-description').val().length == 0) {
-                    self.$('.js-description').addClass('error-border');
+                if (item.match(/(^|\s)(OFFER|WANTED)($|\s)/i)) {
+                    self.$('.js-badofferwanted').fadeIn('slow');
+                } else if (item.match(/(^|\s)(TAKEN|RECEIVED)($|\s)/i)) {
+                    self.$('.js-badtakenreceived').fadeIn('slow');
+                } else {
+                    self.$('.js-badofferwanted').hide();
+                    self.$('.js-badtakenreceived').hide();
+
+                    // We accept either a photo or a description.
+                    if (self.uploading || item.length == 0) {
+                        self.$('.js-item').addClass('error-border');
+                        self.$('.js-next').fadeOut('slow');
+                        self.$('.js-ok').fadeOut('slow');
+                    } else if (self.$('.js-description').val().length > 0 || self.photos.length > 0) {
+                        self.$('.js-next').fadeIn('slow');
+                        self.$('.js-ok').fadeIn('slow');
+                    } else if (self.$('.js-description').val().length == 0) {
+                        self.$('.js-description').addClass('error-border');
+                    }
                 }
 
                 _.delay(_.bind(self.checkNext, self), 300);
