@@ -73,6 +73,6 @@
         <variable name="PHOTOLIBRARY_ADD_USAGE_DESCRIPTION" value="So you can send a photo in reply to a member chat" />
         <variable name="PHOTOLIBRARY_USAGE_DESCRIPTION" value="So you can save a photo when replying to a member chat" />
     </plugin>
-    <plugin name="phonegap-plugin-push" spec="https://github.com/phonegap/phonegap-plugin-push.git" />
+    <plugin name="phonegap-plugin-push" spec="^2.2.3" />
     <engine name="ios" spec="^4.5.4" />
 </widget>
