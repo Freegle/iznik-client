@@ -57,13 +57,20 @@
         <a href="#" class="js-showearlier" style="display: none">Show earlier...</a>
         <ul class="list-unstyled js-replies" />
         <div class="row">
-            <div class="col-xs-12">
+            <div class="col-xs-10">
                 <div class="input-group">
                     <span class="input-group-addon nopad">
                         <img src="{{me.profile.turl}}" class="img-circle img-tinythumbnail clickme" />
                     </span>
                     <textarea rows="1" class="form-control js-comment" maxlength="2048" spellcheck="true" placeholder="Write a comment..." />
                 </div>
+            </div>
+            <div class="col-xs-2 nopad js-addphotowrapper">
+                <!--<div class="js-addphotobtn btn btn-btn btn-primary nowrap pull-right"><span class="glyphicon glyphicon-camera" /><span class="hidden-sm hidden-xs">&nbsp;Photo</span></div>-->
+                <input class="js-addphoto" type="file" name="photo" multiple="">
+            </div>
+            <div class="col-xs-2 js-photopreviewwrapper" style="display: none">
+                <img class="topspace pull-right img-smallerthumbnail js-photopreview padleft" width="150" src="/images/userloader.gif" />
             </div>
         </div>
     </div>

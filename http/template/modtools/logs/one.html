@@ -50,7 +50,7 @@
             <% } else if (subtype == 'YahooJoined') { %>
             Successfully joined Yahoo Group
             <% } else if (subtype == 'Approved') { %>
-            Approved on Yahoo Group
+            Approved <% if (obj.byuser) { %>by moderator {{byuser.displayname}} <span class="faded">#{{byuser.id}}</span><% } %>
             <% } else if (subtype == 'Unbounce') { %>
             Reactivated as not bouncing by moderator {{byuser.displayname}} <span class="faded">#{{byuser.id}}</span>
             <% } else { %>
