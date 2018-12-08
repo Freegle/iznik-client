@@ -5,6 +5,7 @@ const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer')
 const webpack = require('webpack')
 const {Config} = require('webpack-config')
 const {join} = require('path')
+const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 
 const ROOT = join(__dirname, '..')
 
@@ -73,6 +74,11 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
 
         // do scope hoisting: https://webpack.js.org/plugins/module-concatenation-plugin
         // should reduce scripting time and bundle size
-        new webpack.optimize.ModuleConcatenationPlugin()
+        new webpack.optimize.ModuleConcatenationPlugin(),
+
+        // Reduces moment size
+        new MomentLocalesPlugin({
+            localesToKeep: ['en']
+        })
     ]
 })
