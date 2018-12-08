@@ -1,3 +1,11 @@
+if (window.location.hostname == 'iznik.ilovefreegle.org') {
+    __webpack_public_path__ = 'https://freeglecdndbg.azureedge.net/';
+} else if (window.location.hostname == 'dev.ilovefreegle.org') {
+    __webpack_public_path__ = 'https://freeglecdndev.azureedge.net/';
+} else if (window.location.hostname == 'www.ilovefreegle.org') {
+    __webpack_public_path__ = 'https://freeglecdn.azureedge.net/';
+}
+
 var Raven = require('raven-js');
 Raven.config(RAVEN_ID, {
     release: BUILD_TIME + '.' + GIT_COMMITHASH
