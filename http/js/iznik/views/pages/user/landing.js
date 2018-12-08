@@ -4,7 +4,7 @@ define([
     'backbone',
     'iznik/base',
     'iznik/views/chat/chat',
-    'iznik/views/user/visualise',
+    // 'iznik/views/user/visualise',
     'iznik/views/teams',
     'iznik/models/donations',
     'iznik/views/pages/pages',
