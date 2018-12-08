@@ -4,6 +4,7 @@ const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const webpack = require('webpack')
 const {Config} = require('webpack-config')
 const {join} = require('path')
+const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 
 const ROOT = join(__dirname, '..')
 
@@ -62,6 +63,9 @@ module.exports = new Config().extend('dev/webpack.base.config.js').merge({
             hash: true,
             template: join(ROOT, 'client/index.ejs'),
             filename: 'index.html'
+        }),
+        new MomentLocalesPlugin({
+            localesToKeep: ['en' ]
         })
     ]
 })

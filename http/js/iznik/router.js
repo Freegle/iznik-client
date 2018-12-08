@@ -278,7 +278,32 @@ define([
             if (!MODTOOLS) {
                 var self = this;
 
-                Router.navigate('/modtools', true);
+                if (document.URL.indexOf('modtools') !== -1) {
+                    Router.navigate('/modtools', true);
+                } else {
+                    if (Iznik.Session.maintenanceMode) {  // CC
+                      console.log("userHome in maintenanceMode");
+                    }
+                    function f(loggedIn) {
+                        // console.log("Logged in", loggedIn);
+                        if (Iznik.Session.maintenanceMode) {  // CC
+                            console.log("Don't load home or landing as in maintenanceMode");
+                        } else if (loggedIn || _.isUndefined(loggedIn)) {
+                            require(["iznik/views/pages/user/home"], function() {
+                                var page = new Iznik.Views.User.Pages.Home();
+                                self.loadRoute({page: page});
+                            });
+                        } else {
+                            require(["iznik/views/pages/user/landing"], function() {
+                                var page = new Iznik.Views.User.Pages.Landing();
+                                self.loadRoute({page: page});
+                            });
+                        }
+                    }
+
+                    self.listenToOnce(Iznik.Session, 'isLoggedIn', f);
+                    Iznik.Session.testLoggedIn(['all']);
+                }
             }
         },
 
@@ -371,7 +396,6 @@ define([
                           return false;
                         }
                         require(["iznik/views/pages/user/landing"], function () {
-                            console.log("Load landing 2");
                             var page = new Iznik.Views.User.Pages.Landing();
                             self.loadRoute({page: page});
                         });
