@@ -49,6 +49,9 @@
                             <div class="glyphicon glyphicon-pencil" />
                             Edit
                         </button>
+                        <% if (obj.edits) { %>
+                        &nbsp<a href="#" class="js-editlist">{{edits.length}} edit<% if (edits.length != 1) { %>s<% } %></a>
+                        <% } %>
                     </div>
                     <div class="small js-grouplist">
                     </div>
