@@ -1,0 +1,14 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <abbr class="timeago nodecor" title="{{timestamp}}">{{timeago(timestamp)}}</abbr>
+        <% if (obj.byuser) { %>
+        by {{byuser.displayname}} <span class="faded">#{{byuser.id}}</span>
+        <% } %>
+    </div>
+    <div class="panel-body">
+        <h4>
+            {{subject}}
+        </h4>
+        {{textbody}}
+    </div>
+</div>

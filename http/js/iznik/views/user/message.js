@@ -1,3 +1,5 @@
+import HtmlDiff from 'htmldiff-js';
+
 define([
     'jquery',
     'underscore',
@@ -1369,6 +1371,68 @@ define([
             // });
             //
             // return(p);
+        }
+    });
+
+    Iznik.Views.User.Message.EditHistory = Iznik.Views.Modal.extend({
+        template: 'user_message_edithistory',
+
+        render: function () {
+            var self = this;
+            this.open(this.template);
+
+            // Fetch the individual message, which gives us access to the full message (which isn't returned
+            // in the normal messages call to save bandwidth.
+            var m = new Iznik.Models.Message({
+                id: this.model.get('id')
+            });
+
+            m.fetch().then(function () {
+                self.cv = new Backbone.CollectionView({
+                    el: self.$('.js-editlist'),
+                    modelView: Iznik.Views.User.Message.EditHistory.One,
+                    modelViewOptions: {
+                        message: self.model
+                    },
+                    collection: new Iznik.Collection(self.model.get('edits')),
+                    processKeyEvents: false
+                });
+
+                self.cv.render();
+            });
+
+            return (this);
+        }
+    });
+
+    Iznik.Views.User.Message.EditHistory.One = Iznik.View.Timeago.extend({
+        template: 'user_message_edithistoryentry',
+
+        render: function() {
+            var self = this;
+
+            if (self.model.get('oldsubject')) {
+                // Subject has changed
+                self.model.set('subject', HtmlDiff.execute(self.model.get('oldsubject'), self.model.get('newsubject')));
+            } else {
+                // Subject unchanged from message
+                self.model.set('subject', self.options.message.get('subject'));
+            }
+
+            if (self.model.get('oldtext')) {
+                // Text has changed
+                self.model.set('textbody', HtmlDiff.execute(self.model.get('oldtext'), self.model.get('newtext')));
+            } else {
+                // Text body unchanged from message
+                self.model.set('textbody', self.options.message.get('textbody'));
+            }
+
+            var p = Iznik.View.Timeago.prototype.render.call(this);
+
+            p.then(function() {
+            });
+
+            return(p);
         }
     });
 });

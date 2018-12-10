@@ -1,4 +1,4 @@
-<% if (collection == 'PendingAdd' || collection == 'Spammer') { %>
+<% if (obj.collection && (collection == 'PendingAdd' || collection == 'Spammer')) { %>
 <div class="alert alert-danger">
     <% if (collection == 'PendingAdd') { %>
     Possible spammer:

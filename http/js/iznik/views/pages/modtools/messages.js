@@ -13,9 +13,19 @@ define([
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Message = Iznik.View.extend({
         events: {
-            'change .js-fop': 'setFOP'
+            'change .js-fop': 'setFOP',
+            'click .js-edithistory': 'editHistory'
         },
-        
+
+        editHistory: function() {
+            var self = this;
+            var v = new Iznik.Views.User.Message.EditHistory({
+                model: self.model
+            });
+
+            v.render();
+        },
+
         rarelyUsed: function () {
             this.$('.js-rarelyused').fadeOut('slow');
             this.$('.js-stdmsgs li').fadeIn('slow');
@@ -832,7 +842,6 @@ define([
             });
         }
     });
-
 
     Iznik.Views.ModTools.Message.ViewSource = Iznik.Views.Modal.extend({
         template: 'modtools_messages_pending_viewsource',
