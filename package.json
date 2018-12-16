@@ -60,7 +60,6 @@
     "fs-extra": "^5.0.0",
     "geocomplete": "^1.7.0",
     "googlemaps-js-rich-marker": "^1.0.2",
-    "htmldiff-js": "^1.0.5",
     "jest": "^22.4.4",
     "jquery": "^3.3.1",
     "jquery-flesler-scrollto": "^2.1.1",

@@ -1,4 +1,4 @@
-import HtmlDiff from 'htmldiff-js';
+import HtmlDiff from 'htmldiff';
 
 define([
     'jquery',
