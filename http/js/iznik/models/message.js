@@ -486,6 +486,21 @@ define([
             }
 
             this.set(property, text);
+        },
+
+        isFreegle() {
+            var self = this;
+
+            var isFreegle = false;
+
+            var groups = self.get('groups');
+            _.each(groups, function(group) {
+                if (group.type === 'Freegle') {
+                    isFreegle = true;
+                }
+            });
+
+            return(isFreegle);
         }
     });
 
