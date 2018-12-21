@@ -45,7 +45,8 @@ define([
             var self = this;
             Storage.remove('draft');
             Storage.remove('draftrepost');
-            self.render();
+            // self.render();
+            Backbone.history.loadUrl(Backbone.history.fragment);
         },
 
         speechItem: function() {
