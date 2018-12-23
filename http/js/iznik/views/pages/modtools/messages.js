@@ -892,10 +892,19 @@ define([
 
             var html = null;
             var text = null;
+            var attachments = null;
 
             if (self.model.isFreegle()) {
                 // Freegle messages are text only.
                 text = self.$('.js-text').val();
+
+                // We might have picked up new images.
+                attachments = [];
+                var newatts = self.model.get('attachments');
+                _.each(newatts, function(att) {
+                    attachments.push(att.id);
+                });
+
             } else {
                 // Other groups are rich text edited using TinyMCE.
                 html = tinyMCE.activeEditor.getContent({format: 'raw'});
@@ -905,8 +914,24 @@ define([
             self.model.edit(
                 self.$('.js-subject').val(),
                 text,
-                html
+                html,
+                attachments
             );
+        },
+
+        renderImages: function() {
+            var self = this;
+            var photos = self.model.get('attachments');
+            self.photoCollection = new Iznik.Collection(photos);
+
+            var v = new Iznik.Views.User.Message.EditablePhotos({
+                collection: self.photoCollection,
+                message: self.model,
+            });
+
+            v.render().then(function () {
+                self.$('.js-editablephotos').html(v.el);
+            });
         },
 
         expand: function () {
@@ -917,6 +942,16 @@ define([
                 if (self.model.isFreegle()) {
                     // Freegle messages are text only.
                     body = self.model.get('textbody');
+
+                    // Might have images - strip that because we're showing the images separately.
+                    var r = /You can see photos here[\s\S]*jpg/gi;
+                    body = body.replace(r, '');
+
+                    body = body.trim();
+
+                    // And can have photos uploaded during edit.
+                    self.$('.js-photosallowed').show();
+                    self.renderImages();
                 } else {
                     // Might have HTML.
                     body = self.model.get('htmlbody');

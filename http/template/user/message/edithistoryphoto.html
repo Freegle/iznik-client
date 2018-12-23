@@ -1,0 +1,12 @@
+<div class="panel panel-default">
+    <div class="panel-title">
+        <% if (obj.added) { %>
+        <h4>Added photo</h4>
+        <% } else { %>
+        <h4>Removed photo</h4>
+        <% } %>
+    </div>
+    <div class="panel-body">
+        <img class="img-rounded img-smallerthumbnail <% if (obj.removed) { %>faded<% } %>" src="{{paththumb}}" />
+    </div>
+</div>

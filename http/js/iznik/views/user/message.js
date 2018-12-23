@@ -670,6 +670,127 @@ define([
         }
     });
 
+    Iznik.Views.User.Message.EditablePhotos = Iznik.View.extend({
+        template: 'user_message_editablephotos',
+
+        setupPhotoUpload: function() {
+            var self = this;
+
+            var initialPreview = [];
+            self.collection.each(function (att) {
+                initialPreview.push("<img src='" + att.get('paththumb') + "' class='file-preview-image img-responsive' alt='Photo attachment'>");
+            });
+
+            self.$el.find('.js-addphoto').fileinput({
+                initialPreview: initialPreview,
+                overwriteInitial: false,
+
+                allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                uploadUrl: API + 'image',
+                uploadExtraData: {
+                    imgtype: 'Message',
+                    ocr: self.options.hasOwnProperty('ocr') ? self.options.ocr : false,
+                    identify: self.options.hasOwnProperty('identify') ? self.options.identify : false
+                },
+                deleteUrl: API + 'image',
+
+                resizeImage: true,
+                maxImageWidth: 800,
+
+                browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
+                browseLabel: 'Add Photo',
+                browseClass: 'btn btn-primary btn-md nowrap',
+
+                showUpload: false,
+                showCancel: false,
+                showCaption: false,
+                showRemove: false,
+                showClose: false,
+
+                previewSettings: {
+                    image: {
+                        width: "auto",
+                        height: "auto",
+                        'max-width': '50px'
+                    }
+                },
+
+                showUploadedThumbs: true,
+                dropZoneEnabled: false,
+                buttonLabelClass: '',
+
+                fileActionSettings: {
+                    showZoom: false,
+                    showUpload: false,
+                    showDrag: false,
+                    showRemove: true,
+                    removeClass: 'btn btn-white'
+                },
+
+                layoutTemplates: {
+                    footer: '<div class="file-thumbnail-footer">\n' +
+                    '    {actions}\n' +
+                    '</div>'
+                },
+
+                elErrorContainer: '#js-uploaderror'
+            });
+
+            // Upload as soon as we have it.
+            self.$el.find('.js-addphoto').on('fileimagesresized', function (event) {
+                self.$('.js-photopreviewwrapper').show();
+                self.$('.js-addphoto').fileinput('upload');
+            });
+
+            self.$el.find('.js-addphoto').on('fileuploaded', function (event, formData) {
+                _.delay(function () {
+                    console.log("Uploaded", formData);
+                    var data = formData.response;
+                    self.$('.progress').hide();
+                    var m = new Iznik.Model({
+                        id: data.id,
+                        path: data.path,
+                        paththumb: data.pathhumb
+                    });
+
+                    self.collection.add(m);
+
+                    // Add to the message model.
+                    var atts = self.options.message.get('attachments');
+                    atts.push(m.attributes);
+                    self.options.message.set('attachments', atts);
+                    console.log("Attachments now", atts);
+                }, 500);
+            });
+
+            // self.$el.find('.js-addphoto').on('fileuploaded', function (event, formData) {
+            //
+            // });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+
+            p.then(function() {
+                self.photos = [];
+                self.$('.js-photos').each(function() {
+                    $(this).empty();
+                });
+
+                self.collection.each(function(att) {
+                    att.set('subject', self.options.message.get('subject'));
+                    att.set('mine', self.options.message.get('mine'));
+                });
+
+                self.setupPhotoUpload();
+            });
+
+            return(p);
+        }
+    });
+
     Iznik.Views.User.Message.Photos = Iznik.View.extend({
         template: 'user_message_photos',
 
@@ -1430,9 +1551,76 @@ define([
             var p = Iznik.View.Timeago.prototype.render.call(this);
 
             p.then(function() {
+                // Might be image changes
+                var oldimages = self.model.get('oldimages');
+                var newimages = self.model.get('newimages');
+
+                if (!_.isUndefined(oldimages) && !_.isUndefined(newimages) && oldimages != newimages) {
+                    // Might be encoded.
+                    oldimages = typeof oldimages === 'string' ? JSON.parse(oldimages) : oldimages;
+                    newimages = typeof newimages === 'string' ? JSON.parse(newimages) : newimages;
+
+                    var added = [];
+                    var removed = [];
+
+                    // Might be strings or ints, convert.
+                    oldimages = oldimages.map(function(e) {
+                        return(parseInt(e));
+                    });
+                    newimages = newimages.map(function(e) {
+                        return(parseInt(e));
+                    });
+
+                    _.each(oldimages, function(oldimage) {
+                        if (newimages.indexOf(oldimage) === -1) {
+                            removed.push(oldimage);
+                        }
+                    });
+
+                    _.each(newimages, function(newimage) {
+                        if (oldimages.indexOf(newimage) === -1) {
+                            added.push(newimage);
+                        }
+                    });
+
+                    console.log("Added, removed", added, removed);
+                    _.each(added, function(a) {
+                        var v = new Iznik.Views.User.Message.EditHistory.Photo({
+                            model: new Iznik.Model({
+                                id: a,
+                                added: true,
+                                removed: false,
+                                paththumb: '/timg_' + a + '.jpg'
+                            })
+                        });
+
+                        v.render();
+                        self.$('.js-attachments').append(v.$el);
+                    });
+
+                    _.each(removed, function(a) {
+                        var v = new Iznik.Views.User.Message.EditHistory.Photo({
+                            model: new Iznik.Model({
+                                id: a,
+                                added: false,
+                                removed: true,
+                                paththumb: '/timg_' + a + '.jpg'
+                            })
+                        });
+
+                        v.render();
+                        self.$('.js-attachments').append(v.$el);
+                    });
+                }
             });
 
             return(p);
         }
+    });
+
+    Iznik.Views.User.Message.EditHistory.Photo = Iznik.View.extend({
+        template: 'user_message_edithistoryphoto',
+
+        tagName: 'li'
     });
 });
