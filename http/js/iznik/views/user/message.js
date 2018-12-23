@@ -677,12 +677,19 @@ define([
             var self = this;
 
             var initialPreview = [];
+            var initialPreviewConfig = [];
+
             self.collection.each(function (att) {
-                initialPreview.push("<img src='" + att.get('paththumb') + "' class='file-preview-image img-responsive' alt='Photo attachment'>");
+                initialPreview.push(
+                    "<img src='" + att.get('paththumb') + "' class='file-preview-image img-responsive' alt='Photo attachment'>");
+                initialPreviewConfig.push({
+                    key: att.get('id')
+                });
             });
 
             self.$el.find('.js-addphoto').fileinput({
                 initialPreview: initialPreview,
+                initialPreviewConfig: initialPreviewConfig,
                 overwriteInitial: false,
 
                 allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
@@ -692,7 +699,7 @@ define([
                     ocr: self.options.hasOwnProperty('ocr') ? self.options.ocr : false,
                     identify: self.options.hasOwnProperty('identify') ? self.options.identify : false
                 },
-                deleteUrl: API + 'image',
+                deleteUrl: API + 'image?typeoverride=DELETE',
 
                 resizeImage: true,
                 maxImageWidth: 800,
@@ -759,13 +766,22 @@ define([
                     var atts = self.options.message.get('attachments');
                     atts.push(m.attributes);
                     self.options.message.set('attachments', atts);
-                    console.log("Attachments now", atts);
+                    console.log("Attachments after add", atts);
                 }, 500);
             });
 
-            // self.$el.find('.js-addphoto').on('fileuploaded', function (event, formData) {
-            //
-            // });
+            self.$el.find('.js-addphoto').on('filedeleted', function (event, key, jqXHR, data) {
+                // Image has been removed.  Here we have the key, which is the id, so we can remove it.
+                // The docs are a bit confusing here, but this is called for images added in this edit, not
+                // just ones in the preview.
+                var atts = self.options.message.get('attachments');
+                console.log("Attachments before delete", JSON.parse(JSON.stringify(atts)), key);
+                atts = _.without(atts, _.findWhere(atts, {
+                    id: key
+                }));
+                self.options.message.set('attachments', atts);
+                console.log("Attachments after delete", JSON.parse(JSON.stringify(atts)));
+            });
         },
 
         render: function() {
