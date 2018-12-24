@@ -42,7 +42,24 @@ define([
             'click .js-caret': 'carettoggle',
             'click .js-fop': 'fop',
             'click .js-sharefb': 'sharefb',
-            'click .js-jointoreply': 'join'
+            'click .js-jointoreply': 'join',
+            'click .js-edit': 'edit'
+        },
+
+        edit: function() {
+            var self = this;
+
+            var v = new Iznik.Views.User.Message.Edit({
+                model: self.model
+            });
+
+            self.listenToOnce(v, 'modalClosed', _.bind(self.fetchAndRender, self));
+            v.render();
+        },
+
+        fetchAndRender: function() {
+            var self = this;
+            self.model.fetch().then(self.render());
         },
 
         join: function() {
@@ -389,7 +406,16 @@ define([
                         }
 
                         if (rejected) {
+                            // A mod has rejected this.  The flow is to edit the message via the standard
+                            // post form.
                             self.$('.js-rejected').show();
+                        } else if (self.model.get('sourceheader') == 'Platform' &&
+                            self.model.get('item') &&
+                            self.model.get('location') &&
+                            self.model.get('postcode') &&
+                            self.model.get('area')) {
+                            // This is a platform message.  Allow edit through modal.
+                            self.$('.js-edit').show();
                         }
 
                         self.$('.js-attlist').each(function() {
@@ -473,6 +499,187 @@ define([
             }
 
             return(self.rendering);
+        }
+    });
+
+    Iznik.Views.User.Message.Edit = Iznik.Views.Modal.extend({
+        template: 'user_message_edit',
+
+        events: {
+            'click .js-save': 'save',
+            'typeahead:change .js-postcode': 'locChange'
+        },
+
+        locChange: function() {
+            var self = this;
+
+            var loc = this.$('.js-postcode').typeahead('val');
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: loc
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        var location = ret.locations[0];
+                        if (!_.isUndefined(location)) {
+                            self.$('.js-postcode').typeahead('val', location.name);
+                        } else {
+                            // Invalid - revert
+                            self.$('.js-postcode').typeahead('val', self.model.get('location').name);
+                        }
+                    } else {
+                        // Failed - revert
+                        self.$('.js-postcode').typeahead('val', self.model.get('location').name);
+                    }
+                }
+            });
+        },
+
+        postcodeSource: function(query, syncResults, asyncResults) {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: query
+                }, success: function(ret) {
+                    var matches = [];
+                    _.each(ret.locations, function(location) {
+                        matches.push(location.name);
+                    });
+
+                    asyncResults(matches);
+
+                    _.delay(function() {
+                        var field = self.$('.js-postcode');
+                        if (field.data && field.data('bs.tooltip')) {
+                            self.$('.js-postcode').tooltip('destroy');
+                        }
+                    }, 10000);
+
+                    if (matches.length == 0) {
+                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode (including the space)'});
+                        self.$('.js-postcode').tooltip('show');
+                    } else {
+                        self.firstMatch = matches[0];
+                    }
+                }
+            })
+        },
+
+        save: function () {
+            var self = this;
+
+            self.$('.js-editfailed').hide();
+
+            self.listenToOnce(self.model, 'editsucceeded', function () {
+                self.close();
+            });
+
+            self.listenToOnce(self.model, 'editfailed', function () {
+                self.$('.js-editfailed').fadeIn('slow');
+            });
+
+            var text = self.$('.js-text').val();
+            var attachments = [];
+
+            // We might have picked up new images.
+            var newatts = self.model.get('attachments');
+
+            _.each(newatts, function(att) {
+                attachments.push(att.id);
+            });
+
+            var type = self.$('.js-type').val();
+            var item = self.$('.js-item').val();
+            var location = self.$('.js-postcode').val();
+
+            // Don't want to pass as edit anything that hasn't changed - better logs and version controls.
+            console.log("Current message", self.model.attributes);
+            type = type != self.model.get('type') ? type : null;
+            item = item != self.model.get('item').name ? item : null;
+            location = location != self.model.get('location').name ? location : null;
+
+            // This is a bit of a faff - perhaps we should have a different method on the model.
+            if (type || item || location) {
+                self.listenToOnce(self.model, 'editsucceeded', function() {
+                    self.model.serverEdit(
+                        null,
+                        text,
+                        null,
+                        attachments
+                    );
+
+                    self.listenToOnce(self.model, 'editsucceeded', function () {
+                        self.close();
+                    });
+                });
+
+                self.model.editPlatformSubject(type, item, location);
+            } else {
+                self.model.serverEdit(
+                    null,
+                    text,
+                    null,
+                    attachments
+                );
+
+                self.listenToOnce(self.model, 'editsucceeded', function () {
+                    self.close();
+                });
+            }
+        },
+
+        renderImages: function() {
+            var self = this;
+            var photos = self.model.get('attachments');
+            self.photoCollection = new Iznik.Collection(photos);
+
+            var v = new Iznik.Views.User.Message.EditablePhotos({
+                collection: self.photoCollection,
+                message: self.model,
+            });
+
+            v.render().then(function () {
+                self.$('.js-editablephotos').html(v.el);
+            });
+        },
+
+        render: function () {
+            var self = this;
+
+            self.open(this.template, this.model).then(function() {
+                var body;
+
+                body = self.model.get('textbody');
+
+                // Might have images - strip that because we're showing the images separately.
+                var r = /You can see photos here[\s\S]*jpg/gi;
+                body = body.replace(r, '');
+
+                body = body.trim();
+
+                // And can have photos uploaded during edit.
+                self.$('.js-photosallowed').show();
+                self.renderImages();
+
+                self.$('.js-text').val(body);
+                self.$('.js-type').val(self.model.get('type'));
+                self.$('.js-item').val(self.model.get('item').name);
+                self.$('.js-postcode').val(self.model.get('location').name);
+
+                self.$('.js-postcode').typeahead({
+                    minLength: 3,
+                    hint: false,
+                    highlight: true
+                }, {
+                    name: 'postcodes',
+                    source: _.bind(self.postcodeSource, self)
+                });
+            });
         }
     });
 
