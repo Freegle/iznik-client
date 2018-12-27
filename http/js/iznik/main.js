@@ -437,7 +437,7 @@ function mainOnAppStart() { // CC
 
             window.mobilePush.on('error', function (e) {
                 //alert("error: " + e.message);
-                console.log("MAIN mobilePush error " + e.message);
+              console.log("MAIN mobilePush error " + e.message);
             });
         }
 

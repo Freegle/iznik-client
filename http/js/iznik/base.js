@@ -470,6 +470,7 @@ define([
     }
 
     Iznik.setTitleCounts = function(chat, newsfeed, work) {
+        console.log("setTitleCounts A", chat, newsfeed, work);
         if (chat !== null) {
             chatTitleCount = chat;
         }
@@ -483,7 +484,7 @@ define([
         }
 
         var unseen = chatTitleCount + newsfeedTitleCount + workTitleCount;
-        console.log("setTitleCounts", chatTitleCount, newsfeedTitleCount, workTitleCount);
+        console.log("setTitleCounts B", chatTitleCount, newsfeedTitleCount, workTitleCount);
 
         // We'll adjust the count in the window title.
         var title = document.title;
@@ -497,6 +498,7 @@ define([
         }
 
         if (window.mobilePush) {  // CC
+          if (MODTOOLS) unseen = workTitleCount;
           window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
           console.log("BASE badge count set to: " + unseen);
           if (unseen == 0) { window.mobilePush.clearAllNotifications(); }
