@@ -469,7 +469,7 @@ define([
       });
     }
 
-    Iznik.c = function(chat, newsfeed, work) {
+    Iznik.setTitleCounts = function(chat, newsfeed, work) {
         if (chat !== null) {
             chatTitleCount = chat;
         }
