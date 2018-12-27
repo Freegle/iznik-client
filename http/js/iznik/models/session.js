@@ -315,6 +315,13 @@ define([
                                     sound: true
                                 },
                                 {
+                                    fi: 'editreview',
+                                    el: '.js-editreviewcount',
+                                    ev: 'editreviewcountschanged',
+                                    window: true,
+                                    sound: true
+                                },
+                                {
                                     fi: 'pendingother',
                                     el: '.js-pendingcountother',
                                     ev: 'pendingcountsotherchanged',

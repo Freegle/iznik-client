@@ -2,7 +2,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger" class="close" data-dismiss="modal" />
+                <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger clickme" data-dismiss="modal" />
                 <h4 class="modal-title js-modal-title">Edit <em>{{subject}}</em></h4>
             </div>
             <div class="modal-body js-modal-body">
@@ -17,7 +17,8 @@
                 <% } else { %>
                 <input type="text" class="botspace form-control js-subject" />
                 <% } %>
-                <textarea class="form-control js-text" rows="10"></textarea>
+                <textarea class="form-control js-text" spellcheck="true" rows="10"></textarea>
+                <div class="js-editablephotos" />
             </div>
             <div class="modal-footer">
                 <div class="alert alert-danger js-editfailed" style="display: none;">

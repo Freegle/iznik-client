@@ -13,9 +13,19 @@ define([
 ], function($, _, Backbone, moment, Iznik) {
     Iznik.Views.ModTools.Message = Iznik.View.extend({
         events: {
-            'change .js-fop': 'setFOP'
+            'change .js-fop': 'setFOP',
+            'click .js-edithistory': 'editHistory'
         },
-        
+
+        editHistory: function() {
+            var self = this;
+            var v = new Iznik.Views.User.Message.EditHistory({
+                model: self.model
+            });
+
+            v.render();
+        },
+
         rarelyUsed: function () {
             this.$('.js-rarelyused').fadeOut('slow');
             this.$('.js-stdmsgs li').fadeIn('slow');
@@ -186,7 +196,6 @@ define([
 
                 _.each(self.model.get('groups'), function (group) {
                     var groupid = group.groupid;
-                    console.log("Exclude location", self.model.get('location').id);
                     $.ajax({
                         type: 'POST',
                         url: API + 'locations',
@@ -204,7 +213,6 @@ define([
                                     collection: self.collectionType
                                 }
                             }).then(function () {
-                                console.log("New location", self.model.get('location').id);
                                 self.render();
                             });
 
@@ -246,7 +254,7 @@ define([
                         _.each(fromuser.messagehistory, function (message) {
                             message.dupage = dupage;
 
-                            console.log("Check message", message.id, id, message.daysago, Iznik.canonSubj(message.subject), subj);
+                            //console.log("Check message", message.id, id, message.daysago, Iznik.canonSubj(message.subject), subj);
                             // The id of the message might have been manipulated in user.js to make sure it's unique per
                             // posting.
 
@@ -833,7 +841,6 @@ define([
         }
     });
 
-
     Iznik.Views.ModTools.Message.ViewSource = Iznik.Views.Modal.extend({
         template: 'modtools_messages_pending_viewsource',
 
@@ -876,7 +883,6 @@ define([
             self.$('.js-editfailed').hide();
 
             self.listenToOnce(self.model, 'editsucceeded', function () {
-                console.log("Edit succeeded - close");
                 self.close();
             });
 
@@ -884,21 +890,73 @@ define([
                 self.$('.js-editfailed').fadeIn('slow');
             });
 
-            var html = tinyMCE.activeEditor.getContent({format: 'raw'});
-            var text = tinyMCE.activeEditor.getContent({format: 'text'});
+            var html = null;
+            var text = null;
+            var attachments = null;
+
+            if (self.model.isFreegle()) {
+                // Freegle messages are text only.
+                text = self.$('.js-text').val();
+
+                // We might have picked up new images.
+                attachments = [];
+                var newatts = self.model.get('attachments');
+                _.each(newatts, function(att) {
+                    attachments.push(att.id);
+                });
+
+            } else {
+                // Other groups are rich text edited using TinyMCE.
+                html = tinyMCE.activeEditor.getContent({format: 'raw'});
+                text = tinyMCE.activeEditor.getContent({format: 'text'});
+            }
 
             self.model.edit(
                 self.$('.js-subject').val(),
                 text,
-                html
+                html,
+                attachments
             );
+        },
+
+        renderImages: function() {
+            var self = this;
+            var photos = self.model.get('attachments');
+            self.photoCollection = new Iznik.Collection(photos);
+
+            var v = new Iznik.Views.User.Message.EditablePhotos({
+                collection: self.photoCollection,
+                message: self.model,
+            });
+
+            v.render().then(function () {
+                self.$('.js-editablephotos').html(v.el);
+            });
         },
 
         expand: function () {
             var self = this;
             this.open(this.template, this.model).then(function() {
-                var body = self.model.get('htmlbody');
-                body = body ? body : self.model.get('textbody');
+                var body;
+
+                if (self.model.isFreegle()) {
+                    // Freegle messages are text only.
+                    body = self.model.get('textbody');
+
+                    // Might have images - strip that because we're showing the images separately.
+                    var r = /You can see photos here[\s\S]*jpg/gi;
+                    body = body.replace(r, '');
+
+                    body = body.trim();
+
+                    // And can have photos uploaded during edit.
+                    self.$('.js-photosallowed').show();
+                    self.renderImages();
+                } else {
+                    // Might have HTML.
+                    body = self.model.get('htmlbody');
+                    body = body ? body : self.model.get('textbody');
+                }
 
                 var subj = self.model.get('subject');
 
@@ -970,18 +1028,22 @@ define([
 
                 self.$('.js-text').val(body);
 
-                tinymce.init({
-                    selector: '.js-text',
-                    height: 300,
-                    plugins: [
-                        'advlist autolink lists link charmap print preview anchor',
-                        'searchreplace visualblocks code fullscreen',
-                        'insertdatetime media table paste code'
-                    ],
-                    menubar: 'edit insert format tools',
-                    statusbar: false,
-                    toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link'
-                });
+                if (!self.model.isFreegle()) {
+                    // Freegle messages are text only, so we can leave the textarea as it is. For other types of
+                    // group we support rich editing using TinyMCE.
+                    tinymce.init({
+                        selector: '.js-text',
+                        height: 300,
+                        plugins: [
+                            'advlist autolink lists link charmap print preview anchor',
+                            'searchreplace visualblocks code fullscreen',
+                            'insertdatetime media table paste code'
+                        ],
+                        menubar: 'edit insert format tools',
+                        statusbar: false,
+                        toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link'
+                    });
+                }
             });
         },
 

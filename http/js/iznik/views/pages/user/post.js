@@ -118,7 +118,8 @@ define([
             var self = this;
             Storage.remove('draft');
             Storage.remove('draftrepost');
-            self.render();
+            // self.render();
+            Backbone.history.loadUrl(Backbone.history.fragment);
         },
 
         // Not enabled for iOS as iOS10 has speech recognition built in on any text field.

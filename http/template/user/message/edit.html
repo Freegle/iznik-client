@@ -1,0 +1,56 @@
+<div class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="row">
+                    <div class="col-xs-11">
+                        <h4>Edit Message</h4>
+                    </div>
+                    <div class="col-xs-1">
+                        <div class="glyphicon glyphicon-remove-circle pull-right glyphicon-larger clickme"
+                             data-dismiss="modal"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body js-modal-body">
+                <div class="inline nopad nomarg">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <select class="form-control js-type">
+                                <option value="Offer">OFFER</option>
+                                <option value="Wanted">WANTED</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <input class="form-control js-item" placeholder="Item" type="text"
+                                   value=""/>
+                        </div>
+                        <div class="col-md-3">
+                            <input class="form-control js-postcode" placeholder="Full postcode"
+                                   type="text" value=""/>
+                        </div>
+                    </div>
+                    <input class="form-control js-subject" type="hidden" value=""/>
+                </div>
+                <div class="row topspace">
+                    <div class="col-xs-12">
+                        <textarea class="form-control js-text" spellcheck="true" rows="10"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="topspace js-editablephotos"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="alert alert-danger js-editfailed" style="display: none;">
+                    Edit failed. Please try again - it can work the next time.
+                </div>
+
+                <button type="button" class="btn btn-success js-save">Save Edit</button>
+                <button type="button" class="btn btn-white js-close" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
