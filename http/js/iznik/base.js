@@ -492,7 +492,7 @@ define([
 
         if (window.mobilePush) {  // CC
           window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
-          console.log("badge count set to: " + unseen);
+          console.log("BASE badge count set to: " + unseen);
           if (unseen == 0) { window.mobilePush.clearAllNotifications(); }
         }
 

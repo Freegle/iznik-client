@@ -369,8 +369,10 @@ function mainOnAppStart() { // CC
                 if (!('count' in data)) { data.count = 0; }
                 data.count = parseInt(data.count);
                 if (data.count == 0) {
+                    console.log("MAIN clear badge count");
                     window.mobilePush.clearAllNotifications();   // no success and error fns given
                 }
+                console.log("MAIN set badge count  to " + data.count);
                 window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, data.count);
                 /*var msg = new Date();
                 msg = msg.toLocaleTimeString() + " N " + data.count + " "+foreground+' '+msgid+"<br/>";
