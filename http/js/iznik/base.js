@@ -469,7 +469,7 @@ define([
       });
     }
 
-    Iznik.setTitleCounts = function(chat, newsfeed, work) {
+    Iznik.c = function(chat, newsfeed, work) {
         if (chat !== null) {
             chatTitleCount = chat;
         }
@@ -483,6 +483,7 @@ define([
         }
 
         var unseen = chatTitleCount + newsfeedTitleCount + workTitleCount;
+        console.log("setTitleCounts", chatTitleCount, newsfeedTitleCount, workTitleCount);
 
         // We'll adjust the count in the window title.
         var title = document.title;

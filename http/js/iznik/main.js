@@ -349,23 +349,23 @@ function mainOnAppStart() { // CC
             //  Not running:    as per background?
             window.mobilePush.on('notification', function (data) {
                 //alert("push notification");
-                console.log("push notification");
+                console.log("MAIN push notification");
                 console.log(data);
                 var foreground = data.additionalData.foreground.toString() == 'true';   // Was first called in foreground or background
                 if (!('notId' in data.additionalData)) { data.additionalData.notId = 0; }
                 var msgid = data.additionalData.notId;
                 var doubleEvent = (msgid == lastPushMsgid);
                 if (!doubleEvent && lastPushMsgid) {
-                  console.log("Clearing: "+lastPushMsgid);
+                  console.log("MAIN Clearing: "+lastPushMsgid);
                   window.mobilePush.clearNotification(() => {
-                    console.log('clearNotification success');
+                    console.log('MAIN clearNotification success');
                   }, () => {
-                    console.log('clearNotification error');
+                    console.log('MAIN clearNotification error');
                   },
                     lastPushMsgid);
                 }
                 lastPushMsgid = msgid;
-                console.log("foreground " + foreground + " double " + doubleEvent + " msgid: " + msgid);
+                console.log("MAIN foreground " + foreground + " double " + doubleEvent + " msgid: " + msgid);
                 if (!('count' in data)) { data.count = 0; }
                 data.count = parseInt(data.count);
                 if (data.count == 0) {
@@ -382,7 +382,7 @@ function mainOnAppStart() { // CC
                 // Try to set in-app count if chatcount>0
                 if ('chatcount' in data.additionalData) {
                   var chatcount = parseInt(data.additionalData.chatcount);
-                  console.log("Got chatcount " + chatcount);
+                  console.log("MAIN Got chatcount " + chatcount);
                   if (!isNaN(chatcount) && (chatcount>0)) {
                     Iznik.setHeaderCounts(chatcount, 0);
                     Iznik.Session.chats.fetch();
@@ -396,7 +396,7 @@ function mainOnAppStart() { // CC
                   (function waitUntilLoggedIn(retry) {
                     if (Iznik.Session.loggedIn) {
                       setTimeout(function () {
-                        console.log("Push go to: " + data.additionalData.route);
+                        console.log("MAIN Push go to: " + data.additionalData.route);
                         Router.navigate(data.additionalData.route, true);
                       }, 500);
                     } else {
@@ -408,14 +408,14 @@ function mainOnAppStart() { // CC
                 if (foreground) { // Reload if route matches where we are - or if on any chat screen eg /chat/123456 or /chats
                   var frag = '/' + Backbone.history.getFragment();
                   if (data.additionalData.route) {
-                    console.log("route: " + data.additionalData.route + " frag: " + frag);
+                    console.log("MAIN route: " + data.additionalData.route + " frag: " + frag);
                     if (frag == data.additionalData.route) {
-                      console.log("fg: Reload as route matches");
+                      console.log("MAIN fg: Reload as route matches");
                       Backbone.history.loadUrl();
                     }
                     else {
                       if ((frag.substring(0, 5) == '/chat') && (data.additionalData.route.substring(0, 5) == '/chat')) {
-                        console.log("fg: Reload as route is on chat");
+                        console.log("MAIN fg: Reload as route is on chat");
                         Backbone.history.loadUrl(); // refresh rather than go to route
                       }
                     }
@@ -424,10 +424,10 @@ function mainOnAppStart() { // CC
 
                 if (isiOS) {
                     window.mobilePush.finish(function () {
-                        console.log("push finished OK");
+                        console.log("MAIN push finished OK");
                         //alert("finished");
                     }, function () {
-                        console.log("push finished error");
+                        console.log("MAIN push finished error");
                         //alert("finished");
                     },
                         data.additionalData.notId
@@ -437,7 +437,7 @@ function mainOnAppStart() { // CC
 
             window.mobilePush.on('error', function (e) {
                 //alert("error: " + e.message);
-                console.log("mobilePush error " + e.message);
+                console.log("MAIN mobilePush error " + e.message);
             });
         }
 
