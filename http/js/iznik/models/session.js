@@ -468,6 +468,7 @@ define([
                             })
 
                             document.title = (total == 0) ? 'ModTools' : ('(' + total + ') ModTools');
+                            Iznik.setTitleCounts(null, null, total);
 
                             if (total) {
                                 $('.js-workcount').html(total).show();

@@ -533,25 +533,21 @@ define([
 
                 self.showHideMine();
 
-                if (me.hasOwnProperty('notifications')) {
-                    self.$(".js-pushswitch").bootstrapSwitch({
-                        onText: 'Browser&nbsp;Popups&nbsp;On',
-                        offText: 'Browser&nbsp;Popups&nbsp;Off',
-                        state: notifs.hasOwnProperty('push') ? notifs.push: true
-                    });
+                self.$(".js-pushswitch").bootstrapSwitch({
+                    onText: 'Browser&nbsp;Popups&nbsp;On',
+                    offText: 'Browser&nbsp;Popups&nbsp;Off',
+                    state: notifs.hasOwnProperty('push') ? notifs.push: true
+                });
 
-                    self.$('.js-pushon').show();
-                }
+                self.$('.js-pushon').show();
 
-                if (me.hasOwnProperty('notifications')) {
-                    self.$(".js-appswitch").bootstrapSwitch({
-                        onText: 'App&nbsp;Notifications&nbsp;On',
-                        offText: 'App&nbsp;Notifications&nbsp;Off',
-                        state: notifs.hasOwnProperty('app') ? notifs.app: true
-                    });
+                self.$(".js-appswitch").bootstrapSwitch({
+                    onText: 'App&nbsp;Notifications&nbsp;On',
+                    offText: 'App&nbsp;Notifications&nbsp;Off',
+                    state: notifs.hasOwnProperty('app') ? notifs.app: true
+                });
 
-                    self.$('.js-appon').show();
-                }
+                self.$('.js-appon').show();
 
                 var facebook = Iznik.Session.hasFacebook();
                 

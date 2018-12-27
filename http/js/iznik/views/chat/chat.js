@@ -223,7 +223,7 @@ define([
                     }
                 }
 
-                Iznik.setTitleCounts(titleunseen, null);
+                Iznik.setTitleCounts(titleunseen, null, null);
             });
 
             self.showMin();

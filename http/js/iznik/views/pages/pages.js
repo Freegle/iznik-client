@@ -159,10 +159,10 @@ define([
                                     $('.js-notifholder .js-notifcount').css('visibility', 'hidden');
                                 }
 
-                                Iznik.setTitleCounts(null, ret.count);
+                                Iznik.setTitleCounts(null, ret.count, null);
                             }
 
-                            Iznik.setTitleCounts(null, ret.count);
+                            Iznik.setTitleCounts(null, ret.count, null);
                         }
                     }, complete: function() {
                         // We have the unseen newsfeed count in the session. That is loosely up to date, which is
