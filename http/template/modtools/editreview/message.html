@@ -6,35 +6,35 @@
                     <h4 class="js-coloursubj">{{subject}}</h4>
                     <div class="inline nopad nomarg js-maybepluginonly">
                         <% if (obj.sourceheader == 'Platform' && obj.item && obj.location && obj.postcode && obj.area) { %>
-                            <div class="panel">
-                                <div class="panel-body">
-                                    <div class="nopad nomarg row">
-                                        <div class="col-md-2">
-                                            <select class="form-control js-type">
-                                                <option value="Offer">OFFER</option>
-                                                <option value="Taken">TAKEN </option>
-                                                <option value="Wanted">WANTED</option>
-                                                <option value="Received">RECEIVED</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <input class="form-control js-item" placeholder="Item" type="text" value="" />
-                                        </div>
-                                        <div class="col-md-2">
-                                            <input class="form-control js-location" placeholder="Full postcode" type="text" value="" />
-                                        </div>
-                                        <div class="col-md-2 h4">
-                                            (<a href="/modtools/settings/{{groups[0].groupid}}/map"><span class="js-area" /> <span class="js-postcode" /></a>)
-                                        </div>
-                                        <div class="col-md-1">
-                                            <div class="btn btn-default js-saveplatsubj" data-toggle="tooltip" title="Save subject edit">
-                                                <div class="glyphicon glyphicon-floppy-save" />&nbsp;Save
-                                            </div>
+                        <div class="panel">
+                            <div class="panel-body">
+                                <div class="nopad nomarg row">
+                                    <div class="col-md-2">
+                                        <select class="form-control js-type">
+                                            <option value="Offer">OFFER</option>
+                                            <option value="Taken">TAKEN </option>
+                                            <option value="Wanted">WANTED</option>
+                                            <option value="Received">RECEIVED</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input class="form-control js-item" placeholder="Item" type="text" value="" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input class="form-control js-location" placeholder="Full postcode" type="text" value="" />
+                                    </div>
+                                    <div class="col-md-2 h4">
+                                        (<a href="/modtools/settings/{{groups[0].groupid}}/map"><span class="js-area" /> <span class="js-postcode" /></a>)
+                                    </div>
+                                    <div class="col-md-1">
+                                        <div class="btn btn-default js-saveplatsubj" data-toggle="tooltip" title="Save subject edit">
+                                            <div class="glyphicon glyphicon-floppy-save" />&nbsp;Save
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <input class="form-control js-subject" type="hidden" value="" />
+                        </div>
+                        <input class="form-control js-subject" type="hidden" value="" />
                         <% } else { %>
                         <div class="botspace input-group input-group-md">
                             <input class="form-control js-subject" type="text" value="" />
@@ -83,7 +83,7 @@
                     <div class="mapimage margleft pull-right">
                         <!--TODO MAPS-->
                         <!--<a data-realurl="true" href="http://maps.google.com/?q={{location.lat}},{{location.lng}}" target="_blank" rel="noopener">-->
-                            <!--<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&center={{location.lat}},{{location.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom={{mapzoom}}" style="cursor:pointer" />-->
+                        <!--<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=110x110&center={{location.lat}},{{location.lng}}&maptype=roadmap&markers=icon:{{mapicon}}|{{location.lat}},{{location.lng}}&sensor=false&key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&zoom={{mapzoom}}" style="cursor:pointer" />-->
                         <!--</a>-->
                     </div>
                     <% } %>
@@ -94,7 +94,7 @@
     <div class="panel-body">
         <div class="completefull nomargin">
             <% if (obj.heldby) { %>
-                <div class="alert alert-danger">Held by {{obj.heldby.displayname}}.</div>
+            <div class="alert alert-danger">Held by {{obj.heldby.displayname}}.</div>
             <% } %>
             <div class="row-fluid">
                 <div class="col-sm-7">
@@ -154,12 +154,18 @@
         <div class="alert alert-danger">Held by {{obj.heldby.displayname}}.</div>
         <% } %>
         <div class="panel-footer">
-            <div class="pull-right dropdown js-rarelyholder">
-                <button class="btn btn-white caretdropdown js-rarelyused" type="button">
-                    <span class="caret"></span>
-                </button>
-            </div>
             <ul class="list-inline list-unstyled stdmsgs js-stdmsgs">
+                <li class="span1">
+                    <div class="btn btn-danger js-revert"><div class="glyphicons glyphicons-bin"></div>&nbsp;Revert&nbsp;Edit</div>
+                </li>
+                <li class="span1 offset1">
+                    <div class="btn btn-success js-accept"><div class="glyphicons glyphicons-ok"></div>&nbsp;Accept&nbsp;Edit</div>
+                </li>
+                <li>
+                    <div class="btn btn-white js-chat">
+                        <div class="glyphicons glyphicons-conversation vcenter" />&nbsp;Chat
+                    </div>
+                </li>
             </ul>
         </div>
     </div>

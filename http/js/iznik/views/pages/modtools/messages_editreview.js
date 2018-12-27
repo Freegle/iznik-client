@@ -10,10 +10,10 @@ define([
     'iznik/views/infinite',
     'iznik/views/group/select'
 ], function($, _, Backbone, Iznik, IznikYahooUsers) {
-    Iznik.Views.ModTools.Pages.SpamMessages = Iznik.Views.Infinite.extend({
+    Iznik.Views.ModTools.Pages.EditReviewMessages = Iznik.Views.Infinite.extend({
         modtools: true,
 
-        template: "modtools_spam_main",
+        template: "modtools_editreview_main",
 
         retField: 'messages',
 
@@ -25,7 +25,7 @@ define([
             var p = Iznik.Views.Infinite.prototype.render.call(this);
             p.then(function(self) {
                 var v = new Iznik.Views.Help.Box();
-                v.template = 'modtools_spam_info';
+                v.template = 'modtools_editreview_info';
                 v.render().then(function(v) {
                     self.$('.js-help').html(v.el);
                 });
@@ -34,21 +34,21 @@ define([
                     systemWide: false,
                     all: true,
                     mod: true,
-                    counts: ['spam', 'spamother'],
-                    id: 'spamGroupSelect'
+                    counts: ['editreview', 'editreviewother'],
+                    id: 'editReviewGroupSelect'
                 });
 
                 self.collection = new Iznik.Collections.Message(null, {
                     modtools: true,
                     groupid: self.selected,
                     group: Iznik.Session.get('groups').get(self.selected),
-                    collection: 'Spam'
+                    collection: 'Edit'
                 });
 
                 // CollectionView handles adding/removing/sorting for us.
                 self.collectionView = new Backbone.CollectionView({
                     el: self.$('.js-list'),
-                    modelView: Iznik.Views.ModTools.Message.Spam,
+                    modelView: Iznik.Views.ModTools.Message.EditReview,
                     modelViewOptions: {
                         collection: self.collection,
                         page: self
@@ -65,7 +65,7 @@ define([
                     // We haven't fetched anything for this group yet.
                     self.lastFetched = null;
                     self.context = null;
-                    
+
                     self.fetch({
                         groupid: self.selected > 0 ? self.selected : null
                     });
@@ -78,26 +78,34 @@ define([
 
                 // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
                 // appropriately.
-                self.listenTo(Iznik.Session, 'spamcountschanged', _.bind(self.fetch, self));
-                self.listenTo(Iznik.Session, 'spamcountschanged', _.bind(self.countsChanged, self));
-                self.listenTo(Iznik.Session, 'spamcountsotherchanged', _.bind(self.countsChanged, self));
+                self.listenTo(Iznik.Session, 'editreviewcountschanged', _.bind(self.fetch, self));
+                self.listenTo(Iznik.Session, 'editreviewcountschanged', _.bind(self.countsChanged, self));
+                self.listenTo(Iznik.Session, 'editreviewcountsotherchanged', _.bind(self.countsChanged, self));
             });
-            
+
             return(p);
         }
     });
 
-    Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
+    Iznik.Views.ModTools.Message.EditReview = Iznik.Views.ModTools.Message.extend({
         tagName: 'li',
-        template: 'modtools_spam_message',
-        collectionType: 'Spam',
+        template: 'modtools_editreview_message',
+        collectionType: 'Edit',
 
         events: {
-            'click .js-notspam': 'notspam',
-            'click .js-spam': 'spam'
+            'click .js-accept': 'accept',
+            'click .js-revert': 'revert',
+            'click .js-chat': 'chat'
         },
 
-        notspam: function () {
+        chat: function() {
+            var self = this;
+            require(['iznik/views/chat/chat'], function(ChatHolder) {
+                ChatHolder().openChatToUser(self.model.get('fromuser').id);
+            })
+        },
+
+        accept: function () {
             var self = this;
             _.each(self.model.get('groups'), function (group, index, list) {
                 $.ajax({
@@ -105,8 +113,7 @@ define([
                     url: API + 'message',
                     data: {
                         id: self.model.get('id'),
-                        groupid: group.id,
-                        action: 'NotSpam'
+                        action: 'ApproveEdits'
                     }, success: function (ret) {
                         self.$el.fadeOut('slow');
                     }
@@ -114,7 +121,7 @@ define([
             });
         },
 
-        spam: function () {
+        revert: function () {
             var self = this;
             _.each(self.model.get('groups'), function (group, index, list) {
                 $.ajax({
@@ -122,8 +129,7 @@ define([
                     url: API + 'message',
                     data: {
                         id: self.model.get('id'),
-                        groupid: group.id,
-                        action: 'Spam'
+                        action: 'RevertEdits'
                     }, success: function (ret) {
                         self.$el.fadeOut('slow');
                     }
@@ -153,7 +159,7 @@ define([
                             // Add in the message, because we need some values from that
                             mod.set('message', self.model.toJSON());
 
-                            var v = new Iznik.Views.ModTools.Message.Spam.Group({
+                            var v = new Iznik.Views.ModTools.Message.EditReview.Group({
                                 model: mod
                             });
                             v.render().then(function (v) {
@@ -217,7 +223,7 @@ define([
         }
     });
 
-    Iznik.Views.ModTools.Message.Spam.Group = Iznik.View.extend({
-        template: 'modtools_spam_group'
+    Iznik.Views.ModTools.Message.EditReview.Group = Iznik.View.extend({
+        template: 'modtools_editreview_group'
     });
 });

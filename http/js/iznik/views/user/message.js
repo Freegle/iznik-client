@@ -1,3 +1,5 @@
+import HtmlDiff from 'htmldiff';
+
 define([
     'jquery',
     'underscore',
@@ -40,7 +42,24 @@ define([
             'click .js-caret': 'carettoggle',
             'click .js-fop': 'fop',
             'click .js-sharefb': 'sharefb',
-            'click .js-jointoreply': 'join'
+            'click .js-jointoreply': 'join',
+            'click .js-edit': 'edit'
+        },
+
+        edit: function() {
+            var self = this;
+
+            var v = new Iznik.Views.User.Message.Edit({
+                model: self.model
+            });
+
+            self.listenToOnce(v, 'modalClosed', _.bind(self.fetchAndRender, self));
+            v.render();
+        },
+
+        fetchAndRender: function() {
+            var self = this;
+            self.model.fetch().then(self.render());
         },
 
         join: function() {
@@ -414,7 +433,16 @@ define([
                         }
 
                         if (rejected) {
+                            // A mod has rejected this.  The flow is to edit the message via the standard
+                            // post form.
                             self.$('.js-rejected').show();
+                        } else if (self.model.get('sourceheader') == 'Platform' &&
+                            self.model.get('item') &&
+                            self.model.get('location') &&
+                            self.model.get('postcode') &&
+                            self.model.get('area')) {
+                            // This is a platform message.  Allow edit through modal.
+                            self.$('.js-edit').show();
                         }
 
                         self.$('.js-attlist').each(function() {
@@ -498,6 +526,187 @@ define([
             }
 
             return(self.rendering);
+        }
+    });
+
+    Iznik.Views.User.Message.Edit = Iznik.Views.Modal.extend({
+        template: 'user_message_edit',
+
+        events: {
+            'click .js-save': 'save',
+            'typeahead:change .js-postcode': 'locChange'
+        },
+
+        locChange: function() {
+            var self = this;
+
+            var loc = this.$('.js-postcode').typeahead('val');
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: loc
+                }, success: function(ret) {
+                    if (ret.ret == 0) {
+                        var location = ret.locations[0];
+                        if (!_.isUndefined(location)) {
+                            self.$('.js-postcode').typeahead('val', location.name);
+                        } else {
+                            // Invalid - revert
+                            self.$('.js-postcode').typeahead('val', self.model.get('location').name);
+                        }
+                    } else {
+                        // Failed - revert
+                        self.$('.js-postcode').typeahead('val', self.model.get('location').name);
+                    }
+                }
+            });
+        },
+
+        postcodeSource: function(query, syncResults, asyncResults) {
+            var self = this;
+
+            $.ajax({
+                type: 'GET',
+                url: API + 'locations',
+                data: {
+                    typeahead: query
+                }, success: function(ret) {
+                    var matches = [];
+                    _.each(ret.locations, function(location) {
+                        matches.push(location.name);
+                    });
+
+                    asyncResults(matches);
+
+                    _.delay(function() {
+                        var field = self.$('.js-postcode');
+                        if (field.data && field.data('bs.tooltip')) {
+                            self.$('.js-postcode').tooltip('destroy');
+                        }
+                    }, 10000);
+
+                    if (matches.length == 0) {
+                        self.$('.js-postcode').tooltip({'trigger':'focus', 'title': 'Please use a valid UK postcode (including the space)'});
+                        self.$('.js-postcode').tooltip('show');
+                    } else {
+                        self.firstMatch = matches[0];
+                    }
+                }
+            })
+        },
+
+        save: function () {
+            var self = this;
+
+            self.$('.js-editfailed').hide();
+
+            self.listenToOnce(self.model, 'editsucceeded', function () {
+                self.close();
+            });
+
+            self.listenToOnce(self.model, 'editfailed', function () {
+                self.$('.js-editfailed').fadeIn('slow');
+            });
+
+            var text = self.$('.js-text').val();
+            var attachments = [];
+
+            // We might have picked up new images.
+            var newatts = self.model.get('attachments');
+
+            _.each(newatts, function(att) {
+                attachments.push(att.id);
+            });
+
+            var type = self.$('.js-type').val();
+            var item = self.$('.js-item').val();
+            var location = self.$('.js-postcode').val();
+
+            // Don't want to pass as edit anything that hasn't changed - better logs and version controls.
+            console.log("Current message", self.model.attributes);
+            type = type != self.model.get('type') ? type : null;
+            item = item != self.model.get('item').name ? item : null;
+            location = location != self.model.get('location').name ? location : null;
+
+            // This is a bit of a faff - perhaps we should have a different method on the model.
+            if (type || item || location) {
+                self.listenToOnce(self.model, 'editsucceeded', function() {
+                    self.model.serverEdit(
+                        null,
+                        text,
+                        null,
+                        attachments
+                    );
+
+                    self.listenToOnce(self.model, 'editsucceeded', function () {
+                        self.close();
+                    });
+                });
+
+                self.model.editPlatformSubject(type, item, location);
+            } else {
+                self.model.serverEdit(
+                    null,
+                    text,
+                    null,
+                    attachments
+                );
+
+                self.listenToOnce(self.model, 'editsucceeded', function () {
+                    self.close();
+                });
+            }
+        },
+
+        renderImages: function() {
+            var self = this;
+            var photos = self.model.get('attachments');
+            self.photoCollection = new Iznik.Collection(photos);
+
+            var v = new Iznik.Views.User.Message.EditablePhotos({
+                collection: self.photoCollection,
+                message: self.model,
+            });
+
+            v.render().then(function () {
+                self.$('.js-editablephotos').html(v.el);
+            });
+        },
+
+        render: function () {
+            var self = this;
+
+            self.open(this.template, this.model).then(function() {
+                var body;
+
+                body = self.model.get('textbody');
+
+                // Might have images - strip that because we're showing the images separately.
+                var r = /You can see photos here[\s\S]*jpg/gi;
+                body = body.replace(r, '');
+
+                body = body.trim();
+
+                // And can have photos uploaded during edit.
+                self.$('.js-photosallowed').show();
+                self.renderImages();
+
+                self.$('.js-text').val(body);
+                self.$('.js-type').val(self.model.get('type'));
+                self.$('.js-item').val(self.model.get('item').name);
+                self.$('.js-postcode').val(self.model.get('location').name);
+
+                self.$('.js-postcode').typeahead({
+                    minLength: 3,
+                    hint: false,
+                    highlight: true
+                }, {
+                    name: 'postcodes',
+                    source: _.bind(self.postcodeSource, self)
+                });
+            });
         }
     });
 
@@ -695,6 +904,143 @@ define([
                     self.$('.js-multiple').show();
                 }
             })
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Message.EditablePhotos = Iznik.View.extend({
+        template: 'user_message_editablephotos',
+
+        setupPhotoUpload: function() {
+            var self = this;
+
+            var initialPreview = [];
+            var initialPreviewConfig = [];
+
+            self.collection.each(function (att) {
+                initialPreview.push(
+                    "<img src='" + att.get('paththumb') + "' class='file-preview-image img-responsive' alt='Photo attachment'>");
+                initialPreviewConfig.push({
+                    key: att.get('id')
+                });
+            });
+
+            self.$el.find('.js-addphoto').fileinput({
+                initialPreview: initialPreview,
+                initialPreviewConfig: initialPreviewConfig,
+                overwriteInitial: false,
+
+                allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                uploadUrl: API + 'image',
+                uploadExtraData: {
+                    imgtype: 'Message',
+                    ocr: self.options.hasOwnProperty('ocr') ? self.options.ocr : false,
+                    identify: self.options.hasOwnProperty('identify') ? self.options.identify : false
+                },
+                deleteUrl: API + 'image?typeoverride=DELETE',
+
+                resizeImage: true,
+                maxImageWidth: 800,
+
+                browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
+                browseLabel: 'Add Photo',
+                browseClass: 'btn btn-primary btn-md nowrap',
+
+                showUpload: false,
+                showCancel: false,
+                showCaption: false,
+                showRemove: false,
+                showClose: false,
+
+                previewSettings: {
+                    image: {
+                        width: "auto",
+                        height: "auto",
+                        'max-width': '50px'
+                    }
+                },
+
+                showUploadedThumbs: true,
+                dropZoneEnabled: false,
+                buttonLabelClass: '',
+
+                fileActionSettings: {
+                    showZoom: false,
+                    showUpload: false,
+                    showDrag: false,
+                    showRemove: true,
+                    removeClass: 'btn btn-white'
+                },
+
+                layoutTemplates: {
+                    footer: '<div class="file-thumbnail-footer">\n' +
+                    '    {actions}\n' +
+                    '</div>'
+                },
+
+                elErrorContainer: '#js-uploaderror'
+            });
+
+            // Upload as soon as we have it.
+            self.$el.find('.js-addphoto').on('fileimagesresized', function (event) {
+                self.$('.js-photopreviewwrapper').show();
+                self.$('.js-addphoto').fileinput('upload');
+            });
+
+            self.$el.find('.js-addphoto').on('fileuploaded', function (event, formData) {
+                _.delay(function () {
+                    console.log("Uploaded", formData);
+                    var data = formData.response;
+                    self.$('.progress').hide();
+                    var m = new Iznik.Model({
+                        id: data.id,
+                        path: data.path,
+                        paththumb: data.pathhumb
+                    });
+
+                    self.collection.add(m);
+
+                    // Add to the message model.
+                    var atts = self.options.message.get('attachments');
+                    atts.push(m.attributes);
+                    self.options.message.set('attachments', atts);
+                    console.log("Attachments after add", atts);
+                }, 500);
+            });
+
+            self.$el.find('.js-addphoto').on('filedeleted', function (event, key, jqXHR, data) {
+                // Image has been removed.  Here we have the key, which is the id, so we can remove it.
+                // The docs are a bit confusing here, but this is called for images added in this edit, not
+                // just ones in the preview.
+                var atts = self.options.message.get('attachments');
+                console.log("Attachments before delete", JSON.parse(JSON.stringify(atts)), key);
+                atts = _.without(atts, _.findWhere(atts, {
+                    id: key
+                }));
+                self.options.message.set('attachments', atts);
+                console.log("Attachments after delete", JSON.parse(JSON.stringify(atts)));
+            });
+        },
+
+        render: function() {
+            var self = this;
+
+            var p = Iznik.View.prototype.render.call(this);
+
+            p.then(function() {
+                self.photos = [];
+                self.$('.js-photos').each(function() {
+                    $(this).empty();
+                });
+
+                self.collection.each(function(att) {
+                    att.set('subject', self.options.message.get('subject'));
+                    att.set('mine', self.options.message.get('mine'));
+                });
+
+                self.setupPhotoUpload();
+            });
 
             return(p);
         }
@@ -1269,7 +1615,7 @@ define([
                 // Get a zoom level for the map.
                 var zoom = 12;
                 _.each(self.model.get('groups'), function (group) {
-                    zoom = group.hasOwnProperty('settings') && group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12;
+                    zoom = group.hasOwnProperty('settings') && group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 9;
                 });
 
                 self.model.set('mapzoom', zoom);
@@ -1403,5 +1749,134 @@ define([
             //
             // return(p);
         }
+    });
+
+    Iznik.Views.User.Message.EditHistory = Iznik.Views.Modal.extend({
+        template: 'user_message_edithistory',
+
+        render: function () {
+            var self = this;
+            this.open(this.template);
+
+            // Fetch the individual message, which gives us access to the full message (which isn't returned
+            // in the normal messages call to save bandwidth.
+            var m = new Iznik.Models.Message({
+                id: this.model.get('id')
+            });
+
+            m.fetch().then(function () {
+                self.cv = new Backbone.CollectionView({
+                    el: self.$('.js-editlist'),
+                    modelView: Iznik.Views.User.Message.EditHistory.One,
+                    modelViewOptions: {
+                        message: self.model
+                    },
+                    collection: new Iznik.Collection(self.model.get('edits')),
+                    processKeyEvents: false
+                });
+
+                self.cv.render();
+            });
+
+            return (this);
+        }
+    });
+
+    Iznik.Views.User.Message.EditHistory.One = Iznik.View.Timeago.extend({
+        template: 'user_message_edithistoryentry',
+
+        render: function() {
+            var self = this;
+
+            if (self.model.get('oldsubject')) {
+                // Subject has changed
+                self.model.set('subject', HtmlDiff.execute(self.model.get('oldsubject'), self.model.get('newsubject')));
+            } else {
+                // Subject unchanged from message
+                self.model.set('subject', self.options.message.get('subject'));
+            }
+
+            if (self.model.get('oldtext')) {
+                // Text has changed
+                self.model.set('textbody', HtmlDiff.execute(self.model.get('oldtext'), self.model.get('newtext')));
+            } else {
+                // Text body unchanged from message
+                self.model.set('textbody', self.options.message.get('textbody'));
+            }
+
+            var p = Iznik.View.Timeago.prototype.render.call(this);
+
+            p.then(function() {
+                // Might be image changes
+                var oldimages = self.model.get('oldimages');
+                var newimages = self.model.get('newimages');
+
+                if (!_.isUndefined(oldimages) && !_.isUndefined(newimages) && oldimages != newimages) {
+                    // Might be encoded.
+                    oldimages = typeof oldimages === 'string' ? JSON.parse(oldimages) : oldimages;
+                    newimages = typeof newimages === 'string' ? JSON.parse(newimages) : newimages;
+
+                    var added = [];
+                    var removed = [];
+
+                    // Might be strings or ints, convert.
+                    oldimages = oldimages.map(function(e) {
+                        return(parseInt(e));
+                    });
+                    newimages = newimages.map(function(e) {
+                        return(parseInt(e));
+                    });
+
+                    _.each(oldimages, function(oldimage) {
+                        if (newimages.indexOf(oldimage) === -1) {
+                            removed.push(oldimage);
+                        }
+                    });
+
+                    _.each(newimages, function(newimage) {
+                        if (oldimages.indexOf(newimage) === -1) {
+                            added.push(newimage);
+                        }
+                    });
+
+                    console.log("Added, removed", added, removed);
+                    _.each(added, function(a) {
+                        var v = new Iznik.Views.User.Message.EditHistory.Photo({
+                            model: new Iznik.Model({
+                                id: a,
+                                added: true,
+                                removed: false,
+                                paththumb: '/timg_' + a + '.jpg'
+                            })
+                        });
+
+                        v.render();
+                        self.$('.js-attachments').append(v.$el);
+                    });
+
+                    _.each(removed, function(a) {
+                        var v = new Iznik.Views.User.Message.EditHistory.Photo({
+                            model: new Iznik.Model({
+                                id: a,
+                                added: false,
+                                removed: true,
+                                paththumb: '/timg_' + a + '.jpg'
+                            })
+                        });
+
+                        v.render();
+                        self.$('.js-attachments').append(v.$el);
+                    });
+                }
+            });
+
+            return(p);
+        }
+    });
+
+    Iznik.Views.User.Message.EditHistory.Photo = Iznik.View.extend({
+        template: 'user_message_edithistoryphoto',
+
+        tagName: 'li'
     });
 });

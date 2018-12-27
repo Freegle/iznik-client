@@ -231,9 +231,7 @@ define([
             });
         },
 
-        serverEdit: function(subject, textbody, htmlbody) {
-            // We also drop the text part here, because the server will (in its absence)
-            // convert the HTML variant to text - and do a better job than we may have done on the client.
+        serverEdit: function(subject, textbody, htmlbody, attachments) {
             var self = this;
 
             self.data2 = {
@@ -241,7 +239,13 @@ define([
                 subject: subject
             };
 
+            if (!_.isUndefined(attachments) && attachments) {
+                self.data2.attachments = attachments;
+            }
+
             if (htmlbody) {
+                // We drop the text part here, because the server will (in its absence)
+                // convert the HTML variant to text - and do a better job than we may have done on the client.
                 self.data2.htmlbody = htmlbody;
             } else {
                 self.data2.textbody = textbody;
@@ -274,7 +278,7 @@ define([
             });
         },
 
-        edit: function(subject, textbody, htmlbody) {
+        edit: function(subject, textbody, htmlbody, attachments) {
             // We need a closure to guard the parameters.
 
             function closure(self, subject, textbody, htmlbody) {
@@ -284,7 +288,7 @@ define([
                         console.log("Edit on group", group);
 
                         if (!group.onyahoo) {
-                            self.serverEdit(subject, textbody, htmlbody);
+                            self.serverEdit(subject, textbody, htmlbody, attachments);
                         } else {
                             // Editing is complex.
                             // - We need a crumb from Yahoo to allow us to do it.
@@ -486,6 +490,21 @@ define([
             }
 
             this.set(property, text);
+        },
+
+        isFreegle() {
+            var self = this;
+
+            var isFreegle = false;
+
+            var groups = self.get('groups');
+            _.each(groups, function(group) {
+                if (group.type === 'Freegle') {
+                    isFreegle = true;
+                }
+            });
+
+            return(isFreegle);
         }
     });
 

@@ -201,7 +201,7 @@ define([
 
             // Get a zoom level for the map.
             _.each(self.model.get('groups'), function (group) {
-                self.model.set('mapzoom', group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 12);
+                self.model.set('mapzoom', group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 9);
             });
 
             if (!self.rendering) {

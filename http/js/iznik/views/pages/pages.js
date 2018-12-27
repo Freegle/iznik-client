@@ -160,9 +160,12 @@ define([
                             }
                         }
 
+                        _.delay(_.bind(this.notificationCheck, this), 30000);
                         self.notificationChecking = false;
                     }
                 });
+            } else {
+                console.log("Already checking notifications");
             }
         },
 
