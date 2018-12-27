@@ -441,6 +441,7 @@ define([
 
     var chatTitleCount = 0;
     var newsfeedTitleCount = 0;
+    var workTitleCount = 0;
 
     Iznik.setHeaderCounts = function (chatcount, notifcount) {
       // This if test improves browser performance by avoiding unnecessary show/hides.
@@ -468,7 +469,7 @@ define([
       });
     }
 
-    Iznik.setTitleCounts = function(chat, newsfeed) {
+    Iznik.setTitleCounts = function(chat, newsfeed, work) {
         if (chat !== null) {
             chatTitleCount = chat;
         }
@@ -477,7 +478,11 @@ define([
             newsfeedTitleCount = newsfeed;
         }
 
-        var unseen = chatTitleCount + newsfeedTitleCount;
+        if (work !== null) {
+            workTitleCount = work;
+        }
+
+        var unseen = chatTitleCount + newsfeedTitleCount + workTitleCount;
 
         // We'll adjust the count in the window title.
         var title = document.title;
