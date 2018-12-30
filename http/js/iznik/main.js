@@ -17,6 +17,7 @@ var lastPushMsgid = false;
 //var badgeconsole = '';
 var divertConsole = false;
 window.showDebugConsole = false;
+window.isOnline = true;
 
 // CC var Raven = require('raven-js');
 
@@ -99,9 +100,8 @@ window.mobileRefresh = function () {
     return false;
 }
 
-var isOnline = true;
 window.showNetworkStatus = function() {
-    if (isOnline) {
+    if (window.isOnline) {
         jQuery('#nonetwork').addClass('reallyHide');
         jQuery('#refreshbutton').removeClass('reallyHide');
     } else {
@@ -233,8 +233,8 @@ function mainOnAppStart() { // CC
                 } catch (e) { }
             });
 
-            document.addEventListener("offline", function () { isOnline = false; console.log("offline"); window.showNetworkStatus() }, false);
-            document.addEventListener("online", function () { isOnline = true; console.log("online"); window.showNetworkStatus() }, false);
+            document.addEventListener("offline", function () { window.isOnline = false; console.log("offline"); window.showNetworkStatus() }, false);
+            document.addEventListener("online", function () { window.isOnline = true; console.log("online"); window.showNetworkStatus() }, false);
 
             Backbone.emulateJSON = true;
 
@@ -249,6 +249,11 @@ function mainOnAppStart() { // CC
             $(document).ajaxStart(function () {
                 $('#spinner').show();
                 window.showHeaderWait();
+                if ((navigator.connection.type != Connection.NONE) && !window.isOnline) { // Remove red cloud if we are now actually online
+                  console.log("ajaxStart fire online");
+                  var event = new Event('online');
+                  document.dispatchEvent(event);
+                }
             });
 
             // We want to retry AJAX requests automatically, because we might have a flaky network.  This also covers us for
