@@ -4,7 +4,7 @@
 <div class="panel panel-warning padmd">
     <div class="panel-heading">
         <div class="row padleft">
-            <% if (refmsg.fromuser.id == obj.myid) { %>
+            <% if (refmsg.fromuser == obj.myid) { %>
             <h4 class="nomargin"><div class="glyphicons glyphicons-remove-circle glyphicon-larger vcenter" />&nbsp;Cancelled promise</h4>
             <% } else { %>
             <h4 class="nomargin">Sorry...</h4>

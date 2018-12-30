@@ -5,7 +5,7 @@
                 <h4 class="padleft">
                     <div class="col-xs-3">
                         {{fromuser.displayname}} <span class="small text-muted"><br />
-                        #{{fromuser.id}}</span><br />
+                        #{{fromuser}}</span><br />
                         <div class="btn btn-xs btn-white topspace js-addcommentfrom">
                             <div class="glyphicon glyphicon-tag" />&nbsp;Add Note
                         </div>
@@ -41,13 +41,17 @@
             <div class="alert alert-info">
                 <p>We think this message is blank.  It came by email, and perhaps we didn't handle it right.  You can look at the original email to check.  If you see something that
                 should be there, you can pass it on by adding a Mod Message.  Otherwise just Delete it</p>
-
                 <button type="button" class="btn btn-info btn-lg topspace js-viewmsgsource">
                     <span class="glyphicon glyphicon-book" />&nbsp;View Original Email</span>
                 </button>
             </div>
             <% } else { %>
-            <pre class="js-message"><%-message%></pre>
+                <% if (!obj.platform) { %>
+                <button type="button" class="btn btn-white botspace js-viewmsgsource">
+                    <span class="glyphicon glyphicon-book" />&nbsp;View Original Email</span>
+                </button>
+                <% } %>
+                <pre class="js-message"><%-message%></pre>
             <% } %>
         </div>
         <% if (obj.held) { %>

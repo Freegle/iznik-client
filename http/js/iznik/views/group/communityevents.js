@@ -98,6 +98,7 @@ define([
         tagName: 'li',
 
         template: "communityevents_one",
+
         className: 'padleftsm',
 
         events: {
@@ -126,6 +127,10 @@ define([
             var p = Iznik.View.prototype.render.call(this).then(function() {
                 var dates = self.model.get('dates');
                 var count = 0;
+
+                var url = 'https://' + USER_SITE + '/communityevent/' + self.model.get('id');
+                self.$('.js-schemaurl').attr('content', url);
+
                 if (dates) {
                     for (var i = 0; i < dates.length; i++) {
                         var date = dates[i];
@@ -135,6 +140,25 @@ define([
                                 self.$('.js-start').html(startm.format('ddd, Do MMM HH:mm'));
                                 var endm = new moment(date.end);
                                 self.$('.js-end').html(endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm'));
+
+                                if (i === 0) {
+                                    // Add the schema.org info.  Only add the first (next) date.
+                                    self.$('.js-schemastart').html(startm.toISOString());
+                                    self.$('.js-schemaend').html(endm.toISOString());
+
+                                    var pc = /((GIR 0AA)|((([A-PR-UWYZ][0-9][0-9]?)|(([A-PR-UWYZ][A-HK-Y][0-9][0-9]?)|(([A-PR-UWYZ][0-9][A-HJKSTUW])|([A-PR-UWYZ][A-HK-Y][0-9][ABEHMNPRVWXY])))) [0-9][ABD-HJLNP-UW-Z]{2}))/i;
+                                    var loc = self.model.get('location');
+                                    var match = pc.exec(loc);
+
+                                    if (match && match.length > 0) {
+                                        var pcfound = match[1];
+                                        self.$('.js-schemapostcode').attr('content', pcfound);
+                                    } else {
+                                        // No postcode; can't give the event an address so don't put in incomplete schema info.
+                                        // TODO Could put in a location from the group?
+                                        self.$('.js-schemainfo').remove();
+                                    }
+                                }
                             }
 
                             count++;
@@ -188,15 +212,38 @@ define([
                 var url = 'https://' + USER_SITE + '/communityevent/' + self.model.get('id');
                 self.$('.js-url').html(url);
                 self.$('.js-url').attr('href', url);
+                self.$('.js-schemaurl').attr('content', url);
 
                 self.$('.js-dates').empty();
-                _.each(self.model.get('dates'), function(date) {
+
+                var dates = self.model.get('dates');
+                for (var i = 0; i < dates.length; i++) {
+                    var date = dates[i];
                     var startm = new moment(date.start);
                     var start = startm.format('ddd, Do MMM YYYY HH:mm');
                     var endm = new moment(date.end);
                     var end = endm.isSame(startm, 'day') ? endm.format('HH:mm') : endm.format('ddd, Do MMM YYYY HH:mm');
                     self.$('.js-dates').append(start + ' - ' + end + '<br />');
-                });
+
+                    if (i === 0) {
+                        // Add the schema.org info.
+                        self.$('.js-schemastart').html(startm.toISOString());
+                        self.$('.js-schemaend').html(endm.toISOString());
+
+                        var pc = /((GIR 0AA)|((([A-PR-UWYZ][0-9][0-9]?)|(([A-PR-UWYZ][A-HK-Y][0-9][0-9]?)|(([A-PR-UWYZ][0-9][A-HJKSTUW])|([A-PR-UWYZ][A-HK-Y][0-9][ABEHMNPRVWXY])))) [0-9][ABD-HJLNP-UW-Z]{2}))/i;
+                        var loc = self.model.get('location');
+                        var match = pc.exec(loc);
+
+                        if (match && match.length > 0) {
+                            var pcfound = match[1];
+                            self.$('.js-schemapostcode').attr('content', pcfound);
+                        } else {
+                            // No postcode; can't give the event an address so don't put in incomplete schema info.
+                            // TODO Could put in a location from the group?
+                            self.$('.js-schemainfo').remove();
+                        }
+                    }
+                }
             });
         }
     });

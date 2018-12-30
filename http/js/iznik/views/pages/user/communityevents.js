@@ -21,7 +21,7 @@ define([
 
                 v.render().then(function() {
                     self.$('.js-events').html(v.$el);
-                    if (Iznik.Session.get('groups').length > 0) {
+                    if (self.options.groupid || Iznik.Session.get('groups').length > 0) {
                         self.$('.js-somegroups').show();
                     } else {
                         self.$('.js-nogroups').show();
@@ -80,11 +80,34 @@ define([
             var p = Iznik.View.prototype.render.call(this);
             p.then(function() {
                 self.$('.js-dates').empty();
-                _.each(self.model.get('dates'), function(date) {
-                    var start = (new moment(date.start)).format('ddd, Do MMM YYYY HH:mm');
-                    var end = (new moment(date.end)).format('ddd, Do MMM YYYY HH:mm');
+                var dates = self.model.get('dates');
+                for (var i = 0; i < dates.length; i++) {
+                    var date = dates[i];
+                    var startm = (new moment(date.start));
+                    var endm = (new moment(date.end));
+                    var start = startm.format('ddd, Do MMM YYYY HH:mm');
+                    var end = endm.format('ddd, Do MMM YYYY HH:mm');
                     self.$('.js-dates').append(start + ' - ' + end + '<br />');
-                });
+
+                    if (i === 0) {
+                        // Add the schema.org info.
+                        self.$('.js-schemastart').html(startm.toISOString());
+                        self.$('.js-schemaend').html(endm.toISOString());
+
+                        var pc = /((GIR 0AA)|((([A-PR-UWYZ][0-9][0-9]?)|(([A-PR-UWYZ][A-HK-Y][0-9][0-9]?)|(([A-PR-UWYZ][0-9][A-HJKSTUW])|([A-PR-UWYZ][A-HK-Y][0-9][ABEHMNPRVWXY])))) [0-9][ABD-HJLNP-UW-Z]{2}))/i;
+                        var loc = self.model.get('location');
+                        var match = pc.exec(loc);
+
+                        if (match && match.length > 0) {
+                            var pcfound = match[1];
+                            self.$('.js-schemapostcode').attr('content', pcfound);
+                        } else {
+                            // No postcode; can't give the event an address so don't put in incomplete schema info.
+                            // TODO Could put in a location from the group?
+                            self.$('.js-schemainfo').remove();
+                        }
+                    }
+                }
             });
             
             return(p);
