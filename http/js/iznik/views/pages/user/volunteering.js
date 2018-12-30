@@ -21,7 +21,7 @@ define([
 
                 v.render().then(function() {
                     self.$('.js-volunteering').html(v.$el);
-                    if (Iznik.Session.get('groups').length > 0) {
+                    if (self.options.groupid || Iznik.Session.get('groups').length > 0) {
                         self.$('.js-somegroups').show();
                     } else {
                         self.$('.js-nogroups').show();
