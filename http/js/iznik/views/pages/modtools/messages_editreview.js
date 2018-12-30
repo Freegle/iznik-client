@@ -154,6 +154,21 @@ define([
                     var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
                     p.then(function(self) {
                         _.each(self.model.get('groups'), function (group, index, list) {
+                            self.$('.js-type').val(self.model.get('type'));
+                            self.$('.js-item').val(self.model.get('item').name);
+                            self.$('.js-location').val(self.model.get('location').name);
+                            self.$('.js-postcode').html(self.model.get('postcode').name);
+                            self.$('.js-area').html(self.model.get('area').name);
+
+                            self.$('.js-location').typeahead({
+                                minLength: 2,
+                                hint: false,
+                                highlight: true
+                            }, {
+                                name: 'postcodes',
+                                source: _.bind(self.postcodeSource, self)
+                            });
+
                             var mod = new Iznik.Model(group);
 
                             // Add in the message, because we need some values from that
