@@ -1735,26 +1735,27 @@ define([
 
         render: function () {
             var self = this;
-            this.open(this.template);
 
-            // Fetch the individual message, which gives us access to the full message (which isn't returned
-            // in the normal messages call to save bandwidth.
-            var m = new Iznik.Models.Message({
-                id: this.model.get('id')
-            });
-
-            m.fetch().then(function () {
-                self.cv = new Backbone.CollectionView({
-                    el: self.$('.js-editlist'),
-                    modelView: Iznik.Views.User.Message.EditHistory.One,
-                    modelViewOptions: {
-                        message: self.model
-                    },
-                    collection: new Iznik.Collection(self.model.get('edits')),
-                    processKeyEvents: false
+            this.open(this.template).then(function() {
+                // Fetch the individual message, which gives us access to the full message (which isn't returned
+                // in the normal messages call to save bandwidth.
+                var m = new Iznik.Models.Message({
+                    id: self.model.get('id')
                 });
 
-                self.cv.render();
+                m.fetch().then(function () {
+                    self.cv = new Backbone.CollectionView({
+                        el: self.$('.js-editlist'),
+                        modelView: Iznik.Views.User.Message.EditHistory.One,
+                        modelViewOptions: {
+                            message: self.model
+                        },
+                        collection: new Iznik.Collection(self.model.get('edits')),
+                        processKeyEvents: false
+                    });
+
+                    self.cv.render();
+                });
             });
 
             return (this);
