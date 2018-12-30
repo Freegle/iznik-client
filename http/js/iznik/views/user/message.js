@@ -414,8 +414,20 @@ define([
                             self.model.get('location') &&
                             self.model.get('postcode') &&
                             self.model.get('area')) {
-                            // This is a platform message.  Allow edit through modal.
-                            self.$('.js-edit').show();
+
+                            // This is a platform message.  We may be able to edit it, unless editing is turned off
+                            // for this group.
+                            var noedits = false;
+
+                            _.each(self.model.get('groups'), function(group) {
+                                if (group.settings.hasOwnProperty('allowedits') && !group.settings.allowedits) {
+                                    noedits = true;
+                                }
+                            });
+
+                            if (!noedits) {
+                                self.$('.js-edit').show();
+                            }
                         }
 
                         self.$('.js-attlist').each(function() {
