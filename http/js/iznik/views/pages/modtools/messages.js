@@ -24,6 +24,7 @@ define([
             });
 
             v.render();
+            return(false);
         },
 
         rarelyUsed: function () {
