@@ -1,3 +1,15 @@
+<div itemscope itemtype="http://www.schema.org/Event" style="display: none" class="js-schemainfo">
+    <div itemprop="name" content="<%-title%>" />
+    <div itemprop="image" content="<% if (obj.photo) { %>{{obj.photo}}<% } else { %>/images/user_logo.png<% } %>" />
+    <div itemprop="startDate" class="js-schemastart" content="" />
+    <div itemprop="endDate" class="js-schemaend" content="" />
+    <div itemprop="description" content="<%-description%>" />
+    <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+        <span itemprop="postalCode" class="js-schemapostcode"></span>
+        <span itemprop="addressCountry">United Kingdom</span>
+    </div>
+    <div itemprop="url" class="js-schemaurl" content="" />
+</div>
 <h1>{{title}}</h1>
 <div class="row">
     <div class="<% if (obj.photo) { %>col-md-8<% } else { %>col-md-12<% } %>">

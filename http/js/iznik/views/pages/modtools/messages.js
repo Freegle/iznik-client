@@ -18,7 +18,8 @@ define([
         },
 
         editHistory: function() {
-            var self = this;
+          var self = this;
+          console.log("editHistory");
             var v = new Iznik.Views.User.Message.EditHistory({
                 model: self.model
             });

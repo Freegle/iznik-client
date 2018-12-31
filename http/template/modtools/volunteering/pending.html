@@ -29,6 +29,11 @@
         <% } %>
     </div>
     <div class="panel-body">
+        <% if (!obj.groups || groups.length === 0) { %>
+        <div class="alert alert-danger">
+            This is a national volunteer opportunity which will go out to all groups.  Please review carefully.
+        </div>
+        <% } %>
         <form>
             <div class="row">
                 <div class="col-sm-6">

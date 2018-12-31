@@ -3,7 +3,39 @@
         <div class="row">
             <div class="panel-title msgsubj js-details">
                 <div class="col-sm-9">
+                    <% if (obj.sourceheader == 'Platform' && obj.item && obj.location && obj.postcode && obj.area) { %>
+                    <div class="panel">
+                        <div class="panel-body">
+                            <div class="nopad nomarg row">
+                                <div class="col-md-2">
+                                    <select class="form-control js-type">
+                                        <option value="Offer">OFFER</option>
+                                        <option value="Taken">TAKEN </option>
+                                        <option value="Wanted">WANTED</option>
+                                        <option value="Received">RECEIVED</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input class="form-control js-item" placeholder="Item" type="text" value="" />
+                                </div>
+                                <div class="col-md-2">
+                                    <input class="form-control js-location" placeholder="Full postcode" type="text" value="" />
+                                </div>
+                                <div class="col-md-2 h4">
+                                    (<a href="/modtools/settings/{{groups[0].groupid}}/map"><span class="js-area" /> <span class="js-postcode" /></a>)
+                                </div>
+                                <div class="col-md-1">
+                                    <div class="btn btn-default js-saveplatsubj" data-toggle="tooltip" title="Save subject edit">
+                                        <div class="glyphicon glyphicon-floppy-save" />&nbsp;Save
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input class="form-control js-subject" type="hidden" value="" />
+                    <% } else { %>
                     <h4 class="js-coloursubj js-subject"></h4>
+                    <% } %>
                     <div class="pull-right margright js-editcontainer">
                         <button class="btn btn-white js-editnotstd">
                             <div class="glyphicon glyphicon-pencil" />

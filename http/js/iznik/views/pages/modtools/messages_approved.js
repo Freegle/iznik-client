@@ -173,6 +173,7 @@ define([
             'click .js-viewsource': 'viewSource',
             'click .js-excludelocation': 'excludeLocation',
             'click .js-rarelyused': 'rarelyUsed',
+            'click .js-saveplatsubj': 'savePlatSubject',
             'click .js-editnotstd': 'editNotStd',
             'click .js-spam': 'spam'
         },
@@ -208,17 +209,40 @@ define([
                 self.rendering = new Promise(function(resolve, reject) {
                     var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
                     p.then(function(self) {
-                        // We handle the subject as a special case rather than a template expansion.  We might be doing a search, in
-                        // which case we want to highlight the matched words.  So we split out the subject string into a sequence of
-                        // spans, which then allows us to highlight any matched ones.
-                        self.$('.js-subject').html(self.wordify(self.model.get('subject')));
-                        var matched = self.model.get('matchedon');
-                        if (matched) {
-                            self.$('.js-subject span').each(function () {
-                                if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
-                                    $(this).addClass('searchmatch');
-                                }
+                        // For platform messages we don't need to suggest an alternative subject, and the edit
+                        // box isn't free-form.
+                        if (self.model.get('sourceheader') == 'Platform' &&
+                            self.model.get('item') &&
+                            self.model.get('location') &&
+                            self.model.get('postcode') &&
+                            self.model.get('area')) {
+                            self.$('.js-type').val(self.model.get('type'));
+                            self.$('.js-item').val(self.model.get('item').name);
+                            self.$('.js-location').val(self.model.get('location').name);
+                            self.$('.js-postcode').html(self.model.get('postcode').name);
+                            self.$('.js-area').html(self.model.get('area').name);
+
+                            self.$('.js-location').typeahead({
+                                minLength: 2,
+                                hint: false,
+                                highlight: true
+                            }, {
+                                name: 'postcodes',
+                                source: _.bind(self.postcodeSource, self)
                             });
+                        } else {
+                            // We handle the subject as a special case rather than a template expansion.  We might be doing a search, in
+                            // which case we want to highlight the matched words.  So we split out the subject string into a sequence of
+                            // spans, which then allows us to highlight any matched ones.
+                            self.$('.js-subject').html(self.wordify(self.model.get('subject')));
+                            var matched = self.model.get('matchedon');
+                            if (matched) {
+                                self.$('.js-subject span').each(function () {
+                                    if ($(this).html().toLowerCase().indexOf(matched.word) != -1) {
+                                        $(this).addClass('searchmatch');
+                                    }
+                                });
+                            }
                         }
 
                         self.$('.js-grouplist').empty();

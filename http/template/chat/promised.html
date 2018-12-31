@@ -4,7 +4,7 @@
 <div class="panel panel-success padmd">
     <div class="panel-heading">
         <div class="row padleft">
-            <% if (refmsg.fromuser.id == obj.myid) { %>
+            <% if (refmsg.fromuser == obj.myid) { %>
             <h4 class="nomargin"><span class="glyphicons glyphicons-handshake glyphicon-larger vcenter" />&nbsp;You promised this:</h4>
             <% } else { %>
             <h4 class="nomargin"><span class="glyphicons glyphicons-handshake glyphicon-larger vcenter" />&nbsp;Good news!</h4>
@@ -27,7 +27,7 @@
         </div>
         <div class="row topspace">
             <div class="col-xs-12 nopad">
-            <% if (refmsg.fromuser.id == obj.myid) { %>
+            <% if (refmsg.fromuser == obj.myid) { %>
                 <% if (refmsg.promisecount) { %>
                         <div class="btn btn-warning js-renege" title="Remove promise">
                             <div class="glyphicons glyphicons-remove-circle vcenter" />&nbsp;Unpromise
