@@ -412,6 +412,13 @@ define([
                                 helpMessage: "When this setting is No (for most groups), all new members are Moderated and members can be changed to Group Settings (meaning unmoderated) once they have made a valid post.  When this setting is Yes, all posts must be moderated no matter what setting the user has."
                             },
                             {
+                                name: 'allowedits',
+                                label: '(Freegle native groups only) Members can edit?',
+                                control: 'radio',
+                                options: [{label: 'Yes', value: 1}, {label: 'No', value:0 }],
+                                helpMessage: "When this setting is Yes (for most groups), members can edit their own posts; edits of moderated members are retrospectively reviewed.  When this setting is No, members cannot edit."
+                            },
+                            {
                                 name: 'autoapprove.members',
                                 label: 'Auto-approve pending members?',
                                 control: 'radio',
