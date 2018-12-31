@@ -441,8 +441,20 @@ define([
                             self.model.get('location') &&
                             self.model.get('postcode') &&
                             self.model.get('area')) {
-                            // This is a platform message.  Allow edit through modal.
-                            self.$('.js-edit').show();
+
+                            // This is a platform message.  We may be able to edit it, unless editing is turned off
+                            // for this group.
+                            var noedits = false;
+
+                            _.each(self.model.get('groups'), function(group) {
+                                if (group.settings.hasOwnProperty('allowedits') && !group.settings.allowedits) {
+                                    noedits = true;
+                                }
+                            });
+
+                            if (!noedits) {
+                                self.$('.js-edit').show();
+                            }
                         }
 
                         self.$('.js-attlist').each(function() {
@@ -1755,33 +1767,30 @@ define([
         template: 'user_message_edithistory',
 
         render: function () {
-          console.log("EditHistory");
             var self = this;
-          console.log(this.template);
-            this.open(this.template);
 
-            // Fetch the individual message, which gives us access to the full message (which isn't returned
-            // in the normal messages call to save bandwidth.
-            var m = new Iznik.Models.Message({
-                id: this.model.get('id')
-            });
-
-            m.fetch().then(function () {
-                self.cv = new Backbone.CollectionView({
-                    el: self.$('.js-editlist'),
-                    modelView: Iznik.Views.User.Message.EditHistory.One,
-                    modelViewOptions: {
-                        message: self.model
-                    },
-                    collection: new Iznik.Collection(self.model.get('edits')),
-                    processKeyEvents: false
+            this.open(this.template).then(function() {
+                // Fetch the individual message, which gives us access to the full message (which isn't returned
+                // in the normal messages call to save bandwidth.
+                var m = new Iznik.Models.Message({
+                    id: self.model.get('id')
                 });
 
-              console.log("EditHistory cv");
-                self.cv.render();
+                m.fetch().then(function () {
+                    self.cv = new Backbone.CollectionView({
+                        el: self.$('.js-editlist'),
+                        modelView: Iznik.Views.User.Message.EditHistory.One,
+                        modelViewOptions: {
+                            message: self.model
+                        },
+                        collection: new Iznik.Collection(self.model.get('edits')),
+                        processKeyEvents: false
+                    });
+
+                    self.cv.render();
+                });
             });
 
-          console.log("EditHistory END");
             return (this);
         }
     });
@@ -1790,10 +1799,7 @@ define([
         template: 'user_message_edithistoryentry',
 
         render: function() {
-          console.log("EditHistory.One");
             var self = this;
-
-          console.log(HtmlDiff);
 
             if (self.model.get('oldsubject')) {
                 // Subject has changed
@@ -1877,7 +1883,6 @@ define([
                 }
             });
 
-          console.log("EditHistory.One END");
             return(p);
         }
     });

@@ -18,13 +18,13 @@ define([
         },
 
         editHistory: function() {
-          var self = this;
-          console.log("editHistory");
+            var self = this;
             var v = new Iznik.Views.User.Message.EditHistory({
                 model: self.model
             });
 
             v.render();
+            return false;
         },
 
         rarelyUsed: function () {
