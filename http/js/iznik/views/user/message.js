@@ -1736,7 +1736,7 @@ define([
         render: function () {
             var self = this;
 
-            this.open(this.template).then(function() {
+            var p = this.open(this.template).then(function() {
                 // Fetch the individual message, which gives us access to the full message (which isn't returned
                 // in the normal messages call to save bandwidth.
                 var m = new Iznik.Models.Message({
@@ -1758,7 +1758,7 @@ define([
                 });
             });
 
-            return (this);
+            return(p);
         }
     });
 
