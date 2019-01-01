@@ -415,17 +415,8 @@ define([
                             self.model.get('postcode') &&
                             self.model.get('area')) {
 
-                            // This is a platform message.  We may be able to edit it, unless editing is turned off
-                            // for this group.
-                            var noedits = false;
-
-                            _.each(self.model.get('groups'), function(group) {
-                                if (group.settings.hasOwnProperty('allowedits') && !group.settings.allowedits) {
-                                    noedits = true;
-                                }
-                            });
-
-                            if (!noedits) {
+                            // This is a platform message.  We may be able to edit it
+                            if (self.model.get('canedit')) {
                                 self.$('.js-edit').show();
                             }
                         }
