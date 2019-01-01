@@ -91,8 +91,8 @@ define([
 
                     if (i === 0) {
                         // Add the schema.org info.
-                        self.$('.js-schemastart').html(startm.toISOString());
-                        self.$('.js-schemaend').html(endm.toISOString());
+                        self.$('.js-schemastart').attr('content', startm.toISOString());
+                        self.$('.js-schemaend').attr('content', endm.toISOString());
 
                         var pc = /((GIR 0AA)|((([A-PR-UWYZ][0-9][0-9]?)|(([A-PR-UWYZ][A-HK-Y][0-9][0-9]?)|(([A-PR-UWYZ][0-9][A-HJKSTUW])|([A-PR-UWYZ][A-HK-Y][0-9][ABEHMNPRVWXY])))) [0-9][ABD-HJLNP-UW-Z]{2}))/i;
                         var loc = self.model.get('location');
