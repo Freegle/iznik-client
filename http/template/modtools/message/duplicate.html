@@ -1,3 +1,4 @@
 <div <% if (obj.daysago < obj.dupage) { %>class="error"<% } %>>
     Duplicate of #{{id}} <em>{{subject}}</em> <abbr class="timeago" title="{{date}}">{{timeago(date)}}</abbr>
+    <% if (obj.dupoutcome) { %>which is {{dupoutcome}}<% } %>
 </div>
