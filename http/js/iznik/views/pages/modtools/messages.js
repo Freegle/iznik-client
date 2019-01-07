@@ -104,11 +104,11 @@ define([
         savePlatSubject: function () {
             var self = this;
 
-            // First edit our copy.
             self.listenToOnce(self.model, 'editsucceeded', function() {
-                // Now we may need to edit on Yahoo too.
-                self.$('.js-subject').val(self.model.get('subject'));
-                self.saveSubject();
+                self.model.fetch().then(function() {
+                    self.$('.js-savesubj .glyphicon').removeClass('glyphicon-floppy-save glyphicon-warning-sign').addClass('glyphicon-refresh rotate');
+                    self.render();
+                })
             });
 
             self.model.editPlatformSubject(
