@@ -145,7 +145,9 @@ define([
             });
 
             this.listenToOnce(this.model, 'editsucceeded', function () {
-                self.render();
+                self.model.fetch().then(function() {
+                    self.render();
+                });
             });
 
             v.render();
