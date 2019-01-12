@@ -369,208 +369,219 @@ define([
         render: function () {
             var self = this;
 
-            var settings = Iznik.Session.get('me').settings;
+            self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+                var settings = Iznik.Session.get('me').settings;
 
-            var p = Iznik.Views.User.Pages.WhereAmI.prototype.render.call(this, {
-                model: new Iznik.Model(settings)
-            });
-
-            p.then(function() {
-                var v = new Iznik.Views.Help.Box();
-                v.template = 'user_settings_help';
-                v.render().then(function(v) {
-                    self.$('.js-help').html(v.el);
+                var p = Iznik.Views.User.Pages.WhereAmI.prototype.render.call(this, {
+                    model: new Iznik.Model(settings)
                 });
 
-                self.$('abbr.timeago').timeago();
-                self.$('.datepicker').datetimepicker({
-                    format: 'ddd, DD MMMM',
-                    minDate: new moment(),
-                    maxDate: (new moment()).add(30, 'days'),
-                    keyBinds: { 'delete':null }
-                });
+                p.then(function() {
+                    var v = new Iznik.Views.Help.Box();
+                    v.template = 'user_settings_help';
+                    v.render().then(function(v) {
+                        self.$('.js-help').html(v.el);
+                    });
 
-                self.$('.datepicker').on("dp.change", _.bind(self.onholidaytill, self));
+                    self.$('abbr.timeago').timeago();
+                    self.$('.datepicker').datetimepicker({
+                        format: 'ddd, DD MMMM',
+                        minDate: new moment(),
+                        maxDate: (new moment()).add(30, 'days'),
+                        keyBinds: { 'delete':null }
+                    });
 
-                var me = Iznik.Session.get('me');
-                self.$('.js-name').val(me.displayname);
+                    self.$('.datepicker').on("dp.change", _.bind(self.onholidaytill, self));
 
-                // Profile
-                self.$("#useprofile").bootstrapSwitch({
-                    onText: 'Shown',
-                    offText: 'Hidden',
-                    state: settings.hasOwnProperty('useprofile') && settings.useprofile
-                });
+                    var me = Iznik.Session.get('me');
+                    self.$('.js-name').val(me.displayname);
 
-                self.$('.js-profileimg').attr('src', me.profile.url);
+                    // Profile
+                    self.$("#useprofile").bootstrapSwitch({
+                        onText: 'Shown',
+                        offText: 'Hidden',
+                        state: settings.hasOwnProperty('useprofile') && settings.useprofile
+                    });
 
-                // File upload
-                self.$('.js-profileupload').fileinput({
-                    uploadExtraData: {
-                        imgtype: 'User',
-                        msgid: Iznik.Session.get('me').id,
-                        user: 1
-                    },
-                    showUpload: false,
-                    allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-                    uploadUrl: API + 'image',
-                    resizeImage: true,
-                    maxImageWidth: 200,
-                    browseLabel: 'Upload photo',
-                    browseClass: 'btn btn-primary nowrap',
-                    browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
-                    showCaption: false,
-                    showRemove: false,
-                    showCancel: false,
-                    showPreview: true,
-                    showUploadedThumbs: false,
-                    dropZoneEnabled: false,
-                    buttonLabelClass: '',
-                    fileActionSettings: {
-                        showZoom: false,
+                    self.$('.js-profileimg').attr('src', me.profile.url);
+
+                    // File upload
+                    self.$('.js-profileupload').fileinput({
+                        uploadExtraData: {
+                            imgtype: 'User',
+                            msgid: Iznik.Session.get('me').id,
+                            user: 1
+                        },
+                        showUpload: false,
+                        allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
+                        uploadUrl: API + 'image',
+                        resizeImage: true,
+                        maxImageWidth: 200,
+                        browseLabel: 'Upload photo',
+                        browseClass: 'btn btn-primary nowrap',
+                        browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
+                        showCaption: false,
                         showRemove: false,
-                        showUpload: false
-                    },
-                    layoutTemplates: {
-                        footer: '<div class="file-thumbnail-footer">\n' +
-                        '    {actions}\n' +
-                        '</div>'
-                    }
-                });
+                        showCancel: false,
+                        showPreview: true,
+                        showUploadedThumbs: false,
+                        dropZoneEnabled: false,
+                        buttonLabelClass: '',
+                        fileActionSettings: {
+                            showZoom: false,
+                            showRemove: false,
+                            showUpload: false
+                        },
+                        layoutTemplates: {
+                            footer: '<div class="file-thumbnail-footer">\n' +
+                                '    {actions}\n' +
+                                '</div>'
+                        }
+                    });
 
-                // Upload as soon as we have it.
-                self.$('.js-profileupload').on('fileimagesresized', function (event) {
                     // Upload as soon as we have it.
-                    self.$('.js-profileimg').attr('src', '/images/userloader.gif');
+                    self.$('.js-profileupload').on('fileimagesresized', function (event) {
+                        // Upload as soon as we have it.
+                        self.$('.js-profileimg').attr('src', '/images/userloader.gif');
 
-                    $('.file-preview, .kv-upload-progress').hide();
+                        $('.file-preview, .kv-upload-progress').hide();
 
-                    // Have to defer else break fileinput validation processing.
-                    _.defer(function() {
-                        self.$('.js-profileupload').fileinput('upload');
+                        // Have to defer else break fileinput validation processing.
+                        _.defer(function() {
+                            self.$('.js-profileupload').fileinput('upload');
+                        });
                     });
-                });
 
-                // Watch for all uploaded
-                self.$('.js-profileupload').on('fileuploaded', function(event, data) {
-                    self.$('.js-profileimg').attr('src', data.response.path);
-                    Iznik.Session.fetch();
-                });
+                    // Watch for all uploaded
+                    self.$('.js-profileupload').on('fileuploaded', function(event, data) {
+                        self.$('.js-profileimg').attr('src', data.response.path);
+                        Iznik.Session.fetch();
+                    });
 
-                self.$('.js-email').val(me.email);
+                    self.$('.js-email').val(me.email);
 
-                if (me.bouncing) {
-                    self.$('.js-bouncing').fadeIn('slow');
-                }
-
-                // console.log("On holiday?", me.onholidaytill, me.onholidaytill != undefined);
-                self.$(".js-holidayswitch").bootstrapSwitch({
-                    onText: 'Mails&nbsp;Paused',
-                    offText: 'Mails&nbsp;On',
-                    state: me.onholidaytill != undefined
-                });
-                self.onholiday();
-
-                self.$(".js-relevant").bootstrapSwitch({
-                    onText: 'Send them',
-                    offText: 'No thanks',
-                    state: me.relevantallowed ? true : false
-                });
-
-                self.$(".js-notificationmails").bootstrapSwitch({
-                    onText: 'Send them',
-                    offText: 'No thanks',
-                    state: me.settings.notificationmails ? true : false
-                });
-
-                self.$(".js-newsletter").bootstrapSwitch({
-                    onText: 'Send them',
-                    offText: 'No thanks',
-                    state: me.newslettersallowed ? true : false
-                });
-
-                var notifs = me.settings.notifications;
-
-                if (_.isUndefined(notifs)) {
-                    notifs = {
-                        email: true,
-                        push: true,
-                        facebook: true
+                    if (me.bouncing) {
+                        self.$('.js-bouncing').fadeIn('slow');
                     }
-                }
 
-                self.$(".js-emailswitch").bootstrapSwitch({
-                    onText: 'Emails&nbsp;On',
-                    offText: 'Emails&nbsp;Off',
-                    state: notifs.hasOwnProperty('email') ? notifs.email : true
-                });
+                    // console.log("On holiday?", me.onholidaytill, me.onholidaytill != undefined);
+                    self.$(".js-holidayswitch").bootstrapSwitch({
+                        onText: 'Mails&nbsp;Paused',
+                        offText: 'Mails&nbsp;On',
+                        state: me.onholidaytill != undefined
+                    });
+                    self.onholiday();
 
-                self.$(".js-emailmineswitch").bootstrapSwitch({
-                    onText: 'Yes&nbsp;Please',
-                    offText: 'No&nbsp;Thanks',
-                    state: notifs.hasOwnProperty('emailmine') ? notifs.emailmine : false
-                });
-
-                if (me.phone) {
-                    self.$('.js-phone').val(me.phone);
-                    self.$('.js-deletephone').show();
-                    self.$('.js-phonedonate').show();
-                }
-
-                if (me.aboutme) {
-                    var msg = me.aboutme.text;
-                    msg = Iznik.twem(msg);
-                    self.$('.js-aboutme').val(msg);
-                }
-
-                self.showHideMine();
-
-                self.$(".js-pushswitch").bootstrapSwitch({
-                    onText: 'Browser&nbsp;Popups&nbsp;On',
-                    offText: 'Browser&nbsp;Popups&nbsp;Off',
-                    state: notifs.hasOwnProperty('push') ? notifs.push: true
-                });
-
-                self.$('.js-pushon').show();
-
-                self.$(".js-appswitch").bootstrapSwitch({
-                    onText: 'App&nbsp;Notifications&nbsp;On',
-                    offText: 'App&nbsp;Notifications&nbsp;Off',
-                    state: notifs.hasOwnProperty('app') ? notifs.app: true
-                });
-
-                self.$('.js-appon').show();
-
-                var facebook = Iznik.Session.hasFacebook();
-                
-                if (facebook) {
-                    self.$(".js-facebookswitch").bootstrapSwitch({
-                        onText: 'Facebook&nbsp;Notifications&nbsp;On',
-                        offText: 'Facebook&nbsp;Notifications&nbsp;Off',
-                        state: notifs.hasOwnProperty('facebook') ? notifs.facebook: true
+                    self.$(".js-relevant").bootstrapSwitch({
+                        onText: 'Send them',
+                        offText: 'No thanks',
+                        state: me.relevantallowed ? true : false
                     });
 
-                    self.$('.js-facebookon').show();
-                }
+                    self.$(".js-notificationmails").bootstrapSwitch({
+                        onText: 'Send them',
+                        offText: 'No thanks',
+                        state: me.settings.notificationmails ? true : false
+                    });
 
-                self.groupscoll = Iznik.Session.get('groups');
-                self.collectionView = new Backbone.CollectionView({
-                    el: self.$('.js-mailgroups'),
-                    modelView: Iznik.Views.User.Settings.Group,
-                    collection: self.groupscoll,
-                    visibleModelsFilter: function(group) {
-                        // Only show Freegle groups in the UI.
-                        return(group.get('type') == 'Freegle')
-                    },
-                    processKeyEvents: false
+                    self.$(".js-newsletter").bootstrapSwitch({
+                        onText: 'Send them',
+                        offText: 'No thanks',
+                        state: me.newslettersallowed ? true : false
+                    });
+
+                    var notifs = me.settings.notifications;
+
+                    if (_.isUndefined(notifs)) {
+                        notifs = {
+                            email: true,
+                            push: true,
+                            facebook: true
+                        }
+                    }
+
+                    self.$(".js-emailswitch").bootstrapSwitch({
+                        onText: 'Emails&nbsp;On',
+                        offText: 'Emails&nbsp;Off',
+                        state: notifs.hasOwnProperty('email') ? notifs.email : true
+                    });
+
+                    self.$(".js-emailmineswitch").bootstrapSwitch({
+                        onText: 'Yes&nbsp;Please',
+                        offText: 'No&nbsp;Thanks',
+                        state: notifs.hasOwnProperty('emailmine') ? notifs.emailmine : false
+                    });
+
+                    if (me.phone) {
+                        self.$('.js-phone').val(me.phone);
+                        self.$('.js-deletephone').show();
+                        self.$('.js-phonedonate').show();
+                    }
+
+                    if (me.aboutme) {
+                        var msg = me.aboutme.text;
+                        msg = Iznik.twem(msg);
+                        self.$('.js-aboutme').val(msg);
+                    }
+
+                    self.showHideMine();
+
+                    self.$(".js-pushswitch").bootstrapSwitch({
+                        onText: 'Browser&nbsp;Popups&nbsp;On',
+                        offText: 'Browser&nbsp;Popups&nbsp;Off',
+                        state: notifs.hasOwnProperty('push') ? notifs.push: true
+                    });
+
+                    self.$('.js-pushon').show();
+
+                    self.$(".js-appswitch").bootstrapSwitch({
+                        onText: 'App&nbsp;Notifications&nbsp;On',
+                        offText: 'App&nbsp;Notifications&nbsp;Off',
+                        state: notifs.hasOwnProperty('app') ? notifs.app: true
+                    });
+
+                    self.$('.js-appon').show();
+
+                    var facebook = Iznik.Session.hasFacebook();
+
+                    if (facebook) {
+                        self.$(".js-facebookswitch").bootstrapSwitch({
+                            onText: 'Facebook&nbsp;Notifications&nbsp;On',
+                            offText: 'Facebook&nbsp;Notifications&nbsp;Off',
+                            state: notifs.hasOwnProperty('facebook') ? notifs.facebook: true
+                        });
+
+                        self.$('.js-facebookon').show();
+                    }
+
+                    self.groupscoll = Iznik.Session.get('groups');
+                    self.collectionView = new Backbone.CollectionView({
+                        el: self.$('.js-mailgroups'),
+                        modelView: Iznik.Views.User.Settings.Group,
+                        collection: self.groupscoll,
+                        visibleModelsFilter: function(group) {
+                            // Only show Freegle groups in the UI.
+                            return(group.get('type') == 'Freegle')
+                        },
+                        processKeyEvents: false
+                    });
+
+                    self.collectionView.render();
+
+                    self.delegateEvents();
                 });
-
-                self.collectionView.render();
-
-                self.delegateEvents();
             });
 
-            return (p);
+            Iznik.Session.forceLogin([
+                'me',
+                'phone',
+                'emails',
+                'aboutme',
+                'logins',
+                'groups'
+            ]);
+
+            return (Iznik.resolvedPromise(this));
         }
     });
 
