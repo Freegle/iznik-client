@@ -928,8 +928,7 @@ define([
         },
         deleteUrl: API + 'image?typeoverride=DELETE',
 
-        resizeImage: true,
-        maxImageWidth: 800,
+        resizeImage: false,
 
         browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
         browseLabel: 'Add Photo',
