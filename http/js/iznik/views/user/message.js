@@ -914,32 +914,9 @@ define([
         })
       })
 
-      self.$el.find('.js-addphoto').fileinput({
+      self.photoUpload = new Iznik.View.PhotoUpload({
         initialPreview: initialPreview,
         initialPreviewConfig: initialPreviewConfig,
-        overwriteInitial: false,
-
-        allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-        uploadUrl: API + 'image',
-        uploadExtraData: {
-          imgtype: 'Message',
-          ocr: self.options.hasOwnProperty('ocr') ? self.options.ocr : false,
-          identify: self.options.hasOwnProperty('identify') ? self.options.identify : false
-        },
-        deleteUrl: API + 'image?typeoverride=DELETE',
-
-        resizeImage: false,
-
-        browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
-        browseLabel: 'Add Photo',
-        browseClass: 'btn btn-primary btn-md nowrap',
-
-        showUpload: false,
-        showCancel: false,
-        showCaption: false,
-        showRemove: false,
-        showClose: false,
-
         previewSettings: {
           image: {
             width: 'auto',
@@ -947,43 +924,30 @@ define([
             'max-width': '50px'
           }
         },
-
-        showUploadedThumbs: true,
-        dropZoneEnabled: false,
-        buttonLabelClass: '',
-
-        fileActionSettings: {
-          showZoom: false,
-          showUpload: false,
-          showDrag: false,
-          showRemove: true,
-          removeClass: 'btn btn-white'
+        target: self.$el.find('.js-addphoto'),
+        uploadData: {
+          imgtype: 'Message',
+          ocr: self.options.hasOwnProperty('ocr') ? self.options.ocr : false,
+          identify: self.options.hasOwnProperty('identify') ? self.options.identify : false
         },
-
-        layoutTemplates: {
-          footer: '<div class="file-thumbnail-footer">\n' +
-          '    {actions}\n' +
-          '</div>'
-        },
-
-        elErrorContainer: '#js-uploaderror'
+        browseIcon: '<span class="glyphicon glyphicon-camera" />&nbsp;',
+        browseLabel: 'Add Photo',
+        browseClass: 'btn btn-primary btn-md nowrap',
+        errorContainer: '#js-uploaderror',
+        deleteUrl: API + 'image?typeoverride=DELETE',
       })
 
-      // Upload as soon as we have it.
-      self.$el.find('.js-addphoto').on('fileimagesresized', function (event) {
+      self.listenTo(self.photoUpload, 'uploadStart', function (ret) {
         self.$('.js-photopreviewwrapper').show()
-        self.$('.js-addphoto').fileinput('upload')
-      })
-
-      self.$el.find('.js-addphoto').on('fileuploaded', function (event, formData) {
+      });
+      
+      self.listenTo(self.photoUpload, 'uploadEnd', function (ret) {
         _.delay(function () {
-          console.log('Uploaded', formData)
-          var data = formData.response
           self.$('.progress').hide()
           var m = new Iznik.Model({
-            id: data.id,
-            path: data.path,
-            paththumb: data.pathhumb
+            id: ret.id,
+            path: ret.path,
+            paththumb: ret.pathhumb
           })
 
           self.collection.add(m)

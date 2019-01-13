@@ -281,58 +281,24 @@ define([
         })
 
         // File upload
-        self.$('#fileupload').fileinput({
-          uploadExtraData: {
+        self.photoUpload = new Iznik.View.PhotoUpload({
+          target: self.$('#fileupload'),
+          uploadData: {
             imgtype: 'Message',
             identify: true
           },
-          showUpload: false,
-          allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-          uploadUrl: API + 'image',
-          resizeImage: false,
           browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
           browseLabel: 'Add photos',
           browseClass: 'btn btn-success btn-lg nowrap',
-          showCaption: false,
-          showRemove: false,
-          showUploadedThumbs: false,
-          dropZoneEnabled: false,
-          buttonLabelClass: '',
-          fileActionSettings: {
-            showZoom: false,
-            showRemove: false,
-            showUpload: false
-          },
-          layoutTemplates: {
-            footer: '<div class="file-thumbnail-footer">\n' +
-            '    {actions}\n' +
-            '</div>'
-          }
+          errorContainer: '#js-uploaderror'
         })
 
-        // Count how many we will upload.
-        self.$('#fileupload').on('fileloaded', function (event) {
-          self.uploading++
-        })
-
-        // Upload as soon as photos have been resized.
-        self.$('#fileupload').on('fileimageresized', function (event) {
-          // Have to defer else break fileinput validation processing.
-          _.defer(function () {
-            self.$('#fileupload').fileinput('upload')
-
-            // We don't seem to be able to hide this control using the options.
-            self.$('.fileinput-remove').hide()
-          })
-        })
-
-        // Watch for all uploaded
-        self.$('#fileupload').on('fileuploaded', function (event, data) {
+        self.listenTo(self.photoUpload, 'uploadEnd', function (ret) {
           // Add the photo to our list
           var mod = new Iznik.Models.Message.Attachment({
-            id: data.response.id,
-            path: data.response.path,
-            paththumb: data.response.paththumb,
+            id: ret.id,
+            path: ret.path,
+            paththumb: ret.paththumb,
             mine: true
           })
 
@@ -344,24 +310,18 @@ define([
             self.$('.js-draftphotos').show()
           })
 
-          _.delay(function () {
-            self.$('.file-preview-frame').remove()
-          }, 500)
-
           // Add any hints about the item
           self.$('.js-suggestions').empty()
           self.suggestions = []
 
-          _.each(data.response.items, function (item) {
+          _.each(ret.items, function (item) {
             self.suggestions.push(item)
           })
 
-          self.uploading--
-
-          if (self.uploading == 0) {
-            self.allUploaded()
-          }
+          self.allUploaded()
         })
+
+        self.photoUpload.render();
 
         try {
           var id = Storage.get('draft')

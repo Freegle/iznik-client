@@ -615,51 +615,30 @@ define([
             var profile = self.group.get('profile')
             self.$('.js-profile').attr('src', profile ? profile : 'https://placehold.it/200x200')
 
-            // File upload
-            self.$('.js-profileupload').fileinput({
-              showUpload: false,
-              allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-              uploadUrl: API + 'image?imgtype=Group',
-              showPreview: false,
-              resizeImage: true,
-              maxImageWidth: 800,
+            self.photoUpload = new Iznik.View.PhotoUpload({
+              target: self.$('.js-profileupload'),
+              uploadData: {
+                imgtype: 'Group'
+              },
               browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
               browseLabel: 'Upload image',
               browseClass: 'btn btn-primary nowrap',
-              showCaption: false,
-              dropZoneEnabled: false,
-              buttonLabelClass: '',
-              fileActionSettings: {
-                showZoom: false,
-                showRemove: false,
-                showUpload: false
-              },
-              layoutTemplates: {
-                footer: '<div class="file-thumbnail-footer">\n' +
-                '    {actions}\n' +
-                '</div>'
-              },
-              showRemove: false
+              errorContainer: '#js-uploaderror'
             })
 
-            // Upload as soon as we have it.
-            self.$('.js-profileupload').on('fileloaded', function (event) {
-              self.$('.js-profileupload').fileinput('upload')
-            })
-
-            // Watch for all uploaded
-            self.$('.js-profileupload').on('fileuploaded', function (event, data) {
-              console.log('Uploaded')
-              self.group.set('profile', data.response.id)
+            self.listenTo(self.photoUpload, 'uploadEnd', function (ret) {
+              self.group.set('profile', ret.id)
               self.group.save({
                 id: self.group.get('id'),
-                profile: data.response.id
+                profile: ret.id
               }, {
                 patch: true
               })
-              self.$('.js-profile').attr('src', data.response.path)
+              self.$('.js-profile').attr('src', ret.path)
               self.$('.file-preview').hide()
             })
+
+            self.photoUpload.render();
 
             self.groupAppearanceForm = new Backform.Form({
               el: $('#groupappearanceform'),
