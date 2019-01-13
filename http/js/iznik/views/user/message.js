@@ -442,7 +442,7 @@ define([
                 // to expand a post, rather than just the photo.  So expand the post for them if they've clicked on
                 // a photo.
                 if (!self.expanded) {
-                  self.expand();
+                  self.expand()
                 }
               })
             })
@@ -748,7 +748,7 @@ define([
       v.render()
 
       // We might want to expand the message.
-      this.trigger('photoclick');
+      this.trigger('photoclick')
     }
   })
 
@@ -934,13 +934,22 @@ define([
         browseLabel: 'Add Photo',
         browseClass: 'btn btn-primary btn-md nowrap',
         errorContainer: '#js-uploaderror',
+
+        // We want to be able to delete photos here.
         deleteUrl: API + 'image?typeoverride=DELETE',
+        fileActionSettings: {
+          showZoom: false,
+          showUpload: false,
+          showDrag: false,
+          showRemove: true,
+          removeClass: 'btn btn-white'
+        }
       })
 
       self.listenTo(self.photoUpload, 'uploadStart', function (ret) {
         self.$('.js-photopreviewwrapper').show()
-      });
-      
+      })
+
       self.listenTo(self.photoUpload, 'uploadEnd', function (ret) {
         _.delay(function () {
           self.$('.progress').hide()
@@ -959,6 +968,8 @@ define([
           console.log('Attachments after add', atts)
         }, 500)
       })
+
+      self.photoUpload.render()
 
       self.$el.find('.js-addphoto').on('filedeleted', function (event, key, jqXHR, data) {
         // Image has been removed.  Here we have the key, which is the id, so we can remove it.

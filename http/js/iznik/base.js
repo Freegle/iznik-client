@@ -926,14 +926,18 @@ define([
         browseIcon: self.options.browseIcon ? self.options.browseIcon : '',
         browseLabel: self.options.browseLabel ? self.options.browseLabel : '',
         browseClass: self.options.browseClass,
+
+        showPreview: true,
+        showUpload: false,
+        showCancel: false,
         showCaption: false,
         showRemove: false,
-        showCancel: false,
-        showPreview: true,
+        showClose: false,
+
         showUploadedThumbs: false,
         dropZoneEnabled: false,
         buttonLabelClass: '',
-        fileActionSettings: {
+        fileActionSettings: self.options.fileActionSettings ? self.options.fileActionSettings : {
           showZoom: false,
           showRemove: false,
           showUpload: false

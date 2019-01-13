@@ -283,6 +283,13 @@ define([
         // File upload
         self.photoUpload = new Iznik.View.PhotoUpload({
           target: self.$('#fileupload'),
+          previewSettings: {
+            image: {
+              width: 'auto',
+              height: 'auto',
+              'max-width': '50px'
+            }
+          },
           uploadData: {
             imgtype: 'Message',
             identify: true
