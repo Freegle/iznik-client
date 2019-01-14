@@ -101,7 +101,7 @@ define([
           self.collection.fetch({
             data: {
               fromuser: self.model.get('id'),
-              limit: 100,
+              limit: 1000,
               age: info.openage
             }
           });
