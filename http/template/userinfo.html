@@ -68,6 +68,22 @@
                         <% if (info.aboutme) { %>
                             <blockquote class="js-abouttext prewrap">{{ info.aboutme.text }}</blockquote>
                         <% } %>
+                        <a href="/profile/{{id}}">
+                            <span class="btn btn-success btn-block">
+                            <% if (info.openoffers) { %>
+                                <span class="badge badge-unread pad-right">
+                                    {{info.openoffers}} <span class="glyphicon glyphicon-gift" />
+                                </span>
+                            <% } %>
+                            <% if (info.openwanted) { %>
+                                <span class="badge badge-unread pad-right">
+                                    {{info.openwanteds}} <span class="glyphicon glyphicon-shopping-cart" />
+                                </span>
+                            <% } %>
+                            View full profile &gt;&gt;
+                            </span>
+                        </a>
+
                         <div class="panel panel-info topspace">
                             <div class="panel-heading">
                                 <span class="glyphicons glyphicons-info-sign vcenter" />&nbsp;About this freegler

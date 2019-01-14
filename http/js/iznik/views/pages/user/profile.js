@@ -5,6 +5,7 @@ define([
   'iznik/base',
   'moment',
   'iznik/views/user/user',
+  'iznik/views/user/message',
   'iznik/views/pages/pages'
 ], function ($, _, Backbone, Iznik, moment) {
   Iznik.Views.User.Pages.Profile = Iznik.Views.Page.extend({
@@ -57,10 +58,65 @@ define([
           self.$('.js-ratings2').html(self.ratings2.$el);
 
           self.$('.js-abouttext').html(Iznik.twem(self.$('.js-abouttext').html()));
+
+          var info = self.model.get('info');
+
+          self.collection = new Iznik.Collections.Message(null, {
+            modtools: false,
+            collection: 'Approved'
+          });
+
+          if (info.openoffers) {
+            self.ocv = new Backbone.CollectionView({
+              el: self.$('.js-offerlist'),
+              modelView: Iznik.Views.User.Message.Replyable,
+              modelViewOptions: {
+                collection: self.collection,
+                page: self
+              },
+              collection: self.collection,
+              visibleModelsFilter: _.bind(self.offerFilter, self),
+              processKeyEvents: false
+            });
+
+            self.ocv.render();
+          }
+
+          if (info.openwanteds) {
+            self.wcv = new Backbone.CollectionView({
+              el: self.$('.js-wantedlist'),
+              modelView: Iznik.Views.User.Message.Replyable,
+              modelViewOptions: {
+                collection: self.collection,
+                page: self
+              },
+              collection: self.collection,
+              visibleModelsFilter: _.bind(self.wantedFilter, self),
+              processKeyEvents: false
+            });
+
+            self.wcv.render();
+          }
+
+          self.collection.fetch({
+            data: {
+              fromuser: self.model.get('id'),
+              limit: 100,
+              age: info.openage
+            }
+          });
         })
       })
 
       return (p)
+    },
+
+    offerFilter: function(model) {
+      return (model.get('outcomes').length === 0 && model.get('type') == 'Offer');
+    },
+
+    wantedFilter: function(model) {
+      return (model.get('outcomes').length === 0 && model.get('type') == 'Wanted');
     },
   })
 })
