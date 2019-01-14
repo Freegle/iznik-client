@@ -544,6 +544,20 @@ table.table-fixedheader>tbody>tr>td {
     padding-right: 10px;
 }
 
+.profilecontainer {
+    position: relative;
+    width: 100%;
+}
+
+.profilename {
+    left: 108px;
+    position: relative;
+    width: calc(100% - 105px);
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
 .boardmember {
     width: 100px;
     height: 100px;
