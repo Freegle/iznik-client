@@ -80,7 +80,7 @@
             <% } %>
             <div class="panel panel-info">
                 <div class="panel-heading">
-                    <span class="glyphicons glyphicons-info-sign vcenter" />&nbsp;About this freegler
+                    <h3><span class="glyphicons glyphicons-info-sign inline" />&nbsp;About this freegler</h3>
                 </div>
                 <div class="panel-body">
                     <p><% if (info.hasOwnProperty('milesaway')) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %><% if (info.publiclocation.location) { %>{{info.publiclocation.location}}, {{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.<% } else if (info.publiclocation.groupname) { %>{{info.publiclocation.groupname}} <% } else { %>Unknown<% } %><% } %></span><% } %></p>
@@ -113,12 +113,14 @@
             </div>
             <div class="panel panel-info">
                 <div class="panel-heading">
-                    <span class="glyphicons glyphicons-charts vcenter" />&nbsp;
+                    <h3>
+                    <span class="glyphicons glyphicons-charts inline" />&nbsp;
                     <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>
                     No recent activity
                     <% } else { %>
                     Activity in the last 90 days
                     <% } %>
+                    </h3>
                 </div>
                 <div class="panel-body">
                     <div class="row">
