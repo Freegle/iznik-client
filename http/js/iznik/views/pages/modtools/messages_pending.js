@@ -226,7 +226,8 @@ define([
                             mod.set('groupid', group.id);
 
                             var v = new Iznik.Views.ModTools.User({
-                                model: mod
+                                model: mod,
+                                groupid: group.id
                             });
 
                             v.render().then(function (v) {

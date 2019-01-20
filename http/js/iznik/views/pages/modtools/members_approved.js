@@ -343,7 +343,8 @@ define([
                         self.usermod.set('myrole', Iznik.Session.roleForGroup(self.model.get('groupid'), true));
 
                         var v = new Iznik.Views.ModTools.User({
-                            model: self.usermod
+                            model: self.usermod,
+                            groupid: self.model.get('groupid')
                         });
 
                         self.listenToOnce(self.usermod, 'removed', function () {

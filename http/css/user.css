@@ -506,58 +506,6 @@ table.table-fixedheader>tbody>tr>td {
     float: left;
 }
 
-.coverphoto {
-    height: 100px !important;
-    width: 100% !important;
-}
-
-.coverprofilecontainer {
-    position: relative;
-    width: 100%;
-}
-
-.coverprofilecircle {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background-color: darkgray;
-    border-radius: 50%;
-    margin: 10px;
-}
-
-.coverprofileimage {
-    margin-top: 1px;
-    margin-left: 1px;
-    position: absolute;
-    width: 98px;
-    height: 98px;
-    border-radius: 98px;
-    border:3px solid white;
-}
-
-.covername {
-    left: 108px;
-    position: absolute;
-    width: calc(100% - 105px);
-    padding-top: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
-.profilecontainer {
-    position: relative;
-    width: 100%;
-}
-
-.profilename {
-    left: 108px;
-    position: relative;
-    width: calc(100% - 105px);
-    padding-top: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
 .boardmember {
     width: 100px;
     height: 100px;

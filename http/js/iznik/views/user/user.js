@@ -33,10 +33,12 @@ define([
 
         showProfile: function() {
             var self = this;
+            console.log("Show profile", self.options);
 
             require([ 'iznik/views/user/user' ], function() {
                 var v = new Iznik.Views.UserInfo({
-                    model: new Iznik.Model(self.model)
+                    model: new Iznik.Model(self.model),
+                    groupid: self.options.groupid
                 });
 
                 v.render();
@@ -1259,6 +1261,7 @@ define([
         directMessage: function() {
             var self = this;
 
+            // If this is ModTools, then we want to open a User2Mod chat for the group.  For FD, a User2User.
             $.ajax({
                 type: 'POST',
                 headers: {
@@ -1266,7 +1269,9 @@ define([
                 },
                 url: API + 'chat/rooms',
                 data: {
-                    userid: self.model.get('id')
+                    userid: self.model.get('id'),
+                    chattype: MODTOOLS ? 'User2Mod' : 'User2User',
+                    groupid: MODTOOLS ? self.options.groupid : null
                 }, success: function(ret) {
                     if (ret.ret == 0) {
                         var chatid = ret.id;
