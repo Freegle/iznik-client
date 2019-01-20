@@ -950,6 +950,8 @@ define([
     render: function () {
       var self = this
 
+      self.model.set('modtools', MODTOOLS)
+
       var p = Iznik.View.prototype.render.call(self)
 
       p.then(function (self) {
