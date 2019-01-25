@@ -414,11 +414,10 @@ define([
               self.model.get('location') &&
               self.model.get('postcode') &&
               self.model.get('area')) {
+            }
 
-              // This is a platform message.  We may be able to edit it
-              if (self.model.get('canedit')) {
-                self.$('.js-edit').show()
-              }
+            if (self.model.get('canedit')) {
+              self.$('.js-edit').show()
             }
 
             self.$('.js-attlist').each(function () {
