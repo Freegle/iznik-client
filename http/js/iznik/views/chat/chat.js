@@ -374,6 +374,9 @@ define([
         })
 
         self.organise()
+      } else {
+        // We want to update the counts even if we don't update the rest.
+        self.processCounts()
       }
     },
 
@@ -384,6 +387,7 @@ define([
       // We might already be rendered, as we're outside the body content that gets zapped when we move from
       // page to page.
       if ($('#chatHolder').length == 0) {
+        // We're not rendered.
         self.$el.css('visibility', 'hidden')
 
         p = Iznik.View.prototype.render.call(self).then(function (self) {
@@ -412,6 +416,13 @@ define([
           self.tabActive = true
         })
       } else {
+        // We are rendered; but we have wiped the page including chat counts so we need to refetch those.
+        Iznik.Session.chats.fetch({
+          data: {
+            summary: true
+          }
+        }).then(_.bind(self.fetchedChats, self))
+
         p = Iznik.resolvedPromise(self)
       }
 
