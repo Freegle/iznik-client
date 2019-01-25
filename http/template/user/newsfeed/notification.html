@@ -134,6 +134,25 @@
                 </p>
             </div>
         </div>
+        <% } else if (type == 'Exhort') { %>
+        <div class="media clickme">
+            <div class="media-left">
+                <div class="media-object topspace">
+                    <span class="glyphicon glyphicon-heart glyphicon-larger" />
+                </div>
+            </div>
+            <div class="media-body">
+                <span class="notification-title">{{title}}</span>
+                <p class="notification-desc">
+                    {{text}}
+                </p>
+                <% if (obj.url) { %>
+                <a data-realurl="true" target="_blank" href="{{url}}">
+                    <span class="btn btn-success">Click here!</span>
+                </a>
+                <% } %>
+            </div>
+        </div>
         <% } %>
     </div>
 </div>
