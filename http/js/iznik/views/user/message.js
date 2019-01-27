@@ -409,16 +409,8 @@ define([
               // A mod has rejected this.  The flow is to edit the message via the standard
               // post form.
               self.$('.js-rejected').show()
-            } else if (self.model.get('sourceheader') == 'Platform' &&
-              self.model.get('item') &&
-              self.model.get('location') &&
-              self.model.get('postcode') &&
-              self.model.get('area')) {
-
-              // This is a platform message.  We may be able to edit it
-              if (self.model.get('canedit')) {
-                self.$('.js-edit').show()
-              }
+            } else if (self.model.get('canedit')) {
+              self.$('.js-edit').show()
             }
 
             self.$('.js-attlist').each(function () {
