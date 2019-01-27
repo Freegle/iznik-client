@@ -98,9 +98,9 @@ define([
 
       self.listenToOnce(v, 'confirmed', function () {
         var configid = self.$('.js-configselect').val()
-        self.modConfigModel.destroy().then(function () {
-          self.refreshAndRender()
-        })
+        self.modConfigModel.destroy().then(_.bind(function () {
+          this.refreshAndRender()
+        }), self)
       })
 
       v.render()
@@ -1103,6 +1103,26 @@ define([
           } else {
             self.$('.js-notconfigselect input,.js-notconfigselect select,.js-notconfigselect button, .js-addbulkop').prop('disabled', false).removeClass('disabled')
             self.$('.js-locked').hide()
+          }
+
+          var inuses = self.modConfigModel.get('using');
+          self.$('.js-inuse').hide();
+
+          if (inuses) {
+            var inuselist = '';
+            _.each(inuses, function(inuse) {
+              if (inuselist != '') {
+                inuselist += ', ';
+              }
+
+              var name = inuse.fullname ? inuse.fullname : (inuse.firstname + ' ' + inuse.lastname);
+              inuselist += name;
+            });
+
+            self.$('.js-inuselist').html(inuselist);
+            self.$('.js-inuse').show();
+
+            self.$('.js-deleteconfig').disable();
           }
 
           // Layout messes up a bit for radio buttons.
