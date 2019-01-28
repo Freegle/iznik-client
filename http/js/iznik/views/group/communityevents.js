@@ -594,8 +594,12 @@ define([
     },
 
     startChange: function () {
-      // Set end date after start date.
-      this.$('.js-end').combodate('setValue', this.$('.js-start').combodate('getValue'))
+      // Set end date to be an hour after the start date.  They can adjust it.
+      var start = this.$('.js-start').combodate('getValue');
+      console.log("Got start", start);
+      var m = new moment(start);
+      m.add(60, 'm');
+      this.$('.js-end').combodate('setValue', m.format('YYYY-MM-DD HH:mm'))
     },
 
     endChange: function () {
