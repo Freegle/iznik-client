@@ -65,7 +65,7 @@
                             <p><span class="glyphicon glyphicon-warning-sign" />&nbsp;Things haven't always worked out for this freegler.  That might not be their fault, but please make very clear arrangements.</p>
                         </div>
                         <% } %>
-                        <% if (info.aboutme) { %>
+                        <% if (info.aboutme && info.aboutme.text) { %>
                             <blockquote class="js-abouttext prewrap">{{ info.aboutme.text }}</blockquote>
                         <% } %>
                         <a href="/profile/{{id}}">
