@@ -907,7 +907,7 @@ define([
 
     render: function () {
       var self = this
-      console.log("Photo uploader", self.options);
+      // console.log("Photo uploader", self.options);
 
       try {
         // We might have an old one.
