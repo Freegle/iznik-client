@@ -1633,7 +1633,7 @@ define([
           })
 
           self.$('.panel-collapse').on('show.bs.collapse', function () {
-            if (!self.model.get('source')) {
+            if (typeof self.model.get('fromuser') !== 'object') {
               // We don't have the full model, because we only fetched a summary.  Get the full
               // version and re-render.
               self.expanded = true
