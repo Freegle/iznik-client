@@ -443,8 +443,8 @@ define([
                                 // Fake a click on the notifications to close it.  This also means that when
                                 // we reopen it we will refetch it, and then the backgrounds on each notification
                                 // will be correct.
-                                if ($('.dropdown').find('.dropdown-menu').is(":hidden")){
-                                    $('.dropdown-toggle').dropdown('toggle');
+                                if (!$('.dropdown').find('.dropdown-menu .js-notiflist').is(':hidden')) {
+                                  $('.js-notifholder').dropdown('toggle')
                                 }
 
                                 // Update the server in the background.
