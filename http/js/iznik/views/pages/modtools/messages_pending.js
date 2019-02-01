@@ -174,8 +174,7 @@ define([
                         if (self.model.get('sourceheader') == 'Platform' &&
                             self.model.get('item') &&
                             self.model.get('location') &&
-                            self.model.get('postcode') &&
-                            self.model.get('area')) {
+                            self.model.get('postcode')) {
                             self.$('.js-type').val(self.model.get('type'));
                             self.$('.js-item').val(self.model.get('item').name);
                             self.$('.js-location').val(self.model.get('location').name);
