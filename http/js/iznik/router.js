@@ -218,6 +218,22 @@ define([
       'myposts': 'userHome',
       'mydata': 'myData',
       'profile/:id': 'userProfile',
+      'councils/overview': 'userCouncilsOverview',
+      'councils/volunteers': 'userCouncilsVolunteers',
+      'councils/keylinks(/:section)': 'userCouncilsKeyLinks',
+      'councils/workbest(/:section)': 'userCouncilsWorkBest',
+      'councils/graphics(/:section)': 'userCouncilsGraphics',
+      'councils/photosvideos(/:section)': 'userCouncilsPhotosVideos',
+      'councils/posters': 'userCouncilsPosters',
+      'councils/banners': 'userCouncilsBanners',
+      'councils/businesscards': 'userCouncilsBusinessCards',
+      'councils/media(/:section)': 'userCouncilsMedia',
+      'councils/socialmedia(/:section)': 'userCouncilsSocialMedia',
+      'councils/pressrelease': 'userCouncilsPressRelease',
+      'councils/stories': 'userCouncilsUserStories',
+      'councils/othercouncils': 'userCouncilsOtherCouncils',
+      'councils/bestpractice': 'userCouncilsBestPractice',
+      'councils': 'userCouncils',
       '*path': 'userDefault'
     },
 
@@ -2017,6 +2033,194 @@ define([
 
         require(['iznik/views/pages/user/landing'], function () {
           var page = new Iznik.Views.User.Pages.Landing.Contact()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncils: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.Main()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsOverview: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.Overview()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsVolunteers: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.Volunteers()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsKeyLinks: function (section) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.KeyLinks({
+            section: section
+          })
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsWorkBest: function (section) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.WorkBest({
+            section: section
+          })
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsGraphics: function (section) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.Graphics({
+            section: section
+          })
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsPhotosVideos: function (section) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.PhotosVideos({
+            section: section
+          })
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsPosters: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.Posters()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsBanners: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.Banners()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsBusinessCards: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.BusinessCards()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsMedia: function (section) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.Media({
+            section: section
+          })
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsSocialMedia: function (section) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.SocialMedia({
+            section: section
+          })
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsPressRelease: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.PressRelease()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsUserStories: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.UserStories()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsOtherCouncils: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.OtherCouncils()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsBestPractice: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.BestPractice()
           self.loadRoute({page: page})
         })
       }

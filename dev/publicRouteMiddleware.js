@@ -16,6 +16,7 @@ const routes = [
   'chat',
   'chats',
   'communityevents',
+  'councils',
   'contact',
   'disclaimer',
   'donate',
