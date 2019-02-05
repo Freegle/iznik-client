@@ -185,9 +185,15 @@ define([
           self.$('.js-twitterauth').attr('href', '/twitter/twitter_request.php?groupid=' + self.selected)
           self.$('.js-facebookauthpage').attr('href', '/facebook/facebook_request.php?groupid=' + self.selected + '&type=Page')
 
-          self.group.fetch().then(function () {
+          self.group.fetch({
+            data: {
+              polygon: true
+            }
+          }).then(function () {
             self.$('.js-modsemail').html(self.group.get('modsemail'))
             self.$('.js-postemail').html(self.group.get('groupemail'))
+            self.$('.js-cga').html(self.group.get('cga'))
+            self.$('.js-dpa').html(self.group.get('dpa'))
 
             // Because we switch the form based on our group select we need to remove old events to avoid saving new
             // changes to the previous group.
