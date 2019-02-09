@@ -40,11 +40,14 @@
                     <div class="panel-body">
                         <% if (story.photo) { %>
                         <div class="row">
-                            <div class="col-sm-8">
+                            <div class="col-sm-12">
+                                <div class="img-square img-rounded pull-right">
+                                    <img alt="Item photo" data-nolazysizes="true" src="{{paththumb}}" />
+                                    <img class="clickme js-photo" title="Click to zoom" src="{{story.photo.paththumb}}" />
+                                </div>
                                 <b class="prewrap">{{story.story}}</b>
                             </div>
                             <div class="col-sm-12">
-                                <img class="img-thumbnail img-responsive clickme js-photo" title="Click to zoom" src="{{story.photo.paththumb}}" />
                             </div>
                         </div>
                         <% } else { %>
