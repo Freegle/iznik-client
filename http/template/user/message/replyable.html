@@ -18,7 +18,7 @@
 <div class="nomargin panel panel-success">
     <div class="panel-heading nopad clearfix <% if (obj.promised) { %>faded<% } %>">
         <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
-            <div class="col-sm-11 padmd">
+            <div class="col-sm-12 padmd">
             <% if (attachments.length>0) { %>
               <div class="hidden-xs pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
             <% } %>
@@ -32,16 +32,17 @@
                       <% } else { %>
                         <span class="subject">{{subject}}</span>
                       <% } %>
-                      <span class="pull-right margtopsm caret visible-xs" />
                       <br />
                   </span>
               <div class="hidden-xs js-groups" />
             </div>
             <div class="hidden-xs js-snippet">
                 <% if (obj.snippet) { %>
-                <h4 class="nomargin">{{snippet}}...</h4>
+                <h4 class="nomargin black">{{snippet}}...</h4>
                 <h4 class="black">
-                    Read more >>
+                    <div class="btn btn-white botspace">
+                        Read more and reply >>
+                    </div>
                     <% if (obj.promised) { %>
                     <div class="pull-right unfaded">
                         <span title="This item has been promised to someone" class="glyphicons glyphicons-handshake" />
@@ -51,17 +52,19 @@
                 <% } %>
             </div>
         </div>
-        <div class="hidden-xs col-sm-1">
-            <button class="btn btn-white pull-right topspace">
-                    <span class="js-caretdown caret"></span>
-                    <span class="js-caretup caret icon-flipped-y" style="display: none"></span>
-            </button>
-        </div>
         </a>
         <% if (attachments.length>0) { %>
             <a class="visible-xs nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
                 <div class="col-xs-12 js-attlist" />
             </a>
+        <% } else if (obj.snippet) { %>
+            <div class="row visible-xs js-snippet">
+                <div class="col-xs-12">
+                    <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
+                        <p class="padleftsm nomargin black">{{snippet}}...</p>
+                    </a>
+                </div>
+            </div>
         <% } %>
         <% if (obj.snippet) { %>
         <div class="row hidden-xs hidden-sm hidden-md hidden-lg js-snippet">
@@ -72,6 +75,11 @@
             </div>
         </div>
         <% } %>
+        <a class="nodecor js-caret js-readmore row nomargin" data-toggle="collapse" href="#result-{{id}}">
+            <div class="visible-xs visible-sm btn btn-white btn-block botspace">
+                Read more and reply >>
+            </div>
+        </a>
     </div>
     <div id="result-{{id}}" class="panel-collapse collapse">
         <div class="visible-xs-block js-groups" style="padding:5px;" />
@@ -87,7 +95,7 @@
                     <div class="lead prewrap forcebreak js-textbody"><% if (!obj.hasOwnProperty('textbody')) { %><a class="fullholder text-center thumbnail"><img alt="Loader" src="/images/userloader.gif" /></a><% } else if (textbody.length == 0) { %><em>There's no description.</em><% } else { %><%-textbody%><% } %></div>
                     <% if (obj.fromuser && obj.fromuser.profile) { %>
                     <span class="text-muted">
-                        <img src="{{fromuser.profile.turl}}" class="img-circle img-smallerthumbnail clickme visible-xs js-profile" />
+                        <img src="{{fromuser.profile.turl}}" class="img-circle img-tinythumbnail inline clickme visible-xs js-profile" />
                         <% if (obj.mine) { %>
                         You posted this.
                         <% } else { %>
@@ -123,7 +131,7 @@
                     <div class="btn btn-success topspace fbshare js-sharefb" style="display: none">
                         <div class="glyphicons glyphicons-share-alt vcenter" />&nbsp;<span class="hidden-xs">Share on Facebook</span>
                     </div>
-                    <div class="btn btn-white topspace" id="js-clip-{{id}}">
+                    <div class="btn btn-white topspace hidden-xs" id="js-clip-{{id}}">
                         <div class="glyphicons glyphicons-copy vcenter" />&nbsp;<span class="hidden-xs">Copy to Clipboard</span>
                     </div>
                 </div>

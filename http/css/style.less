@@ -666,6 +666,36 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     min-height: 200px;
 }
 
+.img-square
+{
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  margin: 0px;
+  position: relative;
+}
+
+.img-squarexs
+{
+  width: 96vw;
+  height: 96vw;
+  overflow: hidden;
+  margin: 0px;
+  position: relative;
+}
+
+.img-square img, .img-squarexs img {
+  position: absolute;
+  margin: auto;
+  min-height: 100%;
+  min-width: 100%;
+
+  left: -100%;
+  right: -100%;
+  top: -100%;
+  bottom: -100%;
+}
+
 .img-morerounded {
     border-radius: 12px;
 }

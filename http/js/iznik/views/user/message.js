@@ -164,8 +164,10 @@ define([
     carettoggle: function () {
       var self = this
       if (this.expanded) {
+        this.$('.js-readmore').slideDown();
         this.$('.js-snippet').slideDown()
       } else {
+        this.$('.js-readmore').slideUp();
         this.$('.js-snippet').slideUp()
       }
       this.expanded = !this.expanded
@@ -309,9 +311,11 @@ define([
               self.$('.panel-collapse').collapse('show')
               self.$('.js-snippet').hide()
               self.$('.js-caretdown').parent().hide()
+              self.$('.js-readmore').hide();
             } else {
               self.$('.panel-collapse').collapse('hide')
               self.$('.js-snippet').show()
+              self.$('.js-readmore').show();
             }
 
             var groups = self.model.get('groups')
@@ -722,6 +726,7 @@ define([
         e.stopPropagation()
       }
 
+      // No point zooming on small screens - the photo is already full width.
       var v = new Iznik.Views.User.Message.PhotoZoom({
         model: this.model,
         message: this.options.message,
