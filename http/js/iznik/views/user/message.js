@@ -1223,23 +1223,12 @@ define([
         self.model.set('me', Iznik.Session.get('me'))
         self.model.set('message', self.options.message.toJSON2())
 
-        var chat = Iznik.Session.chats.get({
+        // We have to fetch the chat because the chats in our session are not the full model.
+        self.chat = new Iznik.Models.Chat.Room({
           id: self.model.get('chatid')
         })
 
-        // We might not find this chat, most commonly if we've not yet fetched it from the server and it's in
-        // our cache.  If not, fetch it.
-        if (!_.isUndefined(chat)) {
-          self.chat = chat
-          p = Iznik.resolvedPromise(self)
-        } else {
-          self.chat = new Iznik.Models.Chat.Room({
-            id: self.model.get('chatid')
-          })
-
-          p = self.chat.fetch()
-        }
-
+        p = self.chat.fetch()
         p.then(_.bind(self.gotChat, self))
       }
 
