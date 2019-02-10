@@ -51,6 +51,7 @@ const routes = [
   'recentfreegles',
   'schedule',
   'settings',
+  'shortlinks',
   'stats',
   'stories',
   'story',

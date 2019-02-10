@@ -52,7 +52,6 @@ define([
                         data.addColumn('number', 'Count');
                         self.options.data.each(function (count) {
                             if (self.options.data.indexOf(count) < self.options.data.length) {
-
                                 data.addRow([new Date(count.get('date')), parseInt(count.get('count'), 10)]);
                             }
                         });

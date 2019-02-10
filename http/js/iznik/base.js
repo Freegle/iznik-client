@@ -115,6 +115,10 @@ define([
     error: function (str) {}
   }
 
+  Iznik.strcmp = function(str1, str2) {
+    return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
+  }
+
   Iznik.isXS = function () {
     return window.innerWidth < 320
   }
