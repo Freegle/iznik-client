@@ -75,7 +75,7 @@
                             <div class="col-sm-8">
                                 <img class="img img-thumbnail profile img-rounded js-profile" src="https://placehold.it/200x200" />
                                 <br />
-                                <input class="js-profileupload" type="file" name="photo" multiple="">
+                                <input class="js-profileupload" type="file" name="photo" >
                                 <span class="help-block">This is used in emails and on the site.  It needs to look good small, like a Facebook profile picture.</span>
                             </div>
                         </div>
@@ -93,6 +93,11 @@
                 </div>
                 <div class="js-freegleonly" style="display: none">
                     <h3>Mapping Settings for this Group</h3>
+                    <p>This is your Core Group Area - the area this group "owns":</p>
+                    <textarea rows="2" readonly class="fullholder nomargin botspace js-cga" />
+                    <p>This is any Default Posting Area - the area for which this group is the one to use:</p>
+                    <textarea rows="2" readonly class="fullholder nomargin botspace js-dpa" />
+                    <p>You can see where these are by pasting them in at <a href="https://arthur-e.github.io/Wicket/sandbox-gmaps3.html" data-realurl="true" target="_blank">this site</a>.</p>
                     <div class="btn btn-default js-mapsettings">View Map Settings</div>
                     <a href="/modtools/settings/all/map">All Group Areas</a>
 
@@ -148,6 +153,10 @@
                 <div class="alert alert-info js-locked" style="display: none">
                     This config is locked by its creator.  You can use, view or copy it, but you can't change or delete
                     it.
+                </div>
+                <div class="alert alert-info js-inuse" style="display: none">
+                    <p>This config is being used.  You won't be able to delete it.</p>
+                    <p>Some people using it: <span class="js-inuselist" /></p>
                 </div>
                 <hr />
                 <div class="js-notconfigselect">

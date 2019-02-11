@@ -158,7 +158,8 @@ define([
                             mod.set('myrole', Iznik.Session.roleForGroup(self.model.get('groupid'), true));
 
                             var v = new Iznik.Views.ModTools.User({
-                                model: mod
+                                model: mod,
+                                groupid: self.model.get('groupid')
                             });
 
                             v.render().then(function(v) {

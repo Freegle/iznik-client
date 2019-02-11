@@ -1,0 +1,8 @@
+<div class="pull-right">
+    <div class="btn btn-sm <% if (info.ratings.Mine == 'Up') { %>btn-primary<% } else if (info.ratings.Up > 0) { %>btn-success<% } else { %>btn-white<% } %> js-up" title="{{info.ratings.Up}} freegler<% if (info.ratings.Up != 1) { %>s<% } %> gave them a thumbs up.  Click to rate.">
+        <span class="glyphicons glyphicons-thumbs-up vcenter hidden-xs"></span>&nbsp;{{info.ratings.Up}}
+    </div>
+    <div class="padleft btn btn-sm <% if (info.ratings.Mine == 'Down') { %>btn-primary<% } else if (info.ratings.Down > 0) { %>btn-warning<% } else { %>btn-white<% } %> js-down" title="{{info.ratings.Down}} freegler<% if (info.ratings.Up != 1) { %>s<% } %> gave them a thumbs down.  Click to rate.">
+        <span class="glyphicons glyphicons-thumbs-down vcenter hidden-xs"></span>&nbsp;{{info.ratings.Down}}
+    </div>
+</div>

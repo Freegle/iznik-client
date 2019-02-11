@@ -11,6 +11,7 @@ rm images/Firefox.png
 rm images/logos/*
 rm images/posters/*
 rm images/stories/*
+rm -r images/councils
 #mv *.png css
 #mv *.woff css
 #mv *.woff2 css

@@ -461,7 +461,7 @@ define([
 
             self.model.set('offers', self.options.offers);
 
-            if (self.options.offers && self.options.offers.length < expandThreshold && !self.model.get('source')) {
+            if (self.options.offers && self.options.offers.length < expandThreshold && typeof self.model.get('fromuser') !== 'object') {
                 // Matches template.  We have few messages so will show this expanded, therefore we need to fetch the
                 // full model.
                 self.expanded = true;
@@ -473,7 +473,7 @@ define([
                     self.$('.js-outcometime').timeago();
 
                     self.$('.panel-collapse').on('show.bs.collapse', function () {
-                        if (!self.model.get('source')) {
+                      if (typeof self.model.get('fromuser') !== 'object') {
                             // We don't have the full model, because we only fetched a summary.  Get the full
                             // version and re-render.
                             self.expanded = true;
@@ -529,7 +529,7 @@ define([
 
             self.model.set('wanteds', self.options.wanteds);
 
-            if (self.options.wanteds && self.options.wanteds.length < expandThreshold && !self.model.get('source')) {
+            if (self.options.wanteds && self.options.wanteds.length < expandThreshold && typeof self.model.get('fromuser') !== 'object') {
                 // Matches template.  We have few messages so will so this expanded, therefore we need to fetch the
                 // full model.
                 self.expanded = true;
@@ -541,7 +541,7 @@ define([
                     self.$('.js-outcometime').timeago();
 
                     self.$('.panel-collapse').on('show.bs.collapse', function () {
-                        if (!self.model.get('source')) {
+                      if (typeof self.model.get('fromuser') !== 'object') {
                             // We don't have the full model, because we only fetched a summary.  Get the full
                             // version and re-render.
                             self.expanded = true;
