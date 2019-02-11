@@ -231,6 +231,31 @@ define([
       _.delay(_.bind(self.updateCountTimer, self), 30000)
     },
 
+    openModChatToUser: function(userid, groupid) {
+      var self = this;
+
+      $.ajax({
+        type: 'POST',
+        headers: {
+          'X-HTTP-Method-Override': 'PUT'
+        },
+        url: API + 'chat/rooms',
+        data: {
+          userid: userid,
+          chattype: 'User2Mod',
+          groupid: groupid
+        }, success: function (ret) {
+          if (ret.ret == 0) {
+            var chatid = ret.id
+
+            require(['iznik/views/chat/chat'], function (ChatHolder) {
+              ChatHolder().fetchAndRestore(chatid)
+            })
+          }
+        }
+      })
+    },
+
     openChatToMods: function (groupid) {
       var self = this
 

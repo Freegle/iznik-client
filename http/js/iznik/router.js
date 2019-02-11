@@ -164,6 +164,8 @@ define([
       'mygroups': 'userMyGroups',
       'settings/confirmmail/(:key)': 'userConfirmMail',
       'settings': 'userSettings',
+      'shortlinks': 'userShortlinks',
+      'shortlinks/:id': 'userShortlink',
       'explore/region/:id': 'userExploreRegion',
       'explore/:id/join': 'userJoinGroup',
       'explore/:id': 'userExploreGroup',
@@ -1705,7 +1707,7 @@ define([
               Router.navigate('/', true)
             } else {
               var page = new Iznik.Views.ModTools.Pages.Support()
-              this.loadRoute({page: page, modtools: true})
+              self.loadRoute({page: page, modtools: true})
             }
           })
 
@@ -1727,13 +1729,38 @@ define([
               Router.navigate('/', true)
             } else {
               var page = new Iznik.Views.ModTools.Pages.Shortlinks()
-              this.loadRoute({page: page, modtools: true})
+              self.loadRoute({page: page, modtools: true})
             }
           })
 
           Iznik.Session.forceLogin([
-            'me'
+            'me',
+            'groups'
           ])
+        })
+      }
+    },
+
+    userShortlinks: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/shortlinks'], function () {
+          var page = new Iznik.Views.User.Pages.Shortlinks();
+          self.loadRoute({page: page, modtools: false})
+        })
+      }
+    },
+
+    userShortlink: function (id) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/shortlinks'], function () {
+          var page = new Iznik.Views.User.Pages.Shortlink({
+            id: id
+          });
+          self.loadRoute({page: page, modtools: false})
         })
       }
     },
