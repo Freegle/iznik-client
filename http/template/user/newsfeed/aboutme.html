@@ -3,7 +3,7 @@
     <div class="panel-body">
         <div class="row">
             <div class="col-xs-12 clickme">
-                <a href="#" class="dropdown-toggle js-notifholder pull-right" data-toggle="dropdown" title="Options">
+                <a href="#" class="dropdown-toggle pull-right" data-toggle="dropdown" title="Options">
                     <span class="caret"></span>
                 </a>
                 <div class="dropdown-container  dropdown-position-bottomright">
@@ -35,7 +35,7 @@
                 </div>
                 <img src="{{user.profile.turl}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
                 <div class="js-profile">
-                    <b><span class="success">{{user.displayname}}</span></b> introduced themself
+                    <b><span class="success">{{user.displayname}}</span></b> introduced themselves
                     <br />
                     <small class="text-muted">
                         <abbr class="timeago nodecor" title="{{added}}">{{timeago(added)}}</abbr>
@@ -67,7 +67,7 @@
             </div>
             <div class="col-xs-2 nopad js-addphotowrapper">
                 <!--<div class="js-addphotobtn btn btn-btn btn-primary nowrap pull-right"><span class="glyphicon glyphicon-camera" /><span class="hidden-sm hidden-xs">&nbsp;Photo</span></div>-->
-                <input class="js-addphoto" type="file" name="photo" multiple="">
+                <input class="js-addphoto" type="file" name="photo" >
             </div>
             <div class="col-xs-2 js-photopreviewwrapper" style="display: none">
                 <img class="topspace pull-right img-smallerthumbnail js-photopreview padleft" width="150" src="/images/userloader.gif" />

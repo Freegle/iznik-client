@@ -1,0 +1,69 @@
+<h1 class="text-center js-exploreregion js-pagetitle">Shortlinks</h1>
+<div class="text-larger">
+  <p class="text-center js-pagedescription">
+    Shortlinks let people find Freegle communities quickly.  On this page you can see all the shortlinks we have,
+    and view statistics about them.
+  </p>
+</div>
+<div class="row">
+  <div class="col-xs-12">
+    <div class="panel">
+      <div class="panel-body">
+        <p class="text-center">
+          You can also create your own shortlinks.  This is particularly useful if you want to promote a community
+          in a particular way, and then see how effective that promotion was.  Keep them short (less typing) and
+          memorable (less forgetting).
+        </p>
+        <div class="row">
+          <div class="col-sm-4">
+            <input type="text" class="form-control js-searchgroupinp" placeholder="Choose a community">
+          </div>
+          <div class="col-sm-8">
+            <div class="input-group">
+              <input type="text" class="js-name form-control" placeholder="Shortlink name (alphanumeric only)" aria-describedby="createbutton">
+              <span class="input-group-addon btn-success clickme js-create" id="createbutton">
+                Create shortlink
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-12">
+            <div class="js-error alert alert-danger topspace" style="display: none">
+              That shortlink is not available.
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xs-12">
+            <div class="js-success alert alert-success topspace" style="display: none">
+              Shortlink created ok.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row-fluid">
+  <div class="col-xs-12 completefull topspace nopad nomargin">
+    <div class="row">
+      <hr />
+      <div class="col-xs-4">
+        <b>Community</b>
+      </div>
+      <div class="col-xs-4">
+        <b>Link</b>
+      </div>
+      <div class="col-xs-4">
+        <b>Stats</b>
+      </div>
+    </div>
+    <div class="row js-loading">
+      <div class="col-xs-12 text-center">
+        <img alt="Loader" src="/images/userloader.gif">
+      </div>
+    </div>
+    <ul class="list-unstyled js-linklist" />
+  </div>
+</div>

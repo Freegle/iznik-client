@@ -1,0 +1,162 @@
+<div class="alert alert-danger js-baduser" style="display: none">
+    That user doesn't exist.
+</div>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="">
+                <h4 class="nomargin">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-xs-12 botspace">
+                                    <div class="profilecontainer">
+                                        <div class="pull-left">
+                                            <img src="{{profile.url}}" class="coverprofileimage" />
+                                        </div>
+                                        <div class="profilename">
+                                            <div class="row">
+                                                <div class="col-sm-10 col-xs-12">
+                                                    {{displayname}}
+                                                </div>
+                                                <div class="col-sm-2 hidden-xs">
+                                                    <span class="small faded pull-right padbotsm">#{{id}}</span>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-8">
+                                                    <div class="text-muted topspace">
+                                                        <span class="glyphicon glyphicon-heart" /> Freegler since <span class="js-since" />.
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4 js-dm" style="display: none">
+                                                    <div class="btn btn-white btn-sm pull-right hidden-xs">
+                                                        <span class="glyphicons glyphicons-conversation vcenter" />&nbsp;Message
+                                                    </div>
+                                                    <div class="btn btn-white btn-sm pull-left topspace visible-xs">
+                                                        <span class="glyphicons glyphicons-conversation vcenter" />&nbsp;Message
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row topspace">
+                                                <div class="col-xs-12">
+                                                    <div class="pull-right hidden-xs visible-sm visible-md visible-lg js-ratings1"/>
+                                                    <div class="pull-left visible-xs hidden-sm hidden-md hidden-lg js-ratings2"/>
+                                                </div>
+                                            </div>
+                                            <% if (settings.showmod) { %>
+                                            <div class="row">
+                                                <div class="col-xs-12">
+                                                    <div class="text-muted small">
+                                                        <span class="glyphicon glyphicon-leaf" /> Freegle Volunteer
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="completefull" />
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
+    <div class="row">
+        <div class="col-xs-12">
+            <% if (info.reneged && info.reneged > 1 && (info.reneged * 100 / (info.reneged + info.collected) > 25)) { %>
+            <div class="alert alert-warning">
+                <p><span class="glyphicon glyphicon-warning-sign" />&nbsp;Things haven't always worked out for this freegler.  That might not be their fault, but please make very clear arrangements.</p>
+            </div>
+            <% } %>
+            <% if (info.aboutme) { %>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <blockquote class="js-abouttext prewrap">{{ info.aboutme.text }}</blockquote>
+                </div>
+            </div>
+            <% } %>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3><span class="glyphicons glyphicons-info-sign inline" />&nbsp;About this freegler</h3>
+                </div>
+                <div class="panel-body">
+                    <p><% if (info.hasOwnProperty('milesaway')) { %><span><span class="glyphicon glyphicon-map-marker" />&nbsp;<% if (info.publiclocation) { %><% if (info.publiclocation.location) { %>{{info.publiclocation.location}}, {{info.milesaway}} mile<% if (info.milesaway != 1) { %>s<% } %> away.<% } else if (info.publiclocation.groupname) { %>{{info.publiclocation.groupname}} <% } else { %>Unknown<% } %><% } %></span><% } %></p>
+                    <% if (info.replytime) { %>
+                    <p><span class="glyphicon glyphicon-time" />&nbsp;Typically replies in <span class="js-replytime" />.</p>
+                    <% } else { %>
+                    <p><span class="glyphicon glyphicon-time" />&nbsp;We don't know how long they typically take to reply.</p>
+                    <% } %>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h2>{{info.openoffers}} active OFFER<% if (info.openoffers != 1) { %>s<% } %></h2>
+                </div>
+                <% if (info.openoffers) { %>
+                <div class="panel-body">
+                    <ul class="list-unstyled js-offerlist" />
+                </div>
+                <% } %>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h2>{{info.openwanteds}} active WANTED<% if (info.openwanteds != 1) { %>s<% } %></h2>
+                </div>
+                <% if (info.openwanteds) { %>
+                <div class="panel-body">
+                    <ul class="list-unstyled js-wantedlist" />
+                </div>
+                <% } %>
+            </div>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3>
+                    <span class="glyphicons glyphicons-charts inline" />&nbsp;
+                    <% if (obj.info.offers + obj.info.wanteds + obj.info.replies == 0) { %>
+                    No recent activity
+                    <% } else { %>
+                    Activity in the last 90 days
+                    <% } %>
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <% if (obj.info.offers + obj.info.wanteds + obj.info.replies > 0) { %>
+                        <div class="col-sm-4">
+                            <% if (obj.info.offers) { %>
+                            <span class="glyphicon glyphicon-gift" />&nbsp;{{info.offers}} recent OFFER<% if (info.offers != 1) { %>s<% } %>.
+                            <% } else { %>
+                            <span class="glyphicon glyphicon-gift" />&nbsp;No recent OFFERs.
+                            <% } %>
+                        </div>
+                        <div class="col-sm-4">
+                            <% if (obj.info.wanteds) { %>
+                            <span class="glyphicon glyphicon-shopping-cart" />&nbsp;{{info.wanteds}} recent WANTED<% if (info.wanted != 1) { %>s<% } %>.
+                            <% } else { %>
+                            <span class="glyphicon glyphicon-shopping-cart" />&nbsp;No recent WANTEDs.
+                            <% } %>
+                        </div>
+                        <div class="col-sm-4">
+                            <% if (obj.info.replies) { %>
+                            <span class="glyphicon glyphicon-envelope" />&nbsp;{{info.replies}} <% if (info.replies != 1) { %>replies<% } else { %>reply<% } %>.
+                            <% } %>
+                        </div>
+                        <% } %>
+                    </div>
+                    <div class="row margtopsm">
+                        <div class="col-xs-12">
+                            <% if (info.collected) { %>
+                            <span class="glyphicon glyphicon-ok" />&nbsp;Picked up about {{info.collected}} item<% if (info.collected != 1) { %>s<% } %>.
+                            <% } else { %>
+                            <span class="glyphicon glyphicon-ok faded" />&nbsp;Not received any items recently, so far as we know.
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

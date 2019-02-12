@@ -675,6 +675,37 @@ a.nodecor, a.nodecor:hover, a.nodecor:visited, a.nodecor:link, a.nodecor:active 
     min-height: 200px;
 }
 
+.img-square
+{
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  margin: 0px;
+  position: relative;
+}
+
+.img-squarexs
+{
+  width: 96vw;
+  height: 96vw;
+  overflow: hidden;
+  margin: 0px;
+  position: relative;
+}
+
+.img-square img, .img-squarexs img {
+  position: absolute;
+  margin: auto;
+  /* CC min-height: 100%;
+  min-width: 100%; */
+  width: 100%; /* CC */
+
+  left: -100%;
+  right: -100%;
+  top: -100%;
+  bottom: -100%;
+}
+
 .img-morerounded {
     border-radius: 12px;
 }
@@ -1955,6 +1986,58 @@ del.diffdel, del.diffmod {
 
 .file-preview-image {
     max-height: 75px;
+}
+
+.coverphoto {
+    height: 100px !important;
+    width: 100% !important;
+}
+
+.coverprofilecontainer {
+    position: relative;
+    width: 100%;
+}
+
+.coverprofilecircle {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-color: darkgray;
+    border-radius: 50%;
+    margin: 10px;
+}
+
+.coverprofileimage {
+    margin-top: 1px;
+    margin-left: 1px;
+    position: absolute;
+    width: 98px;
+    height: 98px;
+    border-radius: 98px;
+    border:3px solid white;
+}
+
+.covername {
+    left: 108px;
+    position: absolute;
+    width: calc(100% - 105px);
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.profilecontainer {
+    position: relative;
+    width: 100%;
+}
+
+.profilename {
+    left: 108px;
+    position: relative;
+    width: calc(100% - 105px);
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 /*==================================================

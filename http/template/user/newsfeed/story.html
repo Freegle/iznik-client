@@ -2,7 +2,7 @@
     <div class="panel-body">
         <div class="row">
             <div class="col-xs-12 clickme">
-                <a href="#" class="dropdown-toggle js-notifholder pull-right" data-toggle="dropdown" title="Options">
+                <a href="#" class="dropdown-toggle pull-right" data-toggle="dropdown" title="Options">
                     <span class="caret"></span>
                 </a>
                 <div class="dropdown-container  dropdown-position-bottomright">
@@ -40,11 +40,14 @@
                     <div class="panel-body">
                         <% if (story.photo) { %>
                         <div class="row">
-                            <div class="col-sm-8">
+                            <div class="col-sm-12">
+                                <div class="img-square img-rounded pull-right">
+                                    <img alt="Item photo" data-nolazysizes="true" src="{{paththumb}}" />
+                                    <img class="clickme js-photo" title="Click to zoom" src="{{story.photo.paththumb}}" />
+                                </div>
                                 <b class="prewrap">{{story.story}}</b>
                             </div>
                             <div class="col-sm-12">
-                                <img class="img-thumbnail img-responsive clickme js-photo" title="Click to zoom" src="{{story.photo.paththumb}}" />
                             </div>
                         </div>
                         <% } else { %>
