@@ -1,16 +1,16 @@
 // We load everything using require.  We need some shims for scripts which aren't AMD-compatible.
 var metas = document.getElementsByTagName('meta');
-/* // CC var bust = (new Date()).getTime();
+/* // CC var bust = (new Date()).getTime()
 
 for (var i=0; i<metas.length; i++) {
     if (metas[i].getAttribute("name") == "iznikcache") {
-        bust = metas[i].getAttribute("content");
+        bust = metas[i].getAttribute("content")
     }
 }*/
 
-var iznikroot = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
-iznikroot = decodeURI(iznikroot.replace(/%25/g, '%2525'));	// CC
-console.log("iznikroot " + iznikroot);
+var iznikroot = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1)	// CC
+iznikroot = decodeURI(iznikroot.replace(/%25/g, '%2525'))	// CC
+console.log("iznikroot " + iznikroot)
 
 requirejs.config({
     baseUrl: iznikroot + "js/lib",	// CC

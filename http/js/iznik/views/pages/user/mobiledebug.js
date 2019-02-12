@@ -12,7 +12,7 @@ define([
 
         render: function () {
             var p = Iznik.Views.Page.prototype.render.call(this).then(function () {
-                $('#js-mobilelog').val(alllog);
+                $('#js-mobilelog').val(alllog)
             });
             return p;
         }

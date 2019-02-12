@@ -286,7 +286,7 @@ define([
     },
 
     mobileReload: function (url) {  // CC url not used - could be used to specify route to use
-        window.location.href = window.initialURL;  // Could add ?route=Xxx
+      window.location.href = window.initialURL  // Could add ?route=Xxx
     },
 
     userHome: function () {
@@ -302,7 +302,7 @@ define([
           function f (loggedIn) {
             // console.log("Logged in", loggedIn);
             if (Iznik.Session.maintenanceMode) {  // CC
-              console.log("Don't load home or landing as in maintenanceMode");
+              console.log("Don't load home or landing as in maintenanceMode")
             } else if (loggedIn || _.isUndefined(loggedIn)) {
               require(['iznik/views/pages/user/home'], function () {
                 var page = new Iznik.Views.User.Pages.Home()
@@ -421,8 +421,8 @@ define([
             }
           } else {
             if (Iznik.Session.maintenanceMode) {  // CC
-              self.userMaintenance();
-              return false;
+              self.userMaintenance()
+              return false
             }
             require(['iznik/views/pages/user/landing'], function () {
               var page = new Iznik.Views.User.Pages.Landing()
@@ -677,7 +677,7 @@ define([
                 // Reload to force session refresh.
                 // TODO lame.
                 // CC window.location = '/'
-                Router.mobileReload(); // CC
+                Router.mobileReload() // CC
               })
 
               v.render()
@@ -1822,10 +1822,10 @@ define([
     },
 
     mobiledebug: function () {  // CC 
-      var self = this;
+      var self = this
       require(["iznik/views/pages/user/mobiledebug"], function () {
-        var page = new Iznik.Views.User.Pages.MobileDebug();
-        self.loadRoute({ page: page });
+        var page = new Iznik.Views.User.Pages.MobileDebug()
+        self.loadRoute({ page: page })
       });
     },
 
@@ -2084,19 +2084,19 @@ define([
         var self = this
 
         require(['iznik/views/pages/user/landing'], function () {
-          var mobile_version = APP_VERSION;	// CC
-          var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
+          var mobile_version = APP_VERSION	// CC
+          var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) })	// CC
           self.loadRoute({page: page})
         })
       }
     },
 
     userMaintenance: function () {  // CC
-      var self = this;
-      console.log("userMaintenance");
+      var self = this
+      console.log("userMaintenance")
       require(["iznik/views/pages/user/landing"], function () {
-        var page = new Iznik.Views.User.Pages.Landing.Maintenance();
-        self.loadRoute({ page: page });
+        var page = new Iznik.Views.User.Pages.Landing.Maintenance()
+        self.loadRoute({ page: page })
       });
     },
 
@@ -2319,12 +2319,12 @@ define([
   // CC
   // Might need: $(document).ready(function() {
   // We're ready.  Get backbone up and running.
-  var Router = new IznikRouter();
+  var Router = new IznikRouter()
 
   try {
-    var root = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1);	// CC
-    root = decodeURI(root.replace(/%25/g, '%2525'));	// CC
-    console.log("Backbone root", root);	// CC
+    var root = location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1)	// CC
+    root = decodeURI(root.replace(/%25/g, '%2525'))	// CC
+    console.log("Backbone root", root)	// CC
     Backbone.history.start({
       root: root,	// CC
       pushState: true
@@ -2332,9 +2332,9 @@ define([
   } catch (e) {
     // We've got an uncaught exception.
     // TODO Log it to the server.
-    window.alert("Top-level exception " + e);
-    console.log("Top-level exception", e);
-    console.trace();
+    window.alert("Top-level exception " + e)
+    console.log("Top-level exception", e)
+    console.trace()
   }
 
   function internal(evt, href) {

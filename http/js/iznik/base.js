@@ -10,7 +10,7 @@ var templateFetch = tpl.templateFetch;
 
 // Placeholder for images not found.
 (function () {
-  const NOTFOUNDSRC = iznikroot + 'images/placeholder.jpg';  // CC
+  const NOTFOUNDSRC = iznikroot + 'images/placeholder.jpg'  // CC
   document.addEventListener('error', function (e) {
     if (e.target.nodeName.toUpperCase() == 'IMG' && e.target.getAttribute('src') && e.target.getAttribute('src') != NOTFOUNDSRC) {
       e.target.src = NOTFOUNDSRC
@@ -474,9 +474,9 @@ define([
     }
 
     if (window.mobilePush) {  // CC
-      window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen);
-      console.log("badge count set to: " + unseen);
-      if (unseen == 0) { window.mobilePush.clearAllNotifications(); }
+      window.mobilePush.setApplicationIconBadgeNumber(function () { }, function () { }, unseen)
+      console.log("badge count set to: " + unseen)
+      if (unseen == 0) { window.mobilePush.clearAllNotifications() }
     }
 }
 
@@ -754,7 +754,7 @@ define([
 
           if (src && !$this.data('nolazysizes')) {
             $this.attr('data-src', src)
-            $this.prop('src', iznikroot + 'images/1x1_placeholder.png'); // CC
+            $this.prop('src', iznikroot + 'images/1x1_placeholder.png') // CC
             $this.addClass('lazyload')
           }
         })
@@ -822,7 +822,7 @@ define([
       },
 
       adSense: function (jq) {
-        jq = _.isUndefined(jq) ? $ : jq
+        /*jq = _.isUndefined(jq) ? $ : jq
 
         // Convert our ins into a google ad and queue it up for rendering.
         jq('.js-googleads').each(function () {
@@ -831,7 +831,7 @@ define([
           var v = new Iznik.View.GoogleAd()
           v.render()
           d.html(v.el)
-        })
+        })*/
       }
     })
 
@@ -1002,23 +1002,23 @@ define([
       // Upload as soon as photos have been resized.  // CC
       self.options.target.on('fileimageresized', function (event) {
         //console.log("fileimageresized")
-        self.trigger('uploadStart');
+        self.trigger('uploadStart')
 
         // Have to defer else break fileinput validation processing.
         _.defer(function () {
-          self.options.target.fileinput('upload');
+          self.options.target.fileinput('upload')
 
           // We don't seem to be able to hide this control using the options.
-          self.$('.fileinput-remove').hide();
+          self.$('.fileinput-remove').hide()
         })
       });
 
       self.options.target.on('fileuploaded', function (event, data) {
-        $('.file-preview, .kv-upload-progress').hide();
+        $('.file-preview, .kv-upload-progress').hide()
 
-        var ret = data.response;
+        var ret = data.response
 
-        self.trigger('uploadEnd', ret);
+        self.trigger('uploadEnd', ret)
 
         _.delay(function () {
           self.$('.file-preview-frame').remove()

@@ -9,7 +9,7 @@ define([
     'jquery-visibility'
 ], function($, _, Backbone, Iznik) {
 
-    var tryingYahooLogin = false; // CC
+    var tryingYahooLogin = false // CC
 
     Iznik.Models.Session = Iznik.Model.extend({
         url: API + 'session',
@@ -228,11 +228,11 @@ define([
                   //ret.ret = 111;
                     if (ret.ret == 111) {
                         // Down for maintenance
-                        self.testing = false; // CC
-                        console.log("set maintenanceMode");
-                        self.maintenanceMode = true;
-                        Router.navigate("/maintenance", true);
-                        self.trigger('isLoggedIn', false);
+                        self.testing = false // CC
+                        console.log("set maintenanceMode")
+                        self.maintenanceMode = true
+                        Router.navigate("/maintenance", true)
+                        self.trigger('isLoggedIn', false)
                     } else if ((ret.ret == 0)) {
                         var now = (new Date()).getTime();
 
@@ -256,8 +256,8 @@ define([
 
                                 if (lastloggedinas && ret.myid != lastloggedinas) {
                                     // We have logged in as someone else.  Make sure nothing odd is cached.
-                                    // CC window.location.reload(true);
-                                    Router.navigate("/", true);
+                                    // CC window.location.reload(true)
+                                    Router.navigate("/", true)
                                 }
                             }
 
@@ -538,7 +538,7 @@ define([
         },
 
         facebookLogin: function (token) { // CC
-            var self = this;
+            var self = this
             //console.log("Do facebook login");
             $.ajax({
                 url: API + 'session',
@@ -572,9 +572,9 @@ define([
             tryingYahooLogin = true;
 
             // Try Yahoo login // CC
-            var urlParams = {};
-            urlParams['yahoologin'] = true;
-            console.log("URL params", urlParams);
+            var urlParams = {}
+            urlParams['yahoologin'] = true
+            console.log("URL params", urlParams)
 
             $.ajax({
                 url: API + 'session',
@@ -583,16 +583,16 @@ define([
                 success: function (response) {
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
-                        self.trigger('loggedIn', response);
-                        Router.mobileReload('/');  // CC
+                        self.trigger('loggedIn', response)
+                        Router.mobileReload('/')  // CC
                         tryingYahooLogin = false;
                     } else if (response.ret === 1) {  // CC
-                      self.yahooAuth(response.redirect);
+                      self.yahooAuth(response.redirect)
                     } else {
-                        $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
-                        $('.js-signin-msg').show();
-                        self.trigger('loginFailed', response);
-                        tryingYahooLogin = false;
+                        $('.js-signin-msg').text("Yahoo log in failed " + response.ret)
+                        $('.js-signin-msg').show()
+                        self.trigger('loginFailed', response)
+                        tryingYahooLogin = false
                     }
                 }
             });
@@ -604,29 +604,29 @@ define([
         // We catch and stop this open, get passed parameters and pass them as part of repeat FD login request
 
         yahooAuth: function (yauthurl) {   // CC
-          var self = this;
-          console.log("Yahoo authenticate window open");
-          console.log("yahooAuth: " + yauthurl);
+          var self = this
+          console.log("Yahoo authenticate window open")
+          console.log("yahooAuth: " + yauthurl)
 
-          var authGiven = false;
+          var authGiven = false
 
-          var authWindow = window.open(yauthurl, '_blank', 'location=yes,menubar=yes');
+          var authWindow = window.open(yauthurl, '_blank', 'location=yes,menubar=yes')
 
           $(authWindow).on('loadstart', function (e) {
-            var url = e.originalEvent.url;
-            console.log("yloadstart: " + url);
+            var url = e.originalEvent.url
+            console.log("yloadstart: " + url)
 
             // Catch redirect after auth back to ilovefreegle
             if (url.indexOf("https://www.ilovefreegle.org/") === 0) {
-              authWindow.close();
-              var urlParams = self.extractQueryStringParams(url);
+              authWindow.close()
+              var urlParams = self.extractQueryStringParams(url)
               if (urlParams) {
-                authGiven = true;
-                urlParams.yahoologin = true;
-                console.log(urlParams);
+                authGiven = true
+                urlParams.yahoologin = true
+                console.log(urlParams)
 
                 // Try logging in again at FD
-                console.log("Got URL params", urlParams);
+                console.log("Got URL params", urlParams)
                 $.ajax({
                   url: API + 'session',
                   type: 'POST',
@@ -634,12 +634,12 @@ define([
                   success: function (response) {
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
-                      self.trigger('loggedIn', response);
-                      Router.mobileReload('/');  // CC
+                      self.trigger('loggedIn', response)
+                      Router.mobileReload('/')  // CC
                     } else {
-                      $('.js-signin-msg').text("Yahoo log in failed " + response.ret);
-                      $('.js-signin-msg').show();
-                      self.trigger('loginFailed', response);
+                      $('.js-signin-msg').text("Yahoo log in failed " + response.ret)
+                      $('.js-signin-msg').show()
+                      self.trigger('loginFailed', response)
                     }
                   }
                 });
@@ -649,27 +649,27 @@ define([
 
           $(authWindow).on('exit', function (e) {
             if (!authGiven) {
-              console.log("Yahoo permission not given or failed");
-              $('.js-signin-msg').text("Yahoo permission not given or failed");
-              $('.js-signin-msg').show();
+              console.log("Yahoo permission not given or failed")
+              $('.js-signin-msg').text("Yahoo permission not given or failed")
+              $('.js-signin-msg').show()
             }
-            tryingYahooLogin = false;
+            tryingYahooLogin = false
           });
         },
 
         extractQueryStringParams: function (url) {  // CC
-          var urlParams = false;
-          var qm = url.indexOf('?');
+          var urlParams = false
+          var qm = url.indexOf('?')
           if (qm >= 0) {
-            var qs = url.substring(qm + 1);
+            var qs = url.substring(qm + 1)
             // http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-            var match;
-            var pl = /\+/g;  // Regex for replacing addition symbol with a space
-            var search = /([^&=]+)=?([^&]*)/g;
-            var decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); };
-            urlParams = {};
+            var match
+            var pl = /\+/g  // Regex for replacing addition symbol with a space
+            var search = /([^&=]+)=?([^&]*)/g
+            var decode = function (s) { return decodeURIComponent(s.replace(pl, " ")) }
+            urlParams = {}
             while (match = search.exec(qs)) {
-              urlParams[decode(match[1])] = decode(match[2]);
+              urlParams[decode(match[1])] = decode(match[2])
             }
           }
           return urlParams;
@@ -812,7 +812,7 @@ define([
         },
 
         hasFacebook: function() {
-            var facebook = true;    // CC true on mobile to enable any sharing
+            var facebook = true    // CC true on mobile to enable any sharing
             /*var facebook = null;
             _.each(this.get('logins'), function(login) {
                 if (login.type == 'Facebook') {

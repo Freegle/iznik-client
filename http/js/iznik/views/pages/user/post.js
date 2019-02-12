@@ -34,60 +34,60 @@ define([
     },
 
     cameraSuccess: function (imageData, self) {  // CC
-      console.log("cameraSuccess " + imageData.length);
+      console.log("cameraSuccess " + imageData.length)
 
       // https://stackoverflow.com/questions/36912819/cordova-camera-take-picture-as-blob-object
-      var contentType = 'image/jpeg';
-      var sliceSize = 512;
+      var contentType = 'image/jpeg'
+      var sliceSize = 512
 
-      var byteCharacters = atob(imageData);
-      var byteArrays = [];
+      var byteCharacters = atob(imageData)
+      var byteArrays = []
 
       for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-        let slice = byteCharacters.slice(offset, offset + sliceSize);
+        let slice = byteCharacters.slice(offset, offset + sliceSize)
 
-        let byteNumbers = new Array(slice.length);
+        let byteNumbers = new Array(slice.length)
         for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
+          byteNumbers[i] = slice.charCodeAt(i)
         }
 
-        let byteArray = new Uint8Array(byteNumbers);
+        let byteArray = new Uint8Array(byteNumbers)
 
-        byteArrays.push(byteArray);
+        byteArrays.push(byteArray)
       }
 
       //self.uploading++;
 
-      var imageBlob = new Blob(byteArrays, { type: contentType });
-      self.$('#fileupload').fileinput('addToStack', imageBlob);
-      self.$('#fileupload').fileinput('upload');
+      var imageBlob = new Blob(byteArrays, { type: contentType })
+      self.$('#fileupload').fileinput('addToStack', imageBlob)
+      self.$('#fileupload').fileinput('upload')
     },
 
     cameraError: function (msg, self) {  // CC
       setTimeout(function () {
-        if (msg === "No Image Selected") { msg = "No photo taken or chosen"; }
-        if (msg === "Camera cancelled") { msg = "No photo taken or chosen"; }
-        console.log(msg);
-        self.$('.js-photo-msg').text(msg);
-        self.$('.js-photo-msg').show();
-      }, 0);
+        if (msg === "No Image Selected") { msg = "No photo taken or chosen" }
+        if (msg === "Camera cancelled") { msg = "No photo taken or chosen" }
+        console.log(msg)
+        self.$('.js-photo-msg').text(msg)
+        self.$('.js-photo-msg').show()
+      }, 0)
     },
 
     addPhoto: function () {  // CC
-      var self = this;
-      self.$('.js-photo-msg').hide();
+      var self = this
+      self.$('.js-photo-msg').hide()
 
-      var maxDimension = 800; // Connection.UNKNOWN Connection.ETHERNET Connection.WIFI Connection.CELL_4G and Connection.NONE
+      var maxDimension = 800 // Connection.UNKNOWN Connection.ETHERNET Connection.WIFI Connection.CELL_4G and Connection.NONE
       if ((navigator.connection.type === Connection.CELL_2G) ||
         (navigator.connection.type === Connection.CELL_2G) ||
         (navigator.connection.type === Connection.CELL)) {
-        maxDimension = 400;
+        maxDimension = 400
       }
 
       navigator.camera.getPicture(function (imageURI) {
-        self.cameraSuccess(imageURI, self);
+        self.cameraSuccess(imageURI, self)
       }, function (msg) {
-        self.cameraError(msg, self);
+        self.cameraError(msg, self)
       },
         {
           quality: 50,
@@ -102,7 +102,7 @@ define([
           saveToPhotoAlbum: true,
           correctOrientation: true
         }
-      );
+      )
     },
 
     focusItem: function () {

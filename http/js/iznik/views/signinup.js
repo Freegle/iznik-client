@@ -126,8 +126,8 @@ define([
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
                             // Reload this page, and now that we are logged in the route
                             // should behave differently.
-                            Router.mobileReload();  // CC
-                            // CC window.location.reload();
+                            Router.mobileReload()  // CC
+                            // CC window.location.reload()
                         });
 
                         Iznik.Session.testLoggedIn(['all']);
@@ -169,8 +169,8 @@ define([
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function() {
                             // Reload this page, and now that we are logged in the route
                             // should behave differently.
-                            Router.mobileReload();  // CC
-                            // CC window.location.reload();
+                            Router.mobileReload()  // CC
+                            // CC window.location.reload()
                         });
 
                         Iznik.Session.testLoggedIn(true);
@@ -190,7 +190,7 @@ define([
 
         fblogin: function () {
             var self = this;
-            // CC: FB causes iOS exception: console.log("FB Login", FB);
+            // CC: FB causes iOS exception: console.log("FB Login", FB)
 
             var FBLoad = new Iznik.Views.FBLoad();
             FBLoad.signin();
@@ -198,13 +198,13 @@ define([
         
         yahoologin: function () {
             if (navigator.connection.type === Connection.NONE) {  // CC
-              console.log("No connection - please try again later.");
-              $('.js-signin-msg').text("No internet connection - please try again later");
-              $('.js-signin-msg').show();
-              return;
+              console.log("No connection - please try again later.")
+              $('.js-signin-msg').text("No internet connection - please try again later")
+              $('.js-signin-msg').show()
+              return
             }
 
-            Iznik.Session.yahooLogin();
+            Iznik.Session.yahooLogin()
         },
 
         showNative: function () {
@@ -251,10 +251,10 @@ define([
                 } catch (e) {
                 }
 
-                $('.js-privacy').hide();
-                $('.js-signin-msg').hide(); // CC
+                $('.js-privacy').hide()
+                $('.js-signin-msg').hide() // CC
                 
-                self.$('.js-loginFB').removeClass('signindisabled');  // CC
+                self.$('.js-loginFB').removeClass('signindisabled')  // CC
 
                 // Load the Google API
                 var GoogleLoad = new Iznik.Views.GoogleLoad();

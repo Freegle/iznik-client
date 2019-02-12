@@ -59,20 +59,20 @@ define([
         },
 
         errorLocation: function (position) { // CC
-            console.log("errorLocation");
-            window.hideHeaderWait();
-            var self = this;
-            self.$('.js-getloc').tooltip('destroy');
+            console.log("errorLocation")
+            window.hideHeaderWait()
+            var self = this
+            self.$('.js-getloc').tooltip('destroy')
             _.delay(function () {
                 self.$('.js-getloc').tooltip({
                     'placement': 'bottom',
                     'title': "No location available. Check your Settings for Location access/services."
-                });
-                self.$('.js-getloc').tooltip('show');
+                })
+                self.$('.js-getloc').tooltip('show')
                 _.delay(function () {
-                    self.$('.js-getloc').tooltip('destroy');
-                }, 20000);
-            }, 500);
+                    self.$('.js-getloc').tooltip('destroy')
+                }, 20000)
+            }, 500)
         },
 
         gotLocation: function (position) {
@@ -287,7 +287,7 @@ define([
 
                         if (within > 20) {
                             // Switch to pins for large collections
-                            var icon = 'https://www.ilovefreegle.org/images/mapmarker.gif';	// CC
+                            var icon = 'https://www.ilovefreegle.org/images/mapmarker.gif'	// CC
                             var marker = new google.maps.Marker({
                                 position: latLng,
                                 icon: icon,

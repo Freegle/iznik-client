@@ -891,7 +891,7 @@ define([
                                         self.wait.close();
                                     } else {
                                         _.each(self.groups, function(group) {
-                                            var icon = 'https://www.ilovefreegle.org/images/mapmarkerbrightgreen.gif'; // CC
+                                            var icon = 'https://www.ilovefreegle.org/images/mapmarkerbrightgreen.gif' // CC
                                             var marker = new google.maps.Marker({
                                                 position: new google.maps.LatLng(group.lat, group.lng),
                                                 icon: icon,

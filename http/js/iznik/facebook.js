@@ -79,8 +79,8 @@ define([
             var self = this;
             if (navigator.connection.type === Connection.NONE) {
                 console.log("No connection - please try again later.");
-                $('.js-signin-msg').text("No internet connection - please try again later");
-                $('.js-signin-msg').show();
+                $('.js-signin-msg').text("No internet connection - please try again later")
+                $('.js-signin-msg').show()
                 return;
             }
 
