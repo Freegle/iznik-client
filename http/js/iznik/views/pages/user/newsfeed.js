@@ -102,7 +102,7 @@ define([
         } catch (e) {
           console.log('Exception', e.message)
         }
-        
+
 
         self.trigger('gotlocation', location)
       }
@@ -814,7 +814,7 @@ define([
         self.$('.js-photopreviewwrapper').show()
         self.$('.js-addphotowrapper').hide()
       })
-      
+
       self.listenTo(self.photoUpload, 'uploadEnd', function (ret) {
         self.$('.js-photopreview').attr('src', ret.paththumb)
         self.imageid = ret.id
@@ -980,10 +980,10 @@ define([
         id: self.model.get('id'),
         message: self.$('.js-message').val()
       }, {
-        patch: true
-      }).then(function () {
-        self.close()
-      })
+          patch: true
+        }).then(function () {
+          self.close()
+        })
     },
 
     render: function () {
@@ -1630,7 +1630,7 @@ define([
       (new Iznik.Views.User.CommunityEvent.Confirm()).render()
       self.$('.js-addblock').hide()
       self.$('.js-postadd').show()
-      $('body').animate({scrollTop: 0}, 'fast')
+      $('body').animate({ scrollTop: 0 }, 'fast')
     },
 
     render: function () {
@@ -1651,7 +1651,7 @@ define([
       (new Iznik.Views.User.Volunteering.Confirm()).render()
       self.$('.js-addblock').hide()
       self.$('.js-postadd').show()
-      $('body').animate({scrollTop: 0}, 'fast')
+      $('body').animate({ scrollTop: 0 }, 'fast')
     },
 
     render: function () {
@@ -1755,7 +1755,7 @@ define([
         } catch (e) {
           console.log('Exception', e.message)
         }
-        
+
       }
     },
 
@@ -1945,9 +1945,9 @@ define([
           hint: false,
           highlight: true
         }, {
-          name: 'postcodes',
-          source: _.bind(self.postcodeSource, self)
-        })
+            name: 'postcodes',
+            source: _.bind(self.postcodeSource, self)
+          })
 
         var mylocation = Storage.get('mylocation')
 
@@ -1984,10 +1984,10 @@ define([
           highlight: true,
           autoselect: false
         }, {
-          name: 'items',
-          source: self.itemSource,
-          limit: 3
-        })
+            name: 'items',
+            source: self.itemSource,
+            limit: 3
+          })
 
         // Close the suggestions after 30 seconds in case people are confused.
         self.$('.js-item').bind('typeahead:open', function () {
@@ -1995,7 +1995,7 @@ define([
             self.$('.js-item').typeahead('close')
           }, 30000)
         })
-        
+
         // File upload
         self.photoUpload = new Iznik.View.PhotoUpload({
           target: self.$(self.photoId),
@@ -2024,7 +2024,7 @@ define([
           self.draftPhotos.render().then(function () {
             self.$('.js-draftphotos').html(self.draftPhotos.el)
           })
-          
+
           _.delay(function () {
             self.$('.js-draftphotos').show()
           }, 500)

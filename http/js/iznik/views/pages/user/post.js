@@ -33,7 +33,6 @@ define([
       'click .js-addprompt': 'forceAdd'
     },
 
-    //cameraSuccess: function (imageURI, self) {  // CC
     cameraSuccess: function (imageData, self) {  // CC
       console.log("cameraSuccess " + imageData.length);
 
@@ -57,7 +56,7 @@ define([
         byteArrays.push(byteArray);
       }
 
-      self.uploading++;
+      //self.uploading++;
 
       var imageBlob = new Blob(byteArrays, { type: contentType });
       self.$('#fileupload').fileinput('addToStack', imageBlob);
@@ -86,10 +85,10 @@ define([
       }
 
       navigator.camera.getPicture(function (imageURI) {
-          self.cameraSuccess(imageURI, self);
-        }, function (msg) {
-          self.cameraError(msg, self);
-        },
+        self.cameraSuccess(imageURI, self);
+      }, function (msg) {
+        self.cameraError(msg, self);
+      },
         {
           quality: 50,
           destinationType: Camera.DestinationType.DATA_URL,
@@ -108,7 +107,7 @@ define([
 
     focusItem: function () {
       // Scroll to bottom so that any suggestions don't hide the description box.
-      $('html, body').animate({scrollTop: $(document).height()}, 'slow')
+      $('html, body').animate({ scrollTop: $(document).height() }, 'slow')
     },
 
     forceAdd: function () {
@@ -160,6 +159,7 @@ define([
     },
 
     checkNext: function () {
+      //console.log("checkNext")
       var self = this
 
       if (this.$el.closest('body').length > 0) {
@@ -188,7 +188,7 @@ define([
           }
         }
 
-        _.delay(_.bind(self.checkNext, self), 300)
+        _.delay(_.bind(self.checkNext, self), 1000)
       }
     },
 
@@ -208,7 +208,7 @@ define([
           var loc = Storage.get('mylocation')
           locationid = loc ? JSON.parse(loc).id : null
           groupid = Storage.get('myhomegroup')
-        } catch (e) {}
+        } catch (e) { }
 
 
         var d = jQuery.Deferred()
@@ -337,10 +337,10 @@ define([
             autoselect: false,
             tabAutocomplete: false,
           }, {
-            name: 'items',
-            source: self.hound,
-            limit: 3
-          })
+              name: 'items',
+              source: self.hound,
+              limit: 3
+            })
 
           if (self.options.item) {
             self.$('.js-item').typeahead('val', self.options.item)
@@ -355,93 +355,6 @@ define([
         })
 
         // File upload
-        self.$('#fileupload').fileinput({
-          uploadExtraData: {
-            imgtype: 'Message',
-            identify: true
-          },
-          showUpload: false,
-          allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
-          uploadUrl: API + 'image',
-          resizeImage: true,
-          maxImageWidth: 800,
-          browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
-          browseLabel: 'Add photos',
-          browseClass: 'btn btn-success btn-lg nowrap pull-right',
-          showCaption: false,
-          showRemove: false,
-          showUploadedThumbs: false,
-          dropZoneEnabled: false,
-          buttonLabelClass: '',
-          fileActionSettings: {
-            showZoom: false,
-            showRemove: false,
-            showUpload: false
-          },
-          layoutTemplates: {
-            footer: '<div class="file-thumbnail-footer">\n' +
-              '    {actions}\n' +
-              '</div>'
-          }
-        });
-
-        // Count how many we will upload.
-        self.$('#fileupload').on('fileloaded', function (event) {
-          self.uploading++;
-        });
-
-        // Upload as soon as photos have been resized.
-        self.$('#fileupload').on('fileimageresized', function (event) {
-          // Have to defer else break fileinput validation processing.
-          _.defer(function () {
-            self.$('#fileupload').fileinput('upload');
-
-            // We don't seem to be able to hide this control using the options.
-            self.$('.fileinput-remove').hide();
-          })
-        });
-
-        // Watch for all uploaded
-        self.$('#fileupload').on('fileuploaded', function (event, data) {
-          console.log("File uploaded", data)
-          // Add the photo to our list
-          var mod = new Iznik.Models.Message.Attachment({
-            id: data.response.id,
-            path: data.response.path,
-            paththumb: data.response.paththumb,
-            mine: true
-          });
-
-          self.photos.add(mod);
-
-          // Show the uploaded thumbnail and hackily remove the one provided for us.
-          self.draftPhotos.render().then(function () {
-            self.$('.js-draftphotos').html(self.draftPhotos.el);
-            self.$('.js-draftphotos').show();
-          });
-
-          _.delay(function () {
-            self.$('.file-preview-frame').remove();
-          }, 500);
-
-          // Add any hints about the item
-          self.$('.js-suggestions').empty();
-          self.suggestions = [];
-
-          _.each(data.response.items, function (item) {
-            self.suggestions.push(item);
-          });
-
-          self.uploading--;
-          console.log("File uploaded self.uploading", self.uploading)
-
-          if (self.uploading == 0) {
-            self.allUploaded();
-          }
-        });
-
-
-        /* // File upload
         self.photoUpload = new Iznik.View.PhotoUpload({
           target: self.$('#fileupload'),
           previewSettings: {
@@ -457,12 +370,13 @@ define([
           },
           browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
           browseLabel: 'Add photos',
-          browseClass: 'btn btn-success btn-lg nowrap',
+          browseClass: 'btn btn-success btn-lg nowrap pull-right',  // CC
           errorContainer: '#js-uploaderror'
         })
 
         self.listenTo(self.photoUpload, 'uploadEnd', function (ret) {
           // Add the photo to our list
+          console.log("uploadEnd called")
           var mod = new Iznik.Models.Message.Attachment({
             id: ret.id,
             path: ret.path,
@@ -489,7 +403,7 @@ define([
           self.allUploaded()
         })
 
-        self.photoUpload.render();*/
+        self.photoUpload.render();
 
         try {
           var id = Storage.get('draft')
@@ -593,7 +507,7 @@ define([
                 Storage.set('lastpost', id)
                 Storage.remove('draft')
                 Storage.remove('draftrepost')
-              } catch (e) {}
+              } catch (e) { }
 
               if (ret.newuser) {
                 // We didn't know this email and have created a user for them.  Show them an invented

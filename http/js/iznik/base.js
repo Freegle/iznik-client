@@ -958,7 +958,8 @@ define([
         showUpload: false,
         allowedFileExtensions: ['jpg', 'jpeg', 'gif', 'png'],
         uploadUrl: API + 'image',
-        resizeImage: false,
+        resizeImage: true,  // CC
+        maxImageWidth: 800, // CC
         browseIcon: self.options.browseIcon ? self.options.browseIcon : '',
         browseLabel: self.options.browseLabel ? self.options.browseLabel : '',
         browseClass: self.options.browseClass,
@@ -987,7 +988,7 @@ define([
         deleteUrl: self.options.deleteUrl ? self.options.deleteUrl : null
       });
 
-      self.options.target.on('change', function (event) {
+      /* CC self.options.target.on('change', function (event) {
         $('.file-preview, .kv-upload-progress').hide();
 
         self.trigger('uploadStart');
@@ -996,11 +997,24 @@ define([
         _.defer(function () {
           self.options.target.fileinput('upload');
         })
-      })
+      })*/
+
+      // Upload as soon as photos have been resized.  // CC
+      self.options.target.on('fileimageresized', function (event) {
+        //console.log("fileimageresized")
+        self.trigger('uploadStart');
+
+        // Have to defer else break fileinput validation processing.
+        _.defer(function () {
+          self.options.target.fileinput('upload');
+
+          // We don't seem to be able to hide this control using the options.
+          self.$('.fileinput-remove').hide();
+        })
+      });
 
       self.options.target.on('fileuploaded', function (event, data) {
-        // Remove preview added by plugin - we have our own.
-        self.$('.file-preview').remove();
+        $('.file-preview, .kv-upload-progress').hide();
 
         var ret = data.response;
 

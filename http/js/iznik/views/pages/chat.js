@@ -131,7 +131,7 @@ define([
               Storage.clear('lastchatmsg')
               Storage.clear('lastchatid')
             }
-          } catch (e) {}
+          } catch (e) { }
         })
       }
     },
@@ -468,7 +468,7 @@ define([
         if (enterSend !== null) {
           enterSend = parseInt(enterSend)
         }
-      } catch (e) {}
+      } catch (e) { }
 
 
       if (e.which === 13) {
@@ -490,7 +490,7 @@ define([
               // Now we should know.
               try {
                 enterSend = parseInt(Storage.get('chatentersend'))
-              } catch (e) {}
+              } catch (e) { }
 
 
               if (enterSend) {
@@ -911,7 +911,7 @@ define([
         browseClass: 'clickme glyphicons glyphicons-camera text-muted gi-2x'
       });
 
-      self.listenTo(self.photoUpload, 'uploadStart', function() {
+      self.listenTo(self.photoUpload, 'uploadStart', function () {
         var prelast = self.messages.last();
         var nextid = prelast ? (prelast.get('id') + 1) : 1
         nextid = _.isNaN(nextid) ? 1 : nextid
@@ -926,7 +926,7 @@ define([
         self.messages.add(tempmod)
       });
 
-      self.listenTo(self.photoUpload, 'uploadEnd', function(ret) {
+      self.listenTo(self.photoUpload, 'uploadEnd', function (ret) {
         // Create a chat message to hold it.
         var tempmod = new Iznik.Models.Chat.Message({
           roomid: self.model.get('id'),
@@ -1042,7 +1042,7 @@ define([
             self.scrollBottom()
 
             // Try to ensure that the viewport units all work ok.
-            viewportUnitsBuggyfill.init({force: true})
+            viewportUnitsBuggyfill.init({ force: true })
           })
 
           // Show any warning for a while.

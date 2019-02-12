@@ -83,8 +83,8 @@ define([
           membership.save({
             'settings': newdata
           }, {
-            patch: true
-          })
+              patch: true
+            })
         })
       })
     },
@@ -260,21 +260,21 @@ define([
                   label: 'Push/app notifications?',
                   control: 'radio',
                   extraClasses: ['row'],
-                  options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}]
+                  options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
                 },
                 {
                   name: 'active',
                   label: 'Are you actively moderating this group?',
                   control: 'radio',
                   extraClasses: ['row'],
-                  options: [{label: 'Active', value: 1}, {label: 'Backup', value: 0}]
+                  options: [{ label: 'Active', value: 1 }, { label: 'Backup', value: 0 }]
                 },
                 {
                   name: 'showmembers',
                   label: 'Show members in All Groups?',
                   control: 'radio',
                   extraClasses: ['row'],
-                  options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}]
+                  options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
                 },
                 {
                   control: 'button',
@@ -296,10 +296,10 @@ define([
                     membership.save({
                       'settings': newdata
                     }, {
-                      patch: true,
-                      success: _.bind(self.success, self),
-                      error: self.error
-                    })
+                        patch: true,
+                        success: _.bind(self.success, self),
+                        error: self.error
+                      })
                     return (false)
                   }
                 }
@@ -330,25 +330,25 @@ define([
                 label: 'Region',
                 control: 'select',
                 options: [
-                  {label: 'East', value: 'East'},
-                  {label: 'London', value: 'London'},
-                  {label: 'Midlands West', value: 'West Midlands'},
-                  {label: 'Midlands East', value: 'East Midlands'},
-                  {label: 'North East', value: 'North East'},
-                  {label: 'North West', value: 'North West'},
-                  {label: 'Northern Ireland', value: 'Northern Ireland'},
-                  {label: 'South East', value: 'South East'},
-                  {label: 'South West', value: 'South West'},
-                  {label: 'Wales', value: 'Wales'},
-                  {label: 'Yorkshire and the Humber', value: 'Yorkshire and the Humber'},
-                  {label: 'Scotland', value: 'Scotland'}
+                  { label: 'East', value: 'East' },
+                  { label: 'London', value: 'London' },
+                  { label: 'Midlands West', value: 'West Midlands' },
+                  { label: 'Midlands East', value: 'East Midlands' },
+                  { label: 'North East', value: 'North East' },
+                  { label: 'North West', value: 'North West' },
+                  { label: 'Northern Ireland', value: 'Northern Ireland' },
+                  { label: 'South East', value: 'South East' },
+                  { label: 'South West', value: 'South West' },
+                  { label: 'Wales', value: 'Wales' },
+                  { label: 'Yorkshire and the Humber', value: 'Yorkshire and the Humber' },
+                  { label: 'Scotland', value: 'Scotland' }
                 ],
               },
               {
                 name: 'publish',
                 label: 'Visible on website?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: '(Freegle only) Is this group available for people to find and use?',
                 disabled: role != 'Owner' && !Iznik.Session.isAdminOrSupport()
               },
@@ -356,14 +356,14 @@ define([
                 name: 'onhere',
                 label: 'Enable Freegle Direct?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: '(Freegle only) Enable Freegle Direct.  Users will be able to join your group via Freegle Direct as well as on Yahoo or via TrashNothing.'
               },
               {
                 name: 'onyahoo',
                 label: 'Hosted on Yahoo?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: '(Freegle only) If Yes, this group exists on Yahoo Groups too.  If No, this group is only hosted here.',
                 disabled: role != 'Owner' && !Iznik.Session.isAdminOrSupport()
               },
@@ -371,7 +371,7 @@ define([
                 name: 'mentored',
                 label: 'Mentor Caretakers?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: '(Freegle only) If Yes, this group is being run by Mentor Caretakers.',
                 disabled: !Iznik.Session.isAdminOrSupport()
               },
@@ -379,88 +379,88 @@ define([
                 name: 'communityevents',
                 label: 'Allow community events?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: '(Freegle only) Whether members can post local community events on this group.'
               },
               {
                 name: 'volunteering',
                 label: 'Allow volunteer requests?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: '(Freegle only) Whether members can post requests for volunteers on this group.'
               },
               {
                 name: 'stories',
                 label: 'Allow stories?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: '(Freegle only) Whether members are prompted to tell us their story.'
               },
               {
                 name: 'showchat',
                 label: 'Show chat window for mods?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'This lets groups mods chat to each other on here.'
               },
               {
                 name: 'approvemembers',
                 label: '(Freegle native groups only) New member approval required?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'Normally members can join immediately, and any posts they make will be moderated.  Some groups prefer to approve new members manually, which gives more control over the group but loses postential members.'
               },
               {
                 name: 'moderated',
                 label: '(Freegle native groups only) Group is fully-moderated?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'When this setting is No (for most groups), all new members are Moderated and members can be changed to Group Settings (meaning unmoderated) once they have made a valid post.  When this setting is Yes, all posts must be moderated no matter what setting the user has.'
               },
               {
                 name: 'allowedits.moderated',
                 label: '(Freegle native groups only) Moderated members can edit?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'When this setting is Yes (for most groups), moderated members can edit their own posts; edits go live immediately but are retrospectively reviewed from Messages->Edits.  When this setting is No, moderated members cannot edit.'
               },
               {
                 name: 'allowedits.group',
                 label: '(Freegle native groups only) Members on Group Settings can edit?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'When this setting is Yes (for most groups), members on Group Settings can edit their own posts; edits go live immediately.  When this setting is No, members on Group Settings cannot edit.'
               },
               {
                 name: 'autoapprove.members',
                 label: 'Auto-approve pending members?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'Yahoo doesn\'t let you change from member approval to not approving them - use this to work around that.'
               },
               {
                 name: 'duplicates.check',
                 label: 'Flag duplicate messages?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}]
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
               },
               {
                 name: 'spammers.check',
                 label: 'Check for spammer members?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}]
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
               },
               {
                 name: 'spammers.remove',
                 label: 'Auto-remove spammer members?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}]
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
               },
               {
                 name: 'spammers.messagereview',
                 label: 'Check for spam messages to group?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'Check group messages for spam and put in Messages->Spam?'
               },
               {
@@ -518,28 +518,28 @@ define([
                 name: 'relevant',
                 label: '(Freegle only) Send relevant messages to members?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'Email specific messages to members based on their searches and posting history.  Members can turn this on/off themselves, so you would only turn this off if you want to override their decision.'
               },
               {
                 name: 'newsfeed',
                 label: '(Freegle only) Send occasional digests of newsfeed to members?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'We can send an occasional mail to members of recent activity from other members on the discussion newsfeed (like the old cafe groups).  This encourages them to take part.  Members can turn this off themselves, so you would only turn this off if you want to override their decision.'
               },
               {
                 name: 'newsletter',
                 label: '(Freegle only) Send newsletters to members?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'Email occasional newsletters to members.  Members can turn this on/off themselves, so you would only turn this off if you want to override their decision.'
               },
               {
                 name: 'businesscards',
                 label: '(Freegle only) Offer business cards to members?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }],
                 helpMessage: 'When members mark a post as completed, we can offer them some business cards to promote Freegle.'
               },
               {
@@ -573,13 +573,13 @@ define([
                 name: 'includearea',
                 label: 'Include area name in locations?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}]
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
               },
               {
                 name: 'includepc',
                 label: 'Include postcode in locations?',
                 control: 'radio',
-                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}]
+                options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
               },
               {
                 control: 'button',
@@ -638,8 +638,8 @@ define([
                 id: self.group.get('id'),
                 profile: ret.id
               }, {
-                patch: true
-              })
+                  patch: true
+                })
               self.$('.js-profile').attr('src', ret.path)
               self.$('.file-preview').hide()
             })
@@ -663,7 +663,7 @@ define([
                   options: [{
                     label: 'Show links to Yahoo group too',
                     value: 1
-                  }, {label: 'Don\'t show links to Yahoo group', value: 0}]
+                  }, { label: 'Don\'t show links to Yahoo group', value: 0 }]
                 },
                 {
                   name: 'welcomemail',
@@ -846,7 +846,7 @@ define([
               name: 'fromname',
               label: '"From:" name in messages',
               control: 'select',
-              options: [{label: 'My name', value: 'My display name (above)'}, {
+              options: [{ label: 'My name', value: 'My display name (above)' }, {
                 label: '$groupname Moderator',
                 value: 'Groupname Moderator'
               }]
@@ -855,7 +855,7 @@ define([
               name: 'coloursubj',
               label: 'Colour-code subjects?',
               control: 'select',
-              options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}]
+              options: [{ label: 'Yes', value: 1 }, { label: 'No', value: 0 }]
             },
             {
               name: 'subjreg',
@@ -881,8 +881,8 @@ define([
               label: 'Locked to only allow changes by creator?',
               control: 'select',
               options: [
-                {label: 'Locked', value: 1},
-                {label: 'Unlocked', value: 0}
+                { label: 'Locked', value: 1 },
+                { label: 'Unlocked', value: 0 }
               ]
             },
             {
@@ -936,7 +936,7 @@ define([
           // Add cc options
           _.defer(function () {
             _.each(['reject', 'followup', 'rejmemb', 'follmemb'], function (tag) {
-              function createForm (tag) {
+              function createForm(tag) {
                 var form = new Backform.Form({
                   el: $('.js-cc' + tag + 'form'),
                   model: self.modConfigModel,
@@ -947,9 +947,9 @@ define([
                       disabled: _.bind(_.bind(self.locked, self), self),
                       control: 'select',
                       options: [
-                        {label: 'Nobody', value: 'Nobody'},
-                        {label: 'Me', value: 'Me'},
-                        {label: 'Specific address', value: 'Specific'}
+                        { label: 'Nobody', value: 'Nobody' },
+                        { label: 'Me', value: 'Me' },
+                        { label: 'Specific address', value: 'Specific' }
                       ]
                     },
                     {
@@ -996,7 +996,7 @@ define([
                 //console.log("Disable", $('.js-cc' + tag + 'form select, .js-cc' + tag + 'form button'));
 
                 // We want to dynamically disable, which backform doesn't.
-                function handleChange (self, tag) {
+                function handleChange(self, tag) {
                   return (function (e) {
                     var val = self.modConfigModel.get('cc' + tag + 'to')
                     var inp = self.$('input[name=\'cc' + tag + 'addr\']')
@@ -1077,7 +1077,7 @@ define([
                 self.modConfigModel.set('messageorder', neworder)
                 self.modConfigModel.save({
                   'messageorder': neworder
-                }, {patch: true})
+                }, { patch: true })
               }
             })
           })
@@ -1116,7 +1116,7 @@ define([
 
           if (inuses) {
             var inuselist = '';
-            _.each(inuses, function(inuse) {
+            _.each(inuses, function (inuse) {
               if (inuselist != '') {
                 inuselist += ', ';
               }
@@ -1233,14 +1233,14 @@ define([
               name: 'settings.playbeep',
               label: 'Beep',
               control: 'select',
-              options: [{label: 'Off', value: 0}, {label: 'Play beep for new work', value: 1}],
+              options: [{ label: 'Off', value: 0 }, { label: 'Play beep for new work', value: 1 }],
               helpMessage: 'Play beep when new ModTools work arrives.'
             },
             {
               name: 'settings.showmod',
               label: 'Show me as a volunteer?',
               control: 'radio',
-              options: [{label: 'Hide me', value: 0}, {label: 'Show me', value: 1}],
+              options: [{ label: 'Hide me', value: 0 }, { label: 'Show me', value: 1 }],
               helpMessage: 'We can show members who the volunteers on a group are, to make it seem more friendly.  You can choose whether we show you.'
             },
             {
@@ -1248,13 +1248,13 @@ define([
               label: 'Moderation Notifications (Active)',
               control: 'select',
               options: [
-                {label: 'After 24 hours', value: 24},
-                {label: 'After 12 hours', value: 12},
-                {label: 'After 4 hours', value: 4},
-                {label: 'After 2 hours', value: 2},
-                {label: 'After 1 hour', value: 1},
-                {label: 'Immediately', value: 0},
-                {label: 'Never', value: -1}
+                { label: 'After 24 hours', value: 24 },
+                { label: 'After 12 hours', value: 12 },
+                { label: 'After 4 hours', value: 4 },
+                { label: 'After 2 hours', value: 2 },
+                { label: 'After 1 hour', value: 1 },
+                { label: 'Immediately', value: 0 },
+                { label: 'Never', value: -1 }
               ],
               helpMessage: 'For groups that you\'re an active mod on, we will mail you when there is moderation work to do which has been outstanding for more than a certain time.  You can control the frequency or disable this here.  We only mail you between 8am and 10pm, for groups you\'re an active mod on, and we don\'t mail you for pending messages/members on Yahoo Groups - if you want that, you can turn on Yahoo\'s notifications.'
             },
@@ -1263,13 +1263,13 @@ define([
               label: 'Moderation Notifications (Backup)',
               control: 'select',
               options: [
-                {label: 'After 24 hours', value: 24},
-                {label: 'After 12 hours', value: 12},
-                {label: 'After 4 hours', value: 4},
-                {label: 'After 2 hours', value: 2},
-                {label: 'After 1 hour', value: 1},
-                {label: 'Immediately', value: 0},
-                {label: 'Never', value: -1}
+                { label: 'After 24 hours', value: 24 },
+                { label: 'After 12 hours', value: 12 },
+                { label: 'After 4 hours', value: 4 },
+                { label: 'After 2 hours', value: 2 },
+                { label: 'After 1 hour', value: 1 },
+                { label: 'Immediately', value: 0 },
+                { label: 'Never', value: -1 }
               ],
               helpMessage: 'This is for groups where you\'re a backup mod.  You\'d usually set this to a higher value than the previous setting so that the active mods will get notified first.'
             },
@@ -1277,7 +1277,7 @@ define([
               name: 'settings.modnotifnewsfeed',
               label: 'Email me when members post in the Newsfeed? (Freegle only)',
               control: 'radio',
-              options: [{label: 'Mail me', value: 1}, {label: 'Don\'t mail me', value: 0}],
+              options: [{ label: 'Mail me', value: 1 }, { label: 'Don\'t mail me', value: 0 }],
               helpMessage: 'Your members may post in the Newsfeed, perhaps to introduce themselves, or perhaps because they have problems.  Replying to these posts helps them and makes Freegle friendlier.  We only mail you about groups you are an active mod on.'
             },
             {
@@ -1443,7 +1443,7 @@ define([
             {
               name: 'edittext',
               label: 'Edit Text (only for Edits)',
-              options: [{label: 'Unchanged', value: 'Unchanged'}, {
+              options: [{ label: 'Unchanged', value: 'Unchanged' }, {
                 label: 'Correct Case',
                 value: 'Correct Case'
               }],
@@ -1461,24 +1461,24 @@ define([
               name: 'autosend',
               label: 'Autosend',
               control: 'select',
-              options: [{label: 'Edit before send', value: 0}, {label: 'Send immediately', value: 1}]
+              options: [{ label: 'Edit before send', value: 0 }, { label: 'Send immediately', value: 1 }]
             },
             {
               name: 'rarelyused',
               label: 'How often do you use this?',
               control: 'select',
-              options: [{label: 'Frequently', value: 0}, {label: 'Rarely', value: 1}]
+              options: [{ label: 'Frequently', value: 0 }, { label: 'Rarely', value: 1 }]
             },
             {
               name: 'newmodstatus',
               label: 'Change Moderation Status?',
               control: 'select',
               options: [
-                {label: 'Unchanged', value: 'UNCHANGED'},
-                {label: 'Moderated', value: 'MODERATED'},
-                {label: 'Group Settings', value: 'DEFAULT'},
-                {label: 'Can\'t Post', value: 'PROHIBITED'},
-                {label: 'Unmoderated', value: 'UNMODERATED'},
+                { label: 'Unchanged', value: 'UNCHANGED' },
+                { label: 'Moderated', value: 'MODERATED' },
+                { label: 'Group Settings', value: 'DEFAULT' },
+                { label: 'Can\'t Post', value: 'PROHIBITED' },
+                { label: 'Unmoderated', value: 'UNMODERATED' },
               ]
             },
             {
@@ -1486,11 +1486,11 @@ define([
               label: 'Change Delivery Settings?',
               control: 'select',
               options: [
-                {label: 'Unchanged', value: 'UNCHANGED'},
-                {label: 'Daily Digest', value: 'DIGEST'},
-                {label: 'Web Only', value: 'NONE'},
-                {label: 'Individual Emails', value: 'SINGLE'},
-                {label: 'Special Notices', value: 'ANNOUNCEMENT'}
+                { label: 'Unchanged', value: 'UNCHANGED' },
+                { label: 'Daily Digest', value: 'DIGEST' },
+                { label: 'Web Only', value: 'NONE' },
+                { label: 'Individual Emails', value: 'SINGLE' },
+                { label: 'Special Notices', value: 'ANNOUNCEMENT' }
               ]
             },
             {
@@ -1508,8 +1508,8 @@ define([
               label: 'Insert text',
               control: 'select',
               options: [
-                {label: 'Top', value: 'Top'},
-                {label: 'Bottom', value: 'Bottom'}
+                { label: 'Top', value: 'Top' },
+                { label: 'Bottom', value: 'Bottom' }
               ]
             },
             {
@@ -1698,11 +1698,11 @@ define([
               label: 'Frequency',
               control: 'select',
               options: [
-                {label: 'Never', value: 0},
-                {label: 'Hourly', value: 1},
-                {label: 'Daily', value: 24},
-                {label: 'Weekly', value: 168},
-                {label: 'Monthly', value: 744}
+                { label: 'Never', value: 0 },
+                { label: 'Hourly', value: 1 },
+                { label: 'Daily', value: 24 },
+                { label: 'Weekly', value: 168 },
+                { label: 'Monthly', value: 744 }
               ]
             },
             {
@@ -1710,10 +1710,10 @@ define([
               label: 'Action',
               control: 'select',
               options: [
-                {label: 'Yahoo Unbounce', value: 'Unbounce'},
-                {label: 'Yahoo Remove from Group', value: 'Remove'},
-                {label: 'Yahoo Change to Group Settings', value: 'ToGroup'},
-                {label: 'Yahoo Change to Special Notices', value: 'ToSpecialNotices'}
+                { label: 'Yahoo Unbounce', value: 'Unbounce' },
+                { label: 'Yahoo Remove from Group', value: 'Remove' },
+                { label: 'Yahoo Change to Group Settings', value: 'ToGroup' },
+                { label: 'Yahoo Change to Special Notices', value: 'ToSpecialNotices' }
               ]
             },
             {
@@ -1721,7 +1721,7 @@ define([
               label: 'Apply To',
               control: 'select',
               options: [
-                {label: 'Members', value: 'Members'}
+                { label: 'Members', value: 'Members' }
               ]
             },
             {
@@ -1729,10 +1729,10 @@ define([
               label: 'Filter',
               control: 'select',
               options: [
-                {label: 'Bouncing', value: 'Bouncing'},
-                {label: 'Bouncing For', value: 'BouncingFor'},
-                {label: 'All', value: 'All'},
-                {label: 'Web Only', value: 'WebOnly'}
+                { label: 'Bouncing', value: 'Bouncing' },
+                { label: 'Bouncing For', value: 'BouncingFor' },
+                { label: 'All', value: 'All' },
+                { label: 'Web Only', value: 'WebOnly' }
               ],
               extraClasses: ['js-criterion']
             },
@@ -1947,7 +1947,7 @@ define([
       var self = this
       this.shaded = this.shaded ? false : true
       _.each(this.features, function (feature) {
-        feature.setOptions({fillOpacity: self.shaded ? 0 : 0.6})
+        feature.setOptions({ fillOpacity: self.shaded ? 0 : 0.6 })
       })
     },
 
@@ -2092,13 +2092,13 @@ define([
 
         // Set the border colour so it's obvious which one we're on.
         _.each(self.features, function (feature) {
-          feature.setOptions({strokeColor: '#990000'})
+          feature.setOptions({ strokeColor: '#990000' })
         })
-        obj.setOptions({strokeColor: 'blue'})
+        obj.setOptions({ strokeColor: 'blue' })
 
         // Set the area so that it's editable.  We default to non-editable because performance is terrible
         // for editable areas.
-        obj.setOptions({editable: true})
+        obj.setOptions({ editable: true })
       })
     },
 
@@ -2168,7 +2168,7 @@ define([
               if (self.Wkt.type === 'point' || self.Wkt.type === 'multipoint')
                 bounds.extend(obj[i].getPosition())
               else
-                obj[i].getPath().forEach(function (element, index) {bounds.extend(element)})
+                obj[i].getPath().forEach(function (element, index) { bounds.extend(element) })
             }
           }
 
@@ -2180,7 +2180,7 @@ define([
           if (self.Wkt.type === 'point' || self.Wkt.type === 'multipoint')
             bounds.extend(obj.getPosition())
           else
-            obj.getPath().forEach(function (element, index) {bounds.extend(element)})
+            obj.getPath().forEach(function (element, index) { bounds.extend(element) })
         }
       }
 
@@ -2579,7 +2579,7 @@ define([
 
     save: function () {
       var self = this
-      var desc = tinyMCE.activeEditor.getContent({format: 'html'})
+      var desc = tinyMCE.activeEditor.getContent({ format: 'html' })
 
       $.ajax({
         url: API + 'group',
@@ -2597,7 +2597,7 @@ define([
     },
 
     removeEditors: function () {
-      function removeTinyMCEInstance (editor) {
+      function removeTinyMCEInstance(editor) {
         var oldLength = tinymce.editors.length
         tinymce.remove(editor)
         if (oldLength == tinymce.editors.length) {

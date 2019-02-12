@@ -151,8 +151,8 @@ define([
           id: me.id,
           onholidaytill: till
         }, {
-          patch: true
-        })
+            patch: true
+          })
       }
     },
 
@@ -174,8 +174,8 @@ define([
           id: me.id,
           onholidaytill: null
         }, {
-          patch: true
-        })
+            patch: true
+          })
       }
     },
 
@@ -195,8 +195,8 @@ define([
         id: me.id,
         relevantallowed: relevant
       }, {
-        patch: true
-      })
+          patch: true
+        })
     },
 
     notificationSwitch: function () {
@@ -210,10 +210,10 @@ define([
         id: me.id,
         settings: me.settings
       }, {
-        patch: true
-      }).then(function () {
-        Iznik.Session.fetch()
-      })
+          patch: true
+        }).then(function () {
+          Iznik.Session.fetch()
+        })
     },
 
     useProfileSwitch: function () {
@@ -229,12 +229,12 @@ define([
         id: me.id,
         settings: me.settings
       }, {
-        patch: true
-      }).then(function () {
-        Iznik.Session.fetch().then(function () {
-          self.$('.js-profileimg').attr('src', Iznik.Session.get('me').profile.url)
+          patch: true
+        }).then(function () {
+          Iznik.Session.fetch().then(function () {
+            self.$('.js-profileimg').attr('src', Iznik.Session.get('me').profile.url)
+          })
         })
-      })
     },
 
     newsletterSwitch: function () {
@@ -245,8 +245,8 @@ define([
         id: me.id,
         newslettersallowed: newsletter
       }, {
-        patch: true
-      })
+          patch: true
+        })
     },
 
     notifSwitch: function () {
@@ -266,8 +266,8 @@ define([
         id: me.id,
         settings: me.settings
       }, {
-        patch: true
-      })
+          patch: true
+        })
     },
 
     startSave: function (el) {
@@ -292,13 +292,13 @@ define([
             id: me.id,
             displayname: name
           }, {
-            patch: true,
-            success: function (model, response, options) {
-              if (response.ret == 0) {
-                self.endSave(self.$('.js-savename'))
+              patch: true,
+              success: function (model, response, options) {
+                if (response.ret == 0) {
+                  self.endSave(self.$('.js-savename'))
+                }
               }
-            }
-          })
+            })
         } else {
           self.$('.js-name').addClass('error-border')
           self.$('.js-name').focus()
@@ -322,16 +322,16 @@ define([
             id: me.id,
             email: email
           }, {
-            patch: true,
-            success: function (model, response, options) {
-              if (response.ret == 0) {
-                self.endSave(self.$('.js-saveemail'))
-              } else if (response.ret == 10) {
-                self.endSave(self.$('.js-saveemail'))
-                self.$('.js-verifyemail').fadeIn('slow')
+              patch: true,
+              success: function (model, response, options) {
+                if (response.ret == 0) {
+                  self.endSave(self.$('.js-saveemail'))
+                } else if (response.ret == 10) {
+                  self.endSave(self.$('.js-saveemail'))
+                  self.$('.js-verifyemail').fadeIn('slow')
+                }
               }
-            }
-          })
+            })
         } else {
           self.$('.js-email').addClass('error-border')
           self.$('.js-email').focus()
@@ -352,13 +352,13 @@ define([
             id: me.id,
             password: password
           }, {
-            patch: true,
-            success: function (model, response, options) {
-              if (response.ret == 0) {
-                self.endSave(self.$('.js-savepassword'))
+              patch: true,
+              success: function (model, response, options) {
+                if (response.ret == 0) {
+                  self.endSave(self.$('.js-savepassword'))
+                }
               }
-            }
-          })
+            })
         } else {
           self.$('.js-password').addClass('error-border')
           self.$('.js-password').focus()
@@ -388,7 +388,7 @@ define([
             format: 'ddd, DD MMMM',
             minDate: new moment(),
             maxDate: (new moment()).add(30, 'days'),
-            keyBinds: {'delete': null}
+            keyBinds: { 'delete': null }
           })
 
           self.$('.datepicker').on('dp.change', _.bind(self.onholidaytill, self))
@@ -719,16 +719,16 @@ define([
           id: me.id,
           email: email
         }, {
-          patch: true,
-          success: function (model, response, options) {
-            if (response.ret == 0) {
-              self.close()
-            } else if (response.ret == 10) {
-              self.$('.js-verifyemail').fadeIn('slow')
-              self.$('.js-close').hide()
+            patch: true,
+            success: function (model, response, options) {
+              if (response.ret == 0) {
+                self.close()
+              } else if (response.ret == 10) {
+                self.$('.js-verifyemail').fadeIn('slow')
+                self.$('.js-close').hide()
+              }
             }
-          }
-        })
+          })
       } else {
         self.$('.js-email').addClass('error-border')
         self.$('.js-email').focus()

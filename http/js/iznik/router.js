@@ -2084,7 +2084,8 @@ define([
         var self = this
 
         require(['iznik/views/pages/user/landing'], function () {
-          var page = new Iznik.Views.User.Pages.Landing.Contact()
+          var mobile_version = APP_VERSION;	// CC
+          var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) });	// CC
           self.loadRoute({page: page})
         })
       }

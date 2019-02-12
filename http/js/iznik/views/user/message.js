@@ -141,8 +141,8 @@ define([
       self.readyToSend = true
 
       $('html, body').animate({
-          scrollTop: self.$('.js-replytext').offset().top
-        },
+        scrollTop: self.$('.js-replytext').offset().top
+      },
         2000,
         function () {
           if (self.readyToSend) {
@@ -161,46 +161,6 @@ define([
       )
     },
 
-    sharefb: function() {
-        var self = this;
-        // Can get the image but sharing both image and link on FB means that only image shown and we want link - so image won't be available to other share types
-        // var image = null;
-        // var atts = self.model.get('attachments');
-        // if (atts && atts.length > 0) {
-        //     image = atts[0].path;
-        // }
-        var href = 'https://www.ilovefreegle.org/message/' + self.model.get('id') + '?src=mobileshare';
-        var subject = self.model.get('subject');
-        // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
-        var options = {
-            message: "I saw this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
-            subject: 'Freegle post: ' + subject, // for email
-            //files: ['', ''], // an array of filenames either locally or remotely
-            url: href,
-            //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
-        }
-        // if (image) {
-        //     options.files = [image];
-        // }
-
-        var onSuccess = function (result) {
-            console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
-            console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
-            self.$('.js-fbshare').fadeOut('slow');
-            Iznik.ABTestAction('messagebutton', 'Mobile Share');
-        }
-
-        var onError = function (msg) {
-            console.log("Sharing failed with message: " + msg);
-        }
-
-        window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
-        /*FB.ui(params, function (response) {
-            self.$('.js-fbshare').fadeOut('slow');
-
-            Iznik.ABTestAction('messagebutton', 'Facebook Share');
-        });*/
-    },
     carettoggle: function () {
       var self = this
       if (this.expanded) {
@@ -336,8 +296,7 @@ define([
         self.rendering = new Promise(function (resolve, reject) {
           Iznik.View.prototype.render.call(self).then(function () {
             if (Iznik.Session.hasFacebook()) {
-              self.$('.js-sharefb').show();
-              /*require(['iznik/facebook'], function (FBLoad) {
+              require(['iznik/facebook'], function (FBLoad) {
                 self.listenToOnce(FBLoad(), 'fbloaded', function () {
                   if (!FBLoad().isDisabled()) {
                     self.$('.js-sharefb').show()
@@ -345,7 +304,7 @@ define([
                 })
 
                 FBLoad().render()
-              })*/
+              })
             }
 
             if (self.expanded) {
@@ -730,9 +689,9 @@ define([
           hint: false,
           highlight: true
         }, {
-          name: 'postcodes',
-          source: _.bind(self.postcodeSource, self)
-        })
+            name: 'postcodes',
+            source: _.bind(self.postcodeSource, self)
+          })
       })
     }
   })
@@ -843,7 +802,7 @@ define([
             // Force the image to reload.  We might not have the correct model set up, so hack it
             // by using image directly
             var url = 'https://www.ilovefreegle.org/img_' + self.model.get('id') + '.jpg?t=' + t; // CC
-            // var url = '/img_' + self.model.get('id') + '.jpg?t=' + t
+            //var url = '/img_' + self.model.get('id') + '.jpg?t=' + t
             self.$('img').attr('src', url)
             self.trigger('rotated', self.model.get('id'), url)
           }
@@ -1470,7 +1429,7 @@ define([
                         Router.navigate(ret, true)
                       }
                     })
-                  } catch (e) {}
+                  } catch (e) { }
 
                 }
               })
@@ -1498,7 +1457,7 @@ define([
             try {
               Storage.remove('replyto')
               Storage.remove('replytext')
-            } catch (e) {}
+            } catch (e) { }
 
             // When we reply to a message on a group, we join the group if we're not already a member.
             var memberofs = Iznik.Session.get('groups')
@@ -1606,6 +1565,7 @@ define([
 
         // Static map custom markers don't support SSL.
         this.model.set('mapicon', 'images/mapareamarker.png'); // CC
+        //this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapareamarker.png')
 
         // Get a zoom level for the map.
         var zoom = 12
@@ -1647,7 +1607,7 @@ define([
               if (replyto == thisid) {
                 self.continueReply.call(self, replytext)
               }
-            } catch (e) {console.log('Failed', e)}
+            } catch (e) { console.log('Failed', e) }
           }
 
           self.$el.css('visibility', 'visible')
