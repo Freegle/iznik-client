@@ -184,8 +184,8 @@ define([
 
                     // Loader depends on which site we are.
                     waitPromise.then(function() {
-                        $('#js-modalloader').attr('src', iznikroot + (MODTOOLS ? 'images/loadermodal.gif' : 'images/userloader.gif'));    // CC
-                        $('#js-modalloader').show();
+                        $('#js-modalloader').attr('src', iznikroot + (MODTOOLS ? 'images/loadermodal.gif' : 'images/userloader.gif'))    // CC
+                        $('#js-modalloader').show()
                     });
 
                     // Start backstop timeout to close the modal - there are various error cases which could leave

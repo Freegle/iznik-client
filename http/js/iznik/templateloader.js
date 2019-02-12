@@ -5,15 +5,15 @@ var _ = require('underscore');
 
 function templateStore(tpl, html) {
     //console.log("templateStore:"+tpl);
-    html = html.replace(/src=\"\//g, 'src="' + iznikroot);	// CC
-    html = html.replace(/src=\'\//g, "src='" + iznikroot);	// CC
+    html = html.replace(/src=\"\//g, 'src="' + iznikroot)	// CC
+    html = html.replace(/src=\'\//g, "src='" + iznikroot)	// CC
 
     // Make templates less likely to bomb out with an exception if a variable is undefined, by
     // using the internal obj.
-    html = html ? html.replace(/\{\{/g, '{{obj.') : null;
-    html = html.replace(/\{\{obj.obj./g, '{{obj.');
-    html = html.replace(/\{\{obj.timeago/g, '{{timeago');
-    //console.log("Updated HTML", html);
+    html = html ? html.replace(/\{\{/g, '{{obj.') : null
+    html = html.replace(/\{\{obj.obj./g, '{{obj.')
+    html = html.replace(/\{\{obj.timeago/g, '{{timeago')
+    //console.log("Updated HTML", html)
 
     // Use a closure to wrap the underscore template so that if we get an error we can log it
     // rather than bomb out of the whole javascript.

@@ -42,7 +42,7 @@ define([
                 } catch (e) {
                 }
                 // Force reload of window to clear any data.
-                // Remove for MODTOOLS: Router.mobileReload('/'); // CC
+                // Remove for MODTOOLS: Router.mobileReload('/') // CC
             }
         });
 
@@ -254,16 +254,16 @@ define([
 
                     $('.js-pageContent').html(self.$el);
 
-                    if (!window.useSwipeRefresh) { $('#refreshbutton').show(); }  // CC
-                    window.showNetworkStatus(); // CC
+                    if (!window.useSwipeRefresh) { $('#refreshbutton').show() }  // CC
+                    window.showNetworkStatus() // CC
                     if (self.modtools && !self.noGoogleAds) {
                         // ModTools has ads on most pages.
-                        self.adSense($);
+                        self.adSense($)
                     }
 
                     if (self.appButtons) {
                         // Show app buttons.
-                        // CC $('#js-appbuttons').show();
+                        // CC $('#js-appbuttons').show()
                     }
 
                     $('#botleft').empty();
@@ -314,17 +314,17 @@ define([
                         $('#botleft').append(v.$el);
 
                         // Highlight current page if any.
-                        var mobilePath = window.mobile_pathname(); // CC
+                        var mobilePath = window.mobile_pathname() // CC
                         $('#navbar-collapse a').each(function () {
-                            var href = $(this).attr('href');
-                            $(this).closest('li').removeClass('active');
+                            var href = $(this).attr('href')
+                            $(this).closest('li').removeClass('active')
 
                             if (href == mobilePath) {   // CC
-                                $(this).closest('li').addClass('active');
+                                $(this).closest('li').addClass('active')
 
                                 // Force reload on click, which doesn't happen by default.
                                 $(this).click(function () {
-                                    Router.mobileReload();  // CC
+                                    Router.mobileReload()  // CC
                                 });
                             }
                         });
@@ -499,7 +499,7 @@ define([
 
                             // CC show debug sunglasses/specs icon
                             if (window.showDebugConsole) {
-                                $('#mobile-debug').show();
+                                $('#mobile-debug').show()
                             }
 
                             // Show anything which should or shouldn't be visible based on login status.
@@ -635,17 +635,17 @@ define([
                 );
 
                 // Highlight current page if any.
-                var mobilePath = window.mobile_pathname(); // CC
+                var mobilePath = window.mobile_pathname() // CC
                 self.$('a').each(function () {
-                    var href = $(this).attr('href');
-                    $(this).closest('li').removeClass('active');
+                    var href = $(this).attr('href')
+                    $(this).closest('li').removeClass('active')
 
                     if (href == mobilePath) {   // CC
-                        $(this).closest('li').addClass('active');
+                        $(this).closest('li').addClass('active')
 
                         // Force reload on click, which doesn't happen by default.
                         $(this).click(function () {
-                            Router.mobileReload();  // CC
+                            Router.mobileReload()  // CC
                         });
                     }
                 });

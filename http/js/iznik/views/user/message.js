@@ -801,7 +801,7 @@ define([
           if (ret.ret === 0) {
             // Force the image to reload.  We might not have the correct model set up, so hack it
             // by using image directly
-            var url = 'https://www.ilovefreegle.org/img_' + self.model.get('id') + '.jpg?t=' + t; // CC
+            var url = 'https://www.ilovefreegle.org/img_' + self.model.get('id') + '.jpg?t=' + t // CC
             //var url = '/img_' + self.model.get('id') + '.jpg?t=' + t
             self.$('img').attr('src', url)
             self.trigger('rotated', self.model.get('id'), url)
@@ -1564,7 +1564,7 @@ define([
         this.model.set('mylocation', mylocation)
 
         // Static map custom markers don't support SSL.
-        this.model.set('mapicon', 'images/mapareamarker.png'); // CC
+        this.model.set('mapicon', 'images/mapareamarker.png') // CC
         //this.model.set('mapicon', 'http://' + window.location.hostname + '/images/mapareamarker.png')
 
         // Get a zoom level for the map.

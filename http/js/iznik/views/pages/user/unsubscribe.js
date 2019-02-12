@@ -77,7 +77,7 @@ define([
                         email: self.email,
                         groupid: groupid
                     }, complete: function() {
-                        Router.mobileReload();  // CC
+                        Router.mobileReload()  // CC
                     }
                 })
             });

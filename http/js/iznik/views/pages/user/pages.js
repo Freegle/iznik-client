@@ -211,7 +211,7 @@ define([
                             var width = Math.floor(self.$('.js-postcode').width());
                             map.css('width', width);
                             map.css('height', width);
-                            var mapicon = 'https://www.ilovefreegle.org/images/mapmarker.gif';	// CC
+                            var mapicon = 'https://www.ilovefreegle.org/images/mapmarker.gif'	// CC
                             map.html('<img class="img-thumbnail" src="https://maps.google.com/maps/api/staticmap?size=' + width + 'x' + width + '&zoom=12&center=' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&maptype=roadmap&markers=icon:' + mapicon + '|' + ret.locations[0].lat + ','  + ret.locations[0].lng + '&sensor=true" />');
                         }
 
@@ -417,20 +417,20 @@ define([
         },
         
         errorLocation: function (position) { // CC
-            console.log("errorLocation");
-            window.hideHeaderWait();
-            var self = this;
-            self.$('.js-getloc').tooltip('destroy');
+            console.log("errorLocation")
+            window.hideHeaderWait()
+            var self = this
+            self.$('.js-getloc').tooltip('destroy')
             _.delay(function () {
                 self.$('.js-getloc').tooltip({
                     'placement': 'bottom',
                     'title': "No location available. Check your Settings for Location access/services."
-                });
-                self.$('.js-getloc').tooltip('show');
+                })
+                self.$('.js-getloc').tooltip('show')
                 _.delay(function () {
-                    self.$('.js-getloc').tooltip('destroy');
-                }, 20000);
-            }, 500);
+                    self.$('.js-getloc').tooltip('destroy')
+                }, 20000)
+            }, 500)
         },
 
         gotLocation: function(position) {
@@ -477,7 +477,7 @@ define([
                 data: {
                     typeahead: query
                 }, success: function(ret) {
-                    if (ret == '') return;  // CC
+                    if (ret == '') return  // CC
                     var matches = [];
                     _.each(ret.locations, function(location) {
                         matches.push(location.name);

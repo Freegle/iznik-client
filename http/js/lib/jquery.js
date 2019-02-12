@@ -9253,7 +9253,7 @@
                 jqXHR.readyState = status > 0 ? 4 : 0;
 
                 // Determine if successful
-                if (status === 0) { status = 200; } // CC
+                if (status === 0) { status = 200 } // CC
                 isSuccess = status >= 200 && status < 300 || status === 304;
 
                 // Get response data
