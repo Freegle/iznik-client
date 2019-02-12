@@ -631,7 +631,7 @@ define([
                         });
                     }
                 });
-                $('#js-mobilelog').html(alllog)
+                $('#js-mobilelog').html(window.alllog)
 
                 if (Iznik.Session.isAdminOrSupport()) {
                     self.$('.js-adminsupportonly').removeClass('hidden');

@@ -131,8 +131,8 @@ window.Storage = {
 
 // Called when app starts - and when it restarts when Router.mobileReload() called
 
-if (typeof alllog === 'undefined') {
-  var alllog = "Log started: " + (new Date()).toISOString();
+if (typeof window.alllog === 'undefined') {
+  window.alllog = "Log started: " + (new Date()).toISOString();
 }
 var logtog = false;
 
@@ -192,8 +192,8 @@ function mainOnAppStart() { // CC
           }
           msg += "\r\n";
           logtog = !logtog;
-          alllog = msg + alllog;
-          $('#js-mobilelog').val(alllog);
+          window.alllog = msg + window.alllog;
+          $('#js-mobilelog').val(window.alllog);
           //oldconsolelog(msg); 
         }
       }
