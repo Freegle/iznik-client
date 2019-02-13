@@ -327,7 +327,7 @@ function mainOnAppStart() { // CC
           senderID: "423761283916", // FCM: https://console.firebase.google.com/project/scenic-oxygen-849/settings/general/android:org.ilovefreegle.direct
           //senderID: "845879623324", // Old GCM way
           sound: false,
-          iconColor: "#5EcA24",
+          iconColor: "#5EcA24", // Freegle green
           icon: "icon",
           //forceShow: true,
         },
