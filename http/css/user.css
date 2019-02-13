@@ -555,3 +555,16 @@ table.table-fixedheader>tbody>tr>td {
         display:block !important;
     }
 }
+
+.photo {
+    max-height: 100px !important;
+    max-width: 100px !important;
+}
+
+@media only screen and (min-width : 480px) {
+    .photo {
+        max-height: 150px !important;
+        max-width: 150px !important;
+    }
+}
+
