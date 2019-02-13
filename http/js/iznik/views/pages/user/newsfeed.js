@@ -2004,7 +2004,7 @@ define([
             identify: false
           },
           browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
-          browseLabel: 'Add photos',
+          browseLabel: 'Add photo',
           browseClass: 'btn btn-primary nowrap',
           errorContainer: '#js-uploaderror'
         })
