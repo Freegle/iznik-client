@@ -239,7 +239,7 @@ define([
       'councils/bestpractice': 'userCouncilsBestPractice',
       'councils': 'userCouncils',
       'maintenance': 'userMaintenance',
-      '*path': 'userDefault'
+      "*path": "modtools" // CC
     },
 
     loadRoute: function (routeOptions) {
