@@ -18,9 +18,9 @@
 <div class="nomargin panel panel-success">
     <div class="panel-heading nopad clearfix <% if (obj.promised) { %>faded<% } %>">
         <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
-            <div class="col-sm-12 padmd">
+            <div class="col-sm-12 padmd nopadbot">
             <% if (attachments.length>0) { %>
-              <div class="hidden-xs pull-right js-attlist" style="width:33%;height:auto;text-align:right;margin-left:10px;" />
+              <div class="pull-right js-attlist" />
             <% } %>
             <div class="msgsubj panel-title">
                   <span class="js-subject">
@@ -36,11 +36,11 @@
                   </span>
               <div class="hidden-xs js-groups" />
             </div>
-            <div class="hidden-xs js-snippet">
+            <div class="js-snippet">
                 <% if (obj.snippet) { %>
                 <h4 class="nomargin black">{{snippet}}...</h4>
                 <h4 class="black">
-                    <div class="btn btn-white botspace">
+                    <div class="btn btn-white hidden-xs">
                         Read more and reply >>
                     </div>
                     <% if (obj.promised) { %>
@@ -53,19 +53,6 @@
             </div>
         </div>
         </a>
-        <% if (attachments.length>0) { %>
-            <a class="visible-xs nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
-                <div class="col-xs-12 js-attlist" />
-            </a>
-        <% } else if (obj.snippet) { %>
-            <div class="row visible-xs js-snippet">
-                <div class="col-xs-12">
-                    <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
-                        <p class="padleftsm nomargin black">{{snippet}}...</p>
-                    </a>
-                </div>
-            </div>
-        <% } %>
         <% if (obj.snippet) { %>
         <div class="row hidden-xs hidden-sm hidden-md hidden-lg js-snippet">
             <div class="col-xs-12">

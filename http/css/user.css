@@ -570,10 +570,19 @@ table.table-fixedheader>tbody>tr>td {
     }
 }
 
+.photo {
+    max-height: 100px !important;
+    max-width: 100px !important;
+}
+
+@media only screen and (min-width : 480px) {
+    .photo {
+        max-height: 150px !important;
+        max-width: 150px !important;
+    }
+}
+
 .glyphicons:before { /* Make rotate smooth CC */
   padding: 6px 6px;
 }
 
-.js-draftphotos .img-squarexs {
-  margin: 0 0 0 8px;
-}
