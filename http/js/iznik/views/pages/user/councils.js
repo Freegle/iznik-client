@@ -60,6 +60,10 @@ define([
     template: "user_councils_overview",
   });
 
+  Iznik.Views.User.Pages.Councils.Why = Iznik.Views.User.Pages.Councils.extend({
+    template: "user_councils_why",
+  });
+
   Iznik.Views.User.Pages.Councils.Volunteers = Iznik.Views.User.Pages.Councils.extend({
     template: "user_councils_volunteers",
   });

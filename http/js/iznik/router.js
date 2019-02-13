@@ -221,6 +221,7 @@ define([
       'mydata': 'myData',
       'profile/:id': 'userProfile',
       'councils/overview': 'userCouncilsOverview',
+      'councils/why': 'userCouncilsWhy',
       'councils/volunteers': 'userCouncilsVolunteers',
       'councils/keylinks(/:section)': 'userCouncilsKeyLinks',
       'councils/workbest(/:section)': 'userCouncilsWorkBest',
@@ -2082,6 +2083,17 @@ define([
 
         require(['iznik/views/pages/user/councils'], function () {
           var page = new Iznik.Views.User.Pages.Councils.Overview()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsWhy: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.Why()
           self.loadRoute({page: page})
         })
       }
