@@ -1063,7 +1063,36 @@ define([
 
     sharefb: function () {
       var self = this
-      var params = {
+
+      // CC
+      var href = 'https://www.ilovefreegle.org/newsfeed/' + self.model.get('id') + '?src=mobileshare'
+      var message = self.model.get('message')
+      // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
+      var options = {
+        message: "I saw this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
+        subject: 'Freegle newsfeed: ' + message, // for email
+        //files: ['', ''], // an array of filenames either locally or remotely
+        url: href,
+        //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
+      }
+      // if (image) {
+      //     options.files = [image];
+      // }
+
+      var onSuccess = function (result) {
+        console.log("Share completed? " + result.completed)   // On Android apps mostly return false even while it's true
+        console.log("Shared to app: " + result.app)           // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+        self.$('.js-fbshare').fadeOut('slow')
+        Iznik.ABTestAction('messagebutton', 'Mobile Share')
+      }
+
+      var onError = function (msg) {
+        console.log("Sharing failed with message: " + msg)
+      }
+
+      window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError)
+
+      /* CC var params = {
         method: 'share',
         href: window.location.protocol + '//' + window.location.host + '/newsfeed/' + self.model.get('id') + '?src=fbshare',
         image: self.image
@@ -1078,7 +1107,7 @@ define([
         }
       })
 
-      FBLoad().render()
+      FBLoad().render()*/
     },
 
     showEarlier: function (e) {

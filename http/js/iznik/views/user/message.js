@@ -90,7 +90,42 @@ define([
 
     sharefb: function () {
       var self = this
-      var params = {
+
+      // CC
+      // Can get the image but sharing both image and link on FB means that only image shown and we want link - so image won't be available to other share types
+      // var image = null;
+      // var atts = self.model.get('attachments');
+      // if (atts && atts.length > 0) {
+      //     image = atts[0].path;
+      // }
+      var href = 'https://www.ilovefreegle.org/message/' + self.model.get('id') + '?src=mobileshare'
+      var subject = self.model.get('subject')
+      // https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin
+      var options = {
+        message: "I saw this on Freegle - interested?\n\n", // not supported on some apps (Facebook, Instagram)
+        subject: 'Freegle post: ' + subject, // for email
+        //files: ['', ''], // an array of filenames either locally or remotely
+        url: href,
+        //chooserTitle: 'Pick an app' // Android only, you can override the default share sheet title
+      }
+      // if (image) {
+      //     options.files = [image];
+      // }
+
+      var onSuccess = function (result) {
+        console.log("Share completed? " + result.completed)   // On Android apps mostly return false even while it's true
+        console.log("Shared to app: " + result.app)           // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+        self.$('.js-fbshare').fadeOut('slow')
+        Iznik.ABTestAction('messagebutton', 'Mobile Share')
+      }
+
+      var onError = function (msg) {
+        console.log("Sharing failed with message: " + msg)
+      }
+
+      window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError)
+
+      /* var params = {
         method: 'share',
         href: window.location.protocol + '//' + window.location.host + '/message/' + self.model.get('id') + '?src=fbshare',
         image: self.image
@@ -100,7 +135,7 @@ define([
         self.$('.js-fbshare').fadeOut('slow')
 
         Iznik.ABTestAction('messagebutton', 'Facebook Share')
-      })
+      })*/
     },
 
     expanded: false,
