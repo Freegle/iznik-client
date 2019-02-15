@@ -239,9 +239,13 @@ define([
                 subject: subject
             };
 
-            if (!_.isUndefined(attachments) && attachments) {
+            console.log("Consider attachments");
+            if (!_.isUndefined(attachments) && attachments !== null) {
+                // Add a null onto the end to make it get sent.
+              attachments.push(null)
                 self.data2.attachments = attachments;
             }
+            console.log(self.data2);
 
             if (htmlbody) {
                 // We drop the text part here, because the server will (in its absence)
