@@ -738,8 +738,8 @@ define([
         self.destroyIt()
       }, this))
 
-      this.listenTo(v, 'rotated', _.bind(function (id, src) {
-        this.refetch(src)
+      this.listenTo(v, 'rotated', _.bind(function (id, img, timg) {
+        this.refetch(timg)
       }, this))
 
       v.render()
@@ -803,7 +803,7 @@ define([
             // by using image directly
             var url = '/img_' + self.model.get('id') + '.jpg?t=' + t
             self.$('img').attr('src', url)
-            self.trigger('rotated', self.model.get('id'), url)
+            self.trigger('rotated', self.model.get('id'), url, url.replace('/img', '/timg'))
           }
         }
       })
@@ -860,7 +860,6 @@ define([
     render: function () {
       var self = this
 
-      console.log('Editable?', self.model.get('mine'), Iznik.Session.isFreegleMod())
       self.model.set('canedit', self.model.get('mine') || Iznik.Session.isFreegleMod())
 
       // We want to force a fetch from the server in case the image has been rotated.
@@ -1071,6 +1070,8 @@ define([
               } else {
                 self.currentPhoto = v.$el
               }
+            } else {
+              self.$('.js-photocount').hide()
             }
           })
         })
