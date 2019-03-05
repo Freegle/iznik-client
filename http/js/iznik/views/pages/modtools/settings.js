@@ -187,7 +187,8 @@ define([
 
           self.group.fetch({
             data: {
-              polygon: true
+              polygon: true,
+              affiliationconfirmedby: true
             }
           }).then(function () {
             self.$('.js-modsemail').html(self.group.get('modsemail'))
@@ -210,6 +211,17 @@ define([
             if (self.groupAppearanceForm) {
               self.groupAppearanceForm.undelegateEvents()
               self.$('#groupappearanceform').empty()
+            }
+
+            if (self.group.get('type') === 'Freegle') {
+              var m = new moment(self.group.get('affiliationconfirmed'));
+
+              self.$('.js-affiliationconfirmed').html(m.format('MMMM Do YYYY'))
+              self.$('.js-affiliatinconfirmedwrapper').show();
+            }
+
+            if (self.group.get('affiliationconfirmedby')) {
+              self.$('.js-affiliationconfirmedby').html(' by ' + self.group.get('affiliationconfirmedby').displayname);
             }
 
             // Add license info
