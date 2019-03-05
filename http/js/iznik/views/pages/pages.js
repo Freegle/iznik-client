@@ -807,9 +807,9 @@ define([
             if (newsfeed) {
                 if (!self.model.get('seen')) {
                     self.model.seen();
-                    Router.navigate('/newsfeed/' + newsfeed.id, true);
+                    Router.navigate('/natter/' + newsfeed.id, true);
                 } else {
-                    Router.navigate('/newsfeed/' + newsfeed.id, true);
+                    Router.navigate('/natter/' + newsfeed.id, true);
                 }
             } else if (url) {
                 Router.navigate(url, true);

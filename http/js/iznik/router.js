@@ -205,6 +205,8 @@ define([
       'invite': 'userInvite',
       'newsfeed/:id': 'userNewsfeedSingle',
       'newsfeed': 'userNewsfeed',
+      'natter/:id': 'userNewsfeedSingle',
+      'natter': 'userNewsfeed',
       'plugins/events/:id': 'communityEventsPlugin',
       'plugins/group?groupid=:id(&*t)': 'groupPlugin',
       'plugins/group/:id': 'groupPlugin',
