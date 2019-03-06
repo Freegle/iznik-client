@@ -2,7 +2,7 @@
     <div class="col-md-2 forcebreak">
         <% if (role == 'Moderator' || role == 'Owner') { %><div class="glyphicons glyphicons-crown <% if (role == 'Owner') { %>primary<%} else { %>success<% } %>" title="{{role}}" alt="{{role}}"/><% } else { %><div class="glyphicons glyphicons-user success"  title="{{role}}" alt="{{role}}" /><% } %>&nbsp;
         <a data-realurl="true" target="_blank" rel="noopener" class="inline js-group">{{nameshort}}</a>
-        <a data-realurl="true" target="_blank" rel="noopener" class="js-mailowner" href="mailto:{{nameshort}}<% if (obj.onyahoo) { %>-owner@yahoogroups.com<% } else { %>-volunteers@groups.ilovefreegle.org<% } %>">
+        <a data-realurl="true" rel="noopener" class="js-mailowner" href="mailto:{{nameshort}}<% if (obj.onyahoo) { %>-owner@yahoogroups.com<% } else { %>-volunteers@groups.ilovefreegle.org<% } %>">
             <span class="glyphicon glyphicon-envelope" />
         </a>
         <br />

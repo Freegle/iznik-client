@@ -187,13 +187,33 @@ define([
 
           self.group.fetch({
             data: {
-              polygon: true
+              polygon: true,
+              affiliationconfirmedby: true
             }
           }).then(function () {
             self.$('.js-modsemail').html(self.group.get('modsemail'))
             self.$('.js-postemail').html(self.group.get('groupemail'))
             self.$('.js-cga').html(self.group.get('cga'))
             self.$('.js-dpa').html(self.group.get('dpa'))
+
+            // Get the shortlinks.
+            $.ajax({
+              url: API + 'shortlink',
+              type: 'GET',
+              data: {
+                groupid : self.selected
+              },
+              success: function(ret) {
+                self.$('.js-shortlinks').empty();
+                console.log("Got", ret)
+                if (ret.ret === 0) {
+                  _.each(ret.shortlinks, function (link) {
+                    console.log("Got link", link);
+                    self.$('.js-shortlinks').append('<li>freegle.in/' + link.name + '</li>');
+                  })
+                }
+              }
+            })
 
             // Because we switch the form based on our group select we need to remove old events to avoid saving new
             // changes to the previous group.
@@ -210,6 +230,17 @@ define([
             if (self.groupAppearanceForm) {
               self.groupAppearanceForm.undelegateEvents()
               self.$('#groupappearanceform').empty()
+            }
+
+            if (self.group.get('type') === 'Freegle') {
+              var m = new moment(self.group.get('affiliationconfirmed'));
+
+              self.$('.js-affiliationconfirmed').html(m.format('MMMM Do YYYY'))
+              self.$('.js-affiliatinconfirmedwrapper').show();
+            }
+
+            if (self.group.get('affiliationconfirmedby')) {
+              self.$('.js-affiliationconfirmedby').html(' by ' + self.group.get('affiliationconfirmedby').displayname);
             }
 
             // Add license info
@@ -522,11 +553,11 @@ define([
                 helpMessage: 'Email specific messages to members based on their searches and posting history.  Members can turn this on/off themselves, so you would only turn this off if you want to override their decision.'
               },
               {
-                name: 'newsfeed',
-                label: '(Freegle only) Send occasional digests of newsfeed to members?',
+                name: 'chitchat',
+                label: '(Freegle only) Send occasional digests of chitchat to members?',
                 control: 'radio',
                 options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
-                helpMessage: 'We can send an occasional mail to members of recent activity from other members on the discussion newsfeed (like the old cafe groups).  This encourages them to take part.  Members can turn this off themselves, so you would only turn this off if you want to override their decision.'
+                helpMessage: 'We can send an occasional mail to members of recent activity from other members on ChitChat (like the old cafe groups).  This encourages them to take part.  Members can turn this off themselves, so you would only turn this off if you want to override their decision.'
               },
               {
                 name: 'newsletter',

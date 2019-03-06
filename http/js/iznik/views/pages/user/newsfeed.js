@@ -574,7 +574,7 @@ define([
       e.preventDefault()
       e.stopPropagation()
 
-      var url = 'https://' + USER_SITE + '/newsfeed/' + self.model.get('id')
+      var url = 'https://' + USER_SITE + '/natter/' + self.model.get('id')
 
       window.open(url)
     },
@@ -1065,7 +1065,7 @@ define([
       var self = this
       var params = {
         method: 'share',
-        href: window.location.protocol + '//' + window.location.host + '/newsfeed/' + self.model.get('id') + '?src=fbshare',
+        href: window.location.protocol + '//' + window.location.host + '/natter/' + self.model.get('id') + '?src=fbshare',
         image: self.image
       }
 
