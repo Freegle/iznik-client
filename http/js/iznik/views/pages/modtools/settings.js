@@ -196,6 +196,25 @@ define([
             self.$('.js-cga').html(self.group.get('cga'))
             self.$('.js-dpa').html(self.group.get('dpa'))
 
+            // Get the shortlinks.
+            $.ajax({
+              url: API + 'shortlink',
+              type: 'GET',
+              data: {
+                groupid : self.selected
+              },
+              success: function(ret) {
+                self.$('.js-shortlinks').empty();
+                console.log("Got", ret)
+                if (ret.ret === 0) {
+                  _.each(ret.shortlinks, function (link) {
+                    console.log("Got link", link);
+                    self.$('.js-shortlinks').append('<li>freegle.in/' + link.name + '</li>');
+                  })
+                }
+              }
+            })
+
             // Because we switch the form based on our group select we need to remove old events to avoid saving new
             // changes to the previous group.
             if (self.myGroupForm) {
