@@ -11,7 +11,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'Follow'
@@ -23,7 +23,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'Unfollow'
@@ -35,7 +35,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'ReferToWanted'
@@ -47,7 +47,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'ReferToOffer'
@@ -59,7 +59,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'ReferToTaken'
@@ -71,7 +71,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'AttachToThread',
@@ -84,7 +84,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'ReferToReceived'
@@ -97,7 +97,7 @@ define([
 
             var p = new Promise(function(resolve, reject) {
                 $.ajax({
-                    url: API + '/chitchat/' + self.get('id'),
+                    url: API + '/newsfeed/' + self.get('id'),
                     type: 'POST',
                     data: {
                         action: 'Seen'
@@ -117,7 +117,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'Love'
@@ -129,7 +129,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'Report',
@@ -142,7 +142,7 @@ define([
             var self = this;
 
             return($.ajax({
-                url: API + '/chitchat/' + self.get('id'),
+                url: API + '/newsfeed/' + self.get('id'),
                 type: 'POST',
                 data: {
                     action: 'Unlove'
