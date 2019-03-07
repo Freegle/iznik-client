@@ -1570,13 +1570,16 @@ define([
     showProfile: function () {
       var self = this
 
-      require(['iznik/views/user/user'], function () {
-        var v = new Iznik.Views.UserInfo({
-          model: new Iznik.Model(self.model.get('user'))
-        })
+      if (!MODTOOLS && self.options.chatModel.get('chattype') === 'User2User') {
+        // Users shouldn't be able to view mod profiles, only user ones.
+        require(['iznik/views/user/user'], function () {
+          var v = new Iznik.Views.UserInfo({
+            model: new Iznik.Model(self.model.get('user'))
+          })
 
-        v.render()
-      })
+          v.render()
+        })
+      }
     },
 
     imageZoom: function (e) {
