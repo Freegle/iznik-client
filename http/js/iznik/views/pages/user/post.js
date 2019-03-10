@@ -377,6 +377,9 @@ define([
                     self.$('.js-addprompt').hide()
                   }
                 })
+              } else {
+                // This is not a usable draft on the server, so clear our record of it.
+                Storage.remove('draft')
               }
             })
           } else {
