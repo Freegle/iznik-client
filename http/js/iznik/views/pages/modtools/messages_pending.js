@@ -275,19 +275,15 @@ define([
 
               // Add any attachments.
               self.$('.js-attlist').empty()
-              _.each(self.model.get('attachments'), function (att) {
-                var v = new Iznik.Views.ModTools.Message.Photo({
-                  model: new Iznik.Model(att),
-                  message: self.model
-                })
+              var photos = self.model.get('attachments')
 
-                self.listenToOnce(v, 'zoomClosed', function () {
-                  self.model.fetch().then(function () {
-                    self.render()
-                  })
-                })
+              var v = new Iznik.Views.User.Message.Photos({
+                collection: new Iznik.Collection(photos),
+                message: self.model,
+                showAll: true
+              })
 
-                v.render()
+              v.render().then(function () {
                 self.$('.js-attlist').append(v.el)
               })
 

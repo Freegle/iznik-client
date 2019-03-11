@@ -143,6 +143,16 @@ define([
     render: function () {
       var self = this
 
+      // Once we hit this page, we don't need keep opening any chat popup windows.  They'll come here to find
+      // them.
+      Storage.iterate(function(key, value) {
+        console.log(key, value)
+
+        if (key.indexOf('chat') === 0 && key.indexOf('-open') !== -1) {
+          Storage.remove(key)
+        }
+      })
+
       self.template = self.modtools ? 'chat_page_mainmodtools' : 'chat_page_mainuser'
 
       // For user, we put it in js-leftsidebar - which (hackily) may be a visible left sidebar for larger

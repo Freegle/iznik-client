@@ -369,7 +369,7 @@ define([
             identify: true
           },
           browseIcon: '<span class="glyphicon glyphicon-plus" />&nbsp;',
-          browseLabel: 'Add photos',
+          browseLabel: 'Add photo',
           browseClass: 'btn btn-success btn-lg nowrap pull-right',  // CC
           errorContainer: '#js-uploaderror'
         })

@@ -636,6 +636,7 @@ define([
         sharefb: function() {
             var self = this;
 
+            // CC
             // Can get the image but sharing both image and link on FB means that only image shown and we want link - so image won't be available to other share types
             // var image = null;
             // var atts = self.model.get('attachments');

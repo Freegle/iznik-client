@@ -394,6 +394,12 @@ define([
       var self = this
 
       self.parentClass.prototype.render.call(self).then(function () {
+        console.log("Got groups?", Iznik.Session.get('groups').length);
+        if (!Iznik.Session.get('groups').length) {
+          self.$('.js-form').hide();
+          self.$('.js-nogroups').fadeIn('slow');
+        }
+
         self.groupSelect = new Iznik.Views.Group.Select({
           systemWide: Iznik.Session.hasPermission('NationalVolunteers'),
           all: false,
@@ -460,10 +466,6 @@ define([
                 required: true
               },
               start: {
-                mindate: self,
-                required: false
-              },
-              end: {
                 mindate: self,
                 required: false
               },

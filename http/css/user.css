@@ -460,6 +460,15 @@ h1,h2,h3,h4 {
     background: #f5f5f5;
 }
 
+.js-draftphotos li.completefull {
+    width: initial !important;
+    padding-right: 5px !important;
+}
+
+.js-draftphotos .photobadge, .js-draftphotos .photobadgexs {
+    display: none !important;
+}
+
 .groupdescription {
     max-height: 500px;
     overflow-y: auto;
@@ -570,10 +579,18 @@ table.table-fixedheader>tbody>tr>td {
     }
 }
 
-.glyphicons:before { /* Make rotate smooth CC */
-  padding: 6px 6px;
+.photo {
+    max-height: 100px !important;
+    max-width: 100px !important;
 }
 
-.img-squarexs {
-  margin: 0 0 0 8px;
+@media only screen and (min-width : 480px) {
+    .photo {
+        max-height: 150px !important;
+        max-width: 150px !important;
+    }
+}
+
+.glyphicons:before { /* Make rotate smooth CC */
+  padding: 6px 6px;
 }

@@ -1,223 +1,225 @@
 define([
-    'jquery',
-    'underscore',
-    'backbone',
-    'iznik/base',
-    'iznik/models/yahoo/user',
-    "iznik/modtools",
-    'iznik/views/pages/pages',
-    "iznik/views/pages/modtools/messages",
-    'iznik/views/infinite',
-    'iznik/views/group/select'
-], function($, _, Backbone, Iznik, IznikYahooUsers) {
-    Iznik.Views.ModTools.Pages.SpamMessages = Iznik.Views.Infinite.extend({
-        modtools: true,
+  'jquery',
+  'underscore',
+  'backbone',
+  'iznik/base',
+  'iznik/models/yahoo/user',
+  'iznik/modtools',
+  'iznik/views/pages/pages',
+  'iznik/views/pages/modtools/messages',
+  'iznik/views/infinite',
+  'iznik/views/group/select'
+], function ($, _, Backbone, Iznik, IznikYahooUsers) {
+  Iznik.Views.ModTools.Pages.SpamMessages = Iznik.Views.Infinite.extend({
+    modtools: true,
 
-        template: "modtools_spam_main",
+    template: 'modtools_spam_main',
 
-        retField: 'messages',
+    retField: 'messages',
 
-        countsChanged: function() {
-            this.groupSelect.render();
-        },
+    countsChanged: function () {
+      this.groupSelect.render()
+    },
 
-        render: function () {
-            var p = Iznik.Views.Infinite.prototype.render.call(this);
-            p.then(function(self) {
-                var v = new Iznik.Views.Help.Box();
-                v.template = 'modtools_spam_info';
-                v.render().then(function(v) {
-                    self.$('.js-help').html(v.el);
-                });
+    render: function () {
+      var p = Iznik.Views.Infinite.prototype.render.call(this)
+      p.then(function (self) {
+        var v = new Iznik.Views.Help.Box()
+        v.template = 'modtools_spam_info'
+        v.render().then(function (v) {
+          self.$('.js-help').html(v.el)
+        })
 
-                self.groupSelect = new Iznik.Views.Group.Select({
-                    systemWide: false,
-                    all: true,
-                    mod: true,
-                    counts: ['spam', 'spamother'],
-                    id: 'spamGroupSelect'
-                });
+        self.groupSelect = new Iznik.Views.Group.Select({
+          systemWide: false,
+          all: true,
+          mod: true,
+          counts: ['spam', 'spamother'],
+          id: 'spamGroupSelect'
+        })
 
-                self.collection = new Iznik.Collections.Message(null, {
-                    modtools: true,
-                    groupid: self.selected,
-                    group: Iznik.Session.get('groups').get(self.selected),
-                    collection: 'Spam'
-                });
+        self.collection = new Iznik.Collections.Message(null, {
+          modtools: true,
+          groupid: self.selected,
+          group: Iznik.Session.get('groups').get(self.selected),
+          collection: 'Spam'
+        })
 
-                // CollectionView handles adding/removing/sorting for us.
-                self.collectionView = new Backbone.CollectionView({
-                    el: self.$('.js-list'),
-                    modelView: Iznik.Views.ModTools.Message.Spam,
-                    modelViewOptions: {
-                        collection: self.collection,
-                        page: self
-                    },
-                    collection: self.collection,
-                    processKeyEvents: false
-                });
+        // CollectionView handles adding/removing/sorting for us.
+        self.collectionView = new Backbone.CollectionView({
+          el: self.$('.js-list'),
+          modelView: Iznik.Views.ModTools.Message.Spam,
+          modelViewOptions: {
+            collection: self.collection,
+            page: self
+          },
+          collection: self.collection,
+          processKeyEvents: false
+        })
 
-                self.collectionView.render();
+        self.collectionView.render()
 
-                self.listenTo(self.groupSelect, 'selected', function (selected) {
-                    self.selected = selected;
+        self.listenTo(self.groupSelect, 'selected', function (selected) {
+          self.selected = selected
 
-                    // We haven't fetched anything for this group yet.
-                    self.lastFetched = null;
-                    self.context = null;
-                    
-                    self.fetch({
-                        groupid: self.selected > 0 ? self.selected : null
-                    });
-                });
+          // We haven't fetched anything for this group yet.
+          self.lastFetched = null
+          self.context = null
 
-                // Render after the listen to as they are called during render.
-                self.groupSelect.render().then(function(v) {
-                    self.$('.js-groupselect').html(v.el);
-                });
+          self.fetch({
+            groupid: self.selected > 0 ? self.selected : null
+          })
+        })
 
-                // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
-                // appropriately.
-                self.listenTo(Iznik.Session, 'spamcountschanged', _.bind(self.fetch, self));
-                self.listenTo(Iznik.Session, 'spamcountschanged', _.bind(self.countsChanged, self));
-                self.listenTo(Iznik.Session, 'spamcountsotherchanged', _.bind(self.countsChanged, self));
-            });
-            
-            return(p);
-        }
-    });
+        // Render after the listen to as they are called during render.
+        self.groupSelect.render().then(function (v) {
+          self.$('.js-groupselect').html(v.el)
+        })
 
-    Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
-        tagName: 'li',
-        template: 'modtools_spam_message',
-        collectionType: 'Spam',
+        // If we detect that the pending counts have changed on the server, refetch the messages so that we add/remove
+        // appropriately.
+        self.listenTo(Iznik.Session, 'spamcountschanged', _.bind(self.fetch, self))
+        self.listenTo(Iznik.Session, 'spamcountschanged', _.bind(self.countsChanged, self))
+        self.listenTo(Iznik.Session, 'spamcountsotherchanged', _.bind(self.countsChanged, self))
+      })
 
-        events: {
-            'click .js-notspam': 'notspam',
-            'click .js-spam': 'spam'
-        },
+      return (p)
+    }
+  })
 
-        notspam: function () {
-            var self = this;
+  Iznik.Views.ModTools.Message.Spam = Iznik.Views.ModTools.Message.extend({
+    tagName: 'li',
+    template: 'modtools_spam_message',
+    collectionType: 'Spam',
+
+    events: {
+      'click .js-notspam': 'notspam',
+      'click .js-spam': 'spam'
+    },
+
+    notspam: function () {
+      var self = this
+      _.each(self.model.get('groups'), function (group, index, list) {
+        $.ajax({
+          type: 'POST',
+          url: API + 'message',
+          data: {
+            id: self.model.get('id'),
+            groupid: group.id,
+            action: 'NotSpam'
+          }, success: function (ret) {
+            self.$el.fadeOut('slow')
+          }
+        })
+      })
+    },
+
+    spam: function () {
+      var self = this
+      _.each(self.model.get('groups'), function (group, index, list) {
+        $.ajax({
+          type: 'POST',
+          url: API + 'message',
+          data: {
+            id: self.model.get('id'),
+            groupid: group.id,
+            action: 'Spam'
+          }, success: function (ret) {
+            self.$el.fadeOut('slow')
+          }
+        })
+      })
+    },
+
+    rendering: null,
+
+    render: function () {
+      var self = this
+
+      self.model.set('mapicon', '/images/mapmarker.gif')
+
+      // Get a zoom level for the map.
+      _.each(self.model.get('groups'), function (group) {
+        self.model.set('mapzoom', group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 9)
+      })
+
+      if (!self.rendering) {
+        self.rendering = new Promise(function (resolve, reject) {
+          var p = Iznik.Views.ModTools.Message.prototype.render.call(self)
+          p.then(function (self) {
             _.each(self.model.get('groups'), function (group, index, list) {
-                $.ajax({
-                    type: 'POST',
-                    url: API + 'message',
-                    data: {
-                        id: self.model.get('id'),
-                        groupid: group.id,
-                        action: 'NotSpam'
-                    }, success: function (ret) {
-                        self.$el.fadeOut('slow');
-                    }
-                });
-            });
-        },
+              var mod = new Iznik.Model(group)
 
-        spam: function () {
-            var self = this;
-            _.each(self.model.get('groups'), function (group, index, list) {
-                $.ajax({
-                    type: 'POST',
-                    url: API + 'message',
-                    data: {
-                        id: self.model.get('id'),
-                        groupid: group.id,
-                        action: 'Spam'
-                    }, success: function (ret) {
-                        self.$el.fadeOut('slow');
-                    }
-                });
-            });
-        },
+              // Add in the message, because we need some values from that
+              mod.set('message', self.model.toJSON())
 
-        rendering: null,
+              var v = new Iznik.Views.ModTools.Message.Spam.Group({
+                model: mod
+              })
+              v.render().then(function (v) {
+                self.$('.js-grouplist').append(v.el)
+              })
 
-        render: function () {
-            var self = this;
+              var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'))
+              mod.set('groupid', group.id)
 
-            self.model.set('mapicon', 'https://www.ilovefreegle.org/images/mapmarker.gif'); // CC
+              var v = new Iznik.Views.ModTools.User({
+                model: mod
+              })
 
-            // Get a zoom level for the map.
-            _.each(self.model.get('groups'), function (group) {
-                self.model.set('mapzoom', group.settings.hasOwnProperty('map') ? group.settings.map.zoom : 9);
-            });
+              v.render().then(function (v) {
+                self.$('.js-user').append(v.el)
+              })
 
-            if (!self.rendering) {
-                self.rendering = new Promise(function(resolve, reject) {
-                    var p = Iznik.Views.ModTools.Message.prototype.render.call(self);
-                    p.then(function(self) {
-                        _.each(self.model.get('groups'), function (group, index, list) {
-                            var mod = new Iznik.Model(group);
+              if (group.onyahoo) {
+                // The Yahoo part of the user
+                var mod = IznikYahooUsers.findUser({
+                  email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
+                  group: group.nameshort,
+                  groupid: group.id
+                })
 
-                            // Add in the message, because we need some values from that
-                            mod.set('message', self.model.toJSON());
+                mod.fetch().then(function () {
+                  var v = new Iznik.Views.ModTools.Yahoo.User({
+                    model: mod
+                  })
+                  v.render().then(function (v) {
+                    self.$('.js-yahoo').html(v.el)
+                  })
+                })
+              }
+            })
 
-                            var v = new Iznik.Views.ModTools.Message.Spam.Group({
-                                model: mod
-                            });
-                            v.render().then(function (v) {
-                                self.$('.js-grouplist').append(v.el);
-                            });
+            self.addOtherInfo()
 
-                            var mod = new Iznik.Models.ModTools.User(self.model.get('fromuser'));
-                            mod.set('groupid', group.id);
+            // Add any attachments.
+            self.$('.js-attlist').empty()
+            var photos = self.model.get('attachments')
 
-                            var v = new Iznik.Views.ModTools.User({
-                                model: mod
-                            });
+            var v = new Iznik.Views.User.Message.Photos({
+              collection: new Iznik.Collection(photos),
+              message: self.model,
+            })
 
-                            v.render().then(function (v) {
-                                self.$('.js-user').append(v.el);
-                            });
+            v.render().then(function () {
+              self.$('.js-attlist').append(v.el)
+            })
 
-                            if (group.onyahoo) {
-                                // The Yahoo part of the user
-                                var mod = IznikYahooUsers.findUser({
-                                    email: self.model.get('envelopefrom') ? self.model.get('envelopefrom') : self.model.get('fromaddr'),
-                                    group: group.nameshort,
-                                    groupid: group.id
-                                });
+            self.$('.timeago').timeago()
+            self.$el.fadeIn('slow')
 
-                                mod.fetch().then(function () {
-                                    var v = new Iznik.Views.ModTools.Yahoo.User({
-                                        model: mod
-                                    });
-                                    v.render().then(function (v) {
-                                        self.$('.js-yahoo').html(v.el);
-                                    });
-                                });
-                            }
-                        });
+            resolve()
+            self.rendering = null
+          })
+        })
+      }
 
-                        self.addOtherInfo();
+      return (self.rendering)
+    }
+  })
 
-                        // Add any attachments.
-                        self.$('.js-attlist').empty();
-                        _.each(self.model.get('attachments'), function (att) {
-                            var v = new Iznik.Views.ModTools.Message.Photo({
-                                model: new Iznik.Model(att),
-                                message: self.model
-                            });
+  Iznik.Views.ModTools.Message.Spam.Group = Iznik.View.extend({
+    template: 'modtools_spam_group'
+  })
+})
 
-                            v.render();
-                            self.$('.js-attlist').append(v.el);
-                        });
-
-                        self.$('.timeago').timeago();
-                        self.$el.fadeIn('slow');
-
-                        resolve();
-                        self.rendering = null;
-                    });
-                });
-            }
-
-            return (self.rendering);
-        }
-    });
-
-    Iznik.Views.ModTools.Message.Spam.Group = Iznik.View.extend({
-        template: 'modtools_spam_group'
-    });
-});

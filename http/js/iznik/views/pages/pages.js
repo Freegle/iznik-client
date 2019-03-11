@@ -649,7 +649,7 @@ define([
                         });
                     }
                 });
-                $('#js-mobilelog').html(window.alllog);
+                $('#js-mobilelog').html(window.alllog)
 
                 if (Iznik.Session.isAdminOrSupport()) {
                     self.$('.js-adminsupportonly').removeClass('hidden');
@@ -835,9 +835,9 @@ define([
             if (newsfeed) {
                 if (!self.model.get('seen')) {
                     self.model.seen();
-                    Router.navigate('/newsfeed/' + newsfeed.id, true);
+                    Router.navigate('/chitchat/' + newsfeed.id, true);
                 } else {
-                    Router.navigate('/newsfeed/' + newsfeed.id, true);
+                    Router.navigate('/chitchat/' + newsfeed.id, true);
                 }
             } else if (url) {
                 Router.navigate(url, true);
