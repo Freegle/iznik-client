@@ -206,6 +206,8 @@ define([
       'invite': 'userInvite',
       'newsfeed/:id': 'userNewsfeedSingle',
       'newsfeed': 'userNewsfeed',
+      'chitchat/:id': 'userNewsfeedSingle',
+      'chitchat': 'userNewsfeed',
       'plugins/events/:id': 'communityEventsPlugin',
       'plugins/group?groupid=:id(&*t)': 'groupPlugin',
       'plugins/group/:id': 'groupPlugin',
