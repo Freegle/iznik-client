@@ -237,11 +237,17 @@ define([
           data: data,
           success: function (ret) {
             if (ret.ret == 0) {
-              d.resolve()
               try {
                 Storage.set('draft', ret.id)
               } catch (e) {
+                // The set failed; perhaps we have a value stuck here which isn't valid any more, so try to remove
+                // that to make sure we can proceed next time.
+                try {
+                  Storage.remove('draft')
+                } catch (e) {}
               }
+
+              d.resolve()
             } else {
               d.reject()
             }
@@ -452,6 +458,9 @@ define([
                     self.$('.js-addprompt').hide()
                   }
                 })
+              } else {
+                // This is not a usable draft on the server, so clear our record of it.
+                Storage.remove('draft')
               }
             })
           } else {
