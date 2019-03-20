@@ -430,7 +430,8 @@ define([
               summary: true
             }
           }).then(function () {
-            window.location.reload()
+            // CC window.location.reload()
+            Router.navigate("/chats", true)
           })
         })
       })
