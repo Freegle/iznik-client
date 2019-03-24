@@ -408,7 +408,13 @@ define([
     events: {
       'change .js-email': 'changeEmail',
       'keyup .js-email': 'changeEmail',
-      'click .js-next': 'doit'
+      'click .js-next': 'clickDoit'
+    },
+
+    clickDoit() {
+      // This means they've confirmed their email
+      Storage.set('myemailat', (new Date()).getTime())
+      this.doit()
     },
 
     doit: function () {
@@ -460,10 +466,14 @@ define([
       }
     },
 
-    changeEmail: function () {
+    changeEmail: function (auto) {
       var email = this.$('.js-email').val()
       try {
         Storage.set('myemail', email)
+
+        if (!auto) {
+          Storage.set('myemailat', (new Date()).getTime())
+        }
       } catch (e) {
       }
 
@@ -478,6 +488,20 @@ define([
       }
     },
 
+    maybeAuto: function() {
+      // If we have confirmed our email address today, then don't bother asking again.  This is useful if you're
+      // listing multiple items.
+      var self = this;
+      var last = Storage.get('myemailat')
+
+      if (last) {
+        if ((new Date()).getTime() - last < 24 * 60 * 60 * 1000) {
+          // Recent
+          self.doit()
+        }
+      }
+    },
+
     render: function () {
       var p = Iznik.Views.Page.prototype.render.call(this)
       p.then(function (self) {
@@ -485,14 +509,16 @@ define([
           if (loggedIn) {
             // We know our email address from the session
             self.$('.js-email').val(Iznik.Session.get('me').email)
-            self.changeEmail()
+            self.changeEmail(true)
+            self.maybeAuto()
           } else {
             // We're not logged in - but we might have remembered one.
             try {
               var email = Storage.get('myemail')
               if (email) {
                 self.$('.js-email').val(email)
-                self.changeEmail()
+                self.changeEmail(true)
+                self.maybeAuto()
               }
             } catch (e) {
             }
