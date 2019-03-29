@@ -34,7 +34,7 @@
                     <% } %>
                     <% } %>
                     <div class="inline chat-message <% if ((obj.secondsago < 60) || (obj.user && id > lastmsgseen)) { %> chat-message-unseen <% } %>">
-                        {{message}}
+                        <%-message%>
                     </div>
                 </div>
             </div>
