@@ -227,6 +227,7 @@ define([
       'councils/volunteers': 'userCouncilsVolunteers',
       'councils/keylinks(/:section)': 'userCouncilsKeyLinks',
       'councils/workbest(/:section)': 'userCouncilsWorkBest',
+      'councils/giveandtake(/:section)': 'userCouncilsGiveAndTake',
       'councils/graphics(/:section)': 'userCouncilsGraphics',
       'councils/photosvideos(/:section)': 'userCouncilsPhotosVideos',
       'councils/posters': 'userCouncilsPosters',
@@ -2131,6 +2132,19 @@ define([
 
         require(['iznik/views/pages/user/councils'], function () {
           var page = new Iznik.Views.User.Pages.Councils.WorkBest({
+            section: section
+          })
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsGiveAndTake: function (section) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.GiveAndTake({
             section: section
           })
           self.loadRoute({page: page})
