@@ -309,7 +309,7 @@ define([
   Iznik.wbr = function (str, num) {
     var re = RegExp('([^\\s]{' + num + '})(\\w)', 'g')
     return str.replace(re, function (all, text, char) {
-      return text + '<wbr>' + char
+      return text + "\n" + char
     })
   }
 

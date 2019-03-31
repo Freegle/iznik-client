@@ -1639,6 +1639,9 @@ define([
           // Unescape emojis.
           message = Iznik.twem(message)
 
+          // Incomplete HTML
+          message = message.replace(/\<br \//g, "\n");
+
           // Remove duplicate newlines.  Make sure we have a string - might not if the message was just a digit.
           message += ''
           message = message.replace(/\n\s*\n\s*\n/g, '\n\n')
@@ -1648,7 +1651,7 @@ define([
 
           // Insert some wbrs to allow us to word break long words (e.g. URLs).
           // It might have line breaks in if it comes originally from an email.
-          message = Iznik.wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />')
+          message = Iznik.wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, "\n")
 
           this.model.set('message', message)
         }
