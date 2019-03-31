@@ -287,6 +287,7 @@ define([
     },
 
     userHome: function () {
+      console.log("User home")
       if (!MODTOOLS) {
         var self = this
 
