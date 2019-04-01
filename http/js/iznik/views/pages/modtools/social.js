@@ -13,7 +13,8 @@ define([
   'iznik/views/pages/pages',
   'iznik/views/infinite',
   'iznik/views/supportus',
-  'iznik/views/postaladdress'
+  'iznik/views/postaladdress',
+  'iznik/views/pages/modtools/settings'
 ], function ($, _, Backbone, moment, Iznik) {
   Iznik.Views.ModTools.Pages.SocialActions = Iznik.Views.Infinite.extend({
     modtools: true,
