@@ -2556,6 +2556,7 @@ define([
       var self = this
       var p
       var missingFacebook = []
+
       var groups = Iznik.Session.get('groups')
       groups.each(function (group) {
         var role = group.get('role')
@@ -2565,7 +2566,10 @@ define([
           _.each(facebooks, function (facebook) {
             if (facebook.type == 'Page') {
               if (!facebook.valid) {
-                missingFacebook.push(facebook.name + ' - token invalid')
+                missingFacebook.push({
+                  name: facebook.name + ' - token invalid',
+                  id: group.get('id')
+                });
               } else {
                 gotpage = true
               }
@@ -2573,7 +2577,10 @@ define([
           })
 
           if (!gotpage) {
-            missingFacebook.push(group.get('namedisplay') + ' - not linked')
+            missingFacebook.push({
+              name: group.get('namedisplay') + ' - not linked',
+              id: group.get('id')
+            })
           }
         }
       })
@@ -2583,7 +2590,7 @@ define([
         require(['jquery-show-first'], function () {
           p.then(function (self) {
             _.each(missingFacebook, function (missing) {
-              self.$('.js-grouplist').append('<div>' + missing + '</div>')
+              self.$('.js-grouplist').append('<div>' + missing.name + '&nbsp;<a target="_blank" data-realurl="true" href="/facebook/facebook_request.php?groupid=' + missing.id + '&type=Page">relink</a></a></div>')
             })
             self.$('.js-grouplist').showFirst({
               controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',
