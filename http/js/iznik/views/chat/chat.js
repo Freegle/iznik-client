@@ -1653,6 +1653,8 @@ define([
           // It might have line breaks in if it comes originally from an email.
           message = Iznik.wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, "\n")
 
+          message = message.replace("\n", "<br />")
+
           this.model.set('message', message)
         }
 
@@ -1739,6 +1741,9 @@ define([
 
         p = Iznik.View.Timeago.prototype.render.call(this)
         p.then(function (self) {
+          // Set message.  Do this here as it contains HTML
+          self.$('.js-chatmessage').html(self.model.get('message'))
+
           // Expand emojis.
           twemoji.parse(self.el)
 
