@@ -1983,6 +1983,7 @@ define([
         self.listenToOnce(Iznik.Session, 'loggedIn', function () {
           require(['iznik/views/teams'], function () {
             var page = new Iznik.Views.ModTools.Pages.Teams()
+            page.modtools = false;
             self.loadRoute({page: page})
           })
         })
