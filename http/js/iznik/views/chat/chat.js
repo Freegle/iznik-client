@@ -1631,7 +1631,6 @@ define([
     render: function () {
       var self = this
       var p
-      // console.log("Render chat message", this.model.get('id'), this.model.attributes);
 
       if (this.model.get('id')) {
         var message = this.model.get('message')
@@ -1653,7 +1652,7 @@ define([
           // It might have line breaks in if it comes originally from an email.
           message = Iznik.wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, "\n")
 
-          message = message.replace("\n", "<br />")
+          message = message.replace(/\n/g, "<br />")
 
           this.model.set('message', message)
         }
