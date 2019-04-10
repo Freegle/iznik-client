@@ -1,38 +1,74 @@
-<h1 class="text-center js-exploreall js-pagetitle">Get your friends freegling!</h1>
+<h1 class="js-exploreall js-pagetitle">Spread the word</h1>
+<p>Wouldn't the world be better if more people freegled more often?  You can help!</p>
+<ul>
+  <li>Tell people! It's easy to forget that lots of people still haven't heard of us.</li>
+  <li>Invite your friends by email - see below.</li>
+  <li>Put up a poster - see below.</li>
+</ul>
+<p>You wouldn't be freegling unless someone had told you about it - can you pay it forward?</p>
+<h3>Invite your friends</h3>
 <% if (!me.invitesleft) { %>
 <div class="alert alert-danger">
-    You don't have any invitations left at the moment.  Please check back later.
+  You don't have any invitations left at the moment. Please check back later.
 </div>
 <% } else { %>
-    <div class="alert alert-info">
-        You have <b>{{me.invitesleft}}</b> invitation<% if (me.invitesleft != 1) { %>s<% } %> left.
+<div class="alert alert-info">
+  You have <b>{{me.invitesleft}}</b> invitation<% if (me.invitesleft != 1) { %>s<% } %> left.
+</div>
+<div class="panel">
+  <div class="panel-body boxglow img-rounded">
+    <div class="row">
+      <div class="col-xs-12">
+        <p>
+          We'll send them an email invitation. It will show your name and email, and by using this
+          you confirm that you have their consent.
+        </p>
+      </div>
     </div>
-    <div class="panel">
-        <div class="panel-body boxglow img-rounded">
-            <div class="row">
-                <div class="col-xs-12">
-                    <p>
-                        We'll send them an email invitation.  It will show your name and email, and by using this
-                        you confirm that you have their consent.
-                    </p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-xs-12">
-                    <div class="input-group">
-                        <input type="email" class="form-control js-inviteemail" placeholder="Enter their email address" aria-describedby="invitebtn">
-                        <span class="input-group-addon btn-success clickme js-invite" id="invitebtn"><span class="glyphicon glyphicon-envelope" />&nbsp;Invite a friend</span>
-                    </div>
-                </div>
-            </div>
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="input-group">
+          <input type="email" class="form-control js-inviteemail" placeholder="Enter their email address"
+                 aria-describedby="invitebtn">
+          <span class="input-group-addon btn-success clickme js-invite" id="invitebtn"><span
+            class="glyphicon glyphicon-envelope"/>&nbsp;Invite a friend</span>
         </div>
+      </div>
     </div>
-    <div class="js-invitewrapper" style="display: none">
-        <h3>Your invitations</h3>
-        <div class="panel panel-default">
-            <div class="panel-body">
-                <ul class="list-unstyled js-list" />
-            </div>
-        </div>
+  </div>
+</div>
+<div class="js-invitewrapper" style="display: none">
+  <h3>Your invitations</h3>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <ul class="list-unstyled js-list"/>
     </div>
+  </div>
+</div>
 <% } %>
+<h3>Put up a poster</h3>
+<p>
+  This is an A4 poster with tear-off strips - good for noticeboards
+  in cafes, community venues, or at work.
+</p>
+<a data-realurl="true" target="_blank" href="https://www.ilovefreegle.org/images/posters/A4.pdf"
+   class="padleftlg js-download">
+  <img class="img-largethumbnail img-responsive" src="/images/posters/A4.png"/>
+  <span class="topspace btn btn-lg btn-success">Download PDF</span>
+</a>
+<p class="topspace">You can help even more by letting us know where you stick it up - see below.</p>
+<h3>Map the noticeboards</h3>
+<p>
+  We're trying to build up a map of the UK's noticeboards, so that we can encourage people to put up Freegle posters.
+  This will be useful for other community projects too.
+</p>
+<p>
+  You can help us build this map - when you put up a poster for us, take your phone with you and click on the
+  button below:
+</p>
+<div class="btn btn-lg btn-info js-putupposter">
+  I put up a poster
+</div>
+<p class="topspace">
+  Thanks for all your help - and for freegling!
+</p>

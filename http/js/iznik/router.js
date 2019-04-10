@@ -203,6 +203,7 @@ define([
       'help': 'userContact',
       'invite/:id': 'userInvited',
       'invite': 'userInvite',
+      'spread': 'userInvite',
       'newsfeed/:id': 'userNewsfeedSingle',
       'newsfeed': 'userNewsfeed',
       'chitchat/:id': 'userNewsfeedSingle',
