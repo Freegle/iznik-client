@@ -1639,7 +1639,7 @@ define([
           message = Iznik.twem(message)
 
           // Incomplete HTML
-          message = message.replace(/\<br \//g, "\n");
+          message = (message+'').replace(/\<br \//g, "\n");
 
           // Remove duplicate newlines.  Make sure we have a string - might not if the message was just a digit.
           message += ''
