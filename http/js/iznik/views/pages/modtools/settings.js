@@ -2215,6 +2215,9 @@ define([
         }
       }
 
+      // Ensure that new features are shaded correctly.
+      obj.setOptions({fillOpacity: self.shaded ? 0 : 0.6})
+
       return obj
     },
 
