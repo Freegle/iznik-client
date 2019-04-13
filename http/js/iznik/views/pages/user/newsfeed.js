@@ -316,7 +316,6 @@ define([
 
       p.then(function (self) {
         var today = new Date().toISOString().slice(0, 10);
-        console.log("Check", today)
         if (today == '2019-04-01') {
           self.$('.js-april').fadeIn('slow');
         }
@@ -370,7 +369,8 @@ define([
             // 'CentralPublicity',
             'Alert',
             'Story',
-            'AboutMe'
+            'AboutMe',
+            'Noticeboard'
           ]
         })
 
@@ -1313,6 +1313,11 @@ define([
             break
           case 'AboutMe':
             self.template = 'user_newsfeed_aboutme'
+            break
+          case 'Noticeboard':
+            self.template = 'user_newsfeed_noticeboard'
+            var info = JSON.parse(self.model.get('message'));
+            self.model.set('info', info);
             break
         }
 
