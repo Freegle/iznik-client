@@ -2216,7 +2216,9 @@ define([
       }
 
       // Ensure that new features are shaded correctly.
-      obj.setOptions({fillOpacity: self.shaded ? 0 : 0.6})
+      if (obj) {
+        obj.setOptions({fillOpacity: self.shaded ? 0 : 0.6})
+      }
 
       return obj
     },
@@ -2446,6 +2448,7 @@ define([
 
       // Add a polygon for each
       self.allGroups.each(function (group) {
+        console.log("Map group", group.get('id'), group.get('nameshort'))
         var poly = group.get('poly')
         var polyofficial = group.get('polyofficial')
         var diff = polyofficial && polyofficial != poly
