@@ -23,6 +23,7 @@
 <div class="btn btn-lg btn-info js-putupposter">
   I put up a poster
 </div>
+<%if (obj.me) { %>
 <h3>Invite your friends</h3>
 <% if (!me.invitesleft) { %>
 <div class="alert alert-danger">
@@ -62,6 +63,7 @@
     </div>
   </div>
 </div>
+<% } %>
 <% } %>
 <p class="topspace">
   Thanks for all your help - and for freegling!
