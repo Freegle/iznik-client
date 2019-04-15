@@ -1314,7 +1314,11 @@ define([
           var mom = new moment(self.model.get('added'))
           self.$('.js-since').html(mom.format('Do MMMM YYYY'))
 
-          self.$('.js-replytime').html(Iznik.formatDuration(self.model.get('info').replytime))
+          var info = self.model.get('info');
+
+          if (info) {
+            self.$('.js-replytime').html(Iznik.formatDuration(info.replytime))
+          }
 
           // Cover image
           var cover = self.model.get('coverimage') ? self.model.get('coverimage') : '/images/wallpaper.png'

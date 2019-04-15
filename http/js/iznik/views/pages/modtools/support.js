@@ -430,6 +430,39 @@ define([
         }
       })
 
+      var Affiliation = Backgrid.Cell.extend({
+        render: function () {
+          var now = new moment()
+          var external = this.model.get('external')
+          external = external ? external : '';
+          var founded = new moment(this.model.get('founded'))
+          var foundedage = now.diff(founded, 'days')
+
+          if (this.model.get('publish') &&
+            external.indexOf('norfolk') === -1 &&
+            foundedage > 365) {
+            var val = this.model.get(this.column.get('name'))
+
+            if (!val) {
+              // We don't know.  That's not good.
+              this.$el.html('-')
+              this.$el.addClass('bg-warning')
+            } else {
+              var m = new moment(val)
+              var age = now.diff(m, 'days')
+              this.$el.html(m.format('DD-MMM-YY'))
+              if (age > 500) {
+                this.$el.addClass('bg-danger')
+              } else if (age > 365) {
+                this.$el.addClass('bg-warning')
+              }
+            }
+          }
+
+          return this
+        }
+      })
+
       // Create a backgrid for the groups.
       self.columns = [{
         name: 'id',
@@ -484,6 +517,11 @@ define([
         editable: false,
         cell: 'number'
       }, {
+        name: 'founded',
+        label: 'Founded',
+        editable: false,
+        cell: 'date'
+      }, {
         name: 'lastmoderated',
         label: 'Last moderated',
         editable: false,
@@ -492,7 +530,7 @@ define([
         name: 'affiliationconfirmed',
         label: 'Affiliation confirmed',
         editable: false,
-        cell: 'date'
+        cell: Affiliation
       }, {
         name: 'lastautoapprove',
         label: 'Last auto-approve',

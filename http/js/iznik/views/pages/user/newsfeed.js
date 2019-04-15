@@ -39,7 +39,12 @@ define([
       'click .js-tabvolunteer': 'addVolunteerInline',
       'click .js-taboffer': 'inlineOffer',
       'click .js-tabwanted': 'inlineWanted',
-      'focus #js-discussmessage': 'newsfeedHelp'
+      'focus #js-discussmessage': 'newsfeedHelp',
+      'click .js-aprilfool': 'fool',
+    },
+
+    fool: function() {
+      (new Iznik.Views.User.AprilFool()).render();
     },
 
     newsfeedHelp: function () {
@@ -289,7 +294,6 @@ define([
 
     inlineOffer: function () {
       var self = this
-      console.log('Inlne offer')
       var v = new Iznik.Views.User.Feed.InlineOffer()
       v.render()
       self.$('#js-offersomething').html(v.$el)
@@ -311,6 +315,10 @@ define([
       var p = Iznik.Views.Infinite.prototype.render.call(this)
 
       p.then(function (self) {
+        var today = new Date().toISOString().slice(0, 10);
+        if (today == '2019-04-01') {
+          self.$('.js-april').fadeIn('slow');
+        }
         if (Iznik.Session.get('me').bouncing) {
           self.$('.js-bouncing .js-email').html(Iznik.Session.get('me').email)
           self.$('.js-bouncing').fadeIn('slow')
@@ -361,7 +369,8 @@ define([
             // 'CentralPublicity',
             'Alert',
             'Story',
-            'AboutMe'
+            'AboutMe',
+            'Noticeboard'
           ]
         })
 
@@ -1334,6 +1343,16 @@ define([
           case 'AboutMe':
             self.template = 'user_newsfeed_aboutme'
             break
+          case 'Noticeboard':
+            try {
+              self.template = 'user_newsfeed_noticeboard'
+              var info = JSON.parse(self.model.get('message'));
+              self.model.set('info', info);
+            } catch (e) {
+              console.error("Newsfeed parse failed", e.message, self.model.attributes)
+              self.template = null
+            }
+            break
         }
 
         if (self.template) {
@@ -2095,4 +2114,9 @@ define([
   Iznik.Views.User.Feed.PhotoZoom = Iznik.Views.Modal.extend({
     template: 'user_newsfeed_photozoom'
   })
+
+  Iznik.Views.User.AprilFool = Iznik.Views.Modal.extend({
+    template: 'user_give_aprilfool'
+  });
 })
+

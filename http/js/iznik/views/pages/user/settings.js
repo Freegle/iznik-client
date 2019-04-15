@@ -370,7 +370,8 @@ define([
       var self = this
 
       self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-        var settings = Iznik.Session.get('me').settings
+        var me = Iznik.Session.get('me')
+        var settings = me.settings
 
         var p = Iznik.Views.User.Pages.WhereAmI.prototype.render.call(this, {
           model: new Iznik.Model(settings)
@@ -393,7 +394,6 @@ define([
 
           self.$('.datepicker').on('dp.change', _.bind(self.onholidaytill, self))
 
-          var me = Iznik.Session.get('me')
           self.$('.js-name').val(me.displayname)
 
           // Profile

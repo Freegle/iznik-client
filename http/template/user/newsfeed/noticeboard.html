@@ -1,0 +1,85 @@
+<% if (obj.user) { %>
+<div class="panel fadein">
+  <div class="panel-body">
+    <div class="row">
+      <div class="col-xs-12 clickme">
+        <a href="#" class="dropdown-toggle pull-right" data-toggle="dropdown" title="Options">
+          <span class="caret"></span>
+        </a>
+        <div class="dropdown-container  dropdown-position-bottomright">
+          <ul class="dropdown-menu">
+            <li>
+              <a href="#" class="js-report">Report this post or one of its replies</a>
+            </li>
+            <li class="js-modonly">
+              <a href="#" class="js-delete">Delete this post</a>
+            </li>
+          </ul>
+        </div>
+        <img src="{{user.profile.turl}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
+        <div class="js-profile">
+          <b><span class="success">{{user.displayname}}</span></b> put up a poster <% if (info.name) { %><b>"{{info.name.trim()}}"</b><% } %>
+          <br />
+          <small class="text-muted">
+            <abbr class="timeago nodecor" title="{{added}}">{{timeago(added)}}</abbr>
+            <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation.display}}<% } %>
+          </small>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12">
+        <iframe
+          width="100%"
+          height="200"
+          frameborder="0" style="border:0"
+          src="https://www.google.com/maps/embed/v1/place?key=AIzaSyArVxoX781qdcbmQZi1PKHX-qa0bPbboH4&q={{info.lat}},{{info.lng}}" allowfullscreen>
+        </iframe>
+      </div>
+      <div class="col-xs-12">
+        <p>To help Freegle, {{user.displayname}} printed a Freegle poster and put it up on a noticeboard.</p>
+        <% if (info.description) { %>
+        <div class="alert alert-info">
+          <b class="prewrap">"{{info.description.trim()}}"</b>
+        </div>
+        <% } %>
+        <p><b>We need your help to get more people freegling</b>.  Could you put one up too?</p>
+        <hr class="text-muted nomargin botspace" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-6">
+        <a href="/spread">
+          <span class="btn btn-info btn-xs"><span class="glyphicons glyphicons-bullhorn vcenter" />&nbsp;Put up a poster</span>
+        </a>
+      </div>
+      <div class="col-xs-6">
+        <div class="pull-right">
+          <div class="js-itemloves inline" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <a href="#" class="js-showearlier" style="display: none">Show earlier...</a>
+    <ul class="list-unstyled js-replies" />
+    <div class="row">
+      <div class="col-xs-10">
+        <div class="input-group">
+          <span class="input-group-addon nopad">
+              <img src="{{me.profile.turl}}" class="img-circle img-tinythumbnail clickme" />
+          </span>
+          <textarea rows="1" class="form-control js-comment" maxlength="2048" spellcheck="true" placeholder="Write a comment..." />
+        </div>
+      </div>
+      <div class="col-xs-2 nopad js-addphotowrapper">
+        <!--<div class="js-addphotobtn btn btn-btn btn-primary nowrap pull-right"><span class="glyphicon glyphicon-camera" /><span class="hidden-sm hidden-xs">&nbsp;Photo</span></div>-->
+        <input class="js-addphoto" type="file" name="photo" >
+      </div>
+      <div class="col-xs-2 js-photopreviewwrapper" style="display: none">
+        <img class="topspace pull-right img-smallerthumbnail js-photopreview padleft" width="150" src="/images/userloader.gif" />
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
