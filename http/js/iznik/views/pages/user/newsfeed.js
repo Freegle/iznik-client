@@ -1315,9 +1315,14 @@ define([
             self.template = 'user_newsfeed_aboutme'
             break
           case 'Noticeboard':
-            self.template = 'user_newsfeed_noticeboard'
-            var info = JSON.parse(self.model.get('message'));
-            self.model.set('info', info);
+            try {
+              self.template = 'user_newsfeed_noticeboard'
+              var info = JSON.parse(self.model.get('message'));
+              self.model.set('info', info);
+            } catch (e) {
+              console.error("Newsfeed parse failed", e.message, self.model.attributes)
+              self.template = null
+            }
             break
         }
 
