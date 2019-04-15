@@ -574,6 +574,13 @@ define([
                 helpMessage: 'When members mark a post as completed, we can offer them some business cards to promote Freegle.'
               },
               {
+                name: 'autoadmins',
+                label: '(Freegle only) Suggest ADMINs?',
+                control: 'radio',
+                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                helpMessage: 'Freegle has a selection of ADMINs which you can adapt to your group, which we can suggest from time to time.  You can edit or delete each suggested ADMIN, so you\'d only turn this off if you never wanted to even seen them.'
+              },
+              {
                 name: 'reposts.max',
                 label: '(Freegle only) Max auto-reposts',
                 control: 'input',
