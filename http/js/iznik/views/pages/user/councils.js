@@ -76,6 +76,10 @@ define([
     template: "user_councils_workbest",
   });
 
+  Iznik.Views.User.Pages.Councils.GiveAndTake = Iznik.Views.User.Pages.Councils.extend({
+    template: "user_councils_giveandtake",
+  });
+
   Iznik.Views.User.Pages.Councils.Graphics = Iznik.Views.User.Pages.Councils.extend({
     template: "user_councils_graphics",
   });

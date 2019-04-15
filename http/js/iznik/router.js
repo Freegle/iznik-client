@@ -204,6 +204,7 @@ define([
       'help': 'userContact',
       'invite/:id': 'userInvited',
       'invite': 'userInvite',
+      'spread': 'userInvite',
       'newsfeed/:id': 'userNewsfeedSingle',
       'newsfeed': 'userNewsfeed',
       'chitchat/:id': 'userNewsfeedSingle',
@@ -228,6 +229,7 @@ define([
       'councils/volunteers': 'userCouncilsVolunteers',
       'councils/keylinks(/:section)': 'userCouncilsKeyLinks',
       'councils/workbest(/:section)': 'userCouncilsWorkBest',
+      'councils/giveandtake(/:section)': 'userCouncilsGiveAndTake',
       'councils/graphics(/:section)': 'userCouncilsGraphics',
       'councils/photosvideos(/:section)': 'userCouncilsPhotosVideos',
       'councils/posters': 'userCouncilsPosters',
@@ -293,6 +295,7 @@ define([
     },
 
     userHome: function () {
+      console.log("User home")
       if (!MODTOOLS) {
         var self = this
 
@@ -2006,6 +2009,7 @@ define([
         self.listenToOnce(Iznik.Session, 'loggedIn', function () {
           require(['iznik/views/teams'], function () {
             var page = new Iznik.Views.ModTools.Pages.Teams()
+            page.modtools = false;
             self.loadRoute({page: page})
           })
         })
@@ -2166,6 +2170,19 @@ define([
 
         require(['iznik/views/pages/user/councils'], function () {
           var page = new Iznik.Views.User.Pages.Councils.WorkBest({
+            section: section
+          })
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userCouncilsGiveAndTake: function (section) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/pages/user/councils'], function () {
+          var page = new Iznik.Views.User.Pages.Councils.GiveAndTake({
             section: section
           })
           self.loadRoute({page: page})

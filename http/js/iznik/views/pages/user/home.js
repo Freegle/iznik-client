@@ -23,7 +23,6 @@ define([
         events: {
             'click .js-oldoffers': 'showOldOffers',
             'click .js-oldwanteds': 'showOldWanteds',
-            'click .js-punctuation': 'punc',
             'click .js-updateschedule': 'updateSchedule'
         },
 
@@ -33,10 +32,6 @@ define([
                 help: true
             });
             v.render();
-        },
-
-        punc: function() {
-            (new Iznik.Views.User.Punctuation()).render();
         },
 
         filter: function(model) {
@@ -296,7 +291,7 @@ define([
                 // (new Iznik.Views.User.BusinessCards()).render();
 
                 var today = new Date().toISOString().slice(0, 10);
-                if (today == '2017-04-01') {
+                if (today == '2019-04-01') {
                     self.$('.js-april').fadeIn('slow');
                 }
             });
@@ -817,9 +812,5 @@ define([
 
             return(p);
         }
-    });
-
-    Iznik.Views.User.Punctuation = Iznik.Views.Modal.extend({
-        template: 'user_give_punctuation'
     });
 });

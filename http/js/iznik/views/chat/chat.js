@@ -1631,13 +1631,15 @@ define([
     render: function () {
       var self = this
       var p
-      // console.log("Render chat message", this.model.get('id'), this.model.attributes);
 
       if (this.model.get('id')) {
         var message = this.model.get('message')
         if (message) {
           // Unescape emojis.
           message = Iznik.twem(message)
+
+          // Incomplete HTML
+          message = (message+'').replace(/\<br \//g, "\n");
 
           // Remove duplicate newlines.  Make sure we have a string - might not if the message was just a digit.
           message += ''
@@ -1648,7 +1650,9 @@ define([
 
           // Insert some wbrs to allow us to word break long words (e.g. URLs).
           // It might have line breaks in if it comes originally from an email.
-          message = Iznik.wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, '<br />')
+          message = Iznik.wbr(message, 20).replace(/(?:\r\n|\r|\n)/g, "\n")
+
+          message = message.replace(/\n/g, "<br />")
 
           this.model.set('message', message)
         }
@@ -1736,6 +1740,9 @@ define([
 
         p = Iznik.View.Timeago.prototype.render.call(this)
         p.then(function (self) {
+          // Set message.  Do this here as it contains HTML
+          self.$('.js-chatmessage').html(self.model.get('message'))
+
           // Expand emojis.
           twemoji.parse(self.el)
 

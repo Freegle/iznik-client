@@ -168,15 +168,10 @@ define([
 
                 var data;
 
+                // Deliberately don't restore search type, letting it revert to searching OFFERs.  There have been
+                // people who search WANTEDs once and then get confused.
                 self.searchtype = 'Offer';
-
-                try {
-                    var stored = Storage.get('searchtype');
-
-                    if (stored) {
-                        self.searchtype = stored;
-                    }
-                } catch (e) {}
+                self.saveSearchType()
 
                 self.$(".js-searchoffers").bootstrapSwitch({
                     onText: 'Only&nbsp;OFFERs',

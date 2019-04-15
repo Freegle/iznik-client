@@ -574,6 +574,13 @@ define([
                 helpMessage: 'When members mark a post as completed, we can offer them some business cards to promote Freegle.'
               },
               {
+                name: 'autoadmins',
+                label: '(Freegle only) Suggest ADMINs?',
+                control: 'radio',
+                options: [{label: 'Yes', value: 1}, {label: 'No', value: 0}],
+                helpMessage: 'Freegle has a selection of ADMINs which you can adapt to your group, which we can suggest from time to time.  You can edit or delete each suggested ADMIN, so you\'d only turn this off if you never wanted to even seen them.'
+              },
+              {
                 name: 'reposts.max',
                 label: '(Freegle only) Max auto-reposts',
                 control: 'input',
@@ -2215,6 +2222,11 @@ define([
         }
       }
 
+      // Ensure that new features are shaded correctly.
+      if (obj) {
+        obj.setOptions({fillOpacity: self.shaded ? 0 : 0.6})
+      }
+
       return obj
     },
 
@@ -2443,6 +2455,7 @@ define([
 
       // Add a polygon for each
       self.allGroups.each(function (group) {
+        console.log("Map group", group.get('id'), group.get('nameshort'))
         var poly = group.get('poly')
         var polyofficial = group.get('polyofficial')
         var diff = polyofficial && polyofficial != poly
@@ -2556,6 +2569,7 @@ define([
       var self = this
       var p
       var missingFacebook = []
+
       var groups = Iznik.Session.get('groups')
       groups.each(function (group) {
         var role = group.get('role')
@@ -2565,7 +2579,10 @@ define([
           _.each(facebooks, function (facebook) {
             if (facebook.type == 'Page') {
               if (!facebook.valid) {
-                missingFacebook.push(facebook.name + ' - token invalid')
+                missingFacebook.push({
+                  name: facebook.name + ' - token invalid',
+                  id: group.get('id')
+                });
               } else {
                 gotpage = true
               }
@@ -2573,7 +2590,10 @@ define([
           })
 
           if (!gotpage) {
-            missingFacebook.push(group.get('namedisplay') + ' - not linked')
+            missingFacebook.push({
+              name: group.get('namedisplay') + ' - not linked',
+              id: group.get('id')
+            })
           }
         }
       })
@@ -2583,7 +2603,7 @@ define([
         require(['jquery-show-first'], function () {
           p.then(function (self) {
             _.each(missingFacebook, function (missing) {
-              self.$('.js-grouplist').append('<div>' + missing + '</div>')
+              self.$('.js-grouplist').append('<div>' + missing.name + '&nbsp;<a target="_blank" data-realurl="true" href="/facebook/facebook_request.php?groupid=' + missing.id + '&type=Page">relink</a></a></div>')
             })
             self.$('.js-grouplist').showFirst({
               controlTemplate: '<div><span class="badge">+[REST_COUNT] more</span>&nbsp;<a href="#" class="show-first-control">show</a></div>',

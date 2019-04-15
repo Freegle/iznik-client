@@ -413,6 +413,13 @@ define([
                                     ev: 'newsletterstoriescountchanged',
                                     window: false,
                                     sound: false
+                                },
+                                {
+                                  fi: 'pendingadmins',
+                                  el: '.js-pendingadminscount',
+                                  ev: 'pendingadminscountchanged',
+                                  window: false,
+                                  sound: false
                                 }
                             ];
 

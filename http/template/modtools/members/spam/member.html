@@ -23,9 +23,11 @@
     <div class="panel-body">
         <div class="completefull nomargin">
             <div class="row-fluid">
+                <% if (obj.suspectreason) { %>
                 <div class="alert alert-danger forcebreak">
                     {{suspectreason}}
                 </div>
+                <% } %>
             </div>
             <div class="row-fluid">
                 <div class="noleftpad col-md-4">

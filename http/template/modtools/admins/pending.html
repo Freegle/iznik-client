@@ -1,0 +1,48 @@
+<div class="panel-heading" role="tab" id="adminhead-{{id}}">
+  <h4 class="panel-title">
+    <div class="row">
+      <div class="col-md-1">
+        #{{id}}
+      </div>
+      <div class="col-md-2">
+        <abbr class="timeago" title="{{created}}">{{timeago(created)}}</abbr>
+      </div>
+      <div class="col-md-3">
+        <span class="text-muted">Created by</span> <% if (obj.createdby && createdby.id) { %>
+        {{createdby.displayname}} <span class="faded">#{{createdby.id}}</span>
+        <% } %>
+      </div>
+    </div>
+  </h4>
+</div>
+<div class="panel">
+  <div class="panel-body">
+    <input class="form-control botspace js-subject" value="{{subject}}" />
+    <textarea lines="6" class="form-control js-body">{{text}}</textarea>
+  </div>
+  <div class="panel-footer">
+    <ul class="list-unstyled list-inline">
+      <li>
+        <div class="js-delete">
+          <div class="btn btn-warning">
+            <span class="glyphicons glyphicons-bin vcenter" />&nbsp;Delete
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="js-save">
+          <div class="btn btn-primary">
+            <span class="glyphicons glyphicons-floppy-save vcenter" />&nbsp;Save changes
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="js-approve">
+          <div class="btn btn-success">
+            <span class="glyphicons glyphicons-ok vcenter" />&nbsp;Approve and send
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
