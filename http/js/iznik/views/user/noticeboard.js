@@ -20,20 +20,25 @@ define([
       var pos = self.map.getPosition()
       var lat = pos.lat();
       var lng = pos.lng();
+      var name = self.$('.js-name').val();
 
-      $.ajax({
-        type: 'PATCH',
-        url: API + 'noticeboard',
-        data: {
-          id: self.model.get('id'),
-          lat: lat,
-          lng: lng,
-          name: self.$('.js-name').val(),
-          description: self.$('.js-description').val()
-        }, complete: function() {
-          self.close();
-        }
-      });
+      if (name.length) {
+        $.ajax({
+          type: 'PATCH',
+          url: API + 'noticeboard',
+          data: {
+            id: self.model.get('id'),
+            lat: lat,
+            lng: lng,
+            name: name,
+            description: self.$('.js-description').val()
+          }, complete: function() {
+            self.close();
+          }
+        });
+      } else {
+        self.$('.js-name').focus().addClass('error-border');
+      }
     },
 
     render: function() {
