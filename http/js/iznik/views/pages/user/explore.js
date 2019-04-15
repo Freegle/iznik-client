@@ -46,6 +46,9 @@ define([
 
     gotLocation: function (position) {
       this.map.moveTo(position.coords.latitude, position.coords.longitude)
+
+      // Ensure the map is visible.
+      $(window).scrollTo(this.$('.js-maparea'))
     },
 
     render: function () {
