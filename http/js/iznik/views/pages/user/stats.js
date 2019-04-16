@@ -730,10 +730,15 @@ define([
       self.$('.js-grouptable').append('<tr><td><b>Totals</b></td><td><b>' + totalmembers.toLocaleString() + '</b></td><td><b>' + Math.round(totalweight / 12).toLocaleString() + 'kg (' + (Math.round(totalweight / 12 / 100) / 10) + ' tonnes) monthly</b></td></tr>')
 
       // Headline stats.
-      self.$('.js-weight').html(tonnes.toLocaleString() + '<br />TONNES REUSED')
+      //
+      // Benefit of reuse per tonne is £711 and CO2 impact is -0.51tCO2eq based on WRAP figures.
+      // http://www.wrap.org.uk/content/monitoring-tools-and-resources
+      self.$('.js-weight').html(tonnes.toLocaleString() + '<br />TONNES')
+      self.$('.js-benefit').html('&pound;' + (Math.round(tonnes * 711)).toLocaleString() + '<br />BENEFIT')
+      self.$('.js-co2').html((tonnes * 0.51).toLocaleString() + '<br />TONNES CO2')
       self.$('.js-outcomes').html(Math.round(totaloutcomes).toLocaleString() + '<br />GIFTS MADE')
       self.$('.js-weightnobr').html(tonnes.toLocaleString() + ' TONNES REUSED')
-      self.$('.js-groupcount').html(self.groups.length.toLocaleString() + '<br />GROUPS')
+      self.$('.js-groupcount').html(self.groups.length.toLocaleString() + '<br />COMMUNITIES')
       self.$('.js-membercount').html(totalmembers.toLocaleString() + '<br />MEMBERS')
       self.$('.js-firstdate').html(firstdate.toUpperCase())
       self.$('.js-lastdate').html(lastdate.toUpperCase())
