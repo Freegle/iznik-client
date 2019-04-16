@@ -1,14 +1,24 @@
 <div class="bg-darkgreen" >
     <div class="row">
-        <div class="col-xs-9">
-            <h1 class="nomargin padleft bg-darkgreen">
+        <div class="col-sm-6">
+            <h2 class="nomargin padleft bg-darkgreen">
                 <span class="vcenter js-pagetitle ">Freegle in {{name}}</span><br />
-            </h1>
+            </h2>
             <span class="bg-darkgreen padleft">
                 <span class="glyphicon glyphicon-globe" />&nbsp;www.iLoveFreegle.org&nbsp;<span class="social social-twitter" />&nbsp;@thisisfreegle&nbsp;<span class="social social-facebook" />&nbsp;facebook.com/Freegle
             </span>
         </div>
-        <div class="col-xs-3">
+        <div class="col-sm-5 text-center">
+            <form class="form-inline topspace">
+                <select class="form-control js-startmonth" />
+                <select class="form-control js-startyear" />
+                &nbsp;-&nbsp;
+                <select class="form-control js-endmonth" />
+                <select class="form-control js-endyear" />
+                <span class="glyphicons glyphicons-refresh clickme js-fetchstats" />
+            </form>
+        </div>
+        <div class="col-sm-1">
             <img src="/images/user_logo.png" class="pull-right img-thumbnail img-smallishthumbnail">
         </div>
     </div>
