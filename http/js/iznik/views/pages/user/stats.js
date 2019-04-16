@@ -197,11 +197,13 @@ define([
 
                 // Weights - show per month.
                 var months = {}
+                var tonnes = 0;
 
                 _.each(ret.dashboard.Weight, function (ent) {
                   var date = new moment(ent.date)
                   var key = date.format('01 MMM YYYY')
                   if (ent.count > 0) {
+                    tonnes += Math.round(ent.count / 1000);
                     if (key in months) {
                       months[key] = months[key] + ent.count
                     } else {
@@ -209,6 +211,15 @@ define([
                     }
                   }
                 })
+
+                // Headline stats.
+                //
+                // Benefit of reuse per tonne is £711 and CO2 impact is -0.51tCO2eq based on WRAP figures.
+                // http://www.wrap.org.uk/content/monitoring-tools-and-resources
+                self.$('.js-weight').html(tonnes.toLocaleString() + '<br />TONNES')
+                self.$('.js-benefit').html('&pound;' + (Math.round(tonnes * 711)).toLocaleString() + '<br />BENEFIT')
+                self.$('.js-co2').html((Math.round(tonnes * 0.51)).toLocaleString() + '<br />TONNES CO2')
+                self.$('.js-stats').show();
 
                 var data = []
 
