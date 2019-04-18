@@ -88,7 +88,7 @@ define([
           el: $('#adminlist'),
           modelView: Iznik.Views.ModTools.Pages.Admins.Previous,
           collection: self.collection,
-          processKeyEvents: false
+          processKeyEvents: false,
         })
 
         self.collectionView.render()
@@ -150,8 +150,6 @@ define([
         text: body
       }, {
         patch: true
-      }).then(function () {
-        self.collection.fetch();
       });
     },
 
@@ -165,7 +163,6 @@ define([
       }, {
         patch: true
       }).then(function () {
-        self.collection.fetch();
         self.$el.fadeOut('slow');
       });
     },
@@ -173,7 +170,7 @@ define([
     deleteIt: function() {
       var self = this;
       self.model.delete().then(function () {
-        self.collection.fetch();
+        self.$el.fadeOut('slow');
       });
     },
 
