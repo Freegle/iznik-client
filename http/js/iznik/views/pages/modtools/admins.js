@@ -166,7 +166,7 @@ define([
         patch: true
       }).then(function () {
         self.collection.fetch();
-        self.$el.hide();
+        self.$el.fadeOut('slow');
       });
     },
 
