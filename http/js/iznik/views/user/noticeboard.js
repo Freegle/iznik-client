@@ -77,7 +77,7 @@ define([
         self.marker.setMap(null)
       }
 
-      var icon = '/images/mapmarker.gif?a=1'
+      var icon = 'https://www.ilovefreegle.org/images/mapmarker.gif?a=1'  // CC
       self.marker = new google.maps.Marker({
         position: self.map.getCenter(),
         icon: icon,

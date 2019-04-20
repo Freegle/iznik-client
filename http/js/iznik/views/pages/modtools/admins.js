@@ -21,7 +21,7 @@ define([
     checkSend: function () {
       var groupid = this.groupSelect.get()
 
-      if (groupid > 0) {
+      if (groupid > 0 || (Iznik.Session.isAdminOrSupport() && groupid == -2)) {
         this.$('.js-send').removeClass('disabled')
       } else {
         this.$('.js-send').addClass('disabled')
@@ -32,13 +32,14 @@ define([
       e.preventDefault()
       e.stopPropagation()
 
+      var groupid = this.groupSelect.get();
       var admin = new Iznik.Models.Admin({
-        groupid: this.groupSelect.get(),
+        groupid: groupid > 0 ? groupid : null,
         subject: this.$('#js-subject').val(),
         text: this.$('#js-text').val()
       })
 
-      if (admin.get('groupid') && admin.get('subject') && admin.get('text')) {
+      if (admin.get('subject') && admin.get('text')) {
         admin.save().then(function () {
           (new Iznik.Views.ModTools.Pages.Admins.Sent()).render()
         })
@@ -61,6 +62,21 @@ define([
       }
     },
 
+    selectChange: function() {
+      var self = this;
+
+      var groupid = self.groupSelect.get();
+      console.log("Group", groupid);
+
+      if (groupid > 0) {
+        self.$('.js-suggested').hide();
+      } else {
+        self.$('.js-suggested').fadeIn('slow')
+      }
+
+      self.fetchPrevious();
+    },
+
     render: function () {
       var self = this
 
@@ -72,7 +88,7 @@ define([
           el: $('#adminlist'),
           modelView: Iznik.Views.ModTools.Pages.Admins.Previous,
           collection: self.collection,
-          processKeyEvents: false
+          processKeyEvents: false,
         })
 
         self.collectionView.render()
@@ -92,13 +108,13 @@ define([
         });
 
         self.groupSelect = new Iznik.Views.Group.Select({
-          systemWide: false,
+          systemWide: Iznik.Session.isAdminOrSupport(), // Admin/Support can create suggested admins
           all: false,
           mod: true,
           choose: true
         })
 
-        self.listenTo(self.groupSelect, 'change', _.bind(self.fetchPrevious, self))
+        self.listenTo(self.groupSelect, 'change', self.selectChange)
 
         self.listenToOnce(self.groupSelect, 'completed', function () {
           self.fetchPrevious()
@@ -134,8 +150,6 @@ define([
         text: body
       }, {
         patch: true
-      }).then(function () {
-        self.collection.fetch();
       });
     },
 
@@ -149,16 +163,28 @@ define([
       }, {
         patch: true
       }).then(function () {
-        self.collection.fetch();
-        self.$el.hide();
+        self.$el.fadeOut('slow');
       });
     },
 
     deleteIt: function() {
       var self = this;
       self.model.delete().then(function () {
-        self.collection.fetch();
+        self.$el.fadeOut('slow');
       });
+    },
+
+    render: function() {
+      var self = this;
+
+      if (self.model.get('groupid')) {
+        var group = Iznik.Session.getGroup(self.model.get('groupid'));
+        self.model.set('group', group.attributes);
+      }
+
+      var p = Iznik.View.Timeago.prototype.render.call(self);
+
+      return(p);
     }
   })
 

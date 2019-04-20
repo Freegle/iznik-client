@@ -1,14 +1,24 @@
 <div class="bg-darkgreen" >
     <div class="row">
-        <div class="col-xs-9">
-            <h1 class="nomargin padleft bg-darkgreen">
+        <div class="col-sm-6">
+            <h2 class="nomargin padleft bg-darkgreen">
                 <span class="vcenter js-pagetitle ">Freegle in {{name}}</span><br />
-            </h1>
+            </h2>
             <span class="bg-darkgreen padleft">
                 <span class="glyphicon glyphicon-globe" />&nbsp;www.iLoveFreegle.org&nbsp;<span class="social social-twitter" />&nbsp;@thisisfreegle&nbsp;<span class="social social-facebook" />&nbsp;facebook.com/Freegle
             </span>
         </div>
-        <div class="col-xs-3">
+        <div class="col-sm-5 text-center">
+            <form class="form-inline topspace">
+                <select class="form-control js-startmonth" />
+                <select class="form-control js-startyear" />
+                &nbsp;-&nbsp;
+                <select class="form-control js-endmonth" />
+                <select class="form-control js-endyear" />
+                <span class="glyphicons glyphicons-refresh vcenter clickme js-fetchstats" />
+            </form>
+        </div>
+        <div class="col-sm-1">
             <img src="/images/user_logo.png" class="pull-right img-thumbnail img-smallishthumbnail">
         </div>
     </div>
@@ -25,24 +35,34 @@
     </div>
 </div>
 <div class="row backwhite text-center js-stats" style="display: none">
-    <div class="col-xs-3" style="color: darkgoldenrod">
-        <div class="glyphicons glyphicon-goliath glyphicons-scale-classic" />
-        <h2 class="nomargin js-weight" style="font-weight: bold; color: darkgoldenrod !important;" />
+    <div class="col-xs-2" style="color: darkgoldenrod">
+        <div class="glyphicons glyphicon-giant glyphicons-scale-classic" />
+        <h3 class="nomargin js-weight" style="font-weight: bold; color: darkgoldenrod !important;" />
         <p class="muted" style="color: grey"><span class="js-firstdate" /> - <span class="js-lastdate" /></p>
     </div>
-    <div class="col-xs-3" style="color: purple">
-        <div class="glyphicons glyphicon-goliath glyphicons-gift" />
-        <h2 class="nomargin js-outcomes" style="font-weight: bold; color: purple !important;" />
+    <div class="col-xs-2" style="color: darkgoldenrod">
+        <div class="glyphicons glyphicon-giant glyphicons-calculator" />
+        <h3 class="nomargin js-benefit" style="font-weight: bold; color: darkgoldenrod !important;" />
         <p class="muted" style="color: grey"><span class="js-firstdate" /> - <span class="js-lastdate" /></p>
     </div>
-    <div class="col-xs-3" style="color: blue">
-        <div class="glyphicons glyphicon-goliath glyphicons-group" />
-        <h2 class="nomargin js-membercount" style="font-weight: bold; color: blue !important;" />
+    <div class="col-xs-2" style="color: darkgoldenrod">
+        <div class="glyphicons glyphicon-giant glyphicons-cloud" />
+        <h3 class="nomargin js-co2" style="font-weight: bold; color: darkgoldenrod !important;" />
+        <p class="muted" style="color: grey"><span class="js-firstdate" /> - <span class="js-lastdate" /></p>
+    </div>
+    <div class="col-xs-2" style="color: purple">
+        <div class="glyphicons glyphicon-giant glyphicons-gift" />
+        <h3 class="nomargin js-outcomes" style="font-weight: bold; color: purple !important;" />
+        <p class="muted" style="color: grey"><span class="js-firstdate" /> - <span class="js-lastdate" /></p>
+    </div>
+    <div class="col-xs-2" style="color: blue">
+        <div class="glyphicons glyphicon-giant glyphicons-group" />
+        <h3 class="nomargin js-membercount" style="font-weight: bold; color: blue !important;" />
         <p style="color: grey" class="muted js-lastdate"/>
     </div>
-    <div class="col-xs-3" style="color: green">
-        <div class="glyphicons glyphicon-goliath glyphicons-map-marker" />
-        <h2 class="nomargin js-groupcount" style="font-weight: bold; color: green !important;" />
+    <div class="col-xs-2" style="color: green">
+        <div class="glyphicons glyphicon-giant glyphicons-map-marker" />
+        <h3 class="nomargin js-groupcount" style="font-weight: bold; color: green !important;" />
         <p class="muted" style="color: grey" class="muted js-lastyear">SERVE THIS AREA</p>
     </div>
 </div>
