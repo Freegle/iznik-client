@@ -2018,14 +2018,12 @@ define([
     },
 
     userPrivacy: function () {
-      if (!MODTOOLS) {
-        var self = this
+      var self = this
 
-        require(['iznik/views/pages/user/landing'], function () {
-          var page = new Iznik.Views.User.Pages.Landing.Privacy()
-          self.loadRoute({page: page})
-        })
-      }
+      require(['iznik/views/pages/user/landing'], function () {
+        var page = new Iznik.Views.User.Pages.Landing.Privacy()
+        self.loadRoute({page: page})
+      })
     },
 
     userDisclaimer: function () {
