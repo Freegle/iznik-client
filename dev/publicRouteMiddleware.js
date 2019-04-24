@@ -44,6 +44,7 @@ const routes = [
   'mypost',
   'myposts',
   'newsfeed',
+  'chitchat',
   'newuser',
   'plugins',
   'post',

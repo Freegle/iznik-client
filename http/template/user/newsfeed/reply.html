@@ -24,7 +24,7 @@
                             <br />
                             <small class="text-muted">
                                 <abbr class="timeago nodecor">{{timeago(obj.added)}}</abbr>
-                                <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation.display}} &bull; <% } %>
+                                <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation.display}}<span class="js-replyactivecounts" /> &bull; <% } %>
                                 <% if (user.settings.showmod) { %><span class="glyphicon glyphicon-leaf" /> Freegle Volunteer &bull;<% } %><span class="js-replyloves" />
                                 <% if (obj.ismod || obj.ownpost) { %>
                                 <span class="js-ownpost js-modonly js-delete">
