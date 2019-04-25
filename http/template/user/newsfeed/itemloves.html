@@ -1,12 +1,12 @@
 <span class="btn btn-white btn-xs js-itemunlove" <% if (!obj.loved) { %>style="display: none"<% } %>>
-    <span class="glyphicons glyphicons-heart error vcenter" />Love<span class="hidden-xs"> this</span>
+    <span class="glyphicon glyphicon-heart error vcenter" />&nbsp;Love<span class="hidden-xs"> this</span>
 </span>
 <span class="btn btn-white btn-xs js-itemlove" <% if (obj.loved) { %>style="display: none"<% } %>>
-    <span class="glyphicons glyphicons-heart-empty vcenter" />Love<span class="hidden-xs"> this</span>
+    <span class="glyphicon glyphicon-heart-empty vcenter" />&nbsp;Love<span class="hidden-xs"> this</span>
 </span>
 <span class="btn btn-white btn-xs js-reply">
-    <span class="glyphicons glyphicons-comments vcenter" />&nbsp;Comment
+    <span class="glyphicon glyphicon-comments vcenter" />&nbsp;Comment
 </span>
 <span class="clickme js-loves" <% if (obj.loves == 0) { %>style="display:none"<% } %>>
-    <span class="glyphicons glyphicons-heart vcenter error" /><span class="js-lovecount">{{loves}}</span>
+    <span class="glyphicon glyphicon-heart vcenter error" />&nbsp;<span class="js-lovecount">{{loves}}</span>
 </span>
