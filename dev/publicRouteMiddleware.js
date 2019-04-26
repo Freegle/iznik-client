@@ -32,6 +32,7 @@ const routes = [
   'helpus',
   'invite',
   'spread',
+  'poster',
   'legacy',
   'livemap',
   'localstorage',

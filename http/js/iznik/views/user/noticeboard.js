@@ -4,7 +4,8 @@ define([
   'backbone',
   'iznik/base',
   'googlemaps-js-rich-marker',
-  'geocomplete'
+  'geocomplete',
+  'iznik/models/noticeboard'
 ], function ($, _, Backbone, Iznik) {
   Iznik.Views.User.Noticeboard = {}
 
@@ -116,6 +117,71 @@ define([
       })
 
       return (Iznik.resolvedPromise(self))
+    }
+  })
+
+  Iznik.Views.User.Pages.Poster = Iznik.Views.Page.extend({
+    template: 'user_noticeboard_poster',
+
+    events: {
+      'click .js-update': 'saveUpdate'
+    },
+
+    saveUpdate: function() {
+      var self = this;
+      var pos = self.map.getPosition()
+      var lat = pos.lat();
+      var lng = pos.lng();
+      var name = self.$('.js-name').val();
+
+      if (name.length) {
+        $.ajax({
+          type: 'PATCH',
+          url: API + 'noticeboard',
+          data: {
+            id: self.model.get('id'),
+            lat: lat,
+            lng: lng,
+            name: name,
+            description: self.$('.js-description').val()
+          }, complete: function() {
+            self.close();
+          }
+        });
+      } else {
+        self.$('.js-name').focus().addClass('error-border');
+      }
+    },
+
+    render: function() {
+      var self = this;
+
+      self.model = new Iznik.Models.Noticeboard({
+        id: self.options.id
+      })
+
+      var p = self.model.fetch();
+
+      p.then(function() {
+        Iznik.Views.Page.prototype.render.call(self).then(function() {
+          self.$('.js-name').val(self.model.get('name'));
+          self.$('.js-description').val(self.model.get('description'));
+          self.map = new Iznik.Views.User.Noticeboard.Map({
+            model: new Iznik.Model({
+              clat: self.model.get('lat'),
+              clng: self.model.get('lng'),
+              target: self.$('.js-maparea'),
+              zoom: 17
+            }),
+            summary: false
+          })
+
+          self.map.render().then(function () {
+          })
+        })
+      });
+
+      return(p)
     }
   })
 })

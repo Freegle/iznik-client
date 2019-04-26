@@ -204,6 +204,7 @@ define([
       'invite/:id': 'userInvited',
       'invite': 'userInvite',
       'spread': 'userInvite',
+      'poster/:id': 'userPoster',
       'newsfeed/:id': 'userNewsfeedSingle',
       'newsfeed': 'userNewsfeed',
       'chitchat/:id': 'userNewsfeedSingle',
@@ -753,8 +754,21 @@ define([
       if (!MODTOOLS) {
         var self = this
 
+        require(['iznik/views/user/noticeboard'], function () {
+          var page = new Iznik.Views.User.Pages.Poster()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userPoster: function (id) {
+      if (!MODTOOLS) {
+        var self = this
+
         require(['iznik/views/pages/user/invite'], function () {
-          var page = new Iznik.Views.User.Pages.Invite()
+          var page = new Iznik.Views.User.Pages.Poster({
+            id: id
+          })
           self.loadRoute({page: page})
         })
       }
