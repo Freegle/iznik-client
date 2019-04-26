@@ -204,6 +204,7 @@ define([
       'invite/:id': 'userInvited',
       'invite': 'userInvite',
       'spread': 'userInvite',
+      'posters': 'userPosters',
       'poster/:id': 'userPoster',
       'newsfeed/:id': 'userNewsfeedSingle',
       'newsfeed': 'userNewsfeed',
@@ -754,8 +755,19 @@ define([
       if (!MODTOOLS) {
         var self = this
 
+        require(['iznik/views/pages/user/invite'], function () {
+          var page = new Iznik.Views.User.Pages.Invite()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userPosters: function () {
+      if (!MODTOOLS) {
+        var self = this
+
         require(['iznik/views/user/noticeboard'], function () {
-          var page = new Iznik.Views.User.Pages.Poster()
+          var page = new Iznik.Views.User.Pages.Posters()
           self.loadRoute({page: page})
         })
       }
@@ -765,7 +777,7 @@ define([
       if (!MODTOOLS) {
         var self = this
 
-        require(['iznik/views/pages/user/invite'], function () {
+        require(['iznik/views/user/noticeboard'], function () {
           var page = new Iznik.Views.User.Pages.Poster({
             id: id
           })

@@ -33,6 +33,7 @@ const routes = [
   'invite',
   'spread',
   'poster',
+  'posters',
   'legacy',
   'livemap',
   'localstorage',

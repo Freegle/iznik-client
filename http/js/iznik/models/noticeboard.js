@@ -15,4 +15,14 @@ define([
       }
     }
   });
+
+  Iznik.Collections.Noticeboards = Iznik.Collection.extend({
+    model: Iznik.Models.Noticeboard,
+
+    url: API + 'noticeboard',
+
+    parse: function (ret) {
+      return ret.noticeboards;
+    }
+  });
 });
