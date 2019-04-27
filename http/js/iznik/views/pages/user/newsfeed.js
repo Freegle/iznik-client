@@ -452,6 +452,8 @@ define([
               self.$('.js-back').fadeIn('slow')
             } else if (self.model.get('replyto')) {
               // Notification is on a reply; render then make sure the reply is visible.
+              self.originalReplyto = self.model;
+
               self.model = new Iznik.Models.Newsfeed({
                 id: self.model.get('replyto')
               })
@@ -603,6 +605,10 @@ define([
       e.stopPropagation()
 
       self.model.unfollow()
+
+      if (self.originalReplyto) {
+        self.originalReplyto.unfollow();
+      }
       self.$('a.dropdown-toggle').dropdown('toggle')
     },
 
