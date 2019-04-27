@@ -17,7 +17,7 @@
 </div>
 <div class="nomargin panel panel-success">
     <div class="panel-heading nopad clearfix <% if (obj.promised) { %>faded<% } %>">
-        <a class="nodecor js-caret row nomargin" data-toggle="collapse" href="#result-{{id}}">
+        <span class="nodecor js-expand row nomargin">
             <div class="col-sm-12 padmd nopadbot">
             <% if (attachments.length>0) { %>
               <div class="pull-right js-attlist" />
@@ -52,23 +52,24 @@
                 </h4>
             </div>
         </div>
-        </a>
+        </span>
         <% if (obj.snippet) { %>
         <div class="row hidden-xs hidden-sm hidden-md hidden-lg js-snippet">
             <div class="col-xs-12">
-                <a class="nodecor js-caret row" data-toggle="collapse" href="#result-{{id}}">
+                <a class="nodecor js-expand row">
                     <h3 class="padleft nomargin">{{snippet}}... <span class="black">Read more >></span></h3>
                 </a>
             </div>
         </div>
         <% } %>
-        <a class="nodecor js-caret js-readmore row nomargin" data-toggle="collapse" href="#result-{{id}}">
+        <span class="nodecor js-expand js-readmore row nomargin">
             <div class="visible-xs visible-sm btn btn-white btn-block botspace">
                 Read more and reply >>
             </div>
-        </a>
+        </span>
     </div>
-    <div id="result-{{id}}" class="panel-collapse collapse">
+    <% if (obj.expanded) { %>
+    <div>
         <div class="visible-xs-block js-groups" style="padding:5px;" />
         <div class="panel-body">
             <% if (obj.promised) { %>
@@ -164,4 +165,5 @@
             </div>
         </div>
     </div>
+    <% } %>
 </div>
