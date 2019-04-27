@@ -207,7 +207,6 @@ define([
         },
         remove: false
       }).then(function() {
-        console.log("Length", self.messages.length)
         self.context = self.messages.ret.context;
         self.fetchedMessages();
 
