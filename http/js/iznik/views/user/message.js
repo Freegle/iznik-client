@@ -104,7 +104,6 @@ define([
     },
 
     expand: function () {
-      console.log("Expand");
       var self = this;
 
       self.model.set('expanded', true);
@@ -124,7 +123,6 @@ define([
           }
         }
       })
-      console.log("Rendered");
     },
 
     continueReply: function (text) {
