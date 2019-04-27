@@ -181,15 +181,9 @@ define([
           }
         })
 
-        // Now get the messages.
-        var cb = _.bind(self.fetchedMessages, self)
-        self.messages.fetch({
-          data: {
-            fromuser: Iznik.Session.get('me').id,
-            types: ['Offer', 'Wanted'],
-            limit: 200
-          }
-        }).then(cb)
+        // Now start getting messages.
+        self.context = null;
+        self.fetchChunk();
       } else {
         // Rerender the messages in case they have now changed.
         self.offersView.render()
@@ -200,6 +194,27 @@ define([
       // therefore no longer show.  Refresh.
       self.offersView.reapplyFilter('visibleModels')
       self.wantedsView.reapplyFilter('visibleModels')
+    },
+
+    fetchChunk: function() {
+      var self = this;
+      var cb = _.bind(self.fetchedMessages, self)
+      self.messages.fetch({
+        data: {
+          fromuser: Iznik.Session.get('me').id,
+          types: ['Offer', 'Wanted'],
+          context: self.context
+        },
+        remove: false
+      }).then(function() {
+        console.log("Length", self.messages.length)
+        self.context = self.messages.ret.context;
+        self.fetchedMessages();
+
+        if (self.messages.ret.messages.length > 0) {
+          self.fetchChunk()
+        }
+      })
     },
 
     fetchedMessages: function () {
