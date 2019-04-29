@@ -16,7 +16,6 @@ define([
     render: function () {
       var self = this
 
-      console.log("Fetch", self.model)
       var p = self.model.fetch({
         data: {
           info: true
@@ -24,7 +23,6 @@ define([
       });
 
       p.then(function() {
-        console.log("Fetched");
         Iznik.Views.Page.prototype.render.call(self).then(function () {
           var mom = new moment(self.model.get('added'))
           self.$('.js-since').html(mom.format('Do MMMM YYYY'))
