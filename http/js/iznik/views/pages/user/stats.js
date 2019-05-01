@@ -203,7 +203,7 @@ define([
                   var date = new moment(ent.date)
                   var key = date.format('01 MMM YYYY')
                   if (ent.count > 0) {
-                    tonnes += Math.round(ent.count / 1000);
+                    tonnes += ent.count;
                     if (key in months) {
                       months[key] = months[key] + ent.count
                     } else {
@@ -211,6 +211,8 @@ define([
                     }
                   }
                 })
+
+                tonnes = Math.round(tonnes / 1000)
 
                 // Headline stats.
                 //

@@ -452,6 +452,8 @@ define([
               self.$('.js-back').fadeIn('slow')
             } else if (self.model.get('replyto')) {
               // Notification is on a reply; render then make sure the reply is visible.
+              self.originalReplyto = self.model;
+
               self.model = new Iznik.Models.Newsfeed({
                 id: self.model.get('replyto')
               })
@@ -603,6 +605,10 @@ define([
       e.stopPropagation()
 
       self.model.unfollow()
+
+      if (self.originalReplyto) {
+        self.originalReplyto.unfollow();
+      }
       self.$('a.dropdown-toggle').dropdown('toggle')
     },
 
@@ -792,6 +798,13 @@ define([
         v.render()
         self.$(self.lovesel).html(v.$el)
 
+        var v = new Iznik.Views.User.Feed.ActiveCounts({
+          model: self.model
+        })
+
+        v.render()
+        self.$(self.activesel).html(v.$el)
+
         // Delay to speed up apparent render.
         _.delay(_.bind(self.setupPhotoUpload, self), 500)
       })
@@ -918,6 +931,11 @@ define([
     }
   })
 
+  Iznik.Views.User.Feed.ActiveCounts = Iznik.View.extend({
+    tagName: 'span',
+    template: 'user_newsfeed_activecounts'
+  })
+
   Iznik.Views.User.Feed.Attach = Iznik.Views.Modal.extend({
     template: 'user_newsfeed_attach',
 
@@ -1025,6 +1043,7 @@ define([
     tagName: 'li',
     lovetemplate: 'user_newsfeed_itemloves',
     lovesel: '.js-itemloves',
+    activesel: '.js-activecounts',
     morelimit: 1024,
 
     events: {
@@ -1475,6 +1494,13 @@ define([
               self.$('.js-itemloves').html(self.loves.$el)
             })
 
+            var v = new Iznik.Views.User.Feed.ActiveCounts({
+              model: self.model
+            })
+
+            v.render()
+            self.$('.js-activecounts').html(v.$el)
+
             // Each reply can ask us to focus on the reply box.
             self.listenTo(self.replies, 'reply', _.bind(self.reply, self))
             self.startCheck()
@@ -1499,6 +1525,7 @@ define([
     tagName: 'li',
     lovetemplate: 'user_newsfeed_replyloves',
     lovesel: '.js-replyloves',
+    activesel: '.js-replyactivecounts',
     morelimit: 512,
 
     events: {

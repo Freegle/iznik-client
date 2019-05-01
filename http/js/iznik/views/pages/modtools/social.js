@@ -53,6 +53,12 @@ define([
           self.$('.js-help').html(v.el)
         })
 
+        var v = new Iznik.Views.Help.Box()
+        v.template = 'modtools_socialactions_poster'
+        v.render().then(function (v) {
+          self.$('.js-poster').html(v.el)
+        })
+
         var w = new Iznik.Views.ModTools.Settings.MissingFacebook()
         w.render().then(function () {
           self.$('.js-missingfacebook').html(w.el)

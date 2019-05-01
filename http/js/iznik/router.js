@@ -205,6 +205,8 @@ define([
       'invite/:id': 'userInvited',
       'invite': 'userInvite',
       'spread': 'userInvite',
+      'posters': 'userPosters',
+      'poster/:id': 'userPoster',
       'newsfeed/:id': 'userNewsfeedSingle',
       'newsfeed': 'userNewsfeed',
       'chitchat/:id': 'userNewsfeedSingle',
@@ -295,7 +297,6 @@ define([
     },
 
     userHome: function () {
-      console.log("User home")
       if (!MODTOOLS) {
         var self = this
 
@@ -772,6 +773,30 @@ define([
 
         require(['iznik/views/pages/user/invite'], function () {
           var page = new Iznik.Views.User.Pages.Invite()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userPosters: function () {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/user/noticeboard'], function () {
+          var page = new Iznik.Views.User.Pages.Posters()
+          self.loadRoute({page: page})
+        })
+      }
+    },
+
+    userPoster: function (id) {
+      if (!MODTOOLS) {
+        var self = this
+
+        require(['iznik/views/user/noticeboard'], function () {
+          var page = new Iznik.Views.User.Pages.Poster({
+            id: id
+          })
           self.loadRoute({page: page})
         })
       }
@@ -2043,14 +2068,12 @@ define([
     },
 
     userPrivacy: function () {
-      if (!MODTOOLS) {
-        var self = this
+      var self = this
 
-        require(['iznik/views/pages/user/landing'], function () {
-          var page = new Iznik.Views.User.Pages.Landing.Privacy()
-          self.loadRoute({page: page})
-        })
-      }
+      require(['iznik/views/pages/user/landing'], function () {
+        var page = new Iznik.Views.User.Pages.Landing.Privacy()
+        self.loadRoute({page: page})
+      })
     },
 
     userDisclaimer: function () {
@@ -2091,8 +2114,10 @@ define([
         var self = this
 
         require(['iznik/views/pages/user/landing'], function () {
-          var mobile_version = APP_VERSION	// CC
-          var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version }) })	// CC
+          var mobile_version = APP_VERSION	// CC..
+          var review_link = "market://details?id=org.ilovefreegle.direct";
+          if (window.isiOS) review_link = "itmss://itunes.apple.com/us/app/freegle/id970045029?ls=1&mt=8&ign-mscache=1";
+          var page = new Iznik.Views.User.Pages.Landing.Contact({ model: new Iznik.Model({ mobile_version: mobile_version, review_link: review_link }) })	// ..CC
           self.loadRoute({page: page})
         })
       }
