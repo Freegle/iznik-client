@@ -143,6 +143,16 @@ define([
         events: {
             'click .js-chat': 'chatMods',
             'click .js-cards': 'cards'
+          , 'click .js-rate': 'rate' // CC
+        },
+
+        rate: function () {  // CC
+          Storage.remove('rateappnotagain');
+          var review_link = "market://details?id=org.ilovefreegle.direct";
+          if (window.isiOS) review_link = "itmss://itunes.apple.com/us/app/freegle/id970045029?ls=1&mt=8&ign-mscache=1";
+          var v = new Iznik.Views.User.rateApp({ model: new Iznik.Model({ review_link: review_link }) });
+          v.render();
+          return false;
         },
 
         cards: function() {

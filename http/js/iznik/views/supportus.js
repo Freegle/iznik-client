@@ -101,25 +101,13 @@ define([
                 }
 
                 Iznik.ABTestShown('SupportUs', self.template);
-            } else if (!lastcardask || (now - lastcardask > 2 * 60 * 60 * 1000)) {
-                // If we're not asking for a donation, offer business cards, unless the group forbids it.
-                Storage.set('cardlastask', now);
-                var homegroup = Storage.get('myhomegroup');
-                var cardsallowed = true;
-                if (homegroup) {
-                    var settings = Iznik.Session.getSettings(homegroup);
-                    if (settings.hasOwnProperty('businesscards')) {
-                        cardsallowed = settings.businesscards;
-                    }
-                }
-
-                if (cardsallowed) {
-                    (new Iznik.Views.User.BusinessCards()).render();
-                } else {
-                    // Invite instead
-                    self.template = 'user_support_invite';
-                    p = Iznik.Views.Modal.prototype.render.call(self);
-                }
+            //} else if (!lastcardask || (now - lastcardask > 2 * 60 * 60 * 1000)) {  // CC..
+            } else {
+                // If we're not asking for a donation, ask to rate
+                var review_link = "market://details?id=org.ilovefreegle.direct";
+                if (window.isiOS) review_link = "itmss://itunes.apple.com/us/app/freegle/id970045029?ls=1&mt=8&ign-mscache=1";
+                var v = new Iznik.Views.User.rateApp({ model: new Iznik.Model({ review_link: review_link }) });
+                v.render();                                                           // ..CC
             }
 
             return(p);
@@ -657,4 +645,36 @@ define([
 
         template: 'user_support_avivatop20'
     });
-});
+
+    Iznik.Views.User.rateApp = Iznik.Views.Modal.extend({
+        template: 'user_home_rateapp',
+
+        events: {
+            'click .js-notagain': 'notagain',
+            'click .js-cancel': 'cancel',
+            'click .js-rate': 'rate'
+        },
+
+        rate: function() {
+            this.close();
+        },
+
+        cancel: function() {
+            this.close();
+        },
+
+        notagain: function() {
+            Storage.set('rateappnotagain', true);
+            this.close();
+        },
+
+        render: function() {
+          console.log("Rate render");
+            if (!Storage.get('rateappnotagain')) {
+              console.log("Rate really render");
+                Iznik.Views.Modal.prototype.render.call(this);
+            }
+        }
+    });
+
+  });
