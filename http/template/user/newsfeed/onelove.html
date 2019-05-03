@@ -1,6 +1,8 @@
 <div class="row">
     <div class="col-xs-12">
+        <% if (obj.profile) { %>
         <img src="{{obj.profile.turl}}" class="img-circle img-smallerthumbnail clickme botspace pull-left margright js-profile" />
+        <% } %>
         <div class="js-profile">
             <b><span class="success">{{obj.displayname}}</span></b>
             <br />
