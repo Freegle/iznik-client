@@ -299,7 +299,7 @@ define([
           self.$('.js-bouncing').fadeIn('slow')
         }
 
-        (new Iznik.Views.SupportUs()).render();
+        // (new Iznik.Views.SupportUs()).render();
         // (new Iznik.Views.User.eBay()).render();
         // (new Iznik.Views.User.BusinessCards()).render();
 
