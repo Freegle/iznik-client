@@ -34,6 +34,7 @@ require("bootstrap-fileinput/css/fileinput.css");
 
 require("style.less");
 require("user.css");
+//require("pullrefresh.css");
 
 require("iznik/main");
 
