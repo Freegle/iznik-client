@@ -868,7 +868,16 @@ define([
                 var newsfeed = self.model.get('newsfeed');
 
                 if (newsfeed) {
-                    if (newsfeed.message) {
+                    if (newsfeed.type == 'Noticeboard') {
+                        var newsfeed = self.model.get('newsfeed');
+
+                        if (newsfeed.message) {
+                          var noticeboard = JSON.parse(newsfeed.message);
+                          newsfeed.noticeboard = noticeboard;
+                          newsfeed.message = null;
+                          self.model.set('newsfeed', newsfeed);
+                        }
+                    } else  if (newsfeed.message) {
                         newsfeed.message = Iznik.twem(newsfeed.message);
                     }
 

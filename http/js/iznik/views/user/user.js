@@ -1371,6 +1371,11 @@ define([
 
       self.$el.addClass('faded')
 
+      if (self.model.get('info').ratings.Mine === rating) {
+        // Cancel this one.
+        rating = null;
+      }
+
       m.rate(rating).then(function () {
         self.model.fetch({
           data: {

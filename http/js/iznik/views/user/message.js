@@ -39,7 +39,7 @@ define([
     className: 'marginbotsm botspace',
 
     events: {
-      'click .js-caret': 'carettoggle',
+      'click .js-expand': 'expand',
       'click .js-fop': 'fop',
       'click .js-sharefb': 'sharefb',
       'click .js-jointoreply': 'join',
@@ -138,32 +138,26 @@ define([
       })*/
     },
 
-    expanded: false,
-
-    caretshow: function () {
-      if (!this.expanded) {
-        this.$('.js-replycount').addClass('reallyHide')
-        this.$('.js-unreadcountholder').addClass('reallyHide')
-        this.$('.js-promised').addClass('reallyHide')
-        this.$('.js-caretdown').show()
-        this.$('.js-caretup').hide()
-      } else {
-        this.$('.js-replycount').removeClass('reallyHide')
-
-        if (self.unread > 0) {
-          this.$('.js-unreadcountholder').removeClass('reallyHide')
-        } else {
-          this.$('.js-unreadcountholder').addClass('reallyHide')
-        }
-
-        this.$('.js-promised').removeClass('reallyHide')
-        this.$('.js-caretdown').hide()
-        this.$('.js-caretup').show()
-      }
-    },
-
     expand: function () {
-      this.$('.js-caretdown').click()
+      var self = this;
+
+      self.model.set('expanded', true);
+      self.rendered = false;
+      self.render().then(function() {
+        if (Iznik.isShort()) {
+          // On mobile, the expand may happen below the bottom of the screen, in which case we're not
+          // really aware that anything has happened.  Scroll so that the end of this message is
+          // at the bottom of the screen.
+          var li = self.$el.closest('li').get(0)
+
+          if (li && li.nextSibling) {
+            li.scrollIntoView({
+              behaviour: 'smooth',
+              block: 'end'
+            })
+          }
+        }
+      })
     },
 
     continueReply: function (text) {
@@ -194,37 +188,6 @@ define([
           }
         }
       )
-    },
-
-    carettoggle: function () {
-      var self = this
-      if (this.expanded) {
-        this.$('.js-readmore').slideDown();
-        this.$('.js-snippet').slideDown()
-      } else {
-        this.$('.js-readmore').slideUp();
-        this.$('.js-snippet').slideUp()
-      }
-      this.expanded = !this.expanded
-      this.caretshow()
-
-      if (this.expanded) {
-        if (Iznik.isShort()) {
-          // On mobile, the expand may happen below the bottom of the screen, in which case we're not
-          // really aware that anything has happened.  Scroll so that the end of this message is
-          // at the bottom of the screen.
-          self.$el.one('shown.bs.collapse', function () {
-            var li = self.$el.closest('li').get(0)
-
-            if (li && li.nextSibling) {
-              li.scrollIntoView({
-                behaviour: 'smooth',
-                block: 'end'
-              })
-            }
-          })
-        }
-      }
     },
 
     fop: function () {
@@ -311,7 +274,7 @@ define([
     render: function () {
       var self = this
 
-      // console.log("Render message", self.model.get('id'), self.rendering, self.model);
+      console.log("Render message", self.model.get('id'), self.model.get('subject'), self.model.get('expanded'), self.rendering);
 
       if (!self.rendering) {
         var replies = self.model.get('replies')
@@ -342,7 +305,7 @@ define([
               })
             }
 
-            if (self.expanded) {
+            if (self.model.get('expanded')) {
               self.$('.panel-collapse').collapse('show')
               self.$('.js-snippet').hide()
               self.$('.js-caretdown').parent().hide()
@@ -472,7 +435,7 @@ define([
                 // photos to view, and rotate etc.  But on mobile it's fiddly and not obvious to click on the title
                 // to expand a post, rather than just the photo.  So expand the post for them if they've clicked on
                 // a photo.
-                if (!self.expanded) {
+                if (!self.model.get('expanded')) {
                   self.expand()
                 }
               })
@@ -769,8 +732,8 @@ define([
       })
 
       this.listenToOnce(v, 'deleted', _.bind(function (id) {
-        self.trigger('deleted', id)
-        self.destroyIt()
+        this.trigger('deleted', id)
+        this.destroyIt()
       }, this))
 
       this.listenTo(v, 'rotated', _.bind(function (id, img, timg) {
@@ -1084,7 +1047,7 @@ define([
             })
 
             self.listenToOnce(v, 'deleted', _.bind(function (id) {
-              self.collection.remove(id)
+              this.collection.remove(id)
             }))
 
             self.listenTo(self.collection, 'moveto', function (ind) {
@@ -1580,8 +1543,8 @@ define([
 
     render: function () {
       var self = this
-      var p
-      // console.log("Render message", self.model);
+      var p;
+      console.log("Render replyable message");
 
       if (self.rendered) {
         p = Iznik.resolvedPromise(self)
@@ -1648,10 +1611,6 @@ define([
 
           self.$el.css('visibility', 'visible')
 
-          // Show the map on expand.  This reduces costs
-          self.$('.panel').on('shown.bs.collapse', function () {
-            self.showMap()
-          })
 
           self.clipboard = new Clipboard('#js-clip-' + self.model.id, {
             text: _.bind(function () {
@@ -1665,13 +1624,16 @@ define([
           })
 
           self.$('.panel-collapse').on('show.bs.collapse', function () {
+            // Show the map on expand.  This reduces costs
+            self.showMap()
+
             if (typeof self.model.get('fromuser') !== 'object') {
               // We don't have the full model, because we only fetched a summary.  Get the full
               // version and re-render.
-              self.expanded = true
               self.model.fetch().then(_.bind(function () {
-                self.rendered = false
-                self.render()
+                this.model.set('expanded', true);
+                this.rendered = false
+                this.render()
               }, self))
 
               // Abort the panel toggle - will happen once next render fires.

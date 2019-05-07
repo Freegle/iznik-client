@@ -275,6 +275,7 @@ define([
 
     allUploaded: function () {
       var self = this
+      self.$('.js-addprompt').fadeOut();
 
       if (self.suggestions.length > 0) {
         var v = new Iznik.Views.Help.Box()

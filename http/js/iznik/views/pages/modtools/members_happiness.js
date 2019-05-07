@@ -109,9 +109,8 @@ define([
                 var m = new moment(self.model.get('timestamp'));
                 self.$('.js-timestamp').html(m.format('MMMM Do YYYY, h:mm:ss a'));
 
-                var groupid = self.model.get('message').groups[0].groupid;
-                var group = Iznik.Session.getGroup(groupid);
-                self.$('.js-group').html(group.get('nameshort'));
+                var group = self.model.get('group');
+                self.$('.js-group').html(group.nameshort);
             });
 
             return(p);

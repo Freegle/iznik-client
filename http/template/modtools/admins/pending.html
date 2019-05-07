@@ -8,15 +8,41 @@
         <abbr class="timeago" title="{{created}}">{{timeago(created)}}</abbr>
       </div>
       <div class="col-md-3">
+        <%if (obj.createdby) { %>
         <span class="text-muted">Created by</span> <% if (obj.createdby && createdby.id) { %>
         {{createdby.displayname}} <span class="faded">#{{createdby.id}}</span>
         <% } %>
+        <% } %>
       </div>
+      <% if (obj.group) { %>
+      <div class="col-md-3">
+        {{group.nameshort}}
+      </div>
+      <% } %>
     </div>
   </h4>
 </div>
 <div class="panel">
   <div class="panel-body">
+    <% if (obj.parentid) { %>
+    <div class="alert alert-info">
+      <p>
+        This is a copy of a suggested ADMIN which you might like to send on your group.
+      </p>
+      <p>
+        You can
+        edit it and <em>Save changes</em>, then <em>Approve and send</em>.
+      </p>
+      <ul>
+        <li>It's always good to put your names at the end</li>
+        <li>Any changes you make will only apply to this copy.</li>
+        <li>Members on multiple groups will only get one copy of this kind of ADMIN.</li>
+      </ul>
+      <p class="topspace">
+        If this isn't suitable for your group, then click <em>Delete</em>.
+      </p>
+    </div>
+    <% } %>
     <input class="form-control botspace js-subject" value="{{subject}}" />
     <textarea lines="6" class="form-control js-body">{{text}}</textarea>
   </div>

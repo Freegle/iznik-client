@@ -42,7 +42,11 @@
                 </div>
             </div>
             <div class="media-body">
+                <% if (newsfeed.type == 'Noticeboard') { %>
+                <span class="notification-title"><span class="small">{{fromuser.displayname}} loves your poster <% if (obj.noticeboard && noticeboard.name) { %>&quot;<b>{{noticeboard.name}}</b>&quot;<% } %></span></span>
+                <% } else { %>
                 <span class="notification-title"><span class="small">{{fromuser.displayname}} loves your post<% if (newsfeed.message) { %> "{{newsfeed.message}}"<% } %></span></span>
+                <% } %>
                 <p class="notification-desc">
                 </p>
                 <div class="notification-meta">

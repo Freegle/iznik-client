@@ -23,6 +23,7 @@
           <small class="text-muted">
             <abbr class="timeago nodecor" title="{{added}}">{{timeago(added)}}</abbr>
             <% if (user.publiclocation) { %><span class="glyphicon glyphicon-map-marker" />&nbsp;{{user.publiclocation.display}}<% } %>
+            <span class="js-activecounts" />
           </small>
         </div>
       </div>
@@ -37,7 +38,10 @@
         </iframe>
       </div>
       <div class="col-xs-12">
-        <p>To help Freegle, {{user.displayname}} printed a Freegle poster and put it up on a noticeboard.</p>
+        <a href="/poster/{{info.id}}">
+          <span class="pull-right btn btn-white"><span class="glyphicons glyphicons-pencil vcenter" />&nbsp;Edit Details</span>
+        </a>
+        <p>To help Freegle, {{user.displayname}} printed a Freegle poster and put it up where people can see it.</p>
         <% if (info.description) { %>
         <div class="alert alert-info">
           <b class="prewrap">"{{info.description.trim()}}"</b>

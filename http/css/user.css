@@ -247,6 +247,14 @@
     margin-top:50px;
 }
 
+.panel-info > .panel-heading {
+    color: #000080 !important;
+}
+
+.alert-info {
+    color: #000080 !important;
+}
+
 a.btn, .btn a, a:hover {
     text-decoration: none !important;
 }

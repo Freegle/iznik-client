@@ -150,7 +150,7 @@ function mainOnAppStart() { // CC
     if (androidVersion >= 4.4) {
       window.useSwipeRefresh = true
     }
-    window.useSwipeRefresh = false    // CC Hammer doesn't work in CLI version on Nexus
+    window.useSwipeRefresh = false    // CC Haven't got Hammer, jquery.event.swipe or jquery.plugin.pullToRefresh to work
   }
 
   // CC     Raven.context(function () {
@@ -160,7 +160,9 @@ function mainOnAppStart() { // CC
     'underscore',
     'backbone',
     'iznik/router',
-    // CC 'hammer'   // CC
+    //'hammer.min'   // CC
+    //'jquery.event.swipe'
+    //'jquery.plugin.pullToRefresh' // CC
   ], function ($, _, Backbone) {
     console.log("starting Backbone")	// CC
     if (!Backbone) {
@@ -201,29 +203,33 @@ function mainOnAppStart() { // CC
 
     // http://hammerjs.github.io/getting-started/
 
-    /* // CCif (window.useSwipeRefresh) {
-        //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+    if (window.useSwipeRefresh) {
+
+      /*  //hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
         //alert(typeof Hammer);
+        console.log("get hammer");
         hammer = new Hammer(window);
-        //alert("got hammer");
+        console.log("got hammer");
+        console.log(typeof hammer);
         //alert(typeof hammer);
         //alert(JSON.stringify(hammer));
         hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
         hammer.on('swipedown', function (ev) {
             //alert("hammer down");
-            //console.log(ev);
+            console.log(ev);
             var posn = $(window).scrollTop();
-            //console.log("posn=" + posn);
+            console.log("posn=" + posn);
             //$('.navbar-title').text("D " + ev.deltaY + " " + posn);
             if (posn === 0) {
+                console.log("refreshing!");
                 window.mobileRefresh();
             }
         });
         //hammer.on('swipeleft swiperight', function (ev) {
         //    console.log(ev);
         //    $('.navbar-title').text("LR " + ev.deltaX + " " + ev.direction);
-        //});
-    }*/
+        //});*/
+    }
 
     // Catch back button and clear chats
     window.addEventListener('popstate', function (e) {    // CC

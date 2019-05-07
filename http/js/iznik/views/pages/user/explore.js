@@ -46,6 +46,9 @@ define([
 
     gotLocation: function (position) {
       this.map.moveTo(position.coords.latitude, position.coords.longitude)
+
+      // Ensure the map is visible.
+      $(window).scrollTo(this.$('.js-maparea'))
     },
 
     render: function () {
@@ -759,11 +762,10 @@ define([
           // We might fail to fetch, or fetch a deleted message, or fetch a paired message.  In all these
           // cases the message shouldn't show.
           if (self.model.get('subject') && !self.model.get('deleted')) {
+            self.model.set('expanded', true)
             var v = new Iznik.Views.User.Message.Replyable({
               model: self.model
             })
-
-            v.expanded = true
 
             v.render().then(function () {
               self.$('.js-message').append(v.el)
@@ -863,11 +865,11 @@ define([
           ) {
             // We might fail to fetch, or fetch a deleted message, or fetch a completed message.  In all these
             // cases the message shouldn't show.
+            self.model.set('expanded', true)
             var v = new Iznik.Views.User.Message.Replyable({
               model: self.model
             })
 
-            v.expanded = true
             v.render().then(function () {
               self.$('.js-message').append(v.el)
 
