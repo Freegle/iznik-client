@@ -844,10 +844,14 @@ define([
                         var newsfeed = self.model.get('newsfeed');
 
                         if (newsfeed.message) {
-                          var noticeboard = JSON.parse(newsfeed.message);
-                          newsfeed.noticeboard = noticeboard;
-                          newsfeed.message = null;
-                          self.model.set('newsfeed', newsfeed);
+                            try {
+                              var noticeboard = JSON.parse(newsfeed.message);
+                              newsfeed.noticeboard = noticeboard;
+                              newsfeed.message = null;
+                              self.model.set('newsfeed', newsfeed);
+                            } catch (e) {
+                                console.log("Failed to parse noticeboard", newsfeed)
+                            }
                         }
                     } else  if (newsfeed.message) {
                         newsfeed.message = Iznik.twem(newsfeed.message);
