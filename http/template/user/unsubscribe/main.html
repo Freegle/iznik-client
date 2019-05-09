@@ -1,7 +1,7 @@
 <h1 class="js-pagetitle">Want to leave Freegle?</h1>
 <p class="js-pagedescription">We'd love you to stay, but sometimes if you love someone, you have to let them go.</p>
 <div class="alert alert-warning js-toomany">Too many emails?  Don't leave!  Go to <a href="/settings">Settings</a> and adjust your <em>Mail Settings</em>.</div>
-<div class="row js-forgetholder js-loggedinonly">
+<div class="row">
     <div class="col-xs-12">
         <p>You can leave Freegle completely and wipe all your data:</p>
         <div class="btn btn-success btn-lg js-forget">
@@ -11,21 +11,19 @@
 </div>
 <div class="form-group">
     <div class="js-getemail" style="display:none;">
-        <div class="row js-loggedinonly">
+        <div class="row">
             <div class="col-xs-12 topspace">
                 <p>Or you can leave one of the communities you've joined, but stay on the system.</p>
             </div>
         </div>
-        <div class="row js-loggedoutonly">
+        <div class="row">
             <div class="col-md-4">
                 <div class="input-group  completefull nomargin botspace">
                     <input id="email" class="js-email form-control completefull nomargin" placeholder="What's your email address?"/>
                 </div>
             </div>
             <div class="col-md-4">
-                <a data-realurl="true" href="mailto:support@ilovefreegle.org?subject=Unsubscribe please">
-                    <span class="botspace btn btn-warning btn-large">Leave Freegle</span>
-                </a>
+                <button type="submit" class="botspace btn btn-white btn-block js-findme">Find my membership</button>
             </div>
         </div>
         <div class="js-nogroups alert alert-danger" style="display:none">You're not a member of any Freegle communities with that email address.  If you're getting emails from us, look at the bottom of the mail - it'll tell you which address we're sending to.</div>
@@ -56,7 +54,7 @@
 <div class="row topspace">
     <div class="col-xs-12">
         <p>
-            If you need help, please mail <a href="mailto:support@ilovefreegle.org">our Support Volunteers (support@ilovefreegle.org)</a>.
+            If you need help, please mail <a href="mailto:support@ilovefreegle.org">our Support Volunteers</a>.
         </p>
     </div>
 </div>
