@@ -406,7 +406,8 @@ define([
               })
             })
 
-            if (self.$('.js-replies').length > 0) {
+            console.log("Render", self.model.get('expanded'), self.$('.js-replies').length);
+            if (self.model.get('expanded') && self.$('.js-replies').length > 0) {
               if (replies && replies.length > 0) {
                 // Show and update the reply details.
                 if (replies.length > 0) {
