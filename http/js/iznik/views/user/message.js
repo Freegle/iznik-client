@@ -239,7 +239,7 @@ define([
     render: function () {
       var self = this
 
-      console.log("Render message", self.model.get('id'), self.model.get('subject'), self.model.get('expanded'), self.rendering);
+      // console.log("Render message", self.model.get('id'), self.model.get('subject'), self.model.get('expanded'), self.rendering);
 
       if (!self.rendering) {
         var replies = self.model.get('replies')
