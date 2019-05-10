@@ -285,21 +285,38 @@ define([
       var bounds = self.map.getBounds()
 
       var data = []
+
+      // If the max is too high, then everything else looks idle.  So use a logarithmic scale.
+      var max = 0;
+      _.each(self.data, function (d) {
+        max = Math.max(d.weight, max)
+      })
+
+      var minlog = Math.log10(1);
+      var maxlog = Math.log10(max);
+      var range = maxlog - minlog;
+      var lineartolog = function(n) {
+        return (Math.log10(n) - minlog) / range;
+      };
+
       _.each(self.data, function (d) {
         if (bounds.contains(d.location)) {
-          data.push(d)
+          var n = _.clone(d)
+          n.weight = lineartolog(n.weight)
+          data.push(n)
         }
       })
 
-      self.heatmap.setMap(null)
+      if (self.heatmap) {
+        self.heatmap.setMap(null)
+      }
+
       self.heatmap = new google.maps.visualization.HeatmapLayer({
         data: data
       })
 
       var zoom = self.map.getZoom()
-      if (zoom > 10) {
-        self.heatmap.setOptions({radius: zoom * 2})
-      }
+      self.heatmap.setOptions({radius: zoom})
 
       self.heatmap.setMap(self.map)
     },
@@ -380,10 +397,7 @@ define([
               })
             }
 
-            self.heatmap = new google.maps.visualization.HeatmapLayer({
-              data: self.data
-            })
-            self.heatmap.setMap(self.map)
+            self.filterData.call(self)
 
             google.maps.event.addListener(self.map, 'idle', function () {
               self.filterData()
