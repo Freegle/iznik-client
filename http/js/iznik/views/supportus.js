@@ -12,7 +12,20 @@ define([
   Iznik.Views.SupportUs = Iznik.Views.Modal.extend({
     events: {
       'click .js-invite': 'doInvite',
-      'click .js-clickdonate': 'clickDonate'
+      'click .js-clickdonate': 'clickDonate',
+      'click .js-savemilename': 'saveMilename'
+    },
+
+    saveMilename: function() {
+      var self = this;
+
+      $.ajax({
+        url: API + 'stroll',
+        type: 'POST',
+        data: {
+          sponsorname: Iznik.Session.get('me').displayname
+        }
+      })
     },
 
     clickDonate: function () {
