@@ -30,6 +30,8 @@ define([
 
     clickDonate: function () {
       Iznik.ABTestAction('SupportUs', this.template)
+      this.$('.js-clickeddonatehide').hide()
+      this.$('.js-clickeddonateshow').fadeIn('slow')
     },
 
     doInvite: function () {
