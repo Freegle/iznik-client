@@ -285,21 +285,38 @@ define([
       var bounds = self.map.getBounds()
 
       var data = []
+
+      // If the max is too high, then everything else looks idle.  So use a logarithmic scale.
+      var max = 0;
+      _.each(self.data, function (d) {
+        max = Math.max(d.weight, max)
+      })
+
+      var minlog = Math.log10(1);
+      var maxlog = Math.log10(max);
+      var range = maxlog - minlog;
+      var lineartolog = function(n) {
+        return (Math.log10(n) - minlog) / range;
+      };
+
       _.each(self.data, function (d) {
         if (bounds.contains(d.location)) {
-          data.push(d)
+          var n = _.clone(d)
+          n.weight = lineartolog(n.weight)
+          data.push(n)
         }
       })
 
-      self.heatmap.setMap(null)
+      if (self.heatmap) {
+        self.heatmap.setMap(null)
+      }
+
       self.heatmap = new google.maps.visualization.HeatmapLayer({
         data: data
       })
 
       var zoom = self.map.getZoom()
-      if (zoom > 10) {
-        self.heatmap.setOptions({radius: zoom * 2})
-      }
+      self.heatmap.setOptions({radius: zoom})
 
       self.heatmap.setMap(self.map)
     },
@@ -380,10 +397,7 @@ define([
               })
             }
 
-            self.heatmap = new google.maps.visualization.HeatmapLayer({
-              data: self.data
-            })
-            self.heatmap.setMap(self.map)
+            self.filterData.call(self)
 
             google.maps.event.addListener(self.map, 'idle', function () {
               self.filterData()
@@ -567,7 +581,6 @@ define([
       m.date(1);
       m.subtract(1, 'days');
       self.end = m.format('YYYY-MM-DD');
-      console.log(self.start, self.end);
       self.groupIndex = 0;
       self.getGroupStats();
     },
@@ -615,7 +628,6 @@ define([
 
     showGroupStats: function () {
       var self = this
-      console.log('Show stats')
 
       self.coll.comparator = function (mod) {
         return (mod.get('namedisplay').toLowerCase())
@@ -636,21 +648,19 @@ define([
       self.coll.each(function (g) {
         var dash = g.get('dashboard')
         _.each(dash.Weight, function (w) {
-          if (!firsttime || firsttime > (new Date(w.date)).getTime()) {
+          if (!firsttime || firsttime > (new moment(w.date)).unix()) {
             var m = new moment(w.date)
             firstdate = m.format('MMM YYYY')
             firsttime = m.unix()
           }
 
-          if ((new Date(w.date)).getTime() < firstDay && (!lasttime || lasttime < (new Date(w.date)).getTime())) {
+          if ((new Date(w.date)).getTime() < firstDay && (!lasttime || lasttime < (new moment(w.date)).unix())) {
             var m = new moment(w.date)
             lastdate = m.format('MMM YYYY')
             lasttime = m.unix()
           }
         })
       })
-
-      console.log("Covers", firstdate, lastdate)
 
       var totalweight = 0
       var totalmembers = 0
@@ -738,7 +748,6 @@ define([
       })
 
       var tonnes = Math.round(totalweight / 100) / 10
-      console.log('Got tonnes', tonnes)
 
       self.$('.js-grouptable').append('<tr><td><b>Totals</b></td><td><b>' + totalmembers.toLocaleString() + '</b></td><td><b>' + Math.round(totalweight / 12).toLocaleString() + 'kg (' + (Math.round(totalweight / 12 / 100) / 10) + ' tonnes) monthly</b></td></tr>')
 
@@ -777,7 +786,6 @@ define([
       })
 
       graph.render()
-      console.log('Weight chart rendered')
 
       // Member chart
       var data = []
@@ -805,7 +813,6 @@ define([
       })
 
       graph.render()
-      console.log('Member chart rendered')
 
       if (someoverlaps) {
         self.$('.js-partial').show()
@@ -813,8 +820,6 @@ define([
 
       // We're done
       self.wait.close()
-
-      console.log('Done')
 
       self.$('.js-stats').fadeIn('slow')
 
@@ -856,8 +861,6 @@ define([
           });
 
           // Default to last year.
-          console.log("Current", curryear, currmonth)
-
           if (currmonth === 0) {
             self.$('.js-startyear').val(curryear - 2);
             self.$('.js-endyear').val(curryear - 1);
