@@ -22,6 +22,7 @@
     position: relative;
     top: -37px;
     left: -12px;
+    pointer-events: none;
 }
 
 .photobadgexs {

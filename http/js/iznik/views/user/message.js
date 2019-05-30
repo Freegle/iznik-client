@@ -9,7 +9,8 @@ define([
   'clipboard',
   'iznik/views/promptphone',
   'iznik/views/infinite',
-  'iznik/views/user/schedule'
+  'iznik/views/user/schedule',
+  'iznik/models/user/user'
 ], function ($, _, Backbone, Iznik, moment, Clipboard) {
   // jQuery equivalent to Prototype's positionedOffset
   (function ($) {
@@ -141,6 +142,22 @@ define([
     expand: function () {
       var self = this;
 
+      if (!isNaN(self.model.get('fromuser'))) {
+        // We haven't got the user info
+        var u = new Iznik.Models.ModTools.User({
+          id: self.model.get('fromuser')
+        });
+        u.fetch().then(function() {
+          self.model.set('fromuser', u.attributes)
+          self.expand2()
+        })
+      } else {
+        self.expand2()
+      }
+    },
+
+    expand2: function() {
+      var self = this;
       self.model.set('expanded', true);
       self.rendered = false;
       self.render().then(function() {
@@ -274,7 +291,7 @@ define([
     render: function () {
       var self = this
 
-      console.log("Render message", self.model.get('id'), self.model.get('subject'), self.model.get('expanded'), self.rendering);
+      // console.log("Render message", self.model.get('id'), self.model.get('subject'), self.model.get('expanded'), self.rendering);
 
       if (!self.rendering) {
         var replies = self.model.get('replies')
@@ -441,7 +458,7 @@ define([
               })
             })
 
-            if (self.$('.js-replies').length > 0) {
+            if (self.model.get('expanded') && self.$('.js-replies').length > 0) {
               if (replies && replies.length > 0) {
                 // Show and update the reply details.
                 if (replies.length > 0) {
@@ -1544,7 +1561,6 @@ define([
     render: function () {
       var self = this
       var p;
-      console.log("Render replyable message");
 
       if (self.rendered) {
         p = Iznik.resolvedPromise(self)

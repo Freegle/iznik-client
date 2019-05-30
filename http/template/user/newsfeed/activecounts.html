@@ -1,4 +1,4 @@
-<% if (user && user.activecounts) { %>
+<% if (obj.user && user.activecounts) { %>
 <a style="color:inherit" title="Click to see active OFFERs and WANTEDs" href="/profile/{{user.id}}">
     <% if (user.activecounts.offers) { %>
     &bull; <span class="text-success"><strong>{{user.activecounts.offers}} OFFER<% if (user.activecounts.offers != 1) { %>s<% } %></strong></span>
