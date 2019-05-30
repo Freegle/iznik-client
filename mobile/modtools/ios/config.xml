@@ -13,9 +13,9 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
     <platform name="ios">
-      <allow-intent href="itmss:*" />
-      <allow-intent href="itms:*" />
-      <allow-intent href="itms-apps:*" />
+        <allow-intent href="itmss:*" />
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
     </platform>
     <platform name="ios">
         <splash src="package-assets/Default@2x~universal~anyany.png" />
