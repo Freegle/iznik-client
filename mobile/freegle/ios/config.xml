@@ -18,9 +18,9 @@
         <allow-intent href="market:*" />
     </platform>
     <platform name="ios">
-      <allow-intent href="itmss:*" />
-      <allow-intent href="itms:*" />
-      <allow-intent href="itms-apps:*" />
+        <allow-intent href="itmss:*" />
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
     </platform>
     <platform name="ios">
         <preference name="StatusBarOverlaysWebView" value="false" />
