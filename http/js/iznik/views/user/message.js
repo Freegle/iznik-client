@@ -108,12 +108,8 @@ define([
       var self = this;
 
       if (!isNaN(self.model.get('fromuser'))) {
-        // We haven't got the user info
-        var u = new Iznik.Models.ModTools.User({
-          id: self.model.get('fromuser')
-        });
-        u.fetch().then(function() {
-          self.model.set('fromuser', u.attributes)
+        // Not got full model.
+        self.model.fetch().then(function() {
           self.expand2()
         })
       } else {
