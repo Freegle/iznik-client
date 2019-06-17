@@ -668,6 +668,8 @@ define([
       var monthweights = {}
       var monthmembers = {}
 
+      self.$('.js-grouptableremove').remove()
+
       self.coll.each(function (g) {
         var dashboard = g.get('dashboard')
         var overlap = 0
@@ -704,7 +706,6 @@ define([
 
         var maxmembers = 0
         var maxunweighted = 0
-        self.$('.js-grouptableremove').remove()
 
         _.each(dashboard.ApprovedMemberCount, function (w) {
           if ((new Date(w.date)).getTime() < firstDay) {
