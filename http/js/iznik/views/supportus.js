@@ -407,6 +407,10 @@ define([
           Iznik.ABTestShown('CardsOrPoster', 'poster')
           Iznik.ABTestShown('CardsOrPoster', 'justafew')
           Iznik.ABTestShown('CardsOrPoster', 'more')
+
+          if (self.options.noPoster) {
+            self.$('.js-poster').hide();
+          }
         })
       })
 
