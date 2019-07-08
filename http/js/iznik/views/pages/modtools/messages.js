@@ -926,7 +926,7 @@ define([
             // First the subject, if it's easy to parse.
             var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(subj)
             if (matches && matches.length > 0 && matches[0].length > 0) {
-              subj = matches[1] + ':' + matches[2].toLowerCase().trim() + '(' + matches[3] + ')'
+              subj = matches[1] + ': ' + matches[2].toLowerCase().trim() + ' (' + matches[3] + ')'
             }
           }
 
