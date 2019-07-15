@@ -7,11 +7,16 @@
     </div>
     <div class="col-md-4 js-email forcebreak">
     </div>
-    <div class="col-md-4">
+    <div class="col-md-2">
         <select class="form-control js-role" data-style="btn-white">
             <option data-content="<img src='/images/heart_empty.png' />&nbsp;Member " value="Member">Member</option>
             <option data-content="<img src='/images/heart_empty.png' />&nbsp;Moderator " value="Moderator">Moderator</option>
             <option data-content="<img src='/images/heart_empty.png' />&nbsp;Owner " value="Owner">Owner</option>
         </select>
+    </div>
+    <div class="col-md-2">
+        <% if (obj.lastmoderated) { %>
+        <abbr class="timeago" title="{{lastmoderated}}" >{{timeago(lastmoderated)}}</abbr>
+        <% } %>
     </div>
 </div>

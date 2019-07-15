@@ -17,7 +17,14 @@ define([
 
     events: {
       'click .js-invite': 'doInvite',
-      'click .js-putupposter': 'getLocation'
+      'click .js-putupposter': 'getLocation',
+      'click .js-cards': 'cards'
+    },
+
+    cards: function() {
+        (new Iznik.Views.User.BusinessCards({
+          noPoster: true
+        })).render();
     },
 
     doInvite: function () {

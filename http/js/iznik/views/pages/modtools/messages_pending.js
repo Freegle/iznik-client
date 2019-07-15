@@ -458,11 +458,12 @@ define([
 
     send: function () {
       var subj = this.$('.js-subject').val()
+      var body = this.$('.js-text').val();
 
-      if (subj.length > 0) {
+      if (subj.length > 0 && body.length) {
         this.model.reject(
-          this.$('.js-subject').val(),
-          this.$('.js-text').val(),
+          subj,
+          body,
           this.options.stdmsg ? this.options.stdmsg.get('id') : null
         )
       } else {

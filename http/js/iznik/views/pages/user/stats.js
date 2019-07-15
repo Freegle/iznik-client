@@ -668,6 +668,8 @@ define([
       var monthweights = {}
       var monthmembers = {}
 
+      self.$('.js-grouptableremove').remove()
+
       self.coll.each(function (g) {
         var dashboard = g.get('dashboard')
         var overlap = 0
@@ -740,16 +742,16 @@ define([
           if (overlap < 1) {
             overlapstr = ' *'
             someoverlaps = true
-            self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + ' *</td><td>' + maxmembers.toLocaleString() + ' <span class="text-muted">(of ' + maxunweighted.toLocaleString() + ')</span></td><td>' + avgweight.toLocaleString() + ' <span class="text-muted">(of ' + avgunweighted.toLocaleString() + ')</span></td></tr>')
+            self.$('.js-grouptable').append('<tr class="js-grouptableremove"><td>' + g.get('namedisplay') + ' *</td><td>' + maxmembers.toLocaleString() + ' <span class="text-muted">(of ' + maxunweighted.toLocaleString() + ')</span></td><td>' + avgweight.toLocaleString() + ' <span class="text-muted">(of ' + avgunweighted.toLocaleString() + ')</span></td></tr>')
           } else {
-            self.$('.js-grouptable').append('<tr><td>' + g.get('namedisplay') + '</td><td>' + maxmembers.toLocaleString() + '</td><td>' + avgweight.toLocaleString() + '</td></tr>')
+            self.$('.js-grouptable').append('<tr class="js-grouptableremove"><td>' + g.get('namedisplay') + '</td><td>' + maxmembers.toLocaleString() + '</td><td>' + avgweight.toLocaleString() + '</td></tr>')
           }
         }
       })
 
       var tonnes = Math.round(totalweight / 100) / 10
 
-      self.$('.js-grouptable').append('<tr><td><b>Totals</b></td><td><b>' + totalmembers.toLocaleString() + '</b></td><td><b>' + Math.round(totalweight / 12).toLocaleString() + 'kg (' + (Math.round(totalweight / 12 / 100) / 10) + ' tonnes) monthly</b></td></tr>')
+      self.$('.js-grouptable').append('<tr class="js-grouptableremove"><td><b>Totals</b></td><td><b>' + totalmembers.toLocaleString() + '</b></td><td><b>' + Math.round(totalweight / 12).toLocaleString() + 'kg (' + (Math.round(totalweight / 12 / 100) / 10) + ' tonnes) monthly</b></td></tr>')
 
       // Headline stats.
       //
