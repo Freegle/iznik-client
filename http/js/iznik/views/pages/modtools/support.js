@@ -784,7 +784,7 @@ define([
     }
   })
 
-  Iznik.Views.ModTools.Pages.Support.Mod = Iznik.View.extend({
+  Iznik.Views.ModTools.Pages.Support.Mod = Iznik.View.Timeago.extend({
     template: 'modtools_support_mod',
 
     events: {

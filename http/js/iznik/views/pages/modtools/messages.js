@@ -926,7 +926,7 @@ define([
             // First the subject, if it's easy to parse.
             var matches = /(.*?)\:([^)].*)\((.*)\)/.exec(subj)
             if (matches && matches.length > 0 && matches[0].length > 0) {
-              subj = matches[1] + ':' + matches[2].toLowerCase().trim() + '(' + matches[3] + ')'
+              subj = matches[1] + ': ' + matches[2].toLowerCase().trim() + ' (' + matches[3] + ')'
             }
           }
 
@@ -1153,11 +1153,12 @@ define([
 
     send: function () {
       var subj = this.$('.js-subject').val()
+      var body = this.$('.js-text').val();
 
-      if (subj.length > 0) {
+      if (subj.length > 0 && body.length) {
         this.model.reply(
-          this.$('.js-subject').val(),
-          this.$('.js-text').val(),
+          subj,
+          body,
           this.options.stdmsg.get('id')
         )
       } else {
@@ -1190,11 +1191,12 @@ define([
       })
 
       var subj = this.$('.js-subject').val()
+      var body = this.$('.js-text').val();
 
-      if (subj.length > 0) {
+      if (subj.length > 0 && body.length) {
         this.model.reply(
-          this.$('.js-subject').val(),
-          this.$('.js-text').val(),
+          subj,
+          body,
           this.options.stdmsg.get('id')
         )
       } else {

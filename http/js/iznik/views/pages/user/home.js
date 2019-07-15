@@ -478,6 +478,7 @@ define([
           this.render()
         }, self))
       } else {
+        self.model.set('expanded', self.model.get('expanded') || self.options.offers && self.options.offers.length < expandThreshold);
         p = Iznik.Views.User.Message.prototype.render.call(this)
         p.then(function () {
           self.$('.js-outcometime').timeago()
@@ -544,13 +545,13 @@ define([
       if (self.options.wanteds && self.options.wanteds.length < expandThreshold && typeof self.model.get('fromuser') !== 'object') {
         // Matches template.  We have few messages so will so this expanded, therefore we need to fetch the
         // full model.
-
         p = self.model.fetch()
         p.then(_.bind(function () {
           this.model.set('expanded', true)
           this.render()
         }, self))
       } else {
+        self.model.set('expanded', self.model.get('expanded') || self.options.wanteds && self.options.wanteds.length < expandThreshold);
         p = Iznik.Views.User.Message.prototype.render.call(this)
         p.then(function () {
           self.$('.js-outcometime').timeago()
