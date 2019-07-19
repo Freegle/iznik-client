@@ -1275,7 +1275,7 @@ define([
       this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events)
     },
 
-    report: function () {
+    report: function (e) {
       var self = this;
       var v = new Iznik.Views.User.Message.Report({
         model: self.model
@@ -1289,7 +1289,8 @@ define([
         self.$el.fadeOut('slow');
       })
 
-      return(p);
+      e.preventDefault()
+      e.stopPropagation()
     },
 
     showProfile: function (e) {
