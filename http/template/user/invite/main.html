@@ -24,11 +24,6 @@
   I put up a poster
 </div>
 <%if (obj.me) { %>
-<h3>Business Cards</h3>
-<p>You can also get little "business cards" to hand out to people.</p>
-<p>
-  <div class="btn btn-primary js-cards">Find out more</div>
-</p>
 <h3>Invite your friends</h3>
 <% if (!me.invitesleft) { %>
 <div class="alert alert-danger">
@@ -70,6 +65,18 @@
 </div>
 <% } %>
 <% } %>
+<h3>Business Cards</h3>
+<p>You can also get little "business cards" to hand out to people.</p>
+<p>
+<div class="btn btn-primary js-cards">Find out more</div>
+</p>
+<h3>Tell your Story</h3>
+<p>You can tell people why you freegle and about your experiences.  We'll use these for promotion.</p>
+<a href="/stories">
+  <span class="btn btn-primary">Tell your story</span>
+</a>
+</p>
+<hr />
 <p class="topspace">
   Thanks for all your help - and for freegling!
 </p>
