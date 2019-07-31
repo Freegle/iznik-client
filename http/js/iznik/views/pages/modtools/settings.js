@@ -69,24 +69,31 @@ define([
 
     hideAll: function () {
       var self = this
-      Iznik.Session.get('groups').each(function (group) {
-        var membership = new Iznik.Models.Membership({
-          groupid: group.get('id'),
-          userid: Iznik.Session.get('me').id
-        })
 
-        membership.fetch().then(function () {
-          var mod = new Iznik.Model(membership.get('settings'))
-          mod.set('active', 0)
-          mod.set('pushnotify', 0)
-          var newdata = mod.toJSON()
-          membership.save({
-            'settings': newdata
-          }, {
-            patch: true
-          })
-        })
+      var v = new Iznik.Views.Confirm({});
+
+      self.listenToOnce(v, 'confirmed', function() {
+          Iznik.Session.get('groups').each(function (group) {
+            var membership = new Iznik.Models.Membership({
+              groupid: group.get('id'),
+              userid: Iznik.Session.get('me').id
+            })
+
+            membership.fetch().then(function () {
+              var mod = new Iznik.Model(membership.get('settings'))
+              mod.set('active', 0)
+              mod.set('pushnotify', 0)
+              var newdata = mod.toJSON()
+              membership.save({
+                'settings': newdata
+              }, {
+                patch: true
+              })
+            })
+          });
       })
+
+      v.render();
     },
 
     deleteConfig: function () {
