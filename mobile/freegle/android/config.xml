@@ -70,13 +70,12 @@
     <hook src="scripts/before_build.sh" type="before_build" />
     <plugin name="cordova-plugin-geolocation" spec="^4.0.1" />
     <plugin name="cordova-plugin-googleplus" spec="^8.0.0">
-        <variable name="PLAY_SERVICES_VERSION" value="17.0.0" />
+        <variable name="PLAY_SERVICES_VERSION" value="15.0.1" />
     </plugin>
-    <plugin name="cordova-plugin-androidx" spec="^1.0.2" />
-    <plugin name="cordova-plugin-androidx-adapter" spec="^1.1.0" />
-    <plugin name="phonegap-plugin-push" spec="^2.2.3">
+    <plugin name="cordova-support-google-services" spec="^1.2.0" />
+    <plugin name="phonegap-plugin-push" spec="https://github.com/phonegap/phonegap-plugin-push.git">
         <variable name="ANDROID_SUPPORT_V13_VERSION" value="27.+" />
-        <variable name="FCM_VERSION" value="19.0.1" />
+        <variable name="FCM_VERSION" value="15.0.2" />
     </plugin>
     <engine name="android" spec="^8.0.0" />
 </widget>

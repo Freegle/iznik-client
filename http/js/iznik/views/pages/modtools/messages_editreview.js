@@ -101,7 +101,7 @@ define([
     chat: function () {
       var self = this
       require(['iznik/views/chat/chat'], function (ChatHolder) {
-        ChatHolder().openChatToUser(self.model.get('fromuser').id)
+        ChatHolder().openModChatToUser(self.model.get('fromuser').id, self.model.get('groups')[0].id);
       })
     },
 

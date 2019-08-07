@@ -1527,7 +1527,11 @@ define([
             action: 'Renege',
             userid: other
           }, success: function () {
-            self.model.collection.fetch()
+            var refmsg = self.model.get('refmsg');
+            refmsg.promisecount = 0;
+            self.model.set('refmsg', refmsg);
+            self.render();
+            self.model.collection.fetch();
           }
         })
       })

@@ -1325,10 +1325,8 @@ define([
         self.$el.fadeOut('slow');
       })
 
-      //return(p);
       e.preventDefault()
       e.stopPropagation()
-      return false
     },
 
     showProfile: function (e) {
