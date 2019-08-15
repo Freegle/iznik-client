@@ -158,6 +158,7 @@ define([
       'give/whoami': 'userGiveWhoAmI',
       'give/whatnext': 'userGiveWhatNext',
       'edit/:id': 'userEdit',
+      'jobs(/:id)': 'userJobs',
       'm/:id': 'userMessage',
       'message/:id': 'userMessage',
       'mygroups': 'userMyGroups',
@@ -1165,6 +1166,25 @@ define([
             }
           }
         })
+      }
+    },
+
+    userJobs: function (postcode) {
+      if (!MODTOOLS) {
+        var self = this
+
+        self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+          require(['iznik/views/pages/user/jobs'], function () {
+            var page = new Iznik.Views.User.Pages.Jobs({
+              postcode: postcode
+            })
+            self.loadRoute({page: page})
+          })
+        })
+
+        Iznik.Session.forceLogin([
+          'me',
+        ])
       }
     },
 

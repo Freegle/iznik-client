@@ -1,0 +1,32 @@
+<div class="panel panel-info clickme">
+  <div class="panel-heading">
+    <div class="panel-title">
+      {{obj.title}}
+      <span class="pull-right">
+        {{obj.location}} {{obj.postcode}}
+      </span>
+    </div>
+  </div>
+  <div class="panel-body">
+    <div class="row">
+      <div class="cols-xs-12">
+        <% if (obj.logo) { %>
+        <img class="img img-thumbnail pull-left" src="{{obj.logo}}" />
+        <% } %>
+        {{obj.snippet}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="cols-xs-12">
+        <% if (obj.salary) { %>
+        <div class="pull-left">
+          {{obj.salary}}
+        </div>
+        <% } %>
+        <div class="btn btn-info pull-right">
+          More info >>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

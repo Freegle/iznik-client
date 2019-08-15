@@ -31,6 +31,7 @@ const routes = [
   'help',
   'helpus',
   'invite',
+  'jobs',
   'spread',
   'poster',
   'posters',
