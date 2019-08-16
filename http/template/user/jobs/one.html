@@ -1,9 +1,9 @@
 <div class="panel panel-info clickme">
   <div class="panel-heading">
     <div class="panel-title">
-      {{obj.title}}
-      <span class="pull-right">
-        {{obj.location}} {{obj.postcode}}
+      <span class="job-title">{{obj.title}}</span>
+      <span class="pull-right more-info">
+        <span class="location">{{obj.location}}</span> <span class="postcode">{{obj.postcode}}</span>
       </span>
     </div>
   </div>
@@ -13,19 +13,21 @@
         <% if (obj.logo) { %>
         <img class="img img-thumbnail pull-left" src="{{obj.logo}}" />
         <% } %>
-        {{obj.snippet}}
+        <span class="job-description>"{{obj.snippet}}</div>
       </div>
     </div>
     <div class="row">
-      <div class="cols-xs-12">
+      <span class="cols-xs-12">
         <% if (obj.salary) { %>
         <div class="pull-left">
           {{obj.salary}}
         </div>
         <% } %>
-        <div class="btn btn-info pull-right">
-          More info >>
-        </div>
+        <a onmousedown="{{obj.onmousedown}}" target="_blank" data-realurl="true" href="{{obj.url}}">
+          <span class="btn btn-info pull-right">
+            More info >>
+          </span>
+        </a>
       </div>
     </div>
   </div>

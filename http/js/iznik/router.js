@@ -1173,7 +1173,7 @@ define([
       if (!MODTOOLS) {
         var self = this
 
-        self.listenToOnce(Iznik.Session, 'loggedIn', function () {
+        self.listenToOnce(Iznik.Session, 'isLoggedIn', function () {
           require(['iznik/views/pages/user/jobs'], function () {
             var page = new Iznik.Views.User.Pages.Jobs({
               postcode: postcode
@@ -1182,7 +1182,7 @@ define([
           })
         })
 
-        Iznik.Session.forceLogin([
+        Iznik.Session.testLoggedIn([
           'me',
         ])
       }

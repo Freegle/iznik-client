@@ -15,55 +15,59 @@ define([
 
     search: function() {
       var newloc = this.$('.js-pc').val()
-      console.log("Newloc", newloc)
       Router.navigate('/jobs/' + newloc, true)
     },
 
     render: function() {
       var self = this;
-      var me = Iznik.Session.get('me');
-      var pc = me && me.settings && me.settings.mylocation && me.settings.mylocation.name ? me.settings.mylocation.name : null
-      pc = pc ? pc.substring(0, pc.indexOf(' ')) : null;
-      pc = self.options.postcode ? self.options.postcode : pc
+      console.log("Load jobs", self.options)
 
-      if (pc) {
-        self.model = new Iznik.Model({
-          postcode: pc
-        })
+      // Load the AdView scripts.
+      var newScript = document.createElement("script");
+      newScript.src = "https://adview.online/js/pub/tracking.js?publisher=2053&channel=&source=feed";
+      newScript.onload = function() {
+        console.log("Loaded script")
+        init(); // window.onload isn't called so we do it manually.
+        var me = Iznik.Session.get('me');
+        var pc = me && me.settings && me.settings.mylocation && me.settings.mylocation.name ? me.settings.mylocation.name : null
+        pc = pc ? pc.substring(0, pc.indexOf(' ')) : null;
+        pc = self.options.postcode ? self.options.postcode : pc
 
-        $.ajax({
-          url: '/adview.php',
-          data: {
-            location: pc
-          }, success: function(ret) {
-            var jobs = ret.hasOwnProperty('data') ? ret.data : null;
+        if (pc) {
+          self.model = new Iznik.Model({
+            postcode: pc
+          })
 
-            if (jobs) {
-              _.each(jobs, function(job) {
-                var v = new Iznik.Views.User.Job({
-                  model: new Iznik.Model(job)
+          $.ajax({
+            url: '/adview.php',
+            data: {
+              location: pc
+            }, success: function(ret) {
+              var jobs = ret.hasOwnProperty('data') ? ret.data : null;
+
+              if (jobs) {
+                _.each(jobs, function(job) {
+                  var v = new Iznik.Views.User.Job({
+                    model: new Iznik.Model(job)
+                  })
+                  v.render()
+                  self.$('.js-jobs').append(v.$el)
                 })
-                v.render()
-                self.$('.js-jobs').append(v.$el)
-              })
+              }
             }
-          }
-        });
+          });
+        }
+
+        Iznik.Views.Page.prototype.render.call(self)
       }
 
-      var ret = Iznik.Views.Page.prototype.render.call(this)
+      document.head.appendChild(newScript);
 
-      return(ret);
+      return(Iznik.resolvedPromise(this));
     }
   });
 
   Iznik.Views.User.Job = Iznik.View.extend({
     template: "user_jobs_one",
-    events: {
-      'click': 'open'
-    },
-    open: function() {
-      window.open(this.model.get('url'))
-    }
   })
 });
