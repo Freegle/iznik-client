@@ -26,30 +26,30 @@ define([
       pc = pc ? pc.substring(0, pc.indexOf(' ')) : null;
       pc = self.options.postcode ? self.options.postcode : pc
 
-      self.model = new Iznik.Model({
-        postcode: pc
-      })
+      if (pc) {
+        self.model = new Iznik.Model({
+          postcode: pc
+        })
 
-      $.ajax({
-        url: '/adview.php',
-        data: {
-          location: pc
-        }, success: function(ret) {
-          console.log("Jobs", ret)
-          var jobs = ret.hasOwnProperty('data') ? ret.data : null;
+        $.ajax({
+          url: '/adview.php',
+          data: {
+            location: pc
+          }, success: function(ret) {
+            var jobs = ret.hasOwnProperty('data') ? ret.data : null;
 
-          if (jobs) {
-            _.each(jobs, function(job) {
-              console.log(job)
-              var v = new Iznik.Views.User.Job({
-                model: new Iznik.Model(job)
+            if (jobs) {
+              _.each(jobs, function(job) {
+                var v = new Iznik.Views.User.Job({
+                  model: new Iznik.Model(job)
+                })
+                v.render()
+                self.$('.js-jobs').append(v.$el)
               })
-              v.render()
-              self.$('.js-jobs').append(v.$el)
-            })
+            }
           }
-        }
-      });
+        });
+      }
 
       var ret = Iznik.Views.Page.prototype.render.call(this)
 
