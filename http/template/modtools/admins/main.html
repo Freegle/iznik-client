@@ -30,5 +30,19 @@
 <p class="js-nopending" style="display: none">
     There are no pending admins just now.
 </p>
-<h4>Previous ADMINs for this group</h4>
-<ul id="adminlist" class="topspace panel-group list-unstyled" />
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="headingOne">
+            <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Previous ADMINs for this group <span class="js-admincount" />
+                </a>
+            </h4>
+        </div>
+        <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+            <div class="panel-body">
+                <ul id="adminlist" class="topspace panel-group list-unstyled" />
+            </div>
+        </div>
+    </div>
+</div>

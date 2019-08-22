@@ -163,17 +163,6 @@ define([
             p.then(function () {
                 self.$('.js-membercount').html(self.model.get('membercount').toLocaleString());
 
-                // Add the description
-                var desc = self.model.get('description');
-
-                if (desc) {
-                    self.$('.js-gotdesc').show();
-                    self.$('.js-description').html(desc);
-
-                    // Any links in here are real.
-                    self.$('.js-description a').attr('data-realurl', true);
-                }
-
                 var founded = self.model.get('founded');
                 if (founded) {
                     var m = new moment(founded);
@@ -187,7 +176,18 @@ define([
                         showmods: true
                     }
                 }).then(function () {
-                    var showmods = self.model.get('showmods');
+                  // Add the description
+                  var desc = self.model.get('description');
+
+                  if (desc) {
+                    self.$('.js-gotdesc').show();
+                    self.$('.js-description').html(desc);
+
+                    // Any links in here are real.
+                    self.$('.js-description a').attr('data-realurl', true);
+                  }
+
+                  var showmods = self.model.get('showmods');
 
                     if (showmods) {
                         self.showmods = new Iznik.Collection(showmods);

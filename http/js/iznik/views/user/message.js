@@ -1303,11 +1303,30 @@ define([
     events: {
       'click .js-send': 'send',
       'click .js-profile': 'showProfile',
-      'click .js-mapzoom': 'mapZoom'
+      'click .js-mapzoom': 'mapZoom',
+      'click .js-report': 'report'
     },
 
     initialize: function () {
       this.events = _.extend(this.events, Iznik.Views.User.Message.prototype.events)
+    },
+
+    report: function (e) {
+      var self = this;
+      var v = new Iznik.Views.User.Message.Report({
+        model: self.model
+      });
+
+      var p = v.render();
+
+      // Hide the message.  It's not removed from the group yet because that's up to the volunteers, but this
+      // will make the user feel better.
+      self.listenToOnce(v, 'modalClosed', function() {
+        self.$el.fadeOut('slow');
+      })
+
+      e.preventDefault()
+      e.stopPropagation()
     },
 
     showProfile: function (e) {
@@ -1658,6 +1677,21 @@ define([
       return (p)
     }
   })
+
+  Iznik.Views.User.Message.Report = Iznik.Views.Modal.extend({
+    template: 'user_message_report',
+
+    events: {
+      'click .js-submitreport': 'submitReport'
+    },
+
+    submitReport: function() {
+      var self = this
+      Iznik.Session.chats.reportMessage(self.$('.js-reason').val(), self.model).then(_.bind(function() {
+        self.close();
+      }, self));
+    }
+  });
 
   Iznik.Views.User.Message.Map = Iznik.Views.Modal.extend({
     template: 'user_message_mapzoom',

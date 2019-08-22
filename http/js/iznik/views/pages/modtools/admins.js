@@ -57,7 +57,7 @@ define([
           },
           remove: true
         }).then(function () {
-          console.log('Fetched admins', self.collection)
+          self.$('.js-admincount').html('(' + self.collection.length + ')')
         })
       }
     },

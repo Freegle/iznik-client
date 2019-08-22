@@ -126,6 +126,7 @@ define([
                     console.log("Google error:" + msg, { typ: 1 })
                 }
             );
+            console.log("Google after call")
         },
 
         noop: function (authResult) {

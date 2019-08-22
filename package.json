@@ -65,7 +65,7 @@
     "geocomplete": "^1.7.0",
     "googlemaps-js-rich-marker": "^1.0.2",
     "jest": "^22.4.4",
-    "jquery": "^3.3.1",
+    "jquery": "^3.4.1",
     "jquery-flesler-scrollto": "^2.1.1",
     "jquery-migrate": "^3.0.1",
     "jquery-resizable-dom": "^0.20.0",
@@ -154,7 +154,7 @@
     "webpack-cli": "^3.1.2",
     "webpack-config": "^7.5.0",
     "webpack-dev-middleware": "^3.4.0",
-    "webpack-dev-server": "^3.1.9",
+    "webpack-dev-server": "^3.7.2",
     "webpack-hot-middleware": "^2.24.3"
   }
 }
