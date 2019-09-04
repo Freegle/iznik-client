@@ -56,8 +56,14 @@ define([
               }
             }
           });
-        }
 
+          Iznik.Views.Page.prototype.render.call(self)
+        }
+      }
+      newScript.onerror = function(e) {
+        self.model = new Iznik.Model({
+          adblock: true
+        });
         Iznik.Views.Page.prototype.render.call(self)
       }
 
