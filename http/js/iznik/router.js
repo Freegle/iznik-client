@@ -244,6 +244,7 @@ define([
       'councils/othercouncils': 'userCouncilsOtherCouncils',
       'councils/bestpractice': 'userCouncilsBestPractice',
       'councils': 'userCouncils',
+      'discourse': 'discourse',
       '*path': 'userDefault'
     },
 
@@ -2353,6 +2354,14 @@ define([
 
       Iznik.Session.forceLogin()
     },
+
+    discourse: function () {
+      self.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
+        window.location = 'discourse.ilovefreegle.org';
+      })
+
+      Iznik.Session.forceLogin()
+    }
   })
 
   $(document).ready(function () {
