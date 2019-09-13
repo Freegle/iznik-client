@@ -542,7 +542,7 @@ define([
                 // Now create a report message.
                 var msg = new Iznik.Models.Chat.Message({
                   roomid: ret.id,
-                  message: "I'm reporting https://" + USER_SITE + '/message/' + message.get('id') + ' as inappropriate.\r\n\r\n"' + reason + '"',
+                  message: "I'm reporting https://" + USER_SITE + '/message/' + message.get('id') + ' to you as inappropriate.\r\n\r\n"' + reason + '"',
                 })
                 msg.save().then(function () {
                   console.log("Open chat to mods ", message);
