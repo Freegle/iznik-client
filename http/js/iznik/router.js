@@ -2357,7 +2357,7 @@ define([
 
     discourse: function () {
       this.listenToOnce(Iznik.Session, 'loggedIn', function (loggedIn) {
-        window.location = 'discourse.ilovefreegle.org';
+        window.location = '//discourse.ilovefreegle.org';
       })
 
       Iznik.Session.forceLogin()
