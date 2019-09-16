@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="137" id="org.ilovefreegle.modtools" version="0.2.17" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="138" id="org.ilovefreegle.modtools" version="0.2.18" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>ModTools</name>
     <description>Tool to help moderators of Freegle and similar groups</description>
     <author email="geeks@ilovefreegle.org" href="https://ilovefreegle.org">
@@ -27,10 +27,17 @@
     <splash density="mdpi" height="470" orientation="portrait" platform="android" src="package-assets/Tile320x470.png" width="320" />
     <splash density="hdpi" height="640" orientation="portrait" platform="android" src="package-assets/Tile480x640.png" width="480" />
     <splash density="xhdpi" height="960" orientation="portrait" platform="android" src="package-assets/Tile720x960.png" width="720" />
-    <icon density="ldpi" height="36" platform="android" src="package-assets/Tile36.png" width="36" />
-    <icon density="mdpi" height="48" platform="android" src="package-assets/Tile48.png" width="48" />
-    <icon density="hdpi" height="72" platform="android" src="package-assets/Tile72.png" width="72" />
-    <icon density="xhdpi" height="96" platform="android" src="package-assets/Tile96.png" width="96" />
+
+  <platform name="android">
+    <resource-file src="package-assets/colors.xml" target="/app/src/main/res/values/colors.xml" />
+    <icon background="@color/background" density="ldpi" foreground="package-assets/Tile36.png"/>
+    <icon background="@color/background" density="mdpi" foreground="package-assets/mipmap-mdpi/mt_launcher.png" />
+    <icon background="@color/background" density="hdpi" foreground="package-assets/mipmap-hdpi/mt_launcher.png" />
+    <icon background="@color/background" density="xhdpi" foreground="package-assets/mipmap-xhdpi/mt_launcher.png" />
+    <icon background="@color/background" density="xxhdpi" foreground="package-assets/mipmap-xxhdpi/mt_launcher.png" />
+    <icon background="@color/background" density="xxxhdpi" foreground="package-assets/mipmap-xxxhdpi/mt_launcher.png" />
+  </platform>
+  
     <icon height="29" platform="ios" src="package-assets/Tile29.png" width="29" />
     <icon height="58" platform="ios" src="package-assets/Tile58.png" width="58" />
     <icon height="87" platform="ios" src="package-assets/Tile87.png" width="87" />
