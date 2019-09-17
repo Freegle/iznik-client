@@ -29,8 +29,8 @@ define([
         console.log("Loaded script")
         init(); // window.onload isn't called so we do it manually.
         var me = Iznik.Session.get('me');
-        var pc = me && me.settings && me.settings.mylocation && me.settings.mylocation.name ? me.settings.mylocation.name : null
-        pc = pc ? pc.substring(0, pc.indexOf(' ')) : null;
+        console.log("Got me", me);
+        var pc = me && me.city ? me.city : null
         pc = self.options.postcode ? self.options.postcode : pc
 
         if (pc) {
