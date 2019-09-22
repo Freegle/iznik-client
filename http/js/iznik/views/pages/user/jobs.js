@@ -29,8 +29,7 @@ define([
         console.log("Loaded script")
         init(); // window.onload isn't called so we do it manually.
         var me = Iznik.Session.get('me');
-        var pc = me && me.settings && me.settings.mylocation && me.settings.mylocation.name ? me.settings.mylocation.name : null
-        pc = pc ? pc.substring(0, pc.indexOf(' ')) : null;
+        var pc = me && me.city ? me.city : null
         pc = self.options.postcode ? self.options.postcode : pc
 
         if (pc) {
@@ -58,6 +57,13 @@ define([
           });
         }
 
+        Iznik.Views.Page.prototype.render.call(self)
+      }
+
+      newScript.onerror = function(e) {
+        self.model = new Iznik.Model({
+          adblock: true
+        });
         Iznik.Views.Page.prototype.render.call(self)
       }
 

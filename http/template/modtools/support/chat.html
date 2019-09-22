@@ -12,37 +12,15 @@
     <div class="col-md-2">
         <% if (obj.lastdate) { %><abbr class="timeago" title="{{lastdate}}">{{timeago(lastdate)}}</abbr><% } %>
     </div>
-    <div class="col-md-2">
-        <% if (chattype == 'Mod2Mod') { %>
-        Mods
-        <% } else if (chattype == 'User2Mod') { %>
-        To Mods
-        <% } else { %>
-            User
-            <% if (myuserid == user1.id) { %>
-                <% if (obj.user2) { %>
-                    #{{user2.id}}
-                <% } else { %>
-                ?
-                <% } %>
-            <% } else { %>
-                #{{user1.id}}
-            <% } %>
-        <% } %>
-    </div>
-    <div class="col-md-3">
+    <div class="col-md-5">
         <% if (chattype == 'User2User') { %>
-            <% if (obj.user1 && myuserid == user1.id) { %>
-                <% if (obj.user2) { %>
-                    {{user2.displayname}}
-                <% } else { %>
-                    (Unknown user)
-                <% } %>
+            <% if (obj.user1 && myuserid == user1) { %>
+                with {{u2name}} #{{user2}}
             <% } else { %>
-            {{user1.displayname}}
+                with {{u1name}} #{{user1}}
             <% } %>
         <% } else if (chattype == 'User2Mod') { %>
-            {{user1.displayname}}
+            to {{name}}
         <% } %>
     </div>
     <div class="col-md-3">

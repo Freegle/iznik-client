@@ -4,6 +4,11 @@
 <% } else { %>
 <h1>Find jobs near you</h1>
 <% } %>
+<% if (obj.adblock) { %>
+<div class="alert alert-warning">
+  We couldn't load the jobs.  Have you got an ad-blocker or privacy tool enabled?  Try disabling it.
+</div>
+<% } else { %>
 <p>Freegle will get a small amount if you click to view any of them, which will help keep us going.</p>
 <div class="row">
   <div class="cols-xs-12">
@@ -20,3 +25,4 @@
     <ul class="list-unstyled topspace js-jobs"/>
   </div>
 </div>
+<% } %>
