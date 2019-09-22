@@ -86,12 +86,12 @@
                 <string>fbapi20160328</string>
             </array>
         </config-file>
-        <config-file overwrite="true" parent="NSLocationAlwaysUsageDescription" platform="ios" target="*-Info.plist">
+        <edit-config target="NSLocationAlwaysUsageDescription" file="*-Info.plist" mode="merge">
             <string>To find your location when offering an item</string>
-        </config-file>
-        <config-file overwrite="true" parent="NSLocationWhenInUseUsageDescription" platform="ios" target="*-Info.plist">
+        </edit-config>
+        <edit-config target="NSLocationWhenInUseUsageDescription" file="*-Info.plist" mode="merge">
             <string>To find your location when offering an item</string>
-        </config-file>
+        </edit-config>
     </platform>
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
     <plugin name="cordova-custom-config" spec="^4.0.2" />
