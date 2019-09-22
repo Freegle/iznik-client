@@ -2,7 +2,7 @@
   <div class="panel-heading">
     <div class="panel-title">
       <span class="job-title">{{obj.title}}</span>
-      <span class="pull-right more-info">
+      <span class="pull-right more-info hidden-xs">
         <span class="location">{{obj.location}}</span> <span class="postcode">{{obj.postcode}}</span>
       </span>
     </div>
@@ -23,6 +23,9 @@
           {{obj.salary}}
         </div>
         <% } %>
+        <span class="visible-xs">
+          <i class="location">{{obj.location}}</i> <i class="postcode">{{obj.postcode}}</i>
+        </span>
         <a onmousedown="{{obj.onmousedown}}" target="_blank" data-realurl="true" href="{{obj.url}}">
           <span class="btn btn-info pull-right">
             More info >>
