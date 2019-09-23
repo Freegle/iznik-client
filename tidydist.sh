@@ -12,6 +12,8 @@ rm images/logos/*
 rm images/posters/*.pdf
 rm images/stories/*
 rm -r images/councils
+rm images/strollmap.png
+rm images/businesscard.png
 #mv *.png css
 #mv *.woff css
 #mv *.woff2 css
