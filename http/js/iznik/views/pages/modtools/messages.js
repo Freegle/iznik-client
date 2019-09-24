@@ -660,6 +660,8 @@ define([
         var fromid = from.substring(0, from.indexOf('@'))
         var memberid = Iznik.presdef('yahooid', model.fromuser, fromid)
         text = text.replace(/\$memberid/g, fromid)
+        var membername = Iznik.presdef('displayname', model.fromuser, fromid)
+        text = text.replace(/\$membername/g, membername)
 
         var summ = ''
 
