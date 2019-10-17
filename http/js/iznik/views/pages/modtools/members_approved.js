@@ -81,7 +81,8 @@ define([
                   otheremails.push(email.email)
                 }
               })
-              var comments = [] // CC..
+
+              var comments = []
               _.each(member.comments, function (comment) {
                 if (comment.user1) { comments.push(comment.user1) }
                 if (comment.user2) { comments.push(comment.user2) }
@@ -94,7 +95,7 @@ define([
                 if (comment.user9) { comments.push(comment.user9) }
                 if (comment.user10) { comments.push(comment.user10) }
                 if (comment.user11) { comments.push(comment.user11) }
-              })                // ..CC
+              })
 
               self.exportList.push([
                 member.id,
@@ -109,8 +110,8 @@ define([
                 member.yahooPostingStatus,
                 JSON.stringify(member.settings, null, 0),
                 member.ourpostingstatus,
-                member.bouncing,            // CC
-                comments.join('; '),        // CC
+                member.bouncing,
+                comments.join('; ')
               ])
             })
 
