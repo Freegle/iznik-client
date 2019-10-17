@@ -106,11 +106,17 @@ define([
                     } catch (e) {
                       console.log("Save failed", message, e)
                     }
+                  },
+                  error: function(e) {
+                    console.error("Fetch failed", e)
                   }
                 }));
               });
 
               Promise.all(promises).then(function() {
+                _.delay(_.bind(self.exportChunk, self), 10000)
+              }).catch(err => {
+                console.error("Promise all reject", err)
                 _.delay(_.bind(self.exportChunk, self), 10000)
               })
             } else {
