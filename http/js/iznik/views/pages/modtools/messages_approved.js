@@ -26,7 +26,30 @@ define([
       'keyup .js-searchtermmess': 'keyupmess',
       'click .js-searchmemb': 'searchmemb',
       'keyup .js-searchtermmemb': 'keyupmemb',
+      'click .js-sync': 'sync',
       'click .js-export': 'export',
+    },
+
+    sync: function () {
+      var self = this;
+
+      if (self.selected > 0) {
+        Iznik.Session.get('groups').each(function (group) {
+          console.log("Compare", group, group.get('id'), self.selected)
+          if (parseInt(group.get('id')) === parseInt(self.selected)) {
+            group.set('groupid', group.get('id'))
+            console.log("Force sync on", group)
+
+            IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
+              id: group.get('nameshort') + '.SyncMessages.Approved',
+              subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({
+                model: group
+              }),
+              bulk: true
+            }))
+          }
+        })
+      }
     },
 
     export: function () {

@@ -47,6 +47,8 @@ define([
 
     sync: function () {
       var group = Iznik.Session.getGroup(this.selected)
+      group.set('groupid', group.get('id'))
+
       IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
         id: group.get('nameshort') + '.SyncMessages.Approved',
         subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({

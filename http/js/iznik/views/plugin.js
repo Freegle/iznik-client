@@ -188,6 +188,8 @@ define([
                 window.IznikPlugin.notsynced = false;
 
                 Iznik.Session.get('groups').each(function (group) {
+                    group.set('groupid', group.get('id'))
+
                     // We know from our Yahoo scan whether there is any work to do.
                     if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
                         doSync(group)) {
@@ -975,6 +977,7 @@ define([
             if (ret.ygData) {
                 var total = ret.ygData[this.numField];
                 this.offset += total;
+                this.prevPageStart = ret.ygData.prevPageStart;
                 var messages = ret.ygData[this.messageLocation];
                 var maxage = null;
     
@@ -1011,9 +1014,9 @@ define([
                     }
                 }
 
-                // console.log("Finished?", self.url(), total, this.chunkSize, maxage, self.ageLimit);
+                console.log("Finished?", self.url(), total, this.chunkSize, maxage, self.ageLimit);
 
-                if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit || (ret.ygData.hasOwnProperty('nextPageStart') && ret.ygData.nextPageStart === 0)) {
+                if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit || (ret.ygData.hasOwnProperty('prevPageStart') && ret.ygData.prevPageStart === 0)) {
                     // Finished.  Now check with the server whether we have any messages which it doesn't.
                     $.ajax({
                         type: "POST",
@@ -1232,10 +1235,10 @@ define([
         source: 'Yahoo Approved',
     
         url: function() {
-            var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/messages?count=" + this.chunkSize + "&chrome=raw"
+            var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/messages?count=" + this.chunkSize + "&chrome=raw&sortOrder=desc&direction=-1"
     
-            if (this.offset) {
-                url += "&start=" + this.offset;
+            if (this.prevPageStart) {
+                url += "&start=" + this.prevPageStart;
             }
     
             return(url);
