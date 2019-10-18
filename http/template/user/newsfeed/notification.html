@@ -1,6 +1,6 @@
 <div class="js-top">
     <div class="<% if (!obj.seen) { %>backinfo<% } %>">
-        <% if (type == 'CommentOnCommented' && obj.fromuser) { %>
+        <% if (type == 'CommentOnCommented' && obj.fromuser && obj.newsfeed) { %>
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
@@ -8,7 +8,7 @@
                 </div>
             </div>
             <div class="media-body">
-                <span class="notification-title"><span class="small">{{fromuser.displayname}} commented <% if (newsfeed.replyto.message) { %><% if (newsfeed.replyto.type != 'Noticeboard') { %>on "{{newsfeed.replyto.message}}"<% } %><% } %></span></span>
+                <span class="notification-title"><span class="small">{{fromuser.displayname}} commented <% if (newsfeed.replyto && newsfeed.replyto.message) { %><% if (newsfeed.replyto.type != 'Noticeboard') { %>on "{{newsfeed.replyto.message}}"<% } %><% } %></span></span>
                 <p class="notification-desc">
                     <strong class="js-emoji">{{newsfeed.message}}</strong>
                 </p>
@@ -17,7 +17,7 @@
                 </div>
             </div>
         </div>
-        <% } else if (type == 'CommentOnYourPost') { %>
+        <% } else if (type == 'CommentOnYourPost' && obj.newsfeed) { %>
         <div class="media clickme">
             <div class="media-left">
                 <div class="media-object topspace">
@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="media-body">
-                <span class="notification-title"><span class="small"><% if (obj.fromuser) { %>{{fromuser.displayname}}<% } else { %>Freegle<% } %> commented on your post <% if (newsfeed.replyto.message) { %>"{{newsfeed.replyto.message}}"<% } %></span></span>
+                <span class="notification-title"><span class="small"><% if (obj.fromuser) { %>{{fromuser.displayname}}<% } else { %>Freegle<% } %> commented on your post <% if (newsfeed.replyto && newsfeed.replyto.message) { %>"{{newsfeed.replyto.message}}"<% } %></span></span>
                 <p class="notification-desc">
                     <strong class="js-emoji">{{newsfeed.message}}</strong>
                 </p>
