@@ -449,9 +449,11 @@ define([
                                 var total = ret.discourse.notifications + ret.discourse.unreadtopics + ret.discourse.newtopics;
 
                                 if (total) {
+                                    console.log("Total show", total)
                                     $('.js-discoursecount').html(total);
                                     $('.js-discoursecount').css('display', 'inline-block');
                                 } else {
+                                    console.log("Total hide", total)
                                     $('.js-discoursecount').html('');
                                     $('.js-discoursecount').css('display', 'hidden');
                                 }
