@@ -450,9 +450,9 @@ define([
 
                                 if (parseInt(total)) {
                                     $('.js-discoursecount').html(total);
-                                    $('.js-discoursecount').css('display', 'inline-block');
+                                    $('.js-discoursecount').css('visibility', 'visible');
                                 } else {
-                                    $('.js-discoursecount').css('display', 'none');
+                                    $('.js-discoursecount').css('visibility', 'hidden');
                                 }
                             }
 
