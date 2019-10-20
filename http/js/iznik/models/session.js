@@ -446,15 +446,14 @@ define([
                             // Discourse counts.  Discourse is a separate site but we show notifications here to
                             // encourage take-up by mods.
                             if (ret.discourse) {
-                                var total = ret.discourse.notifications + ret.discourse.unreadtopics + ret.discourse.newtopics;
+                                var total = parseInt(ret.discourse.notifications) + parseInt(ret.discourse.unreadtopics) + parseInt(ret.discourse.newtopics);
 
-                                if (total) {
+                                if (parseInt(total)) {
                                     console.log("Total show", total)
                                     $('.js-discoursecount').html(total);
                                     $('.js-discoursecount').css('display', 'inline-block');
                                 } else {
                                     console.log("Total hide", total)
-                                    $('.js-discoursecount').html('');
                                     $('.js-discoursecount').css('display', 'hidden');
                                 }
                             }
