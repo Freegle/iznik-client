@@ -449,12 +449,10 @@ define([
                                 var total = parseInt(ret.discourse.notifications) + parseInt(ret.discourse.unreadtopics) + parseInt(ret.discourse.newtopics);
 
                                 if (parseInt(total)) {
-                                    console.log("Total show", total)
                                     $('.js-discoursecount').html(total);
                                     $('.js-discoursecount').css('display', 'inline-block');
                                 } else {
-                                    console.log("Total hide", total)
-                                    $('.js-discoursecount').css('display', 'hidden');
+                                    $('.js-discoursecount').css('display', 'none');
                                 }
                             }
 
