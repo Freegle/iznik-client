@@ -161,12 +161,13 @@
 
 .notifchat {
     top: -14px;
+    width: 55px; /* CC */
 }
 
 #js-notifchat .badge, #js-discoursechat .badge {
-    position: relative;
-    top: -15px;
-    left: -35px;
+    position: absolute; /* CC */
+    top: -10px;         /* CC */
+    right: 15px;        /* CC */
 }
 
 .pageContent.landing {
