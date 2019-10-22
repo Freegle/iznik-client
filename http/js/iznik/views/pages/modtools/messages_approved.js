@@ -2,6 +2,7 @@ define([
   'jquery',
   'underscore',
   'backbone',
+  'file-saver',
   'iznik/base',
   'iznik/models/yahoo/user',
   'moment',
@@ -10,7 +11,9 @@ define([
   'iznik/views/pages/modtools/messages',
   'iznik/views/infinite',
   'iznik/views/group/select'
-], function ($, _, Backbone, Iznik, IznikYahooUsers, moment) {
+], function ($, _, Backbone, s, Iznik, IznikYahooUsers, moment) {
+  var saveAs = s.saveAs
+
   Iznik.Views.ModTools.Pages.ApprovedMessages = Iznik.Views.Infinite.extend({
     modtools: true,
 
@@ -22,7 +25,137 @@ define([
       'click .js-searchmess': 'searchmess',
       'keyup .js-searchtermmess': 'keyupmess',
       'click .js-searchmemb': 'searchmemb',
-      'keyup .js-searchtermmemb': 'keyupmemb'
+      'keyup .js-searchtermmemb': 'keyupmemb',
+      'click .js-sync': 'sync',
+      'click .js-export': 'export',
+    },
+
+    sync: function () {
+      var self = this;
+
+      if (self.selected > 0) {
+        Iznik.Session.get('groups').each(function (group) {
+          console.log("Compare", group, group.get('id'), self.selected)
+          if (parseInt(group.get('id')) === parseInt(self.selected)) {
+            group.set('groupid', group.get('id'))
+            console.log("Force sync on", group)
+
+            IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
+              id: group.get('nameshort') + '.SyncMessages.Approved',
+              subview: new Iznik.Views.Plugin.Yahoo.SyncMessages.Approved({
+                model: group
+              }),
+              bulk: true
+            }))
+          }
+        })
+      }
+    },
+
+    export: function () {
+      // Get all the messages.  Very slow.
+      var self = this
+
+      var v = new Iznik.Views.Confirm()
+
+      v.template = 'modtools_messages_approved_exportwarning'
+
+      self.listenToOnce(v, 'confirmed', function () {
+        if (self.selected > 0) {
+          Iznik.Session.get('groups').each(function (group) {
+            console.log("Compare", group, group.get('id'), self.selected)
+            if (parseInt(group.get('id')) === parseInt(self.selected)) {
+              console.log("Found")
+              self.group = group
+              var v = new Iznik.Views.PleaseWait({
+                timeout: 1
+              })
+              v.template = 'modtools_messages_approved_exportwait'
+              v.closeAfter = 365*24*60*60;
+              v.render().then(function (v) {
+                self.start = null;
+                self.exportWait = v
+                self.exportList = [['Unique ID', 'Display Name', 'Yahoo ID', 'Yahoo Alias', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Yahoo Delivery Type', 'Yahoo Posting Status', 'Settings on Group', 'Our Posting Status', 'Bouncing']]
+                self.exportContext = null
+                self.exportChunk()
+              })
+            }
+          });
+        }
+      })
+
+      v.render()
+    },
+
+    exportChunk: function () {
+      var self = this
+      var url = YAHOOAPI + 'groups/' + self.group.get('nameshort') + '/messages?' + (self.start ? ('start=' + self.start) : '') + '&count=15&sortOrder=desc&direction=-1';
+      $.ajax({
+        type: 'GET',
+        url: url,
+        context: self,
+        data: {
+          limit: 100,
+          context: self.exportContext ? self.exportContext : null
+        },
+        success: function (ret) {
+          console.log("Chunk got", ret)
+          var self = this
+          self.exportContext = ret.context
+
+          if (ret.ygData.messages.length > 0) {
+            if (parseInt(ret.ygData.prevPageStart)) {
+              self.start = ret.ygData.prevPageStart;
+              console.log("Next start", self.start)
+              var promises = []
+
+              _.each(ret.ygData.messages, function(message, index, list) {
+                console.log("Got", message)
+
+                promises.push($.ajax({
+                  type: 'GET',
+                  url: YAHOOAPI + 'groups/' + self.group.get('nameshort') + '/messages/' + message.messageId + '/raw',
+                  context: self,
+                  data: {
+                    limit: 100,
+                    context: self.exportContext ? self.exportContext : null
+                  },
+                  success: function (ret) {
+                    var blob = new Blob([JSON.stringify(ret)], {type: 'text/json;charset=utf-8'})
+                    try {
+                      saveAs(blob, self.group.get('nameshort') + '-msg-' + ret.ygData.msgId)
+                      console.log("Saved")
+                      $('.js-exporting').html(ret.ygData.msgId)
+                    } catch (e) {
+                      console.log("Save failed", message, e)
+                    }
+                  },
+                  error: function(e) {
+                    console.error("Fetch failed", e)
+                  }
+                }));
+              });
+
+              Promise.all(promises).then(function() {
+                _.delay(_.bind(self.exportChunk, self), 10000)
+              }).catch(err => {
+                console.error("Promise all reject", err)
+                _.delay(_.bind(self.exportChunk, self), 10000)
+              })
+            } else {
+              self.finished()
+            }
+          } else {
+            self.finished()
+          }
+        }
+      })
+    },
+
+    finished: function() {
+      var self = this;
+      console.log("Finished")
+      self.exportWait.close();
     },
 
     countsChanged: function () {

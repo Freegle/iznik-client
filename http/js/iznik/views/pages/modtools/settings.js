@@ -1637,13 +1637,9 @@ define([
         action: 'Create',
         name: self.diff[self.$('.js-grouplist').val()],
         grouptype: self.$('.js-type').val(),
-        lat: self.$('.js-addlat').val(),
-        lng: self.$('.js-addlng').val(),
-        corearea: self.$('.js-addcore').val(),
-        catchmentarea: self.$('.js-addcatchment').val()
       }
 
-      if (data.name && data.grouptype && data.lat && data.lng && data.corearea) {
+      if (data.name && data.grouptype) {
         $.ajax({
           type: 'POST',
           url: API + 'group',

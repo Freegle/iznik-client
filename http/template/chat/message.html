@@ -1,63 +1,82 @@
-<% if (obj.reviewedby && !obj.mine) { %>
-<p><em>You reviewed this:</em></p>
-<% } %>
-<div class="row nopad nomargin <%if (!obj.sameasnext || obj.gap) { %>botspace <% } %>">
-    <% if (obj.left) { %>
-    <div class="col-xs-12 nopad">
-    <% } else { %>
-    <div class="col-xs-2 nopad" />
-    <div class="col-xs-10 nopad">
-    <% } %>
-        <div class="row-fluid fullholder nopad <% if (obj.left) { %>chat-other<% } else { %>chat-mine<% } %>">
-            <% if (obj.group) { %>
-            <div class="col-sm-2 padsmall ellipsis" title="<% if (user.id != obj.myid) { %>{{user.displayname}}<% } %>">
-                <% if (obj.left && !obj.sameaslast) { %>
-                    <% if (obj.user) { %>
-                    <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail clickme botspace js-profile" />
+<div class="row nomargin">
+    <div class="cols-xs-12">
+        <% if (obj.reviewedby && !obj.mine) { %>
+        <p><em>You reviewed this:</em></p>
+        <% } %>
+        <% if (obj.left) { %>
+        <div class="media margright pull-left">
+            <div class="media-left">
+                <div class="media-object margleft">
+                    <% if (obj.group) { %>
+                    <div class="padsmall ellipsis" title="<% if (user.id != obj.myid) { %>{{user.displayname}}<% } %>">
+                        <% if (obj.user) { %>
+                        <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail clickme js-profile" />
+                        <% } %>
+                    </div>
+                    <% } else { %>
+                    <div>
+                        <% if (obj.user) { %>
+                        <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail clickme js-profile" />
+                        <% } %>
+                    </div>
                     <% } %>
-                    <% if (user.id != obj.myid) { %><br class="hidden-xs" />{{user.displayname}}<% } %>
-                <% } %>
-                </div>
-                <div class="col-xs-12 col-sm-10 nopad">
-                <% } else { %>
-                <div class="col-xs-12 nopad">
-                <% } %>
-                <div class="<% if (obj.left) {%>pull-left<% } else { %>pull-right<% } %>">
-                    <% if (obj.left && !obj.sameaslast && !obj.group) { %>
-                    <% if (obj.user) { %>
-                    <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail clickme botspace js-profile" />
-                    <% } %>
-                    <% } %>
-                    <% if (!obj.left && !obj.sameaslast) { %>
-                    <% if (obj.user) { %>
-                    <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail pull-right margleftsm clickme botspace js-profile" />
-                    <% } %>
-                    <% } %>
-                    <div class="js-chatmessage inline chat-message <% if ((obj.secondsago < 60) || (obj.user && id > lastmsgseen)) { %> chat-message-unseen <% } %>" />
                 </div>
             </div>
+            <div class="media-body chat-message chat-other">
+                <div class="js-chatmessage inline <% if ((obj.secondsago < 60) || (obj.user && id > lastmsgseen)) { %> chat-message-unseen <% } %>" />
+            </div>
         </div>
-        <% if (!obj.sameasnext || obj.gap) { %>
-        <div class="row-fluid fullholder nopad">
-            <% if (obj.group) { %>
-            <div class="col-sm-2 padleft" />
-            <div class="col-sm-10" />
-            <% } else { %>
-            <div class="col-sm-12 padleft">
-            <% } %>
-                <% if (!obj.left) { %>
-                    <% if (obj.seenbyall) { %>
-                    <span class="glyphicons glyphicons-tick success pull-right small" alt="Read" title="This has been seen." />
-                    <% } else if (obj.mailedtoall) { %>
-                    <span class="glyphicons glyphicons-envelope faded pull-right small" alt="Emailed" title="This has been sent by email but may not have been seen yet." />
+        <% } else { %>
+        <div class="media margleft pull-right">
+            <div class="media-body chat-message chat-mine">
+                <div class="js-chatmessage inline <% if ((obj.secondsago < 60) || (obj.user && id > lastmsgseen)) { %> chat-message-unseen <% } %>" />
+            </div>
+            <div class="media-right">
+                <div class="media-object margright">
+                    <% if (obj.group) { %>
+                    <div class="padsmall ellipsis" title="<% if (user.id != obj.myid) { %>{{user.displayname}}<% } %>">
+                        <% if (!obj.sameaslast) { %>
+                            <% if (obj.user) { %>
+                            <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail clickme js-profile" />
+                            <% } %>
+                        <% } %>
+                    </div>
                     <% } else { %>
-                    <span class="glyphicons glyphicons-tick faded pull-right small" alt="Read" title="This has been sent but may not have been seen yet." />
+                    <div>
+                        <% if (!obj.sameaslast) { %>
+                            <% if (obj.user) { %>
+                            <img src="{{user.profile.turl}}" class="img-circle img-tinythumbnail clickme js-profile" />
+                            <% } %>
+                        <% } %>
+                    </div>
                     <% } %>
-                <% } %>
-                <abbr class="chat-when botspace  <% if (obj.left) { %>pull-left<% } else { %>pull-right<% } %> text-muted small timeago" title="{{date}}">{{timeago(date)}}</abbr>
+                </div>
             </div>
         </div>
         <% } %>
+        <div class="clearfix" />
     </div>
 </div>
-<div class="clearfix" />
+<div class="row nomargin">
+    <div class="cols-xs-12">
+        <% if (obj.left) { %>
+            <div class="pull-left topspace botspace margleft text-muted small">
+                <% if (obj.group) { %>
+                <% if (user.id != obj.myid) { %>{{user.displayname}}<% } %>
+                <% } %>
+                <abbr class="chat-when timeago" title="{{date}}">{{timeago(date)}}</abbr>
+            </div>
+        <% } else { %>
+            <div class="pull-right margright">
+                <% if (obj.seenbyall) { %>
+                <span class="glyphicons glyphicons-tick success pull-right small" alt="Read" title="This has been seen." />
+                <% } else if (obj.mailedtoall) { %>
+                <span class="glyphicons glyphicons-envelope faded pull-right small" alt="Emailed" title="This has been sent by email but may not have been seen yet." />
+                <% } else { %>
+                <span class="glyphicons glyphicons-tick faded pull-right small" alt="Read" title="This has been sent but may not have been seen yet." />
+                <% } %>
+                <abbr class="chat-when botspace text-muted small timeago" title="{{date}}">{{timeago(date)}}</abbr>
+            </div>
+        <% } %>
+    </div>
+</div>

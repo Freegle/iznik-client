@@ -47,6 +47,8 @@ define([
 
     sync: function () {
       var group = Iznik.Session.getGroup(this.selected)
+      group.set('groupid', group.get('id'))
+
       IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
         id: group.get('nameshort') + '.SyncMessages.Approved',
         subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({
@@ -82,6 +84,21 @@ define([
                 }
               })
 
+              var comments = []
+              _.each(member.comments, function (comment) {
+                if (comment.user1) { comments.push(comment.user1) }
+                if (comment.user2) { comments.push(comment.user2) }
+                if (comment.user3) { comments.push(comment.user3) }
+                if (comment.user4) { comments.push(comment.user4) }
+                if (comment.user5) { comments.push(comment.user5) }
+                if (comment.user6) { comments.push(comment.user6) }
+                if (comment.user7) { comments.push(comment.user7) }
+                if (comment.user8) { comments.push(comment.user8) }
+                if (comment.user9) { comments.push(comment.user9) }
+                if (comment.user10) { comments.push(comment.user10) }
+                if (comment.user11) { comments.push(comment.user11) }
+              })
+
               self.exportList.push([
                 member.id,
                 member.displayname,
@@ -95,7 +112,8 @@ define([
                 member.yahooPostingStatus,
                 JSON.stringify(member.settings, null, 0),
                 member.ourpostingstatus,
-                member.bouncing
+                member.bouncing,
+                comments.join('; ')
               ])
             })
 
@@ -132,7 +150,7 @@ define([
           v.template = 'modtools_members_approved_exportwait'
           v.render().then(function (v) {
             self.exportWait = v
-            self.exportList = [['Unique ID', 'Display Name', 'Yahoo ID', 'Yahoo Alias', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Yahoo Delivery Type', 'Yahoo Posting Status', 'Settings on Group', 'Our Posting Status', 'Bouncing']]
+            self.exportList = [['Unique ID', 'Display Name', 'Yahoo ID', 'Yahoo Alias', 'Email on Group', 'Joined', 'Role on Group', 'Other emails', 'Yahoo Delivery Type', 'Yahoo Posting Status', 'Settings on Group', 'Our Posting Status', 'Bouncing', 'Comments']] // CC
             self.exportContext = null
             self.exportChunk()
           })

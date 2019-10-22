@@ -581,9 +581,11 @@ define([
       if (message.trim().length > 0) {
         // We get called back when the message has actually been sent to the server.
         self.listenToOnce(this.model, 'sent', function () {
+          self.$('.js-send').attr('disabled', null)
           self.getLatestMessages()
         })
 
+        self.$('.js-send').attr('disabled', true)
         self.model.send(message)
 
         // Create another model with a fake id and add it to the collection.  This will populate our view
