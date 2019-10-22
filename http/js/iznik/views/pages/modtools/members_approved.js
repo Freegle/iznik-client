@@ -47,6 +47,8 @@ define([
 
     sync: function () {
       var group = Iznik.Session.getGroup(this.selected)
+      group.set('groupid', group.get('id'))
+
       IznikPlugin.collection.add(new Iznik.Models.Plugin.Work({
         id: group.get('nameshort') + '.SyncMessages.Approved',
         subview: new Iznik.Views.Plugin.Yahoo.SyncMembers.Approved({
@@ -96,6 +98,21 @@ define([
                 if (comment.user11) { comments.push(comment.user11) }
               })                // ..CC
 
+              var comments = []
+              _.each(member.comments, function (comment) {
+                if (comment.user1) { comments.push(comment.user1) }
+                if (comment.user2) { comments.push(comment.user2) }
+                if (comment.user3) { comments.push(comment.user3) }
+                if (comment.user4) { comments.push(comment.user4) }
+                if (comment.user5) { comments.push(comment.user5) }
+                if (comment.user6) { comments.push(comment.user6) }
+                if (comment.user7) { comments.push(comment.user7) }
+                if (comment.user8) { comments.push(comment.user8) }
+                if (comment.user9) { comments.push(comment.user9) }
+                if (comment.user10) { comments.push(comment.user10) }
+                if (comment.user11) { comments.push(comment.user11) }
+              })
+
               self.exportList.push([
                 member.id,
                 member.displayname,
@@ -109,8 +126,8 @@ define([
                 member.yahooPostingStatus,
                 JSON.stringify(member.settings, null, 0),
                 member.ourpostingstatus,
-                member.bouncing,            // CC
-                comments.join('; '),        // CC
+                member.bouncing,
+                comments.join('; ')
               ])
             })
 

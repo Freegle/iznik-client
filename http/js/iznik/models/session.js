@@ -483,6 +483,19 @@ define([
                                 $('.js-workcount').html('').hide();
                             }
 
+                            // Discourse counts.  Discourse is a separate site but we show notifications here to
+                            // encourage take-up by mods.
+                            if (ret.discourse) {
+                                var total = parseInt(ret.discourse.notifications) + parseInt(ret.discourse.unreadtopics) + parseInt(ret.discourse.newtopics);
+
+                                if (parseInt(total)) {
+                                    $('.js-discoursecount').html(total);
+                                    $('.js-discoursecount').css('visibility', 'visible');
+                                } else {
+                                    $('.js-discoursecount').css('visibility', 'hidden');
+                                }
+                            }
+
                             if (countschanged) {
                                 Iznik.Session.trigger('countschanged');
                             }

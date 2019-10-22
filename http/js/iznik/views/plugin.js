@@ -192,6 +192,8 @@ define([
                 window.IznikPlugin.notsynced = false;
 
                 Iznik.Session.get('groups').each(function (group) {
+                    group.set('groupid', group.get('id'))
+
                     // We know from our Yahoo scan whether there is any work to do.
                     if (numgroups.length < 5 || worthIt(self.yahooGroupsWithPendingMessages, group, 'pending') &&
                         doSync(group)) {
@@ -999,6 +1001,7 @@ define([
             if (ret.ygData) {
                 var total = ret.ygData[this.numField];
                 this.offset += total;
+                this.prevPageStart = ret.ygData.prevPageStart;
                 var messages = ret.ygData[this.messageLocation];
                 var maxage = null;
     
@@ -1035,9 +1038,9 @@ define([
                     }
                 }
 
-                // console.log("Finished?", self.url(), total, this.chunkSize, maxage, self.ageLimit);
+                console.log("Finished?", self.url(), total, this.chunkSize, maxage, self.ageLimit);
 
-                if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit || (ret.ygData.hasOwnProperty('nextPageStart') && ret.ygData.nextPageStart === 0)) {
+                if (total == 0 || total < this.chunkSize || maxage >= self.ageLimit || (ret.ygData.hasOwnProperty('prevPageStart') && ret.ygData.prevPageStart === 0)) {
                     // Finished.  Now check with the server whether we have any messages which it doesn't.
                     $.ajax({
                         type: "POST",
@@ -1256,10 +1259,10 @@ define([
         source: 'Yahoo Approved',
     
         url: function() {
-            var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/messages?count=" + this.chunkSize + "&chrome=raw"
+            var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/messages?count=" + this.chunkSize + "&chrome=raw&sortOrder=desc&direction=-1"
     
-            if (this.offset) {
-                url += "&start=" + this.offset;
+            if (this.prevPageStart) {
+                url += "&start=" + this.prevPageStart;
             }
     
             return(url);
@@ -1269,7 +1272,101 @@ define([
             return YAHOOAPI + 'groups/' + this.model.get('nameshort') + '/messages/' + id + '/raw'
         }
     });
-    
+
+    Iznik.Views.Plugin.Yahoo.DownloadMessages = Iznik.Views.Plugin.Yahoo.SyncMessages.extend({
+        // Setting offset to 0 omits start from first one
+        offset: 0,
+
+        ageLimit: 7300,
+
+        template: 'plugin_sync_messages_download',
+
+        messageLocation: 'messages',
+        crumbLocation: "/management/pendingmessages",
+
+        numField: 'numRecords',
+        idField: 'yahooapprovedid',
+        dateField: 'date',
+
+        deleteAllMissing: false,
+
+        collections: [
+            'Approved',
+            'Spam'
+        ],
+
+        source: 'Yahoo Approved',
+
+        url: function() {
+            var url = YAHOOAPI + 'groups/' + this.model.get('nameshort') + "/messages?count=" + this.chunkSize + "&chrome=raw"
+
+            if (this.offset) {
+                url += "&start=" + this.offset;
+            }
+
+            return(url);
+        },
+
+        sourceurl: function(id) {
+            return YAHOOAPI + 'groups/' + this.model.get('nameshort') + '/messages/' + id + '/raw'
+        },
+
+        processChunk: function(ret) {
+            var self = this;
+            var now = moment();
+
+            if (ret.ygData) {
+                var total = ret.ygData[this.numField];
+                this.offset += total;
+                var messages = ret.ygData[this.messageLocation];
+                var maxage = null;
+
+                for (var i = 0; i < total; i++) {
+                    var message = messages[i];
+                    console.log("Got message", message)
+
+                    var d = moment(message[this.dateField] * 1000);
+                    self.$('.js-date').html(d.format('MMM DD YYYY hh:mmA'));
+
+                    var thisone = {
+                        email: message['email'],
+                        subject: message['subject'],
+                        date: d.format()
+                    };
+
+                    if (message.hasOwnProperty('messageId')) {
+                        thisone.yahooapprovedid = message['messageId'];
+                    }
+
+                    var url = self.sourceurl(message[self.idField]);
+
+                    $.ajax({
+                        type: "GET",
+                        url: url,
+                        context: self,
+                        success: function(ret) {
+                            // console.log("Returned", url, ret);
+                            if (ret.hasOwnProperty('ygData') && ret.ygData.hasOwnProperty('rawEmail')) {
+                                var source = Iznik.decodeEntities(ret.ygData.rawEmail);
+                                console.log("Decoded source", source)
+                            } else {
+                                // Couldn't fetch.  Not much we can do - Yahoo has some messages
+                                // which are not accessible.
+                                console.log("Couldn't fetch", url, self.model.get('nameshort'), ret);
+                            }
+                        }, error: function(req, status, error) {
+                            // Couldn't fetch.  Not much we can do - Yahoo has some messages
+                            // which are not accessible.
+                            console.log("Couldn't fetch message", status);
+                        }, complete: function() {
+                            self.requeue()
+                        }
+                    });
+                }
+            }
+        },
+    });
+
     Iznik.Views.Plugin.Yahoo.SyncMembers = Iznik.Views.Plugin.SubView.extend({
         offset: 1,
     
