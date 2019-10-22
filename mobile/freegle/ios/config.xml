@@ -92,7 +92,7 @@
         <config-file overwrite="true" parent="NSLocationWhenInUseUsageDescription" platform="ios" target="*-Info.plist">
             <string>To find your location when offering an item</string>
         </config-file>
-      </platform>
+    </platform>
     <plugin name="cordova-plugin-compat" spec="^1.2.0" />
     <plugin name="cordova-custom-config" spec="^4.0.2" />
     <plugin name="cordova-plugin-ios-camera-permissions" spec="^1.2.0">
