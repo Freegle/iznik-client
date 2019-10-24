@@ -89,7 +89,15 @@ define([
         events: {
             'click .js-save': 'save',
             'click .js-approve': 'approve',
-            'click .js-delete': 'deleteMe'
+            'click .js-delete': 'deleteMe',
+            'click .js-chat': 'chat'
+        },
+
+        chat: function () {
+            var self = this
+            require(['iznik/views/chat/chat'], function (ChatHolder) {
+                ChatHolder().openModChatToUser(self.model.get('user').id, self.model.get('groups')[0].id)
+            })
         },
 
         approve: function() {
