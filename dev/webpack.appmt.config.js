@@ -37,8 +37,8 @@ module.exports = new Config().extend({
         return config;
     }
   }).merge({
-  //mode: 'development',
-  mode: 'production',
+  mode: 'development',
+  //mode: 'production',
   // CC devtool: 'source-map',
   entry: [join(ROOT, 'client/appmt.js')],
     module: {
@@ -73,7 +73,7 @@ module.exports = new Config().extend({
     }),
     // CC new FaviconsPlugin('images/modtools_logo.png'),
     new webpack.DefinePlugin({
-      APP_VERSION: JSON.stringify('0.2.19, 22 October 2019.'),
+      APP_VERSION: JSON.stringify('0.2.20, 30 October 2019.'),
       // CC SET ABOVE: API: JSON.stringify(BASE_URL+'/api/'),
       FACEBOOK_APPID: JSON.stringify('134980666550322'),
       FACEBOOK_GRAFFITI_APPID: JSON.stringify('115376591981611'),

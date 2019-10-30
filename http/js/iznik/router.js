@@ -300,7 +300,8 @@ define([
     },
 
     mobileReload: function (url) {  // CC url not used - could be used to specify route to use
-      window.location.href = window.initialURL  // Could add ?route=Xxx
+      console.log("mobileReload");
+      window.mobileRefresh();
     },
 
     userHome: function () {
@@ -2436,11 +2437,12 @@ define([
 
       var ret = Router.navigate(href, { trigger: true });
 
+      /* CC ret never undefined and $link doesn't exist. mobileReload may have been called already
       if (ret === undefined && $link.hasClass('allow-reload')) {
         console.log("LINK 5");
         alert("LINK 5: " + href);
         Backbone.history.loadUrl(href);
-      }
+      }*/
       //console.log("LINK 6");
     }
     // Could be #, #something or absolute URL: all OK
