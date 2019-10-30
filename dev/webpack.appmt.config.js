@@ -37,8 +37,8 @@ module.exports = new Config().extend({
         return config;
     }
   }).merge({
-  mode: 'development',
-  //mode: 'production',
+  //mode: 'development',
+  mode: 'production',
   // CC devtool: 'source-map',
   entry: [join(ROOT, 'client/appmt.js')],
     module: {
