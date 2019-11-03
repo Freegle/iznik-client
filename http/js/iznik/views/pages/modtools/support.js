@@ -1088,6 +1088,7 @@ define([
       'click .js-logs': 'logs',
       'click .js-spammer': 'spammer',
       'click .js-purge': 'purge',
+      'click .js-merge': 'merge',
       'click .js-profile': 'showProfile'
     },
 
@@ -1138,6 +1139,10 @@ define([
       })
 
       v.render()
+    },
+
+    merge: function () {
+      (new Iznik.Views.ModTools.User.Merge()).render()
     },
 
     purge: function () {
