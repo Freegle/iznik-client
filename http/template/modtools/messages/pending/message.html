@@ -6,7 +6,9 @@
                     <% if (obj.worry) { %>
                         <% _(obj.worry).each(function(word) { %>
                             <div class="alert alert-danger topspace">
-                                <% if (word.worryword.type === 'Regulated') { %>
+                                <% if (word.worryword.type === 'Reivew') { %>
+                                <p>This post contains a keyword which means it's flagged up for review.  If you can't see anything wrong with it, then it's fine.</p>
+                                <% else if (word.worryword.type === 'Regulated') { %>
                                 <p>This post looks as though it contains a regulated substance.  These should not be allowed on Freegle.  Please do not approve this without checking on <a href="https://discourse.ilovefreegle.org/" data-realurl="true" target="_blank">Central</a> first.</p>
                                 <% } else if (word.worryword.type === 'Reportable') { %>
                                 <p>This post looks as though it contains a reportable substance.  These may need to be reported to the police.  Pease ask the member about it to see what their reason is, and if in doubt discuss on <a href="https://discourse.ilovefreegle.org/" data-realurl="true" target="_blank">Central</a>.</p>
