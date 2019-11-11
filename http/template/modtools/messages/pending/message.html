@@ -3,6 +3,22 @@
         <div class="row">
             <div class="panel-title msgsubj js-details">
                 <div class="col-sm-9">
+                    <% if (obj.worry) { %>
+                        <% _(obj.worry).each(function(word) { %>
+                            <div class="alert alert-danger topspace">
+                                <% if (word.worryword.type === 'Review') { %>
+                                <p>This post contains a keyword which means it's flagged up for review.  If you can't see anything wrong with it, then it's fine.</p>
+                                <% } else if (word.worryword.type === 'Regulated') { %>
+                                <p>This post looks as though it contains a regulated substance.  These should not be allowed on Freegle.  Please do not approve this without checking on <a href="https://discourse.ilovefreegle.org/" data-realurl="true" target="_blank">Central</a> first.</p>
+                                <% } else if (word.worryword.type === 'Reportable') { %>
+                                <p>This post looks as though it contains a reportable substance.  These may need to be reported to the police.  Pease ask the member about it to see what their reason is, and if in doubt discuss on <a href="https://discourse.ilovefreegle.org/" data-realurl="true" target="_blank">Central</a>.</p>
+                                <% } else if (word.worryword.type === 'Medicine') { %>
+                                <p>This post looks as though it contains a drug, medicine or supplement.  These are not legal on Freegle.  Please do not approve this without checking on <a href="https://discourse.ilovefreegle.org/" data-realurl="true" target="_blank">Central</a> first.</p>
+                                <% } %>
+                                <p>You can find more information <a href="http://wiki.ilovefreegle.org/Worry_Words" data-realurl="true" target="_blank">here</a>.</p>
+                            </div>
+                        <% }) %>
+                    <% } %>
                     <h4 class="js-coloursubj">{{subject}}</h4>
                     <div class="inline nopad nomarg js-maybepluginonly">
                         <% if (obj.sourceheader == 'Platform' && obj.item && obj.location && obj.postcode) { %>

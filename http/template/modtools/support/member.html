@@ -70,6 +70,11 @@
                 </div>
             </a>
             <% } %>
+            <% if (obj.systemrole == 'User' || obj.isadmin) { %>
+            <div class="btn btn-white js-merge">
+                =&nbsp;Merge
+            </div>
+            <% } %>
             <h3>Location</h3>
             <div class="row botspace">
                 <div class="col-md-3 botspace">
