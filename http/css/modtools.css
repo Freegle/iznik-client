@@ -160,14 +160,25 @@
 }
 
 .notifchat {
-    top: -14px;
-    width: 35px; /* CC */
+  top: -14px;
 }
 
 #js-notifchat .badge, #js-discoursechat .badge {
-    position: absolute; /* CC */
-    top: -10px;         /* CC */
-    right: 15px;        /* CC */
+  position: relative;
+  top: -15px;
+  left: -35px;
+}
+
+@media(max-width:320px) { /* CC */
+  .notifchat {
+    width: 35px;
+  }
+
+  #js-notifchat .badge, #js-discoursechat .badge {
+    position: absolute;
+    top: -10px;
+    right: 15px;
+  }
 }
 
 .pageContent.landing {
