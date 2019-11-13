@@ -90,34 +90,10 @@ define([
             onyahoo.push(group.get('namedisplay'))
           }
         })
-
-        console.log('Groups on Yahoo', onyahoo)
-
-        if (onyahoo.length > 0) {
-          self.$('.js-onyahoogroups').html(onyahoo.join(', '))
-          self.$('.js-onyahoowarning').fadeIn('slow')
-
-          var lastask = Storage.get('lastyahoowarningalert')
-          var now = (new Date()).getTime()
-
-          if (now - lastask > 1 * 24 * 60 * 60 * 1000) {
-            Storage.set('lastyahoowarningalert', now);
-
-            (new Iznik.Views.ModTools.Message.YahooWarning({
-              model: new Iznik.Model({
-                grouplist: onyahoo.join(', ')
-              })
-            })).render()
-          }
-        }
       })
 
       return (p)
     }
-  })
-
-  Iznik.Views.ModTools.Message.YahooWarning = Iznik.Views.Modal.extend({
-    template: 'modtools_messages_pending_yahoowarning'
   })
 
   Iznik.Views.ModTools.Message.Pending = Iznik.Views.ModTools.Message.extend({
