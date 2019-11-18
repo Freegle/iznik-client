@@ -15,6 +15,7 @@
                                 <% } else if (word.worryword.type === 'Medicine') { %>
                                 <p>This post looks as though it contains a drug, medicine or supplement.  These are not legal on Freegle.  Please do not approve this without checking on <a href="https://discourse.ilovefreegle.org/" data-realurl="true" target="_blank">Central</a> first.</p>
                                 <% } %>
+                                <p>We flagged this because we think "<% print(word.word) %>" is a close match for "<% print(word.worryword.keyword) %>".</p>
                                 <p>You can find more information <a href="http://wiki.ilovefreegle.org/Worry_Words" data-realurl="true" target="_blank">here</a>.</p>
                             </div>
                         <% }) %>
