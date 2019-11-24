@@ -278,8 +278,6 @@ define([
           self.listenTo(chat, 'change:unseen', self.updateUnread)
         })
 
-        self.updateUnread()
-
         self.listenToOnce(Iznik.Session.chats, 'newroom', self.watchChatRooms)
       }
     },
