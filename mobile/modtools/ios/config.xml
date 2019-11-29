@@ -12,6 +12,7 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
+    <allow-intent href="wss:*" />
     <platform name="ios">
         <allow-intent href="itmss:*" />
         <allow-intent href="itms:*" />
