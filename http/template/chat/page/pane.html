@@ -119,6 +119,12 @@
                                     <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-bell text-muted vcenter" alt="Nudge" />Nudge&nbsp;</div>
                                 </td>
                                 <% } %>
+                                <% if (chattype == 'User2Mod' && modtools) { %>
+                                <td class="js-tooltip js-info" data-placement="top" data-toggle="tooltip" title="Find out more about this freegler." >
+                                    <span class="clickme glyphicons glyphicons-info-sign text-muted gi-2x visible-xs"  alt="Info"  />
+                                    <div class="btn btn-white btn-sm padmd hidden-xs"><span class="clickme glyphicons glyphicons-info-sign text-muted vcenter" alt="Info" />Info&nbsp;</div>
+                                </td>
+                                <% } %>
                                 <td class="js-photo js-tooltip" data-placement="top" data-toggle="tooltip" title="Send a photo.">
                                     <input type="file" class="js-photopicker" name="photo"  />
                                 </td>
