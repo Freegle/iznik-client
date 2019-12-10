@@ -1419,14 +1419,39 @@ define([
               }
             }
 
-            var replies = self.model.get('replies')
-            self.replies = new Iznik.Collections.Replies(replies)
+            var origreplies = self.model.get('replies')
+            var replies = []
+            var users = [];
+
             self.contributors = []
-            _.each(replies, function (reply) {
-              if (reply.user) {
-                self.contributors[reply.user.id] = reply.user.displayname
+
+            function unnest(origreplies) {
+              _.each(origreplies, function(reply) {
+                replies.push(reply)
+
+                if (reply.user) {
+                  self.contributors[reply.user.id] = reply.user.displayname
+                  users[reply.user.id] = reply.user
+                }
+
+                if (reply.replies && reply.replies.length) {
+                  // In the new version of FD we have nested replies.  Make sure we at least display these (flattened) in
+                  // this version.
+                  unnest(reply.replies)
+                }
+              })
+            }
+
+            unnest(origreplies)
+            console.log("Replies", replies)
+
+            for (var i = 0; i < replies.length; i++) {
+              if (!replies[i].user && replies[i].userid) {
+                replies[i].user = users[replies[i].userid]
               }
-            })
+            }
+
+            self.replies = new Iznik.Collections.Replies(replies)
 
             var replyel = self.$('.js-replies')
 
