@@ -55,6 +55,8 @@
             Outcome for #{{msgid}}: {{text}}
             <% } else if (subtype == 'Autoapproved') { %>
             Auto-approved #{{msgid}} - either Yahoo problems or not moderated
+            <% } else if (subtype == 'WorryWords') { %>
+            Message #{{msgid}} {{text}}
             <% } else { %>
                     <div class="text-muted">Unknown log type {{type}} subtype {{subtype}}</div>
             <% } %>
