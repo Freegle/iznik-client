@@ -321,14 +321,16 @@ define([
                         self.listenToOnce(Iznik.Session, 'isLoggedIn', function (loggedIn) {
                             // We have some groups near their chosen location.
                             var mygroups = Iznik.Session.get('groups');
-                            mygroups.each(function(group) {
-                                if (group.get('type') == 'Freegle' &&
-                                    group.get('privategroup')) {
-                                    // We are a member of a private group.  That should appear at the top.
-                                    groups.append('<option value="' + group.get('id') + '" />');
-                                    groups.find('option:last').text(group.get('namedisplay'));
-                                }
-                            });
+                            if (mygroups) {
+                                mygroups.each(function(group) {
+                                    if (group.get('type') == 'Freegle' &&
+                                      group.get('privategroup')) {
+                                        // We are a member of a private group.  That should appear at the top.
+                                        groups.append('<option value="' + group.get('id') + '" />');
+                                        groups.find('option:last').text(group.get('namedisplay'));
+                                    }
+                                });
+                            }
 
                             var homegroup = null;
                             var homegrouptime = null;
