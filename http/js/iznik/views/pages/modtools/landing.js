@@ -57,16 +57,6 @@ define([
                         }
 
                         if (ret.dashboard) {
-                            if (Iznik.Session.isAdminOrSupport()) {
-                                var pre = ret.dashboard.prerender;
-                                var age = (new Date()).getTime() - (new Date(pre)).getTime();
-
-                                // Give a few hours grace above the max frequency of 24.
-                                if (age > 30 * 60 * 60 * 1000) {
-                                    self.$('.js-prerenderwrapper').fadeIn('slow');
-                                }
-                            }
-
                             if (Iznik.Session.isFreegleMod() &&
                                 ret.dashboard.hasOwnProperty('Happy') &&
                                 ret.dashboard.hasOwnProperty('Unhappy') &&
