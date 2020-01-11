@@ -22,7 +22,7 @@
         </div>
         <% if (obj.byuser && type != 'whitelisted') { %>
         <% if (type == 'pendingremove') { %>
-        <span class="text-muted"><small>Removal requested by {{byuser.displayname}}</small></span>
+        <span class="text-muted"><small>Removal requested by {{byuser.displayname}} (<a data-realurl="true" href="mailto:{{byuser.email}}">{{byuser.email}}</a>)</small></span>
         <% } else { %>
         <span class="text-muted"><small>Reported by {{byuser.displayname}} (<a data-realurl="true" href="mailto:{{byuser.email}}">{{byuser.email}}</a>)</small></span>
         <% } %>
