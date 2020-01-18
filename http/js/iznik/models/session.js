@@ -549,30 +549,15 @@ define([
             });
         },
 
-        yahooLogin: function () {
+        yahooLogin: function (code) {
             var self = this;
-
-            var match,
-                pl = /\+/g,  // Regex for replacing addition symbol with a space
-                search = /([^&=]+)=?([^&]*)/g,
-                decode = function (s) {
-                    return decodeURIComponent(s.replace(pl, " "));
-                },
-                query = window.location.search.substring(1);
-
-            // We want to post to the server to do the login there.  We pass all the URL
-            // parameters we have, which include the OpenID response.
-            var urlParams = {};
-            while (match = search.exec(query))
-                urlParams[decode(match[1])] = decode(match[2]);
-            urlParams['yahoologin'] = true;
-            urlParams['returnto'] = document.URL;
-            console.log("Got URL params", urlParams);
 
             $.ajax({
                 url: API + 'session',
                 type: 'POST',
-                data: urlParams,
+                data: {
+                    yahoocodelogin: code
+                },
                 success: function (response) {
                     console.log("Session login returned", response);
                     if (response.ret === 0) {

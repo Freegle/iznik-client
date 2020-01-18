@@ -204,17 +204,24 @@ define([
         },
         
         yahoologin: function () {
-            this.listenToOnce(Iznik.Session, 'yahoologincomplete', function (ret) {
-                if (ret.hasOwnProperty('redirect')) {
-                    window.location = ret.redirect;
-                } else if (ret.ret == 0) {
-                    window.location.reload();
-                } else {
-                    window.location.reload();
-                }
-            });
+            // Sadly Yahoo doesn't support a Javascript-only OAuth flow, so far as I can tell.  So what we do is
+            // redirect to Yahoo, which returns back to us with a code parameter, which we then pass to the server
+            // to complete the signin.  This replaces the old flow which stopped working in Jan 2020.
 
-            Iznik.Session.yahooLogin();
+            let url =
+              'https://api.login.yahoo.com/oauth2/request_auth?client_id=' +
+              'dj0yJmk9N245WTRqaDd2dnA4JmQ9WVdrOWIzTlZNMU01TjJjbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWRh' +
+              '&redirect_uri=' +
+              encodeURIComponent(
+                window.location.protocol +
+                '//' +
+                window.location.hostname +
+                (window.location.port ? ':' + window.location.port : '') +
+                '/yahoologin'
+              ) +
+              '&response_type=code&language=en-us&scope=sdpp-w'
+
+            window.location = url
         },
 
         showNative: function () {

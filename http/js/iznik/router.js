@@ -1214,24 +1214,15 @@ define([
     yahoologin: function (path) {
       var self = this
 
-      // We have been redirected here after an attempt to sign in with Yahoo.  We now try again to login
-      // on the server.  This time we should succeed.
-      var returnto = Iznik.getURLParam('returnto')
+      // We have been redirected here after an attempt to sign in with Yahoo.  We should have a code URL parameter
+      // which we can use to log in.
+      var code = Iznik.getURLParam('code')
 
       self.listenToOnce(Iznik.Session, 'yahoologincomplete', function (ret) {
-        if (ret.ret == 0) {
-          if (returnto) {
-            window.location = returnto
-          } else {
-            self.userHome.call(self)
-          }
-        } else {
-          // TODO
-          window.location = '/'
-        }
+        self.modtools.call(self)
       })
 
-      Iznik.Session.yahooLogin()
+      Iznik.Session.yahooLogin(code)
     },
 
     modtools: function () {
