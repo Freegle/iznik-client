@@ -620,7 +620,7 @@ define([
         // NO: http://stackoverflow.com/questions/17228785/yahoo-authentication-by-oauth-without-any-redirectionclient-side-is-it-possib
         // NO:  - looked at: OpenID solution uses window.open https://gist.github.com/erikeldridge/619947
 
-        yahooMTLogin: function () {
+        /* yahooMTLogin: function () {
             console.log("yahooMTLogin");
             var self = this;
 
@@ -653,21 +653,29 @@ define([
                     }
                 }
             });
-        },
+        }, */
 
         ///////////////////////////////////////
         // Request user authenticates by opening passed URL
         // If user gives Ok, then pop-up window tries to open a page at ilovefreegle.
         // We catch and stop this open, get passed parameters and pass them as part of repeat FD login request
 
-        yahooAuth: function (yauthurl) {   // CC
+        yahooMTLogin: function () {
           var self = this
           console.log("Yahoo authenticate window open")
-          console.log("yahooAuth: " + yauthurl)
 
           var authGiven = false
 
-          // CC?? var authWindow = cordova.InAppBrowser.open(yauthurl, '_blank', 'location=yes,menubar=yes');
+          const returnPath = '/'
+          const here = 'https://modtools.org/'
+
+          const yauthurl =
+            'https://api.login.yahoo.com/oauth2/request_auth?client_id=' +
+            YAHOO_CLIENTID +
+            '&redirect_uri=' +
+            encodeURIComponent(here + '/yahoologin?returnto=' + returnPath) +
+            '&response_type=code&language=en-us&scope=sdpp-w'
+
           var authWindow = window.open(yauthurl, '_blank', 'location=yes,menubar=yes')
 
           $(authWindow).on('loadstart', function (e) {
@@ -680,13 +688,12 @@ define([
               var urlParams = self.extractQueryStringParams(url)
               if (urlParams) {
                 authGiven = true
-                urlParams.yahoologin = true
                 console.log(urlParams)
                 //alert(JSON.stringify(urlParams))
-                var email = urlParams['openid.ax.value.email']
-                var fullname = urlParams['openid.ax.value.fullname']
-                localStorage.setItem('yahoo.email', email)
-                localStorage.setItem('yahoo.fullname', fullname)
+                //var email = urlParams['openid.ax.value.email']
+                //var fullname = urlParams['openid.ax.value.fullname']
+                //localStorage.setItem('yahoo.email', email)
+                //localStorage.setItem('yahoo.fullname', fullname)
 
                 // Try logging in again at FD
                 $.ajax({
