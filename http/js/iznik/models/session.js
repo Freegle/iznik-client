@@ -667,7 +667,7 @@ define([
           var authGiven = false
 
           const returnPath = '/'
-          const here = 'https://modtools.org/'
+          const here = 'https://www.ilovefreegle.org'
 
           const yauthurl =
             'https://api.login.yahoo.com/oauth2/request_auth?client_id=' +
@@ -676,14 +676,15 @@ define([
             encodeURIComponent(here + '/yahoologin?returnto=' + returnPath) +
             '&response_type=code&language=en-us&scope=sdpp-w'
 
-          var authWindow = window.open(yauthurl, '_blank', 'location=yes,menubar=yes')
+          var authWindow = cordova.InAppBrowser.open(yauthurl, '_blank', 'location=yes,menubar=yes')
 
           $(authWindow).on('loadstart', function (e) {
             var url = e.originalEvent.url
             console.log("yloadstart: " + url)
 
             // Catch redirect after auth back to modtools
-            if (url.indexOf("https://modtools.org/") === 0) {
+            if ((url.indexOf("https://modtools.org/") === 0) ||
+              (url.indexOf("https://www.ilovefreegle.org/") === 0)) {
               authWindow.close();
               var urlParams = self.extractQueryStringParams(url)
               if (urlParams) {
@@ -699,7 +700,9 @@ define([
                 $.ajax({
                   url: API + 'session',
                   type: 'POST',
-                  data: urlParams,
+                  data: {
+                    yahoocodelogin: urlParams.code
+                  },
                   success: function (response) {
                     console.log("Session login returned", response);
                     if (response.ret === 0) {
