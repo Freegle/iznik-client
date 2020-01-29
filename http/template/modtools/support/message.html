@@ -4,6 +4,8 @@
         <% if (obj.group) { %>{{group.nameshort}}<% } %>
         <% if (obj.collection != 'Approved') { %>
         &nbsp;<span class="error">{{collection}}</span>
+        <% } else { %>
+        {{collection}}
         <% } %>
     </div>
     <div class="col-md-1 text-muted">#{{id}}</div>
