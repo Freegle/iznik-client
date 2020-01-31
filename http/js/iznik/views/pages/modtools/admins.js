@@ -68,6 +68,10 @@ define([
       var groupid = self.groupSelect.get();
       console.log("Group", groupid);
 
+      if (groupid == -2) {
+        window.alert("This ADMIN will be sent to all groups.  Please check that's what you intend.")
+      }
+
       if (groupid > 0) {
         self.$('.js-suggested').hide();
       } else {
