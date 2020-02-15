@@ -217,7 +217,7 @@ define([
                 '//' +
                 window.location.hostname +
                 (window.location.port ? ':' + window.location.port : '') +
-                '/yahoologin'
+                '/modtools/yahoologin'
               ) +
               '&response_type=code&language=en-us&scope=sdpp-w'
 

@@ -108,7 +108,7 @@ define([
       // End legacy
 
       'localstorage': 'localstorage',
-      'yahoologin': 'yahoologin',
+      'modtools/yahoologin': 'yahoologin',
       'modtools/chat/:id': 'modChat',
       'modtools/chats': 'modChats',
       'modtools/logs(/:type)': 'modLogs',
