@@ -67,7 +67,7 @@
     "jquery-resizable-dom": "^0.20.0",
     "jquery-validation": "^1.18.0",
     "jquery-visible": "^1.2.0",
-    "lazysizes": "^4.1.4",
+    "lazysizes": "^5.2.1",
     "marker-animate-unobtrusive": "^0.2.8",
     "module": "^1.2.5",
     "moment": "^2.22.2",
